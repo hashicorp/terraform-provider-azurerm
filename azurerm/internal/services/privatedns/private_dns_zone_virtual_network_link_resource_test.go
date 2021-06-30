@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +19,10 @@ type PrivateDnsZoneVirtualNetworkLinkResource struct {
 func TestAccPrivateDnsZoneVirtualNetworkLink_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone_virtual_network_link", "test")
 	r := PrivateDnsZoneVirtualNetworkLinkResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -35,10 +33,10 @@ func TestAccPrivateDnsZoneVirtualNetworkLink_basic(t *testing.T) {
 func TestAccPrivateDnsZoneVirtualNetworkLink_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone_virtual_network_link", "test")
 	r := PrivateDnsZoneVirtualNetworkLinkResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -49,17 +47,17 @@ func TestAccPrivateDnsZoneVirtualNetworkLink_requiresImport(t *testing.T) {
 func TestAccPrivateDnsZoneVirtualNetworkLink_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone_virtual_network_link", "test")
 	r := PrivateDnsZoneVirtualNetworkLinkResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 			),
 		},
 		{
 			Config: r.withTagsUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
@@ -68,7 +66,7 @@ func TestAccPrivateDnsZoneVirtualNetworkLink_withTags(t *testing.T) {
 	})
 }
 
-func (t PrivateDnsZoneVirtualNetworkLinkResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t PrivateDnsZoneVirtualNetworkLinkResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualNetworkLinkID(state.ID)
 	if err != nil {
 		return nil, err

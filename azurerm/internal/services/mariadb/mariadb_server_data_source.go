@@ -5,26 +5,26 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceMariaDbServer() *schema.Resource {
-	return &schema.Resource{
+func dataSourceMariaDbServer() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceMariaDbServerRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
@@ -37,42 +37,42 @@ func dataSourceMariaDbServer() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"administrator_login": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"storage_profile": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"storage_mb": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
 
 						"backup_retention_days": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
 
 						"geo_redundant_backup": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"auto_grow": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -80,12 +80,12 @@ func dataSourceMariaDbServer() *schema.Resource {
 			},
 
 			"ssl_enforcement": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"fqdn": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -94,7 +94,7 @@ func dataSourceMariaDbServer() *schema.Resource {
 	}
 }
 
-func dataSourceMariaDbServerRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMariaDbServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

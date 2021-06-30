@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccRouteFilter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
 	r := RouteFilterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccRouteFilter_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
 	r := RouteFilterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -54,10 +53,10 @@ func TestAccRouteFilter_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
 	r := RouteFilterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -69,9 +68,10 @@ func TestAccRouteFilter_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
 	r := RouteFilterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config: r.basic,
+			Config:       r.basic,
+			TestResource: r,
 		}),
 	})
 }
@@ -80,10 +80,10 @@ func TestAccRouteFilter_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
 	r := RouteFilterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
@@ -92,7 +92,7 @@ func TestAccRouteFilter_withTags(t *testing.T) {
 		},
 		{
 			Config: r.withTagsUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
@@ -105,10 +105,10 @@ func TestAccRouteFilter_withRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
 	r := RouteFilterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withRules(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("rule.0.access").HasValue("Allow"),
@@ -119,7 +119,7 @@ func TestAccRouteFilter_withRules(t *testing.T) {
 		},
 		{
 			Config: r.withRulesUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("rule.0.access").HasValue("Allow"),
@@ -131,7 +131,7 @@ func TestAccRouteFilter_withRules(t *testing.T) {
 	})
 }
 
-func (t RouteFilterResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t RouteFilterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.RouteFilterID(state.ID)
 	if err != nil {
 		return nil, err
@@ -145,7 +145,7 @@ func (t RouteFilterResource) Exists(ctx context.Context, clients *clients.Client
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (RouteFilterResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (RouteFilterResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.RouteFilterID(state.ID)
 	if err != nil {
 		return nil, err

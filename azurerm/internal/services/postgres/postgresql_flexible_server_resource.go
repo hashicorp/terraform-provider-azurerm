@@ -8,8 +8,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -19,22 +17,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourcePostgresqlFlexibleServer() *schema.Resource {
-	return &schema.Resource{
+func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourcePostgresqlFlexibleServerCreate,
 		Read:   resourcePostgresqlFlexibleServerRead,
 		Update: resourcePostgresqlFlexibleServerUpdate,
 		Delete: resourcePostgresqlFlexibleServerDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(1 * time.Hour),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(1 * time.Hour),
-			Delete: schema.DefaultTimeout(1 * time.Hour),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(1 * time.Hour),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(1 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(1 * time.Hour),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -42,9 +41,9 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.FlexibleServerName,
@@ -55,7 +54,7 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"administrator_login": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
@@ -63,28 +62,28 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 			},
 
 			"administrator_password": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"sku_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validate.FlexibleServerSkuName,
 			},
 
 			"storage_mb": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432}),
 			},
 
 			"version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
@@ -97,7 +96,7 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 			"zone": azure.SchemaZoneComputed(),
 
 			"create_mode": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -107,48 +106,48 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 			},
 
 			"delegated_subnet_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: networkValidate.SubnetID,
 			},
 
 			"point_in_time_restore_time_in_utc": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"source_server_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.FlexibleServerID,
 			},
 
 			"maintenance_window": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"day_of_week": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      0,
 							ValidateFunc: validation.IntBetween(0, 6),
 						},
 
 						"start_hour": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      0,
 							ValidateFunc: validation.IntBetween(0, 23),
 						},
 
 						"start_minute": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      0,
 							ValidateFunc: validation.IntBetween(0, 59),
@@ -158,24 +157,24 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 			},
 
 			"backup_retention_days": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(7, 35),
 			},
 
 			"cmk_enabled": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"fqdn": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"public_network_access_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
@@ -183,7 +182,7 @@ func resourcePostgresqlFlexibleServer() *schema.Resource {
 		},
 	}
 }
-func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -312,7 +311,7 @@ func resourcePostgresqlFlexibleServerCreate(d *schema.ResourceData, meta interfa
 	return resourcePostgresqlFlexibleServerRead(d, meta)
 }
 
-func resourcePostgresqlFlexibleServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -370,7 +369,7 @@ func resourcePostgresqlFlexibleServerRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourcePostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServersClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -420,7 +419,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta interfa
 	return resourcePostgresqlFlexibleServerRead(d, meta)
 }
 
-func resourcePostgresqlFlexibleServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -470,7 +469,7 @@ func expandArmServerMaintenanceWindow(input []interface{}) *postgresqlflexiblese
 	return &maintenanceWindow
 }
 
-func expandArmServerStorageProfile(d *schema.ResourceData) *postgresqlflexibleservers.StorageProfile {
+func expandArmServerStorageProfile(d *pluginsdk.ResourceData) *postgresqlflexibleservers.StorageProfile {
 	storage := postgresqlflexibleservers.StorageProfile{}
 
 	if v, ok := d.GetOk("backup_retention_days"); ok {

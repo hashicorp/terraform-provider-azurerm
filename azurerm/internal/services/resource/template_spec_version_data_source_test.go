@@ -3,7 +3,6 @@ package resource_test
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -15,10 +14,10 @@ func TestAccDataSourceTemplateSpecVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_template_spec_version", "test")
 	r := TemplateSpecVersionDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("acctest-standing-data-empty"),
 				check.That(data.ResourceName).Key("version").HasValue("v1.0.0"),
 				check.That(data.ResourceName).Key("template_body").Exists(),

@@ -7,12 +7,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,7 +22,7 @@ func TestAccApplicationInsightsAPIKey_no_permission(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
 	r := AppInsightsAPIKey{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.basic(data, "[]", "[]"),
 			ExpectError: regexp.MustCompile("The API Key needs to have a Role"),
@@ -35,10 +34,10 @@ func TestAccApplicationInsightsAPIKey_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
 	r := AppInsightsAPIKey{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "[]", `["annotations"]`),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("read_permissions.#").HasValue("0"),
 				check.That(data.ResourceName).Key("write_permissions.#").HasValue("1"),
@@ -55,10 +54,10 @@ func TestAccApplicationInsightsAPIKey_read_telemetry_permissions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
 	r := AppInsightsAPIKey{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, `["aggregate", "api", "draft", "extendqueries", "search"]`, "[]"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("read_permissions.#").HasValue("5"),
 				check.That(data.ResourceName).Key("write_permissions.#").HasValue("0"),
@@ -72,10 +71,10 @@ func TestAccApplicationInsightsAPIKey_write_annotations_permission(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
 	r := AppInsightsAPIKey{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "[]", `["annotations"]`),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("read_permissions.#").HasValue("0"),
 				check.That(data.ResourceName).Key("write_permissions.#").HasValue("1"),
@@ -89,10 +88,10 @@ func TestAccApplicationInsightsAPIKey_authenticate_permission(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
 	r := AppInsightsAPIKey{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, `["agentconfig"]`, "[]"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("read_permissions.#").HasValue("1"),
 				check.That(data.ResourceName).Key("write_permissions.#").HasValue("0"),
@@ -106,10 +105,10 @@ func TestAccApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
 	r := AppInsightsAPIKey{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, `["agentconfig", "aggregate", "api", "draft", "extendqueries", "search"]`, `["annotations"]`),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("read_permissions.#").HasValue("6"),
 				check.That(data.ResourceName).Key("write_permissions.#").HasValue("1"),
@@ -119,7 +118,7 @@ func TestAccApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 	})
 }
 
-func (t AppInsightsAPIKey) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t AppInsightsAPIKey) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.Attributes["id"])
 	if err != nil {
 		return nil, err

@@ -1,42 +1,39 @@
 package media
 
 import (
+	b64 "encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"regexp"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	b64 "encoding/base64"
-	"encoding/hex"
-
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/gofrs/uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMediaContentKeyPolicy() *schema.Resource {
-	return &schema.Resource{
+func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMediaContentKeyPolicyCreateUpdate,
 		Read:   resourceMediaContentKeyPolicyRead,
 		Update: resourceMediaContentKeyPolicyCreateUpdate,
 		Delete: resourceMediaContentKeyPolicyDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -44,9 +41,9 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -58,71 +55,71 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"media_services_account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AccountName,
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"policy_option": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"clear_key_configuration_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 
 						"widevine_configuration_template": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						//lintignore:XS003
 						"playready_configuration_license": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"allow_test_devices": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Optional: true,
 									},
 
 									"begin_date": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsRFC3339Time,
 									},
 
 									"content_key_location_from_header_enabled": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Optional: true,
 									},
 
 									"content_key_location_from_key_id": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsUUID,
 									},
 
 									"content_type": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(media.ContentKeyPolicyPlayReadyContentTypeUltraVioletDownload),
@@ -132,20 +129,20 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 									},
 
 									"expiration_date": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsRFC3339Time,
 									},
 
 									"grace_period": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"license_type": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(media.ContentKeyPolicyPlayReadyLicenseTypeNonPersistent),
@@ -155,19 +152,19 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 
 									//lintignore:XS003
 									"play_right": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"agc_and_color_stripe_restriction": {
-													Type:         schema.TypeInt,
+													Type:         pluginsdk.TypeInt,
 													Optional:     true,
 													ValidateFunc: validation.IntBetween(0, 3),
 												},
 
 												"allow_passing_video_content_to_unknown_output": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Optional: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(media.ContentKeyPolicyPlayReadyUnknownOutputPassingOptionAllowed),
@@ -177,52 +174,52 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 												},
 
 												"analog_video_opl": {
-													Type:         schema.TypeInt,
+													Type:         pluginsdk.TypeInt,
 													Optional:     true,
 													ValidateFunc: validation.IntInSlice([]int{100, 150, 200}),
 												},
 
 												"compressed_digital_audio_opl": {
-													Type:         schema.TypeInt,
+													Type:         pluginsdk.TypeInt,
 													Optional:     true,
 													ValidateFunc: validation.IntInSlice([]int{100, 150, 200}),
 												},
 
 												"digital_video_only_content_restriction": {
-													Type:     schema.TypeBool,
+													Type:     pluginsdk.TypeBool,
 													Optional: true,
 												},
 
 												"first_play_expiration": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Optional:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
 												},
 
 												"image_constraint_for_analog_component_video_restriction": {
-													Type:     schema.TypeBool,
+													Type:     pluginsdk.TypeBool,
 													Optional: true,
 												},
 
 												"image_constraint_for_analog_computer_monitor_restriction": {
-													Type:     schema.TypeBool,
+													Type:     pluginsdk.TypeBool,
 													Optional: true,
 												},
 
 												"scms_restriction": {
-													Type:         schema.TypeInt,
+													Type:         pluginsdk.TypeInt,
 													Optional:     true,
 													ValidateFunc: validation.IntBetween(0, 3),
 												},
 
 												"uncompressed_digital_audio_opl": {
-													Type:         schema.TypeInt,
+													Type:         pluginsdk.TypeInt,
 													Optional:     true,
 													ValidateFunc: validation.IntInSlice([]int{100, 150, 250, 300}),
 												},
 
 												"uncompressed_digital_video_opl": {
-													Type:         schema.TypeInt,
+													Type:         pluginsdk.TypeInt,
 													Optional:     true,
 													ValidateFunc: validation.IntInSlice([]int{100, 250, 270, 300}),
 												},
@@ -230,13 +227,13 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 										},
 									},
 									"relative_begin_date": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsRFC3339Time,
 									},
 
 									"relative_expiration_date": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsRFC3339Time,
 									},
@@ -245,43 +242,43 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 						},
 						//lintignore:XS003
 						"fairplay_configuration": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"ask": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"pfx": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"pfx_password": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									//lintignore:XS003
 									"offline_rental_configuration": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"playback_duration_seconds": {
-													Type:         schema.TypeInt,
+													Type:         pluginsdk.TypeInt,
 													Optional:     true,
 													ValidateFunc: validation.IntAtLeast(1),
 												},
 												"storage_duration_seconds": {
-													Type:         schema.TypeInt,
+													Type:         pluginsdk.TypeInt,
 													Optional:     true,
 													ValidateFunc: validation.IntAtLeast(1),
 												},
@@ -289,17 +286,17 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 										},
 									},
 									"rental_and_lease_key_type": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(media.DualExpiry),
-											string(media.PersistentLimited),
-											string(media.PersistentUnlimited),
-											string(media.Undefined),
+											string(media.ContentKeyPolicyFairPlayRentalAndLeaseKeyTypeDualExpiry),
+											string(media.ContentKeyPolicyFairPlayRentalAndLeaseKeyTypePersistentLimited),
+											string(media.ContentKeyPolicyFairPlayRentalAndLeaseKeyTypePersistentUnlimited),
+											string(media.ContentKeyPolicyFairPlayRentalAndLeaseKeyTypeUndefined),
 										}, false),
 									},
 									"rental_duration_seconds": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Optional:     true,
 										ValidateFunc: validation.IntAtLeast(1),
 									},
@@ -308,23 +305,23 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 						},
 						//lintignore:XS003
 						"token_restriction": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"audience": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"issuer": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"token_type": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(media.ContentKeyPolicyRestrictionTokenTypeJwt),
@@ -332,47 +329,47 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 										}, false),
 									},
 									"primary_symmetric_token_key": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsBase64,
 										Sensitive:    true,
 									},
 									"primary_rsa_token_key_exponent": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 										Sensitive:    true,
 									},
 									"primary_rsa_token_key_modulus": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 										Sensitive:    true,
 									},
 									"primary_x509_token_key_raw": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 										Sensitive:    true,
 									},
 									"open_id_connect_discovery_document": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									//lintignore:XS003
 									"required_claim": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"type": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Optional:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
 												},
 												"value": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Optional:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
 												},
@@ -383,7 +380,7 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 							},
 						},
 						"open_restriction_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 					},
@@ -393,7 +390,7 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 	}
 }
 
-func resourceMediaContentKeyPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaContentKeyPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.ContentKeyPoliciesClient
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -421,7 +418,7 @@ func resourceMediaContentKeyPolicyCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("policy_option"); ok {
-		options, err := expandPolicyOptions(v.(*schema.Set).List())
+		options, err := expandPolicyOptions(v.(*pluginsdk.Set).List())
 		if err != nil {
 			return err
 		}
@@ -438,7 +435,7 @@ func resourceMediaContentKeyPolicyCreateUpdate(d *schema.ResourceData, meta inte
 	return resourceMediaContentKeyPolicyRead(d, meta)
 }
 
-func resourceMediaContentKeyPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaContentKeyPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.ContentKeyPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -475,7 +472,7 @@ func resourceMediaContentKeyPolicyRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceMediaContentKeyPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaContentKeyPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.ContentKeyPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -611,11 +608,11 @@ func expandRestriction(option map[string]interface{}) (media.BasicContentKeyPoli
 	restrictionType := ""
 	if option["open_restriction_enabled"] != nil && option["open_restriction_enabled"].(bool) {
 		restrictionCount++
-		restrictionType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction)
+		restrictionType = string(media.OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction)
 	}
 	if option["token_restriction"] != nil && len(option["token_restriction"].([]interface{})) > 0 && option["token_restriction"].([]interface{})[0] != nil {
 		restrictionCount++
-		restrictionType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction)
+		restrictionType = string(media.OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction)
 	}
 
 	if restrictionCount == 0 {
@@ -627,16 +624,16 @@ func expandRestriction(option map[string]interface{}) (media.BasicContentKeyPoli
 	}
 
 	switch restrictionType {
-	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction):
+	case string(media.OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction):
 		openRestriction := &media.ContentKeyPolicyOpenRestriction{
-			OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction,
+			OdataType: media.OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction,
 		}
 		return openRestriction, nil
-	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction):
+	case string(media.OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction):
 		tokenRestrictions := option["token_restriction"].([]interface{})
 		tokenRestriction := tokenRestrictions[0].(map[string]interface{})
 		contentKeyPolicyTokenRestriction := &media.ContentKeyPolicyTokenRestriction{
-			OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction,
+			OdataType: media.OdataTypeBasicContentKeyPolicyRestrictionOdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction,
 		}
 		if tokenRestriction["audience"] != nil && tokenRestriction["audience"].(string) != "" {
 			contentKeyPolicyTokenRestriction.Audience = utils.String(tokenRestriction["audience"].(string))
@@ -749,20 +746,20 @@ func expandConfiguration(input map[string]interface{}) (media.BasicContentKeyPol
 	configurationType := ""
 	if input["clear_key_configuration_enabled"] != nil && input["clear_key_configuration_enabled"].(bool) {
 		configurationCount++
-		configurationType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration)
+		configurationType = string(media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration)
 	}
 	if input["widevine_configuration_template"] != nil && input["widevine_configuration_template"].(string) != "" {
 		configurationCount++
-		configurationType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration)
+		configurationType = string(media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration)
 	}
 	if input["fairplay_configuration"] != nil && len(input["fairplay_configuration"].([]interface{})) > 0 && input["fairplay_configuration"].([]interface{})[0] != nil {
 		configurationCount++
-		configurationType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration)
+		configurationType = string(media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration)
 	}
 
 	if input["playready_configuration_license"] != nil && len(input["playready_configuration_license"].([]interface{})) > 0 {
 		configurationCount++
-		configurationType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration)
+		configurationType = string(media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration)
 	}
 
 	if configurationCount == 0 {
@@ -774,26 +771,26 @@ func expandConfiguration(input map[string]interface{}) (media.BasicContentKeyPol
 	}
 
 	switch configurationType {
-	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration):
+	case string(media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration):
 		clearKeyConfiguration := &media.ContentKeyPolicyClearKeyConfiguration{
-			OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration,
+			OdataType: media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration,
 		}
 		return clearKeyConfiguration, nil
-	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration):
+	case string(media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration):
 		wideVineConfiguration := &media.ContentKeyPolicyWidevineConfiguration{
-			OdataType:        media.OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration,
+			OdataType:        media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration,
 			WidevineTemplate: utils.String(input["widevine_configuration_template"].(string)),
 		}
 		return wideVineConfiguration, nil
-	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration):
+	case string(media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration):
 		fairplayConfiguration, err := expandFairplayConfiguration(input["fairplay_configuration"].([]interface{}))
 		if err != nil {
 			return nil, err
 		}
 		return fairplayConfiguration, nil
-	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration):
+	case string(media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration):
 		playReadyConfiguration := &media.ContentKeyPolicyPlayReadyConfiguration{
-			OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration,
+			OdataType: media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration,
 		}
 
 		if input["playready_configuration_license"] != nil {
@@ -815,16 +812,16 @@ func expandVerificationKey(input map[string]interface{}) (media.BasicContentKeyP
 	verificationKeyType := ""
 	if input["primary_symmetric_token_key"] != nil && input["primary_symmetric_token_key"].(string) != "" {
 		verificationKeyCount++
-		verificationKeyType = string(media.OdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey)
+		verificationKeyType = string(media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey)
 	}
 	if (input["primary_rsa_token_key_exponent"] != nil && input["primary_rsa_token_key_exponent"].(string) != "") || (input["primary_rsa_token_key_modulus"] != nil && input["primary_rsa_token_key_modulus"].(string) != "") {
 		verificationKeyCount++
-		verificationKeyType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey)
+		verificationKeyType = string(media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey)
 	}
 
 	if input["primary_x509_token_key_raw"] != nil && input["primary_x509_token_key_raw"].(string) != "" {
 		verificationKeyCount++
-		verificationKeyType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey)
+		verificationKeyType = string(media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey)
 	}
 
 	if verificationKeyCount > 1 {
@@ -832,9 +829,9 @@ func expandVerificationKey(input map[string]interface{}) (media.BasicContentKeyP
 	}
 
 	switch verificationKeyType {
-	case string(media.OdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey):
+	case string(media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey):
 		symmetricTokenKey := &media.ContentKeyPolicySymmetricTokenKey{
-			OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey,
+			OdataType: media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey,
 		}
 
 		if input["primary_symmetric_token_key"] != nil && input["primary_symmetric_token_key"].(string) != "" {
@@ -842,9 +839,9 @@ func expandVerificationKey(input map[string]interface{}) (media.BasicContentKeyP
 			symmetricTokenKey.KeyValue = &keyValue
 		}
 		return symmetricTokenKey, nil
-	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey):
+	case string(media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey):
 		rsaTokenKey := &media.ContentKeyPolicyRsaTokenKey{
-			OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey,
+			OdataType: media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey,
 		}
 		if input["primary_rsa_token_key_exponent"] != nil && input["primary_rsa_token_key_exponent"].(string) != "" {
 			exponent := []byte(input["primary_rsa_token_key_exponent"].(string))
@@ -855,9 +852,9 @@ func expandVerificationKey(input map[string]interface{}) (media.BasicContentKeyP
 			rsaTokenKey.Modulus = &modulus
 		}
 		return rsaTokenKey, nil
-	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey):
+	case string(media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey):
 		x509CertificateTokenKey := &media.ContentKeyPolicyX509CertificateTokenKey{
-			OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey,
+			OdataType: media.OdataTypeBasicContentKeyPolicyRestrictionTokenKeyOdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey,
 		}
 
 		if input["primary_x509_token_key_raw"] != nil && input["primary_x509_token_key_raw"].(string) != "" {
@@ -963,7 +960,7 @@ func flattenRentalConfiguration(input *media.ContentKeyPolicyFairPlayOfflineRent
 
 func expandFairplayConfiguration(input []interface{}) (*media.ContentKeyPolicyFairPlayConfiguration, error) {
 	fairplayConfiguration := &media.ContentKeyPolicyFairPlayConfiguration{
-		OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration,
+		OdataType: media.OdataTypeBasicContentKeyPolicyConfigurationOdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration,
 	}
 
 	fairplay := input[0].(map[string]interface{})

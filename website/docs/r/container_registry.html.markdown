@@ -32,6 +32,51 @@ resource "azurerm_container_registry" "acr" {
 }
 ```
 
+## Example Usage (Encryption)
+
+```hcl
+resource "azurerm_resource_group" "rg" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_container_registry" "acr" {
+  name                = "containerRegistry1"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  sku                 = "Premium"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.example.id
+    ]
+  }
+
+  encryption {
+    enabled            = true
+    key_vault_key_id   = data.azurerm_key_vault_key.example.id
+    identity_client_id = azurerm_user_assigned_identity.example.client_id
+  }
+
+}
+
+resource "azurerm_user_assigned_identity" "example" {
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+
+  name = "registry-uai"
+}
+
+data "azurerm_key_vault_key" "example" {
+  name         = "super-secret"
+  key_vault_id = data.azurerm_key_vault.existing.id
+}
+
+
+
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -76,13 +121,25 @@ The following arguments are supported:
 
 * `trust_policy` - (Optional) A `trust_policy` block as documented below.
 
-~> **NOTE:** `quarantine_policy_enabled`, `retention_policy` and `trust_policy` are only supported on resources with the `Premium` SKU.
+* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this Container Registry? Changing this forces a new resource to be created. Defaults to `false`.
+
+  ~> **NOTE:** `quarantine_policy_enabled`, `retention_policy`, `trust_policy` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
+
+* `identity` - (Optional) An `identity` block as documented below.
+
+* `encryption` - (Optional) An `encryption` block as documented below.
+
+---
 
 `georeplications` supports the following:
 
 * `location` - (Required) A location where the container registry should be geo-replicated.
 
+* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to this replication location.
+
+---
 
 `network_rule_set` supports the following:
 
@@ -96,11 +153,15 @@ The following arguments are supported:
 
 ~> **NOTE:** Azure automatically configures Network Rules - to remove these you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
 
+---
+
 `ip_rule` supports the following:
 
 * `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
 
 * `ip_range` - (Required) The CIDR block from which requests will match the rule.
+
+---
 
 `virtual_network` supports the following:
 
@@ -108,15 +169,39 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The subnet id from which requests will match the rule.
 
+---
+
 `trust_policy` supports the following:
 
 * `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
+
+---
 
 `retention_policy` supports the following:
 
 * `days` - (Optional) The number of days to retain an untagged manifest after which it gets purged. Default is `7`.
 
 * `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
+
+---
+
+`identity` supports the following:
+
+* `type` - (Required) The type of Managed Identity which should be assigned to the Container Registry. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+
+* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Container Registry.
+
+---
+
+`encryption` supports the following:
+
+* `enabled` - (Optional) Boolean value that indicates whether encryption is enabled.
+
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key.
+
+* `identity_client_id`  - (Required) The client ID of the managed identity associated with the encryption key.
+
+~> **NOTE** The managed identity used in `encryption` also needs to be part of the `identity` block under `identity_ids`
 
 ---
 ## Attributes Reference

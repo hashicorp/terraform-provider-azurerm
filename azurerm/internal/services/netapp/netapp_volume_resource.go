@@ -8,44 +8,41 @@ import (
 	"strings"
 	"time"
 
-	netAppValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2020-09-01/netapp"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
+	netAppValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceNetAppVolume() *schema.Resource {
-	return &schema.Resource{
+func resourceNetAppVolume() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceNetAppVolumeCreateUpdate,
 		Read:   resourceNetAppVolumeRead,
 		Update: resourceNetAppVolumeCreateUpdate,
 		Delete: resourceNetAppVolumeDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.VolumeID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: netAppValidate.VolumeName,
@@ -56,28 +53,28 @@ func resourceNetAppVolume() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: netAppValidate.AccountName,
 			},
 
 			"pool_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: netAppValidate.PoolName,
 			},
 
 			"volume_path": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: netAppValidate.VolumePath,
 			},
 
 			"service_level": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -88,14 +85,14 @@ func resourceNetAppVolume() *schema.Resource {
 			},
 
 			"subnet_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"create_from_snapshot_resource_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
@@ -103,13 +100,13 @@ func resourceNetAppVolume() *schema.Resource {
 			},
 
 			"protocols": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				ForceNew: true,
 				Optional: true,
 				Computed: true,
 				MaxItems: 2,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						"NFSv3",
 						"NFSv4.1",
@@ -118,41 +115,52 @@ func resourceNetAppVolume() *schema.Resource {
 				},
 			},
 
+			"security_style": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Unix", // Using hardcoded values instead of SDK enum since no matter what case is passed,
+					"Ntfs", // ANF changes casing to Pascal case in the backend. Please refer to https://github.com/Azure/azure-sdk-for-go/issues/14684
+				}, false),
+			},
+
 			"storage_quota_in_gb": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntBetween(100, 102400),
 			},
 
 			"export_policy_rule": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 5,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"rule_index": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(1, 5),
 						},
 
 						"allowed_clients": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validate.CIDR,
 							},
 						},
 
 						"protocols_enabled": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Computed: true,
 							MaxItems: 1,
 							MinItems: 1,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
 									"NFSv3",
 									"NFSv4.1",
@@ -162,38 +170,38 @@ func resourceNetAppVolume() *schema.Resource {
 						},
 
 						"cifs_enabled": {
-							Type:       schema.TypeBool,
+							Type:       pluginsdk.TypeBool,
 							Optional:   true,
 							Computed:   true,
 							Deprecated: "Deprecated in favour of `protocols_enabled`",
 						},
 
 						"nfsv3_enabled": {
-							Type:       schema.TypeBool,
+							Type:       pluginsdk.TypeBool,
 							Optional:   true,
 							Computed:   true,
 							Deprecated: "Deprecated in favour of `protocols_enabled`",
 						},
 
 						"nfsv4_enabled": {
-							Type:       schema.TypeBool,
+							Type:       pluginsdk.TypeBool,
 							Optional:   true,
 							Computed:   true,
 							Deprecated: "Deprecated in favour of `protocols_enabled`",
 						},
 
 						"unix_read_only": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 
 						"unix_read_write": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 
 						"root_access_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 					},
@@ -203,22 +211,22 @@ func resourceNetAppVolume() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"mount_ip_addresses": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"data_protection_replication": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"endpoint_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "dst",
 							ValidateFunc: validation.StringInSlice([]string{
@@ -229,13 +237,13 @@ func resourceNetAppVolume() *schema.Resource {
 						"remote_volume_location": azure.SchemaLocation(),
 
 						"remote_volume_resource_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"replication_frequency": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"10minutes",
@@ -250,7 +258,7 @@ func resourceNetAppVolume() *schema.Resource {
 	}
 }
 
-func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.VolumeClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -276,9 +284,18 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	volumePath := d.Get("volume_path").(string)
 	serviceLevel := d.Get("service_level").(string)
 	subnetID := d.Get("subnet_id").(string)
-	protocols := d.Get("protocols").(*schema.Set).List()
+	protocols := d.Get("protocols").(*pluginsdk.Set).List()
 	if len(protocols) == 0 {
 		protocols = append(protocols, "NFSv3")
+	}
+
+	// Handling security style property
+	securityStyle := d.Get("security_style").(string)
+	if strings.EqualFold(securityStyle, "unix") && len(protocols) == 1 && strings.EqualFold(protocols[0].(string), "cifs") {
+		return fmt.Errorf("Unix security style cannot be used in a CIFS enabled volume for volume %q (Resource Group %q)", name, resourceGroup)
+	}
+	if strings.EqualFold(securityStyle, "ntfs") && len(protocols) == 1 && (strings.EqualFold(protocols[0].(string), "nfsv3") || strings.EqualFold(protocols[0].(string), "nfsv4.1")) {
+		return fmt.Errorf("Ntfs security style cannot be used in a NFSv3/NFSv4.1 enabled volume for volume %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
@@ -370,6 +387,7 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			ServiceLevel:   netapp.ServiceLevel(serviceLevel),
 			SubnetID:       utils.String(subnetID),
 			ProtocolTypes:  utils.ExpandStringSlice(protocols),
+			SecurityStyle:  netapp.SecurityStyle(securityStyle),
 			UsageThreshold: utils.Int64(storageQuotaInGB),
 			ExportPolicy:   exportPolicyRule,
 			VolumeType:     utils.String(volumeType),
@@ -390,7 +408,7 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	// Waiting for volume be completely provisioned
 	id := parse.NewVolumeID(client.SubscriptionID, resourceGroup, accountName, poolName, name)
 	log.Printf("[DEBUG] Waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to complete", id.Name, id.ResourceGroup)
-	if err := waitForVolumeCreation(ctx, client, id, d.Timeout(schema.TimeoutDelete)); err != nil {
+	if err := waitForVolumeCreation(ctx, client, id, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
 		return err
 	}
 
@@ -422,7 +440,7 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 		// Wait for volume replication authorization to complete
 		log.Printf("[DEBUG] Waiting for replication authorization on NetApp Volume Provisioning Service %q (Resource Group %q) to complete", id.Name, id.ResourceGroup)
-		if err := waitForReplAuthorization(ctx, client, id, d.Timeout(schema.TimeoutDelete)); err != nil {
+		if err := waitForReplAuthorization(ctx, client, id, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
 			return err
 		}
 	}
@@ -432,7 +450,7 @@ func resourceNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceNetAppVolumeRead(d, meta)
 }
 
-func resourceNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.VolumeClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -464,6 +482,7 @@ func resourceNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("service_level", props.ServiceLevel)
 		d.Set("subnet_id", props.SubnetID)
 		d.Set("protocols", props.ProtocolTypes)
+		d.Set("security_style", props.SecurityStyle)
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
 		}
@@ -481,7 +500,7 @@ func resourceNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.VolumeClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -508,7 +527,7 @@ func resourceNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) error 
 		if res, err := client.ReplicationStatusMethod(ctx, replVolumeID.ResourceGroup, replVolumeID.NetAppAccountName, replVolumeID.CapacityPoolName, replVolumeID.Name); err == nil {
 			// Wait for replication state = "mirrored"
 			if strings.ToLower(string(res.MirrorState)) == "uninitialized" {
-				if err := waitForReplMirrorState(ctx, client, *replVolumeID, d.Timeout(schema.TimeoutDelete), "mirrored"); err != nil {
+				if err := waitForReplMirrorState(ctx, client, *replVolumeID, d.Timeout(pluginsdk.TimeoutDelete), "mirrored"); err != nil {
 					return err
 				}
 			}
@@ -529,7 +548,7 @@ func resourceNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) error 
 
 			// Waiting for replication be in broken state
 			log.Printf("[DEBUG] Waiting for replication on NetApp Volume Provisioning Service %q (Resource Group %q) to be in broken state", replVolumeID.Name, replVolumeID.ResourceGroup)
-			if err := waitForReplMirrorState(ctx, client, *replVolumeID, d.Timeout(schema.TimeoutDelete), "broken"); err != nil {
+			if err := waitForReplMirrorState(ctx, client, *replVolumeID, d.Timeout(pluginsdk.TimeoutDelete), "broken"); err != nil {
 				return err
 			}
 		}
@@ -540,7 +559,7 @@ func resourceNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) error 
 		}
 
 		log.Printf("[DEBUG] Waiting for replication on NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted", replVolumeID.Name, replVolumeID.ResourceGroup)
-		if err := waitForReplicationDeletion(ctx, client, *replVolumeID, d.Timeout(schema.TimeoutDelete)); err != nil {
+		if err := waitForReplicationDeletion(ctx, client, *replVolumeID, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
 			return err
 		}
 	}
@@ -551,7 +570,7 @@ func resourceNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	log.Printf("[DEBUG] Waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
-	if err := waitForVolumeDeletion(ctx, client, *id, d.Timeout(schema.TimeoutDelete)); err != nil {
+	if err := waitForVolumeDeletion(ctx, client, *id, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
 		return err
 	}
 
@@ -559,7 +578,7 @@ func resourceNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) error 
 }
 
 func waitForVolumeCreation(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId, timeout time.Duration) error {
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
 		Delay:                     10 * time.Second,
 		MinTimeout:                10 * time.Second,
@@ -569,7 +588,7 @@ func waitForVolumeCreation(ctx context.Context, client *netapp.VolumesClient, id
 		Timeout:                   timeout,
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting NetApp Volume Provisioning Service %q (Resource Group %q) to complete: %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -577,7 +596,7 @@ func waitForVolumeCreation(ctx context.Context, client *netapp.VolumesClient, id
 }
 
 func waitForReplAuthorization(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId, timeout time.Duration) error {
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
 		Delay:                     10 * time.Second,
 		MinTimeout:                10 * time.Second,
@@ -587,7 +606,7 @@ func waitForReplAuthorization(ctx context.Context, client *netapp.VolumesClient,
 		Timeout:                   timeout,
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for replication authorization NetApp Volume Provisioning Service %q (Resource Group %q) to complete: %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -595,7 +614,7 @@ func waitForReplAuthorization(ctx context.Context, client *netapp.VolumesClient,
 }
 
 func waitForReplMirrorState(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId, timeout time.Duration, desiredState string) error {
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
 		Delay:                     10 * time.Second,
 		MinTimeout:                10 * time.Second,
@@ -605,7 +624,7 @@ func waitForReplMirrorState(ctx context.Context, client *netapp.VolumesClient, i
 		Timeout:                   timeout,
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for NetApp Volume %q (Resource Group %q) to be in %s mirroring state: %+v", id.Name, id.ResourceGroup, desiredState, err)
 	}
 
@@ -613,7 +632,7 @@ func waitForReplMirrorState(ctx context.Context, client *netapp.VolumesClient, i
 }
 
 func waitForReplicationDeletion(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId, timeout time.Duration) error {
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
 		Delay:                     10 * time.Second,
 		MinTimeout:                10 * time.Second,
@@ -623,7 +642,7 @@ func waitForReplicationDeletion(ctx context.Context, client *netapp.VolumesClien
 		Timeout:                   timeout,
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for NetApp Volume replication %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -631,7 +650,7 @@ func waitForReplicationDeletion(ctx context.Context, client *netapp.VolumesClien
 }
 
 func waitForVolumeDeletion(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId, timeout time.Duration) error {
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
 		Delay:                     10 * time.Second,
 		MinTimeout:                10 * time.Second,
@@ -641,14 +660,14 @@ func waitForVolumeDeletion(ctx context.Context, client *netapp.VolumesClient, id
 		Timeout:                   timeout,
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func netappVolumeStateRefreshFunc(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId) resource.StateRefreshFunc {
+func netappVolumeStateRefreshFunc(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
 		if err != nil {
@@ -661,7 +680,7 @@ func netappVolumeStateRefreshFunc(ctx context.Context, client *netapp.VolumesCli
 	}
 }
 
-func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId, desiredState string) resource.StateRefreshFunc {
+func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId, desiredState string) pluginsdk.StateRefreshFunc {
 	validStates := []string{"mirrored", "broken", "uninitialized"}
 
 	return func() (interface{}, string, error) {
@@ -690,7 +709,7 @@ func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *
 	}
 }
 
-func netappVolumeReplicationStateRefreshFunc(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId) resource.StateRefreshFunc {
+func netappVolumeReplicationStateRefreshFunc(ctx context.Context, client *netapp.VolumesClient, id parse.VolumeId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.ReplicationStatusMethod(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
 		if err != nil {
@@ -712,7 +731,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePrope
 		if item != nil {
 			v := item.(map[string]interface{})
 			ruleIndex := int32(v["rule_index"].(int))
-			allowedClients := strings.Join(*utils.ExpandStringSlice(v["allowed_clients"].(*schema.Set).List()), ",")
+			allowedClients := strings.Join(*utils.ExpandStringSlice(v["allowed_clients"].(*pluginsdk.Set).List()), ",")
 
 			cifsEnabled := false
 			nfsv3Enabled := false

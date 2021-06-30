@@ -7,8 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicefabricmesh/mgmt/2018-09-01-preview/servicefabricmesh"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -17,12 +15,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceServiceFabricMeshSecretValue() *schema.Resource {
-	return &schema.Resource{
+func resourceServiceFabricMeshSecretValue() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceServiceFabricMeshSecretValueCreateUpdate,
 		Read:   resourceServiceFabricMeshSecretValueRead,
 		Update: resourceServiceFabricMeshSecretValueCreateUpdate,
@@ -34,16 +33,16 @@ func resourceServiceFabricMeshSecretValue() *schema.Resource {
 
 		DeprecationMessage: deprecationMessage("azurerm_service_fabric_mesh_secret_value"),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				// Follow casing issue here https://github.com/Azure/azure-rest-api-specs/issues/9330
@@ -52,7 +51,7 @@ func resourceServiceFabricMeshSecretValue() *schema.Resource {
 			},
 
 			"service_fabric_mesh_secret_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				// Follow casing issue here https://github.com/Azure/azure-rest-api-specs/issues/9330
@@ -63,7 +62,7 @@ func resourceServiceFabricMeshSecretValue() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"value": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -74,7 +73,7 @@ func resourceServiceFabricMeshSecretValue() *schema.Resource {
 	}
 }
 
-func resourceServiceFabricMeshSecretValueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshSecretValueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.SecretValueClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -127,7 +126,7 @@ func resourceServiceFabricMeshSecretValueCreateUpdate(d *schema.ResourceData, me
 	return resourceServiceFabricMeshSecretValueRead(d, meta)
 }
 
-func resourceServiceFabricMeshSecretValueRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshSecretValueRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.SecretValueClient
 	secretClient := meta.(*clients.Client).ServiceFabricMesh.SecretClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -167,7 +166,7 @@ func resourceServiceFabricMeshSecretValueRead(d *schema.ResourceData, meta inter
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceServiceFabricMeshSecretValueDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshSecretValueDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.SecretValueClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

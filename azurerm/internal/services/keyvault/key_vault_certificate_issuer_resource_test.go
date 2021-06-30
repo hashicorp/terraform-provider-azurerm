@@ -5,14 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,10 +20,10 @@ func TestAccKeyVaultCertificateIssuer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
 	r := KeyVaultCertificateIssuerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -38,10 +35,10 @@ func TestAccKeyVaultCertificateIssuer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
 	r := KeyVaultCertificateIssuerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -53,10 +50,10 @@ func TestAccKeyVaultCertificateIssuer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
 	r := KeyVaultCertificateIssuerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -68,17 +65,17 @@ func TestAccKeyVaultCertificateIssuer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
 	r := KeyVaultCertificateIssuerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("password"),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -90,7 +87,7 @@ func TestAccKeyVaultCertificateIssuer_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
 	r := KeyVaultCertificateIssuerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -98,7 +95,7 @@ func TestAccKeyVaultCertificateIssuer_disappears(t *testing.T) {
 	})
 }
 
-func (r KeyVaultCertificateIssuerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r KeyVaultCertificateIssuerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.KeyVault.ManagementClient
 	keyVaultsClient := clients.KeyVault
 
@@ -129,7 +126,7 @@ func (r KeyVaultCertificateIssuerResource) Exists(ctx context.Context, clients *
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (r KeyVaultCertificateIssuerResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r KeyVaultCertificateIssuerResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	dataPlaneClient := client.KeyVault.ManagementClient
 	keyVaultsClient := client.KeyVault
 

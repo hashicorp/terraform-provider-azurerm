@@ -3,7 +3,6 @@ package network_test
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -15,10 +14,10 @@ func TestAccDataSourceAzureRMServiceTags_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_service_tags", "test")
 	r := NetworkServiceTagsDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("address_prefixes.#").Exists(),
 			),
 		},
@@ -29,10 +28,10 @@ func TestAccDataSourceAzureRMServiceTags_region(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_service_tags", "test")
 	r := NetworkServiceTagsDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.region(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("address_prefixes.#").Exists(),
 			),
 		},

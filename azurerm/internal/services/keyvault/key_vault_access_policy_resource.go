@@ -9,20 +9,18 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
 	"github.com/gofrs/uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceKeyVaultAccessPolicy() *schema.Resource {
-	return &schema.Resource{
+func resourceKeyVaultAccessPolicy() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceKeyVaultAccessPolicyCreate,
 		Read:   resourceKeyVaultAccessPolicyRead,
 		Update: resourceKeyVaultAccessPolicyUpdate,
@@ -30,37 +28,37 @@ func resourceKeyVaultAccessPolicy() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"key_vault_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"tenant_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"object_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"application_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
@@ -77,7 +75,7 @@ func resourceKeyVaultAccessPolicy() *schema.Resource {
 	}
 }
 
-func resourceKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta interface{}, action keyvault.AccessPolicyUpdateKind) error {
+func resourceKeyVaultAccessPolicyCreateOrDelete(d *pluginsdk.ResourceData, meta interface{}, action keyvault.AccessPolicyUpdateKind) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -228,26 +226,26 @@ func resourceKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta int
 	if _, err = client.UpdateAccessPolicy(ctx, resourceGroup, vaultName, action, parameters); err != nil {
 		return fmt.Errorf("updating Access Policy (Object ID %q / Application ID %q) for Key Vault %q (Resource Group %q): %+v", objectId, applicationIdRaw, vaultName, resourceGroup, err)
 	}
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"notfound", "vaultnotfound"},
 		Target:                    []string{"found"},
 		Refresh:                   accessPolicyRefreshFunc(ctx, client, resourceGroup, vaultName, objectId, applicationIdRaw),
 		Delay:                     5 * time.Second,
 		ContinuousTargetOccurence: 3,
-		Timeout:                   d.Timeout(schema.TimeoutCreate),
+		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
 	if action == keyvault.Remove {
 		stateConf.Target = []string{"notfound"}
 		stateConf.Pending = []string{"found", "vaultnotfound"}
-		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutDelete)
 	}
 
 	if action == keyvault.Replace {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("failed waiting for Key Vault Access Policy (Object ID: %q) to apply: %+v", objectId, err)
 	}
 
@@ -267,19 +265,19 @@ func resourceKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceKeyVaultAccessPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Add)
 }
 
-func resourceKeyVaultAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultAccessPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Remove)
 }
 
-func resourceKeyVaultAccessPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultAccessPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Replace)
 }
 
-func resourceKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -375,7 +373,7 @@ func FindKeyVaultAccessPolicy(policies *[]keyvault.AccessPolicyEntry, objectId s
 	return nil
 }
 
-func accessPolicyRefreshFunc(ctx context.Context, client *keyvault.VaultsClient, resourceGroup string, vaultName string, objectId string, applicationId string) resource.StateRefreshFunc {
+func accessPolicyRefreshFunc(ctx context.Context, client *keyvault.VaultsClient, resourceGroup string, vaultName string, objectId string, applicationId string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking for completion of Access Policy create/update")
 

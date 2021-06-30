@@ -6,13 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	monitorValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -20,12 +16,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMonitorAutoScaleSetting() *schema.Resource {
-	return &schema.Resource{
+func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMonitorAutoScaleSettingCreateUpdate,
 		Read:   resourceMonitorAutoScaleSettingRead,
 		Update: resourceMonitorAutoScaleSettingCreateUpdate,
@@ -33,16 +30,16 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -53,47 +50,47 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"target_resource_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"profile": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 20,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"capacity": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"minimum": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntBetween(0, 1000),
 									},
 									"maximum": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntBetween(0, 1000),
 									},
 									"default": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntBetween(0, 1000),
 									},
@@ -101,34 +98,34 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 							},
 						},
 						"rule": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 10,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"metric_trigger": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"metric_name": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Required:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
 												},
 												"metric_resource_id": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Required:     true,
 													ValidateFunc: azure.ValidateResourceID,
 												},
 												"time_grain": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Required:     true,
 													ValidateFunc: validate.ISO8601Duration,
 												},
 												"statistic": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.MetricStatisticTypeAverage),
@@ -139,12 +136,12 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"time_window": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Required:     true,
 													ValidateFunc: validate.ISO8601Duration,
 												},
 												"time_aggregation": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.TimeAggregationTypeAverage),
@@ -157,7 +154,7 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"operator": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.Equals),
@@ -170,29 +167,29 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"threshold": {
-													Type:     schema.TypeFloat,
+													Type:     pluginsdk.TypeFloat,
 													Required: true,
 												},
 
 												"metric_namespace": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Optional:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
 												},
 
 												"dimensions": {
-													Type:     schema.TypeList,
+													Type:     pluginsdk.TypeList,
 													Optional: true,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
 															"name": {
-																Type:         schema.TypeString,
+																Type:         pluginsdk.TypeString,
 																Required:     true,
 																ValidateFunc: validation.StringIsNotEmpty,
 															},
 
 															"operator": {
-																Type:     schema.TypeString,
+																Type:     pluginsdk.TypeString,
 																Required: true,
 																ValidateFunc: validation.StringInSlice([]string{
 																	string(insights.ScaleRuleMetricDimensionOperationTypeEquals),
@@ -201,10 +198,10 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 															},
 
 															"values": {
-																Type:     schema.TypeList,
+																Type:     pluginsdk.TypeList,
 																Required: true,
-																Elem: &schema.Schema{
-																	Type:         schema.TypeString,
+																Elem: &pluginsdk.Schema{
+																	Type:         pluginsdk.TypeString,
 																	ValidateFunc: validation.StringIsNotEmpty,
 																},
 															},
@@ -215,13 +212,13 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 										},
 									},
 									"scale_action": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"direction": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.ScaleDirectionDecrease),
@@ -230,7 +227,7 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"type": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.ChangeCount),
@@ -240,12 +237,12 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"value": {
-													Type:         schema.TypeInt,
+													Type:         pluginsdk.TypeInt,
 													Required:     true,
 													ValidateFunc: validation.IntAtLeast(0),
 												},
 												"cooldown": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Required:     true,
 													ValidateFunc: validate.ISO8601Duration,
 												},
@@ -256,24 +253,24 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 							},
 						},
 						"fixed_date": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"timezone": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "UTC",
-										ValidateFunc: monitorValidate.AutoScaleSettingsTimeZone(),
+										ValidateFunc: validateAutoScaleSettingsTimeZone(),
 									},
 									"start": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.IsRFC3339Time,
 									},
 									"end": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.IsRFC3339Time,
 									},
@@ -281,22 +278,22 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 							},
 						},
 						"recurrence": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"timezone": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "UTC",
-										ValidateFunc: monitorValidate.AutoScaleSettingsTimeZone(),
+										ValidateFunc: validateAutoScaleSettingsTimeZone(),
 									},
 									"days": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
 												"Monday",
 												"Tuesday",
@@ -310,20 +307,20 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 										},
 									},
 									"hours": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										MaxItems: 1,
-										Elem: &schema.Schema{
-											Type:         schema.TypeInt,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeInt,
 											ValidateFunc: validation.IntBetween(0, 23),
 										},
 									},
 									"minutes": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										MaxItems: 1,
-										Elem: &schema.Schema{
-											Type:         schema.TypeInt,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeInt,
 											ValidateFunc: validation.IntBetween(0, 59),
 										},
 									},
@@ -335,32 +332,32 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 			},
 
 			"notification": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"email": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"send_to_subscription_administrator": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Optional: true,
 										Default:  false,
 									},
 									"send_to_subscription_co_administrator": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Optional: true,
 										Default:  false,
 									},
 									"custom_emails": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 										},
 									},
 								},
@@ -368,20 +365,20 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 							AtLeastOneOf: []string{"notification.0.email", "notification.0.webhook"},
 						},
 						"webhook": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"service_uri": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"properties": {
-										Type:     schema.TypeMap,
+										Type:     pluginsdk.TypeMap,
 										Optional: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 										},
 									},
 								},
@@ -397,7 +394,7 @@ func resourceMonitorAutoScaleSetting() *schema.Resource {
 	}
 }
 
-func resourceMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAutoScaleSettingCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AutoscaleSettingsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -462,7 +459,7 @@ func resourceMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta in
 	return resourceMonitorAutoScaleSettingRead(d, meta)
 }
 
-func resourceMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAutoScaleSettingRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AutoscaleSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -512,7 +509,7 @@ func resourceMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, tagMap)
 }
 
-func resourceMonitorAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAutoScaleSettingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AutoscaleSettingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1066,4 +1063,118 @@ func flattenAzureRmMonitorAutoScaleSettingRulesDimensions(dimensions *[]insights
 		})
 	}
 	return results
+}
+
+func validateAutoScaleSettingsTimeZone() pluginsdk.SchemaValidateFunc {
+	// from https://docs.microsoft.com/en-us/rest/api/monitor/autoscalesettings/createorupdate#timewindow
+	timeZones := []string{
+		"Dateline Standard Time",
+		"UTC-11",
+		"Hawaiian Standard Time",
+		"Alaskan Standard Time",
+		"Pacific Standard Time (Mexico)",
+		"Pacific Standard Time",
+		"US Mountain Standard Time",
+		"Mountain Standard Time (Mexico)",
+		"Mountain Standard Time",
+		"Central America Standard Time",
+		"Central Standard Time",
+		"Central Standard Time (Mexico)",
+		"Canada Central Standard Time",
+		"SA Pacific Standard Time",
+		"Eastern Standard Time",
+		"US Eastern Standard Time",
+		"Venezuela Standard Time",
+		"Paraguay Standard Time",
+		"Atlantic Standard Time",
+		"Central Brazilian Standard Time",
+		"SA Western Standard Time",
+		"Pacific SA Standard Time",
+		"Newfoundland Standard Time",
+		"E. South America Standard Time",
+		"Argentina Standard Time",
+		"SA Eastern Standard Time",
+		"Greenland Standard Time",
+		"Montevideo Standard Time",
+		"Bahia Standard Time",
+		"UTC-02",
+		"Mid-Atlantic Standard Time",
+		"Azores Standard Time",
+		"Cape Verde Standard Time",
+		"Morocco Standard Time",
+		"UTC",
+		"GMT Standard Time",
+		"Greenwich Standard Time",
+		"W. Europe Standard Time",
+		"Central Europe Standard Time",
+		"Romance Standard Time",
+		"Central European Standard Time",
+		"W. Central Africa Standard Time",
+		"Namibia Standard Time",
+		"Jordan Standard Time",
+		"GTB Standard Time",
+		"Middle East Standard Time",
+		"Egypt Standard Time",
+		"Syria Standard Time",
+		"E. Europe Standard Time",
+		"South Africa Standard Time",
+		"FLE Standard Time",
+		"Turkey Standard Time",
+		"Israel Standard Time",
+		"Kaliningrad Standard Time",
+		"Libya Standard Time",
+		"Arabic Standard Time",
+		"Arab Standard Time",
+		"Belarus Standard Time",
+		"Russian Standard Time",
+		"E. Africa Standard Time",
+		"Iran Standard Time",
+		"Arabian Standard Time",
+		"Azerbaijan Standard Time",
+		"Russia Time Zone 3",
+		"Mauritius Standard Time",
+		"Georgian Standard Time",
+		"Caucasus Standard Time",
+		"Afghanistan Standard Time",
+		"West Asia Standard Time",
+		"Ekaterinburg Standard Time",
+		"Pakistan Standard Time",
+		"India Standard Time",
+		"Sri Lanka Standard Time",
+		"Nepal Standard Time",
+		"Central Asia Standard Time",
+		"Bangladesh Standard Time",
+		"N. Central Asia Standard Time",
+		"Myanmar Standard Time",
+		"SE Asia Standard Time",
+		"North Asia Standard Time",
+		"China Standard Time",
+		"North Asia East Standard Time",
+		"Singapore Standard Time",
+		"W. Australia Standard Time",
+		"Taipei Standard Time",
+		"Ulaanbaatar Standard Time",
+		"Tokyo Standard Time",
+		"Korea Standard Time",
+		"Yakutsk Standard Time",
+		"Cen. Australia Standard Time",
+		"AUS Central Standard Time",
+		"E. Australia Standard Time",
+		"AUS Eastern Standard Time",
+		"West Pacific Standard Time",
+		"Tasmania Standard Time",
+		"Magadan Standard Time",
+		"Vladivostok Standard Time",
+		"Russia Time Zone 10",
+		"Central Pacific Standard Time",
+		"Russia Time Zone 11",
+		"New Zealand Standard Time",
+		"UTC+12",
+		"Fiji Standard Time",
+		"Kamchatka Standard Time",
+		"Tonga Standard Time",
+		"Samoa Standard Time",
+		"Line Islands Standard Time",
+	}
+	return validation.StringInSlice(timeZones, false)
 }

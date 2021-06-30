@@ -8,43 +8,41 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceBatchPool() *schema.Resource {
-	return &schema.Resource{
+func resourceBatchPool() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceBatchPoolCreate,
 		Read:   resourceBatchPoolRead,
 		Update: resourceBatchPoolUpdate,
 		Delete: resourceBatchPoolDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PoolID(id)
 			return err
 		}),
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.PoolName,
@@ -55,49 +53,49 @@ func resourceBatchPool() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AccountName,
 			},
 			"display_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
 			"vm_size": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"max_tasks_per_node": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      1,
 				ForceNew:     true,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 			"fixed_scale": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"target_dedicated_nodes": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      1,
 							ValidateFunc: validation.IntBetween(0, 2000),
 						},
 						"target_low_priority_nodes": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      0,
 							ValidateFunc: validation.IntBetween(0, 1000),
 						},
 						"resize_timeout": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "PT15M",
 						},
@@ -105,20 +103,20 @@ func resourceBatchPool() *schema.Resource {
 				},
 			},
 			"auto_scale": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"evaluation_interval": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "PT15M",
 						},
 						"formula": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
-							DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
+							DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
 								return strings.TrimSpace(old) == strings.TrimSpace(new)
 							},
 						},
@@ -126,49 +124,49 @@ func resourceBatchPool() *schema.Resource {
 				},
 			},
 			"container_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 							AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
 						},
 						"container_image_names": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							ForceNew: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
 						},
 						"container_registries": {
-							Type:       schema.TypeList,
+							Type:       pluginsdk.TypeList,
 							Optional:   true,
 							ForceNew:   true,
-							ConfigMode: schema.SchemaConfigModeAttr,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							ConfigMode: pluginsdk.SchemaConfigModeAttr,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"registry_server": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"user_name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"password": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ForceNew:     true,
 										Sensitive:    true,
@@ -182,14 +180,14 @@ func resourceBatchPool() *schema.Resource {
 				},
 			},
 			"storage_image_reference": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				ForceNew: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
@@ -197,7 +195,7 @@ func resourceBatchPool() *schema.Resource {
 						},
 
 						"publisher": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -205,7 +203,7 @@ func resourceBatchPool() *schema.Resource {
 						},
 
 						"offer": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -213,7 +211,7 @@ func resourceBatchPool() *schema.Resource {
 						},
 
 						"sku": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							ForceNew:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
@@ -222,7 +220,7 @@ func resourceBatchPool() *schema.Resource {
 						},
 
 						"version": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -232,22 +230,22 @@ func resourceBatchPool() *schema.Resource {
 				},
 			},
 			"node_agent_sku_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 			"stop_pending_resize_operation": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 			"certificate": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 							// The ID returned for the certificate in the batch account and the certificate applied to the pool
@@ -257,7 +255,7 @@ func resourceBatchPool() *schema.Resource {
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"store_location": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"CurrentUser",
@@ -265,15 +263,15 @@ func resourceBatchPool() *schema.Resource {
 							}, false),
 						},
 						"store_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"visibility": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
 									"StartTask",
 									"Task",
@@ -285,56 +283,56 @@ func resourceBatchPool() *schema.Resource {
 				},
 			},
 			"start_task": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"command_line": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"max_task_retry_count": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Optional: true,
 							Default:  1,
 						},
 
 						"wait_for_success": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 
 						"environment": {
-							Type:     schema.TypeMap,
+							Type:     pluginsdk.TypeMap,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 
 						"user_identity": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"user_name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										AtLeastOneOf: []string{"start_task.0.user_identity.0.user_name", "start_task.0.user_identity.0.auto_user"},
 									},
 									"auto_user": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"elevation_level": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Optional: true,
 													Default:  string(batch.NonAdmin),
 													ValidateFunc: validation.StringInSlice([]string{
@@ -343,7 +341,7 @@ func resourceBatchPool() *schema.Resource {
 													}, false),
 												},
 												"scope": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Optional: true,
 													Default:  string(batch.AutoUserScopeTask),
 													ValidateFunc: validation.StringInSlice([]string{
@@ -361,32 +359,32 @@ func resourceBatchPool() *schema.Resource {
 
 						//lintignore:XS003
 						"resource_file": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"auto_storage_container_name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
 									"blob_prefix": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
 									"file_mode": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
 									"file_path": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
 									"http_url": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
 									"storage_container_url": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
 								},
@@ -396,37 +394,37 @@ func resourceBatchPool() *schema.Resource {
 				},
 			},
 			"metadata": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 			"network_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"subnet_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"public_ips": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							ForceNew: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
-							Set: schema.HashString,
+							Set: pluginsdk.HashString,
 						},
 						"public_address_provisioning_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(batch.BatchManaged),
@@ -435,19 +433,19 @@ func resourceBatchPool() *schema.Resource {
 							}, false),
 						},
 						"endpoint_configuration": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							ForceNew: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"protocol": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
@@ -456,7 +454,7 @@ func resourceBatchPool() *schema.Resource {
 										}, false),
 									},
 									"backend_port": {
-										Type:     schema.TypeInt,
+										Type:     pluginsdk.TypeInt,
 										Required: true,
 										ForceNew: true,
 										ValidateFunc: validation.All(
@@ -465,25 +463,25 @@ func resourceBatchPool() *schema.Resource {
 										),
 									},
 									"frontend_port_range": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ForceNew:     true,
 										ValidateFunc: validate.FrontendPortRange,
 									},
 									"network_security_group_rules": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										ForceNew: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"priority": {
-													Type:         schema.TypeInt,
+													Type:         pluginsdk.TypeInt,
 													Required:     true,
 													ForceNew:     true,
 													ValidateFunc: validation.IntAtLeast(150),
 												},
 												"access": {
-													Type:     schema.TypeString,
+													Type:     pluginsdk.TypeString,
 													Required: true,
 													ForceNew: true,
 													ValidateFunc: validation.StringInSlice([]string{
@@ -492,7 +490,7 @@ func resourceBatchPool() *schema.Resource {
 													}, false),
 												},
 												"source_address_prefix": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Required:     true,
 													ForceNew:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
@@ -510,7 +508,7 @@ func resourceBatchPool() *schema.Resource {
 	}
 }
 
-func resourceBatchPoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -651,7 +649,7 @@ func resourceBatchPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	return resourceBatchPoolRead(d, meta)
 }
 
-func resourceBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -744,7 +742,7 @@ func resourceBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceBatchPoolRead(d, meta)
 }
 
-func resourceBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -811,7 +809,7 @@ func resourceBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceBatchPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -834,7 +832,7 @@ func resourceBatchPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandBatchPoolScaleSettings(d *schema.ResourceData) (*batch.ScaleSettings, error) {
+func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*batch.ScaleSettings, error) {
 	scaleSettings := &batch.ScaleSettings{}
 
 	autoScaleValue, autoScaleOk := d.GetOk("auto_scale")

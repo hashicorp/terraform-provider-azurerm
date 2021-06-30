@@ -7,9 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -17,12 +14,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSharedImage() *schema.Resource {
-	return &schema.Resource{
+func resourceSharedImage() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSharedImageCreateUpdate,
 		Read:   resourceSharedImageRead,
 		Update: resourceSharedImageCreateUpdate,
@@ -33,23 +31,23 @@ func resourceSharedImage() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SharedImageName,
 			},
 
 			"gallery_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SharedImageGalleryName,
@@ -60,7 +58,7 @@ func resourceSharedImage() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"os_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -70,7 +68,7 @@ func resourceSharedImage() *schema.Resource {
 			},
 
 			"hyper_v_generation": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(compute.HyperVGenerationTypesV1),
 				ForceNew: true,
@@ -81,21 +79,21 @@ func resourceSharedImage() *schema.Resource {
 			},
 
 			"identifier": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"publisher": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"offer": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"sku": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 					},
@@ -103,35 +101,35 @@ func resourceSharedImage() *schema.Resource {
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"eula": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"purchase_plan": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"publisher": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"product": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -141,17 +139,17 @@ func resourceSharedImage() *schema.Resource {
 			},
 
 			"privacy_statement_uri": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"release_note_uri": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"specialized": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
 			},
@@ -161,7 +159,7 @@ func resourceSharedImage() *schema.Resource {
 	}
 }
 
-func resourceSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -229,7 +227,7 @@ func resourceSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	return resourceSharedImageRead(d, meta)
 }
 
-func resourceSharedImageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -278,7 +276,7 @@ func resourceSharedImageRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceSharedImageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSharedImageDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -297,23 +295,23 @@ func resourceSharedImageDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	log.Printf("[DEBUG] Waiting for %s to be eventually deleted", *id)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
 		Refresh:                   sharedImageDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.GalleryName, id.ImageName),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
-		Timeout:                   d.Timeout(schema.TimeoutDelete),
+		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func sharedImageDeleteStateRefreshFunc(ctx context.Context, client *compute.GalleryImagesClient, resourceGroupName string, galleryName string, imageName string) resource.StateRefreshFunc {
+func sharedImageDeleteStateRefreshFunc(ctx context.Context, client *compute.GalleryImagesClient, resourceGroupName string, galleryName string, imageName string) pluginsdk.StateRefreshFunc {
 	// The resource Shared Image depends on the resource Shared Image Gallery.
 	// Although the delete API returns 404 which means the Shared Image resource has been deleted.
 	// Then it tries to immediately delete Shared Image Gallery but it still throws error `Can not delete resource before nested resources are deleted.`
@@ -333,7 +331,7 @@ func sharedImageDeleteStateRefreshFunc(ctx context.Context, client *compute.Gall
 	}
 }
 
-func expandGalleryImageIdentifier(d *schema.ResourceData) *compute.GalleryImageIdentifier {
+func expandGalleryImageIdentifier(d *pluginsdk.ResourceData) *compute.GalleryImageIdentifier {
 	vs := d.Get("identifier").([]interface{})
 	v := vs[0].(map[string]interface{})
 

@@ -9,9 +9,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptions"
 	subscriptionAlias "github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription"
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -20,14 +17,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var SubscriptionResourceName = "azurerm_subscription"
 
-func resourceSubscription() *schema.Resource {
-	return &schema.Resource{
+func resourceSubscription() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSubscriptionCreate,
 		Update: resourceSubscriptionUpdate,
 		Read:   resourceSubscriptionRead,
@@ -38,23 +36,23 @@ func resourceSubscription() *schema.Resource {
 			return err
 		}, importSubscriptionByAlias()),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"subscription_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				Description:  "The Display Name for the Subscription.",
 				ValidateFunc: validate.SubscriptionName,
 			},
 
 			"alias": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
@@ -63,7 +61,7 @@ func resourceSubscription() *schema.Resource {
 			},
 
 			"billing_scope_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ExactlyOneOf: []string{
 					"subscription_id",
@@ -77,7 +75,7 @@ func resourceSubscription() *schema.Resource {
 
 			// Optional
 			"workload": {
-				Type:        schema.TypeString,
+				Type:        pluginsdk.TypeString,
 				Optional:    true,
 				ForceNew:    true,
 				Description: "The workload type for the Subscription. Possible values are `Production` (default) and `DevTest`.",
@@ -87,13 +85,13 @@ func resourceSubscription() *schema.Resource {
 					string(subscriptionAlias.DevTest),
 				}, false),
 				// Workload is not exposed in any way, so must be ignored if the resource is imported.
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return old == ""
+				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+					return new == ""
 				},
 			},
 
 			"subscription_id": {
-				Type:        schema.TypeString,
+				Type:        pluginsdk.TypeString,
 				Description: "The GUID of the Subscription.",
 				ForceNew:    true,
 				Optional:    true,
@@ -106,23 +104,23 @@ func resourceSubscription() *schema.Resource {
 			},
 
 			"tenant_id": {
-				Type:        schema.TypeString,
+				Type:        pluginsdk.TypeString,
 				Description: "The Tenant ID to which the subscription belongs",
 				Computed:    true,
 			},
 
 			"tags": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 		},
 	}
 }
 
-func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionClient
 	client := meta.(*clients.Client).Subscription.Client
@@ -154,7 +152,8 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 	defer locks.UnlockByName(aliasName, SubscriptionResourceName)
 
 	workload := subscriptionAlias.Production
-	if workloadRaw := d.Get("workload").(string); workloadRaw != "" {
+	workloadRaw := d.Get("workload").(string)
+	if workloadRaw != "" {
 		workload = subscriptionAlias.Workload(workloadRaw)
 	}
 
@@ -234,7 +233,7 @@ func resourceSubscriptionCreate(d *schema.ResourceData, meta interface{}) error 
 	return resourceSubscriptionRead(d, meta)
 }
 
-func resourceSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -272,7 +271,7 @@ func resourceSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	client := meta.(*clients.Client).Subscription.Client
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -335,7 +334,7 @@ func resourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 // used and purged from active use it can never be recovered nor the UUID reused.
 // Note Cancelling a Subscription leaves it in one of several states, `Disabled` for a Subscription with no Resources or
 // Alias assignments, `Warned` for Cancelled with "something" associated with it.
-func resourceSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionClient
 	client := meta.(*clients.Client).Subscription.Client
@@ -405,7 +404,7 @@ func resourceSubscriptionDelete(d *schema.ResourceData, meta interface{}) error 
 }
 
 func waitForSubscriptionStateToSettle(ctx context.Context, clients *clients.Client, subscriptionId string, targetState string, timeout time.Duration) error {
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Refresh: func() (result interface{}, state string, err error) {
 			status, err := clients.Subscription.Client.Get(ctx, subscriptionId)
 			return status, string(status.State), err
@@ -437,7 +436,7 @@ func waitForSubscriptionStateToSettle(ctx context.Context, clients *clients.Clie
 		return fmt.Errorf("unsupported target state %q for Subscription %q", targetState, subscriptionId)
 	}
 
-	if actual, err := stateConf.WaitForState(); err != nil {
+	if actual, err := stateConf.WaitForStateContext(ctx); err != nil {
 		sub, ok := actual.(subscriptions.Subscription)
 		if !ok {
 			return fmt.Errorf("failure in parsing response while waiting for Subscription %q to become %q: %+v", subscriptionId, targetState, err)

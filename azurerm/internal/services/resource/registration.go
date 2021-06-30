@@ -1,9 +1,12 @@
 package resource
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
+
+var _ sdk.TypedServiceRegistration = Registration{}
+var _ sdk.UntypedServiceRegistration = Registration{}
 
 type Registration struct{}
 
@@ -22,8 +25,8 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_resources":             dataSourceResources(),
 		"azurerm_resource_group":        dataSourceResourceGroup(),
 		"azurerm_template_spec_version": dataSourceTemplateSpecVersion(),
@@ -31,8 +34,8 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_management_lock":                      resourceManagementLock(),
 		"azurerm_management_group_template_deployment": managementGroupTemplateDeploymentResource(),
 		"azurerm_resource_group":                       resourceResourceGroup(),

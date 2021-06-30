@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/2019-06-01-preview/managedvirtualnetwork"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,20 +13,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSynapseManagedPrivateEndpoint() *schema.Resource {
-	return &schema.Resource{
+func resourceSynapseManagedPrivateEndpoint() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSynapseManagedPrivateEndpointCreate,
 		Read:   resourceSynapseManagedPrivateEndpointRead,
 		Delete: resourceSynapseManagedPrivateEndpointDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -36,30 +35,30 @@ func resourceSynapseManagedPrivateEndpoint() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"synapse_workspace_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.WorkspaceID,
 			},
 
 			"target_resource_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"subresource_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: networkValidate.PrivateLinkSubResourceName,
@@ -68,7 +67,7 @@ func resourceSynapseManagedPrivateEndpoint() *schema.Resource {
 	}
 }
 
-func resourceSynapseManagedPrivateEndpointCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -126,7 +125,7 @@ func resourceSynapseManagedPrivateEndpointCreate(d *schema.ResourceData, meta in
 	return resourceSynapseManagedPrivateEndpointRead(d, meta)
 }
 
-func resourceSynapseManagedPrivateEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -162,7 +161,7 @@ func resourceSynapseManagedPrivateEndpointRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceSynapseManagedPrivateEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

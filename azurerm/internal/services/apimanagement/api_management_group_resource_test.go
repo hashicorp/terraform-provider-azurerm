@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccApiManagementGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 	r := ApiManagementGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("display_name").HasValue("Test Group"),
 				check.That(data.ResourceName).Key("type").HasValue("custom"),
@@ -38,10 +37,10 @@ func TestAccApiManagementGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 	r := ApiManagementGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("display_name").HasValue("Test Group"),
 				check.That(data.ResourceName).Key("type").HasValue("custom"),
@@ -55,10 +54,10 @@ func TestAccApiManagementGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 	r := ApiManagementGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, "Test Group", "A test description."),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("display_name").HasValue("Test Group"),
 				check.That(data.ResourceName).Key("description").HasValue("A test description."),
@@ -73,10 +72,10 @@ func TestAccApiManagementGroup_descriptionDisplayNameUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 	r := ApiManagementGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, "Original Group", "The original description."),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("display_name").HasValue("Original Group"),
 				check.That(data.ResourceName).Key("description").HasValue("The original description."),
@@ -85,7 +84,7 @@ func TestAccApiManagementGroup_descriptionDisplayNameUpdate(t *testing.T) {
 		},
 		{
 			Config: r.complete(data, "Modified Group", "A modified description."),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("display_name").HasValue("Modified Group"),
 				check.That(data.ResourceName).Key("description").HasValue("A modified description."),
@@ -94,7 +93,7 @@ func TestAccApiManagementGroup_descriptionDisplayNameUpdate(t *testing.T) {
 		},
 		{
 			Config: r.complete(data, "Original Group", "The original description."),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("display_name").HasValue("Original Group"),
 				check.That(data.ResourceName).Key("description").HasValue("The original description."),
@@ -104,7 +103,7 @@ func TestAccApiManagementGroup_descriptionDisplayNameUpdate(t *testing.T) {
 	})
 }
 
-func (ApiManagementGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func logAnalyticsClusterWaitForState(ctx context.Context, meta interface{}, timeout time.Duration, resourceGroup string, clusterName string) *resource.StateChangeConf {
-	return &resource.StateChangeConf{
+func logAnalyticsClusterWaitForState(ctx context.Context, meta interface{}, timeout time.Duration, resourceGroup string, clusterName string) *pluginsdk.StateChangeConf {
+	return &pluginsdk.StateChangeConf{
 		Pending:    []string{string(operationalinsights.Updating)},
 		Target:     []string{string(operationalinsights.Succeeded)},
 		MinTimeout: 1 * time.Minute,
@@ -21,7 +21,7 @@ func logAnalyticsClusterWaitForState(ctx context.Context, meta interface{}, time
 	}
 }
 
-func logAnalyticsClusterRefresh(ctx context.Context, meta interface{}, resourceGroup string, clusterName string) resource.StateRefreshFunc {
+func logAnalyticsClusterRefresh(ctx context.Context, meta interface{}, resourceGroup string, clusterName string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		client := meta.(*clients.Client).LogAnalytics.ClusterClient
 

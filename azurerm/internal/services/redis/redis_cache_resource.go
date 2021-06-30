@@ -10,9 +10,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-06-01/redis"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -26,12 +23,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceRedisCache() *schema.Resource {
-	return &schema.Resource{
+func resourceRedisCache() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceRedisCacheCreate,
 		Read:   resourceRedisCacheRead,
 		Update: resourceRedisCacheUpdate,
@@ -41,22 +39,22 @@ func resourceRedisCache() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(90 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(90 * time.Minute),
-			Delete: schema.DefaultTimeout(90 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"location": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Required:  true,
 				ForceNew:  true,
 				StateFunc: azure.NormalizeLocation,
@@ -67,19 +65,19 @@ func resourceRedisCache() *schema.Resource {
 			"zones": azure.SchemaMultipleZones(),
 
 			"capacity": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Required: true,
 			},
 
 			"family": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ValidateFunc:     validate.CacheFamily,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(redis.Basic),
@@ -90,7 +88,7 @@ func resourceRedisCache() *schema.Resource {
 			},
 
 			"minimum_tls_version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  redis.OneFullStopZero,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -101,112 +99,112 @@ func resourceRedisCache() *schema.Resource {
 			},
 
 			"shard_count": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 			},
 
 			"enable_non_ssl_port": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Default:  false,
 				Optional: true,
 			},
 
 			"subnet_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: networkValidate.SubnetID,
 			},
 
 			"private_static_ip_address": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
 			},
 
 			"redis_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"maxclients": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
 
 						"maxmemory_delta": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Optional: true,
 							Computed: true,
 						},
 
 						"maxmemory_reserved": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Optional: true,
 							Computed: true,
 						},
 
 						"maxmemory_policy": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "volatile-lru",
 							ValidateFunc: validate.MaxMemoryPolicy,
 						},
 
 						"maxfragmentationmemory_reserved": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Optional: true,
 							Computed: true,
 						},
 
 						"rdb_backup_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 
 						"rdb_backup_frequency": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validate.CacheBackupFrequency,
 						},
 
 						"rdb_backup_max_snapshot_count": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Optional: true,
 						},
 
 						"rdb_storage_connection_string": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Optional:  true,
 							Sensitive: true,
 						},
 
 						"notify_keyspace_events": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"aof_backup_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
 
 						"aof_storage_connection_string_0": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Optional:  true,
 							Sensitive: true,
 						},
 
 						"aof_storage_connection_string_1": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Optional:  true,
 							Sensitive: true,
 						},
 						"enable_authentication": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
@@ -215,18 +213,18 @@ func resourceRedisCache() *schema.Resource {
 			},
 
 			"patch_schedule": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"day_of_week": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validation.IsDayOfTheWeek(true),
 						},
 						"start_hour_utc": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(0, 23),
 						},
@@ -235,48 +233,55 @@ func resourceRedisCache() *schema.Resource {
 			},
 
 			"hostname": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"port": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"ssl_port": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
 			"primary_access_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_access_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"primary_connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"public_network_access_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"replicas_per_master": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Can't make more than 3 replicas in portal, assuming it's a limitation
+				ValidateFunc: validation.IntBetween(1, 3),
 			},
 
 			"tags": tags.Schema(),
@@ -284,7 +289,7 @@ func resourceRedisCache() *schema.Resource {
 	}
 }
 
-func resourceRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.Client
 	patchClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -345,6 +350,10 @@ func resourceRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters.ShardCount = &shardCount
 	}
 
+	if v, ok := d.GetOk("replicas_per_master"); ok {
+		parameters.ReplicasPerMaster = utils.Int32(int32(v.(int)))
+	}
+
 	if v, ok := d.GetOk("private_static_ip_address"); ok {
 		parameters.StaticIP = utils.String(v.(string))
 	}
@@ -378,15 +387,15 @@ func resourceRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	log.Printf("[DEBUG] Waiting for Redis Cache %q (Resource Group %q) to become available", id.RediName, id.ResourceGroup)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Scaling", "Updating", "Creating"},
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, id.ResourceGroup, id.RediName),
 		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Redis Cache %q (Resource Group %q) to become available: %s", id.RediName, id.ResourceGroup, err)
 	}
 
@@ -401,7 +410,7 @@ func resourceRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
 	return resourceRedisCacheRead(d, meta)
 }
 
-func resourceRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.Client
 	patchClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -442,6 +451,12 @@ func resourceRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
+	if v, ok := d.GetOk("replicas_per_master"); ok {
+		if d.HasChange("replicas_per_master") {
+			parameters.ReplicasPerMaster = utils.Int32(int32(v.(int)))
+		}
+	}
+
 	if d.HasChange("public_network_access_enabled") {
 		publicNetworkAccess := redis.Enabled
 		if !d.Get("public_network_access_enabled").(bool) {
@@ -463,15 +478,15 @@ func resourceRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	log.Printf("[DEBUG] Waiting for Redis Cache %q (Resource Group %q) to become available", id.RediName, id.ResourceGroup)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Scaling", "Updating", "Creating"},
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, id.ResourceGroup, id.RediName),
 		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(schema.TimeoutUpdate),
+		Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Redis Cache %q (Resource Group %q) to become available: %+v", id.RediName, id.ResourceGroup, err)
 	}
 
@@ -492,7 +507,7 @@ func resourceRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceRedisCacheRead(d, meta)
 }
 
-func resourceRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.Client
 	patchSchedulesClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -562,6 +577,7 @@ func resourceRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("subnet_id", subnetId)
 
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == redis.Enabled)
+		d.Set("replicas_per_master", props.ReplicasPerMaster)
 	}
 
 	redisConfiguration, err := flattenRedisConfiguration(resp.RedisConfiguration)
@@ -584,7 +600,7 @@ func resourceRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceRedisCacheDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.Client
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -629,7 +645,7 @@ func resourceRedisCacheDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func redisStateRefreshFunc(ctx context.Context, client *redis.Client, resourceGroupName string, sgName string) resource.StateRefreshFunc {
+func redisStateRefreshFunc(ctx context.Context, client *redis.Client, resourceGroupName string, sgName string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, sgName)
 		if err != nil {
@@ -640,7 +656,7 @@ func redisStateRefreshFunc(ctx context.Context, client *redis.Client, resourceGr
 	}
 }
 
-func expandRedisConfiguration(d *schema.ResourceData) (map[string]*string, error) {
+func expandRedisConfiguration(d *pluginsdk.ResourceData) (map[string]*string, error) {
 	output := make(map[string]*string)
 
 	input := d.Get("redis_configuration").([]interface{})
@@ -719,7 +735,7 @@ func expandRedisConfiguration(d *schema.ResourceData) (map[string]*string, error
 	return output, nil
 }
 
-func expandRedisPatchSchedule(d *schema.ResourceData) *redis.PatchSchedule {
+func expandRedisPatchSchedule(d *pluginsdk.ResourceData) *redis.PatchSchedule {
 	v, ok := d.GetOk("patch_schedule")
 	if !ok {
 		return nil

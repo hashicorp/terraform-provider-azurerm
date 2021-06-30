@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,12 +14,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceKustoCluster() *schema.Resource {
-	return &schema.Resource{
+func resourceKustoCluster() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceKustoClusterCreateUpdate,
 		Read:   resourceKustoClusterRead,
 		Update: resourceKustoClusterCreateUpdate,
@@ -32,16 +31,16 @@ func resourceKustoCluster() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ClusterName,
@@ -54,13 +53,13 @@ func resourceKustoCluster() *schema.Resource {
 			"identity": schemaIdentity(),
 
 			"sku": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(kusto.DevNoSLAStandardD11V2),
@@ -89,7 +88,7 @@ func resourceKustoCluster() *schema.Resource {
 						},
 
 						"capacity": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validation.IntBetween(1, 1000),
@@ -99,29 +98,29 @@ func resourceKustoCluster() *schema.Resource {
 			},
 
 			"trusted_external_tenants": {
-				Type:       schema.TypeList,
+				Type:       pluginsdk.TypeList,
 				Optional:   true,
 				Computed:   true,
-				ConfigMode: schema.SchemaConfigModeAttr,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
 				},
 			},
 
 			"optimized_auto_scale": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"minimum_instances": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(0, 1000),
 						},
 						"maximum_instances": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(0, 1000),
 						},
@@ -130,45 +129,45 @@ func resourceKustoCluster() *schema.Resource {
 			},
 
 			"double_encryption_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
 			},
 
 			"enable_disk_encryption": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			"enable_streaming_ingest": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			"enable_purge": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			"virtual_network_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"subnet_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"engine_public_ip_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"data_management_public_ip_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
@@ -177,10 +176,10 @@ func resourceKustoCluster() *schema.Resource {
 			},
 
 			"language_extensions": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(kusto.PYTHON),
 						string(kusto.R),
@@ -189,7 +188,7 @@ func resourceKustoCluster() *schema.Resource {
 			},
 
 			"engine": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  string(kusto.V2),
@@ -200,12 +199,12 @@ func resourceKustoCluster() *schema.Resource {
 			},
 
 			"uri": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"data_ingestion_uri": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -216,7 +215,7 @@ func resourceKustoCluster() *schema.Resource {
 	}
 }
 
-func resourceKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -373,7 +372,7 @@ func resourceKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceKustoClusterRead(d, meta)
 }
 
-func resourceKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -434,7 +433,7 @@ func resourceKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, clusterResponse.Tags)
 }
 
-func resourceKustoClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

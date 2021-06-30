@@ -6,19 +6,18 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataFactoryIntegrationRuntimeManaged() *schema.Resource {
-	return &schema.Resource{
+func resourceDataFactoryIntegrationRuntimeManaged() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDataFactoryIntegrationRuntimeManagedCreateUpdate,
 		Read:   resourceDataFactoryIntegrationRuntimeManagedRead,
 		Update: resourceDataFactoryIntegrationRuntimeManagedCreateUpdate,
@@ -26,16 +25,16 @@ func resourceDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -45,12 +44,12 @@ func resourceDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"data_factory_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryName(),
@@ -61,7 +60,7 @@ func resourceDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"node_size": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Standard_D2_v3",
@@ -86,52 +85,52 @@ func resourceDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 			},
 
 			"number_of_nodes": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 10),
 			},
 
 			"max_parallel_executions_per_node": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 16),
 			},
 
 			"edition": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(datafactory.Standard),
+				Default:  string(datafactory.IntegrationRuntimeEditionStandard),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(datafactory.Standard),
-					string(datafactory.Enterprise),
+					string(datafactory.IntegrationRuntimeEditionStandard),
+					string(datafactory.IntegrationRuntimeEditionEnterprise),
 				}, false),
 			},
 
 			"license_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(datafactory.LicenseIncluded),
+				Default:  string(datafactory.IntegrationRuntimeLicenseTypeLicenseIncluded),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(datafactory.LicenseIncluded),
-					string(datafactory.BasePrice),
+					string(datafactory.IntegrationRuntimeLicenseTypeLicenseIncluded),
+					string(datafactory.IntegrationRuntimeLicenseTypeBasePrice),
 				}, false),
 			},
 
 			"vnet_integration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"vnet_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"subnet_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -140,18 +139,18 @@ func resourceDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 			},
 
 			"custom_setup_script": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"blob_container_uri": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"sas_token": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -161,29 +160,29 @@ func resourceDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 			},
 
 			"catalog_info": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"server_endpoint": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"administrator_login": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"administrator_password": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"pricing_tier": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  string(datafactory.IntegrationRuntimeSsisCatalogPricingTierBasic),
 							ValidateFunc: validation.StringInSlice([]string{
@@ -200,7 +199,7 @@ func resourceDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 	}
 }
 
-func resourceDataFactoryIntegrationRuntimeManagedCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeManagedCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,7 +224,7 @@ func resourceDataFactoryIntegrationRuntimeManagedCreateUpdate(d *schema.Resource
 	description := d.Get("description").(string)
 	managedIntegrationRuntime := datafactory.ManagedIntegrationRuntime{
 		Description: &description,
-		Type:        datafactory.TypeManaged,
+		Type:        datafactory.TypeBasicIntegrationRuntimeTypeManaged,
 		ManagedIntegrationRuntimeTypeProperties: &datafactory.ManagedIntegrationRuntimeTypeProperties{
 			ComputeProperties: expandDataFactoryIntegrationRuntimeManagedComputeProperties(d),
 			SsisProperties:    expandDataFactoryIntegrationRuntimeManagedSsisProperties(d),
@@ -257,7 +256,7 @@ func resourceDataFactoryIntegrationRuntimeManagedCreateUpdate(d *schema.Resource
 	return resourceDataFactoryIntegrationRuntimeManagedRead(d, meta)
 }
 
-func resourceDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeManagedRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -331,7 +330,7 @@ func resourceDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceDataFactoryIntegrationRuntimeManagedDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeManagedDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -354,7 +353,7 @@ func resourceDataFactoryIntegrationRuntimeManagedDelete(d *schema.ResourceData, 
 	return nil
 }
 
-func expandDataFactoryIntegrationRuntimeManagedComputeProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeComputeProperties {
+func expandDataFactoryIntegrationRuntimeManagedComputeProperties(d *pluginsdk.ResourceData) *datafactory.IntegrationRuntimeComputeProperties {
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	computeProperties := datafactory.IntegrationRuntimeComputeProperties{
 		Location:                     &location,
@@ -374,7 +373,7 @@ func expandDataFactoryIntegrationRuntimeManagedComputeProperties(d *schema.Resou
 	return &computeProperties
 }
 
-func expandDataFactoryIntegrationRuntimeManagedSsisProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeSsisProperties {
+func expandDataFactoryIntegrationRuntimeManagedSsisProperties(d *pluginsdk.ResourceData) *datafactory.IntegrationRuntimeSsisProperties {
 	ssisProperties := &datafactory.IntegrationRuntimeSsisProperties{
 		Edition:     datafactory.IntegrationRuntimeEdition(d.Get("edition").(string)),
 		LicenseType: datafactory.IntegrationRuntimeLicenseType(d.Get("license_type").(string)),
@@ -430,7 +429,7 @@ func flattenDataFactoryIntegrationRuntimeManagedVnetIntegration(vnetProperties *
 	}
 }
 
-func flattenDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisProperties *datafactory.IntegrationRuntimeSsisCatalogInfo, d *schema.ResourceData) []interface{} {
+func flattenDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisProperties *datafactory.IntegrationRuntimeSsisCatalogInfo, d *pluginsdk.ResourceData) []interface{} {
 	if ssisProperties == nil {
 		return []interface{}{}
 	}
@@ -451,7 +450,7 @@ func flattenDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisProperties *
 	return []interface{}{catalogInfo}
 }
 
-func flattenDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(customSetupScriptProperties *datafactory.IntegrationRuntimeCustomSetupScriptProperties, d *schema.ResourceData) []interface{} {
+func flattenDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(customSetupScriptProperties *datafactory.IntegrationRuntimeCustomSetupScriptProperties, d *pluginsdk.ResourceData) []interface{} {
 	if customSetupScriptProperties == nil {
 		return []interface{}{}
 	}

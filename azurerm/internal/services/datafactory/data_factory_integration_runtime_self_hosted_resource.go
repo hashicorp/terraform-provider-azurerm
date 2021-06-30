@@ -7,20 +7,19 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataFactoryIntegrationRuntimeSelfHosted() *schema.Resource {
-	return &schema.Resource{
+func resourceDataFactoryIntegrationRuntimeSelfHosted() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate,
 		Read:   resourceDataFactoryIntegrationRuntimeSelfHostedRead,
 		Update: resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate,
@@ -31,16 +30,16 @@ func resourceDataFactoryIntegrationRuntimeSelfHosted() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -50,7 +49,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHosted() *schema.Resource {
 			},
 
 			"data_factory_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryName(),
@@ -59,18 +58,18 @@ func resourceDataFactoryIntegrationRuntimeSelfHosted() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"rbac_authorization": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"resource_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -79,19 +78,19 @@ func resourceDataFactoryIntegrationRuntimeSelfHosted() *schema.Resource {
 			},
 
 			"auth_key_1": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"auth_key_2": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -117,7 +116,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *schema.Resou
 
 	selfHostedIntegrationRuntime := datafactory.SelfHostedIntegrationRuntime{
 		Description: &description,
-		Type:        datafactory.TypeSelfHosted,
+		Type:        datafactory.TypeBasicIntegrationRuntimeTypeSelfHosted,
 	}
 
 	properties := expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypeProperties(d)
@@ -150,7 +149,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *schema.Resou
 	return resourceDataFactoryIntegrationRuntimeSelfHostedRead(d, meta)
 }
 
-func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -192,7 +191,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *schema.ResourceData,
 		if linkedInfo := props.LinkedInfo; linkedInfo != nil {
 			rbacAuthorization, _ := linkedInfo.AsLinkedIntegrationRuntimeRbacAuthorization()
 			if rbacAuthorization != nil {
-				if err := d.Set("rbac_authorization", schema.NewSet(resourceDataFactoryIntegrationRuntimeSelfHostedRbacAuthorizationHash, flattenAzureRmDataFactoryIntegrationRuntimeSelfHostedTypePropertiesRbacAuthorization(rbacAuthorization))); err != nil {
+				if err := d.Set("rbac_authorization", pluginsdk.NewSet(resourceDataFactoryIntegrationRuntimeSelfHostedRbacAuthorizationHash, flattenAzureRmDataFactoryIntegrationRuntimeSelfHostedTypePropertiesRbacAuthorization(rbacAuthorization))); err != nil {
 					return fmt.Errorf("Error setting `rbac_authorization`: %#v", err)
 				}
 			}
@@ -216,7 +215,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *schema.ResourceData,
 	return nil
 }
 
-func resourceDataFactoryIntegrationRuntimeSelfHostedDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeSelfHostedDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -238,9 +237,9 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedDelete(d *schema.ResourceDat
 	return nil
 }
 
-func expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypeProperties(d *schema.ResourceData) *datafactory.SelfHostedIntegrationRuntimeTypeProperties {
+func expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypeProperties(d *pluginsdk.ResourceData) *datafactory.SelfHostedIntegrationRuntimeTypeProperties {
 	if _, ok := d.GetOk("rbac_authorization"); ok {
-		rbacAuthorization := d.Get("rbac_authorization").(*schema.Set).List()
+		rbacAuthorization := d.Get("rbac_authorization").(*pluginsdk.Set).List()
 		rbacConfig := rbacAuthorization[0].(map[string]interface{})
 		rbac := rbacConfig["resource_id"].(string)
 		linkedInfo := &datafactory.SelfHostedIntegrationRuntimeTypeProperties{
@@ -270,5 +269,5 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRbacAuthorizationHash(v inte
 		}
 	}
 
-	return schema.HashString(buf.String())
+	return pluginsdk.HashString(buf.String())
 }

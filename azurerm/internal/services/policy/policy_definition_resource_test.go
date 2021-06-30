@@ -6,12 +6,11 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccAzureRMPolicyDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +50,10 @@ func TestAccAzureRMPolicyDefinition_computedMetadata(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.computedMetadata(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -66,10 +65,10 @@ func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.managementGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -81,10 +80,10 @@ func TestAccAzureRMPolicyDefinition_metadata(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.metadata(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -96,24 +95,24 @@ func TestAccAzureRMPolicyDefinition_modeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.mode(data, "All"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.mode(data, "Indexed"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.mode(data, "All"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -121,7 +120,7 @@ func TestAccAzureRMPolicyDefinition_modeUpdate(t *testing.T) {
 	})
 }
 
-func (r PolicyDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r PolicyDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	definitionsClient := client.Policy.DefinitionsClient
 	id, err := parse.PolicyDefinitionID(state.ID)
 	if err != nil {

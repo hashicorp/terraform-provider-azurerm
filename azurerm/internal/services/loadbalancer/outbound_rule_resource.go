@@ -5,21 +5,21 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLoadBalancerOutboundRule() *schema.Resource {
-	return &schema.Resource{
+func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerOutboundRuleCreateUpdate,
 		Read:   resourceArmLoadBalancerOutboundRuleRead,
 		Update: resourceArmLoadBalancerOutboundRuleCreateUpdate,
@@ -35,16 +35,16 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 			return &lbId, nil
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -53,26 +53,26 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"loadbalancer_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.LoadBalancerID,
 			},
 
 			"frontend_ip_configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -80,12 +80,12 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 			},
 
 			"backend_address_pool_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"protocol": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.TransportProtocolAll),
@@ -95,19 +95,19 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 			},
 
 			"enable_tcp_reset": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"allocated_outbound_ports": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				Default:  1024,
 			},
 
 			"idle_timeout_in_minutes": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				Default:  4,
 			},
@@ -115,7 +115,7 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 	}
 }
 
-func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -181,7 +181,7 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, met
 	return resourceArmLoadBalancerOutboundRuleRead(d, meta)
 }
 
-func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -260,7 +260,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceArmLoadBalancerOutboundRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerOutboundRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -305,7 +305,7 @@ func resourceArmLoadBalancerOutboundRuleDelete(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func expandAzureRmLoadBalancerOutboundRule(d *schema.ResourceData, lb *network.LoadBalancer) (*network.OutboundRule, error) {
+func expandAzureRmLoadBalancerOutboundRule(d *pluginsdk.ResourceData, lb *network.LoadBalancer) (*network.OutboundRule, error) {
 	properties := network.OutboundRulePropertiesFormat{
 		Protocol: network.LoadBalancerOutboundRuleProtocol(d.Get("protocol").(string)),
 	}

@@ -6,20 +6,19 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-06-01/redis"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceRedisFirewallRule() *schema.Resource {
-	return &schema.Resource{
+func resourceRedisFirewallRule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceRedisFirewallRuleCreateUpdate,
 		Read:   resourceRedisFirewallRuleRead,
 		Update: resourceRedisFirewallRuleCreateUpdate,
@@ -29,23 +28,23 @@ func resourceRedisFirewallRule() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.FirewallRuleName,
 			},
 
 			"redis_cache_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -53,7 +52,7 @@ func resourceRedisFirewallRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"start_ip": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.All(
 					validation.IsIPAddress,
@@ -62,7 +61,7 @@ func resourceRedisFirewallRule() *schema.Resource {
 			},
 
 			"end_ip": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.All(
 					validation.IsIPAddress,
@@ -73,7 +72,7 @@ func resourceRedisFirewallRule() *schema.Resource {
 	}
 }
 
-func resourceRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.FirewallRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -113,7 +112,7 @@ func resourceRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta interfac
 	return resourceRedisFirewallRuleRead(d, meta)
 }
 
-func resourceRedisFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.FirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,7 +144,7 @@ func resourceRedisFirewallRuleRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceRedisFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.FirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

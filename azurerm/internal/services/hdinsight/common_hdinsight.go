@@ -6,19 +6,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
-
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema.UpdateFunc {
-	return func(d *schema.ResourceData, meta interface{}) error {
+func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) pluginsdk.UpdateFunc {
+	return func(d *pluginsdk.ResourceData, meta interface{}) error {
 		client := meta.(*clients.Client).HDInsight.ClustersClient
 		extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 		ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -82,7 +80,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 			}
 		}
 
-		// The API can add an edge node but can't remove them without force newing the resource. We'll check for adding here
+		// The API can add an edge node but can't remove them without force newing the pluginsdk. We'll check for adding here
 		// and can come back to removing if that functionality gets added. https://feedback.azure.com/forums/217335-hdinsight/suggestions/5663773-start-stop-cluster-hdinsight?page=3&per_page=20
 		if clusterKind == "Hadoop" {
 			if d.HasChange("roles.0.edge_node") {
@@ -113,15 +111,15 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 
 				// we can't rely on the use of the Future here due to the node being successfully completed but now the cluster is applying those changes.
 				log.Printf("[DEBUG] Waiting for Hadoop Cluster to %q (Resource Group %q) to finish applying edge node", name, resourceGroup)
-				stateConf := &resource.StateChangeConf{
+				stateConf := &pluginsdk.StateChangeConf{
 					Pending:    []string{"AzureVMConfiguration", "Accepted", "HdInsightConfiguration"},
 					Target:     []string{"Running"},
 					Refresh:    hdInsightWaitForReadyRefreshFunc(ctx, client, resourceGroup, name),
 					MinTimeout: 15 * time.Second,
-					Timeout:    d.Timeout(schema.TimeoutUpdate),
+					Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
 				}
 
-				if _, err := stateConf.WaitForState(); err != nil {
+				if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 					return fmt.Errorf("Error waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
 				}
 			}
@@ -164,8 +162,8 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 	}
 }
 
-func hdinsightClusterDelete(clusterKind string) schema.DeleteFunc {
-	return func(d *schema.ResourceData, meta interface{}) error {
+func hdinsightClusterDelete(clusterKind string) pluginsdk.DeleteFunc {
+	return func(d *pluginsdk.ResourceData, meta interface{}) error {
 		client := meta.(*clients.Client).HDInsight.ClustersClient
 		ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 		defer cancel()
@@ -250,7 +248,7 @@ func expandHDInsightRoles(input []interface{}, definition hdInsightRoleDefinitio
 	return &roles, nil
 }
 
-func flattenHDInsightRoles(d *schema.ResourceData, input *hdinsight.ComputeProfile, definition hdInsightRoleDefinition) []interface{} {
+func flattenHDInsightRoles(d *pluginsdk.ResourceData, input *hdinsight.ComputeProfile, definition hdInsightRoleDefinition) []interface{} {
 	if input == nil || input.Roles == nil {
 		return []interface{}{}
 	}
@@ -378,7 +376,7 @@ func expandHDInsightsMetastore(input []interface{}) map[string]interface{} {
 	return config
 }
 
-func flattenHDInsightsMetastores(d *schema.ResourceData, configurations map[string]map[string]*string) {
+func flattenHDInsightsMetastores(d *pluginsdk.ResourceData, configurations map[string]map[string]*string) {
 	result := map[string]interface{}{}
 
 	hiveEnv, envExists := configurations["hive-env"]

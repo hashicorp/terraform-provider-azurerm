@@ -1,11 +1,11 @@
 package validate
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func ServiceBusMaxSizeInMegabytes() schema.SchemaValidateFunc {
+func ServiceBusMaxSizeInMegabytes() pluginsdk.SchemaValidateFunc {
 	return validation.IntInSlice([]int{
 		1024,
 		2048,

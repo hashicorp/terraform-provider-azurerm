@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccApiManagementUser_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
 	r := ApiManagementUserResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("first_name").HasValue("Acceptance"),
 				check.That(data.ResourceName).Key("last_name").HasValue("Test"),
@@ -38,10 +37,10 @@ func TestAccApiManagementUser_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
 	r := ApiManagementUserResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -53,10 +52,10 @@ func TestAccApiManagementUser_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
 	r := ApiManagementUserResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("first_name").HasValue("Acceptance"),
 				check.That(data.ResourceName).Key("last_name").HasValue("Test"),
@@ -65,7 +64,7 @@ func TestAccApiManagementUser_update(t *testing.T) {
 		},
 		{
 			Config: r.updatedBlocked(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("first_name").HasValue("Acceptance Updated"),
 				check.That(data.ResourceName).Key("last_name").HasValue("Test Updated"),
@@ -74,7 +73,7 @@ func TestAccApiManagementUser_update(t *testing.T) {
 		},
 		{
 			Config: r.updatedActive(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("first_name").HasValue("Acceptance"),
 				check.That(data.ResourceName).Key("last_name").HasValue("Test"),
@@ -88,10 +87,10 @@ func TestAccApiManagementUser_password(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
 	r := ApiManagementUserResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.password(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("first_name").HasValue("Acceptance"),
 				check.That(data.ResourceName).Key("last_name").HasValue("Test"),
@@ -110,10 +109,10 @@ func TestAccApiManagementUser_invite(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
 	r := ApiManagementUserResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.invited(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -133,10 +132,10 @@ func TestAccApiManagementUser_signup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
 	r := ApiManagementUserResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.signUp(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -156,10 +155,10 @@ func TestAccApiManagementUser_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
 	r := ApiManagementUserResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("first_name").HasValue("Acceptance"),
 				check.That(data.ResourceName).Key("last_name").HasValue("Test"),
@@ -178,7 +177,7 @@ func TestAccApiManagementUser_complete(t *testing.T) {
 	})
 }
 
-func (ApiManagementUserResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementUserResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

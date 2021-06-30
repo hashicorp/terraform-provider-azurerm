@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccDataShareAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")
 	r := DataShareAccountResource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
@@ -37,10 +36,10 @@ func TestAccDataShareAccount_basic(t *testing.T) {
 func TestAccDataShareAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")
 	r := DataShareAccountResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -52,10 +51,10 @@ func TestAccDataShareAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")
 	r := DataShareAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
@@ -69,10 +68,10 @@ func TestAccDataShareAccount_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")
 	r := DataShareAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
@@ -81,7 +80,7 @@ func TestAccDataShareAccount_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
@@ -90,7 +89,7 @@ func TestAccDataShareAccount_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
@@ -98,7 +97,7 @@ func TestAccDataShareAccount_update(t *testing.T) {
 		},
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
@@ -109,7 +108,7 @@ func TestAccDataShareAccount_update(t *testing.T) {
 	})
 }
 
-func (t DataShareAccountResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t DataShareAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AccountID(state.ID)
 	if err != nil {
 		return nil, err

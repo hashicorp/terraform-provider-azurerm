@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,10 +19,10 @@ func TestAccSecurityCenterAssessmentMetadata_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_metadata", "test")
 	r := SecurityCenterAssessmentMetadataResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -35,10 +34,10 @@ func TestAccSecurityCenterAssessmentMetadata_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_metadata", "test")
 	r := SecurityCenterAssessmentMetadataResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -50,17 +49,17 @@ func TestAccSecurityCenterAssessmentMetadata_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_metadata", "test")
 	r := SecurityCenterAssessmentMetadataResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.update(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -68,7 +67,22 @@ func TestAccSecurityCenterAssessmentMetadata_update(t *testing.T) {
 	})
 }
 
-func (r SecurityCenterAssessmentMetadataResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func TestAccSecurityCenterAssessmentMetadata_categories(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_metadata", "test")
+	r := SecurityCenterAssessmentMetadataResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.categories(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r SecurityCenterAssessmentMetadataResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	assessmentMetadataClient := client.SecurityCenter.AssessmentsMetadataClient
 	id, err := parse.AssessmentMetadataID(state.ID)
 	if err != nil {
@@ -133,6 +147,21 @@ resource "azurerm_security_center_assessment_metadata" "test" {
   remediation_description = "Updated Test Remediation Description"
   threats                 = ["DataExfiltration", "DataSpillage"]
   user_impact             = "Moderate"
+}
+`
+}
+
+func (r SecurityCenterAssessmentMetadataResource) categories() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_security_center_assessment_metadata" "test" {
+  display_name = "Test Display Name"
+  severity     = "Medium"
+  description  = "Test Description"
+  categories   = ["Data"]
 }
 `
 }

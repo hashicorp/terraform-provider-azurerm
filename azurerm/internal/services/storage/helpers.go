@@ -1,11 +1,11 @@
 package storage
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func schemaStorageAccountCorsRule(patchEnabled bool) *schema.Schema {
+func schemaStorageAccountCorsRule(patchEnabled bool) *pluginsdk.Schema {
 	// CorsRule "PATCH" method is only supported by blob
 	allowedMethods := []string{
 		"DELETE",
@@ -21,50 +21,50 @@ func schemaStorageAccountCorsRule(patchEnabled bool) *schema.Schema {
 		allowedMethods = append(allowedMethods, "PATCH")
 	}
 
-	return &schema.Schema{
-		Type:     schema.TypeList,
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 5,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"allowed_origins": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Required: true,
 					MaxItems: 64,
-					Elem: &schema.Schema{
-						Type:         schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 				"exposed_headers": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Required: true,
 					MaxItems: 64,
-					Elem: &schema.Schema{
-						Type:         schema.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
+					MinItems: 1,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
 					},
 				},
 				"allowed_headers": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Required: true,
 					MaxItems: 64,
-					Elem: &schema.Schema{
-						Type:         schema.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
+					MinItems: 1,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
 					},
 				},
 				"allowed_methods": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Required: true,
 					MaxItems: 64,
-					Elem: &schema.Schema{
-						Type:         schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringInSlice(allowedMethods, false),
 					},
 				},
 				"max_age_in_seconds": {
-					Type:         schema.TypeInt,
+					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 2000000000),
 				},

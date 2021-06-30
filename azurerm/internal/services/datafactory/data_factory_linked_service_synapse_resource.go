@@ -6,20 +6,19 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataFactoryLinkedServiceSynapse() *schema.Resource {
-	return &schema.Resource{
+func resourceDataFactoryLinkedServiceSynapse() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDataFactoryLinkedServiceSynapseCreateUpdate,
 		Read:   resourceDataFactoryLinkedServiceSynapseRead,
 		Update: resourceDataFactoryLinkedServiceSynapseCreateUpdate,
@@ -28,23 +27,23 @@ func resourceDataFactoryLinkedServiceSynapse() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
 			"data_factory_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryName(),
@@ -55,26 +54,26 @@ func resourceDataFactoryLinkedServiceSynapse() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"connection_string": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				DiffSuppressFunc: azureRmDataFactoryLinkedServiceConnectionStringDiff,
 				ValidateFunc:     validation.StringIsNotEmpty,
 			},
 
 			"key_vault_password": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"linked_service_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"secret_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -83,40 +82,40 @@ func resourceDataFactoryLinkedServiceSynapse() *schema.Resource {
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"integration_runtime_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"parameters": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
 			"annotations": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
 			"additional_properties": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
@@ -124,7 +123,7 @@ func resourceDataFactoryLinkedServiceSynapse() *schema.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceSynapseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSynapseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -152,9 +151,9 @@ func resourceDataFactoryLinkedServiceSynapseCreateUpdate(d *schema.ResourceData,
 		Description: utils.String(d.Get("description").(string)),
 		AzureSQLDWLinkedServiceTypeProperties: &datafactory.AzureSQLDWLinkedServiceTypeProperties{
 			ConnectionString: d.Get("connection_string").(string),
-			Password:         expandAzureKeyVaultPassword(password),
+			Password:         expandAzureKeyVaultSecretReference(password),
 		},
-		Type: datafactory.TypeAzureSQLDW,
+		Type: datafactory.TypeBasicLinkedServiceTypeAzureSQLDW,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -196,7 +195,7 @@ func resourceDataFactoryLinkedServiceSynapseCreateUpdate(d *schema.ResourceData,
 	return resourceDataFactoryLinkedServiceSynapseRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceSynapseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSynapseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -222,7 +221,7 @@ func resourceDataFactoryLinkedServiceSynapseRead(d *schema.ResourceData, meta in
 
 	sqlDW, ok := resp.Properties.AsAzureSQLDWLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifying Data Factory Linked Service Synapse %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeAzureSQLDW, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Linked Service Synapse %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureSQLDW, *resp.Type)
 	}
 
 	d.Set("additional_properties", sqlDW.AdditionalProperties)
@@ -254,7 +253,7 @@ func resourceDataFactoryLinkedServiceSynapseRead(d *schema.ResourceData, meta in
 			}
 		}
 
-		if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(properties.Password)); err != nil {
+		if err := d.Set("key_vault_password", flattenAzureKeyVaultSecretReference(properties.Password)); err != nil {
 			return fmt.Errorf("setting `key_vault_password`: %+v", err)
 		}
 	}
@@ -262,7 +261,7 @@ func resourceDataFactoryLinkedServiceSynapseRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceSynapseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSynapseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

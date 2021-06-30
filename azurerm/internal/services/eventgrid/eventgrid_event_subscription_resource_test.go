@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccEventGridEventSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridEventSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("EventGridSchema"),
 			),
@@ -37,10 +36,10 @@ func TestAccEventGridEventSubscription_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridEventSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -55,10 +54,10 @@ func TestAccEventGridEventSubscription_eventHubID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridEventSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.eventHubID(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
 				check.That(data.ResourceName).Key("eventhub_endpoint_id").Exists(),
@@ -72,10 +71,10 @@ func TestAccEventGridEventSubscription_serviceBusQueueID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridEventSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.serviceBusQueueID(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
 				check.That(data.ResourceName).Key("service_bus_queue_endpoint_id").Exists(),
@@ -89,10 +88,10 @@ func TestAccEventGridEventSubscription_serviceBusTopicID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridEventSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.serviceBusTopicID(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
 				check.That(data.ResourceName).Key("service_bus_topic_endpoint_id").Exists(),
@@ -106,10 +105,10 @@ func TestAccEventGridEventSubscription_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridEventSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("EventGridSchema"),
 				check.That(data.ResourceName).Key("storage_queue_endpoint.#").HasValue("1"),
@@ -123,7 +122,7 @@ func TestAccEventGridEventSubscription_update(t *testing.T) {
 		},
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("included_event_types.0").HasValue("Microsoft.Storage.BlobCreated"),
 				check.That(data.ResourceName).Key("included_event_types.1").HasValue("Microsoft.Storage.BlobDeleted"),
@@ -142,10 +141,10 @@ func TestAccEventGridEventSubscription_filter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridEventSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.filter(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("included_event_types.0").HasValue("Microsoft.Storage.BlobCreated"),
 				check.That(data.ResourceName).Key("included_event_types.1").HasValue("Microsoft.Storage.BlobDeleted"),
@@ -161,10 +160,10 @@ func TestAccEventGridEventSubscription_advancedFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridEventSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.advancedFilter(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("advanced_filter.0.bool_equals.0.key").HasValue("subject"),
 				check.That(data.ResourceName).Key("advanced_filter.0.bool_equals.0.value").HasValue("true"),
@@ -200,10 +199,10 @@ func TestAccEventGridEventSubscription_advancedFilterMaxItems(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridEventSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.advancedFilterMaxItems(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("advanced_filter.0.bool_equals.0.key").HasValue("subject"),
 				check.That(data.ResourceName).Key("advanced_filter.0.bool_equals.0.value").HasValue("true"),
@@ -248,7 +247,7 @@ func TestAccEventGridEventSubscription_advancedFilterMaxItems(t *testing.T) {
 	})
 }
 
-func (EventGridEventSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (EventGridEventSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.EventSubscriptionID(state.ID)
 	if err != nil {
 		return nil, err

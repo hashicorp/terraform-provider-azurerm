@@ -6,12 +6,11 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ type LogAnalyticsLinkedStorageAccountResource struct {
 func TestAcclogAnalyticsLinkedStorageAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_storage_account", "test")
 	r := LogAnalyticsLinkedStorageAccountResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -35,10 +34,10 @@ func TestAcclogAnalyticsLinkedStorageAccount_basic(t *testing.T) {
 func TestAcclogAnalyticsLinkedStorageAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_storage_account", "test")
 	r := LogAnalyticsLinkedStorageAccountResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -49,10 +48,10 @@ func TestAcclogAnalyticsLinkedStorageAccount_requiresImport(t *testing.T) {
 func TestAcclogAnalyticsLinkedStorageAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_storage_account", "test")
 	r := LogAnalyticsLinkedStorageAccountResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -63,24 +62,24 @@ func TestAcclogAnalyticsLinkedStorageAccount_complete(t *testing.T) {
 func TestAcclogAnalyticsLinkedStorageAccount_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_storage_account", "test")
 	r := LogAnalyticsLinkedStorageAccountResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -88,7 +87,7 @@ func TestAcclogAnalyticsLinkedStorageAccount_update(t *testing.T) {
 	})
 }
 
-func (t LogAnalyticsLinkedStorageAccountResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t LogAnalyticsLinkedStorageAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LogAnalyticsLinkedStorageAccountID(state.ID)
 	if err != nil {
 		return nil, err

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccDataSourcePrivateDNSZone_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_zone", "test")
 	r := PrivateDnsZoneDatasource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
@@ -30,10 +29,10 @@ func TestAccDataSourcePrivateDNSZone_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_zone", "test")
 	r := PrivateDnsZoneDatasource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.tags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
 			),
@@ -46,13 +45,13 @@ func TestAccDataSourcePrivateDNSZone_withoutResourceGroupName(t *testing.T) {
 	r := PrivateDnsZoneDatasource{}
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.onlyNamePrep(data, resourceGroupName),
 		},
 		{
 			Config: r.onlyName(data, resourceGroupName),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("resource_group_name").HasValue(resourceGroupName),
 			),
 		},

@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,12 +13,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceKustoEventHubDataConnection() *schema.Resource {
-	return &schema.Resource{
+func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceKustoEventHubDataConnectionCreateUpdate,
 		Read:   resourceKustoEventHubDataConnectionRead,
 		Update: resourceKustoEventHubDataConnectionCreateUpdate,
@@ -31,17 +30,17 @@ func resourceKustoEventHubDataConnection() *schema.Resource {
 			return err
 		}, importDataConnection(kusto.KindEventHub)),
 
-		Timeouts: &schema.ResourceTimeout{
+		Timeouts: &pluginsdk.ResourceTimeout{
 			// TODO: confirm these
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataConnectionName,
@@ -52,14 +51,14 @@ func resourceKustoEventHubDataConnection() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"cluster_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ClusterName,
 			},
 
 			"compression": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  kusto.CompressionNone,
@@ -70,50 +69,50 @@ func resourceKustoEventHubDataConnection() *schema.Resource {
 			},
 
 			"database_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DatabaseName,
 			},
 
 			"eventhub_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: eventhubValidate.EventHubID,
 			},
 
 			"event_system_properties": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
 			"consumer_group": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: eventhubValidate.ValidateEventHubConsumerName(),
 			},
 
 			"table_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.EntityName,
 			},
 
 			"mapping_rule_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.EntityName,
 			},
 
 			"data_format": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(kusto.AVRO),
@@ -133,7 +132,7 @@ func resourceKustoEventHubDataConnection() *schema.Resource {
 	}
 }
 
-func resourceKustoEventHubDataConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoEventHubDataConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,7 +195,7 @@ func resourceKustoEventHubDataConnectionCreateUpdate(d *schema.ResourceData, met
 	return resourceKustoEventHubDataConnectionRead(d, meta)
 }
 
-func resourceKustoEventHubDataConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -239,7 +238,7 @@ func resourceKustoEventHubDataConnectionRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceKustoEventHubDataConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoEventHubDataConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -261,7 +260,7 @@ func resourceKustoEventHubDataConnectionDelete(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func expandKustoEventHubDataConnectionProperties(d *schema.ResourceData) *kusto.EventHubConnectionProperties {
+func expandKustoEventHubDataConnectionProperties(d *pluginsdk.ResourceData) *kusto.EventHubConnectionProperties {
 	eventHubConnectionProperties := &kusto.EventHubConnectionProperties{}
 
 	if eventhubResourceID, ok := d.GetOk("eventhub_id"); ok {

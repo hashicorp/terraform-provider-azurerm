@@ -5,30 +5,30 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceNotificationHub() *schema.Resource {
-	return &schema.Resource{
+func dataSourceNotificationHub() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceNotificationHubRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"namespace_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
@@ -37,29 +37,29 @@ func dataSourceNotificationHub() *schema.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"apns_credential": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"application_mode": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"bundle_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"key_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						// Team ID (within Apple & the Portal) == "AppID" (within the API)
 						"team_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"token": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
@@ -68,12 +68,12 @@ func dataSourceNotificationHub() *schema.Resource {
 			},
 
 			"gcm_credential": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"api_key": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
@@ -86,7 +86,7 @@ func dataSourceNotificationHub() *schema.Resource {
 	}
 }
 
-func dataSourceNotificationHubRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

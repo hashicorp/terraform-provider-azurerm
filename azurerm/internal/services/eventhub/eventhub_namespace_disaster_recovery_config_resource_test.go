@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/disasterrecoveryconfigs"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccEventHubNamespaceDisasterRecoveryConfig_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_disaster_recovery_config", "test")
 	r := EventHubNamespaceDisasterRecoveryConfigResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,16 +35,16 @@ func TestAccEventHubNamespaceDisasterRecoveryConfig_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_disaster_recovery_config", "test")
 	r := EventHubNamespaceDisasterRecoveryConfigResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.updated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -56,22 +55,18 @@ func TestAccEventHubNamespaceDisasterRecoveryConfig_update(t *testing.T) {
 	})
 }
 
-func (EventHubNamespaceDisasterRecoveryConfigResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+func (EventHubNamespaceDisasterRecoveryConfigResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := disasterrecoveryconfigs.DisasterRecoveryConfigID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	name := id.Path["disasterRecoveryConfigs"]
-	resourceGroup := id.ResourceGroup
-	namespaceName := id.Path["namespaces"]
-
-	resp, err := clients.Eventhub.DisasterRecoveryConfigsClient.Get(ctx, resourceGroup, namespaceName, name)
+	resp, err := clients.Eventhub.DisasterRecoveryConfigsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving EventHub Namespace Disaster Recovery Configs %q (namespace %q / resource group: %q): %v", name, namespaceName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ArmDisasterRecoveryProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (EventHubNamespaceDisasterRecoveryConfigResource) basic(data acceptance.TestData) string {

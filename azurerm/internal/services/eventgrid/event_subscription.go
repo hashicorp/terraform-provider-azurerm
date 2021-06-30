@@ -5,11 +5,11 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -37,9 +37,9 @@ const (
 	WebHookEndpoint EventSubscriptionEndpointType = "webhook_endpoint"
 )
 
-func eventSubscriptionSchemaEventSubscriptionName() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeString,
+func eventSubscriptionSchemaEventSubscriptionName() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeString,
 		Required: true,
 		ForceNew: true,
 		ValidateFunc: validation.All(
@@ -52,9 +52,9 @@ func eventSubscriptionSchemaEventSubscriptionName() *schema.Schema {
 	}
 }
 
-func eventSubscriptionSchemaEventDeliverySchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeString,
+func eventSubscriptionSchemaEventDeliverySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeString,
 		Optional: true,
 		ForceNew: true,
 		Default:  string(eventgrid.EventGridSchema),
@@ -66,33 +66,33 @@ func eventSubscriptionSchemaEventDeliverySchema() *schema.Schema {
 	}
 }
 
-func eventSubscriptionSchemaExpirationTimeUTC() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func eventSubscriptionSchemaExpirationTimeUTC() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Optional:     true,
 		ValidateFunc: validation.StringIsNotEmpty,
 	}
 }
 
-func eventSubscriptionSchemaAzureFunctionEndpoint(conflictsWith []string) *schema.Schema {
-	return &schema.Schema{
-		Type:          schema.TypeList,
+func eventSubscriptionSchemaAzureFunctionEndpoint(conflictsWith []string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeList,
 		MaxItems:      1,
 		Optional:      true,
 		ConflictsWith: conflictsWith,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"function_id": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: azure.ValidateResourceID,
 				},
 				"max_events_per_batch": {
-					Type:     schema.TypeInt,
+					Type:     pluginsdk.TypeInt,
 					Optional: true,
 				},
 				"preferred_batch_size_in_kilobytes": {
-					Type:     schema.TypeInt,
+					Type:     pluginsdk.TypeInt,
 					Optional: true,
 				},
 			},
@@ -100,9 +100,9 @@ func eventSubscriptionSchemaAzureFunctionEndpoint(conflictsWith []string) *schem
 	}
 }
 
-func eventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *schema.Schema {
-	return &schema.Schema{
-		Type:          schema.TypeString,
+func eventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeString,
 		Optional:      true,
 		Computed:      true,
 		ConflictsWith: conflictsWith,
@@ -110,19 +110,19 @@ func eventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *schema.S
 	}
 }
 
-func eventSubscriptionSchemaEventHubEndpoint(conflictsWith []string) *schema.Schema {
+func eventSubscriptionSchemaEventHubEndpoint(conflictsWith []string) *pluginsdk.Schema {
 	//lintignore:XS003
-	return &schema.Schema{
-		Type:          schema.TypeList,
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeList,
 		MaxItems:      1,
 		Deprecated:    "Deprecated in favour of `" + "eventhub_endpoint_id" + "`",
 		Optional:      true,
 		Computed:      true,
 		ConflictsWith: conflictsWith,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"eventhub_id": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: azure.ValidateResourceID,
@@ -132,9 +132,9 @@ func eventSubscriptionSchemaEventHubEndpoint(conflictsWith []string) *schema.Sch
 	}
 }
 
-func eventSubscriptionSchemaHybridConnectionEndpointID(conflictsWith []string) *schema.Schema {
-	return &schema.Schema{
-		Type:          schema.TypeString,
+func eventSubscriptionSchemaHybridConnectionEndpointID(conflictsWith []string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeString,
 		Optional:      true,
 		Computed:      true,
 		ConflictsWith: conflictsWith,
@@ -142,19 +142,19 @@ func eventSubscriptionSchemaHybridConnectionEndpointID(conflictsWith []string) *
 	}
 }
 
-func eventSubscriptionSchemaHybridEndpoint(conflictsWith []string) *schema.Schema {
+func eventSubscriptionSchemaHybridEndpoint(conflictsWith []string) *pluginsdk.Schema {
 	//lintignore:XS003
-	return &schema.Schema{
-		Type:          schema.TypeList,
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeList,
 		MaxItems:      1,
 		Deprecated:    "Deprecated in favour of `" + "hybrid_connection_endpoint_id" + "`",
 		Optional:      true,
 		Computed:      true,
 		ConflictsWith: conflictsWith,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"hybrid_connection_id": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: azure.ValidateResourceID,
@@ -164,39 +164,39 @@ func eventSubscriptionSchemaHybridEndpoint(conflictsWith []string) *schema.Schem
 	}
 }
 
-func eventSubscriptionSchemaServiceBusQueueEndpointID(conflictsWith []string) *schema.Schema {
-	return &schema.Schema{
-		Type:          schema.TypeString,
+func eventSubscriptionSchemaServiceBusQueueEndpointID(conflictsWith []string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeString,
 		Optional:      true,
 		ConflictsWith: conflictsWith,
 		ValidateFunc:  azure.ValidateResourceID,
 	}
 }
 
-func eventSubscriptionSchemaServiceBusTopicEndpointID(conflictsWith []string) *schema.Schema {
-	return &schema.Schema{
-		Type:          schema.TypeString,
+func eventSubscriptionSchemaServiceBusTopicEndpointID(conflictsWith []string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeString,
 		Optional:      true,
 		ConflictsWith: conflictsWith,
 		ValidateFunc:  azure.ValidateResourceID,
 	}
 }
 
-func eventSubscriptionSchemaStorageQueueEndpoint(conflictsWith []string) *schema.Schema {
-	return &schema.Schema{
-		Type:          schema.TypeList,
+func eventSubscriptionSchemaStorageQueueEndpoint(conflictsWith []string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeList,
 		MaxItems:      1,
 		Optional:      true,
 		ConflictsWith: conflictsWith,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"storage_account_id": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: azure.ValidateResourceID,
 				},
 				"queue_name": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
@@ -205,39 +205,39 @@ func eventSubscriptionSchemaStorageQueueEndpoint(conflictsWith []string) *schema
 	}
 }
 
-func eventSubscriptionSchemaWebHookEndpoint(conflictsWith []string) *schema.Schema {
-	return &schema.Schema{
-		Type:          schema.TypeList,
+func eventSubscriptionSchemaWebHookEndpoint(conflictsWith []string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeList,
 		MaxItems:      1,
 		Optional:      true,
 		ConflictsWith: conflictsWith,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"url": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.IsURLWithHTTPS,
 				},
 				"base_url": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 				"max_events_per_batch": {
-					Type:         schema.TypeInt,
+					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(1, 5000),
 				},
 				"preferred_batch_size_in_kilobytes": {
-					Type:         schema.TypeInt,
+					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(1, 1024),
 				},
 				"active_directory_tenant_id": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
 				"active_directory_app_id_or_uri": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
 			},
@@ -245,37 +245,37 @@ func eventSubscriptionSchemaWebHookEndpoint(conflictsWith []string) *schema.Sche
 	}
 }
 
-func eventSubscriptionSchemaIncludedEventTypes() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func eventSubscriptionSchemaIncludedEventTypes() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true,
-		Elem: &schema.Schema{
-			Type:         schema.TypeString,
+		Elem: &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
 
-func eventSubscriptionSchemaSubjectFilter() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func eventSubscriptionSchemaSubjectFilter() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Optional: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"subject_begins_with": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					AtLeastOneOf: []string{"subject_filter.0.subject_begins_with", "subject_filter.0.subject_ends_with", "subject_filter.0.case_sensitive"},
 				},
 				"subject_ends_with": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					AtLeastOneOf: []string{"subject_filter.0.subject_begins_with", "subject_filter.0.subject_ends_with", "subject_filter.0.case_sensitive"},
 				},
 				"case_sensitive": {
-					Type:         schema.TypeBool,
+					Type:         pluginsdk.TypeBool,
 					Optional:     true,
 					AtLeastOneOf: []string{"subject_filter.0.subject_begins_with", "subject_filter.0.subject_ends_with", "subject_filter.0.case_sensitive"},
 				},
@@ -284,29 +284,29 @@ func eventSubscriptionSchemaSubjectFilter() *schema.Schema {
 	}
 }
 
-func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
+func eventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 	atLeastOneOf := []string{"advanced_filter.0.bool_equals", "advanced_filter.0.number_greater_than", "advanced_filter.0.number_greater_than_or_equals", "advanced_filter.0.number_less_than",
 		"advanced_filter.0.number_less_than_or_equals", "advanced_filter.0.number_in", "advanced_filter.0.number_not_in", "advanced_filter.0.string_begins_with",
 		"advanced_filter.0.string_ends_with", "advanced_filter.0.string_contains", "advanced_filter.0.string_in", "advanced_filter.0.string_not_in",
 	}
-	return &schema.Schema{
-		Type:     schema.TypeList,
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Optional: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"bool_equals": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"key": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"value": {
-								Type:     schema.TypeBool,
+								Type:     pluginsdk.TypeBool,
 								Required: true,
 							},
 						},
@@ -314,17 +314,17 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_greater_than": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"key": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"value": {
-								Type:     schema.TypeFloat,
+								Type:     pluginsdk.TypeFloat,
 								Required: true,
 							},
 						},
@@ -332,17 +332,17 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_greater_than_or_equals": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"key": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"value": {
-								Type:     schema.TypeFloat,
+								Type:     pluginsdk.TypeFloat,
 								Required: true,
 							},
 						},
@@ -350,17 +350,17 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_less_than": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"key": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"value": {
-								Type:     schema.TypeFloat,
+								Type:     pluginsdk.TypeFloat,
 								Required: true,
 							},
 						},
@@ -368,17 +368,17 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_less_than_or_equals": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"key": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"value": {
-								Type:     schema.TypeFloat,
+								Type:     pluginsdk.TypeFloat,
 								Required: true,
 							},
 						},
@@ -386,21 +386,21 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_in": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"key": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"values": {
-								Type:     schema.TypeList,
+								Type:     pluginsdk.TypeList,
 								Required: true,
 								MaxItems: 25,
-								Elem: &schema.Schema{
-									Type: schema.TypeFloat,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeFloat,
 								},
 							},
 						},
@@ -408,21 +408,21 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 					AtLeastOneOf: atLeastOneOf,
 				},
 				"number_not_in": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"key": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"values": {
-								Type:     schema.TypeList,
+								Type:     pluginsdk.TypeList,
 								Required: true,
 								MaxItems: 25,
-								Elem: &schema.Schema{
-									Type: schema.TypeFloat,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeFloat,
 								},
 							},
 						},
@@ -430,21 +430,21 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_begins_with": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"key": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"values": {
-								Type:     schema.TypeList,
+								Type:     pluginsdk.TypeList,
 								Required: true,
 								MaxItems: 25,
-								Elem: &schema.Schema{
-									Type: schema.TypeString,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
 								},
 							},
 						},
@@ -452,21 +452,21 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_ends_with": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"key": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"values": {
-								Type:     schema.TypeList,
+								Type:     pluginsdk.TypeList,
 								Required: true,
 								MaxItems: 25,
-								Elem: &schema.Schema{
-									Type: schema.TypeString,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
 								},
 							},
 						},
@@ -474,21 +474,21 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_contains": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"key": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"values": {
-								Type:     schema.TypeList,
+								Type:     pluginsdk.TypeList,
 								Required: true,
 								MaxItems: 25,
-								Elem: &schema.Schema{
-									Type: schema.TypeString,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
 								},
 							},
 						},
@@ -496,21 +496,21 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_in": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"key": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"values": {
-								Type:     schema.TypeList,
+								Type:     pluginsdk.TypeList,
 								Required: true,
 								MaxItems: 25,
-								Elem: &schema.Schema{
-									Type: schema.TypeString,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
 								},
 							},
 						},
@@ -518,21 +518,21 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 					AtLeastOneOf: atLeastOneOf,
 				},
 				"string_not_in": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"key": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"values": {
-								Type:     schema.TypeList,
+								Type:     pluginsdk.TypeList,
 								Required: true,
 								MaxItems: 25,
-								Elem: &schema.Schema{
-									Type: schema.TypeString,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
 								},
 							},
 						},
@@ -544,20 +544,20 @@ func eventSubscriptionSchemaAdvancedFilter() *schema.Schema {
 	}
 }
 
-func eventSubscriptionSchemaStorageBlobDeadletterDestination() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func eventSubscriptionSchemaStorageBlobDeadletterDestination() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Optional: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"storage_account_id": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: azure.ValidateResourceID,
 				},
 				"storage_blob_container_name": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
@@ -566,21 +566,21 @@ func eventSubscriptionSchemaStorageBlobDeadletterDestination() *schema.Schema {
 	}
 }
 
-func eventSubscriptionSchemaRetryPolicy() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func eventSubscriptionSchemaRetryPolicy() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Optional: true,
 		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"max_delivery_attempts": {
-					Type:         schema.TypeInt,
+					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 30),
 				},
 				"event_time_to_live": {
-					Type:         schema.TypeInt,
+					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 1440),
 				},
@@ -589,17 +589,17 @@ func eventSubscriptionSchemaRetryPolicy() *schema.Schema {
 	}
 }
 
-func eventSubscriptionSchemaLabels() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func eventSubscriptionSchemaLabels() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Elem: &schema.Schema{
-			Type: schema.TypeString,
+		Elem: &pluginsdk.Schema{
+			Type: pluginsdk.TypeString,
 		},
 	}
 }
 
-func expandEventGridExpirationTime(d *schema.ResourceData) (*date.Time, error) {
+func expandEventGridExpirationTime(d *pluginsdk.ResourceData) (*date.Time, error) {
 	if expirationTimeUtc, ok := d.GetOk("expiration_time_utc"); ok {
 		if expirationTimeUtc == "" {
 			return nil, nil
@@ -616,7 +616,7 @@ func expandEventGridExpirationTime(d *schema.ResourceData) (*date.Time, error) {
 	return nil, nil
 }
 
-func expandEventGridEventSubscriptionDestination(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
+func expandEventGridEventSubscriptionDestination(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
 	if v, ok := d.GetOk("azure_function_endpoint"); ok {
 		return expandEventGridEventSubscriptionAzureFunctionEndpoint(v)
 	}
@@ -672,7 +672,7 @@ func expandEventGridEventSubscriptionDestination(d *schema.ResourceData) eventgr
 	return nil
 }
 
-func expandEventGridEventSubscriptionStorageQueueEndpoint(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
+func expandEventGridEventSubscriptionStorageQueueEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
 	props := d.Get("storage_queue_endpoint").([]interface{})[0].(map[string]interface{})
 	storageAccountID := props["storage_account_id"].(string)
 	queueName := props["queue_name"].(string)
@@ -686,7 +686,7 @@ func expandEventGridEventSubscriptionStorageQueueEndpoint(d *schema.ResourceData
 	}
 }
 
-func expandEventGridEventSubscriptionEventhubEndpoint(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
+func expandEventGridEventSubscriptionEventhubEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
 	ep := d.Get("eventhub_endpoint").([]interface{})
 	if len(ep) == 0 || ep[0] == nil {
 		return eventgrid.EventHubEventSubscriptionDestination{}
@@ -702,7 +702,7 @@ func expandEventGridEventSubscriptionEventhubEndpoint(d *schema.ResourceData) ev
 	}
 }
 
-func expandEventGridEventSubscriptionHybridConnectionEndpoint(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
+func expandEventGridEventSubscriptionHybridConnectionEndpoint(d *pluginsdk.ResourceData) eventgrid.BasicEventSubscriptionDestination {
 	ep := d.Get("hybrid_connection_endpoint").([]interface{})
 	if len(ep) == 0 || ep[0] == nil {
 		return eventgrid.HybridConnectionEventSubscriptionDestination{}
@@ -786,7 +786,7 @@ func expandEventGridEventSubscriptionWebhookEndpoint(input interface{}) eventgri
 	return webhookDestination
 }
 
-func expandEventGridEventSubscriptionFilter(d *schema.ResourceData) (*eventgrid.EventSubscriptionFilter, error) {
+func expandEventGridEventSubscriptionFilter(d *pluginsdk.ResourceData) (*eventgrid.EventSubscriptionFilter, error) {
 	filter := &eventgrid.EventSubscriptionFilter{}
 
 	if includedEvents, ok := d.GetOk("included_event_types"); ok {
@@ -868,7 +868,7 @@ func expandAdvancedFilter(operatorType string, config map[string]interface{}) (e
 	}
 }
 
-func expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d *schema.ResourceData) eventgrid.BasicDeadLetterDestination {
+func expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d *pluginsdk.ResourceData) eventgrid.BasicDeadLetterDestination {
 	if v, ok := d.GetOk("storage_blob_dead_letter_destination"); ok {
 		dest := v.([]interface{})[0].(map[string]interface{})
 		resourceID := dest["storage_account_id"].(string)
@@ -885,7 +885,7 @@ func expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d *schema.
 	return nil
 }
 
-func expandEventGridEventSubscriptionRetryPolicy(d *schema.ResourceData) *eventgrid.RetryPolicy {
+func expandEventGridEventSubscriptionRetryPolicy(d *pluginsdk.ResourceData) *eventgrid.RetryPolicy {
 	if v, ok := d.GetOk("retry_policy"); ok {
 		dest := v.([]interface{})[0].(map[string]interface{})
 		maxDeliveryAttempts := dest["max_delivery_attempts"].(int)

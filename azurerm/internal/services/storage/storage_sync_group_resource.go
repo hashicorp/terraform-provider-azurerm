@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
@@ -16,8 +15,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceStorageSyncGroup() *schema.Resource {
-	return &schema.Resource{
+func resourceStorageSyncGroup() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceStorageSyncGroupCreate,
 		Read:   resourceStorageSyncGroupRead,
 		Delete: resourceStorageSyncGroupDelete,
@@ -27,22 +26,22 @@ func resourceStorageSyncGroup() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageSyncName,
 			},
 
 			"storage_sync_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageSyncId,
@@ -51,7 +50,7 @@ func resourceStorageSyncGroup() *schema.Resource {
 	}
 }
 
-func resourceStorageSyncGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageSyncGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -87,7 +86,7 @@ func resourceStorageSyncGroupCreate(d *schema.ResourceData, meta interface{}) er
 	return resourceStorageSyncGroupRead(d, meta)
 }
 
-func resourceStorageSyncGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageSyncGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	ssClient := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -124,7 +123,7 @@ func resourceStorageSyncGroupRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceStorageSyncGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageSyncGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

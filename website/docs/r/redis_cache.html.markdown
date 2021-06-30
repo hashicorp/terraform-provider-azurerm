@@ -69,6 +69,10 @@ The following arguments are supported:
 
 * `redis_configuration` - (Optional) A `redis_configuration` as defined below - with some limitations by SKU - defaults/details are shown below.
 
+* `replicas_per_master` - (Optional) Amount of replicas to create per master for this Redis Cache.
+
+~> **Note:** Configuring the number of replicas per master is only available when using the Premium SKU and cannot be used in conjunction with shards.
+
 * `shard_count` - (Optional) *Only available when using the Premium SKU* The number of Shards to create on the Redis Cluster.
 
 * `subnet_id` - (Optional) *Only available when using the Premium SKU* The ID of the Subnet within which the Redis Cache should be deployed. This Subnet must only contain Azure Cache for Redis instances without any other type of resources. Changing this forces a new resource to be created.
@@ -82,6 +86,20 @@ The following arguments are supported:
 ---
 
 A `redis_configuration` block supports the following:
+
+* `aof_backup_enabled` - (Optional) Enable or disable AOF persistence for this Redis Cache.
+* `aof_storage_connection_string_0` - (Optional) First Storage Account connection string for AOF persistence.
+* `aof_storage_connection_string_1` - (Optional) Second Storage Account connection string for AOF persistence.
+
+Example usage:
+
+```hcl
+redis_configuration {
+  aof_backup_enabled              = true
+  aof_storage_connection_string_0 = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.nc-cruks-storage-account.primary_blob_endpoint};AccountName=${azurerm_storage_account.mystorageaccount.name};AccountKey=${azurerm_storage_account.mystorageaccount.primary_access_key}"
+  aof_storage_connection_string_1 = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.mystorageaccount.primary_blob_endpoint};AccountName=${azurerm_storage_account.mystorageaccount.name};AccountKey=${azurerm_storage_account.mystorageaccount.secondary_access_key}"
+}
+```
 
 * `enable_authentication` - (Optional) If set to `false`, the Redis instance will be accessible without authentication. Defaults to `true`.
 

@@ -5,7 +5,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
@@ -14,9 +13,9 @@ var _ pluginsdk.StateUpgrade = SubscriptionPricingV0ToV1{}
 type SubscriptionPricingV0ToV1 struct{}
 
 func (SubscriptionPricingV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	return map[string]*schema.Schema{
+	return map[string]*pluginsdk.Schema{
 		"tier": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
 	}

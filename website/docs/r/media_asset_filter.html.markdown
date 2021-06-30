@@ -143,7 +143,7 @@ A `selection` block supports the following:
 
 A `track_selection` block supports the following:
 
-* `condition` - (Optional) One or more `condition` blocks as defined above.
+* `condition` - (Required) One or more `condition` blocks as defined above.
 
 ## Attributes Reference
 

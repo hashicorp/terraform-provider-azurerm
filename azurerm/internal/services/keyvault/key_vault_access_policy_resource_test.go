@@ -6,14 +6,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,10 +22,10 @@ func TestAccKeyVaultAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
 	r := KeyVaultAccessPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_permissions.0").HasValue("Get"),
 				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("Get"),
@@ -42,10 +40,10 @@ func TestAccKeyVaultAccessPolicy_mixedCasePermissions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
 	r := KeyVaultAccessPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicMixedCase(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_permissions.0").HasValue("Get"),
 				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("Get"),
@@ -60,10 +58,10 @@ func TestAccKeyVaultAccessPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
 	r := KeyVaultAccessPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_permissions.0").HasValue("Get"),
 				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("Get"),
@@ -82,10 +80,10 @@ func TestAccKeyVaultAccessPolicy_multiple(t *testing.T) {
 	r := KeyVaultAccessPolicyResource{}
 	resourceName2 := "azurerm_key_vault_access_policy.test_no_application_id"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multiple(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_permissions.0").HasValue("Create"),
 				check.That(data.ResourceName).Key("key_permissions.1").HasValue("Get"),
@@ -93,12 +91,12 @@ func TestAccKeyVaultAccessPolicy_multiple(t *testing.T) {
 				check.That(data.ResourceName).Key("secret_permissions.1").HasValue("Delete"),
 				check.That(data.ResourceName).Key("certificate_permissions.0").HasValue("Create"),
 				check.That(data.ResourceName).Key("certificate_permissions.1").HasValue("Delete"),
-				resource.TestCheckResourceAttr(resourceName2, "key_permissions.0", "List"),
-				resource.TestCheckResourceAttr(resourceName2, "key_permissions.1", "Encrypt"),
-				resource.TestCheckResourceAttr(resourceName2, "secret_permissions.0", "List"),
-				resource.TestCheckResourceAttr(resourceName2, "secret_permissions.1", "Delete"),
-				resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.0", "List"),
-				resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.1", "Delete"),
+				acceptance.TestCheckResourceAttr(resourceName2, "key_permissions.0", "List"),
+				acceptance.TestCheckResourceAttr(resourceName2, "key_permissions.1", "Encrypt"),
+				acceptance.TestCheckResourceAttr(resourceName2, "secret_permissions.0", "List"),
+				acceptance.TestCheckResourceAttr(resourceName2, "secret_permissions.1", "Delete"),
+				acceptance.TestCheckResourceAttr(resourceName2, "certificate_permissions.0", "List"),
+				acceptance.TestCheckResourceAttr(resourceName2, "certificate_permissions.1", "Delete"),
 			),
 		},
 		data.ImportStep(),
@@ -114,10 +112,10 @@ func TestAccKeyVaultAccessPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
 	r := KeyVaultAccessPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_permissions.0").HasValue("Get"),
 				check.That(data.ResourceName).Key("secret_permissions.0").HasValue("Get"),
@@ -126,7 +124,7 @@ func TestAccKeyVaultAccessPolicy_update(t *testing.T) {
 		},
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_permissions.0").HasValue("List"),
 				check.That(data.ResourceName).Key("key_permissions.1").HasValue("Encrypt"),
@@ -139,7 +137,7 @@ func TestAccKeyVaultAccessPolicy_nonExistentVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
 	r := KeyVaultAccessPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:             r.nonExistentVault(data),
 			ExpectNonEmptyPlan: true,
@@ -148,7 +146,7 @@ func TestAccKeyVaultAccessPolicy_nonExistentVault(t *testing.T) {
 	})
 }
 
-func (t KeyVaultAccessPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t KeyVaultAccessPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

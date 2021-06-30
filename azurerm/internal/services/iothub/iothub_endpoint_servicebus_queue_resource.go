@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -18,8 +17,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceIotHubEndpointServiceBusQueue() *schema.Resource {
-	return &schema.Resource{
+func resourceIotHubEndpointServiceBusQueue() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceIotHubEndpointServiceBusQueueCreateUpdate,
 		Read:   resourceIotHubEndpointServiceBusQueueRead,
 		Update: resourceIotHubEndpointServiceBusQueueCreateUpdate,
@@ -27,16 +26,16 @@ func resourceIotHubEndpointServiceBusQueue() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.IoTHubEndpointName,
@@ -45,16 +44,16 @@ func resourceIotHubEndpointServiceBusQueue() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"iothub_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.IoTHubName,
 			},
 
 			"connection_string": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 					sharedAccessKeyRegex := regexp.MustCompile("SharedAccessKey=[^;]+")
 					sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
 
@@ -68,7 +67,7 @@ func resourceIotHubEndpointServiceBusQueue() *schema.Resource {
 	}
 }
 
-func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,7 +149,7 @@ func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *schema.ResourceData, m
 	return resourceIotHubEndpointServiceBusQueueRead(d, meta)
 }
 
-func resourceIotHubEndpointServiceBusQueueRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -190,7 +189,7 @@ func resourceIotHubEndpointServiceBusQueueRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceIotHubEndpointServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusQueueDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

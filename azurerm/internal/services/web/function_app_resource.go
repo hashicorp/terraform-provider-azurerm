@@ -6,27 +6,25 @@ import (
 	"strings"
 	"time"
 
-	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	webValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // Azure Function App shares the same infrastructure with Azure App Service.
 // So this resource will reuse most of the App Service code, but remove the configurations which are not applicable for Function App.
-func resourceFunctionApp() *schema.Resource {
-	return &schema.Resource{
+func resourceFunctionApp() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceFunctionAppCreate,
 		Read:   resourceFunctionAppRead,
 		Update: resourceFunctionAppUpdate,
@@ -36,16 +34,16 @@ func resourceFunctionApp() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: webValidate.AppServiceName,
@@ -56,34 +54,34 @@ func resourceFunctionApp() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"app_service_plan_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"app_settings": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"auth_settings": schemaAppServiceAuthSettings(),
 
 			"connection_string": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(web.APIHub),
@@ -102,7 +100,7 @@ func resourceFunctionApp() *schema.Resource {
 						},
 
 						"value": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Required:  true,
 							Sensitive: true,
 						},
@@ -111,13 +109,13 @@ func resourceFunctionApp() *schema.Resource {
 			},
 
 			"client_affinity_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Computed: true,
 			},
 
 			"client_cert_mode": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Required",
@@ -126,24 +124,24 @@ func resourceFunctionApp() *schema.Resource {
 			},
 
 			"daily_memory_time_quota": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 			},
 
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"enable_builtin_logging": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"https_only": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
@@ -151,7 +149,7 @@ func resourceFunctionApp() *schema.Resource {
 			"identity": schemaAppServiceIdentity(),
 
 			"os_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -164,7 +162,7 @@ func resourceFunctionApp() *schema.Resource {
 			"source_control": schemaAppServiceSiteSourceControl(),
 
 			"storage_account_name": {
-				Type: schema.TypeString,
+				Type: pluginsdk.TypeString,
 				// Required: true, // Uncomment this in 3.0
 				Optional:      true,
 				Computed:      true, // Remove this in 3.0
@@ -174,7 +172,7 @@ func resourceFunctionApp() *schema.Resource {
 			},
 
 			"storage_account_access_key": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true, // Remove this in 3.0
 				// Required: true, // Uncomment this in 3.0
@@ -185,7 +183,7 @@ func resourceFunctionApp() *schema.Resource {
 
 			// TODO remove this in 3.0
 			"storage_connection_string": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				Computed:      true,
 				ForceNew:      true,
@@ -195,7 +193,7 @@ func resourceFunctionApp() *schema.Resource {
 			},
 
 			"version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "~1",
 			},
@@ -205,41 +203,41 @@ func resourceFunctionApp() *schema.Resource {
 			// Computed Only
 
 			"custom_domain_verification_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"default_hostname": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"kind": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"outbound_ip_addresses": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"possible_outbound_ip_addresses": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"site_credential": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"username": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"password": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
@@ -250,7 +248,7 @@ func resourceFunctionApp() *schema.Resource {
 	}
 }
 
-func resourceFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -394,7 +392,7 @@ func resourceFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
 	return resourceFunctionAppUpdate(d, meta)
 }
 
-func resourceFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -560,7 +558,7 @@ func resourceFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceFunctionAppRead(d, meta)
 }
 
-func resourceFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
+func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -735,7 +733,7 @@ func resourceFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceFunctionAppDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceFunctionAppDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

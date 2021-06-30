@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,12 +13,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceIoTTimeSeriesInsightsEventSourceIoTHub() *schema.Resource {
-	return &schema.Resource{
+func resourceIoTTimeSeriesInsightsEventSourceIoTHub() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceIoTTimeSeriesInsightsEventSourceIoTHubCreateUpdate,
 		Read:   resourceIoTTimeSeriesInsightsEventSourceIoTHubRead,
 		Update: resourceIoTTimeSeriesInsightsEventSourceIoTHubCreateUpdate,
@@ -30,16 +29,16 @@ func resourceIoTTimeSeriesInsightsEventSourceIoTHub() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -51,44 +50,44 @@ func resourceIoTTimeSeriesInsightsEventSourceIoTHub() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"environment_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"iothub_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: iothubValidate.IoTHubName,
 			},
 
 			"shared_access_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"consumer_group_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"shared_access_key_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"event_source_resource_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"timestamp_property_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -99,7 +98,7 @@ func resourceIoTTimeSeriesInsightsEventSourceIoTHub() *schema.Resource {
 	}
 }
 
-func resourceIoTTimeSeriesInsightsEventSourceIoTHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsEventSourceIoTHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EventSourcesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,7 +163,7 @@ func resourceIoTTimeSeriesInsightsEventSourceIoTHubCreateUpdate(d *schema.Resour
 	return resourceIoTTimeSeriesInsightsEventSourceIoTHubRead(d, meta)
 }
 
-func resourceIoTTimeSeriesInsightsEventSourceIoTHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsEventSourceIoTHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EventSourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -206,7 +205,7 @@ func resourceIoTTimeSeriesInsightsEventSourceIoTHubRead(d *schema.ResourceData, 
 	return tags.FlattenAndSet(d, eventSource.Tags)
 }
 
-func resourceIoTTimeSeriesInsightsEventSourceIoTHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsEventSourceIoTHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EventSourcesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hardwaresecuritymodules/mgmt/2018-10-31-preview/hardwaresecuritymodules"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -18,22 +16,23 @@ import (
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDedicatedHardwareSecurityModule() *schema.Resource {
-	return &schema.Resource{
+func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDedicatedHardwareSecurityModuleCreate,
 		Read:   resourceDedicatedHardwareSecurityModuleRead,
 		Update: resourceDedicatedHardwareSecurityModuleUpdate,
 		Delete: resourceDedicatedHardwareSecurityModuleDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -41,9 +40,9 @@ func resourceDedicatedHardwareSecurityModule() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DedicatedHardwareSecurityModuleName,
@@ -54,7 +53,7 @@ func resourceDedicatedHardwareSecurityModule() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -63,23 +62,23 @@ func resourceDedicatedHardwareSecurityModule() *schema.Resource {
 			},
 
 			"network_profile": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"network_interface_private_ip_addresses": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
 							ForceNew: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: azValidate.IPv4Address,
 							},
 						},
 
 						"subnet_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: networkValidate.SubnetID,
@@ -89,7 +88,7 @@ func resourceDedicatedHardwareSecurityModule() *schema.Resource {
 			},
 
 			"stamp_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -105,7 +104,7 @@ func resourceDedicatedHardwareSecurityModule() *schema.Resource {
 	}
 }
 
-func resourceDedicatedHardwareSecurityModuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,7 +163,7 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *schema.ResourceData, meta 
 	return resourceDedicatedHardwareSecurityModuleRead(d, meta)
 }
 
-func resourceDedicatedHardwareSecurityModuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -207,7 +206,7 @@ func resourceDedicatedHardwareSecurityModuleRead(d *schema.ResourceData, meta in
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceDedicatedHardwareSecurityModuleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHardwareSecurityModuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -234,7 +233,7 @@ func resourceDedicatedHardwareSecurityModuleUpdate(d *schema.ResourceData, meta 
 	return resourceDedicatedHardwareSecurityModuleRead(d, meta)
 }
 
-func resourceDedicatedHardwareSecurityModuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHardwareSecurityModuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -267,7 +266,7 @@ func expandDedicatedHsmNetworkProfile(input []interface{}) *hardwaresecuritymodu
 		Subnet: &hardwaresecuritymodules.APIEntityReference{
 			ID: utils.String(v["subnet_id"].(string)),
 		},
-		NetworkInterfaces: expandDedicatedHsmNetworkInterfacePrivateIPAddresses(v["network_interface_private_ip_addresses"].(*schema.Set).List()),
+		NetworkInterfaces: expandDedicatedHsmNetworkInterfacePrivateIPAddresses(v["network_interface_private_ip_addresses"].(*pluginsdk.Set).List()),
 	}
 
 	return &result

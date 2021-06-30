@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
 type SentinelAlertRuleTemplateDataSource struct{}
@@ -16,10 +14,10 @@ func TestAccSentinelAlertRuleTemplateDataSource_fusion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sentinel_alert_rule_template", "test")
 	r := SentinelAlertRuleTemplateDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.byDisplayName(data, "Advanced Multistage Attack Detection"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("display_name").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
@@ -34,10 +32,10 @@ func TestAccSentinelAlertRuleTemplateDataSource_securityIncident(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sentinel_alert_rule_template", "test")
 	r := SentinelAlertRuleTemplateDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.byDisplayName(data, "Create incidents based on Azure Security Center for IoT alerts"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("display_name").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
@@ -53,10 +51,10 @@ func TestAccSentinelAlertRuleTemplateDataSource_scheduled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sentinel_alert_rule_template", "test")
 	r := SentinelAlertRuleTemplateDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.byDisplayName(data, "Malware in the recycle bin"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("display_name").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),

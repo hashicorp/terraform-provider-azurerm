@@ -7,9 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -18,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -50,22 +48,22 @@ var hdInsightHadoopClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
 
-func resourceHDInsightHadoopCluster() *schema.Resource {
-	return &schema.Resource{
+func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceHDInsightHadoopClusterCreate,
 		Read:   resourceHDInsightHadoopClusterRead,
 		Update: hdinsightClusterUpdate("Hadoop", resourceHDInsightHadoopClusterRead),
 		Delete: hdinsightClusterDelete("Hadoop"),
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": SchemaHDInsightName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -79,13 +77,13 @@ func resourceHDInsightHadoopCluster() *schema.Resource {
 			"tls_min_version": SchemaHDInsightTls(),
 
 			"component_version": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"hadoop": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
@@ -104,11 +102,11 @@ func resourceHDInsightHadoopCluster() *schema.Resource {
 			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
 
 			"roles": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightHadoopClusterHeadNodeDefinition, true),
 
 						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightHadoopClusterWorkerNodeDefinition, true),
@@ -116,37 +114,37 @@ func resourceHDInsightHadoopCluster() *schema.Resource {
 						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightHadoopClusterZookeeperNodeDefinition, true),
 
 						"edge_node": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"target_instance_count": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntBetween(1, 25),
 									},
 
 									"vm_size": {
-										Type:             schema.TypeString,
+										Type:             pluginsdk.TypeString,
 										Required:         true,
 										DiffSuppressFunc: suppress.CaseDifference,
 										ValidateFunc:     validate.NodeDefinitionVMSize(),
 									},
 
 									"install_script_action": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										MinItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"name": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Required:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
 												},
 												"uri": {
-													Type:         schema.TypeString,
+													Type:         pluginsdk.TypeString,
 													Required:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
 												},
@@ -163,12 +161,12 @@ func resourceHDInsightHadoopCluster() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"https_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"ssh_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -177,7 +175,7 @@ func resourceHDInsightHadoopCluster() *schema.Resource {
 	}
 }
 
-func resourceHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
@@ -241,7 +239,7 @@ func resourceHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interface
 		Location: utils.String(location),
 		Properties: &hdinsight.ClusterCreateProperties{
 			Tier:                   tier,
-			OsType:                 hdinsight.Linux,
+			OsType:                 hdinsight.OSTypeLinux,
 			ClusterVersion:         utils.String(clusterVersion),
 			MinSupportedTLSVersion: utils.String(tls),
 			NetworkProperties:      networkProperties,
@@ -293,15 +291,15 @@ func resourceHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interface
 
 		// we can't rely on the use of the Future here due to the node being successfully completed but now the cluster is applying those changes.
 		log.Printf("[DEBUG] Waiting for Hadoop Cluster to %q (Resource Group %q) to finish applying edge node", name, resourceGroup)
-		stateConf := &resource.StateChangeConf{
+		stateConf := &pluginsdk.StateChangeConf{
 			Pending:    []string{"AzureVMConfiguration", "Accepted", "HdInsightConfiguration"},
 			Target:     []string{"Running"},
 			Refresh:    hdInsightWaitForReadyRefreshFunc(ctx, client, resourceGroup, name),
 			MinTimeout: 15 * time.Second,
-			Timeout:    d.Timeout(schema.TimeoutCreate),
+			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 		}
 
-		if _, err := stateConf.WaitForState(); err != nil {
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
 		}
 	}
@@ -317,7 +315,7 @@ func resourceHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interface
 	return resourceHDInsightHadoopClusterRead(d, meta)
 }
 
-func resourceHDInsightHadoopClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
@@ -503,7 +501,7 @@ func expandHDInsightApplicationEdgeNodeInstallScriptActions(input []interface{})
 	return &actions
 }
 
-func hdInsightWaitForReadyRefreshFunc(ctx context.Context, client *hdinsight.ClustersClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+func hdInsightWaitForReadyRefreshFunc(ctx context.Context, client *hdinsight.ClustersClient, resourceGroupName string, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, name)
 		if err != nil {

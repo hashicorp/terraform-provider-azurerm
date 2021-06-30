@@ -5,8 +5,6 @@ import (
 	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 )
 
@@ -15,32 +13,32 @@ var _ pluginsdk.StateUpgrade = KeyVaultV0ToV1{}
 type KeyVaultV0ToV1 struct{}
 
 func (KeyVaultV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	return map[string]*schema.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"location": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"resource_group_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"sku": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Required: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 				},
@@ -48,53 +46,53 @@ func (KeyVaultV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"vault_uri": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
 		"tenant_id": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
 
 		"access_policy": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MinItems: 1,
 			MaxItems: 16,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"tenant_id": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"object_id": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"application_id": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 					"certificate_permissions": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 					"key_permissions": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Required: true,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 					"secret_permissions": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Required: true,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 				},
@@ -102,24 +100,24 @@ func (KeyVaultV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled_for_deployment": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
 		"enabled_for_disk_encryption": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
 		"enabled_for_template_deployment": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
 		"tags": {
-			Type:     schema.TypeMap,
+			Type:     pluginsdk.TypeMap,
 			Optional: true,
-			Elem: &schema.Schema{
+			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
@@ -231,81 +229,81 @@ var _ pluginsdk.StateUpgrade = KeyVaultV1ToV2{}
 type KeyVaultV1ToV2 struct{}
 
 func (KeyVaultV1ToV2) Schema() map[string]*pluginsdk.Schema {
-	return map[string]*schema.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"location": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"resource_group_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"sku_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
 
 		"tenant_id": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
 
 		"access_policy": {
-			Type:       schema.TypeList,
-			ConfigMode: schema.SchemaConfigModeAttr,
+			Type:       pluginsdk.TypeList,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Optional:   true,
 			Computed:   true,
 			MaxItems:   1024,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"tenant_id": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"object_id": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"application_id": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 					"certificate_permissions": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 					"key_permissions": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 					"secret_permissions": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 					"storage_permissions": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 				},
@@ -313,50 +311,50 @@ func (KeyVaultV1ToV2) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"enabled_for_deployment": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
 		"enabled_for_disk_encryption": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
 		"enabled_for_template_deployment": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
 		"enable_rbac_authorization": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
 		"network_acls": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Computed: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"default_action": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"bypass": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"ip_rules": {
-						Type:     schema.TypeSet,
+						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem:     &schema.Schema{Type: schema.TypeString},
-						Set:      schema.HashString,
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						Set:      pluginsdk.HashString,
 					},
 					"virtual_network_subnet_ids": {
-						Type:     schema.TypeSet,
+						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem:     &schema.Schema{Type: schema.TypeString},
+						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						Set:      set.HashStringIgnoreCase,
 					},
 				},
@@ -364,36 +362,36 @@ func (KeyVaultV1ToV2) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"purge_protection_enabled": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
 		"soft_delete_enabled": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Computed: true,
 		},
 
 		"soft_delete_retention_days": {
-			Type:     schema.TypeInt,
+			Type:     pluginsdk.TypeInt,
 			Optional: true,
 		},
 
 		"contact": {
-			Type:     schema.TypeSet,
+			Type:     pluginsdk.TypeSet,
 			Optional: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"email": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 					"phone": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 				},
@@ -401,16 +399,16 @@ func (KeyVaultV1ToV2) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": {
-			Type:     schema.TypeMap,
+			Type:     pluginsdk.TypeMap,
 			Optional: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
 		},
 
 		// Computed
 		"vault_uri": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 	}

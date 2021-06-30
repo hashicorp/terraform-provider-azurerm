@@ -10,6 +10,8 @@ description: |-
 
 Allows you to manage an Azure SQL Database
 
+~> **Note:** Deprecated! Please use [mssql_database](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_database) for all future Microsoft SQL Azure Database Server uses.
+
 ~> **NOTE:** The Database Extended Auditing Policy Can be set inline here as well as with the [mssql_database_extended_auditing_policy resource](mssql_database_extended_auditing_policy.html) resource. You can only use one or the other and using both will cause a conflict.
 
 ## Example Usage
@@ -61,6 +63,7 @@ resource "azurerm_sql_database" "example" {
   }
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -89,7 +92,7 @@ The following arguments are supported:
 
 * `requested_service_objective_id` - (Optional) A GUID/UUID corresponding to a configured Service Level Objective for the Azure SQL database which can be used to configure a performance level.
 .
-* `requested_service_objective_name` - (Optional) The service objective name for the database. Valid values depend on edition and location and may include `S0`, `S1`, `S2`, `S3`, `P1`, `P2`, `P4`, `P6`, `P11` and `ElasticPool`. You can list the available names with the cli: ```shell az sql db list-editions -l westus -o table ```. For further information please see [Azure CLI - az sql db](https://docs.microsoft.com/en-us/cli/azure/sql/db?view=azure-cli-latest#az-sql-db-list-editions).
+* `requested_service_objective_name` - (Optional) The service objective name for the database. Valid values depend on edition and location and may include `S0`, `S1`, `S2`, `S3`, `P1`, `P2`, `P4`, `P6`, `P11` and `ElasticPool`. You can list the available names with the cli: `shell az sql db list-editions -l westus -o table`. For further information please see [Azure CLI - az sql db](https://docs.microsoft.com/en-us/cli/azure/sql/db?view=azure-cli-latest#az-sql-db-list-editions).
 
 * `source_database_deletion_date` - (Optional) The deletion date time of the source database. Only applies to deleted databases where `create_mode` is `PointInTimeRestore`.
 

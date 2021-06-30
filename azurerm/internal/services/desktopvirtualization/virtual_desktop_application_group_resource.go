@@ -6,37 +6,35 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/migration"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-12-10-preview/desktopvirtualization"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2020-11-02-preview/desktopvirtualization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var applicationGroupType = "azurerm_virtual_desktop_application_group"
 
-func resourceVirtualDesktopApplicationGroup() *schema.Resource {
-	return &schema.Resource{
+func resourceVirtualDesktopApplicationGroup() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceVirtualDesktopApplicationGroupCreateUpdate,
 		Read:   resourceVirtualDesktopApplicationGroupRead,
 		Update: resourceVirtualDesktopApplicationGroupCreateUpdate,
 		Delete: resourceVirtualDesktopApplicationGroupDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -49,9 +47,9 @@ func resourceVirtualDesktopApplicationGroup() *schema.Resource {
 			0: migration.ApplicationGroupV0ToV1{},
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.All(
@@ -68,7 +66,7 @@ func resourceVirtualDesktopApplicationGroup() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -78,19 +76,19 @@ func resourceVirtualDesktopApplicationGroup() *schema.Resource {
 			},
 
 			"host_pool_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.HostPoolID,
 			},
 
 			"friendly_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 64),
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 512),
 			},
@@ -100,7 +98,7 @@ func resourceVirtualDesktopApplicationGroup() *schema.Resource {
 	}
 }
 
-func resourceVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
@@ -151,7 +149,7 @@ func resourceVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceData, 
 	return resourceVirtualDesktopApplicationGroupRead(d, meta)
 }
 
-func resourceVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -200,7 +198,7 @@ func resourceVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta int
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceVirtualDesktopApplicationGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
 
 	id, err := parse.ApplicationGroupID(d.Id())

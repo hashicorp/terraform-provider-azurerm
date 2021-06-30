@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -14,10 +13,10 @@ type AppServiceEnvironmentV3DataSource struct{}
 func TestAccAppServiceEnvironmentV3DataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_environment_v3", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: AppServiceEnvironmentV3DataSource{}.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("cluster_setting.#").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.#").HasValue("2"),
 			),

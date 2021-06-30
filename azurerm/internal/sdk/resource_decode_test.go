@@ -67,7 +67,8 @@ func TestDecode_TopLevelFieldsRequired(t *testing.T) {
 				1.0,
 				2.0,
 				3.0,
-				1.234567890},
+				1.234567890,
+			},
 			ListOfNumbers: []int{1, 2, 3},
 			ListOfStrings: []string{
 				"have",
@@ -322,7 +323,8 @@ func TestResourceDecode_NestedOneLevelDeepSingle(t *testing.T) {
 						1.0,
 						2.0,
 						3.0,
-						1.234567890},
+						1.234567890,
+					},
 					ListOfNumbers: []int{1, 2, 3},
 					ListOfStrings: []string{
 						"have",

@@ -8,8 +8,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -20,8 +18,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSqlVirtualNetworkRule() *schema.Resource {
-	return &schema.Resource{
+func resourceSqlVirtualNetworkRule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSqlVirtualNetworkRuleCreateUpdate,
 		Read:   resourceSqlVirtualNetworkRuleRead,
 		Update: resourceSqlVirtualNetworkRuleCreateUpdate,
@@ -30,16 +28,16 @@ func resourceSqlVirtualNetworkRule() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.VirtualNetworkRuleName,
@@ -48,19 +46,19 @@ func resourceSqlVirtualNetworkRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateMsSqlServerName,
 			},
 
 			"subnet_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"ignore_missing_vnet_service_endpoint": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false, // When not provided, Azure defaults to false
 			},
@@ -68,7 +66,7 @@ func resourceSqlVirtualNetworkRule() *schema.Resource {
 	}
 }
 
-func resourceSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -105,7 +103,7 @@ func resourceSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta inte
 
 	// Wait for the provisioning state to become ready
 	log.Printf("[DEBUG] Waiting for SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q) to become ready", name, serverName, resourceGroup)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
 		Target:                    []string{"Ready"},
 		Refresh:                   sqlVirtualNetworkStateStatusCodeRefreshFunc(ctx, client, resourceGroup, serverName, name),
@@ -114,12 +112,12 @@ func resourceSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 	} else {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q) to be created or updated: %+v", name, serverName, resourceGroup, err)
 	}
 
@@ -133,7 +131,7 @@ func resourceSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta inte
 	return resourceSqlVirtualNetworkRuleRead(d, meta)
 }
 
-func resourceSqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -166,7 +164,7 @@ func resourceSqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -207,7 +205,7 @@ func resourceSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{
 	* Ready
 	* ResponseNotFound (Custom state in case of 404)
 */
-func sqlVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *sql.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
+func sqlVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *sql.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {

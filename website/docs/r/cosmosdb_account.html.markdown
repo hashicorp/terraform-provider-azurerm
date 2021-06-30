@@ -114,6 +114,12 @@ The following arguments are supported:
 
 * `network_acl_bypass_ids` - (Optional) The list of resource Ids for Network Acl Bypass for this Cosmos DB account.
 
+* `backup` - (Optional) A `backup` block as defined below.
+
+* `cors_rule` - (Optional) A `cors_rule` block as defined below.
+
+* `identity` - (Optional) An `identity` block as defined below.
+
 ---
 
 `consistency_policy` Configures the database consistency and supports the following:
@@ -148,6 +154,36 @@ The following arguments are supported:
 * `id` - (Required) The ID of the virtual network subnet.
 * `ignore_missing_vnet_service_endpoint` - (Optional) If set to true, the specified subnet will be added as a virtual network rule even if its CosmosDB service endpoint is not active. Defaults to `false`.
 
+---
+
+A `backup` block supports the following:
+
+* `type` - (Required) The type of the `backup`. Possible values are `Continuous` and `Periodic`. Defaults to `Periodic`.
+
+* `interval_in_minutes` - (Optional) The interval in minutes between two backups. This is configurable only when `type` is `Periodic`. Possible values are between 60 and 1440.
+
+* `retention_in_hours` - (Optional) The time in hours that each backup is retained. This is configurable only when `type` is `Periodic`. Possible values are between 8 and 720.
+
+---
+
+A `cors_rule` block supports the following:
+
+* `allowed_headers` - (Required) A list of headers that are allowed to be a part of the cross-origin request.
+
+* `allowed_methods` - (Required) A list of http headers that are allowed to be executed by the origin. Valid options are  `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS`, `PUT` or `PATCH`.
+
+* `allowed_origins` - (Required) A list of origin domains that will be allowed by CORS.
+
+* `exposed_headers` - (Required) A list of response headers that are exposed to CORS clients.
+
+* `max_age_in_seconds` - (Required) The number of seconds the client should cache a preflight response.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Cosmos Account. Possible value is only `SystemAssigned`.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -169,6 +205,15 @@ The following attributes are exported:
 * `secondary_readonly_key` - The Secondary read-only master key for the CosmosDB Account.
 
 * `connection_strings` - A list of connection strings available for this CosmosDB account.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
 
 ## Timeouts
 

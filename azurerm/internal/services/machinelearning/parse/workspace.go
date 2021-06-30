@@ -1,26 +1,63 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
+	"fmt"
+	"strings"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	accountParser "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 )
 
 type WorkspaceId struct {
-	Name          string
-	ResourceGroup string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewWorkspaceID(subscriptionId, resourceGroup, name string) WorkspaceId {
+	return WorkspaceId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id WorkspaceId) String() string {
+	segments := []string{
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Workspace", segmentsStr)
+}
+
+func (id WorkspaceId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.MachineLearningServices/workspaces/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// WorkspaceID parses a Workspace ID into an WorkspaceId struct
 func WorkspaceID(input string) (*WorkspaceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	workspace := WorkspaceId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := WorkspaceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if workspace.Name, err = id.PopSegment("workspaces"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.Name, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
 
@@ -28,30 +65,5 @@ func WorkspaceID(input string) (*WorkspaceId, error) {
 		return nil, err
 	}
 
-	return &workspace, nil
-}
-
-// TODO -- use parse function "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers".ParseAccountID
-// when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
-func AccountIDCaseDiffSuppress(input string) (*accountParser.StorageAccountId, error) {
-	id, err := azure.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, err
-	}
-
-	account := accountParser.StorageAccountId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if account.Name, err = id.PopSegment("storageAccounts"); err != nil {
-		if account.Name, err = id.PopSegment("storageaccounts"); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &account, nil
+	return &resourceId, nil
 }

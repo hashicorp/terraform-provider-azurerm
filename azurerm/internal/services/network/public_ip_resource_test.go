@@ -7,12 +7,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,10 +22,10 @@ func TestAccPublicIpStatic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.static_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
@@ -41,10 +40,10 @@ func TestAccPublicIpStatic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.static_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
@@ -62,15 +61,54 @@ func TestAccPublicIpStatic_zones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withZone(data),
-			Check: resource.ComposeTestCheckFunc(
+			Config: r.withZone(data, "1"),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
-				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
-				check.That(data.ResourceName).Key("zones.0").HasValue("1"),
+				check.That(data.ResourceName).Key("zones.#").HasValue("1"), // Deprecated - TODO remove in 3.0
+				check.That(data.ResourceName).Key("zones.0").HasValue("1"), // Deprecated - TODO remove in 3.0
+				check.That(data.ResourceName).Key("availability_zone").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPublicIpStatic_zonesNoZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	r := PublicIPResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withZone(data, "No-Zone"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+				check.That(data.ResourceName).Key("zones.#").HasValue("0"), // Deprecated - TODO remove in 3.0
+				check.That(data.ResourceName).Key("availability_zone").HasValue("No-Zone"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPublicIpStatic_zonesZoneRedundant(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	r := PublicIPResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withZone(data, "Zone-Redundant"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
+				check.That(data.ResourceName).Key("zones.#").HasValue("0"), // Deprecated Note: Zero here due to legacy behaviour - TODO remove in 3.0
+				check.That(data.ResourceName).Key("availability_zone").HasValue("Zone-Redundant"),
 			),
 		},
 		data.ImportStep(),
@@ -82,10 +120,10 @@ func TestAccPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 	r := PublicIPResource{}
 	dnl := fmt.Sprintf("acctestdnl-%d", data.RandomInteger)
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic_withDNSLabel(data, dnl),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
@@ -100,10 +138,10 @@ func TestAccPublicIpStatic_standard_withIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standard_withIPVersion(data, "IPv6"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ip_version").HasValue("IPv6"),
 			),
@@ -117,10 +155,10 @@ func TestAccPublicIpDynamic_basic_withIPv6(t *testing.T) {
 	r := PublicIPResource{}
 	ipVersion := "Ipv6"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dynamic_basic_withIPVersion(data, ipVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ip_version").HasValue("IPv6"),
 			),
@@ -133,10 +171,10 @@ func TestAccPublicIpStatic_basic_defaultsToIPv4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.static_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ip_version").HasValue("IPv4"),
 			),
@@ -150,10 +188,10 @@ func TestAccPublicIpStatic_basic_withIPv4(t *testing.T) {
 	r := PublicIPResource{}
 	ipVersion := "IPv4"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.static_basic_withIPVersion(data, ipVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ip_version").HasValue("IPv4"),
 			),
@@ -166,10 +204,10 @@ func TestAccPublicIpStatic_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standard(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -181,7 +219,7 @@ func TestAccPublicIpStatic_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.static_basic,
 			TestResource: r,
@@ -193,10 +231,10 @@ func TestAccPublicIpStatic_idleTimeout(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.idleTimeout(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("idle_timeout_in_minutes").HasValue("30"),
 			),
@@ -209,10 +247,10 @@ func TestAccPublicIpStatic_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
@@ -221,7 +259,7 @@ func TestAccPublicIpStatic_withTags(t *testing.T) {
 		},
 		{
 			Config: r.withTagsUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
@@ -234,16 +272,16 @@ func TestAccPublicIpStatic_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.static_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("domain_name_label").HasValue(fmt.Sprintf("acctest-%d", data.RandomInteger)),
 			),
@@ -256,10 +294,10 @@ func TestAccPublicIpStatic_standardPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standardPrefix(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -270,10 +308,10 @@ func TestAccPublicIpStatic_standardPrefixWithTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standardPrefixWithTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
@@ -282,7 +320,7 @@ func TestAccPublicIpStatic_standardPrefixWithTags(t *testing.T) {
 		},
 		{
 			Config: r.standardPrefixWithTagsUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
@@ -295,10 +333,10 @@ func TestAccPublicIpDynamic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dynamic_basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -310,7 +348,7 @@ func TestAccPublicIpStatic_importIdError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.static_basic(data),
 		},
@@ -319,7 +357,7 @@ func TestAccPublicIpStatic_importIdError(t *testing.T) {
 			ImportState:       true,
 			ImportStateVerify: true,
 			ImportStateId:     fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/publicIPAdresses/acctestpublicip-%d", os.Getenv("ARM_SUBSCRIPTION_ID"), data.RandomInteger, data.RandomInteger),
-			ExpectError:       regexp.MustCompile("Error parsing supplied resource id."),
+			ExpectError:       regexp.MustCompile("Error: parsing Resource ID"),
 		},
 	})
 }
@@ -328,10 +366,10 @@ func TestAccPublicIpStatic_canLabelBe63(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.canLabelBe63(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
@@ -345,10 +383,10 @@ func TestAccPublicIpStatic_ipTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standard_IpTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ip_tags.RoutingPreference").HasValue("Internet"),
 			),
@@ -357,7 +395,7 @@ func TestAccPublicIpStatic_ipTags(t *testing.T) {
 	})
 }
 
-func (t PublicIPResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t PublicIPResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PublicIpAddressID(state.ID)
 	if err != nil {
 		return nil, err
@@ -371,7 +409,7 @@ func (t PublicIPResource) Exists(ctx context.Context, clients *clients.Client, s
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (PublicIPResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (PublicIPResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PublicIpAddressID(state.ID)
 	if err != nil {
 		return nil, err
@@ -422,7 +460,7 @@ resource "azurerm_public_ip" "import" {
 `, r.static_basic(data))
 }
 
-func (PublicIPResource) withZone(data acceptance.TestData) string {
+func (PublicIPResource) withZone(data acceptance.TestData, availabilityZone string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -439,9 +477,9 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  zones               = ["1"]
+  availability_zone   = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, availabilityZone)
 }
 
 func (PublicIPResource) basic_withDNSLabel(data acceptance.TestData, dnsNameLabel string) string {
@@ -772,9 +810,9 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   allocation_method = "Static"
-  domain_name_label = "k2345678-1-2345678-2-2345678-3-2345678-4-2345678-5-2345678-6-23"
+  domain_name_label = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomStringOfLength(63))
 }
 
 func (PublicIPResource) standard_IpTags(data acceptance.TestData) string {

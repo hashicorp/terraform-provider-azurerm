@@ -306,6 +306,12 @@ type AccountProperties struct {
 	UserName *string `json:"userName,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AccountProperties.
+func (ap AccountProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AccountsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AccountsCreateFuture struct {
@@ -3608,6 +3614,12 @@ type ConsumerSourceDataSetProperties struct {
 	DataSetType DataSetType `json:"dataSetType,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ConsumerSourceDataSetProperties.
+func (csdsp ConsumerSourceDataSetProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // BasicDataSet a DataSet data transfer object.
 type BasicDataSet interface {
 	AsADLSGen1FileDataSet() (*ADLSGen1FileDataSet, bool)
@@ -6037,6 +6049,12 @@ type ProviderShareSubscriptionProperties struct {
 	ShareSubscriptionStatus ShareSubscriptionStatus `json:"shareSubscriptionStatus,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ProviderShareSubscriptionProperties.
+func (pssp ProviderShareSubscriptionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ProviderShareSubscriptionsRevokeFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ProviderShareSubscriptionsRevokeFuture struct {
@@ -6088,6 +6106,12 @@ type ProxyDto struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Type of the azure resource
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProxyDto.
+func (pd ProxyDto) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ScheduledSourceShareSynchronizationSettingProperties a Scheduled source synchronization setting data
@@ -8596,6 +8620,12 @@ type SynchronizationDetails struct {
 	Status *string `json:"status,omitempty"`
 	// VCore - READ-ONLY; The vCore units consumed for the data set synchronization
 	VCore *int64 `json:"vCore,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SynchronizationDetails.
+func (sd SynchronizationDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SynchronizationDetailsList details of synchronization

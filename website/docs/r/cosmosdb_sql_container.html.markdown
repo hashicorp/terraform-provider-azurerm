@@ -72,6 +72,8 @@ The following arguments are supported:
 
 * `default_ttl` - (Optional) The default time to live of SQL container. If missing, items are not expired automatically. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
 
+* `analytical_storage_ttl` - (Optional) The default time to live of Analytical Storage for this SQL container. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
+
 * `conflict_resolution_policy` - (Optional)  A `conflict_resolution_policy` blocks as defined below.
 
 ---
@@ -85,6 +87,7 @@ A `unique_key` block supports the following:
 
 * `paths` - (Required) A list of paths to use for this unique key.
 
+---
 An `indexing_policy` block supports the following:
 
 * `indexing_mode` - (Optional) Indicates the indexing mode. Possible values include: `Consistent` and `None`. Defaults to `Consistent`.
@@ -95,17 +98,33 @@ An `indexing_policy` block supports the following:
 
 * `composite_index` - (Optional) One or more `composite_index` blocks as defined below.
 
+* `spatial_index` - (Optional) One or more `spatial_index` blocks as defined below.
+
+---
+
+A `spatial_index` block supports the following:
+
+* `path` - (Required) Path for which the indexing behaviour applies to. According to the service design, all spatial types including `LineString`, `MultiPolygon`, `Point`, and `Polygon` will be applied to the path. 
+
+---
+
 An `included_path` block supports the following:
 
 * `path` - Path for which the indexing behaviour applies to.
+
+---
 
 An `excluded_path` block supports the following:
 
 * `path` - Path that is excluded from indexing.
 
+---
+
 A `composite_index` block supports the following:
 
 * `index` - One or more `index` blocks as defined below.
+
+---
 
 An `index` block supports the following:
 
@@ -128,6 +147,12 @@ A `conflict_resolution_policy` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the CosmosDB SQL Container.
+
+---
+
+A `spatial_index` block exports the following:
+
+* `types` - A set of spatial types of the path.
 
 ## Timeouts
 

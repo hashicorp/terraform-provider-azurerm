@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
@@ -14,38 +13,38 @@ var _ pluginsdk.StateUpgrade = UserAssignedIdentityV0ToV1{}
 type UserAssignedIdentityV0ToV1 struct{}
 
 func (UserAssignedIdentityV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	return map[string]*schema.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"resource_group_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"location": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"tags": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"principal_id": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
 		"client_id": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 	}

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,11 +20,11 @@ func TestAccAppServiceActiveSlot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_active_slot", "test")
 	r := AppServiceActiveSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// Destroy actually does nothing so we just return nil
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("app_service_slot_name").HasValue(fmt.Sprintf("acctestASSlot-%d", data.RandomInteger)),
 			),
 		},
@@ -36,24 +35,24 @@ func TestAccAppServiceActiveSlot_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_active_slot", "test")
 	r := AppServiceActiveSlotResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// Destroy actually does nothing so we just return nil
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("app_service_slot_name").HasValue(fmt.Sprintf("acctestASSlot-%d", data.RandomInteger)),
 			),
 		},
 		{
 			Config: r.updated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("app_service_slot_name").HasValue(fmt.Sprintf("acctestASSlot2-%d", data.RandomInteger)),
 			),
 		},
 	})
 }
 
-func (r AppServiceActiveSlotResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r AppServiceActiveSlotResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AppServiceID(state.ID)
 	if err != nil {
 		return nil, err

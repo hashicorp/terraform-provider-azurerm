@@ -114,11 +114,15 @@ A `agent_pool_profile` block exports the following:
 
 * `enable_auto_scaling` - If the auto-scaler is enabled.
 
+* `enable_node_public_ip` - If the Public IPs for the nodes in this Agent Pool are enabled.
+
 * `min_count` - Minimum number of nodes for auto-scaling
 
 * `max_count` - Maximum number of nodes for auto-scaling
 
 * `name` - The name assigned to this pool of agents.
+
+* `node_public_ip_prefix_id` - Resource ID for the Public IP Addresses Prefix for the nodes in this Agent Pool.
 
 * `os_disk_size_gb` - The size of the Agent VM's Operating System Disk in GB.
 
@@ -258,6 +262,8 @@ A `azure_policy` block supports the following:
 
 * `enabled` - Is Azure Policy for Kubernetes enabled?
 
+---
+
 An `ingress_application_gateway` block supports the following:
 
 * `enabled` -  Is the Application Gateway ingress controller integrated with this Kubernetes Cluster?
@@ -269,6 +275,18 @@ An `ingress_application_gateway` block supports the following:
 * `subnet_cidr` - The subnet CIDR used to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when `subnet_cidr` is specified when configuring the `ingress_application_gateway` addon.
 
 * `subnet_id` - The ID of the subnet on which to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when `subnet_id` is specified when configuring the `ingress_application_gateway` addon.
+
+* `ingress_application_gateway_identity` - An `ingress_application_gateway_identity` block as defined below.  
+
+---
+
+The `ingress_application_gateway_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the Application Gateway.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the Application Gateway.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Application Gateway.
 
 ---
 

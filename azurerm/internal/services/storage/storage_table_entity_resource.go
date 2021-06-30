@@ -5,19 +5,18 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/entities"
 )
 
-func resourceStorageTableEntity() *schema.Resource {
-	return &schema.Resource{
+func resourceStorageTableEntity() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceStorageTableEntityCreateUpdate,
 		Read:   resourceStorageTableEntityRead,
 		Update: resourceStorageTableEntityCreateUpdate,
@@ -25,50 +24,50 @@ func resourceStorageTableEntity() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"table_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageTableName,
 			},
 			"storage_account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageAccountName,
 			},
 			"partition_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"row_key": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"entity": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Required: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 		},
 	}
 }
 
-func resourceStorageTableEntityCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -133,7 +132,7 @@ func resourceStorageTableEntityCreateUpdate(d *schema.ResourceData, meta interfa
 	return resourceStorageTableEntityRead(d, meta)
 }
 
-func resourceStorageTableEntityRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -180,7 +179,7 @@ func resourceStorageTableEntityRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceStorageTableEntityDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage

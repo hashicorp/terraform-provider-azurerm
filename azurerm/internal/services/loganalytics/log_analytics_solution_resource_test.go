@@ -6,14 +6,11 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type LogAnalyticsSolutionResource struct {
@@ -23,10 +20,10 @@ func TestAccLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
 	r := LogAnalyticsSolutionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.containerMonitoring(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -38,10 +35,10 @@ func TestAccLogAnalyticsSolution_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
 	r := LogAnalyticsSolutionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.containerMonitoring(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -56,10 +53,10 @@ func TestAccLogAnalyticsSolution_basicSecurity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
 	r := LogAnalyticsSolutionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.security(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -67,7 +64,7 @@ func TestAccLogAnalyticsSolution_basicSecurity(t *testing.T) {
 	})
 }
 
-func (t LogAnalyticsSolutionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t LogAnalyticsSolutionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

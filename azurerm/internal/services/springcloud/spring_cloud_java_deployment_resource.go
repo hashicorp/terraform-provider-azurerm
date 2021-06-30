@@ -6,19 +6,18 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2020-11-01-preview/appplatform"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSpringCloudJavaDeployment() *schema.Resource {
-	return &schema.Resource{
+func resourceSpringCloudJavaDeployment() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSpringCloudJavaDeploymentCreate,
 		Read:   resourceSpringCloudJavaDeploymentRead,
 		Update: resourceSpringCloudJavaDeploymentUpdate,
@@ -29,64 +28,64 @@ func resourceSpringCloudJavaDeployment() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SpringCloudDeploymentName,
 			},
 
 			"spring_cloud_app_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SpringCloudAppID,
 			},
 
 			"cpu": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 4),
 			},
 
 			"environment_variables": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"instance_count": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 500),
 			},
 
 			"jvm_options": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"memory_in_gb": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 8),
 			},
 
 			"runtime_version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(appplatform.Java8),
@@ -98,7 +97,7 @@ func resourceSpringCloudJavaDeployment() *schema.Resource {
 	}
 }
 
-func resourceSpringCloudJavaDeploymentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -164,7 +163,7 @@ func resourceSpringCloudJavaDeploymentCreate(d *schema.ResourceData, meta interf
 	return resourceSpringCloudJavaDeploymentRead(d, meta)
 }
 
-func resourceSpringCloudJavaDeploymentUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -218,7 +217,7 @@ func resourceSpringCloudJavaDeploymentUpdate(d *schema.ResourceData, meta interf
 	return resourceSpringCloudJavaDeploymentRead(d, meta)
 }
 
-func resourceSpringCloudJavaDeploymentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudJavaDeploymentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -255,7 +254,7 @@ func resourceSpringCloudJavaDeploymentRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceSpringCloudJavaDeploymentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudJavaDeploymentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

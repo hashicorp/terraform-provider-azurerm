@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -23,10 +22,10 @@ func TestAccArmDevTestVirtualNetworkDataSource_basic(t *testing.T) {
 	subnetName := name + "Subnet"
 	subnetResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s/subnets/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, name, subnetName)
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(name),
 				check.That(data.ResourceName).Key("lab_name").HasValue(labName),
 				check.That(data.ResourceName).Key("resource_group_name").HasValue(resGroup),

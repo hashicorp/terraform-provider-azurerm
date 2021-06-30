@@ -6,14 +6,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/azuresdkhacks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,11 +22,11 @@ type NetworkInterfaceNetworkSecurityGroupAssociationResource struct {
 func TestAccNetworkInterfaceSecurityGroupAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_security_group_association", "test")
 	r := NetworkInterfaceNetworkSecurityGroupAssociationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -38,11 +37,11 @@ func TestAccNetworkInterfaceSecurityGroupAssociation_basic(t *testing.T) {
 func TestAccNetworkInterfaceSecurityGroupAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_security_group_association", "test")
 	r := NetworkInterfaceNetworkSecurityGroupAssociationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -57,11 +56,11 @@ func TestAccNetworkInterfaceSecurityGroupAssociation_deleted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_security_group_association", "test")
 	r := NetworkInterfaceNetworkSecurityGroupAssociationResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentionally not using a DisappearsStep since this is a Virtual Resource
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.destroy),
 			),
@@ -73,18 +72,18 @@ func TestAccNetworkInterfaceSecurityGroupAssociation_deleted(t *testing.T) {
 func TestAccNetworkInterfaceSecurityGroupAssociation_updateNIC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_security_group_association", "test")
 	r := NetworkInterfaceNetworkSecurityGroupAssociationResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.updateNIC(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -92,7 +91,7 @@ func TestAccNetworkInterfaceSecurityGroupAssociation_updateNIC(t *testing.T) {
 	})
 }
 
-func (t NetworkInterfaceNetworkSecurityGroupAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t NetworkInterfaceNetworkSecurityGroupAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	splitId := strings.Split(state.ID, "|")
 	if len(splitId) != 2 {
 		return nil, fmt.Errorf("expected ID to be in the format {networkInterfaceId}|{networkSecurityGroupId} but got %q", state.ID)
@@ -121,7 +120,7 @@ func (t NetworkInterfaceNetworkSecurityGroupAssociationResource) Exists(ctx cont
 	return utils.Bool(found), nil
 }
 
-func (NetworkInterfaceNetworkSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+func (NetworkInterfaceNetworkSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	nicID, err := parse.NetworkInterfaceID(state.Attributes["network_interface_id"])
 	if err != nil {
 		return err

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,10 +19,10 @@ func TestAccAppServiceEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("pricing_tier").HasValue("I1"),
 				check.That(data.ResourceName).Key("front_end_scale_factor").HasValue("15"),
@@ -37,10 +36,10 @@ func TestAccAppServiceEnvironment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -52,10 +51,10 @@ func TestAccAppServiceEnvironment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("pricing_tier").HasValue("I1"),
 				check.That(data.ResourceName).Key("front_end_scale_factor").HasValue("15"),
@@ -64,7 +63,7 @@ func TestAccAppServiceEnvironment_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.tierAndScaleFactor(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("pricing_tier").HasValue("I2"),
 				check.That(data.ResourceName).Key("front_end_scale_factor").HasValue("10"),
 			),
@@ -77,10 +76,10 @@ func TestAccAppServiceEnvironment_tierAndScaleFactor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tierAndScaleFactor(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("pricing_tier").HasValue("I2"),
 				check.That(data.ResourceName).Key("front_end_scale_factor").HasValue("10"),
@@ -95,10 +94,10 @@ func TestAccAppServiceEnvironment_withAppServicePlan(t *testing.T) {
 	aspData := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServiceEnvironmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withAppServicePlan(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("id").MatchesOtherKey(
 					check.That(aspData.ResourceName).Key("app_service_environment_id"),
@@ -113,10 +112,10 @@ func TestAccAppServiceEnvironment_dedicatedResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dedicatedResourceGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -129,10 +128,10 @@ func TestAccAppServiceEnvironment_withCertificatePfx(t *testing.T) {
 	certData := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 	r := AppServiceEnvironmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withCertificatePfx(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("id").MatchesOtherKey(
 					check.That(certData.ResourceName).Key("hosting_environment_profile_id"),
@@ -147,10 +146,10 @@ func TestAccAppServiceEnvironment_internalLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.internalLoadBalancerAndWhitelistedIpRanges(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("internal_load_balancing_mode").HasValue("Web, Publishing"),
 			),
@@ -163,10 +162,10 @@ func TestAccAppServiceEnvironment_clusterSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.clusterSettings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cluster_setting.#").HasValue("2"),
 			),
@@ -174,7 +173,7 @@ func TestAccAppServiceEnvironment_clusterSettings(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.clusterSettingsUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cluster_setting.#").HasValue("3"),
 			),
@@ -182,7 +181,7 @@ func TestAccAppServiceEnvironment_clusterSettings(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.clusterSettings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cluster_setting.#").HasValue("2"),
 			),
@@ -191,7 +190,7 @@ func TestAccAppServiceEnvironment_clusterSettings(t *testing.T) {
 	})
 }
 
-func (r AppServiceEnvironmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r AppServiceEnvironmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AppServiceEnvironmentID(state.ID)
 	if err != nil {
 		return nil, err

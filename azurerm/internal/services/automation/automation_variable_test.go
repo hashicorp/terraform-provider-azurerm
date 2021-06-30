@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -81,7 +81,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 	}
 }
 
-func testCheckAzureRMAutomationVariableExists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState, varType string) (*bool, error) {
+func testCheckAzureRMAutomationVariableExists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState, varType string) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

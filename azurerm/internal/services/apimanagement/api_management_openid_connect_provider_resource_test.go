@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccApiManagementOpenIDConnectProvider_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_openid_connect_provider", "test")
 	r := ApiManagementOpenIDConnectProviderResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccApiManagementOpenIDConnectProvider_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_openid_connect_provider", "test")
 	r := ApiManagementOpenIDConnectProviderResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,17 +50,17 @@ func TestAccApiManagementOpenIDConnectProvider_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_openid_connect_provider", "test")
 	r := ApiManagementOpenIDConnectProviderResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("client_secret"),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -69,7 +68,7 @@ func TestAccApiManagementOpenIDConnectProvider_update(t *testing.T) {
 	})
 }
 
-func (ApiManagementOpenIDConnectProviderResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementOpenIDConnectProviderResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -97,7 +96,7 @@ resource "azurerm_api_management_openid_connect_provider" "test" {
   client_id           = "00001111-2222-3333-%d"
   client_secret       = "%d-cwdavsxbacsaxZX-%d"
   display_name        = "Initial Name"
-  metadata_endpoint   = "https://azacctest.hashicorptest.com/example/foo"
+  metadata_endpoint   = "https://azacceptance.hashicorptest.com/example/foo"
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -130,7 +129,7 @@ resource "azurerm_api_management_openid_connect_provider" "test" {
   client_secret       = "%d-423egvwdcsjx-%d"
   display_name        = "Updated Name"
   description         = "Example description"
-  metadata_endpoint   = "https://azacctest.hashicorptest.com/example/updated"
+  metadata_endpoint   = "https://azacceptance.hashicorptest.com/example/updated"
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

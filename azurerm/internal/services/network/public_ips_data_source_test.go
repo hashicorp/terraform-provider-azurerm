@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,13 +15,13 @@ func TestAccDataSourcePublicIPs_namePrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_public_ips", "test")
 	r := PublicIPsResource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.prefix(data),
 		},
 		{
 			Config: r.prefixDataSource(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("public_ips.#").HasValue("2"),
 				check.That(data.ResourceName).Key("public_ips.0.name").HasValue(fmt.Sprintf("acctestpipa%s-0", data.RandomString)),
 			),
@@ -37,17 +36,17 @@ func TestAccDataSourcePublicIPs_assigned(t *testing.T) {
 	attachedDataSourceName := "data.azurerm_public_ips.attached"
 	unattachedDataSourceName := "data.azurerm_public_ips.unattached"
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.attached(data),
 		},
 		{
 			Config: r.attachedDataSource(data),
-			Check: resource.ComposeTestCheckFunc(
-				resource.TestCheckResourceAttr(attachedDataSourceName, "public_ips.#", "3"),
-				resource.TestCheckResourceAttr(attachedDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpip%s-0", data.RandomString)),
-				resource.TestCheckResourceAttr(unattachedDataSourceName, "public_ips.#", "4"),
-				resource.TestCheckResourceAttr(unattachedDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpip%s-3", data.RandomString)),
+			Check: acceptance.ComposeTestCheckFunc(
+				acceptance.TestCheckResourceAttr(attachedDataSourceName, "public_ips.#", "3"),
+				acceptance.TestCheckResourceAttr(attachedDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpip%s-0", data.RandomString)),
+				acceptance.TestCheckResourceAttr(unattachedDataSourceName, "public_ips.#", "4"),
+				acceptance.TestCheckResourceAttr(unattachedDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpip%s-3", data.RandomString)),
 			),
 		},
 	})
@@ -60,17 +59,17 @@ func TestAccDataSourcePublicIPs_allocationType(t *testing.T) {
 	staticDataSourceName := "data.azurerm_public_ips.static"
 	dynamicDataSourceName := "data.azurerm_public_ips.dynamic"
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.allocationType(data),
 		},
 		{
 			Config: r.allocationTypeDataSources(data),
-			Check: resource.ComposeTestCheckFunc(
-				resource.TestCheckResourceAttr(staticDataSourceName, "public_ips.#", "3"),
-				resource.TestCheckResourceAttr(staticDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpips%s-0", data.RandomString)),
-				resource.TestCheckResourceAttr(dynamicDataSourceName, "public_ips.#", "4"),
-				resource.TestCheckResourceAttr(dynamicDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpipd%s-0", data.RandomString)),
+			Check: acceptance.ComposeTestCheckFunc(
+				acceptance.TestCheckResourceAttr(staticDataSourceName, "public_ips.#", "3"),
+				acceptance.TestCheckResourceAttr(staticDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpips%s-0", data.RandomString)),
+				acceptance.TestCheckResourceAttr(dynamicDataSourceName, "public_ips.#", "4"),
+				acceptance.TestCheckResourceAttr(dynamicDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpipd%s-0", data.RandomString)),
 			),
 		},
 	})

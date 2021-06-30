@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -17,11 +16,11 @@ func TestAccDatabricksWorkspaceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				resource.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
+			Check: acceptance.ComposeTestCheckFunc(
+				acceptance.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
 				check.That(data.ResourceName).Key("workspace_id").Exists(),
 			),
 		},

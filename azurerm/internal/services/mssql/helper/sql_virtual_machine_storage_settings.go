@@ -1,26 +1,26 @@
 package helper
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func StorageSettingSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func StorageSettingSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"luns": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Required: true,
-					Elem: &schema.Schema{
-						Type: schema.TypeInt,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeInt,
 					},
 				},
 				"default_file_path": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},

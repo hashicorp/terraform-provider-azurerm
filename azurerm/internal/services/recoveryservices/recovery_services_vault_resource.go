@@ -6,25 +6,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceRecoveryServicesVault() *schema.Resource {
-	return &schema.Resource{
+func resourceRecoveryServicesVault() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceRecoveryServicesVaultCreateUpdate,
 		Read:   resourceRecoveryServicesVaultRead,
 		Update: resourceRecoveryServicesVaultCreateUpdate,
@@ -33,16 +30,16 @@ func resourceRecoveryServicesVault() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.RecoveryServicesVaultName,
@@ -53,13 +50,13 @@ func resourceRecoveryServicesVault() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"identity": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(recoveryservices.SystemAssigned),
@@ -67,12 +64,12 @@ func resourceRecoveryServicesVault() *schema.Resource {
 						},
 
 						"principal_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"tenant_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -82,7 +79,7 @@ func resourceRecoveryServicesVault() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"sku": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -92,7 +89,7 @@ func resourceRecoveryServicesVault() *schema.Resource {
 			},
 
 			"soft_delete_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -100,7 +97,7 @@ func resourceRecoveryServicesVault() *schema.Resource {
 	}
 }
 
-func resourceRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
 	cfgsClient := meta.(*clients.Client).RecoveryServices.VaultsConfigsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -153,7 +150,7 @@ func resourceRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta inte
 		cfg.Properties.SoftDeleteFeatureState = backup.SoftDeleteFeatureStateDisabled
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"syncing"},
 		Target:     []string{"success"},
 		MinTimeout: 30 * time.Second,
@@ -171,12 +168,12 @@ func resourceRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 	} else {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for on update for Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -193,7 +190,7 @@ func resourceRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta inte
 	return resourceRecoveryServicesVaultRead(d, meta)
 }
 
-func resourceRecoveryServicesVaultRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
 	cfgsClient := meta.(*clients.Client).RecoveryServices.VaultsConfigsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -245,7 +242,7 @@ func resourceRecoveryServicesVaultRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceRecoveryServicesVaultDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

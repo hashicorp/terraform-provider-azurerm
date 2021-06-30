@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccPluginSDKAndDecoder(t *testing.T) {
@@ -62,8 +62,8 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 
 	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
-		ProviderFactories: map[string]terraform.ResourceProviderFactory{
-			"validator": func() (terraform.ResourceProvider, error) {
+		ProviderFactories: map[string]func() (*schema.Provider, error){
+			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
@@ -150,7 +150,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 									},
 								},
 							},
-							Create: func(d *schema.ResourceData, i interface{}) error {
+							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
 								d.SetId("some-id")
 								d.Set("hello", "world")
 								d.Set("random_number", 42)
@@ -222,7 +222,7 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 		// TODO: do we need other field types, or is this sufficient?
 	}
 
-	var commonSchema = map[string]*schema.Schema{
+	commonSchema := map[string]*schema.Schema{
 		"hello": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -239,7 +239,7 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 			Computed: true,
 		},
 	}
-	var readFunc = func(expected MyType) func(*schema.ResourceData, interface{}) error {
+	readFunc := func(expected MyType) func(*schema.ResourceData, interface{}) error {
 		return func(d *schema.ResourceData, _ interface{}) error {
 			wrapper := ResourceMetaData{
 				ResourceData:             d,
@@ -262,14 +262,14 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 
 	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
-		ProviderFactories: map[string]terraform.ResourceProviderFactory{
-			"validator": func() (terraform.ResourceProvider, error) {
+		ProviderFactories: map[string]func() (*schema.Provider, error){
+			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
 						"validator_decoder_specified": {
 							Schema: commonSchema,
-							Create: func(d *schema.ResourceData, i interface{}) error {
+							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
 								d.SetId("some-id")
 								return nil
 							},
@@ -285,7 +285,7 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 
 						"validator_decoder_unspecified": {
 							Schema: commonSchema,
-							Create: func(d *schema.ResourceData, i interface{}) error {
+							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
 								d.SetId("some-id")
 								d.Set("hello", "value-from-create")
 								d.Set("number", 42)
@@ -317,12 +317,14 @@ resource "validator_decoder_unspecified" "test" {}
 `,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckResourceStateMatches("validator_decoder_specified.test", map[string]interface{}{
+						"%":       "4",
 						"id":      "some-id",
 						"enabled": "true",
 						"hello":   "value-from-config",
 						"number":  "21",
 					}),
 					testCheckResourceStateMatches("validator_decoder_unspecified.test", map[string]interface{}{
+						"%":       "4",
 						"id":      "some-id",
 						"enabled": "false",
 						"hello":   "value-from-create",
@@ -346,8 +348,8 @@ func TestAccPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
 
 	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
-		ProviderFactories: map[string]terraform.ResourceProviderFactory{
-			"validator": func() (terraform.ResourceProvider, error) {
+		ProviderFactories: map[string]func() (*schema.Provider, error){
+			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
@@ -369,7 +371,7 @@ func TestAccPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
 									Computed: true,
 								},
 							},
-							Create: func(d *schema.ResourceData, i interface{}) error {
+							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
 								d.SetId("some-id")
 								d.Set("hello", "value-from-create")
 								d.Set("number", 42)
@@ -452,8 +454,8 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 
 	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
-		ProviderFactories: map[string]terraform.ResourceProviderFactory{
-			"validator": func() (terraform.ResourceProvider, error) {
+		ProviderFactories: map[string]func() (*schema.Provider, error){
+			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
@@ -488,7 +490,7 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 									},
 								},
 							},
-							Create: func(d *schema.ResourceData, i interface{}) error {
+							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
 								d.SetId("some-id")
 								d.Set("set_of_strings", []string{
 									"some",
@@ -645,8 +647,8 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 
 	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
-		ProviderFactories: map[string]terraform.ResourceProviderFactory{
-			"validator": func() (terraform.ResourceProvider, error) {
+		ProviderFactories: map[string]func() (*schema.Provider, error){
+			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
@@ -761,7 +763,7 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 									},
 								},
 							},
-							Create: func(d *schema.ResourceData, i interface{}) error {
+							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
 								wrapper := ResourceMetaData{
 									ResourceData:             d,
 									Logger:                   ConsoleLogger{},
@@ -817,6 +819,7 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 				Config: `resource "validator_encoder" "test" {}`,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckResourceStateMatches("validator_encoder.test", map[string]interface{}{
+						"%":                    "17",
 						"id":                   "some-id",
 						"hello":                "world",
 						"random_number":        "42",
@@ -835,6 +838,7 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 						"list_of_floats.0":     "-1.234567894321",
 						"list_of_floats.1":     "2.3456789",
 						"nested_object.#":      "1",
+						"nested_object.0.%":    "1",
 						"nested_object.0.key":  "value",
 						"map_of_strings.%":     "1",
 						"map_of_strings.bingo": "bango",
@@ -861,8 +865,8 @@ func TestAccPluginSDKReturnsComputedFields(t *testing.T) {
 	resourceName := "validator_computed.test"
 	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
-		ProviderFactories: map[string]terraform.ResourceProviderFactory{
-			"validator": func() (terraform.ResourceProvider, error) {
+		ProviderFactories: map[string]func() (*schema.Provider, error){
+			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
@@ -876,6 +880,7 @@ func TestAccPluginSDKReturnsComputedFields(t *testing.T) {
 				Config: `resource "validator_computed" "test" {}`,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckResourceStateMatches(resourceName, map[string]interface{}{
+						"%":                   "9",
 						"id":                  "does-not-matter",
 						"hello":               "world",
 						"random_number":       "42",
@@ -894,6 +899,7 @@ func TestAccPluginSDKReturnsComputedFields(t *testing.T) {
 						"list_of_floats.0":    "-1.234567894321",
 						"list_of_floats.1":    "2.3456789",
 						"nested_object.#":     "1",
+						"nested_object.0.%":   "1",
 						"nested_object.0.key": "value",
 						// Sets can't really be computed, so this isn't that big a deal
 					}),
@@ -904,7 +910,7 @@ func TestAccPluginSDKReturnsComputedFields(t *testing.T) {
 }
 
 func computedFieldsResource() *schema.Resource {
-	var readFunc = func(d *schema.ResourceData, _ interface{}) error {
+	readFunc := func(d *schema.ResourceData, _ interface{}) error {
 		d.Set("hello", "world")
 		d.Set("random_number", 42)
 		d.Set("enabled", true)
@@ -974,7 +980,7 @@ func computedFieldsResource() *schema.Resource {
 				},
 			},
 		},
-		Create: func(d *schema.ResourceData, meta interface{}) error {
+		Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:SA1019
 			d.SetId("does-not-matter")
 			return readFunc(d, meta)
 		},

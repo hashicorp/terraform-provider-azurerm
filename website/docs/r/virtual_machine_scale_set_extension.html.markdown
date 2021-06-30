@@ -47,6 +47,12 @@ The following arguments are supported:
 
 * `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI.
 
+~> **Note:** The `Publisher` and `Type` of Virtual Machine Scale Set Extensions can be found using the Azure CLI, via:
+
+```shell
+$ az vmss extension image list --location westus -o table
+```
+
 ---
 
 * `auto_upgrade_minor_version` - (Optional) Should the latest version of the Extension be used at Deployment Time, if one is available? This won't auto-update the extension on existing installation. Defaults to `true`.

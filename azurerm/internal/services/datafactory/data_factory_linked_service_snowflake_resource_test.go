@@ -6,12 +6,10 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +20,10 @@ func TestAccDataFactoryLinkedServiceSnowflake_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_snowflake", "test")
 	r := LinkedServiceSnowflakeResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("parameters.%").HasValue("2"),
 				check.That(data.ResourceName).Key("annotations.#").HasValue("3"),
@@ -36,7 +34,7 @@ func TestAccDataFactoryLinkedServiceSnowflake_basic(t *testing.T) {
 		},
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("parameters.%").HasValue("3"),
 				check.That(data.ResourceName).Key("annotations.#").HasValue("2"),
@@ -53,10 +51,10 @@ func TestAccDataFactoryLinkedServiceSnowflake_KeyVaultReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_snowflake", "test")
 	r := LinkedServiceSnowflakeResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.key_vault_reference(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("connection_string").Exists(),
 				check.That(data.ResourceName).Key("key_vault_password.0.linked_service_name").HasValue("linkkv"),
@@ -67,7 +65,7 @@ func TestAccDataFactoryLinkedServiceSnowflake_KeyVaultReference(t *testing.T) {
 	})
 }
 
-func (t LinkedServiceSnowflakeResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t LinkedServiceSnowflakeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

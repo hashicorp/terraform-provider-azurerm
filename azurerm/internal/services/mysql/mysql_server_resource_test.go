@@ -6,12 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccMySQLServer_basicFiveSix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "5.6"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,10 +36,10 @@ func TestAccMySQLServer_basicFiveSixWithIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicWithIdentity(data, "5.6"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -52,17 +51,17 @@ func TestAccMySQLServer_basicFiveSixWithIdentityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "5.6"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			Config: r.basicWithIdentity(data, "5.6"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -74,10 +73,10 @@ func TestAccMySQLServer_basicFiveSixDeprecated(t *testing.T) { // remove in v3.0
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicDeprecated(data, "5.6"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -89,10 +88,10 @@ func TestAccMySQLServer_basicFiveSeven(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "5.7"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -104,10 +103,10 @@ func TestAccMySQLServer_basicEightZero(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "8.0"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -120,17 +119,17 @@ func TestAccMySQLServer_autogrowOnly(t *testing.T) {
 	r := MySQLServerResource{}
 	mysqlVersion := "5.7"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.autogrow(data, mysqlVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			Config: r.basic(data, mysqlVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -142,10 +141,10 @@ func TestAccMySQLServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "5.7"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -157,10 +156,10 @@ func TestAccMySQLServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, "8.0"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -173,38 +172,38 @@ func TestAccMySQLServer_update(t *testing.T) {
 	r := MySQLServerResource{}
 	mysqlVersion := "8.0"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, mysqlVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			Config: r.complete(data, mysqlVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			Config: r.complete2(data, mysqlVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password", "threat_detection_policy.0.storage_account_access_key"),
 		{
 			Config: r.complete3(data, mysqlVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password", "threat_detection_policy.0.storage_account_access_key"),
 		{
 			Config: r.basic(data, mysqlVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -217,17 +216,17 @@ func TestAccMySQLServer_completeDeprecatedMigrate(t *testing.T) { // remove in v
 	r := MySQLServerResource{}
 	mysqlVersion := "5.6"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeDeprecated(data, mysqlVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			Config: r.complete(data, mysqlVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -240,24 +239,24 @@ func TestAccMySQLServer_updateDeprecated(t *testing.T) { // remove in v3.0
 	r := MySQLServerResource{}
 	mysqlVersion := "5.6"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicDeprecated(data, mysqlVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			Config: r.completeDeprecated(data, mysqlVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			Config: r.basicDeprecated(data, mysqlVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -269,17 +268,17 @@ func TestAccMySQLServer_updateSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sku(data, "GP_Gen5_2"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			Config: r.sku(data, "MO_Gen5_16"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -292,17 +291,17 @@ func TestAccMySQLServer_createReplica(t *testing.T) {
 	r := MySQLServerResource{}
 	mysqlVersion := "8.0"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, mysqlVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.createReplica(data, mysqlVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -316,10 +315,10 @@ func TestAccMySQLServer_createPointInTimeRestore(t *testing.T) {
 	restoreTime := time.Now().Add(11 * time.Minute)
 	mysqlVersion := "8.0"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, mysqlVersion),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -327,7 +326,7 @@ func TestAccMySQLServer_createPointInTimeRestore(t *testing.T) {
 		{
 			PreConfig: func() { time.Sleep(restoreTime.Sub(time.Now().Add(-7 * time.Minute))) },
 			Config:    r.createPointInTimeRestore(data, mysqlVersion, restoreTime.Format(time.RFC3339)),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -335,7 +334,7 @@ func TestAccMySQLServer_createPointInTimeRestore(t *testing.T) {
 	})
 }
 
-func (t MySQLServerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t MySQLServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServerID(state.ID)
 	if err != nil {
 		return nil, err

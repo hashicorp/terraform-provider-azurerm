@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccResourceGroupTemplateDeployment_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.emptyConfig(data, "Complete"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -32,7 +31,7 @@ func TestAccResourceGroupTemplateDeployment_empty(t *testing.T) {
 		{
 			// set some tags
 			Config: r.emptyWithTagsConfig(data, "Complete"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -44,10 +43,10 @@ func TestAccResourceGroupTemplateDeployment_incremental(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.emptyConfig(data, "Incremental"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -55,7 +54,7 @@ func TestAccResourceGroupTemplateDeployment_incremental(t *testing.T) {
 		{
 			// set some tags
 			Config: r.emptyWithTagsConfig(data, "Incremental"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -67,10 +66,10 @@ func TestAccResourceGroupTemplateDeployment_singleItemIncorrectCasing(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.singleItemWithIncorrectCasingConfig(data, "first"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -82,10 +81,10 @@ func TestAccResourceGroupTemplateDeployment_singleItemUpdateTemplateWithUnchange
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.singleItemWithParameterConfigAndVariable(data, "templateVariableValue1", "first"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -94,7 +93,7 @@ func TestAccResourceGroupTemplateDeployment_singleItemUpdateTemplateWithUnchange
 			// Update the ARM template to trigger update on resource BUT don't vary the parameter value
 			// Validates fix for bug #8840
 			Config: r.singleItemWithParameterConfigAndVariable(data, "forceupdatetemplate", "first"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -106,17 +105,17 @@ func TestAccResourceGroupTemplateDeployment_singleItemUpdatingParams(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.singleItemWithParameterConfig(data, "first"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.singleItemWithParameterConfig(data, "second"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -128,17 +127,17 @@ func TestAccResourceGroupTemplateDeployment_singleItemUpdatingTemplate(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.singleItemWithPublicIPConfig(data, "first"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.singleItemWithPublicIPConfig(data, "second"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -150,10 +149,10 @@ func TestAccResourceGroupTemplateDeployment_withOutputs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withOutputsConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("output_content").HasValue("{\"testOutput\":{\"type\":\"String\",\"value\":\"some-value\"}}"),
 			),
@@ -166,17 +165,17 @@ func TestAccResourceGroupTemplateDeployment_multipleItems(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleItemsConfig(data, "first"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.multipleItemsConfig(data, "second"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -188,17 +187,17 @@ func TestAccResourceGroupTemplateDeployment_multipleNestedItems(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleNestedItemsConfig(data, "first"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.multipleNestedItemsConfig(data, "second"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -210,17 +209,17 @@ func TestAccResourceGroupTemplateDeployment_childItems(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.childItemsConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.childItemsConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -232,10 +231,10 @@ func TestAccResourceGroupTemplateDeployment_templateSpecEmpty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.templateSpecVersionConfigEmpty(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -247,10 +246,10 @@ func TestAccResourceGroupTemplateDeployment_templateSpecResources(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.templateSpecVersionConfigResources(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -258,7 +257,7 @@ func TestAccResourceGroupTemplateDeployment_templateSpecResources(t *testing.T) 
 	})
 }
 
-func (t ResourceGroupTemplateDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t ResourceGroupTemplateDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ResourceGroupTemplateDeploymentID(state.ID)
 	if err != nil {
 		return nil, err
@@ -290,7 +289,7 @@ resource "azurerm_resource_group_template_deployment" "test" {
 
   template_content = <<TEMPLATE
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {},
   "variables": {},
@@ -376,7 +375,7 @@ resource "azurerm_resource_group_template_deployment" "test" {
 
   template_content = <<TEMPLATE
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {},
   "variables": {},
@@ -405,7 +404,7 @@ resource "azurerm_resource_group_template_deployment" "test" {
 
   template_content = <<TEMPLATE
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
     "someParam": {
@@ -472,7 +471,7 @@ resource "azurerm_resource_group_template_deployment" "test" {
 
   template_content = <<TEMPLATE
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
     "someParam": {
@@ -520,7 +519,7 @@ resource "azurerm_resource_group_template_deployment" "test" {
 
   template_content = <<TEMPLATE
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
     "someParam": {
@@ -566,7 +565,7 @@ resource "azurerm_resource_group_template_deployment" "test" {
 
   template_content = <<TEMPLATE
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {},
   "variables": {},
@@ -608,7 +607,7 @@ resource "azurerm_resource_group_template_deployment" "test" {
 
   template_content = <<TEMPLATE
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {},
   "variables": {},
@@ -643,7 +642,7 @@ resource "azurerm_resource_group_template_deployment" "test" {
 
   template_content = <<TEMPLATE
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {},
   "variables": {},
@@ -697,7 +696,7 @@ resource "azurerm_resource_group_template_deployment" "test" {
 
   template_content = <<TEMPLATE
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {},
   "variables": {},
@@ -776,7 +775,7 @@ resource "azurerm_resource_group_template_deployment" "test" {
 
   template_content = <<TEMPLATE
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {},
   "variables": {},

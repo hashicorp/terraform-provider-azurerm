@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
@@ -18,10 +17,10 @@ func TestAccBatchAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
 	r := BatchAccountDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
 			),
@@ -33,10 +32,10 @@ func TestAccBatchAccountDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
 	r := BatchAccountDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
@@ -53,10 +52,10 @@ func TestAccBatchAccountDataSource_userSubscription(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.userSubscription(data, tenantID, subscriptionID),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("UserSubscription"),
 				check.That(data.ResourceName).Key("key_vault_reference.#").HasValue("1"),
@@ -164,7 +163,8 @@ resource "azurerm_key_vault" "test" {
       "get",
       "list",
       "set",
-      "delete"
+      "delete",
+      "recover"
     ]
 
   }

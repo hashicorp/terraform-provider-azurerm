@@ -70,6 +70,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Redis Enterprise Database.
 
+* `primary_access_key` - The Primary Access Key for the Redis Enterprise Database Instance.
+
+* `secondary_access_key` - The Secondary Access Key for the Redis Enterprise Database Instance.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

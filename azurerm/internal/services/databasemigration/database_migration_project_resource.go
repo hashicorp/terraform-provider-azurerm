@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datamigration/mgmt/2018-04-19/datamigration"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,12 +14,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDatabaseMigrationProject() *schema.Resource {
-	return &schema.Resource{
+func resourceDatabaseMigrationProject() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDatabaseMigrationProjectCreateUpdate,
 		Read:   resourceDatabaseMigrationProjectRead,
 		Update: resourceDatabaseMigrationProjectCreateUpdate,
@@ -32,23 +31,23 @@ func resourceDatabaseMigrationProject() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ProjectName,
 			},
 
 			"service_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ServiceName,
@@ -59,7 +58,7 @@ func resourceDatabaseMigrationProject() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"source_platform": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -69,7 +68,7 @@ func resourceDatabaseMigrationProject() *schema.Resource {
 			},
 
 			"target_platform": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -83,7 +82,7 @@ func resourceDatabaseMigrationProject() *schema.Resource {
 	}
 }
 
-func resourceDatabaseMigrationProjectCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ProjectsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -124,7 +123,7 @@ func resourceDatabaseMigrationProjectCreateUpdate(d *schema.ResourceData, meta i
 	return resourceDatabaseMigrationProjectRead(d, meta)
 }
 
-func resourceDatabaseMigrationProjectRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationProjectRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ProjectsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,7 +156,7 @@ func resourceDatabaseMigrationProjectRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceDatabaseMigrationProjectDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationProjectDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ProjectsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -20,8 +18,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMySQLVirtualNetworkRule() *schema.Resource {
-	return &schema.Resource{
+func resourceMySQLVirtualNetworkRule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMySQLVirtualNetworkRuleCreateUpdate,
 		Read:   resourceMySQLVirtualNetworkRuleRead,
 		Update: resourceMySQLVirtualNetworkRuleCreateUpdate,
@@ -32,16 +30,16 @@ func resourceMySQLVirtualNetworkRule() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: networkValidate.VirtualNetworkRuleName,
@@ -50,14 +48,14 @@ func resourceMySQLVirtualNetworkRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ServerName,
 			},
 
 			"subnet_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
@@ -65,7 +63,7 @@ func resourceMySQLVirtualNetworkRule() *schema.Resource {
 	}
 }
 
-func resourceMySQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.VirtualNetworkRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -98,7 +96,7 @@ func resourceMySQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta in
 
 	// Wait for the provisioning state to become ready
 	log.Printf("[DEBUG] Waiting for %s to become ready", id)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
 		Target:                    []string{"Ready"},
 		Refresh:                   mySQLVirtualNetworkStateStatusCodeRefreshFunc(ctx, client, id),
@@ -106,12 +104,12 @@ func resourceMySQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta in
 		ContinuousTargetOccurence: 5,
 	}
 	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 	} else {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be created or updated: %+v", id, err)
 	}
 
@@ -119,7 +117,7 @@ func resourceMySQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta in
 	return resourceMySQLVirtualNetworkRuleRead(d, meta)
 }
 
-func resourceMySQLVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -151,7 +149,7 @@ func resourceMySQLVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceMySQLVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,7 +170,7 @@ func resourceMySQLVirtualNetworkRuleDelete(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func mySQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *mysql.VirtualNetworkRulesClient, id parse.VirtualNetworkRuleId) resource.StateRefreshFunc {
+func mySQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *mysql.VirtualNetworkRulesClient, id parse.VirtualNetworkRuleId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {

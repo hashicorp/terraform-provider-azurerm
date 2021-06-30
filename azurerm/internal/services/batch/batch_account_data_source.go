@@ -4,69 +4,68 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceBatchAccount() *schema.Resource {
-	return &schema.Resource{
+func dataSourceBatchAccount() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceBatchAccountRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.AccountName,
 			},
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 			"location":            azure.SchemaLocationForDataSource(),
 			"storage_account_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 			"pool_allocation_mode": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 			"key_vault_reference": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"url": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
 				},
 			},
 			"primary_access_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Sensitive: true,
 				Computed:  true,
 			},
 			"secondary_access_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Sensitive: true,
 				Computed:  true,
 			},
 			"account_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 			"tags": tags.SchemaDataSource(),
@@ -74,7 +73,7 @@ func dataSourceBatchAccount() *schema.Resource {
 	}
 }
 
-func dataSourceBatchAccountRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

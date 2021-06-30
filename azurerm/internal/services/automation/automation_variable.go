@@ -9,12 +9,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -53,31 +53,31 @@ func ParseAzureAutomationVariableValue(resource string, input *string) (interfac
 	return value, nil
 }
 
-func resourceAutomationVariableCommonSchema(attType schema.ValueType, validateFunc schema.SchemaValidateFunc) map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func resourceAutomationVariableCommonSchema(attType pluginsdk.ValueType, validateFunc pluginsdk.SchemaValidateFunc) map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
 		"name": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"automation_account_name": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.RunbookName(),
 		},
 
 		"description": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
 
 		"encrypted": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
@@ -90,29 +90,29 @@ func resourceAutomationVariableCommonSchema(attType schema.ValueType, validateFu
 	}
 }
 
-func datasourceAutomationVariableCommonSchema(attType schema.ValueType) map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func datasourceAutomationVariableCommonSchema(attType pluginsdk.ValueType) map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
 		"name": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"automation_account_name": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.RunbookName(),
 		},
 
 		"description": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
 		"encrypted": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 
@@ -123,7 +123,7 @@ func datasourceAutomationVariableCommonSchema(attType schema.ValueType) map[stri
 	}
 }
 
-func resourceAutomationVariableCreateUpdate(d *schema.ResourceData, meta interface{}, varType string) error {
+func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
 	client := meta.(*clients.Client).Automation.VariableClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,7 +193,7 @@ func resourceAutomationVariableCreateUpdate(d *schema.ResourceData, meta interfa
 	return resourceAutomationVariableRead(d, meta, varType)
 }
 
-func resourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, varType string) error {
+func resourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
 	client := meta.(*clients.Client).Automation.VariableClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -241,7 +241,7 @@ func resourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, va
 	return nil
 }
 
-func dataSourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, varType string) error {
+func dataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
 	client := meta.(*clients.Client).Automation.VariableClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -286,7 +286,7 @@ func dataSourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, 
 	return nil
 }
 
-func resourceAutomationVariableDelete(d *schema.ResourceData, meta interface{}, varType string) error {
+func resourceAutomationVariableDelete(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
 	client := meta.(*clients.Client).Automation.VariableClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

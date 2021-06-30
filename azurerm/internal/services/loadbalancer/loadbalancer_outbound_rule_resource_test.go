@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccAzureRMLoadBalancerOutboundRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
 	r := LoadBalancerOutboundRule{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,10 +36,10 @@ func TestAccAzureRMLoadBalancerOutboundRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
 	r := LoadBalancerOutboundRule{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -52,7 +51,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
 	r := LoadBalancerOutboundRule{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -65,10 +64,10 @@ func TestAccAzureRMLoadBalancerOutboundRule_update(t *testing.T) {
 	data2 := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test2")
 	r := LoadBalancerOutboundRule{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleRules(data, data2),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).ExistsInAzure(r),
 			),
@@ -77,7 +76,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_update(t *testing.T) {
 		data2.ImportStep(),
 		{
 			Config: r.multipleRulesUpdate(data, data2),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).ExistsInAzure(r),
 			),
@@ -91,10 +90,10 @@ func TestAccAzureRMLoadBalancerOutboundRule_withPublicIPPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
 	r := LoadBalancerOutboundRule{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withPublicIPPrefix(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -102,7 +101,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_withPublicIPPrefix(t *testing.T) {
 	})
 }
 
-func (r LoadBalancerOutboundRule) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r LoadBalancerOutboundRule) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LoadBalancerOutboundRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -132,7 +131,7 @@ func (r LoadBalancerOutboundRule) Exists(ctx context.Context, client *clients.Cl
 	return utils.Bool(found), nil
 }
 
-func (r LoadBalancerOutboundRule) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r LoadBalancerOutboundRule) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LoadBalancerOutboundRuleID(state.ID)
 	if err != nil {
 		return nil, err

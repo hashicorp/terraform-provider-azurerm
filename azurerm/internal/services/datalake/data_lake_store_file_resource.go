@@ -10,21 +10,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataLakeStoreFile() *schema.Resource {
-	return &schema.Resource{
+func resourceDataLakeStoreFile() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDataLakeStoreFileCreate,
 		Read:   resourceDataLakeStoreFileRead,
 		Delete: resourceDataLakeStoreFileDelete,
@@ -37,29 +35,29 @@ func resourceDataLakeStoreFile() *schema.Resource {
 			0: migration.StoreFileV0ToV1{},
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"account_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"remote_file_path": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.RemoteFilePath,
 			},
 
 			"local_file_path": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -67,7 +65,7 @@ func resourceDataLakeStoreFile() *schema.Resource {
 	}
 }
 
-func resourceDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataLakeStoreFileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreFilesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,7 +127,7 @@ func resourceDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}) e
 	return resourceDataLakeStoreFileRead(d, meta)
 }
 
-func resourceDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataLakeStoreFileRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreFilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,7 +154,7 @@ func resourceDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceDataLakeStoreFileDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataLakeStoreFileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreFilesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

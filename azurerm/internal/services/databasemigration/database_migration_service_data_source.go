@@ -4,28 +4,28 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceDatabaseMigrationService() *schema.Resource {
-	return &schema.Resource{
+func dataSourceDatabaseMigrationService() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceDatabaseMigrationServiceRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ServiceName,
 			},
@@ -35,12 +35,12 @@ func dataSourceDatabaseMigrationService() *schema.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"subnet_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -49,7 +49,7 @@ func dataSourceDatabaseMigrationService() *schema.Resource {
 	}
 }
 
-func dataSourceDatabaseMigrationServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDatabaseMigrationServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

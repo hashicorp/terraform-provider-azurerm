@@ -9,9 +9,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	helpersValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -22,6 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -30,8 +28,8 @@ const (
 	LoadBalancingModeWebPublishing web.LoadBalancingMode = "Web, Publishing"
 )
 
-func resourceAppServiceEnvironment() *schema.Resource {
-	return &schema.Resource{
+func resourceAppServiceEnvironment() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAppServiceEnvironmentCreate,
 		Read:   resourceAppServiceEnvironmentRead,
 		Update: resourceAppServiceEnvironmentUpdate,
@@ -42,42 +40,42 @@ func resourceAppServiceEnvironment() *schema.Resource {
 		}),
 
 		// Need to find sane values for below, some operations on this resource can take an exceptionally long time
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(6 * time.Hour),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(6 * time.Hour),
-			Delete: schema.DefaultTimeout(6 * time.Hour),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(6 * time.Hour),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(6 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AppServiceEnvironmentName,
 			},
 
 			"subnet_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: networkValidate.SubnetID,
 			},
 
 			"cluster_setting": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"value": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 					},
@@ -85,7 +83,7 @@ func resourceAppServiceEnvironment() *schema.Resource {
 			},
 
 			"internal_load_balancing_mode": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  string(web.LoadBalancingModeNone),
@@ -101,14 +99,14 @@ func resourceAppServiceEnvironment() *schema.Resource {
 			},
 
 			"front_end_scale_factor": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      15,
 				ValidateFunc: validation.IntBetween(5, 15),
 			},
 
 			"pricing_tier": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "I1",
 				ValidateFunc: validation.StringInSlice([]string{
@@ -119,24 +117,24 @@ func resourceAppServiceEnvironment() *schema.Resource {
 			},
 
 			"allowed_user_ip_cidrs": {
-				Type:          schema.TypeSet,
+				Type:          pluginsdk.TypeSet,
 				Optional:      true,
 				Computed:      true, // remove in 3.0
 				ConflictsWith: []string{"user_whitelisted_ip_ranges"},
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: helpersValidate.CIDR,
 				},
 			},
 
 			"user_whitelisted_ip_ranges": {
-				Type:          schema.TypeSet,
+				Type:          pluginsdk.TypeSet,
 				Optional:      true,
 				Computed:      true, // remove in 3.0
 				ConflictsWith: []string{"allowed_user_ip_cidrs"},
 				Deprecated:    "this property has been renamed to `allowed_user_ip_cidrs` better reflect the expected ip range format",
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: helpersValidate.CIDR,
 				},
 			},
@@ -147,15 +145,35 @@ func resourceAppServiceEnvironment() *schema.Resource {
 			"tags": tags.ForceNewSchema(),
 
 			// Computed
+
+			// VipInfo
+			"internal_ip_address": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"service_ip_address": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"outbound_ip_addresses": {
+				Type: pluginsdk.TypeList,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+				Computed: true,
+			},
+
 			"location": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceAppServiceEnvironmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServiceEnvironmentsClient
 	networksClient := meta.(*clients.Client).Network.VnetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -165,9 +183,9 @@ func resourceAppServiceEnvironmentCreate(d *schema.ResourceData, meta interface{
 	internalLoadBalancingMode := d.Get("internal_load_balancing_mode").(string)
 	internalLoadBalancingMode = strings.ReplaceAll(internalLoadBalancingMode, " ", "")
 	t := d.Get("tags").(map[string]interface{})
-	userWhitelistedIPRangesRaw := d.Get("user_whitelisted_ip_ranges").(*schema.Set).List()
+	userWhitelistedIPRangesRaw := d.Get("user_whitelisted_ip_ranges").(*pluginsdk.Set).List()
 	if v, ok := d.GetOk("allowed_user_ip_cidrs"); ok {
-		userWhitelistedIPRangesRaw = v.(*schema.Set).List()
+		userWhitelistedIPRangesRaw = v.(*pluginsdk.Set).List()
 	}
 
 	subnetId := d.Get("subnet_id").(string)
@@ -244,7 +262,7 @@ func resourceAppServiceEnvironmentCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("creating App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	createWait := resource.StateChangeConf{
+	createWait := pluginsdk.StateChangeConf{
 		Pending: []string{
 			string(web.ProvisioningStateInProgress),
 		},
@@ -252,12 +270,12 @@ func resourceAppServiceEnvironmentCreate(d *schema.ResourceData, meta interface{
 			string(web.ProvisioningStateSucceeded),
 		},
 		MinTimeout: 1 * time.Minute,
-		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 		Refresh:    appServiceEnvironmentRefresh(ctx, client, resourceGroup, name),
 	}
 
 	// as such we'll ignore it and use a custom poller instead
-	if _, err := createWait.WaitForState(); err != nil {
+	if _, err := createWait.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for the creation of App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -271,7 +289,7 @@ func resourceAppServiceEnvironmentCreate(d *schema.ResourceData, meta interface{
 	return resourceAppServiceEnvironmentRead(d, meta)
 }
 
-func resourceAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceEnvironmentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServiceEnvironmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -303,9 +321,9 @@ func resourceAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	if d.HasChanges("user_whitelisted_ip_ranges", "allowed_user_ip_cidrs") {
-		e.UserWhitelistedIPRanges = utils.ExpandStringSlice(d.Get("user_whitelisted_ip_ranges").(*schema.Set).List())
+		e.UserWhitelistedIPRanges = utils.ExpandStringSlice(d.Get("user_whitelisted_ip_ranges").(*pluginsdk.Set).List())
 		if v, ok := d.GetOk("user_whitelisted_ip_ranges"); ok {
-			e.UserWhitelistedIPRanges = utils.ExpandStringSlice(v.(*schema.Set).List())
+			e.UserWhitelistedIPRanges = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
 		}
 	}
 
@@ -317,7 +335,7 @@ func resourceAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("updating App Service Environment %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
 	}
 
-	updateWait := resource.StateChangeConf{
+	updateWait := pluginsdk.StateChangeConf{
 		Pending: []string{
 			string(web.ProvisioningStateInProgress),
 		},
@@ -325,18 +343,18 @@ func resourceAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interface{
 			string(web.ProvisioningStateSucceeded),
 		},
 		MinTimeout: 1 * time.Minute,
-		Timeout:    d.Timeout(schema.TimeoutUpdate),
+		Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
 		Refresh:    appServiceEnvironmentRefresh(ctx, client, id.ResourceGroup, id.HostingEnvironmentName),
 	}
 
-	if _, err := updateWait.WaitForState(); err != nil {
+	if _, err := updateWait.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Update of App Service Environment %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
 	}
 
 	return resourceAppServiceEnvironmentRead(d, meta)
 }
 
-func resourceAppServiceEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceEnvironmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServiceEnvironmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -388,10 +406,23 @@ func resourceAppServiceEnvironmentRead(d *schema.ResourceData, meta interface{})
 		d.Set("cluster_setting", flattenClusterSettings(props.ClusterSettings))
 	}
 
+	// Get IP attributes for ASE.
+	vipInfo, err := client.GetVipInfo(ctx, id.ResourceGroup, id.HostingEnvironmentName)
+	if err != nil {
+		if utils.ResponseWasNotFound(vipInfo.Response) {
+			return fmt.Errorf("Error retrieving VIP info: App Service Environment %q (Resource Group %q) was not found", id.HostingEnvironmentName, id.ResourceGroup)
+		}
+		return fmt.Errorf("Error retrieving VIP info App Service Environment %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
+	}
+
+	d.Set("internal_ip_address", vipInfo.InternalIPAddress)
+	d.Set("service_ip_address", vipInfo.ServiceIPAddress)
+	d.Set("outbound_ip_addresses", vipInfo.OutboundIPAddresses)
+
 	return tags.FlattenAndSet(d, existing.Tags)
 }
 
-func resourceAppServiceEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceEnvironmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServiceEnvironmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -426,7 +457,7 @@ func resourceAppServiceEnvironmentDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func appServiceEnvironmentRefresh(ctx context.Context, client *web.AppServiceEnvironmentsClient, resourceGroup string, name string) resource.StateRefreshFunc {
+func appServiceEnvironmentRefresh(ctx context.Context, client *web.AppServiceEnvironmentsClient, resourceGroup string, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		read, err := client.Get(ctx, resourceGroup, name)
 
@@ -468,7 +499,7 @@ func convertToIsolatedSKU(vmSKU string) (isolated string) {
 	return isolated
 }
 
-func loadBalancingModeDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
+func loadBalancingModeDiffSuppress(k, old, new string, d *pluginsdk.ResourceData) bool {
 	return strings.ReplaceAll(old, " ", "") == strings.ReplaceAll(new, " ", "")
 }
 

@@ -25,6 +25,10 @@ function updateCode {
   find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/github\.com\/hashicorp\/terraform-plugin-sdk\/helper\/schema/github\.com\/terraform-providers\/terraform-provider-azurerm\/azurerm\/internal\/tf\/pluginsdk/g' {} \;
   find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/schema\./pluginsdk\./g' {} \;
 
+  # references to `structure.` should be `pluginsdk.`
+  find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/github\.com\/hashicorp\/terraform-plugin-sdk\/helper\/structure/github\.com\/terraform-providers\/terraform-provider-azurerm\/azurerm\/internal\/tf\/pluginsdk/g' {} \;
+  find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/structure\./pluginsdk\./g' {} \;
+
   # update the import for validation, the alised/unaliased part can remain the same
   find "$SERVICE_DIRECTORY" -type f -iname "*.go"  -exec sed -i '' -e 's/github\.com\/hashicorp\/terraform-plugin-sdk\/helper\/validation/github\.com\/terraform-providers\/terraform-provider-azurerm\/azurerm\/internal\/tf\/validation/g' {} \;
 
