@@ -65,13 +65,10 @@ func resourceExpressRouteCircuitConnection() *pluginsdk.Resource {
 			},
 
 			"authorization_key": {
-				Type:      pluginsdk.TypeString,
-				Optional:  true,
-				Sensitive: true,
-				ValidateFunc: validation.All(
-					validation.StringIsNotEmpty,
-					validation.IsUUID,
-				),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"address_prefix_ipv6": {
