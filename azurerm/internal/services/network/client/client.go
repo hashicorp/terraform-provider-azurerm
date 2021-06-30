@@ -14,6 +14,7 @@ type Client struct {
 	ExpressRouteAuthsClient                *network.ExpressRouteCircuitAuthorizationsClient
 	ExpressRouteCircuitsClient             *network.ExpressRouteCircuitsClient
 	ExpressRouteCircuitConnectionClient    *network.ExpressRouteCircuitConnectionsClient
+	ExpressRouteConnectionsClient          *network.ExpressRouteConnectionsClient
 	ExpressRouteGatewaysClient             *network.ExpressRouteGatewaysClient
 	ExpressRoutePeeringsClient             *network.ExpressRouteCircuitPeeringsClient
 	ExpressRoutePortsClient                *network.ExpressRoutePortsClient
@@ -84,6 +85,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	ExpressRouteCircuitConnectionClient := network.NewExpressRouteCircuitConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRouteCircuitConnectionClient.Client, o.ResourceManagerAuthorizer)
+
+	ExpressRouteConnectionsClient := network.NewExpressRouteConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ExpressRouteConnectionsClient.Client, o.ResourceManagerAuthorizer)
 
 	ExpressRouteGatewaysClient := network.NewExpressRouteGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRouteGatewaysClient.Client, o.ResourceManagerAuthorizer)
@@ -226,6 +230,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ExpressRouteAuthsClient:                &ExpressRouteAuthsClient,
 		ExpressRouteCircuitsClient:             &ExpressRouteCircuitsClient,
 		ExpressRouteCircuitConnectionClient:    &ExpressRouteCircuitConnectionClient,
+		ExpressRouteConnectionsClient:          &ExpressRouteConnectionsClient,
 		ExpressRouteGatewaysClient:             &ExpressRouteGatewaysClient,
 		ExpressRoutePeeringsClient:             &ExpressRoutePeeringsClient,
 		ExpressRoutePortsClient:                &ExpressRoutePortsClient,

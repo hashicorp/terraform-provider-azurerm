@@ -84,7 +84,7 @@ The following arguments are supported:
 
 ~> **NOTE:** Once `minimum_tls_version` is set it is not possible to remove this setting and must be given a valid value for any further updates to the resource.
 
-* `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

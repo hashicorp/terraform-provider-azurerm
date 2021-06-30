@@ -31,13 +31,13 @@ func NewOperationsClientWithBaseURI(baseURI string, subscriptionID string) Opera
 }
 
 // List lists all the available Cognitive Services account operations.
-func (client OperationsClient) List(ctx context.Context) (result OperationEntityListResultPage, err error) {
+func (client OperationsClient) List(ctx context.Context) (result OperationListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/OperationsClient.List")
 		defer func() {
 			sc := -1
-			if result.oelr.Response.Response != nil {
-				sc = result.oelr.Response.Response.StatusCode
+			if result.olr.Response.Response != nil {
+				sc = result.olr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -51,17 +51,17 @@ func (client OperationsClient) List(ctx context.Context) (result OperationEntity
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.oelr.Response = autorest.Response{Response: resp}
+		result.olr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "cognitiveservices.OperationsClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.oelr, err = client.ListResponder(resp)
+	result.olr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.OperationsClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.oelr.hasNextLink() && result.oelr.IsEmpty() {
+	if result.olr.hasNextLink() && result.olr.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -71,7 +71,7 @@ func (client OperationsClient) List(ctx context.Context) (result OperationEntity
 
 // ListPreparer prepares the List request.
 func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2017-04-18"
+	const APIVersion = "2021-04-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -92,7 +92,7 @@ func (client OperationsClient) ListSender(req *http.Request) (*http.Response, er
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client OperationsClient) ListResponder(resp *http.Response) (result OperationEntityListResult, err error) {
+func (client OperationsClient) ListResponder(resp *http.Response) (result OperationListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -103,8 +103,8 @@ func (client OperationsClient) ListResponder(resp *http.Response) (result Operat
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client OperationsClient) listNextResults(ctx context.Context, lastResults OperationEntityListResult) (result OperationEntityListResult, err error) {
-	req, err := lastResults.operationEntityListResultPreparer(ctx)
+func (client OperationsClient) listNextResults(ctx context.Context, lastResults OperationListResult) (result OperationListResult, err error) {
+	req, err := lastResults.operationListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "cognitiveservices.OperationsClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -124,7 +124,7 @@ func (client OperationsClient) listNextResults(ctx context.Context, lastResults 
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client OperationsClient) ListComplete(ctx context.Context) (result OperationEntityListResultIterator, err error) {
+func (client OperationsClient) ListComplete(ctx context.Context) (result OperationListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/OperationsClient.List")
 		defer func() {

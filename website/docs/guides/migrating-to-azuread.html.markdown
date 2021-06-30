@@ -18,7 +18,7 @@ This guide covers how to migrate from using the following Data Sources and Resou
 * Resource: `azurerm_azuread_service_principal`
 * Resource: `azurerm_azuread_service_principal_password`
 
-## Updating the Provider block
+## Updating the Provider block
 
 As the AzureAD and AzureRM Provider support the same authentication methods, it's possible to simply add the AzureAD Provider to the `required_providers` block and declare the configuration in a Provider block as per the following example:
 

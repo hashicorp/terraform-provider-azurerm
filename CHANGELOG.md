@@ -1,5 +1,28 @@
 ## 2.66.0 (Unreleased)
 
+FEATURES:
+
+* **New Resouce** `azurerm_api_management_api_operation_tag` [GH-12384]
+* **New Resouce** `azurerm_data_factory_linked_custom_service` [GH-12224]
+* **New Resouce** `azurerm_express_route_connection` [GH-11320]
+* Cognitive Service now supports purging soft delete accounts [GH-12281]
+
+ENHANCEMENTS:
+
+* dependencies: updating `cognitive` to use API Version `2021-03-01` [GH-12281]
+* `azurerm_api_management_backend` - support for the `client_certificate_id` property  [GH-12402]
+* `azurerm_batch_account` - support for the `public_network_access_enabled` property [GH-12401]
+* `azurerm_lighthouse_definition` - support for the `plan` block [GH-12360]
+* `azurerm_site_recovery_replicated_vm` - Add support for `target_disk_encryption_set_id` in `managed_disk` [GH-12374]
+
+BUG FIXES:
+
+* `azurerm_app_service` - fix app_setting and SCM setting ordering [GH-12280]
+* `azurerm_hdinsight_kafka_cluster` - will no longer panic from an empty `component_version` property [GH-12261]
+* `azurerm_spatial_anchors_account` - the `tags` property can now be updated without creating a new resource [GH-11985]
+
+
+
 ## 2.65.0 (June 25, 2021)
 
 FEATURES:
@@ -20,7 +43,7 @@ ENHANCEMENTS:
 * `azurerm_linux_virtual_machine` - updating `proximity_placement_group_id` will no longer create a new resoruce ([#11790](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11790))
 * `azurerm_security_center_assessment_metadata` - support for the `categories` property ([#12278](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12278))
 * `azurerm_windows_virtual_machine` - updating `proximity_placement_group_id` will no longer create a new resoruce ([#11790](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11790))
-* 
+
 BUG FIXES:
 
 * `azurerm_data_factory` - fix a bug where the `name` property was stored with the wrong casing ([#12128](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12128))
