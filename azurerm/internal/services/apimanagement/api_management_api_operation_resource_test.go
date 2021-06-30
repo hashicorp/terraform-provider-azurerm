@@ -262,6 +262,7 @@ resource "azurerm_api_management_api_operation" "test" {
       name     = "X-Test-Operation"
       required = true
       type     = "string"
+      values   = ["application/x-www-form-urlencoded"]
     }
 
     representation {
