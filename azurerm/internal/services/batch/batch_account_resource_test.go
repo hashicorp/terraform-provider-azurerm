@@ -193,6 +193,8 @@ resource "azurerm_batch_account" "test" {
   pool_allocation_mode = "BatchService"
   storage_account_id   = azurerm_storage_account.test.id
 
+  public_network_access_enabled = false
+
   tags = {
     env = "test"
   }
@@ -225,6 +227,8 @@ resource "azurerm_batch_account" "test" {
   location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
   storage_account_id   = azurerm_storage_account.test.id
+
+  public_network_access_enabled = false
 
   tags = {
     env     = "test"

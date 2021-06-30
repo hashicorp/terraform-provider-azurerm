@@ -6,12 +6,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2021-04-30/cognitiveservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	commonValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive/validate"
@@ -121,8 +121,8 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(cognitiveservices.Allow),
-								string(cognitiveservices.Deny),
+								string(cognitiveservices.NetworkRuleActionAllow),
+								string(cognitiveservices.NetworkRuleActionDeny),
 							}, false),
 						},
 						"ip_rules": {
@@ -177,29 +177,29 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 
 func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 	kind := d.Get("kind").(string)
 
+	id := parse.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.GetProperties(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Cognitive Account %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_cognitive_account", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_cognitive_account", id.ID())
 		}
 	}
 
 	sku, err := expandAccountSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("expanding sku_name for Cognitive Account %s (Resource Group %q): %v", name, resourceGroup, err)
+		return fmt.Errorf("expanding sku_name for %s: %v", id, err)
 	}
 
 	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d.Get("network_acls").([]interface{}))
@@ -224,7 +224,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Sku:      sku,
 		Properties: &cognitiveservices.AccountProperties{
-			APIProperties:       &cognitiveservices.AccountAPIProperties{},
+			APIProperties:       &cognitiveservices.APIProperties{},
 			NetworkAcls:         networkAcls,
 			CustomSubDomainName: utils.String(d.Get("custom_subdomain_name").(string)),
 		},
@@ -239,29 +239,23 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	if _, err := client.Create(ctx, resourceGroup, name, props); err != nil {
-		return fmt.Errorf("creating Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.Create(ctx, id.ResourceGroup, id.Name, props); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Creating"},
 		Target:     []string{"Succeeded"},
-		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, resourceGroup, name),
+		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, id),
 		MinTimeout: 15 * time.Second,
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Cognitive Account (%s) to become available: %s", d.Get("name"), err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	read, err := client.GetProperties(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceCognitiveAccountRead(d, meta)
 }
 
@@ -277,7 +271,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	sku, err := expandAccountSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("error expanding sku_name for %s: %+v", *id, err)
 	}
 
 	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d.Get("network_acls").([]interface{}))
@@ -300,7 +294,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	props := cognitiveservices.Account{
 		Sku: sku,
 		Properties: &cognitiveservices.AccountProperties{
-			APIProperties:       &cognitiveservices.AccountAPIProperties{},
+			APIProperties:       &cognitiveservices.APIProperties{},
 			NetworkAcls:         networkAcls,
 			CustomSubDomainName: utils.String(d.Get("custom_subdomain_name").(string)),
 		},
@@ -316,21 +310,20 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if _, err = client.Update(ctx, id.ResourceGroup, id.Name, props); err != nil {
-		return fmt.Errorf("Error updating Cognitive Services Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Accepted"},
 		Target:     []string{"Succeeded"},
-		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
+		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, *id),
 		MinTimeout: 15 * time.Second,
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Cognitive Account (%s) to become available: %s", d.Get("name"), err)
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
-
 	return resourceCognitiveAccountRead(d, meta)
 }
 
@@ -344,24 +337,28 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resp, err := client.GetProperties(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Cognitive Services Account %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found", *id)
 			d.SetId("")
 			return nil
 		}
-		return err
+
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		// note for the resource we shouldn't gracefully fail since we have permission to CRUD it
+		return fmt.Errorf("listing the Keys for %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("kind", resp.Kind)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
 	}
@@ -377,16 +374,6 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Not able to obtain keys for Cognitive Services Account %q in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("Error obtaining keys for Cognitive Services Account %q in Resource Group %q: %v", id.Name, id.ResourceGroup, err)
-	}
-
 	d.Set("primary_access_key", keys.Key1)
 	d.Set("secondary_access_key", keys.Key2)
 
@@ -394,7 +381,8 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cognitive.AccountsClient
+	accountsClient := meta.(*clients.Client).Cognitive.AccountsClient
+	deletedAccountsClient := meta.(*clients.Client).Cognitive.DeletedAccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -403,11 +391,33 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	// first we need to retrieve it, since we need the location to be able to purge it
+	log.Printf("[DEBUG] Retrieving %s..", *id)
+	account, err := accountsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Cognitive Services Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	log.Printf("[DEBUG] Deleting %s..", *id)
+	deleteFuture, err := accountsClient.Delete(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+	if err := deleteFuture.WaitForCompletionRef(ctx, accountsClient.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+	}
+
+	if meta.(*clients.Client).Features.CognitiveAccount.PurgeSoftDeleteOnDestroy {
+		log.Printf("[DEBUG] Purging %s..", *id)
+		purgeFuture, err := deletedAccountsClient.Purge(ctx, *account.Location, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("purging %s: %+v", *id, err)
 		}
+		if err := purgeFuture.WaitForCompletionRef(ctx, deletedAccountsClient.Client); err != nil {
+			return fmt.Errorf("waiting for purge of %s: %+v", *id, err)
+		}
+	} else {
+		log.Printf("[DEBUG] Skipping Purge of %s", *id)
 	}
 
 	return nil
@@ -417,11 +427,11 @@ func expandAccountSkuName(skuName string) (*cognitiveservices.Sku, error) {
 	var tier cognitiveservices.SkuTier
 	switch skuName[0:1] {
 	case "F":
-		tier = cognitiveservices.Free
+		tier = cognitiveservices.SkuTierFree
 	case "S":
-		tier = cognitiveservices.Standard
+		tier = cognitiveservices.SkuTierStandard
 	case "P":
-		tier = cognitiveservices.Premium
+		tier = cognitiveservices.SkuTierPremium
 	default:
 		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, skuName[0:1])
 	}
@@ -432,11 +442,11 @@ func expandAccountSkuName(skuName string) (*cognitiveservices.Sku, error) {
 	}, nil
 }
 
-func cognitiveAccountStateRefreshFunc(ctx context.Context, client *cognitiveservices.AccountsClient, resourceGroupName string, cognitiveAccountName string) pluginsdk.StateRefreshFunc {
+func cognitiveAccountStateRefreshFunc(ctx context.Context, client *cognitiveservices.AccountsClient, id parse.AccountId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.GetProperties(ctx, resourceGroupName, cognitiveAccountName)
+		res, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return nil, "", fmt.Errorf("issuing read request in cognitiveAccountStateRefreshFunc to Azure ARM for Cognitive Account '%s' (RG: '%s'): %s", cognitiveAccountName, resourceGroupName, err)
+			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
 		}
 
 		return res, string(res.Properties.ProvisioningState), nil
@@ -487,10 +497,6 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservices.NetworkRuleSet)
 		return []interface{}{}
 	}
 
-	output := make(map[string]interface{})
-
-	output["default_action"] = string(input.DefaultAction)
-
 	ipRules := make([]interface{}, 0)
 	if input.IPRules != nil {
 		for _, v := range *input.IPRules {
@@ -501,7 +507,6 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservices.NetworkRuleSet)
 			ipRules = append(ipRules, *v.Value)
 		}
 	}
-	output["ip_rules"] = pluginsdk.NewSet(pluginsdk.HashString, ipRules)
 
 	virtualNetworkRules := make([]interface{}, 0)
 	if input.VirtualNetworkRules != nil {
@@ -519,7 +524,11 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservices.NetworkRuleSet)
 			virtualNetworkRules = append(virtualNetworkRules, id)
 		}
 	}
-	output["virtual_network_subnet_ids"] = pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkRules)
-
-	return []interface{}{output}
+	return []interface{}{
+		map[string]interface{}{
+			"default_action":             string(input.DefaultAction),
+			"ip_rules":                   pluginsdk.NewSet(pluginsdk.HashString, ipRules),
+			"virtual_network_subnet_ids": pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkRules),
+		},
+	}
 }
