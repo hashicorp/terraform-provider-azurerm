@@ -103,13 +103,15 @@ The following arguments are supported:
   
 * `peer_peering_id` - (Required) The ID of the peered Express Route Circuit Private Peering. Changing this forces a new Express Route Circuit Connection to be created.
 
-* `address_prefix_ipv4` - (Required) The IPv4 address space from which to allocate customer address for global reach.
+* `address_prefix_ipv4` - (Required) The IPv4 address space from which to allocate customer address for global reach. Changing this forces a new Express Route Circuit Connection to be created.
 
 ---
 
 * `authorization_key` - (Optional) The authorization key which is associated with the Express Route Circuit Connection.
 
 * `address_prefix_ipv6` - (Optional) The IPv6 address space from which to allocate customer addresses for global reach.
+
+-> **NOTE**: `address_prefix_ipv6` cannot be set when ExpressRoute Circuit Connection with ExpressRoute Circuit based on ExpressRoute Port.
 
 ## Attributes Reference
 

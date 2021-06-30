@@ -60,14 +60,18 @@ func resourceExpressRouteCircuitConnection() *pluginsdk.Resource {
 			"address_prefix_ipv4": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.IsCIDR,
 			},
 
 			"authorization_key": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.IsUUID,
+				Type:      pluginsdk.TypeString,
+				Optional:  true,
+				Sensitive: true,
+				ValidateFunc: validation.All(
+					validation.StringIsNotEmpty,
+					validation.IsUUID,
+				),
 			},
 
 			"address_prefix_ipv6": {
@@ -81,6 +85,7 @@ func resourceExpressRouteCircuitConnection() *pluginsdk.Resource {
 
 func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitConnectionClient
+	circuitClient := meta.(*clients.Client).Network.ExpressRouteCircuitsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -125,8 +130,19 @@ func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	if v, ok := d.GetOk("address_prefix_ipv6"); ok {
-		expressRouteCircuitConnectionParameters.ExpressRouteCircuitConnectionPropertiesFormat.Ipv6CircuitConnectionConfig = &network.Ipv6CircuitConnectionConfig{
-			AddressPrefix: utils.String(v.(string)),
+		circuitId := parse.NewExpressRouteCircuitID(circuitPeeringId.SubscriptionId, circuitPeeringId.ResourceGroup, circuitPeeringId.ExpressRouteCircuitName)
+
+		circuit, err := circuitClient.Get(ctx, circuitId.ResourceGroup, circuitId.Name)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", circuitId, err)
+		}
+
+		if circuit.ExpressRouteCircuitPropertiesFormat != nil && circuit.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort != nil {
+			return fmt.Errorf("`address_prefix_ipv6` cannot be set when ExpressRoute Circuit Connection with ExpressRoute Circuit based on ExpressRoute Port")
+		} else {
+			expressRouteCircuitConnectionParameters.ExpressRouteCircuitConnectionPropertiesFormat.Ipv6CircuitConnectionConfig = &network.Ipv6CircuitConnectionConfig{
+				AddressPrefix: utils.String(v.(string)),
+			}
 		}
 	}
 
@@ -169,7 +185,12 @@ func resourceExpressRouteCircuitConnectionRead(d *pluginsdk.ResourceData, meta i
 
 	if props := resp.ExpressRouteCircuitConnectionPropertiesFormat; props != nil {
 		d.Set("address_prefix_ipv4", props.AddressPrefix)
-		d.Set("authorization_key", props.AuthorizationKey)
+
+		authorizationKey := ""
+		if props.AuthorizationKey != nil {
+			authorizationKey = *props.AuthorizationKey
+		}
+		d.Set("authorization_key", authorizationKey)
 
 		addressPrefixIPv6 := ""
 		if props.Ipv6CircuitConnectionConfig != nil && props.Ipv6CircuitConnectionConfig.AddressPrefix != nil {
@@ -191,6 +212,7 @@ func resourceExpressRouteCircuitConnectionRead(d *pluginsdk.ResourceData, meta i
 
 func resourceExpressRouteCircuitConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitConnectionClient
+	circuitClient := meta.(*clients.Client).Network.ExpressRouteCircuitsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -227,8 +249,19 @@ func resourceExpressRouteCircuitConnectionUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if v, ok := d.GetOk("address_prefix_ipv6"); ok {
-		expressRouteCircuitConnectionParameters.ExpressRouteCircuitConnectionPropertiesFormat.Ipv6CircuitConnectionConfig = &network.Ipv6CircuitConnectionConfig{
-			AddressPrefix: utils.String(v.(string)),
+		circuitId := parse.NewExpressRouteCircuitID(circuitPeeringId.SubscriptionId, circuitPeeringId.ResourceGroup, circuitPeeringId.ExpressRouteCircuitName)
+
+		circuit, err := circuitClient.Get(ctx, circuitId.ResourceGroup, circuitId.Name)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", circuitId, err)
+		}
+
+		if circuit.ExpressRouteCircuitPropertiesFormat != nil && circuit.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort != nil {
+			return fmt.Errorf("`address_prefix_ipv6` cannot be set when ExpressRoute Circuit Connection with ExpressRoute Circuit based on ExpressRoute Port")
+		} else {
+			expressRouteCircuitConnectionParameters.ExpressRouteCircuitConnectionPropertiesFormat.Ipv6CircuitConnectionConfig = &network.Ipv6CircuitConnectionConfig{
+				AddressPrefix: utils.String(v.(string)),
+			}
 		}
 	}
 
