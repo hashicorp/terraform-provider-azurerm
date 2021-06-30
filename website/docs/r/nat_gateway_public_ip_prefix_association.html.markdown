@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# azurerm_nat_gateway_public_ip_association
+# azurerm_nat_gateway_public_ip_prefix_association
 
 Manages the association between a Nat Gateway and a Public IP Prefix.
 
