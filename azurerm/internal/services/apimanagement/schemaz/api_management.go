@@ -2,12 +2,12 @@ package schemaz
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
