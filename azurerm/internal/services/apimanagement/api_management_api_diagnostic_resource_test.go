@@ -266,7 +266,6 @@ resource "azurerm_api_management_api_diagnostic" "test" {
   backend_response {
     body_bytes     = 2
     headers_to_log = ["Content-Type"]
-
     data_masking {
       query_params {
         mode  = "Mask"
