@@ -13,6 +13,7 @@ type Client struct {
 	DDOSProtectionPlansClient              *network.DdosProtectionPlansClient
 	ExpressRouteAuthsClient                *network.ExpressRouteCircuitAuthorizationsClient
 	ExpressRouteCircuitsClient             *network.ExpressRouteCircuitsClient
+	ExpressRouteCircuitConnectionClient    *network.ExpressRouteCircuitConnectionsClient
 	ExpressRouteConnectionsClient          *network.ExpressRouteConnectionsClient
 	ExpressRouteGatewaysClient             *network.ExpressRouteGatewaysClient
 	ExpressRoutePeeringsClient             *network.ExpressRouteCircuitPeeringsClient
@@ -81,6 +82,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	ExpressRouteCircuitsClient := network.NewExpressRouteCircuitsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRouteCircuitsClient.Client, o.ResourceManagerAuthorizer)
+
+	ExpressRouteCircuitConnectionClient := network.NewExpressRouteCircuitConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ExpressRouteCircuitConnectionClient.Client, o.ResourceManagerAuthorizer)
 
 	ExpressRouteConnectionsClient := network.NewExpressRouteConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRouteConnectionsClient.Client, o.ResourceManagerAuthorizer)
@@ -225,6 +229,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		DDOSProtectionPlansClient:              &DDOSProtectionPlansClient,
 		ExpressRouteAuthsClient:                &ExpressRouteAuthsClient,
 		ExpressRouteCircuitsClient:             &ExpressRouteCircuitsClient,
+		ExpressRouteCircuitConnectionClient:    &ExpressRouteCircuitConnectionClient,
 		ExpressRouteConnectionsClient:          &ExpressRouteConnectionsClient,
 		ExpressRouteGatewaysClient:             &ExpressRouteGatewaysClient,
 		ExpressRoutePeeringsClient:             &ExpressRoutePeeringsClient,
