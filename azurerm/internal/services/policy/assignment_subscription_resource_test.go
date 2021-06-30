@@ -267,7 +267,7 @@ resource "azurerm_subscription_policy_assignment" "test" {
   }
 
   metadata = jsonencode({
-    "category": "Testing"
+    "category" : "Testing"
   })
 }
 `, template, data.RandomInteger, data.Locations.Primary)
@@ -307,11 +307,11 @@ resource "azurerm_subscription_policy_assignment" "test" {
   description          = "This is a policy assignment from an acceptance test"
   display_name         = "AccTest Policy %[2]d"
   enforce              = false
-  not_scopes           = [
+  not_scopes = [
     format("%%s/resourceGroups/blah", data.azurerm_subscription.test.id)
   ]
-  metadata             = jsonencode({
-    "category": "Testing"
+  metadata = jsonencode({
+    "category" : "Testing"
   })
 }
 `, template, data.RandomInteger)
@@ -342,8 +342,8 @@ resource "azurerm_subscription_policy_assignment" "test" {
   name                 = "acctestpa-%[2]d"
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = azurerm_policy_definition.test.id
-  metadata             = jsonencode({
-    "category": "Testing"
+  metadata = jsonencode({
+    "category" : "Testing"
   })
 }
 `, template, data.RandomInteger)

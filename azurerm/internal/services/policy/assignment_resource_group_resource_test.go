@@ -182,9 +182,9 @@ resource "azurerm_resource_group_policy_assignment" "test" {
   name                 = "acctestpa-%[2]d"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = data.azurerm_policy_definition.test.id
-  parameters           = jsonencode({
-	"listOfAllowedLocations" = {
-      "value" = [ azurerm_resource_group.test.location ]
+  parameters = jsonencode({
+    "listOfAllowedLocations" = {
+      "value" = [azurerm_resource_group.test.location]
     }
   })
 }
@@ -267,7 +267,7 @@ resource "azurerm_resource_group_policy_assignment" "test" {
   }
 
   metadata = jsonencode({
-    "category": "Testing"
+    "category" : "Testing"
   })
 }
 `, template, data.RandomInteger)
@@ -307,11 +307,11 @@ resource "azurerm_resource_group_policy_assignment" "test" {
   description          = "This is a policy assignment from an acceptance test"
   display_name         = "AccTest Policy %[2]d"
   enforce              = false
-  not_scopes           = [
+  not_scopes = [
     format("%%s/virtualMachines/testvm1", azurerm_resource_group.test.id)
   ]
-  metadata             = jsonencode({
-    "category": "Testing"
+  metadata = jsonencode({
+    "category" : "Testing"
   })
 }
 `, template, data.RandomInteger)
@@ -343,8 +343,8 @@ resource "azurerm_resource_group_policy_assignment" "test" {
   name                 = "acctestpa-%[2]d"
   resource_group_id    = azurerm_resource_group.test.id
   policy_definition_id = azurerm_policy_definition.test.id
-  metadata             = jsonencode({
-    "category": "Testing"
+  metadata = jsonencode({
+    "category" : "Testing"
   })
 }
 `, template, data.RandomInteger)
@@ -381,7 +381,7 @@ POLICY_RULE
 func (r ResourceGroupAssignmentTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctest%[1]d"
+  name     = "acctest%[1]d"
   location = %[2]q
 }
 `, data.RandomInteger, data.Locations.Primary)

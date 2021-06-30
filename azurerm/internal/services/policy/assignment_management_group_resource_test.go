@@ -296,7 +296,7 @@ resource "azurerm_management_group_policy_assignment" "test" {
   }
 
   metadata = jsonencode({
-    "category": "Testing"
+    "category" : "Testing"
   })
 }
 `, template, data.RandomString, data.Locations.Primary)
@@ -338,8 +338,8 @@ resource "azurerm_management_group_policy_assignment" "test" {
   description          = "This is a policy assignment from an acceptance test"
   display_name         = "AccTest Policy %[2]s"
   enforce              = false
-  metadata             = jsonencode({
-    "category": "Testing"
+  metadata = jsonencode({
+    "category" : "Testing"
   })
 }
 `, template, data.RandomString)
@@ -373,7 +373,7 @@ resource "azurerm_policy_definition" "test" {
   mode                = "All"
   display_name        = "acctestpol-%[2]s"
   description         = "Description for %[2]s"
-  management_group_id  = azurerm_management_group.test.group_id
+  management_group_id = azurerm_management_group.test.group_id
   metadata            = <<METADATA
   {
     "category": "%[3]s"
@@ -485,8 +485,8 @@ resource "azurerm_management_group_policy_assignment" "test" {
   name                 = "acctestpol-%[2]s"
   management_group_id  = azurerm_management_group.test.id
   policy_definition_id = azurerm_policy_definition.test.id
-  metadata             = jsonencode({
-    "category": "Testing"
+  metadata = jsonencode({
+    "category" : "Testing"
   })
 }
 `, template, data.RandomString)
