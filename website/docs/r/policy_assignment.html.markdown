@@ -10,6 +10,8 @@ description: |-
 
 Configures the specified Policy Definition at the specified Scope. Also, Policy Set Definitions are supported.
 
+!> **Note:** The `azurerm_policy_assignment` resource has been deprecated in favour of the `azurerm_management_group_policy_assignment`, `azurerm_resource_policy_assignment`, `azurerm_resource_group_policy_assignment` and `azurerm_subscription_policy_assignment` resources and will be removed in v3.0 of the Azure Provider.
+
 ## Example Usage
 
 ```hcl
@@ -88,13 +90,19 @@ The following arguments are supported:
 
 * `policy_definition_id` - (Required) The ID of the Policy Definition to be applied at the specified Scope.
 
-* `identity` - (Optional) An `identity` block.
-
-* `location` - (Optional) The Azure location where this policy assignment should exist. This is required when an Identity is assigned. Changing this forces a new resource to be created.
+---
 
 * `description` - (Optional) A description to use for this Policy Assignment. Changing this forces a new resource to be created.
 
 * `display_name` - (Optional) A friendly display name to use for this Policy Assignment. Changing this forces a new resource to be created.
+
+* `enforcement_mode`- (Optional) Can be set to 'true' or 'false' to control whether the assignment is enforced (true) or not (false). Default is 'true'.
+
+* `location` - (Optional) The Azure location where this policy assignment should exist. This is required when an Identity is assigned. Changing this forces a new resource to be created.
+
+* `identity` - (Optional) An `identity` block.
+
+-> **Note:** When `identity` is set the `location` field must also be set.
 
 * `metadata` - (Optional) The metadata for the policy assignment. This is a JSON string representing additional metadata that should be stored with the policy assignment.
 
@@ -104,13 +112,11 @@ The following arguments are supported:
 
 * `not_scopes` - (Optional) A list of the Policy Assignment's excluded scopes. The list must contain Resource IDs (such as Subscriptions e.g. `/subscriptions/00000000-0000-0000-000000000000` or Resource Groups e.g.`/subscriptions/00000000-0000-0000-000000000000/resourceGroups/myResourceGroup`).
 
-* `enforcement_mode`- (Optional) Can be set to 'true' or 'false' to control whether the assignment is enforced (true) or not (false). Default is 'true'.
-
 ---
 
 An `identity` block supports the following:
 
-* `type` - (Required) The Managed Service Identity Type of this Policy Assignment. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you), or `None` (no use of a Managed Service Identity).
+* `type` - (Required) The type of Managed Identity for this Policy Assignment. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you).
 
 ~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the policy has been assigned.
 
