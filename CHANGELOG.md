@@ -2,11 +2,15 @@
 
 FEATURES:
 
-* **New Resouce** `azurerm_api_management_api_operation_tag` [GH-12384]
-* **New Resouce** `azurerm_data_factory_linked_custom_service` [GH-12224]
-* **New Resouce** `azurerm_data_factory_trigger_blob_event` [GH-12330]
-* **New Resouce** `azurerm_express_route_connection` [GH-11320]
-* **New Resouce** `azurerm_express_route_circuit_connection` [GH-11303]
+* **New Resource** `azurerm_api_management_api_operation_tag` [GH-12384]
+* **New Resource** `azurerm_data_factory_linked_custom_service` [GH-12224]
+* **New Resource** `azurerm_data_factory_trigger_blob_event` [GH-12330]
+* **New Resource** `azurerm_express_route_connection` [GH-11320]
+* **New Resource** `azurerm_express_route_circuit_connection` [GH-11303]
+* **New Resource** `azurerm_management_group_policy_assignment` [GH-12349]
+* **New Resource** `azurerm_resource_group_policy_assignment` [GH-12349]
+* **New Resource** `azurerm_resource_policy_assignment` [GH-12349]
+* **New Resource** `azurerm_subscription_policy_assignment` [GH-12349]
 * Cognitive Service now supports purging soft delete accounts [GH-12281]
 
 ENHANCEMENTS:
