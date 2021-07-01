@@ -34,7 +34,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_container_group":              resourceContainerGroup(),
-		"azurerm_container_registry_agentpool": resourceContainerRegistryAgentPool(),
+		"azurerm_container_registry_agent_pool": resourceContainerRegistryAgentPool(),
 		"azurerm_container_registry_webhook":   resourceContainerRegistryWebhook(),
 		"azurerm_container_registry":           resourceContainerRegistry(),
 		"azurerm_container_registry_token":     resourceContainerRegistryToken(),

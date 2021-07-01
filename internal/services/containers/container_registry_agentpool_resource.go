@@ -109,7 +109,7 @@ func resourceContainerRegistryAgentPoolCreate(d *pluginsdk.ResourceData, meta in
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_container_registry_agentpool", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_container_registry_agent_pool", *existing.ID)
 		}
 	}
 
