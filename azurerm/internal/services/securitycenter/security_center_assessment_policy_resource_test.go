@@ -67,21 +67,6 @@ func TestAccSecurityCenterAssessmentPolicy_update(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterAssessmentPolicy_categories(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_policy", "test")
-	r := SecurityCenterAssessmentPolicyResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.categories(),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r SecurityCenterAssessmentPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	assessmentMetadataClient := client.SecurityCenter.AssessmentsMetadataClient
 	id, err := parse.AssessmentMetadataID(state.ID)
@@ -129,6 +114,7 @@ resource "azurerm_security_center_assessment_policy" "test" {
   remediation_description = "Test Remediation Description"
   threats                 = ["DataExfiltration", "DataSpillage", "MaliciousInsider"]
   user_impact             = "Low"
+  categories              = ["Data"]
 }
 `
 }
@@ -147,21 +133,6 @@ resource "azurerm_security_center_assessment_policy" "test" {
   remediation_description = "Updated Test Remediation Description"
   threats                 = ["DataExfiltration", "DataSpillage"]
   user_impact             = "Moderate"
-}
-`
-}
-
-func (r SecurityCenterAssessmentPolicyResource) categories() string {
-	return `
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_security_center_assessment_policy" "test" {
-  display_name = "Test Display Name"
-  severity     = "Medium"
-  description  = "Test Description"
-  categories   = ["Data"]
 }
 `
 }
