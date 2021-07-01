@@ -11,8 +11,8 @@ import (
 var _ resourceid.Formatter = ContainerRegistryAgentPoolId{}
 
 func TestContainerRegistryAgentPoolIDFormatter(t *testing.T) {
-	actual := NewContainerRegistryAgentPoolID("12345678-1234-9876-4563-123456789012", "resGroup1", "registry1", "agentpool1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerRegistry/registries/registry1/agentPools/agentpool1"
+	actual := NewContainerRegistryAgentPoolID("12345678-1234-9876-4563-123456789012", "resGroup1", "registry1", "agent_pool1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerRegistry/registries/registry1/agentPools/agent_pool1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -81,18 +81,18 @@ func TestContainerRegistryAgentPoolID(t *testing.T) {
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerRegistry/registries/registry1/agentPools/agentpool1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerRegistry/registries/registry1/agentPools/agent_pool1",
 			Expected: &ContainerRegistryAgentPoolId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
 				RegistryName:   "registry1",
-				AgentPoolName:  "agentpool1",
+				AgentPoolName:  "agent_pool1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CONTAINERREGISTRY/REGISTRIES/REGISTRY1/AGENTPOOLS/AGENTPOOL1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CONTAINERREGISTRY/REGISTRIES/REGISTRY1/AGENTPOOLS/AGENT_POOL1",
 			Error: true,
 		},
 	}
