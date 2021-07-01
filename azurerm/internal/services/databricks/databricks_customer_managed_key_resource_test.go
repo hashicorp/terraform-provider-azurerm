@@ -173,7 +173,7 @@ func (DatabricksWorkspaceCustomerManagedKeyResource) requiresImport(data accepta
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_databricks_workspace_customer_managed_key" "test" {
+resource "azurerm_databricks_workspace_customer_managed_key" "test2" {
   workspace_id     = azurerm_databricks_workspace.test.id
   key_vault_key_id = azurerm_key_vault_key.test.id
 }
