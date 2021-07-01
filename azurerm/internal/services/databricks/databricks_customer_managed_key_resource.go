@@ -55,7 +55,7 @@ func resourceDatabricksWorkspaceCustomerManagedKey() *pluginsdk.Resource {
 			}
 
 			// set the new values for the CMK resource
-			d.Set("id", customManagedKey.ID())
+			d.SetId(customManagedKey.ID())
 			d.Set("workspace_id", workspace.ID())
 
 			return []*pluginsdk.ResourceData{d}, nil
