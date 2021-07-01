@@ -27,7 +27,7 @@ resource "azurerm_databricks_workspace" "example" {
   sku                 = "premium"
 
   custom_parameters {
-    customer_managed_key_enabled      = true
+    customer_managed_key_enabled = true
   }
 
   tags = {
@@ -36,12 +36,8 @@ resource "azurerm_databricks_workspace" "example" {
 }
 
 resource "azurerm_databricks_workspace_customer_managed_key" "example" {
-  workspace_id = azurerm_databricks_workspace.example.id
-  key_vault_id = azurerm_key_vault.example.id
-
-  key_source    = "Microsoft.Keyvault"
-  key_name      = azurerm_key_vault_key.example.name
-  key_version   = azurerm_key_vault_key.example.version
+  workspace_id     = azurerm_databricks_workspace.example.id
+  key_vault_key_id = azurerm_key_vault.example.id
 }
 
 resource "azurerm_key_vault" "example" {
@@ -111,24 +107,16 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 
 The following arguments are supported:
 
-* `workspace_id` - (Required) The ID of the Databricks workspace. Changing this forces a new resource to be created.
+* `workspace_id` - (Required) The ID of the Databricks workspace.
 
-* `key_vault_id` - (Required) The ID of the Key Vault. Changing this forces a new resource to be created.
-
-* `key_source` - (Required)  The encryption key source. Possible values include: `Default` or `Microsoft.Keyvault`.
-
-~> **NOTE** If you wish to remove your customer managed key encryption from your workspaces DBFS storage you will need to update the `key_source` field to `Default`.
-
-* `key_name` - (Optional) The name of Key Vault Key.
-
-* `key_version` - (Optional) The version of Key Vault Key.
+* `key_vault_key_id` - (Required) The ID of the Key Vault.
 
 
 #Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Databricks Customer Managed Key in the Azure management plane.
+* `id` - The ID of the Databricks Customer Managed Key.
 
 
 ## Timeouts
@@ -142,7 +130,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Databrick Customer Managed Key can be imported using the `resource id`, e.g.
+Databricks Workspace Customer Managed Key can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_databricks_customer_managed_key.workspace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Databricks/customerManagedKey/workspace1
