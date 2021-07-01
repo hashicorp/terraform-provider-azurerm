@@ -9,19 +9,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
-	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
+	eventgridValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataFactoryTriggerBlobEvent() *pluginsdk.Resource {
+func resourceDataFactoryTriggerCustomEvent() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataFactoryTriggerBlobEventCreateUpdate,
-		Read:   resourceDataFactoryTriggerBlobEventRead,
-		Update: resourceDataFactoryTriggerBlobEventCreateUpdate,
-		Delete: resourceDataFactoryTriggerBlobEventDelete,
+		Create: resourceDataFactoryTriggerCustomEventCreateUpdate,
+		Read:   resourceDataFactoryTriggerCustomEventRead,
+		Update: resourceDataFactoryTriggerCustomEventCreateUpdate,
+		Delete: resourceDataFactoryTriggerCustomEventDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.TriggerID(id)
@@ -50,11 +50,11 @@ func resourceDataFactoryTriggerBlobEvent() *pluginsdk.Resource {
 				ValidateFunc: validate.DataFactoryID,
 			},
 
-			"storage_account_id": {
+			"eventgrid_topic_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: storageValidate.StorageAccountID,
+				ValidateFunc: eventgridValidate.TopicID,
 			},
 
 			"events": {
@@ -63,10 +63,6 @@ func resourceDataFactoryTriggerBlobEvent() *pluginsdk.Resource {
 				MinItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						"Microsoft.Storage.BlobCreated",
-						"Microsoft.Storage.BlobDeleted",
-					}, false),
 				},
 			},
 
@@ -109,35 +105,30 @@ func resourceDataFactoryTriggerBlobEvent() *pluginsdk.Resource {
 				},
 			},
 
-			"blob_path_begins_with": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-				AtLeastOneOf: []string{"blob_path_begins_with", "blob_path_ends_with"},
-			},
-
-			"blob_path_ends_with": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-				AtLeastOneOf: []string{"blob_path_begins_with", "blob_path_ends_with"},
-			},
-
 			"description": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"ignore_empty_blobs": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
+			"subject_begins_with": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				AtLeastOneOf: []string{"subject_begins_with", "subject_ends_with"},
+			},
+
+			"subject_ends_with": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				AtLeastOneOf: []string{"subject_begins_with", "subject_ends_with"},
 			},
 		},
 	}
 }
 
-func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -157,52 +148,52 @@ func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, 
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_trigger_blob_event", id.ID())
+			return tf.ImportAsExistsError("azurerm_data_factory_trigger_custom_event", id.ID())
 		}
 	}
 
-	blobEventProps := &datafactory.BlobEventsTrigger{
-		BlobEventsTriggerTypeProperties: &datafactory.BlobEventsTriggerTypeProperties{
-			IgnoreEmptyBlobs: utils.Bool(d.Get("ignore_empty_blobs").(bool)),
-			Events:           expandDataFactoryTriggerBlobEvents(d.Get("events").(*pluginsdk.Set).List()),
-			Scope:            utils.String(d.Get("storage_account_id").(string)),
+	events := d.Get("events").(*pluginsdk.Set).List()
+	trigger := &datafactory.CustomEventsTrigger{
+		CustomEventsTriggerTypeProperties: &datafactory.CustomEventsTriggerTypeProperties{
+			Events: &events,
+			Scope:  utils.String(d.Get("eventgrid_topic_id").(string)),
 		},
 		Description: utils.String(d.Get("description").(string)),
 		Pipelines:   expandDataFactoryTriggerPipeline(d.Get("pipeline").(*pluginsdk.Set).List()),
-		Type:        datafactory.TypeBasicTriggerTypeBlobEventsTrigger,
+		Type:        datafactory.TypeBasicTriggerTypeCustomEventsTrigger,
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
 		annotations := v.([]interface{})
-		blobEventProps.Annotations = &annotations
+		trigger.Annotations = &annotations
+	}
+
+	if v, ok := d.GetOk("subject_begins_with"); ok {
+		trigger.SubjectBeginsWith = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("subject_ends_with"); ok {
+		trigger.SubjectEndsWith = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		blobEventProps.AdditionalProperties = v.(map[string]interface{})
+		trigger.AdditionalProperties = v.(map[string]interface{})
 	}
 
-	if v, ok := d.GetOk("blob_path_begins_with"); ok {
-		blobEventProps.BlobPathBeginsWith = utils.String(v.(string))
+	resource := datafactory.TriggerResource{
+		Properties: trigger,
 	}
 
-	if v, ok := d.GetOk("blob_path_ends_with"); ok {
-		blobEventProps.BlobPathEndsWith = utils.String(v.(string))
-	}
-
-	trigger := datafactory.TriggerResource{
-		Properties: blobEventProps,
-	}
-
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, trigger, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, resource, ""); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	return resourceDataFactoryTriggerBlobEventRead(d, meta)
+	return resourceDataFactoryTriggerCustomEventRead(d, meta)
 }
 
-func resourceDataFactoryTriggerBlobEventRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerCustomEventRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -222,42 +213,38 @@ func resourceDataFactoryTriggerBlobEventRead(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	blobEventsTrigger, ok := resp.Properties.AsBlobEventsTrigger()
+	CustomEventsTrigger, ok := resp.Properties.AsCustomEventsTrigger()
 	if !ok {
-		return fmt.Errorf("classifiying %s: Expected: %q", id, datafactory.TypeBasicTriggerTypeBlobEventsTrigger)
+		return fmt.Errorf("classifiying %s: Expected: %q", id, datafactory.TypeBasicTriggerTypeCustomEventsTrigger)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("data_factory_id", parse.NewDataFactoryID(subscriptionId, id.ResourceGroup, id.FactoryName).ID())
 
-	d.Set("additional_properties", blobEventsTrigger.AdditionalProperties)
-	d.Set("description", blobEventsTrigger.Description)
+	d.Set("additional_properties", CustomEventsTrigger.AdditionalProperties)
+	d.Set("description", CustomEventsTrigger.Description)
 
-	if err := d.Set("annotations", flattenDataFactoryAnnotations(blobEventsTrigger.Annotations)); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(CustomEventsTrigger.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	if err := d.Set("pipeline", flattenDataFactoryTriggerPipeline(blobEventsTrigger.Pipelines)); err != nil {
+	if err := d.Set("pipeline", flattenDataFactoryTriggerPipeline(CustomEventsTrigger.Pipelines)); err != nil {
 		return fmt.Errorf("setting `pipeline`: %+v", err)
 	}
 
-	if props := blobEventsTrigger.BlobEventsTriggerTypeProperties; props != nil {
-		d.Set("storage_account_id", props.Scope)
-		d.Set("blob_path_begins_with", props.BlobPathBeginsWith)
-		d.Set("blob_path_ends_with", props.BlobPathEndsWith)
-		d.Set("ignore_empty_blobs", props.IgnoreEmptyBlobs)
-
-		if err := d.Set("events", flattenDataFactoryTriggerBlobEvents(props.Events)); err != nil {
-			return fmt.Errorf("setting `events`: %+v", err)
-		}
+	if props := CustomEventsTrigger.CustomEventsTriggerTypeProperties; props != nil {
+		d.Set("eventgrid_topic_id", props.Scope)
+		d.Set("events", props.Events)
+		d.Set("subject_begins_with", props.SubjectBeginsWith)
+		d.Set("subject_ends_with", props.SubjectEndsWith)
 	}
 
 	return nil
 }
 
-func resourceDataFactoryTriggerBlobEventDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerCustomEventDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.TriggerID(d.Id())
@@ -270,71 +257,4 @@ func resourceDataFactoryTriggerBlobEventDelete(d *pluginsdk.ResourceData, meta i
 	}
 
 	return nil
-}
-
-func expandDataFactoryTriggerBlobEvents(input []interface{}) *[]datafactory.BlobEventTypes {
-	result := make([]datafactory.BlobEventTypes, 0)
-	for _, item := range input {
-		result = append(result, datafactory.BlobEventTypes(item.(string)))
-	}
-	return &result
-}
-
-func expandDataFactoryTriggerPipeline(input []interface{}) *[]datafactory.TriggerPipelineReference {
-	if len(input) == 0 {
-		return nil
-	}
-
-	result := make([]datafactory.TriggerPipelineReference, 0)
-	for _, item := range input {
-		raw := item.(map[string]interface{})
-
-		// issue https://github.com/hashicorp/terraform-plugin-sdk/issues/588
-		// once it's resolved, we could remove the check empty logic
-		name := raw["name"].(string)
-		if name == "" {
-			continue
-		}
-
-		result = append(result, datafactory.TriggerPipelineReference{
-			PipelineReference: &datafactory.PipelineReference{
-				ReferenceName: utils.String(raw["name"].(string)),
-				Type:          utils.String("PipelineReference"),
-			},
-			Parameters: raw["parameters"].(map[string]interface{}),
-		})
-	}
-	return &result
-}
-
-func flattenDataFactoryTriggerBlobEvents(input *[]datafactory.BlobEventTypes) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	result := make([]interface{}, 0)
-	for _, item := range *input {
-		result = append(result, string(item))
-	}
-	return result
-}
-
-func flattenDataFactoryTriggerPipeline(input *[]datafactory.TriggerPipelineReference) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	result := make([]interface{}, 0)
-	for _, item := range *input {
-		name := ""
-		if item.PipelineReference != nil && item.PipelineReference.ReferenceName != nil {
-			name = *item.PipelineReference.ReferenceName
-		}
-
-		result = append(result, map[string]interface{}{
-			"name":       name,
-			"parameters": item.Parameters,
-		})
-	}
-	return result
 }
