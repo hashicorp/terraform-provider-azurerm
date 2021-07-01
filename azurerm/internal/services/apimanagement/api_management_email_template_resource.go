@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2021-01-01-preview/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -45,8 +45,8 @@ func resourceApiManagementEmailTemplate() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					strings.Title(string(apimanagement.AccountClosedDeveloper)),
-					strings.Title(string(apimanagement.ApplicationApprovedNotificationMessage)),
+					strings.Title(string(apimanagement.TemplateNameAccountClosedDeveloper)),
+					strings.Title(string(apimanagement.TemplateNameApplicationApprovedNotificationMessage)),
 					strings.Title(string(apimanagement.ConfirmSignUpIdentityDefault)),
 					strings.Title(string(apimanagement.EmailChangeIdentityDefault)),
 					strings.Title(string(apimanagement.InviteUserNotificationMessage)),

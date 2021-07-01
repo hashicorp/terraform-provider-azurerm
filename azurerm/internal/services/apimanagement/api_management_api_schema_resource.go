@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2021-01-01-preview/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -92,7 +92,7 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 	parameters := apimanagement.SchemaContract{
 		SchemaContractProperties: &apimanagement.SchemaContractProperties{
 			ContentType: &contentType,
-			SchemaDocumentProperties: &apimanagement.SchemaDocumentProperties{
+			Document: &apimanagement.Document{
 				Value: &value,
 			},
 		},
@@ -155,7 +155,7 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 
 	if properties := resp.SchemaContractProperties; properties != nil {
 		d.Set("content_type", properties.ContentType)
-		if documentProperties := properties.SchemaDocumentProperties; documentProperties != nil {
+		if documentProperties := properties.Document; documentProperties != nil {
 			/*
 				As per https://docs.microsoft.com/en-us/rest/api/apimanagement/2019-12-01/api-schema/get#schemacontract
 

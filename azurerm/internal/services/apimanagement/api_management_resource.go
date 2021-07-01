@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2021-01-01-preview/apimanagement"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -1667,7 +1667,7 @@ func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyCont
 	if xmlContent != "" {
 		return &apimanagement.PolicyContract{
 			PolicyContractProperties: &apimanagement.PolicyContractProperties{
-				Format: apimanagement.Rawxml,
+				Format: apimanagement.PolicyContentFormatRawxml,
 				Value:  utils.String(xmlContent),
 			},
 		}, nil

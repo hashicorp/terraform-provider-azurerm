@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2021-01-01-preview/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -104,16 +104,16 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(apimanagement.Openapi),
-								string(apimanagement.Openapijson),
-								string(apimanagement.OpenapijsonLink),
-								string(apimanagement.OpenapiLink),
-								string(apimanagement.SwaggerJSON),
-								string(apimanagement.SwaggerLinkJSON),
-								string(apimanagement.WadlLinkJSON),
-								string(apimanagement.WadlXML),
-								string(apimanagement.Wsdl),
-								string(apimanagement.WsdlLink),
+								string(apimanagement.ContentFormatOpenapi),
+								string(apimanagement.ContentFormatOpenapijson),
+								string(apimanagement.ContentFormatOpenapijsonLink),
+								string(apimanagement.ContentFormatOpenapiLink),
+								string(apimanagement.ContentFormatSwaggerJSON),
+								string(apimanagement.ContentFormatSwaggerLinkJSON),
+								string(apimanagement.ContentFormatWadlLinkJSON),
+								string(apimanagement.ContentFormatWadlXML),
+								string(apimanagement.ContentFormatWsdl),
+								string(apimanagement.ContentFormatWsdlLink),
 							}, false),
 						},
 
@@ -308,11 +308,11 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 
 	soapPassThrough := d.Get("soap_pass_through").(bool)
 	if soapPassThrough {
-		apiType = apimanagement.Soap
-		soapApiType = apimanagement.SoapPassThrough
+		apiType = apimanagement.APITypeSoap
+		soapApiType = apimanagement.SoapAPITypeSoapPassThrough
 	} else {
-		apiType = apimanagement.HTTP
-		soapApiType = apimanagement.SoapToRest
+		apiType = apimanagement.APITypeHTTP
+		soapApiType = apimanagement.SoapAPITypeSoapToRest
 	}
 
 	// If import is used, we need to send properties to Azure API in two operations.
@@ -337,7 +337,7 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
 
 		// `wsdl_selector` is necessary under format `wsdl`
-		if len(wsdlSelectorVs) == 0 && contentFormat == string(apimanagement.Wsdl) {
+		if len(wsdlSelectorVs) == 0 && contentFormat == string(apimanagement.ContentFormatWsdl) {
 			return fmt.Errorf("`wsdl_selector` is required when content format is `wsdl` in API Management API %q", name)
 		}
 
@@ -478,7 +478,7 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("path", props.Path)
 		d.Set("service_url", props.ServiceURL)
 		d.Set("revision", props.APIRevision)
-		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapPassThrough))
+		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapAPITypeSoapPassThrough))
 		d.Set("subscription_required", props.SubscriptionRequired)
 		d.Set("version", props.APIVersion)
 		d.Set("version_set_id", props.APIVersionSetID)

@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2021-01-01-preview/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -82,9 +82,9 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.Verbose),
-					string(apimanagement.Information),
-					string(apimanagement.Error),
+					string(apimanagement.VerbosityVerbose),
+					string(apimanagement.VerbosityInformation),
+					string(apimanagement.VerbosityError),
 				}, false),
 			},
 
@@ -146,7 +146,7 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	if samplingPercentage, ok := d.GetOk("sampling_percentage"); ok {
 		parameters.Sampling = &apimanagement.SamplingSettings{
-			SamplingType: apimanagement.Fixed,
+			SamplingType: apimanagement.SamplingTypeFixed,
 			Percentage:   utils.Float(samplingPercentage.(float64)),
 		}
 	} else {
@@ -154,7 +154,7 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if alwaysLogErrors, ok := d.GetOk("always_log_errors"); ok && alwaysLogErrors.(bool) {
-		parameters.AlwaysLog = apimanagement.AllErrors
+		parameters.AlwaysLog = apimanagement.AlwaysLogAllErrors
 	}
 
 	if verbosity, ok := d.GetOk("verbosity"); ok {
@@ -238,7 +238,7 @@ func resourceApiManagementDiagnosticRead(d *pluginsdk.ResourceData, meta interfa
 		if props.Sampling != nil && props.Sampling.Percentage != nil {
 			d.Set("sampling_percentage", props.Sampling.Percentage)
 		}
-		d.Set("always_log_errors", props.AlwaysLog == apimanagement.AllErrors)
+		d.Set("always_log_errors", props.AlwaysLog == apimanagement.AlwaysLogAllErrors)
 		d.Set("verbosity", props.Verbosity)
 		d.Set("log_client_ip", props.LogClientIP)
 		d.Set("http_correlation_protocol", props.HTTPCorrelationProtocol)
