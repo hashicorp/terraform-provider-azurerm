@@ -146,7 +146,6 @@ func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	// The EventHub Cluster can't be deleted until four hours after creation so we'll keep retrying until it can be deleted.
-	//lintignore:R006
 	return pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutDelete), func() *pluginsdk.RetryError {
 		future, err := client.ClustersDelete(ctx, *id)
 		if err != nil {
@@ -167,7 +166,7 @@ func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		return nil
-	})
+	}) //lintignore:R006
 }
 
 func expandEventHubClusterSkuName(skuName string) *eventhubsclusters.ClusterSku {
