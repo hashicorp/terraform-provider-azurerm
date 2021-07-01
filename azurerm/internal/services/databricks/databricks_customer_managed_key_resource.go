@@ -205,18 +205,24 @@ func DatabricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	if !strings.EqualFold(keySource, string(databricks.MicrosoftKeyvault)) {
-		return fmt.Errorf("retrieving Databricks Workspace %q (Resource Group %q): `Workspace.WorkspaceProperties.Encryption.Value.KeySource` was expected to be %q, got %q", id.CustomerMangagedKeyName, id.ResourceGroup, string(databricks.MicrosoftKeyvault), keySource)
-	}
+	// I have to get rid of this check do to import if you want to re-cmk your DBFS.
+	// This is because when you delete this it sets the key source to default
+	// if !strings.EqualFold(keySource, string(databricks.MicrosoftKeyvault)) {
+	// 	return fmt.Errorf("retrieving Databricks Workspace %q (Resource Group %q): `Workspace.WorkspaceProperties.Encryption.Value.KeySource` was expected to be %q, got %q", id.CustomerMangagedKeyName, id.ResourceGroup, string(databricks.MicrosoftKeyvault), keySource)
+	// }
 
-	if keyName == "" || keyVersion == "" || keyVaultURI == "" {
+	if strings.EqualFold(keySource, string(databricks.MicrosoftKeyvault)) && (keyName == "" || keyVersion == "" || keyVaultURI == "") {
 		return fmt.Errorf("Databricks Workspace %q (Resource Group %q): `Workspace.WorkspaceProperties.Encryption.Value(s)` was nil", id.CustomerMangagedKeyName, id.ResourceGroup)
 	}
 
-	key, err := keyVaultParse.NewNestedItemID(keyVaultURI, "keys", keyName, keyVersion)
-
+	d.SetId(id.ID())
 	d.Set("workspace_id", workspaceId.ID())
-	d.Set("key_vault_key_id", key.ID())
+	if keyVaultURI != "" {
+		key, err := keyVaultParse.NewNestedItemID(keyVaultURI, "keys", keyName, keyVersion)
+		if err == nil {
+			d.Set("key_vault_key_id", key.ID())
+		}
+	}
 
 	return nil
 }

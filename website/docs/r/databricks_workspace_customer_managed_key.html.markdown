@@ -133,5 +133,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Databricks Workspace Customer Managed Key can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_databricks_customer_managed_key.workspace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Databricks/customerManagedKey/workspace1
+terraform import azurerm_databricks_workspace_customer_managed_key.workspace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Databricks/customerManagedKey/workspace1
 ```
