@@ -104,7 +104,7 @@ func TestAccAzureRMPolicyAssignment_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyAssignment_not_scopes(t *testing.T) {
+func TestAccAzureRMPolicyAssignment_notScopes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 
@@ -119,7 +119,7 @@ func TestAccAzureRMPolicyAssignment_not_scopes(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyAssignment_enforcement_mode(t *testing.T) {
+func TestAccAzureRMPolicyAssignment_enforcementMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 
@@ -299,7 +299,7 @@ resource "azurerm_policy_definition" "test" {
 				"properties": {
 					"mode": "incremental",
 					"template": {
-						"$schema": "http://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+						"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
 						"contentVersion": "1.0.0.0",
 						"parameters": {
 							"fullDbName": {

@@ -31,8 +31,10 @@ func (dw *DataSourceWrapper) DataSource() (*schema.Resource, error) {
 	}
 
 	modelObj := dw.dataSource.ModelObject()
-	if err := ValidateModelObject(&modelObj); err != nil {
-		return nil, fmt.Errorf("validating model for %q: %+v", dw.dataSource.ResourceType(), err)
+	if modelObj != nil {
+		if err := ValidateModelObject(&modelObj); err != nil {
+			return nil, fmt.Errorf("validating model for %q: %+v", dw.dataSource.ResourceType(), err)
+		}
 	}
 
 	d := func(duration time.Duration) *time.Duration {

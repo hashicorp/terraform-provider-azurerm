@@ -11,9 +11,6 @@ type TypedServiceRegistration interface {
 	// Name is the name of this Service
 	Name() string
 
-	// PackagePath is the relative path to this package
-	PackagePath() string
-
 	// DataSources returns a list of Data Sources supported by this Service
 	DataSources() []DataSource
 
