@@ -11,6 +11,7 @@ FEATURES:
 * **New Resource** `azurerm_resource_group_policy_assignment` [GH-12349]
 * **New Resource** `azurerm_resource_policy_assignment` [GH-12349]
 * **New Resource** `azurerm_subscription_policy_assignment` [GH-12349]
+* **New resource** `azurerm_tenant_configuration` [GH-11697]
 * Cognitive Service now supports purging soft delete accounts [GH-12281]
 
 ENHANCEMENTS:
