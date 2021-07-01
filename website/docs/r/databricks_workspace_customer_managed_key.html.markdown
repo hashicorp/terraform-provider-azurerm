@@ -99,7 +99,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
     "get",
     "unwrapKey",
     "wrapKey",
-    ]
+  ]
 }
 ```
 
