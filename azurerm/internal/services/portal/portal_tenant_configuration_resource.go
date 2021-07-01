@@ -2,30 +2,31 @@ package portal
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourcePortalTenantConfiguration() *schema.Resource {
-	return &schema.Resource{
+func resourcePortalTenantConfiguration() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourcePortalTenantConfigurationCreateUpdate,
 		Read:   resourcePortalTenantConfigurationRead,
 		Update: resourcePortalTenantConfigurationCreateUpdate,
 		Delete: resourcePortalTenantConfigurationDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
@@ -33,16 +34,16 @@ func resourcePortalTenantConfiguration() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"private_markdown_storage_enforced": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Required: true,
 			},
 		},
 	}
 }
 
-func resourcePortalTenantConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePortalTenantConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Portal.TenantConfigurationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -77,7 +78,7 @@ func resourcePortalTenantConfigurationCreateUpdate(d *schema.ResourceData, meta 
 	return resourcePortalTenantConfigurationRead(d, meta)
 }
 
-func resourcePortalTenantConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePortalTenantConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Portal.TenantConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -90,6 +91,7 @@ func resourcePortalTenantConfigurationRead(d *schema.ResourceData, meta interfac
 	resp, err := client.Get(ctx)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
@@ -103,7 +105,7 @@ func resourcePortalTenantConfigurationRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourcePortalTenantConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePortalTenantConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Portal.TenantConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
