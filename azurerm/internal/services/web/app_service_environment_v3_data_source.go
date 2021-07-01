@@ -109,6 +109,7 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 
 			model.Tags = tags.Flatten(existing.Tags)
 
+			metadata.SetID(id)
 			return metadata.Encode(&model)
 		},
 	}
