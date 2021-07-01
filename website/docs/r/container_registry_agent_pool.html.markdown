@@ -1,12 +1,12 @@
 ---
 subcategory: "Container"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_container_registry_agentpool"
+page_title: "Azure Resource Manager: azurerm_container_registry_agent_pool"
 description: |-
   Manages an Azure Container Registry Agent Pool.
 ---
 
-# azurerm_container_registry_agentpool
+# azurerm_container_registry_agent_pool
 
 Manages an Azure Container Registry Agent Pool.
 
@@ -25,7 +25,7 @@ resource "azurerm_container_registry" "example" {
   sku                 = "Premium"
 }
 
-resource "azurerm_container_registry_agentpool" "example" {
+resource "azurerm_container_registry_agent_pool" "example" {
   name                    = "example"
   resource_group_name     = azurerm_resource_group.example.name
   location                = azurerm_resource_group.example.location
@@ -57,7 +57,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Azure Container Registry Agent Pool.
 
@@ -75,5 +75,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Azure Container Registry Agent Pool can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_container_registry_agentpool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ContainerRegistry/registries/registry1/agentPools/agentpool1
+terraform import azurerm_container_registry_agent_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ContainerRegistry/registries/registry1/agentPools/agentpool1
 ```

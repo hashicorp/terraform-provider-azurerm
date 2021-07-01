@@ -17,7 +17,7 @@ type ContainerRegistryAgentPoolResource struct {
 }
 
 func TestAccContainerRegistryAgentPool_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_registry_agentpool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_agent_pool", "test")
 	r := ContainerRegistryAgentPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -32,7 +32,7 @@ func TestAccContainerRegistryAgentPool_basic(t *testing.T) {
 }
 
 func TestAccContainerRegistryAgentPool_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_registry_agentpool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_agent_pool", "test")
 	r := ContainerRegistryAgentPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -44,13 +44,13 @@ func TestAccContainerRegistryAgentPool_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_container_registry_agentpool"),
+			ExpectError: acceptance.RequiresImportError("azurerm_container_registry_agent_pool"),
 		},
 	})
 }
 
 func TestAccContainerRegistryAgentPool_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_registry_agentpool", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_agent_pool", "test")
 	r := ContainerRegistryAgentPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -88,7 +88,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-acragentpool-%d"
+  name     = "acctestRG-acragent_pool-%d"
   location = "%s"
 }
 
@@ -99,7 +99,7 @@ resource "azurerm_container_registry" "test" {
   sku                 = "Premium"
 }
 
-resource "azurerm_container_registry_agentpool" "test" {
+resource "azurerm_container_registry_agent_pool" "test" {
   name                    = "ap%d"
   resource_group_name     = azurerm_resource_group.test.name
   location                = azurerm_resource_group.test.location
@@ -115,7 +115,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-acragentpool-%d"
+  name     = "acctestRG-acragent_pool-%d"
   location = "%s"
 }
 
@@ -140,7 +140,7 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_container_registry_agentpool" "test" {
+resource "azurerm_container_registry_agent_pool" "test" {
   name                      = "ap%d"
   resource_group_name       = azurerm_resource_group.test.name
   location                  = azurerm_resource_group.test.location
@@ -157,11 +157,11 @@ func (r ContainerRegistryAgentPoolResource) requiresImport(data acceptance.TestD
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_container_registry_agentpool" "import" {
-  name                    = azurerm_container_registry_agentpool.test.name
-  resource_group_name     = azurerm_container_registry_agentpool.test.resource_group_name
-  location                = azurerm_container_registry_agentpool.test.location
-  container_registry_name = azurerm_container_registry_agentpool.test.container_registry_name
+resource "azurerm_container_registry_agent_pool" "import" {
+  name                    = azurerm_container_registry_agent_pool.test.name
+  resource_group_name     = azurerm_container_registry_agent_pool.test.resource_group_name
+  location                = azurerm_container_registry_agent_pool.test.location
+  container_registry_name = azurerm_container_registry_agent_pool.test.container_registry_name
 }
 
 `, r.basic(data))
