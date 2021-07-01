@@ -71,10 +71,18 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_requiresImport(t *testing.T) {
 func TestAccDatabricksWorkspaceCustomerManagedKey_machineLearning(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceCustomerManagedKeyResource{}
+	cmkTemplate := r.cmkTemplate(data)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.machineLearning(data, "premium"),
+			Config: r.machineLearning(data, "premium", cmkTemplate),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.machineLearning(data, "premium", ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -172,7 +180,7 @@ resource "azurerm_databricks_workspace_customer_managed_key" "test" {
 `, template)
 }
 
-func (DatabricksWorkspaceCustomerManagedKeyResource) machineLearning(data acceptance.TestData, sku string) string {
+func (DatabricksWorkspaceCustomerManagedKeyResource) machineLearning(data acceptance.TestData, sku string, cmk string) string {
 	keyVault := DatabricksWorkspaceCustomerManagedKeyResource{}.keyVaultTemplate(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -233,11 +241,17 @@ resource "azurerm_databricks_workspace" "test" {
   }
 }
 
+%[6]s
+`, data.RandomInteger, data.Locations.Primary, keyVault, sku, data.RandomString, cmk)
+}
+
+func (DatabricksWorkspaceCustomerManagedKeyResource) cmkTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 resource "azurerm_databricks_workspace_customer_managed_key" "test" {
   workspace_id     = azurerm_databricks_workspace.test.id
   key_vault_key_id = azurerm_key_vault_key.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, keyVault, sku, data.RandomString)
+`)
 }
 
 func (DatabricksWorkspaceCustomerManagedKeyResource) keyVaultTemplate(data acceptance.TestData) string {
