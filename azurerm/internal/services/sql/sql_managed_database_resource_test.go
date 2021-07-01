@@ -5,14 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
 type SqlManagedDatabase struct{}
@@ -21,10 +18,10 @@ func TestAccAzureRMSqlManagedDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_managed_database", "test")
 	r := SqlManagedDatabase{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -32,7 +29,7 @@ func TestAccAzureRMSqlManagedDatabase_basic(t *testing.T) {
 	})
 }
 
-func (r SqlManagedDatabase) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r SqlManagedDatabase) Exists(ctx context.Context, client *clients.Client, state *acceptance.InstanceState) (*bool, error) {
 	id, err := parse.ManagedDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
