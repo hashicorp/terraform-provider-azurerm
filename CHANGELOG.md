@@ -19,6 +19,8 @@ ENHANCEMENTS:
 * `azurerm_api_management_backend` - support for the `client_certificate_id` property  [GH-12402]
 * `azurerm_api_management_api` - support for the `revision_description`, `version_description`, and `source_api_id` properties [GH-12266]
 * `azurerm_batch_account` - support for the `public_network_access_enabled` property [GH-12401]
+* `azurerm_kubernetes_cluster` - support for the `fips_enabled`, `kubelet_disk_type`, and `license` properties [GH-11835]
+* `azurerm_kubernetes_cluster_node_pool` - support for the `fips_enabled`, and `kubelet_disk_type` properties [GH-11835]
 * `azurerm_lighthouse_definition` - support for the `plan` block [GH-12360]
 * `azurerm_site_recovery_replicated_vm` - Add support for `target_disk_encryption_set_id` in `managed_disk` [GH-12374]
 
