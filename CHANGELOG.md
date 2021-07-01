@@ -20,6 +20,8 @@ ENHANCEMENTS:
 * `azurerm_api_management_backend` - support for the `client_certificate_id` property  [GH-12402]
 * `azurerm_api_management_api` - support for the `revision_description`, `version_description`, and `source_api_id` properties [GH-12266]
 * `azurerm_batch_account` - support for the `public_network_access_enabled` property [GH-12401]
+* `azurerm_eventgrid_event_subscription` - support for additional advanced filters `string_not_begins_with`, `string_not_ends_with`, `string_not_contains`, `is_not_null`, `is_null_or_undefined`, `number_in_range` and `number_not_in_range` [GH-12167]
+* `azurerm_eventgrid_system_topic_event_subscription` - support for additional advanced filters `string_not_begins_with`, `string_not_ends_with`, `string_not_contains`, `is_not_null`, `is_null_or_undefined`, `number_in_range` and `number_not_in_range` [GH-12167]
 * `azurerm_kubernetes_cluster` - support for the `fips_enabled`, `kubelet_disk_type`, and `license` properties [GH-11835]
 * `azurerm_kubernetes_cluster_node_pool` - support for the `fips_enabled`, and `kubelet_disk_type` properties [GH-11835]
 * `azurerm_lighthouse_definition` - support for the `plan` block [GH-12360]
