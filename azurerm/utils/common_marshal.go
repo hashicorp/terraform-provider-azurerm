@@ -24,6 +24,16 @@ func ExpandFloatSlice(input []interface{}) *[]float64 {
 	return &result
 }
 
+func ExpandFloatRangeSlice(input []interface{}) *[][]float64 {
+	result := make([][]float64, 0)
+	for _, item := range input {
+		if item != nil {
+			result = append(result, *ExpandFloatSlice(item.([]interface{})))
+		}
+	}
+	return &result
+}
+
 func ExpandMapStringPtrString(input map[string]interface{}) map[string]*string {
 	result := make(map[string]*string)
 	for k, v := range input {
@@ -56,6 +66,16 @@ func FlattenFloatSlice(input *[]float64) []interface{} {
 	if input != nil {
 		for _, item := range *input {
 			result = append(result, item)
+		}
+	}
+	return result
+}
+
+func FlattenFloatRangeSlice(input *[][]float64) [][]interface{} {
+	result := make([][]interface{}, 0)
+	if input != nil {
+		for _, item := range *input {
+			result = append(result, FlattenFloatSlice(&item))
 		}
 	}
 	return result
