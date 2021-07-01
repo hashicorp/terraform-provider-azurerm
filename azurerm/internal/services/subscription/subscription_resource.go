@@ -227,7 +227,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	t := tags.Expand(d.Get("tags").(map[string]interface{}))
 	tagsClient = meta.(*clients.Client).Resource.TagsClient
 	scope := fmt.Sprintf("subscription/%s", subscriptionId)
-	
+
 	if _, err = tagsClient.CreateOrUpdateAtScope(ctx, scope, resources.TagsResource{Properties: &resources.Tags{Tags: t}}); err != nil {
 		return fmt.Errorf("setting tags on %s: %+v", id, err)
 	}
@@ -272,7 +272,7 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("could not update Display Name of Subscription %q: %+v", *subscriptionId, err)
 		}
 	}
-	
+
 	if d.HasChange("tags") {
 		tagsDetails := d.Get("tags").(map[string]interface{})
 		resource_tags := resources.Tags{

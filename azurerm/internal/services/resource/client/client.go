@@ -16,7 +16,7 @@ type Client struct {
 	ResourceProvidersClient     *resources.ProvidersClient
 	ResourcesClient             *resources.Client
 	TemplateSpecsVersionsClient *templatespecs.VersionsClient
-	TagsClient         			*resources.TagsClient
+	TagsClient                  *resources.TagsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -54,6 +54,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		ResourceProvidersClient:     &resourceProvidersClient,
 		ResourcesClient:             &resourcesClient,
 		TemplateSpecsVersionsClient: &templatespecsVersionsClient,
-		TagsClient:         		 &tagsClient,
+		TagsClient:                  &tagsClient,
 	}
 }

@@ -14,8 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type SubscriptionResource struct{
-
+type SubscriptionResource struct {
 }
 
 func TestAccSubscriptionResource_basic(t *testing.T) {
