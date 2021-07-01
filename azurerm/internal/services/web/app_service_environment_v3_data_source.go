@@ -74,10 +74,14 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Web.AppServiceEnvironmentsClient
-			id, err := parse.AppServiceEnvironmentID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			var appServiceEnvironmentV3 AppServiceEnvironmentV3Model
+			if err := metadata.Decode(&appServiceEnvironmentV3); err != nil {
+				return fmt.Errorf("decoding %+v", err)
 			}
+
+			id := parse.NewAppServiceEnvironmentID(subscriptionId, appServiceEnvironmentV3.ResourceGroup, appServiceEnvironmentV3.Name)
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
 			if err != nil {
