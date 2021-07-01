@@ -17,6 +17,7 @@
 package storage
 
 import (
+	"io"
 	"net/url"
 	"strings"
 
@@ -24,6 +25,9 @@ import (
 )
 
 func shouldRetry(err error) bool {
+	if err == io.ErrUnexpectedEOF {
+		return true
+	}
 	switch e := err.(type) {
 	case *googleapi.Error:
 		// Retry on 429 and 5xx, according to
@@ -39,10 +43,14 @@ func shouldRetry(err error) bool {
 				return true
 			}
 		}
-		return false
 	case interface{ Temporary() bool }:
-		return e.Temporary()
-	default:
-		return false
+		if e.Temporary() {
+			return true
+		}
 	}
+	// Unwrap is only supported in go1.13.x+
+	if e, ok := err.(interface{ Unwrap() error }); ok {
+		return shouldRetry(e.Unwrap())
+	}
+	return false
 }

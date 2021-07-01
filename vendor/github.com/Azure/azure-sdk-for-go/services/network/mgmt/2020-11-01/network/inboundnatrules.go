@@ -63,6 +63,8 @@ func (client InboundNatRulesClient) CreateOrUpdate(ctx context.Context, resource
 										Chain: []validation.Constraint{{Target: "inboundNatRuleParameters.InboundNatRulePropertiesFormat.BackendIPConfiguration.InterfaceIPConfigurationPropertiesFormat.PublicIPAddress.PublicIPAddressPropertiesFormat.IPConfiguration.IPConfigurationPropertiesFormat", Name: validation.Null, Rule: false,
 											Chain: []validation.Constraint{{Target: "inboundNatRuleParameters.InboundNatRulePropertiesFormat.BackendIPConfiguration.InterfaceIPConfigurationPropertiesFormat.PublicIPAddress.PublicIPAddressPropertiesFormat.IPConfiguration.IPConfigurationPropertiesFormat.PublicIPAddress", Name: validation.Null, Rule: false, Chain: nil}}},
 										}},
+										{Target: "inboundNatRuleParameters.InboundNatRulePropertiesFormat.BackendIPConfiguration.InterfaceIPConfigurationPropertiesFormat.PublicIPAddress.PublicIPAddressPropertiesFormat.ServicePublicIPAddress", Name: validation.Null, Rule: false, Chain: nil},
+										{Target: "inboundNatRuleParameters.InboundNatRulePropertiesFormat.BackendIPConfiguration.InterfaceIPConfigurationPropertiesFormat.PublicIPAddress.PublicIPAddressPropertiesFormat.LinkedPublicIPAddress", Name: validation.Null, Rule: false, Chain: nil},
 									}},
 							}},
 						}},

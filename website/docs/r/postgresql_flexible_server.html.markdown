@@ -64,6 +64,7 @@ resource "azurerm_postgresql_flexible_server" "example" {
 ## Arguments Reference
 
 The following arguments are supported:
+
 * `name` - (Required) The name which should be used for this PostgreSQL Flexible Server. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the PostgreSQL Flexible Server should exist. Changing this forces a new PostgreSQL Flexible Server to be created.
@@ -74,7 +75,7 @@ The following arguments are supported:
 
 * `administrator_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server. Required when `create_mode` is `Default`.
 
-* `zone` - (Optional) The availability Zone of the PostgreSQL Flexible Server. Possible values are  `none`, `1`, `2` and `3`. Changing this forces a new PostgreSQL Flexible Server to be created.
+* `zone` - (Optional) The availability zone of the PostgreSQL Flexible Server. Possible values are `1`, `2` and `3`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 * `backup_retention_days` - (Optional) The backup retention days for the PostgreSQL Flexible Server. Possible values are between `7` and `35` days.
 
@@ -106,10 +107,9 @@ A `maintenance_window` block supports the following:
 
 * `start_minute` - (Optional) The start minute for maintenance window. Defaults to `0`.
 
-
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the PostgreSQL Flexible Server.
 

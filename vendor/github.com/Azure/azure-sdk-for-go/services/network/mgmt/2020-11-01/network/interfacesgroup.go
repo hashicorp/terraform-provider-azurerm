@@ -60,6 +60,12 @@ func (client InterfacesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 								{Target: "parameters.InterfacePropertiesFormat.PrivateEndpoint.ExtendedLocation.Type", Name: validation.Null, Rule: true, Chain: nil},
 							}},
 						}},
+						{Target: "parameters.InterfacePropertiesFormat.PrivateLinkService", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "parameters.InterfacePropertiesFormat.PrivateLinkService.ExtendedLocation", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{{Target: "parameters.InterfacePropertiesFormat.PrivateLinkService.ExtendedLocation.Name", Name: validation.Null, Rule: true, Chain: nil},
+									{Target: "parameters.InterfacePropertiesFormat.PrivateLinkService.ExtendedLocation.Type", Name: validation.Null, Rule: true, Chain: nil},
+								}},
+							}},
 					}}}}}); err != nil {
 		return result, validation.NewError("network.InterfacesClient", "CreateOrUpdate", err.Error())
 	}

@@ -89,7 +89,7 @@ The following arguments are supported:
 
 * `data_factory_name` - (Required) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
 
-* `connection_string` - (Required) The connection string in which to authenticate with the SQL Server.
+* `connection_string` - (Optional) The connection string in which to authenticate with the SQL Server. Exactly one of either `connection_string` or `key_vault_connection_string` is required.
 
 * `description` - (Optional) The description for the Data Factory Linked Service SQL Server.
 
@@ -101,7 +101,17 @@ The following arguments are supported:
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service SQL Server.
 
+* `key_vault_connection_string` - (Optional) A `key_vault_connection_string` block as defined below. Use this argument to store SQL Server connection string in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service. Exactly one of either `connection_string` or `key_vault_connection_string` is required.
+
 * `key_vault_password` - (Optional) A `key_vault_password` block as defined below. Use this argument to store SQL Server password in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.
+
+---
+
+A `key_vault_connection_string` block supports the following:
+
+* `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores SQL Server connection string.
 
 ---
 

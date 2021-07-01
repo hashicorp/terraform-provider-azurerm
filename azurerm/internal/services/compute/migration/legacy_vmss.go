@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -816,9 +815,9 @@ func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
 		// we need to ensure the whitespace is consistent
 		settings := m["settings"].(string)
 		if settings != "" {
-			expandedSettings, err := structure.ExpandJsonFromString(settings)
+			expandedSettings, err := pluginsdk.ExpandJsonFromString(settings)
 			if err == nil {
-				serialisedSettings, err := structure.FlattenJsonToString(expandedSettings)
+				serialisedSettings, err := pluginsdk.FlattenJsonToString(expandedSettings)
 				if err == nil {
 					buf.WriteString(fmt.Sprintf("%s-", serialisedSettings))
 				}

@@ -78,7 +78,7 @@ func TestAccApiManagementLogger_basicApplicationInsights(t *testing.T) {
 			ResourceName:            data.ResourceName,
 			ImportState:             true,
 			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.instrumentation_key"},
+			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.instrumentation_key", "application_insights.0.%"},
 		},
 	})
 }
@@ -104,7 +104,7 @@ func TestAccApiManagementLogger_complete(t *testing.T) {
 			ResourceName:            data.ResourceName,
 			ImportState:             true,
 			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.instrumentation_key"},
+			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.instrumentation_key", "application_insights.0.%"},
 		},
 	})
 }

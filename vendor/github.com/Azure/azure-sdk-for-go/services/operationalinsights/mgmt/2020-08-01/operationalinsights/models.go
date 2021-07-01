@@ -38,6 +38,12 @@ type AvailableServiceTier struct {
 	LastSkuUpdate *string `json:"lastSkuUpdate,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AvailableServiceTier.
+func (astVar AvailableServiceTier) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AzureEntityResource the resource model definition for an Azure Resource Manager resource with an etag.
 type AzureEntityResource struct {
 	// Etag - READ-ONLY; Resource Etag.
@@ -48,6 +54,12 @@ type AzureEntityResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AzureEntityResource.
+func (aer AzureEntityResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Cluster the top level Log Analytics cluster resource container.
@@ -1014,6 +1026,12 @@ type ErrorAdditionalInfo struct {
 	Info interface{} `json:"info,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ErrorAdditionalInfo.
+func (eai ErrorAdditionalInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ErrorContract contains details when the response code indicates an error.
 type ErrorContract struct {
 	// Error - The details of the error.
@@ -1033,6 +1051,12 @@ type ErrorResponse struct {
 	Details *[]ErrorResponse `json:"details,omitempty"`
 	// AdditionalInfo - READ-ONLY; The error additional info.
 	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorResponse.
+func (er ErrorResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Identity identity for the resource.
@@ -1664,6 +1688,12 @@ type ProxyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Resource common fields that are returned in the response for all Azure Resource Manager resources
 type Resource struct {
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
@@ -1672,6 +1702,12 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SavedSearch value object for saved search results.

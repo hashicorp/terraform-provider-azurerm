@@ -520,7 +520,7 @@ func expandFirewallPolicyRuleCollectionNat(input []interface{}) []network.BasicF
 	for _, e := range input {
 		rule := e.(map[string]interface{})
 		output := &network.FirewallPolicyNatRuleCollection{
-			RuleCollectionType: network.RuleCollectionTypeRuleCollectionTypeFirewallPolicyNatRuleCollection,
+			RuleCollectionType: network.RuleCollectionTypeFirewallPolicyNatRuleCollection,
 			Name:               utils.String(rule["name"].(string)),
 			Priority:           utils.Int32(int32(rule["priority"].(int))),
 			Action: &network.FirewallPolicyNatRuleCollectionAction{
@@ -543,7 +543,7 @@ func expandFirewallPolicyFilterRuleCollection(input []interface{}, f func(input 
 			},
 			Name:               utils.String(rule["name"].(string)),
 			Priority:           utils.Int32(int32(rule["priority"].(int))),
-			RuleCollectionType: network.RuleCollectionTypeRuleCollectionTypeFirewallPolicyFilterRuleCollection,
+			RuleCollectionType: network.RuleCollectionTypeFirewallPolicyFilterRuleCollection,
 			Rules:              f(rule["rule"].(*pluginsdk.Set).List()),
 		}
 		result = append(result, output)
@@ -565,7 +565,7 @@ func expandFirewallPolicyRuleApplication(input []interface{}) *[]network.BasicFi
 		}
 		output := &network.ApplicationRule{
 			Name:            utils.String(condition["name"].(string)),
-			RuleType:        network.RuleTypeRuleTypeApplicationRule,
+			RuleType:        network.RuleTypeApplicationRule,
 			Protocols:       &protocols,
 			SourceAddresses: utils.ExpandStringSlice(condition["source_addresses"].(*pluginsdk.Set).List()),
 			SourceIPGroups:  utils.ExpandStringSlice(condition["source_ip_groups"].(*pluginsdk.Set).List()),
@@ -587,7 +587,7 @@ func expandFirewallPolicyRuleNetwork(input []interface{}) *[]network.BasicFirewa
 		}
 		output := &network.Rule{
 			Name:                 utils.String(condition["name"].(string)),
-			RuleType:             network.RuleTypeRuleTypeNetworkRule,
+			RuleType:             network.RuleTypeNetworkRule,
 			IPProtocols:          &protocols,
 			SourceAddresses:      utils.ExpandStringSlice(condition["source_addresses"].(*pluginsdk.Set).List()),
 			SourceIPGroups:       utils.ExpandStringSlice(condition["source_ip_groups"].(*pluginsdk.Set).List()),
@@ -612,7 +612,7 @@ func expandFirewallPolicyRuleNat(input []interface{}) *[]network.BasicFirewallPo
 		destinationAddresses := []string{condition["destination_address"].(string)}
 		output := &network.NatRule{
 			Name:                 utils.String(condition["name"].(string)),
-			RuleType:             network.RuleTypeRuleTypeNatRule,
+			RuleType:             network.RuleTypeNatRule,
 			IPProtocols:          &protocols,
 			SourceAddresses:      utils.ExpandStringSlice(condition["source_addresses"].(*pluginsdk.Set).List()),
 			SourceIPGroups:       utils.ExpandStringSlice(condition["source_ip_groups"].(*pluginsdk.Set).List()),

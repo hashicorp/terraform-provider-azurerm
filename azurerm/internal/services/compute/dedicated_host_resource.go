@@ -294,7 +294,7 @@ func resourceDedicatedHostDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for Dedicated Host %q (Host Group Name %q / Resource Group %q) to become available: %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
 	}
 

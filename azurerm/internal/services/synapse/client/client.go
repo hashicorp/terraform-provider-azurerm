@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/2019-06-01-preview/managedvirtualnetwork"
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-02-01-preview/accesscontrol"
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2019-06-01-preview/synapse"
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-08-01-preview/accesscontrol"
+	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
@@ -58,14 +58,24 @@ func NewClient(o *common.ClientOptions) *Client {
 	}
 }
 
-func (client Client) AccessControlClient(workspaceName, synapseEndpointSuffix string) (*accesscontrol.BaseClient, error) {
+func (client Client) RoleDefinitionsClient(workspaceName, synapseEndpointSuffix string) (*accesscontrol.RoleDefinitionsClient, error) {
 	if client.synapseAuthorizer == nil {
 		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
 	}
 	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
-	accessControlClient := accesscontrol.New(endpoint)
-	accessControlClient.Client.Authorizer = client.synapseAuthorizer
-	return &accessControlClient, nil
+	roleDefinitionsClient := accesscontrol.NewRoleDefinitionsClient(endpoint)
+	roleDefinitionsClient.Client.Authorizer = client.synapseAuthorizer
+	return &roleDefinitionsClient, nil
+}
+
+func (client Client) RoleAssignmentsClient(workspaceName, synapseEndpointSuffix string) (*accesscontrol.RoleAssignmentsClient, error) {
+	if client.synapseAuthorizer == nil {
+		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
+	}
+	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
+	roleAssignmentsClient := accesscontrol.NewRoleAssignmentsClient(endpoint)
+	roleAssignmentsClient.Client.Authorizer = client.synapseAuthorizer
+	return &roleAssignmentsClient, nil
 }
 
 func (client Client) ManagedPrivateEndpointsClient(workspaceName, synapseEndpointSuffix string) (*managedvirtualnetwork.ManagedPrivateEndpointsClient, error) {
