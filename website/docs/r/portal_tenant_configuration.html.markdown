@@ -12,9 +12,9 @@ Manages Portal Tenant Configuration.
 
 ~> **Note:** User has to be `Contributor` or `Owner` at scope `/` for managing this resource.
 
-~> **Note:** The Service Principal with Tenant Admin could be created by `az ad sp create-for-rbac --name "<sp name>" --role="Owner" --scopes="/"`.
+~> **Note:** The Service Principal with Tenant Admin can be created by `az ad sp create-for-rbac --name "<sp name>" --role="Contributor" --scopes="/"`.
 
-~> **Note:** The Service Principal could be granted Tenant Admin permission by `az role assignment create --assignee "<app id>" --role "Owner" --scope "/"`.
+~> **Note:** The Service Principal can be granted Tenant Admin permission by `az role assignment create --assignee "<app id>" --role "Contributor" --scope "/"`.
 
 ~> **Note:** While assigning the role to the existing/new Service Principal at the Tenant Scope, the user assigning role must already have the `Owner` role assigned at the Tenant Scope.
 
@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `private_markdown_storage_enforced` - (Required) Is the private tile markdown storage which used to display custom dynamic and static content enabled?
 
-~> **Note:** Once `private_markdown_storage_enforced` is set to `true`, it only requires external storage configuration (URI) while adding Markdown tile. The inline content configuration will be prohibited.
+~> **Note:** When `private_markdown_storage_enforced` is set to `true`, only external storage configuration (URI) is allowed for Markdown tiles. Inline content configuration will be prohibited.
 
 ## Attributes Reference
 
