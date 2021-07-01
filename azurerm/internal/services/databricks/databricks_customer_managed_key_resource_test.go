@@ -19,10 +19,11 @@ type DatabricksWorkspaceCustomerManagedKeyResource struct {
 func TestAccDatabricksWorkspaceCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
 	r := DatabricksWorkspaceCustomerManagedKeyResource{}
+	cmkTemplate := r.cmkTemplate(data)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "premium"),
+			Config: r.basic(data, "premium", cmkTemplate),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -34,19 +35,20 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_basic(t *testing.T) {
 func TestAccDatabricksWorkspaceCustomerManagedKey_delete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
 	r := DatabricksWorkspaceCustomerManagedKeyResource{}
+	cmkTemplate := r.cmkTemplate(data)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "premium"),
+			Config: r.basic(data, "premium", cmkTemplate),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.removed(data, "premium"),
+			Config: r.basic(data, "premium", ""),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).DoesNotExistInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -56,10 +58,11 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_delete(t *testing.T) {
 func TestAccDatabricksWorkspaceCustomerManagedKey_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
 	r := DatabricksWorkspaceCustomerManagedKeyResource{}
+	cmkTemplate := r.cmkTemplate(data)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "premium"),
+			Config: r.basic(data, "premium", cmkTemplate),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -92,20 +95,20 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_machineLearning(t *testing.T) 
 }
 
 func (DatabricksWorkspaceCustomerManagedKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CustomerManagedKeyID(state.ID)
+	id, err := parse.WorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DataBricks.WorkspacesClient.Get(ctx, id.ResourceGroup, id.CustomerMangagedKeyName)
+	resp, err := clients.DataBricks.WorkspacesClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Databricks Workspace Customer Mangaged Key %q (resource group: %q): %+v", id.CustomerMangagedKeyName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Databricks Workspace Customer Mangaged Key %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.WorkspaceProperties != nil), nil
 }
 
-func (DatabricksWorkspaceCustomerManagedKeyResource) basic(data acceptance.TestData, sku string) string {
+func (DatabricksWorkspaceCustomerManagedKeyResource) basic(data acceptance.TestData, sku string, cmk string) string {
 	keyVault := DatabricksWorkspaceCustomerManagedKeyResource{}.keyVaultTemplate(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -132,44 +135,13 @@ resource "azurerm_databricks_workspace" "test" {
   }
 }
 
-resource "azurerm_databricks_workspace_customer_managed_key" "test" {
-  workspace_id     = azurerm_databricks_workspace.test.id
-  key_vault_key_id = azurerm_key_vault_key.test.id
-}
-`, data.RandomInteger, data.Locations.Primary, keyVault, sku, data.RandomString)
-}
-
-func (DatabricksWorkspaceCustomerManagedKeyResource) removed(data acceptance.TestData, sku string) string {
-	keyVault := DatabricksWorkspaceCustomerManagedKeyResource{}.keyVaultTemplate(data)
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-db-%[1]d"
-  location = "%[2]s"
-}
-
-%[3]s
-
-resource "azurerm_databricks_workspace" "test" {
-  name                = "acctestDBW-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "%[4]s"
-
-  custom_parameters {
-    customer_managed_key_enabled = true
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, keyVault, sku, data.RandomString)
+%[5]s
+`, data.RandomInteger, data.Locations.Primary, keyVault, sku, data.RandomString, cmk)
 }
 
 func (DatabricksWorkspaceCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {
-	template := DatabricksWorkspaceCustomerManagedKeyResource{}.basic(data, "premium")
+	cmkTemplate := DatabricksWorkspaceCustomerManagedKeyResource{}.cmkTemplate(data)
+	template := DatabricksWorkspaceCustomerManagedKeyResource{}.basic(data, "premium", cmkTemplate)
 	return fmt.Sprintf(`
 %s
 
@@ -206,12 +178,17 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
-  account_replication_type = "LRS"
+  account_replication_type = "GRS"
+}
 
-  static_website {
-    error_404_document = "error.html"
-    index_document     = "index.html"
-  }
+resource "azurerm_key_vault" "ml" {
+  name                = "acctest-mlkv-%[4]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
+	
+  purge_protection_enabled = true
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
@@ -219,7 +196,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   application_insights_id = azurerm_application_insights.test.id
-  key_vault_id            = azurerm_key_vault.test.id
+  key_vault_id            = azurerm_key_vault.ml.id
   storage_account_id      = azurerm_storage_account.test.id
 
   identity {
