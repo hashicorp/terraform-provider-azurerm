@@ -56,6 +56,16 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 			},
 		},
 
+		"pricing_tier": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"location": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"tags": tags.SchemaDataSource(),
 	}
 }
