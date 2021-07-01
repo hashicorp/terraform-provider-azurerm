@@ -28,7 +28,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	registriesClient := containerregistry.NewRegistriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&registriesClient.Client, o.ResourceManagerAuthorizer)
 
-	registryAgentPoolsClient := containerregistry.NewAgentPoolsClient(o.SubscriptionId)
+	registryAgentPoolsClient := containerregistry.NewAgentPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&registryAgentPoolsClient.Client, o.ResourceManagerAuthorizer)
 
 	webhooksClient := containerregistry.NewWebhooksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
