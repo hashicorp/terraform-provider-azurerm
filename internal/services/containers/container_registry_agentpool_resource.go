@@ -217,7 +217,6 @@ func resourceContainerRegistryAgentPoolRead(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if props := resp.AgentPoolProperties; props != nil {
-
 		d.Set("instance_count", props.Count)
 		d.Set("tier", props.Tier)
 
