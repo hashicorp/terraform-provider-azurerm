@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -18,6 +19,7 @@ type DatabricksWorkspaceCustomerManagedKeyResource struct {
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
+	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceCustomerManagedKeyResource{}
 	cmkTemplate := r.cmkTemplate()
 
@@ -25,15 +27,18 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_basic(t *testing.T) {
 		{
 			Config: r.basic(data, cmkTemplate),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				// You must look for the parent resource (e.g. Databricks Workspace)
+				// and then derive if the CMK object has been set or not...
+				check.That(parent.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		parent.ImportStep(),
 	})
 }
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_remove(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
+	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceCustomerManagedKeyResource{}
 	cmkTemplate := r.cmkTemplate()
 
@@ -41,22 +46,25 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_remove(t *testing.T) {
 		{
 			Config: r.basic(data, cmkTemplate),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(parent.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		parent.ImportStep(),
 		{
 			Config: r.basic(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).DoesNotExistInAzure(r),
+				// Then ensure the encryption settings on the Databricks Workspace
+				// have been reverted to their default state
+				check.That(parent.ResourceName).DoesNotExistInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		parent.ImportStep(),
 	})
 }
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
+	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceCustomerManagedKeyResource{}
 	cmkTemplate := r.cmkTemplate()
 
@@ -64,7 +72,7 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_requiresImport(t *testing.T) {
 		{
 			Config: r.basic(data, cmkTemplate),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(parent.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -72,7 +80,8 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_requiresImport(t *testing.T) {
 }
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_noIp(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
+	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceCustomerManagedKeyResource{}
 	cmkTemplate := r.cmkTemplate()
 
@@ -80,32 +89,40 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_noIp(t *testing.T) {
 		{
 			Config: r.noip(data, cmkTemplate),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(parent.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		parent.ImportStep(),
 		{
 			Config: r.noip(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(parent.ResourceName).Key("custom_parameters.0.no_public_ip").IsSet(),
+				check.That(parent.ResourceName).Key("custom_parameters.0.no_public_ip").IsSet(),
 			),
 		},
-		data.ImportStep(),
+		parent.ImportStep(),
 	})
 }
 
 func (DatabricksWorkspaceCustomerManagedKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CustomerManagedKeyID(state.ID)
+	id, err := parse.WorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DataBricks.WorkspacesClient.Get(ctx, id.ResourceGroup, id.CustomerMangagedKeyName)
+	resp, err := clients.DataBricks.WorkspacesClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Databricks Workspace Customer Mangaged Key %q (resource group: %q): %+v", id.CustomerMangagedKeyName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Databricks Workspace Customer Mangaged Key %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.WorkspaceProperties.Parameters.Encryption != nil), nil
+	// This is the only way we can tell if the CMK has actually been provisioned or not...
+	if resp.WorkspaceProperties.Parameters != nil && resp.WorkspaceProperties.Parameters.Encryption != nil {
+		if resp.WorkspaceProperties.Parameters.Encryption.Value.KeySource == databricks.MicrosoftKeyvault {
+			return utils.Bool(true), nil
+		}
+	}
+
+	return utils.Bool(false), nil
 }
 
 func (DatabricksWorkspaceCustomerManagedKeyResource) basic(data acceptance.TestData, cmk string) string {
