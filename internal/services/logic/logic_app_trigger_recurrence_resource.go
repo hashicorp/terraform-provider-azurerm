@@ -132,11 +132,10 @@ func resourceLogicAppTriggerRecurrenceCreateUpdate(d *pluginsdk.ResourceData, me
 
 	if v, ok := d.GetOk("start_time"); ok {
 		trigger["recurrence"].(map[string]interface{})["startTime"] = v.(string)
+	}
 
-		// time_zone only allowed when start_time is specified
-		if v, ok := d.GetOk("time_zone"); ok {
-			trigger["recurrence"].(map[string]interface{})["timeZone"] = v.(string)
-		}
+	if v, ok := d.GetOk("time_zone"); ok {
+		trigger["recurrence"].(map[string]interface{})["timeZone"] = v.(string)
 	}
 
 	if v, ok := d.GetOk("schedule"); ok {
