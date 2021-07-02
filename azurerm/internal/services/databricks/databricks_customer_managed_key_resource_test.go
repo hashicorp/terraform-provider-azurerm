@@ -172,7 +172,7 @@ resource "azurerm_databricks_workspace" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "premium"
 
-  customer_managed_key_enabled  = true
+  customer_managed_key_enabled = true
 
   custom_parameters {
     no_public_ip = true
@@ -201,7 +201,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "premium"
 
-	soft_delete_retention_days = 7
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_key" "test" {
