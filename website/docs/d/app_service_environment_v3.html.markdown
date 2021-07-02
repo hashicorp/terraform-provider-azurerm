@@ -39,6 +39,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `cluster_setting` - A `cluster_setting` block as defined below.
 
+* `location` - The location where the App Service Environment exists.
+
+* `pricing_tier` - Pricing tier for the front end instances.
+
 * `subnet_id` - The ID of the v3 App Service Environment Subnet.
 
 * `tags` - A mapping of tags assigned to the v3 App Service Environment.

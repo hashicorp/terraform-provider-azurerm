@@ -1,6 +1,5 @@
-// +build linux aix
+// +build linux aix zos
 // +build !appengine
-// +build !android
 
 package isatty
 
