@@ -1,4 +1,4 @@
-// Package trafficmanager implements the Azure ARM Trafficmanager service API version 2018-04-01.
+// Package trafficmanager implements the Azure ARM Trafficmanager service API version 2018-08-01.
 //
 //
 package trafficmanager
