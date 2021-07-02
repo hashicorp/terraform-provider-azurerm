@@ -71,6 +71,20 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"customer_managed_key_enabled": {
+				Type:     pluginsdk.TypeBool,
+				ForceNew: true,
+				Optional: true,
+				Default:  false,
+			},
+
+			"infrastructure_encryption_enabled": {
+				Type:     pluginsdk.TypeBool,
+				ForceNew: true,
+				Optional: true,
+				Default:  false,
+			},
+
 			"custom_parameters": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -80,6 +94,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"machine_learning_workspace_id": {
 							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceID,
 							AtLeastOneOf: workspaceCustomParametersString(),
@@ -111,20 +126,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							ForceNew:     true,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
-							AtLeastOneOf: workspaceCustomParametersString(),
-						},
-
-						"customer_managed_key_enabled": {
-							Type:         pluginsdk.TypeBool,
-							Optional:     true,
-							ForceNew:     true,
-							AtLeastOneOf: workspaceCustomParametersString(),
-						},
-
-						"infrastructure_encryption_enabled": {
-							Type:         pluginsdk.TypeBool,
-							ForceNew:     true,
-							Optional:     true,
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 					},
@@ -173,23 +174,9 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-			_, n := d.GetChange("custom_parameters")
+			_, customerEncryptionEnabled := d.GetChange("customer_managed_key_enabled")
+			_, infrastructureEncryptionEnabled := d.GetChange("infrastructure_encryption_enabled")
 			oldSku, newSku := d.GetChange("sku")
-			new := n.([]interface{})
-			var config map[string]interface{}
-			CustomerEncryptionEnabled, InfrastructureEncryptionEnabled := false, false
-
-			if len(new) != 0 && new[0] != nil {
-				config = new[0].(map[string]interface{})
-
-				if v, ok := config["customer_managed_key_enabled"].(bool); ok {
-					CustomerEncryptionEnabled = v
-				}
-
-				if v, ok := config["infrastructure_encryption_enabled"].(bool); ok {
-					InfrastructureEncryptionEnabled = v
-				}
-			}
 
 			if d.HasChange("sku") {
 				if newSku == "trial" {
@@ -200,10 +187,10 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				}
 			}
 
-			if CustomerEncryptionEnabled && InfrastructureEncryptionEnabled {
+			if customerEncryptionEnabled.(bool) && infrastructureEncryptionEnabled.(bool) {
 				return fmt.Errorf("'customer_managed_key_enabled' and 'infrastructure_encryption_enabled' cannot both be set to 'true'")
 			}
-			if (CustomerEncryptionEnabled || InfrastructureEncryptionEnabled) && !strings.EqualFold("premium", newSku.(string)) {
+			if (customerEncryptionEnabled.(bool) || infrastructureEncryptionEnabled.(bool)) && !strings.EqualFold("premium", newSku.(string)) {
 				return fmt.Errorf("'customer_managed_key_enabled' and 'infrastructure_encryption_enabled' are only available with a 'premium' workspace 'sku', got %q", newSku)
 			}
 
@@ -246,8 +233,11 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	managedResourceGroupID := resourcesParse.NewResourceGroupID(subscriptionId, managedResourceGroupName).ID()
+	customerEncryptionEnabled := d.Get("customer_managed_key_enabled").(bool)
+	infrastructureEncryptionEnabled := d.Get("infrastructure_encryption_enabled").(bool)
+
 	customParamsRaw := d.Get("custom_parameters").([]interface{})
-	customParams := expandWorkspaceCustomParameters(customParamsRaw)
+	customParams := expandWorkspaceCustomParameters(customParamsRaw, customerEncryptionEnabled, infrastructureEncryptionEnabled)
 
 	// Including the Tags in the workspace parameters will update the tags on
 	// the workspace only
@@ -341,6 +331,14 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 		if err := d.Set("storage_account_identity", flattenWorkspaceStorageAccountIdentity(props.StorageAccountIdentity)); err != nil {
 			return fmt.Errorf("setting `storage_account_identity`: %+v", err)
+		}
+
+		if props.Parameters != nil && props.Parameters.PrepareEncryption != nil {
+			d.Set("customer_managed_key_enabled", &props.Parameters.PrepareEncryption.Value)
+		}
+
+		if props.Parameters != nil && props.Parameters.RequireInfrastructureEncryption != nil {
+			d.Set("infrastructure_encryption_enabled", &props.Parameters.RequireInfrastructureEncryption.Value)
 		}
 
 		d.Set("workspace_url", props.WorkspaceURL)
@@ -445,24 +443,25 @@ func flattenWorkspaceCustomParameters(input *databricks.WorkspaceCustomParameter
 		}
 	}
 
-	if v := input.PrepareEncryption; v != nil {
-		if v.Value != nil {
-			parameters["customer_managed_key_enabled"] = *v.Value
-		}
-	}
-
-	if v := input.RequireInfrastructureEncryption; v != nil {
-		if v.Value != nil {
-			parameters["infrastructure_encryption_enabled"] = *v.Value
-		}
-	}
-
 	return []interface{}{parameters}
 }
 
-func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceCustomParameters {
+func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnabled, infrastructureEncryptionEnabled bool) *databricks.WorkspaceCustomParameters {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		// This will be hit when there are no custom params set but we still
+		// need to pass the customerManagedKeyEnabled and infrastructureEncryptionEnabled
+		// flags anyway...
+		parameters := databricks.WorkspaceCustomParameters{}
+
+		parameters.PrepareEncryption = &databricks.WorkspaceCustomBooleanParameter{
+			Value: &customerManagedKeyEnabled,
+		}
+
+		parameters.RequireInfrastructureEncryption = &databricks.WorkspaceCustomBooleanParameter{
+			Value: &infrastructureEncryptionEnabled,
+		}
+
+		return &parameters
 	}
 
 	config := input[0].(map[string]interface{})
@@ -486,16 +485,12 @@ func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceC
 		}
 	}
 
-	if v, ok := config["customer_managed_key_enabled"].(bool); ok {
-		parameters.PrepareEncryption = &databricks.WorkspaceCustomBooleanParameter{
-			Value: &v,
-		}
+	parameters.PrepareEncryption = &databricks.WorkspaceCustomBooleanParameter{
+		Value: &customerManagedKeyEnabled,
 	}
 
-	if v, ok := config["infrastructure_encryption_enabled"].(bool); ok {
-		parameters.RequireInfrastructureEncryption = &databricks.WorkspaceCustomBooleanParameter{
-			Value: &v,
-		}
+	parameters.RequireInfrastructureEncryption = &databricks.WorkspaceCustomBooleanParameter{
+		Value: &infrastructureEncryptionEnabled,
 	}
 
 	if v := config["private_subnet_name"].(string); v != "" {
@@ -515,6 +510,5 @@ func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceC
 
 func workspaceCustomParametersString() []string {
 	return []string{"custom_parameters.0.machine_learning_workspace_id", "custom_parameters.0.no_public_ip",
-		"custom_parameters.0.public_subnet_name", "custom_parameters.0.private_subnet_name", "custom_parameters.0.customer_managed_key_enabled",
-		"custom_parameters.0.infrastructure_encryption_enabled", "custom_parameters.0.virtual_network_id"}
+		"custom_parameters.0.public_subnet_name", "custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id"}
 }

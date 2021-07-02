@@ -549,9 +549,7 @@ resource "azurerm_databricks_workspace" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "%[3]s"
 
-  custom_parameters {
-    infrastructure_encryption_enabled = true
-  }
+  infrastructure_encryption_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
 }

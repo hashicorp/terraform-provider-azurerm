@@ -26,9 +26,7 @@ resource "azurerm_databricks_workspace" "example" {
   location            = azurerm_resource_group.example.location
   sku                 = "premium"
 
-  custom_parameters {
-    customer_managed_key_enabled = true
-  }
+  customer_managed_key_enabled = true
 
   tags = {
     Environment = "Production"

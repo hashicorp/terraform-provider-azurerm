@@ -48,6 +48,10 @@ The following arguments are supported:
 
 ~> **NOTE** Azure requires that this Resource Group does not exist in this Subscription (and that the Azure API creates it) - otherwise the deployment will fail.
 
+* `customer_managed_key_enabled` - (Optional) Is the workspace enabled for CMK encryption? If `true` this enables the Managed Identity for the managed storage account. Possible values are `true` or `false`. Defaults to `false`. This field is olny available with the `premium` Databricks Workspace `sku`. Changing this forces a new resource to be created.
+
+* `infrastructure_encryption_enabled`- (Optional) Is the DBFS root file system enabled with a secondary layer of encryption with platform managed keys for data at rest? Possible values are `true` or `false`. Defaults to `false`. This field is olny available with the `premium` Databricks Workspace `sku`. Changing this forces a new resource to be created.
+
 * `custom_parameters` - (Optional) A `custom_parameters` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -57,10 +61,6 @@ The following arguments are supported:
 A `custom_parameters` block supports the following:
 
 * `aml_workspace_id` - (Optional) The ID of a Azure Machine Learning workspace to link with Databricks workspace. Changing this forces a new resource to be created.
-
-* `customer_managed_key_enabled` - (Optional) Is the workspace enabled for CMK encryption? If `true` this enables the Managed Identity for the managed storage account. Possible values are `true` or `false`. Defaults to `false`. This field is olny available with the `premium` Databricks Workspace `sku`. Changing this forces a new resource to be created.
-
-* `infrastructure_encryption_enabled`- (Optional) Is the DBFS root file system enabled with a secondary layer of encryption with platform managed keys for data at rest? Possible values are `true` or `false`. Defaults to `false`. This field is olny available with the `premium` Databricks Workspace `sku`. Changing this forces a new resource to be created.
 
 * `no_public_ip` - (Optional) Are public IP Addresses not allowed? Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
 

@@ -80,6 +80,7 @@ func resourceDatabricksWorkspaceCustomerManagedKey() *pluginsdk.Resource {
 
 func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	workspaceClient := meta.(*clients.Client).DataBricks.WorkspacesClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -100,22 +101,34 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	// or at the very least the key?
 	locks.ByName(workspaceID.Name, "azurerm_databricks_workspace")
 	defer locks.UnlockByName(workspaceID.Name, "azurerm_databricks_workspace")
+	var encryptionEnabled, infrastructureEnabled bool
 
 	workspace, err := workspaceClient.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name)
 	if err != nil {
 		return fmt.Errorf("retrieving Databricks Workspace %q (Resource Group %q): %+v", workspaceID.Name, workspaceID.ResourceGroup, err)
 	}
-	if workspace.Parameters == nil {
+	if workspace.Parameters != nil {
+		if workspace.Parameters.RequireInfrastructureEncryption != nil {
+			infrastructureEnabled = *workspace.Parameters.RequireInfrastructureEncryption.Value
+		}
+		if workspace.Parameters.PrepareEncryption != nil {
+			encryptionEnabled = *workspace.Parameters.PrepareEncryption.Value
+		}
+	} else {
 		return fmt.Errorf("retrieving Databricks Workspace %q (Resource Group %q): `WorkspaceCustomParameters` was nil", workspaceID.Name, workspaceID.ResourceGroup)
 	}
 
-	infrastructureEnabled := *workspace.Parameters.RequireInfrastructureEncryption.Value
-	encryptionEnabled := *workspace.Parameters.PrepareEncryption.Value
 	if infrastructureEnabled {
 		return fmt.Errorf("Databricks Workspace %q (Resource Group %q): `infrastructure_encryption_enabled` must be set to `false`", workspaceID.Name, workspaceID.ResourceGroup)
 	}
 	if !encryptionEnabled {
 		return fmt.Errorf("Databricks Workspace %q (Resource Group %q): `customer_managed_key_enabled` must be set to `true`", workspaceID.Name, workspaceID.ResourceGroup)
+	}
+
+	// make sure the key vault exists
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, meta.(*clients.Client).Resource, key.KeyVaultBaseUrl)
+	if err != nil || keyVaultIdRaw == nil {
+		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
 	}
 
 	resourceID := parse.NewCustomerManagedKeyID(subscriptionId, workspaceID.ResourceGroup, workspaceID.Name)
@@ -139,7 +152,7 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 			Parameters: &databricks.WorkspaceCustomParameters{
 				Encryption: &databricks.WorkspaceEncryptionParameter{
 					Value: &databricks.Encryption{
-						KeySource:   databricks.KeySource(keySource),
+						KeySource:   keySource,
 						KeyName:     &keyName,
 						KeyVersion:  &keyVersion,
 						KeyVaultURI: &keyVaultBaseURI,
@@ -190,29 +203,31 @@ func DatabricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 	keyVersion := ""
 	keyVaultURI := ""
 
-	if props := resp.WorkspaceProperties; props != nil {
-		if props.Parameters.Encryption.Value.KeySource != "" {
-			keySource = string(props.Parameters.Encryption.Value.KeySource)
-		}
-		if props.Parameters.Encryption.Value.KeyName != nil {
-			keyName = *props.Parameters.Encryption.Value.KeyName
-		}
-		if props.Parameters.Encryption.Value.KeyVersion != nil {
-			keyVersion = *props.Parameters.Encryption.Value.KeyVersion
-		}
-		if props.Parameters.Encryption.Value.KeyVaultURI != nil {
-			keyVaultURI = *props.Parameters.Encryption.Value.KeyVaultURI
+	if resp.WorkspaceProperties.Parameters != nil {
+		if props := resp.WorkspaceProperties.Parameters.Encryption; props != nil {
+			if props.Value.KeySource != "" {
+				keySource = string(props.Value.KeySource)
+			}
+			if props.Value.KeyName != nil {
+				keyName = *props.Value.KeyName
+			}
+			if props.Value.KeyVersion != nil {
+				keyVersion = *props.Value.KeyVersion
+			}
+			if props.Value.KeyVaultURI != nil {
+				keyVaultURI = *props.Value.KeyVaultURI
+			}
 		}
 	}
 
-	// I have to get rid of this check do to import if you want to re-cmk your DBFS.
+	// I have to get rid of this check due to import if you want to re-cmk your DBFS.
 	// This is because when you delete this it sets the key source to default
 	// if !strings.EqualFold(keySource, string(databricks.MicrosoftKeyvault)) {
 	// 	return fmt.Errorf("retrieving Databricks Workspace %q (Resource Group %q): `Workspace.WorkspaceProperties.Encryption.Value.KeySource` was expected to be %q, got %q", id.CustomerMangagedKeyName, id.ResourceGroup, string(databricks.MicrosoftKeyvault), keySource)
 	// }
 
 	if strings.EqualFold(keySource, string(databricks.MicrosoftKeyvault)) && (keyName == "" || keyVersion == "" || keyVaultURI == "") {
-		return fmt.Errorf("Databricks Workspace %q (Resource Group %q): `Workspace.WorkspaceProperties.Encryption.Value(s)` was nil", id.CustomerMangagedKeyName, id.ResourceGroup)
+		return fmt.Errorf("Databricks Workspace %q (Resource Group %q): `Workspace.WorkspaceProperties.Encryption.Value(s)` were nil", id.CustomerMangagedKeyName, id.ResourceGroup)
 	}
 
 	d.SetId(id.ID())
