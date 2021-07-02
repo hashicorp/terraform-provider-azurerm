@@ -99,9 +99,8 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"filename": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 						},
 					},
 				},
