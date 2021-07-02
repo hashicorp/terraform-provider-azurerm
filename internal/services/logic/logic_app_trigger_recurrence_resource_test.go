@@ -182,11 +182,11 @@ func TestAccLogicAppTriggerRecurrence_startTimeWithTimeZone(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.startTimeWithTimeZone(data, "2020-01-01T01:02:03Z", "US Eastern Standard Time"),
+			Config: r.startTimeWithTimeZone(data, "2020-01-01T01:02:03Z", "U.S. Eastern Standard Time"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("start_time").HasValue("2020-01-01T01:02:03Z"),
-				check.That(data.ResourceName).Key("time_zone").HasValue("US Eastern Standard Time"),
+				check.That(data.ResourceName).Key("time_zone").HasValue("U.S. Eastern Standard Time"),
 			),
 		},
 		data.ImportStep(),
@@ -195,6 +195,30 @@ func TestAccLogicAppTriggerRecurrence_startTimeWithTimeZone(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("start_time").HasValue("2020-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("time_zone").HasValue("Egypt Standard Time"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppTriggerRecurrence_timeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
+	r := LogicAppTriggerRecurrenceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.timeZone(data, "U.S. Eastern Standard Time"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("time_zone").HasValue("U.S. Eastern Standard Time"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.startTimeWithTimeZone(data, "2020-01-01T01:02:03Z", "Egypt Standard Time"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("time_zone").HasValue("Egypt Standard Time"),
 			),
 		},
@@ -314,6 +338,33 @@ resource "azurerm_logic_app_trigger_recurrence" "test" {
   time_zone    = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, startTime, timeZone)
+}
+
+func (LogicAppTriggerRecurrenceResource) timeZone(data acceptance.TestData, timeZone string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                = "acctestlaw-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_logic_app_trigger_recurrence" "test" {
+  name         = "frequency-trigger"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+  frequency    = "Month"
+  interval     = 1
+  time_zone    = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, timeZone)
 }
 
 func (r LogicAppTriggerRecurrenceResource) requiresImport(data acceptance.TestData, frequency string, interval int) string {
