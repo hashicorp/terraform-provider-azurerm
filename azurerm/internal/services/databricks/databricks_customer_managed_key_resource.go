@@ -144,21 +144,31 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	keyVersion := key.Version
 	keyVaultBaseURI := key.KeyVaultBaseUrl
 
+	// We need to pull all of the custom params from the parent
+	// workspace resource and then add our new encyrption values into the
+	// structure, else the other values set in the parent workspace
+	// resource will be lost and overwritten as nil.
+	// NOTE: 'workspace.Parameters' will never be nil as 'customer_managed_key_enabled' and 'infrastructure_encryption_enabled'
+	// fields have a default value in the parent workspace resource.
+	params := workspace.Parameters
+
+	encryption := &databricks.WorkspaceEncryptionParameter{
+		Value: &databricks.Encryption{
+			KeySource:   keySource,
+			KeyName:     &keyName,
+			KeyVersion:  &keyVersion,
+			KeyVaultURI: &keyVaultBaseURI,
+		},
+	}
+
+	params.Encryption = encryption
+
 	props := databricks.Workspace{
 		Location: workspace.Location,
 		Sku:      workspace.Sku,
 		WorkspaceProperties: &databricks.WorkspaceProperties{
 			ManagedResourceGroupID: workspace.WorkspaceProperties.ManagedResourceGroupID,
-			Parameters: &databricks.WorkspaceCustomParameters{
-				Encryption: &databricks.WorkspaceEncryptionParameter{
-					Value: &databricks.Encryption{
-						KeySource:   keySource,
-						KeyName:     &keyName,
-						KeyVersion:  &keyVersion,
-						KeyVaultURI: &keyVaultBaseURI,
-					},
-				},
-			},
+			Parameters:             params,
 		},
 	}
 

@@ -96,7 +96,7 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_noIp(t *testing.T) {
 		{
 			Config: r.noip(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(parent.ResourceName).Key("custom_parameters.0.no_public_ip").IsSet(),
+				check.That(parent.ResourceName).DoesNotExistInAzure(r),
 				check.That(parent.ResourceName).Key("custom_parameters.0.no_public_ip").IsSet(),
 			),
 		},
