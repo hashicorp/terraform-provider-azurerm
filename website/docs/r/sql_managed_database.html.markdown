@@ -3,7 +3,7 @@ subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_managed_database"
 description: |-
-Manages a SQL Azure Managed Database.
+  Manages a SQL Azure Managed Database.
 ---
 
 # azurerm_sql_managed_database
