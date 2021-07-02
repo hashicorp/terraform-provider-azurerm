@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -180,7 +182,7 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"location": azure.SchemaLocation(),
+						"location": location.SchemaWithoutForceNew(),
 
 						"virtual_network_configuration": {
 							Type:     pluginsdk.TypeList,
