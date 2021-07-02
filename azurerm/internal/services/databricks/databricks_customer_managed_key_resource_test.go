@@ -32,7 +32,7 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_basic(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspaceCustomerManagedKey_delete(t *testing.T) {
+func TestAccDatabricksWorkspaceCustomerManagedKey_remove(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
 	r := DatabricksWorkspaceCustomerManagedKeyResource{}
 	cmkTemplate := r.cmkTemplate()
