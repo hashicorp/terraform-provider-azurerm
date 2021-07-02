@@ -13,7 +13,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-08-01/trafficmanager"
 
 // CheckTrafficManagerRelativeDNSNameAvailabilityParameters parameters supplied to check Traffic Manager
 // name operation.
@@ -173,10 +173,14 @@ type EndpointProperties struct {
 	Priority *int64 `json:"priority,omitempty"`
 	// EndpointLocation - Specifies the location of the external or nested endpoints when using the 'Performance' traffic routing method.
 	EndpointLocation *string `json:"endpointLocation,omitempty"`
-	// EndpointMonitorStatus - The monitoring status of the endpoint. Possible values include: 'CheckingEndpoint', 'Online', 'Degraded', 'Disabled', 'Inactive', 'Stopped'
+	// EndpointMonitorStatus - The monitoring status of the endpoint. Possible values include: 'EndpointMonitorStatusCheckingEndpoint', 'EndpointMonitorStatusOnline', 'EndpointMonitorStatusDegraded', 'EndpointMonitorStatusDisabled', 'EndpointMonitorStatusInactive', 'EndpointMonitorStatusStopped'
 	EndpointMonitorStatus EndpointMonitorStatus `json:"endpointMonitorStatus,omitempty"`
 	// MinChildEndpoints - The minimum number of endpoints that must be available in the child profile in order for the parent profile to be considered available. Only applicable to endpoint of type 'NestedEndpoints'.
 	MinChildEndpoints *int64 `json:"minChildEndpoints,omitempty"`
+	// MinChildEndpointsIPv4 - The minimum number of IPv4 (DNS record type A) endpoints that must be available in the child profile in order for the parent profile to be considered available. Only applicable to endpoint of type 'NestedEndpoints'.
+	MinChildEndpointsIPv4 *int64 `json:"minChildEndpointsIPv4,omitempty"`
+	// MinChildEndpointsIPv6 - The minimum number of IPv6 (DNS record type AAAA) endpoints that must be available in the child profile in order for the parent profile to be considered available. Only applicable to endpoint of type 'NestedEndpoints'.
+	MinChildEndpointsIPv6 *int64 `json:"minChildEndpointsIPv6,omitempty"`
 	// GeoMapping - The list of countries/regions mapped to this endpoint when using the 'Geographic' traffic routing method. Please consult Traffic Manager Geographic documentation for a full list of accepted values.
 	GeoMapping *[]string `json:"geoMapping,omitempty"`
 	// Subnets - The list of subnets, IP addresses, and/or address ranges mapped to this endpoint when using the 'Subnet' traffic routing method. An empty list will match all ranges not covered by other endpoints.
@@ -399,7 +403,7 @@ type HeatMapProperties struct {
 type MonitorConfig struct {
 	// ProfileMonitorStatus - The profile-level monitoring status of the Traffic Manager profile. Possible values include: 'ProfileMonitorStatusCheckingEndpoints', 'ProfileMonitorStatusOnline', 'ProfileMonitorStatusDegraded', 'ProfileMonitorStatusDisabled', 'ProfileMonitorStatusInactive'
 	ProfileMonitorStatus ProfileMonitorStatus `json:"profileMonitorStatus,omitempty"`
-	// Protocol - The protocol (HTTP, HTTPS or TCP) used to probe for endpoint health. Possible values include: 'HTTP', 'HTTPS', 'TCP'
+	// Protocol - The protocol (HTTP, HTTPS or TCP) used to probe for endpoint health. Possible values include: 'MonitorProtocolHTTP', 'MonitorProtocolHTTPS', 'MonitorProtocolTCP'
 	Protocol MonitorProtocol `json:"protocol,omitempty"`
 	// Port - The TCP port used to probe for endpoint health.
 	Port *int64 `json:"port,omitempty"`
@@ -569,7 +573,7 @@ type ProfileListResult struct {
 type ProfileProperties struct {
 	// ProfileStatus - The status of the Traffic Manager profile. Possible values include: 'ProfileStatusEnabled', 'ProfileStatusDisabled'
 	ProfileStatus ProfileStatus `json:"profileStatus,omitempty"`
-	// TrafficRoutingMethod - The traffic routing method of the Traffic Manager profile. Possible values include: 'Performance', 'Priority', 'Weighted', 'Geographic', 'MultiValue', 'Subnet'
+	// TrafficRoutingMethod - The traffic routing method of the Traffic Manager profile. Possible values include: 'TrafficRoutingMethodPerformance', 'TrafficRoutingMethodPriority', 'TrafficRoutingMethodWeighted', 'TrafficRoutingMethodGeographic', 'TrafficRoutingMethodMultiValue', 'TrafficRoutingMethodSubnet'
 	TrafficRoutingMethod TrafficRoutingMethod `json:"trafficRoutingMethod,omitempty"`
 	// DNSConfig - The DNS settings of the Traffic Manager profile.
 	DNSConfig *DNSConfig `json:"dnsConfig,omitempty"`
@@ -579,6 +583,8 @@ type ProfileProperties struct {
 	Endpoints *[]Endpoint `json:"endpoints,omitempty"`
 	// TrafficViewEnrollmentStatus - Indicates whether Traffic View is 'Enabled' or 'Disabled' for the Traffic Manager profile. Null, indicates 'Disabled'. Enabling this feature will increase the cost of the Traffic Manage profile. Possible values include: 'TrafficViewEnrollmentStatusEnabled', 'TrafficViewEnrollmentStatusDisabled'
 	TrafficViewEnrollmentStatus TrafficViewEnrollmentStatus `json:"trafficViewEnrollmentStatus,omitempty"`
+	// AllowedEndpointRecordTypes - The list of allowed endpoint record types.
+	AllowedEndpointRecordTypes *[]AllowedEndpointRecordType `json:"allowedEndpointRecordTypes,omitempty"`
 	// MaxReturn - Maximum number of endpoints to be returned for MultiValue routing type.
 	MaxReturn *int64 `json:"maxReturn,omitempty"`
 }

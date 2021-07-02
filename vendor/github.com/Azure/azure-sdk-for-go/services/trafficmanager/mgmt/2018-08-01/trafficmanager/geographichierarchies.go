@@ -67,7 +67,7 @@ func (client GeographicHierarchiesClient) GetDefault(ctx context.Context) (resul
 
 // GetDefaultPreparer prepares the GetDefault request.
 func (client GeographicHierarchiesClient) GetDefaultPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2018-04-01"
+	const APIVersion = "2018-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
