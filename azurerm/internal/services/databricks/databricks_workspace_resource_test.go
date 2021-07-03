@@ -67,14 +67,7 @@ func TestAccDatabricksWorkspace_infrastructureEncryption(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.infrastructureEncryptionStepOne(data, "premium"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.infrastructureEncryptionStepTwo(data, "premium"),
+			Config: r.infrastructureEncryption(data, "premium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -96,10 +89,10 @@ func TestAccDatabricksWorkspace_complete(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeCleanup(data),
+			Config: r.completeCleanupSubnetDelegation(data),
 		},
 		{
-			Config: r.completeCleanupNsg(data),
+			Config: r.completeCleanupNsgAssociation(data),
 		},
 	})
 }
@@ -117,10 +110,10 @@ func TestAccDatabricksWorkspace_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeCleanup(data),
+			Config: r.completeCleanupSubnetDelegation(data),
 		},
 		{
-			Config: r.completeCleanupNsg(data),
+			Config: r.completeCleanupNsgAssociation(data),
 		},
 		{
 			Config: r.completeUpdate(data),
@@ -308,7 +301,7 @@ resource "azurerm_databricks_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (DatabricksWorkspaceResource) completeCleanup(data acceptance.TestData) string {
+func (DatabricksWorkspaceResource) completeCleanupSubnetDelegation(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -376,7 +369,7 @@ resource "azurerm_databricks_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (DatabricksWorkspaceResource) completeCleanupNsg(data acceptance.TestData) string {
+func (DatabricksWorkspaceResource) completeCleanupNsgAssociation(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -445,6 +438,33 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "public" {
+  name                 = "acctest-sn-public-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_subnet" "private" {
+  name                 = "acctest-sn-private-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_network_security_group" "nsg" {
+  name                = "acctest-nsg-private-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
 resource "azurerm_databricks_workspace" "test" {
   name                        = "acctestDBW-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
@@ -453,7 +473,10 @@ resource "azurerm_databricks_workspace" "test" {
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
   custom_parameters {
-    no_public_ip = true
+    no_public_ip        = true
+    public_subnet_name  = azurerm_subnet.public.name
+    private_subnet_name = azurerm_subnet.private.name
+    virtual_network_id  = azurerm_virtual_network.test.id
   }
 
   tags = {
@@ -532,7 +555,7 @@ resource "azurerm_databricks_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
 }
 
-func (DatabricksWorkspaceResource) infrastructureEncryptionStepOne(data acceptance.TestData, sku string) string {
+func (DatabricksWorkspaceResource) infrastructureEncryption(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -550,26 +573,6 @@ resource "azurerm_databricks_workspace" "test" {
   sku                 = "%[3]s"
 
   infrastructure_encryption_enabled = true
-}
-`, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
-}
-
-func (DatabricksWorkspaceResource) infrastructureEncryptionStepTwo(data acceptance.TestData, sku string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-db-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_databricks_workspace" "test" {
-  name                = "acctestDBW-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "%[3]s"
 }
 `, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
 }
