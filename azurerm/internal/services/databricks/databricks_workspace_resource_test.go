@@ -110,18 +110,18 @@ func TestAccDatabricksWorkspace_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeCleanupSubnetDelegation(data),
-		},
-		{
-			Config: r.completeCleanupNsgAssociation(data),
-		},
-		{
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.completeCleanupSubnetDelegation(data),
+		},
+		{
+			Config: r.completeCleanupNsgAssociation(data),
+		},
 	})
 }
 
@@ -356,18 +356,6 @@ resource "azurerm_databricks_workspace" "test" {
   location                    = azurerm_resource_group.test.location
   sku                         = "standard"
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
-
-  custom_parameters {
-    no_public_ip        = true
-    public_subnet_name  = azurerm_subnet.public.name
-    private_subnet_name = azurerm_subnet.private.name
-    virtual_network_id  = azurerm_virtual_network.test.id
-  }
-
-  tags = {
-    Environment = "Production"
-    Pricing     = "Standard"
-  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -417,18 +405,6 @@ resource "azurerm_databricks_workspace" "test" {
   location                    = azurerm_resource_group.test.location
   sku                         = "standard"
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
-
-  custom_parameters {
-    no_public_ip        = true
-    public_subnet_name  = azurerm_subnet.public.name
-    private_subnet_name = azurerm_subnet.private.name
-    virtual_network_id  = azurerm_virtual_network.test.id
-  }
-
-  tags = {
-    Environment = "Production"
-    Pricing     = "Standard"
-  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -456,6 +432,20 @@ resource "azurerm_subnet" "public" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
+
+  delegation {
+    name = "acctest"
+
+    service_delegation {
+      name = "Microsoft.Databricks/workspaces"
+
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+      ]
+    }
+  }
 }
 
 resource "azurerm_subnet" "private" {
@@ -463,12 +453,36 @@ resource "azurerm_subnet" "private" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
+
+  delegation {
+    name = "acctest"
+
+    service_delegation {
+      name = "Microsoft.Databricks/workspaces"
+
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+      ]
+    }
+  }
 }
 
 resource "azurerm_network_security_group" "nsg" {
   name                = "acctest-nsg-private-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet_network_security_group_association" "public" {
+  subnet_id                 = azurerm_subnet.public.id
+  network_security_group_id = azurerm_network_security_group.nsg.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "private" {
+  subnet_id                 = azurerm_subnet.private.id
+  network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
 resource "azurerm_databricks_workspace" "test" {
