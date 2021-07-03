@@ -34,6 +34,8 @@ resource "azurerm_databricks_workspace" "example" {
 }
 
 resource "azurerm_databricks_workspace_customer_managed_key" "example" {
+  depends_on = [azurerm_key_vault_access_policy.databricks]
+
   workspace_id     = azurerm_databricks_workspace.example.id
   key_vault_key_id = azurerm_key_vault.example.id
 }
@@ -89,6 +91,8 @@ resource "azurerm_key_vault_access_policy" "example" {
 }
 
 resource "azurerm_key_vault_access_policy" "databricks" {
+  depends_on = [azurerm_databricks_workspace.example]
+
   key_vault_id = azurerm_key_vault.example.id
   tenant_id    = azurerm_databricks_workspace.example.storage_account_identity.0.tenant_id
   object_id    = azurerm_databricks_workspace.example.storage_account_identity.0.principal_id

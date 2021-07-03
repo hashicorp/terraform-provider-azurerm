@@ -203,6 +203,8 @@ resource "azurerm_databricks_workspace" "test" {
 func (DatabricksWorkspaceCustomerManagedKeyResource) cmkTemplate() string {
 	return `
 resource "azurerm_databricks_workspace_customer_managed_key" "test" {
+  depends_on = [azurerm_key_vault_access_policy.databricks]
+
   workspace_id     = azurerm_databricks_workspace.test.id
   key_vault_key_id = azurerm_key_vault_key.test.id
 }
@@ -263,7 +265,7 @@ resource "azurerm_key_vault_access_policy" "test" {
 }
 
 resource "azurerm_key_vault_access_policy" "databricks" {
-  depends_on = [azurerm_databricks_workspace_customer_managed_key.test]
+  depends_on = [azurerm_databricks_workspace.test]
 
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = azurerm_databricks_workspace.test.storage_account_identity.0.tenant_id
