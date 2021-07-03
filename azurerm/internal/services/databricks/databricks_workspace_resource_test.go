@@ -209,8 +209,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-db-%[1]d"
-
+  name     = "acctestRG-db-%[1]d"
   location = "%[2]s"
 }
 
@@ -225,7 +224,7 @@ resource "azurerm_subnet" "public" {
   name                 = "acctest-sn-public-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 
   delegation {
     name = "acctest"
@@ -246,7 +245,7 @@ resource "azurerm_subnet" "private" {
   name                 = "acctest-sn-private-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 
   delegation {
     name = "acctest"
@@ -308,8 +307,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-db-%[1]d"
-
+  name     = "acctestRG-db-%[1]d"
   location = "%[2]s"
 }
 
@@ -326,7 +324,7 @@ resource "azurerm_subnet" "public" {
   name                 = "acctest-sn-public-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_subnet" "private" {
@@ -335,7 +333,7 @@ resource "azurerm_subnet" "private" {
   name                 = "acctest-sn-private-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_security_group" "nsg" {
@@ -380,8 +378,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-db-%[1]d"
-
+  name     = "acctestRG-db-%[1]d"
   location = "%[2]s"
 }
 
@@ -396,14 +393,14 @@ resource "azurerm_subnet" "public" {
   name                 = "acctest-sn-public-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_subnet" "private" {
   name                 = "acctest-sn-private-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_security_group" "nsg" {
@@ -436,7 +433,7 @@ resource "azurerm_subnet" "public" {
   name                 = "acctest-sn-public-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 
   delegation {
     name = "acctest"
@@ -457,7 +454,7 @@ resource "azurerm_subnet" "private" {
   name                 = "acctest-sn-private-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 
   delegation {
     name = "acctest"
