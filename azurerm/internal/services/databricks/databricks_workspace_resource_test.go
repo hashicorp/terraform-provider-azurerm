@@ -89,10 +89,10 @@ func TestAccDatabricksWorkspace_complete(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeCleanupNsgAssociation(data),
+			Config: r.completeCleanupSubnetDelegation(data),
 		},
 		{
-			Config: r.completeCleanupSubnetDelegation(data),
+			Config: r.completeCleanupNsgAssociation(data),
 		},
 	})
 }
@@ -117,10 +117,10 @@ func TestAccDatabricksWorkspace_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeCleanupNsgAssociation(data),
+			Config: r.completeCleanupSubnetDelegation(data),
 		},
 		{
-			Config: r.completeCleanupSubnetDelegation(data),
+			Config: r.completeCleanupNsgAssociation(data),
 		},
 	})
 }
@@ -349,16 +349,6 @@ resource "azurerm_subnet_network_security_group_association" "private" {
   subnet_id                 = azurerm_subnet.private.id
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
-
-resource "azurerm_databricks_workspace" "test" {
-  depends_on = [azurerm_subnet.public, azurerm_subnet.private]
-
-  name                        = "acctestDBW-%[1]d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  sku                         = "standard"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
-}
 `, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -399,26 +389,6 @@ resource "azurerm_network_security_group" "nsg" {
   name                = "acctest-nsg-private-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_databricks_workspace" "test" {
-  name                        = "acctestDBW-%[1]d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  sku                         = "standard"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
-
-  custom_parameters {
-    no_public_ip        = true
-    public_subnet_name  = azurerm_subnet.public.name
-    private_subnet_name = azurerm_subnet.private.name
-    virtual_network_id  = azurerm_virtual_network.test.id
-  }
-
-  tags = {
-    Environment = "Production"
-    Pricing     = "Standard"
-  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
