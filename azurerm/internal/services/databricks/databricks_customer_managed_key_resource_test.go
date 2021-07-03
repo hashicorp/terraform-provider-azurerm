@@ -263,6 +263,8 @@ resource "azurerm_key_vault_access_policy" "test" {
 }
 
 resource "azurerm_key_vault_access_policy" "databricks" {
+  depends_on = [azurerm_databricks_workspace_customer_managed_key.test]
+
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = azurerm_databricks_workspace.test.storage_account_identity.0.tenant_id
   object_id    = azurerm_databricks_workspace.test.storage_account_identity.0.principal_id
