@@ -151,8 +151,7 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	// NOTE: 'workspace.Parameters' will never be nil as 'customer_managed_key_enabled' and 'infrastructure_encryption_enabled'
 	// fields have a default value in the parent workspace resource.
 	params := workspace.Parameters
-
-	encryption := &databricks.WorkspaceEncryptionParameter{
+	params.Encryption = &databricks.WorkspaceEncryptionParameter{
 		Value: &databricks.Encryption{
 			KeySource:   keySource,
 			KeyName:     &keyName,
@@ -161,8 +160,6 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 		},
 	}
 
-	params.Encryption = encryption
-
 	props := databricks.Workspace{
 		Location: workspace.Location,
 		Sku:      workspace.Sku,
@@ -170,6 +167,7 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 			ManagedResourceGroupID: workspace.WorkspaceProperties.ManagedResourceGroupID,
 			Parameters:             params,
 		},
+		Tags: workspace.Tags,
 	}
 
 	future, err := workspaceClient.CreateOrUpdate(ctx, props, resourceID.ResourceGroup, resourceID.CustomerMangagedKeyName)
@@ -268,9 +266,9 @@ func DatabricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta
 	locks.ByName(workspaceID.Name, "azurerm_databricks_workspace")
 	defer locks.UnlockByName(workspaceID.Name, "azurerm_databricks_workspace")
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.CustomerMangagedKeyName)
+	workspace, err := client.Get(ctx, id.ResourceGroup, id.CustomerMangagedKeyName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(workspace.Response) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -282,19 +280,25 @@ func DatabricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta
 	// Since this isn't real and you cannot turn off CMK without destroying the
 	// workspace and recreating it the best I can do is to set the workspace
 	// back to using Microsoft managed keys and removing the CMK fields
-	props := databricks.Workspace{
-		Location: resp.Location,
-		Sku:      resp.Sku,
-		WorkspaceProperties: &databricks.WorkspaceProperties{
-			ManagedResourceGroupID: resp.WorkspaceProperties.ManagedResourceGroupID,
-			Parameters: &databricks.WorkspaceCustomParameters{
-				Encryption: &databricks.WorkspaceEncryptionParameter{
-					Value: &databricks.Encryption{
-						KeySource: databricks.Default,
-					},
-				},
-			},
+	// also need to pull all of the custom params from the parent
+	// workspace resource and then add our new encryption values into the
+	// structure, else the other values set in the parent workspace
+	// resource will be lost and overwritten as nil. ¯\_(ツ)_/¯
+	params := workspace.Parameters
+	params.Encryption = &databricks.WorkspaceEncryptionParameter{
+		Value: &databricks.Encryption{
+			KeySource: databricks.Default,
 		},
+	}
+
+	props := databricks.Workspace{
+		Location: workspace.Location,
+		Sku:      workspace.Sku,
+		WorkspaceProperties: &databricks.WorkspaceProperties{
+			ManagedResourceGroupID: workspace.WorkspaceProperties.ManagedResourceGroupID,
+			Parameters:             params,
+		},
+		Tags: workspace.Tags,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, props, workspaceID.ResourceGroup, workspaceID.Name)
