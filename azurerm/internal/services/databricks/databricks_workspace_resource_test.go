@@ -356,6 +356,18 @@ resource "azurerm_databricks_workspace" "test" {
   location                    = azurerm_resource_group.test.location
   sku                         = "standard"
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
+
+  custom_parameters {
+    no_public_ip        = true
+    public_subnet_name  = azurerm_subnet.public.name
+    private_subnet_name = azurerm_subnet.private.name
+    virtual_network_id  = azurerm_virtual_network.test.id
+  }
+
+  tags = {
+    Environment = "Production"
+    Pricing     = "Standard"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
