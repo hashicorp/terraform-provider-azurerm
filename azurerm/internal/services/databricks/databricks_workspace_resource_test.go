@@ -365,7 +365,7 @@ resource "azurerm_databricks_workspace" "test" {
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
   custom_parameters {
-    no_public_ip = false
+    no_public_ip = true
   }
 
   tags = {
@@ -423,7 +423,7 @@ resource "azurerm_databricks_workspace" "test" {
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
   custom_parameters {
-    no_public_ip = false
+    no_public_ip = true
   }
 
   tags = {
@@ -453,7 +453,7 @@ resource "azurerm_databricks_workspace" "test" {
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
   custom_parameters {
-    no_public_ip = false
+    no_public_ip = true
   }
 
   tags = {
