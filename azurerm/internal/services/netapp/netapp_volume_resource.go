@@ -588,7 +588,7 @@ func waitForVolumeCreation(ctx context.Context, client *netapp.VolumesClient, id
 		Timeout:                   timeout,
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting NetApp Volume Provisioning Service %q (Resource Group %q) to complete: %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -606,7 +606,7 @@ func waitForReplAuthorization(ctx context.Context, client *netapp.VolumesClient,
 		Timeout:                   timeout,
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for replication authorization NetApp Volume Provisioning Service %q (Resource Group %q) to complete: %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -624,7 +624,7 @@ func waitForReplMirrorState(ctx context.Context, client *netapp.VolumesClient, i
 		Timeout:                   timeout,
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for NetApp Volume %q (Resource Group %q) to be in %s mirroring state: %+v", id.Name, id.ResourceGroup, desiredState, err)
 	}
 
@@ -642,7 +642,7 @@ func waitForReplicationDeletion(ctx context.Context, client *netapp.VolumesClien
 		Timeout:                   timeout,
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for NetApp Volume replication %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -660,7 +660,7 @@ func waitForVolumeDeletion(ctx context.Context, client *netapp.VolumesClient, id
 		Timeout:                   timeout,
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
 	}
 

@@ -156,7 +156,7 @@ func TestAccAzureRMLoadBalancerRule_updateMultipleRules(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerRule_vmssBackendPoolUpdateRemoveLBRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
-	lbRuleName := fmt.Sprintf("LbRule-%s", acceptance.RandStringFromCharSet(8, acceptance.CharSetAlpha))
+	lbRuleName := fmt.Sprintf("LbRule-%s", data.RandomString)
 	r := LoadBalancerRule{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{

@@ -460,7 +460,7 @@ func waitForSubscriptionStateToSettle(ctx context.Context, clients *clients.Clie
 		return fmt.Errorf("unsupported target state %q for Subscription %q", targetState, subscriptionId)
 	}
 
-	if actual, err := stateConf.WaitForState(); err != nil {
+	if actual, err := stateConf.WaitForStateContext(ctx); err != nil {
 		sub, ok := actual.(subscriptions.Subscription)
 		if !ok {
 			return fmt.Errorf("failure in parsing response while waiting for Subscription %q to become %q: %+v", subscriptionId, targetState, err)

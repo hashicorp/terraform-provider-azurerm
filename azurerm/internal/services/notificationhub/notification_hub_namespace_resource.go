@@ -145,7 +145,7 @@ func resourceNotificationHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, met
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for Notification Hub %q (Resource Group %q) to finish replicating: %s", name, resourceGroup, err)
 	}
 
@@ -232,7 +232,7 @@ func resourceNotificationHubNamespaceDelete(d *pluginsdk.ResourceData, meta inte
 		Refresh: notificationHubNamespaceDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
 		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for Notification Hub %q (Resource Group %q) to be deleted: %s", id.Name, id.ResourceGroup, err)
 	}
 

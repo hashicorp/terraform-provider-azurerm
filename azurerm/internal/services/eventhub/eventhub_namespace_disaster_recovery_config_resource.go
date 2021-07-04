@@ -245,7 +245,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 		},
 	}
 
-	if _, err := deleteWait.WaitForState(); err != nil {
+	if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting the deletion of %s: %+v", *id, err)
 	}
 
@@ -271,7 +271,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 		},
 	}
 
-	if _, err := nameFreeWait.WaitForState(); err != nil {
+	if _, err := nameFreeWait.WaitForStateContext(ctx); err != nil {
 		return err
 	}
 
@@ -311,6 +311,6 @@ func resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx context.Con
 		},
 	}
 
-	_, err := stateConf.WaitForState()
+	_, err := stateConf.WaitForStateContext(ctx)
 	return err
 }
