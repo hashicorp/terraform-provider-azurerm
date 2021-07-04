@@ -225,7 +225,6 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	t := tags.Expand(d.Get("tags").(map[string]interface{}))
-	tagsClient = meta.(*clients.Client).Resource.TagsClient
 	scope := fmt.Sprintf("subscription/%s", subscriptionId)
 
 	if _, err = tagsClient.CreateOrUpdateAtScope(ctx, scope, resources.TagsResource{Properties: &resources.Tags{Tags: t}}); err != nil {
