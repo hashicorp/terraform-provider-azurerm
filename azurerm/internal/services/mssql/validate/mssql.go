@@ -43,13 +43,6 @@ func ValidateMsSqlElasticPoolName(i interface{}, k string) (_ []string, errors [
 	return nil, nil
 }
 
-func ValidateLongTermRetentionPoliciesIsoFormat(i interface{}, k string) (_ []string, errors []error) {
-	if m, regexErrs := validate.RegExHelper(i, k, `^P[0-9]*[YMWD]`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q has to be a valid Duration format, starting with "P" and ending with either of the letters "YMWD"`, k))
-	}
-	return nil, nil
-}
-
 // Job Agent name must not contain any of ?<>*%&:\/? and must not end with a space or .
 func ValidateMsSqlJobAgentName(i interface{}, k string) (_ []string, errors []error) {
 	if m, regexErrs := validate.RegExHelper(i, k, `^[^?<>*%&:\/?]{0,127}[^?<>*%&:\/?. ]$`); !m {

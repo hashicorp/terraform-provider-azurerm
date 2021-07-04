@@ -278,7 +278,7 @@ func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(con
 				ssh.LinuxAgentDeprovisionCommand,
 			},
 		}
-		if err := sshGeneralizationCommand.Run(); err != nil {
+		if err := sshGeneralizationCommand.Run(ctx); err != nil {
 			return fmt.Errorf("Bad: running generalization command: %+v", err)
 		}
 

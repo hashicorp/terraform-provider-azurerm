@@ -181,7 +181,7 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 			timeout, _ := ctx.Deadline()
 			createWait.Timeout = time.Until(timeout)
 
-			if _, err := createWait.WaitForState(); err != nil {
+			if _, err := createWait.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 			}
 

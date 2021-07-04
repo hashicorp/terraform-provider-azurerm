@@ -16,7 +16,7 @@ func TestResourceGroupIDFormatter(t *testing.T) {
 	}
 }
 
-func TestResourceGroupID(t *testing.T) {
+func TestParseResourceGroupID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -72,7 +72,7 @@ func TestResourceGroupID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ResourceGroupID(v.Input)
+		actual, err := ParseResourceGroupID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -93,7 +93,7 @@ func TestResourceGroupID(t *testing.T) {
 	}
 }
 
-func TestResourceGroupIDInsensitively(t *testing.T) {
+func TestParseResourceGroupIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -170,7 +170,7 @@ func TestResourceGroupIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ResourceGroupIDInsensitively(v.Input)
+		actual, err := ParseResourceGroupIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

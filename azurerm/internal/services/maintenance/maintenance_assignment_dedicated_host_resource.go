@@ -99,7 +99,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *pluginsdk.ResourceDa
 		}
 
 		return nil
-	})
+	}) //lintignore:R006
 	if err != nil {
 		return err
 	}
