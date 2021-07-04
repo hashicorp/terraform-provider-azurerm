@@ -42,15 +42,15 @@ The following arguments are supported:
 
 * `sku` - (Required) The `sku` to use for the Databricks Workspace. Possible values are `standard`, `premium`, or `trial`. Changing this can force a new resource to be created in some circumstances.
 
-~> **NOTE** Downgrading the `sku` to the `trial` version of the Databricks Workspace will force a new resource to be created.
+~> **NOTE** Downgrading to a `trial sku` from a `standard` or `premium sku` will force a new resource to be created.
 
 * `managed_resource_group_name` - (Optional) The name of the resource group where Azure should place the managed Databricks resources. Changing this forces a new resource to be created.
 
 ~> **NOTE** Azure requires that this Resource Group does not exist in this Subscription (and that the Azure API creates it) - otherwise the deployment will fail.
 
-* `customer_managed_key_enabled` - (Optional) Is the workspace enabled for CMK encryption? If `true` this enables the Managed Identity for the managed storage account. Possible values are `true` or `false`. Defaults to `false`. This field is olny available with the `premium` Databricks Workspace `sku`. Changing this forces a new resource to be created.
+* `customer_managed_key_enabled` - (Optional) Is the workspace enabled for customer managed key encryption? If `true` this enables the Managed Identity for the managed storage account. Possible values are `true` or `false`. Defaults to `false`. This field is only valid if the Databricks Workspace `sku` is set to `premium`. Changing this forces a new resource to be created.
 
-* `infrastructure_encryption_enabled`- (Optional) Is the DBFS root file system enabled with a secondary layer of encryption with platform managed keys for data at rest? Possible values are `true` or `false`. Defaults to `false`. This field is olny available with the `premium` Databricks Workspace `sku`. Changing this forces a new resource to be created.
+* `infrastructure_encryption_enabled`- (Optional) Is the DBFS root file system enabled with a secondary layer of encryption with platform managed keys? Possible values are `true` or `false`. Defaults to `false`. This field is only valid if the Databricks Workspace `sku` is set to `premium`. Changing this forces a new resource to be created.
 
 * `custom_parameters` - (Optional) A `custom_parameters` block as documented below.
 
@@ -70,16 +70,7 @@ A `custom_parameters` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of a Virtual Network where this Databricks Cluster should be created. Changing this forces a new resource to be created.
 
-~> **NOTE** Databricks requires that a network security group is associated with public and private subnets when `virtual_network_id` is set. Also, both public and private subnets must be delegated to `Microsoft.Databricks/workspaces`.
-
-
----
-
-A `provider_authorization` block supports the following:
-
-* `principal_id` - (Required) The provider's principal UUID. This is the identity that the provider will use to call ARM to manage the workspace resources. Changing this forces a new resource to be created.
-
-* `role_definition_id` - (Required) The provider's role definition UUID. This role will define all the permissions that the provider must have on the workspace's container resource group. This role definition cannot have permission to delete the resource group. Changing this forces a new resource to be created.
+~> **NOTE** Databricks requires that a network security group is associated with the `public` and `private` subnets when a `virtual_network_id` has been defined. Both `public` and `private` subnets must be delegated to `Microsoft.Databricks/workspaces`. For more information about subnet delegation see the [product documentation](https://docs.microsoft.com/en-us/azure/virtual-network/subnet-delegation-overview).
 
 
 ## Attributes Reference
