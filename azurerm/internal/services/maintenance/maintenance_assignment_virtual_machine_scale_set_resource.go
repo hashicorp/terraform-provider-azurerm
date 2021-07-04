@@ -66,12 +66,15 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 	virtualMachineScaleSetIdRaw := d.Get("virtual_machine_scale_set_id").(string)
 	virtualMachineScaleSetId, _ := parseCompute.VirtualMachineScaleSetID(virtualMachineScaleSetIdRaw)
 
-	existing, err := getMaintenanceAssignmentVirtualMachineScaleSet(ctx, client, virtualMachineScaleSetId, virtualMachineScaleSetIdRaw)
+	existingList, err := getMaintenanceAssignmentVirtualMachineScaleSet(ctx, client, virtualMachineScaleSetId, virtualMachineScaleSetIdRaw)
 	if err != nil {
 		return err
 	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine_scale_set", *existing.ID)
+	if existingList != nil && len(*existingList) > 0 {
+		existing := (*existingList)[0]
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine_scale_set", *existing.ID)
+		}
 	}
 
 	maintenanceConfigurationID := d.Get("maintenance_configuration_id").(string)
@@ -79,7 +82,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 
 	// set assignment name to configuration name
 	assignmentName := configurationId.Name
-	assignment := maintenance.ConfigurationAssignment{
+	configurationAssignment := maintenance.ConfigurationAssignment{
 		Name:     utils.String(assignmentName),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		ConfigurationAssignmentProperties: &maintenance.ConfigurationAssignmentProperties{
@@ -88,7 +91,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 		},
 	}
 
-	_, err = client.CreateOrUpdate(ctx, virtualMachineScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", virtualMachineScaleSetId.Name, assignmentName, assignment)
+	_, err = client.CreateOrUpdate(ctx, virtualMachineScaleSetId.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", virtualMachineScaleSetId.Name, assignmentName, configurationAssignment)
 	if err != nil {
 		return err
 	}
@@ -97,11 +100,15 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 	if err != nil {
 		return err
 	}
-	if resp.ID == nil || *resp.ID == "" {
+	if resp == nil || len(*resp) == 0 {
+		return fmt.Errorf("could not find Maintenance assignment (virtual machine scale set ID: %q)", virtualMachineScaleSetIdRaw)
+	}
+	assignment := (*resp)[0]
+	if assignment.ID == nil || *assignment.ID == "" {
 		return fmt.Errorf("empty or nil ID of Maintenance Assignment (virtual machine scale set ID %q)", virtualMachineScaleSetIdRaw)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(*assignment.ID)
 	return resourceArmMaintenanceAssignmentVirtualMachineScaleSetRead(d, meta)
 }
 
@@ -115,10 +122,15 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetRead(d *pluginsdk.Res
 		return err
 	}
 
-	assignment, err := getMaintenanceAssignmentVirtualMachineScaleSet(ctx, client, id.VirtualMachineScaleSetId, id.VirtualMachineScaleSetIdRaw)
+	resp, err := getMaintenanceAssignmentVirtualMachineScaleSet(ctx, client, id.VirtualMachineScaleSetId, id.VirtualMachineScaleSetIdRaw)
 	if err != nil {
 		return err
 	}
+	if resp == nil || len(*resp) == 0 {
+		d.SetId("")
+		return nil
+	}
+	assignment := (*resp)[0]
 	if assignment.ID == nil || *assignment.ID == "" {
 		return fmt.Errorf("empty or nil ID of Maintenance Assignment (virtual machine scale set ID id: %q", id.VirtualMachineScaleSetIdRaw)
 	}
@@ -152,19 +164,13 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetDelete(d *pluginsdk.R
 	return nil
 }
 
-func getMaintenanceAssignmentVirtualMachineScaleSet(ctx context.Context, client *maintenance.ConfigurationAssignmentsClient, id *parseCompute.VirtualMachineScaleSetId, virtualMachineScaleSetId string) (result maintenance.ConfigurationAssignment, err error) {
+func getMaintenanceAssignmentVirtualMachineScaleSet(ctx context.Context, client *maintenance.ConfigurationAssignmentsClient, id *parseCompute.VirtualMachineScaleSetId, virtualMachineScaleSetId string) (result *[]maintenance.ConfigurationAssignment, err error) {
 	resp, err := client.List(ctx, id.ResourceGroup, "Microsoft.Compute", "virtualMachineScaleSets", id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			err = fmt.Errorf("checking for presence of existing Maintenance assignment (virtual machine scale set ID: %q): %+v", virtualMachineScaleSetId, err)
 			return
 		}
-		return result, nil
 	}
-	if resp.Value == nil || len(*resp.Value) == 0 {
-		err = fmt.Errorf("could not find Maintenance assignment (virtual machine scale set ID: %q)", virtualMachineScaleSetId)
-		return
-	}
-
-	return (*resp.Value)[0], nil
+	return resp.Value, nil
 }
