@@ -324,6 +324,8 @@ func PossibleRouteErrorSeverityValues() []RouteErrorSeverity {
 type RoutingSource string
 
 const (
+	// RoutingSourceDeviceConnectionStateEvents ...
+	RoutingSourceDeviceConnectionStateEvents RoutingSource = "DeviceConnectionStateEvents"
 	// RoutingSourceDeviceJobLifecycleEvents ...
 	RoutingSourceDeviceJobLifecycleEvents RoutingSource = "DeviceJobLifecycleEvents"
 	// RoutingSourceDeviceLifecycleEvents ...
@@ -338,7 +340,7 @@ const (
 
 // PossibleRoutingSourceValues returns an array of possible values for the RoutingSource const type.
 func PossibleRoutingSourceValues() []RoutingSource {
-	return []RoutingSource{RoutingSourceDeviceJobLifecycleEvents, RoutingSourceDeviceLifecycleEvents, RoutingSourceDeviceMessages, RoutingSourceInvalid, RoutingSourceTwinChangeEvents}
+	return []RoutingSource{RoutingSourceDeviceConnectionStateEvents, RoutingSourceDeviceJobLifecycleEvents, RoutingSourceDeviceLifecycleEvents, RoutingSourceDeviceMessages, RoutingSourceInvalid, RoutingSourceTwinChangeEvents}
 }
 
 // TestResultStatus enumerates the values for test result status.

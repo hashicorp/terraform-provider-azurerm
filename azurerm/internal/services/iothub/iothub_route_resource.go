@@ -57,6 +57,7 @@ func resourceIotHubRoute() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					string(devices.RoutingSourceDeviceConnectionStateEvents),
 					string(devices.RoutingSourceDeviceJobLifecycleEvents),
 					string(devices.RoutingSourceDeviceLifecycleEvents),
 					string(devices.RoutingSourceDeviceMessages),
