@@ -1,3 +1,9 @@
+## 2.67.0 (Unreleased)
+
+BUG FIXES:
+* `azurerm_storage_share_directory` now allows underscore in property `name` [GH-12454] 
+
+
 ## 2.66.0 (July 02, 2021)
 
 FEATURES:
