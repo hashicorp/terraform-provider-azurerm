@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	azureNetwork "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -21,7 +20,7 @@ func testAccNetworkWatcherFlowLog_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -44,7 +43,7 @@ func testAccNetworkWatcherFlowLog_disabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.disabledConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -67,7 +66,7 @@ func testAccNetworkWatcherFlowLog_reenabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.disabledConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -104,7 +103,7 @@ func testAccNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -142,7 +141,7 @@ func testAccNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.retentionPolicyConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -180,7 +179,7 @@ func testAccNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -275,7 +274,7 @@ func testAccNetworkWatcherFlowLog_version(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.versionConfig(data, 1),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -295,32 +294,55 @@ func testAccNetworkWatcherFlowLog_version(t *testing.T) {
 	})
 }
 
+func testAccNetworkWatcherFlowLog_location(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+	r := NetworkWatcherFlowLogResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.location(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkWatcherFlowLog_tags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+	r := NetworkWatcherFlowLogResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.tags(data, "Test"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.tags(data, "Prod"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NetworkWatcherFlowLogResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azureNetwork.ParseNetworkWatcherFlowLogID(state.ID)
+	id, err := parse.FlowLogID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get current flow log status
-	statusParameters := network.FlowLogStatusParameters{
-		TargetResourceID: &id.NetworkSecurityGroupID,
-	}
-
-	future, err := clients.Network.WatcherClient.GetFlowLogStatus(ctx, id.ResourceGroup, id.NetworkWatcherName, statusParameters)
+	resp, err := clients.Network.FlowLogsClient.Get(ctx, id.ResourceGroupName, id.NetworkWatcherName, id.Name())
 	if err != nil {
 		return nil, fmt.Errorf("reading Network Watcher Flow Log (%s): %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, clients.Network.WatcherClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for retrieval of Flow Log Configuration for target %q: %+v", id, err)
-	}
-
-	fli, err := future.Result(*clients.Network.WatcherClient)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving Flow Log Configuration for target %q: %+v", id, err)
-	}
-
-	return utils.Bool(fli.TargetResourceID != nil), nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
 func (NetworkWatcherFlowLogResource) prerequisites(data acceptance.TestData) string {
@@ -356,7 +378,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type  = "LRS"
   enable_https_traffic_only = true
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger%1000000)
+`, data.RandomIntOfLength(10), data.Locations.Primary, data.RandomIntOfLength(10), data.RandomInteger, data.RandomInteger%1000000)
 }
 
 func (r NetworkWatcherFlowLogResource) basicConfig(data acceptance.TestData) string {
@@ -586,4 +608,49 @@ resource "azurerm_network_watcher_flow_log" "test" {
   }
 }
 `, r.prerequisites(data), data.RandomInteger, version)
+}
+
+func (r NetworkWatcherFlowLogResource) location(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+
+  network_security_group_id = azurerm_network_security_group.test.id
+  storage_account_id        = azurerm_storage_account.test.id
+  enabled                   = true
+
+  retention_policy {
+    enabled = false
+    days    = 0
+  }
+}
+`, r.prerequisites(data))
+}
+
+func (r NetworkWatcherFlowLogResource) tags(data acceptance.TestData, v string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+
+  network_security_group_id = azurerm_network_security_group.test.id
+  storage_account_id        = azurerm_storage_account.test.id
+  enabled                   = true
+
+  retention_policy {
+    enabled = false
+    days    = 0
+  }
+
+  tags = {
+    env = "%s"
+  }
+}
+`, r.prerequisites(data), v)
 }

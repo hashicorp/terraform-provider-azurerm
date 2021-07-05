@@ -31,6 +31,12 @@ type AzureEntityResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AzureEntityResource.
+func (aer AzureEntityResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // CloudError an error response from the ManagedServiceIdentity service.
 type CloudError struct {
 	// Error - A list of additional details about the error.
@@ -434,6 +440,12 @@ type ProxyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Resource common fields that are returned in the response for all Azure Resource Manager resources
 type Resource struct {
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
@@ -442,6 +454,12 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SystemAssignedIdentity describes a system assigned identity resource.
@@ -552,6 +570,12 @@ type SystemAssignedIdentityProperties struct {
 	ClientID *uuid.UUID `json:"clientId,omitempty"`
 	// ClientSecretURL - READ-ONLY;  The ManagedServiceIdentity DataPlane URL that can be queried to obtain the identity credentials.
 	ClientSecretURL *string `json:"clientSecretUrl,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SystemAssignedIdentityProperties.
+func (saip SystemAssignedIdentityProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // TrackedResource the resource model definition for an Azure Resource Manager tracked top level resource
@@ -748,4 +772,10 @@ type UserAssignedIdentityProperties struct {
 	PrincipalID *uuid.UUID `json:"principalId,omitempty"`
 	// ClientID - READ-ONLY; The id of the app associated with the identity. This is a random generated UUID by MSI.
 	ClientID *uuid.UUID `json:"clientId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UserAssignedIdentityProperties.
+func (uaip UserAssignedIdentityProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }

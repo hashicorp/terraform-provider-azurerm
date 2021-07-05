@@ -231,7 +231,7 @@ func resourceArmPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interfac
 			Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 		}
 
-		if _, err := stateConf.WaitForState(); err != nil {
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("waiting for Policy Remediation %q to be canceled: %+v", id.Name, err)
 		}
 	}

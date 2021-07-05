@@ -249,7 +249,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 					Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 				}
 
-				if _, err := stateConf.WaitForState(); err != nil {
+				if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 					return fmt.Errorf("Error waiting for Key Vault Secret %q to become available: %s", name, err)
 				}
 				log.Printf("[DEBUG] Key %q recovered with ID: %q", name, *kid)

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
@@ -1550,7 +1549,7 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 					Type:             pluginsdk.TypeString,
 					Optional:         true,
 					ValidateFunc:     validation.StringIsJSON,
-					DiffSuppressFunc: structure.SuppressJsonDiff,
+					DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 				},
 			},
 		},
@@ -1588,7 +1587,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 		}
 
 		if val, ok := extensionRaw["settings"]; ok && val.(string) != "" {
-			settings, err := structure.ExpandJsonFromString(val.(string))
+			settings, err := pluginsdk.ExpandJsonFromString(val.(string))
 			if err != nil {
 				return nil, false, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
 			}
@@ -1596,7 +1595,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 		}
 
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
-			protectedSettings, err := structure.ExpandJsonFromString(val.(string))
+			protectedSettings, err := pluginsdk.ExpandJsonFromString(val.(string))
 			if err != nil {
 				return nil, false, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
 			}
@@ -1658,7 +1657,7 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 			}
 
 			if props.Settings != nil {
-				extSettingsRaw, err := structure.FlattenJsonToString(props.Settings.(map[string]interface{}))
+				extSettingsRaw, err := pluginsdk.FlattenJsonToString(props.Settings.(map[string]interface{}))
 				if err != nil {
 					return nil, err
 				}

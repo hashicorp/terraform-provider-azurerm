@@ -62,12 +62,20 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// TODO this now sets the scope property - either a scope block needs adding or additional properties `api_id` and maybe `all_apis`
 			"product_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ProductID,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.ProductID,
+				ConflictsWith: []string{"api_id"},
+			},
+
+			"api_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.ApiID,
+				ConflictsWith: []string{"product_id"},
 			},
 
 			"state": {
@@ -138,14 +146,25 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	displayName := d.Get("display_name").(string)
-	productId := d.Get("product_id").(string)
+	productId, productSet := d.GetOk("product_id")
+	apiId, apiSet := d.GetOk("api_id")
 	state := d.Get("state").(string)
 	allowTracing := d.Get("allow_tracing").(bool)
+
+	var scope string
+	switch {
+	case productSet:
+		scope = productId.(string)
+	case apiSet:
+		scope = apiId.(string)
+	default:
+		scope = "all_apis"
+	}
 
 	params := apimanagement.SubscriptionCreateParameters{
 		SubscriptionCreateParameterProperties: &apimanagement.SubscriptionCreateParameterProperties{
 			DisplayName:  utils.String(displayName),
-			Scope:        utils.String(productId),
+			Scope:        utils.String(scope),
 			State:        apimanagement.SubscriptionState(state),
 			AllowTracing: utils.Bool(allowTracing),
 		},
@@ -207,14 +226,22 @@ func resourceApiManagementSubscriptionRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("display_name", props.DisplayName)
 		d.Set("state", string(props.State))
 		productId := ""
+		apiId := ""
 		if *props.Scope != "" {
+			// the scope is either a product or api id or "all_apis" constant
 			parseId, err := parse.ProductID(*props.Scope)
-			if err != nil {
-				return fmt.Errorf("parsing product id %q: %+v", *props.Scope, err)
+			if err == nil {
+				productId = parseId.ID()
+			} else {
+				parsedApiId, err := parse.ApiID(*props.Scope)
+				if err != nil {
+					return fmt.Errorf("parsing scope into product/ api id %q: %+v", *props.Scope, err)
+				}
+				apiId = parsedApiId.ID()
 			}
-			productId = parseId.ID()
 		}
 		d.Set("product_id", productId)
+		d.Set("api_id", apiId)
 		d.Set("user_id", props.OwnerID)
 		d.Set("allow_tracing", props.AllowTracing)
 	}

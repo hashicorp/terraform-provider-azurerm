@@ -592,7 +592,7 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for PostgreSQL Server %q (Resource Group %q)to become available: %+v", name, resourceGroup, err)
 	}
 
@@ -675,7 +675,7 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 		}
 
-		if _, err = stateConf.WaitForState(); err != nil {
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("waiting for PostgreSQL Server %q (Resource Group %q)to become available: %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
@@ -733,16 +733,20 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	properties := postgresql.ServerUpdateParameters{
 		Identity: expandServerIdentity(d.Get("identity").([]interface{})),
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
-			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
-			PublicNetworkAccess:        publicAccess,
-			SslEnforcement:             ssl,
-			MinimalTLSVersion:          tlsMin,
-			StorageProfile:             expandPostgreSQLStorageProfile(d),
-			Version:                    postgresql.ServerVersion(d.Get("version").(string)),
+			PublicNetworkAccess: publicAccess,
+			SslEnforcement:      ssl,
+			MinimalTLSVersion:   tlsMin,
+			StorageProfile:      expandPostgreSQLStorageProfile(d),
+			Version:             postgresql.ServerVersion(d.Get("version").(string)),
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	if d.HasChange("administrator_login_password") {
+		properties.ServerUpdateParametersProperties.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
+	}
+
 	if old, new := d.GetChange("create_mode"); postgresql.CreateMode(old.(string)) == postgresql.CreateModeReplica && postgresql.CreateMode(new.(string)) == postgresql.CreateModeDefault {
 		properties.ServerUpdateParametersProperties.ReplicationRole = utils.String("None")
 	}

@@ -122,6 +122,7 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											"Include",
 											"Exclude",
+											"StartsWith",
 										}, false),
 									},
 									"values": {
@@ -467,7 +468,7 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for Monitor Metric Alert %q (Resource Group %q) to finish provisioning: %s", name, resourceGroup, err)
 	}
 

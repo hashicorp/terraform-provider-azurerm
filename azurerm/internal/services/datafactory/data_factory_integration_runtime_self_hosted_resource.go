@@ -245,7 +245,7 @@ func expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypeProperties(d *plugi
 		linkedInfo := &datafactory.SelfHostedIntegrationRuntimeTypeProperties{
 			LinkedInfo: &datafactory.LinkedIntegrationRuntimeRbacAuthorization{
 				ResourceID:        &rbac,
-				AuthorizationType: datafactory.AuthorizationTypeAuthorizationTypeRBAC,
+				AuthorizationType: datafactory.AuthorizationTypeRBAC,
 			},
 		}
 		return linkedInfo

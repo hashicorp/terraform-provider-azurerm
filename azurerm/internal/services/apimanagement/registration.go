@@ -37,6 +37,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_api_management_api":                         resourceApiManagementApi(),
 		"azurerm_api_management_api_diagnostic":              resourceApiManagementApiDiagnostic(),
 		"azurerm_api_management_api_operation":               resourceApiManagementApiOperation(),
+		"azurerm_api_management_api_operation_tag":           resourceApiManagementApiOperationTag(),
 		"azurerm_api_management_api_operation_policy":        resourceApiManagementApiOperationPolicy(),
 		"azurerm_api_management_api_policy":                  resourceApiManagementApiPolicy(),
 		"azurerm_api_management_api_schema":                  resourceApiManagementApiSchema(),
@@ -64,6 +65,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_api_management_product_group":               resourceApiManagementProductGroup(),
 		"azurerm_api_management_product_policy":              resourceApiManagementProductPolicy(),
 		"azurerm_api_management_property":                    resourceApiManagementProperty(),
+		"azurerm_api_management_redis_cache":                 resourceApiManagementRedisCache(),
 		"azurerm_api_management_subscription":                resourceApiManagementSubscription(),
 		"azurerm_api_management_user":                        resourceApiManagementUser(),
 	}

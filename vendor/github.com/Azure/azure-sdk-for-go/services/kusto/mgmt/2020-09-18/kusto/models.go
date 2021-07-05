@@ -250,6 +250,12 @@ type AzureEntityResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AzureEntityResource.
+func (aer AzureEntityResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AzureResourceSku azure resource SKU definition.
 type AzureResourceSku struct {
 	// ResourceType - Resource Namespace and Type.
@@ -2498,6 +2504,12 @@ type IdentityUserAssignedIdentitiesValue struct {
 	ClientID *string `json:"clientId,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for IdentityUserAssignedIdentitiesValue.
+func (iAiv IdentityUserAssignedIdentitiesValue) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // IotHubConnectionProperties class representing the Kusto Iot hub connection properties.
 type IotHubConnectionProperties struct {
 	// IotHubResourceID - The resource ID of the Iot hub to be used to create a data connection.
@@ -2874,6 +2886,12 @@ type ProxyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ReadOnlyFollowingDatabase class representing a read only following database.
 type ReadOnlyFollowingDatabase struct {
 	// ReadOnlyFollowingDatabaseProperties - The database properties.
@@ -3191,6 +3209,12 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SkuDescription the Kusto SKU description of given resource type
 type SkuDescription struct {
 	// ResourceType - READ-ONLY; The resource type
@@ -3207,11 +3231,23 @@ type SkuDescription struct {
 	Restrictions *[]interface{} `json:"restrictions,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SkuDescription.
+func (sd SkuDescription) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SkuDescriptionList the list of the EngagementFabric SKU descriptions
 type SkuDescriptionList struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; SKU descriptions
 	Value *[]SkuDescription `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SkuDescriptionList.
+func (sdl SkuDescriptionList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SkuLocationInfoItem the locations and zones info for SKU.

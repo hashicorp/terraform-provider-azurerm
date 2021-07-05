@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/migration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
@@ -28,9 +29,10 @@ func resourceDataFactory() *pluginsdk.Resource {
 		Update: resourceDataFactoryCreateUpdate,
 		Delete: resourceDataFactoryDelete,
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.DataFactoryV0ToV1{},
+			1: migration.DataFactoryV1ToV2{},
 		}),
 
 		// TODO: replace this with an importer which validates the ID during import
@@ -172,6 +174,39 @@ func resourceDataFactory() *pluginsdk.Resource {
 				},
 			},
 
+			"global_parameter": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Array",
+								"Bool",
+								"Float",
+								"Int",
+								"Object",
+								"String",
+							}, false),
+						},
+
+						"value": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"public_network_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -192,31 +227,29 @@ func resourceDataFactory() *pluginsdk.Resource {
 
 func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.FactoriesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
-	t := d.Get("tags").(map[string]interface{})
-
+	id := parse.NewDataFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory", id.ID())
 		}
 	}
 
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	dataFactory := datafactory.Factory{
 		Location:          &location,
 		FactoryProperties: &datafactory.FactoryProperties{},
-		Tags:              tags.Expand(t),
+		Tags:              tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	dataFactory.PublicNetworkAccess = datafactory.PublicNetworkAccessEnabled
@@ -263,30 +296,27 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, dataFactory, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	globalParameters, err := expandDataFactoryGlobalParameters(d.Get("global_parameter").(*pluginsdk.Set).List())
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return err
 	}
+	dataFactory.FactoryProperties.GlobalParameters = globalParameters
 
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory %q (Resource Group %q) ID", name, resourceGroup)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, dataFactory, ""); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if hasRepo, repo := expandDataFactoryRepoConfiguration(d); hasRepo {
 		repoUpdate := datafactory.FactoryRepoUpdate{
-			FactoryResourceID: resp.ID,
+			FactoryResourceID: utils.String(id.ID()),
 			RepoConfiguration: repo,
 		}
-		if _, err = client.ConfigureFactoryRepo(ctx, location, repoUpdate); err != nil {
-			return fmt.Errorf("Error configuring Repository for Data Factory %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if _, err := client.ConfigureFactoryRepo(ctx, location, repoUpdate); err != nil {
+			return fmt.Errorf("configuring Repository for %s: %+v", id, err)
 		}
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceDataFactoryRead(d, meta)
 }
@@ -296,25 +326,23 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DataFactoryID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["factories"]
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.FactoryName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -327,6 +355,10 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 					return fmt.Errorf("Error setting `customer_managed_key_id`: %+v", err)
 				}
 			}
+		}
+
+		if err := d.Set("global_parameter", flattenDataFactoryGlobalParameters(factoryProps.GlobalParameters)); err != nil {
+			return fmt.Errorf("setting `global_parameter`: %+v", err)
 		}
 	}
 
@@ -369,17 +401,15 @@ func resourceDataFactoryDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DataFactoryID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["factories"]
 
-	response, err := client.Delete(ctx, resourceGroup, name)
+	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
 
@@ -422,6 +452,30 @@ func expandDataFactoryRepoConfiguration(d *pluginsdk.ResourceData) (bool, datafa
 	}
 
 	return false, nil
+}
+
+func expandDataFactoryGlobalParameters(input []interface{}) (map[string]*datafactory.GlobalParameterSpecification, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+	result := make(map[string]*datafactory.GlobalParameterSpecification)
+	for _, item := range input {
+		if item == nil {
+			continue
+		}
+		v := item.(map[string]interface{})
+
+		name := v["name"].(string)
+		if _, ok := v[name]; ok {
+			return nil, fmt.Errorf("duplicate parameter name")
+		}
+
+		result[name] = &datafactory.GlobalParameterSpecification{
+			Type:  datafactory.GlobalParameterType(v["type"].(string)),
+			Value: v["value"].(string),
+		}
+	}
+	return result, nil
 }
 
 func flattenDataFactoryRepoConfiguration(factory *datafactory.Factory) (datafactory.TypeBasicFactoryRepoConfiguration, []interface{}) {
@@ -507,4 +561,19 @@ func flattenDataFactoryIdentity(identity *datafactory.FactoryIdentity) (interfac
 			"identity_ids": identityIds,
 		},
 	}, nil
+}
+
+func flattenDataFactoryGlobalParameters(input map[string]*datafactory.GlobalParameterSpecification) []interface{} {
+	if len(input) == 0 {
+		return []interface{}{}
+	}
+	result := make([]interface{}, 0)
+	for name, item := range input {
+		result = append(result, map[string]interface{}{
+			"name":  name,
+			"type":  string(item.Type),
+			"value": item.Value,
+		})
+	}
+	return result
 }

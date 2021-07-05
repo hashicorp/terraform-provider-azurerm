@@ -2395,6 +2395,12 @@ type AgentDetails struct {
 	Disks *[]AgentDiskDetails `json:"disks,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AgentDetails.
+func (ad AgentDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AgentDiskDetails agent disk details.
 type AgentDiskDetails struct {
 	// DiskID - READ-ONLY; The disk Id.
@@ -2407,6 +2413,12 @@ type AgentDiskDetails struct {
 	CapacityInBytes *int64 `json:"capacityInBytes,omitempty"`
 	// LunID - READ-ONLY; The lun of disk.
 	LunID *int32 `json:"lunId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AgentDiskDetails.
+func (add AgentDiskDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Alert implements the Alert class.
@@ -4176,6 +4188,12 @@ type DraDetails struct {
 	Health ProtectionHealth `json:"health,omitempty"`
 	// HealthErrors - READ-ONLY; The health errors.
 	HealthErrors *[]HealthError `json:"healthErrors,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DraDetails.
+func (dd DraDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // EnableMigrationInput enable migration input.
@@ -11247,6 +11265,12 @@ type InMageRcmMobilityAgentDetails struct {
 	IsUpgradeable *string `json:"isUpgradeable,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for InMageRcmMobilityAgentDetails.
+func (imrmad InMageRcmMobilityAgentDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // InMageRcmNicDetails inMageRcm NIC details.
 type InMageRcmNicDetails struct {
 	// NicID - READ-ONLY; The NIC Id.
@@ -11275,6 +11299,12 @@ type InMageRcmNicDetails struct {
 	TestIPAddress *string `json:"testIPAddress,omitempty"`
 	// TestIPAddressType - READ-ONLY; The test IP address type. Possible values include: 'Dynamic', 'Static'
 	TestIPAddressType EthernetAddressType `json:"testIPAddressType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for InMageRcmNicDetails.
+func (imrnd InMageRcmNicDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // InMageRcmNicInput inMageRcm NIC input.
@@ -11490,6 +11520,12 @@ type InMageRcmProtectedDiskDetails struct {
 	TargetManagedDiskID *string `json:"targetManagedDiskId,omitempty"`
 	// DiskType - READ-ONLY; The disk type. Possible values include: 'StandardLRS', 'PremiumLRS', 'StandardSSDLRS'
 	DiskType DiskAccountType `json:"diskType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for InMageRcmProtectedDiskDetails.
+func (imrpdd InMageRcmProtectedDiskDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // InMageRcmRecoveryPointDetails inMageRcm provider specific recovery point details.
@@ -14145,6 +14181,12 @@ type MigrationRecoveryPointProperties struct {
 	RecoveryPointType MigrationRecoveryPointType `json:"recoveryPointType,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for MigrationRecoveryPointProperties.
+func (mrpp MigrationRecoveryPointProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // MobilityServiceUpdate the Mobility Service update details.
 type MobilityServiceUpdate struct {
 	// Version - The version of the latest update.
@@ -15820,6 +15862,12 @@ type ProcessServerDetails struct {
 	HistoricHealth ProtectionHealth `json:"historicHealth,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ProcessServerDetails.
+func (psd ProcessServerDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ProtectableItem replication protected item
 type ProtectableItem struct {
 	autorest.Response `json:"-"`
@@ -16312,6 +16360,12 @@ func NewProtectionContainerCollectionPage(cur ProtectionContainerCollection, get
 type ProtectionContainerFabricSpecificDetails struct {
 	// InstanceType - READ-ONLY; Gets the class type. Overridden in derived classes.
 	InstanceType *string `json:"instanceType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProtectionContainerFabricSpecificDetails.
+func (pcfsd ProtectionContainerFabricSpecificDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ProtectionContainerMapping protection container mapping object.
@@ -17064,6 +17118,12 @@ type PushInstallerDetails struct {
 	HealthErrors *[]HealthError `json:"healthErrors,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PushInstallerDetails.
+func (pid PushInstallerDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RcmAzureMigrationPolicyDetails RCM based Azure migration specific policy details.
 type RcmAzureMigrationPolicyDetails struct {
 	// RecoveryPointThresholdInMinutes - The recovery point threshold in minutes.
@@ -17184,6 +17244,12 @@ type RcmProxyDetails struct {
 	Health ProtectionHealth `json:"health,omitempty"`
 	// HealthErrors - READ-ONLY; The health errors.
 	HealthErrors *[]HealthError `json:"healthErrors,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RcmProxyDetails.
+func (rpd RcmProxyDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // BasicRecoveryAvailabilitySetCustomDetails recovery Availability Set custom input.
@@ -19938,6 +20004,12 @@ type ReplicationAgentDetails struct {
 	HealthErrors *[]HealthError `json:"healthErrors,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ReplicationAgentDetails.
+func (rad ReplicationAgentDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ReplicationEligibilityResults replication eligibility results response model.
 type ReplicationEligibilityResults struct {
 	autorest.Response `json:"-"`
@@ -19949,6 +20021,12 @@ type ReplicationEligibilityResults struct {
 	ID *string `json:"id,omitempty"`
 	// Properties - READ-ONLY; Gets properties model for replication eligibility results API.
 	Properties *ReplicationEligibilityResultsProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ReplicationEligibilityResults.
+func (rer ReplicationEligibilityResults) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ReplicationEligibilityResultsCollection replication eligibility results collection response model.
@@ -19970,6 +20048,12 @@ type ReplicationEligibilityResultsErrorInfo struct {
 	RecommendedAction *string `json:"recommendedAction,omitempty"`
 	// Status - READ-ONLY; The error status.
 	Status *string `json:"status,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ReplicationEligibilityResultsErrorInfo.
+func (rerei ReplicationEligibilityResultsErrorInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ReplicationEligibilityResultsProperties properties model for replication eligibility results API.
@@ -24041,6 +24125,12 @@ type ReprotectAgentDetails struct {
 	Health ProtectionHealth `json:"health,omitempty"`
 	// HealthErrors - READ-ONLY; The health errors.
 	HealthErrors *[]HealthError `json:"healthErrors,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ReprotectAgentDetails.
+func (rad ReprotectAgentDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResolveHealthError resolve health errors input properties.

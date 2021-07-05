@@ -38,6 +38,7 @@ func resourceLighthouseDefinition() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -103,6 +104,39 @@ func resourceLighthouseDefinition() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
+
+			"plan": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"publisher": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"product": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"version": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -146,6 +180,7 @@ func resourceLighthouseDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 	parameters := managedservices.RegistrationDefinition{
+		Plan: expandLighthouseDefinitionPlan(d.Get("plan").([]interface{})),
 		Properties: &managedservices.RegistrationDefinitionProperties{
 			Description:                utils.String(d.Get("description").(string)),
 			Authorizations:             authorizations,
@@ -195,6 +230,10 @@ func resourceLighthouseDefinitionRead(d *pluginsdk.ResourceData, meta interface{
 
 	d.Set("lighthouse_definition_id", resp.Name)
 	d.Set("scope", id.Scope)
+
+	if err := d.Set("plan", flattenLighthouseDefinitionPlan(resp.Plan)); err != nil {
+		return fmt.Errorf("setting `plan`: %+v", err)
+	}
 
 	if props := resp.Properties; props != nil {
 		if err := d.Set("authorization", flattenLighthouseDefinitionAuthorization(props.Authorizations)); err != nil {
@@ -298,4 +337,44 @@ func expandLighthouseDefinitionAuthorizationDelegatedRoleDefinitionIds(input []i
 		result = append(result, id)
 	}
 	return &result, nil
+}
+
+func expandLighthouseDefinitionPlan(input []interface{}) *managedservices.Plan {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	raw := input[0].(map[string]interface{})
+	return &managedservices.Plan{
+		Name:      utils.String(raw["name"].(string)),
+		Publisher: utils.String(raw["publisher"].(string)),
+		Product:   utils.String(raw["product"].(string)),
+		Version:   utils.String(raw["version"].(string)),
+	}
+}
+
+func flattenLighthouseDefinitionPlan(input *managedservices.Plan) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	var name, publisher, product, version string
+	if input.Name != nil {
+		name = *input.Name
+	}
+	if input.Publisher != nil {
+		publisher = *input.Publisher
+	}
+	if input.Product != nil {
+		product = *input.Product
+	}
+	if input.Version != nil {
+		version = *input.Version
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"name":      name,
+			"publisher": publisher,
+			"product":   product,
+			"version":   version,
+		},
+	}
 }

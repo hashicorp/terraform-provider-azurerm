@@ -45,6 +45,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("sku_tier", func(ctx context.Context, old, new, meta interface{}) bool {
 				return new == "Free"
 			}),
+			// Migration of `identity` to `service_principal` is not allowed, the other way around is
+			pluginsdk.ForceNewIfChange("service_principal.0.client_id", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old == "msi" || old == ""
+			}),
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -227,16 +231,15 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				ForceNew: true,
-				MaxItems: 1,
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				ExactlyOneOf: []string{"identity", "service_principal"},
+				MaxItems:     1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"type": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.ResourceIdentityTypeSystemAssigned),
 								string(containerservice.ResourceIdentityTypeUserAssigned),
@@ -262,19 +265,33 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"kubelet_identity": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
+				Optional: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"client_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							RequiredWith: []string{"kubelet_identity.0.object_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.user_assigned_identity_id"},
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"object_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.user_assigned_identity_id"},
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"user_assigned_identity_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.object_id", "identity.0.user_assigned_identity_id"},
+							ValidateFunc: msivalidate.UserAssignedIdentityID,
 						},
 					},
 				},
@@ -592,9 +609,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 									"azure_rbac_enabled": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
-										// ForceNew can be removed after GA:
-										// https://docs.microsoft.com/en-us/azure/aks/manage-azure-rbac#limitations
-										ForceNew: true,
 									},
 
 									"admin_group_object_ids": {
@@ -618,9 +632,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"service_principal": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				ExactlyOneOf: []string{"identity", "service_principal"},
+				MaxItems:     1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"client_id": {
@@ -673,6 +688,13 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringLenBetween(8, 123),
+						},
+						"license": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerservice.LicenseTypeWindowsServer),
+							}, false),
 						},
 					},
 				},
@@ -907,6 +929,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
+	kubernetesClusterIdentityRaw := d.Get("kubelet_identity").([]interface{})
 	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
 
 	if len(managedClusterIdentityRaw) == 0 && len(servicePrincipalProfileRaw) == 0 {
@@ -918,6 +941,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.ManagedClusterProperties.ServicePrincipalProfile = &containerservice.ManagedClusterServicePrincipalProfile{
 			ClientID: utils.String("msi"),
 		}
+	}
+	if len(kubernetesClusterIdentityRaw) > 0 {
+		parameters.ManagedClusterProperties.IdentityProfile = expandKubernetesClusterIdentityProfile(kubernetesClusterIdentityRaw)
 	}
 
 	servicePrincipalSet := false
@@ -1010,7 +1036,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if d.HasChange("service_principal") {
+	if d.HasChange("service_principal") && !d.HasChange("identity") {
 		log.Printf("[DEBUG] Updating the Service Principal for Kubernetes Cluster %q (Resource Group %q)..", id.ManagedClusterName, id.ResourceGroup)
 		servicePrincipals := d.Get("service_principal").([]interface{})
 		// we'll be rotating the Service Principal - removing the SP block is handled by the validate function
@@ -1543,6 +1569,25 @@ func expandKubernetesClusterLinuxProfile(input []interface{}) *containerservice.
 	}
 }
 
+func expandKubernetesClusterIdentityProfile(input []interface{}) map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue {
+	identityProfile := make(map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue)
+	if len(input) == 0 || input[0] == nil {
+		return identityProfile
+	}
+
+	values := input[0].(map[string]interface{})
+
+	if containerservice.ResourceIdentityType(values["user_assigned_identity_id"].(string)) != "" {
+		identityProfile["kubeletidentity"] = &containerservice.ManagedClusterPropertiesIdentityProfileValue{
+			ResourceID: utils.String(values["user_assigned_identity_id"].(string)),
+			ClientID:   utils.String(values["client_id"].(string)),
+			ObjectID:   utils.String(values["object_id"].(string)),
+		}
+	}
+
+	return identityProfile
+}
+
 func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue) ([]interface{}, error) {
 	if profile == nil {
 		return []interface{}{}, nil
@@ -1620,15 +1665,16 @@ func expandKubernetesClusterWindowsProfile(input []interface{}) *containerservic
 
 	config := input[0].(map[string]interface{})
 
-	adminUsername := config["admin_username"].(string)
-	adminPassword := config["admin_password"].(string)
-
-	profile := containerservice.ManagedClusterWindowsProfile{
-		AdminUsername: &adminUsername,
-		AdminPassword: &adminPassword,
+	license := containerservice.LicenseTypeNone
+	if v := config["license"].(string); v != "" {
+		license = containerservice.LicenseType(v)
 	}
 
-	return &profile
+	return &containerservice.ManagedClusterWindowsProfile{
+		AdminUsername: utils.String(config["admin_username"].(string)),
+		AdminPassword: utils.String(config["admin_password"].(string)),
+		LicenseType:   license,
+	}
 }
 
 func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClusterWindowsProfile, d *pluginsdk.ResourceData) []interface{} {
@@ -1647,10 +1693,16 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 		adminPassword = v.(string)
 	}
 
+	license := ""
+	if profile.LicenseType != containerservice.LicenseTypeNone {
+		license = string(profile.LicenseType)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"admin_password": adminPassword,
 			"admin_username": adminUsername,
+			"license":        license,
 		},
 	}
 }
