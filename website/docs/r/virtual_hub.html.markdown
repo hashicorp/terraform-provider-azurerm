@@ -45,11 +45,7 @@ The following arguments are supported:
 
 ---
 
-<<<<<<< HEAD
 - `address_prefix` - (Optional) The Address Prefix which should be used for this Virtual Hub. Changing this forces a new resource to be created. [The address prefix subnet cannot be smaller than a `/24`. Azure recommends using a `/23`](https://docs.microsoft.com/en-us/azure/virtual-wan/virtual-wan-faq#what-is-the-recommended-hub-address-space-during-hub-creation).
-=======
-* `address_prefix` - (Optional) The Address Prefix which should be used for this Virtual Hub. Changing this forces a new resource to be created. [The address prefix subnet cannot be smaller than a `/24`. Azure recommends using a `/23`](https://docs.microsoft.com/en-us/azure/virtual-wan/virtual-wan-faq#what-is-the-recommended-hub-address-space-during-hub-creation).
->>>>>>> 1c2a8fffd31e4a36004b876605365b58912bf1b5
 
 - `default_route_table` - (Optional) A`default_route_table` block as defined below.
 
