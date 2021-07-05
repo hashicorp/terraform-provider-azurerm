@@ -138,19 +138,19 @@ func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, me
 	urlTemplate := d.Get("url_template").(string)
 
 	requestContractRaw := d.Get("request").([]interface{})
-	requestContract, err := expandApiManagementOperationRequestContract(requestContractRaw)
+	requestContract, err := expandApiManagementOperationRequestContract(d, "request", requestContractRaw)
 	if err != nil {
 		return err
 	}
 
 	responseContractsRaw := d.Get("response").([]interface{})
-	responseContracts, err := expandApiManagementOperationResponseContract(responseContractsRaw)
+	responseContracts, err := expandApiManagementOperationResponseContract(d, "response", responseContractsRaw)
 	if err != nil {
 		return err
 	}
 
 	templateParametersRaw := d.Get("template_parameter").([]interface{})
-	templateParameters := schemaz.ExpandApiManagementOperationParameterContract(templateParametersRaw)
+	templateParameters := schemaz.ExpandApiManagementOperationParameterContract(d, "template_parameter", templateParametersRaw)
 
 	parameters := apimanagement.OperationContract{
 		OperationContractProperties: &apimanagement.OperationContractProperties{
@@ -259,7 +259,7 @@ func resourceApiManagementApiOperationDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func expandApiManagementOperationRequestContract(input []interface{}) (*apimanagement.RequestContract, error) {
+func expandApiManagementOperationRequestContract(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*apimanagement.RequestContract, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
@@ -274,19 +274,19 @@ func expandApiManagementOperationRequestContract(input []interface{}) (*apimanag
 	if headersRaw == nil {
 		headersRaw = []interface{}{}
 	}
-	headers := schemaz.ExpandApiManagementOperationParameterContract(headersRaw)
+	headers := schemaz.ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.0.header", schemaPath), headersRaw)
 
 	queryParametersRaw := vs["query_parameter"].([]interface{})
 	if queryParametersRaw == nil {
 		queryParametersRaw = []interface{}{}
 	}
-	queryParameters := schemaz.ExpandApiManagementOperationParameterContract(queryParametersRaw)
+	queryParameters := schemaz.ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.0.query_parameter", schemaPath), queryParametersRaw)
 
 	representationsRaw := vs["representation"].([]interface{})
 	if representationsRaw == nil {
 		representationsRaw = []interface{}{}
 	}
-	representations, err := schemaz.ExpandApiManagementOperationRepresentation(representationsRaw)
+	representations, err := schemaz.ExpandApiManagementOperationRepresentation(d, fmt.Sprintf("%s.0.representation", schemaPath), representationsRaw)
 	if err != nil {
 		return nil, err
 	}
@@ -317,24 +317,24 @@ func flattenApiManagementOperationRequestContract(input *apimanagement.RequestCo
 	return []interface{}{output}
 }
 
-func expandApiManagementOperationResponseContract(input []interface{}) (*[]apimanagement.ResponseContract, error) {
+func expandApiManagementOperationResponseContract(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*[]apimanagement.ResponseContract, error) {
 	if len(input) == 0 {
 		return &[]apimanagement.ResponseContract{}, nil
 	}
 
 	outputs := make([]apimanagement.ResponseContract, 0)
 
-	for _, v := range input {
+	for i, v := range input {
 		vs := v.(map[string]interface{})
 
 		description := vs["description"].(string)
 		statusCode := vs["status_code"].(int)
 
 		headersRaw := vs["header"].([]interface{})
-		headers := schemaz.ExpandApiManagementOperationParameterContract(headersRaw)
+		headers := schemaz.ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.%d.header", schemaPath, i), headersRaw)
 
 		representationsRaw := vs["representation"].([]interface{})
-		representations, err := schemaz.ExpandApiManagementOperationRepresentation(representationsRaw)
+		representations, err := schemaz.ExpandApiManagementOperationRepresentation(d, fmt.Sprintf("%s.%d.representation", schemaPath, i), representationsRaw)
 		if err != nil {
 			return nil, err
 		}

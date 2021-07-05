@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "eastus"
 }
 
-resource "azurerm_monitor_action_group" "test" {
+resource "azurerm_monitor_action_group" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   short_name          = "example"
@@ -32,8 +32,8 @@ resource "azurerm_consumption_budget_resource_group" "example" {
   time_grain = "Monthly"
 
   time_period {
-    start_date = "2020-11-01T00:00:00Z"
-    end_date   = "2020-12-01T00:00:00Z"
+    start_date = "2022-06-01T00:00:00Z"
+    end_date   = "2022-07-01T00:00:00Z"
   }
 
   filter {
@@ -141,11 +141,11 @@ A `notification` block supports the following:
 
 A `dimension` block supports the following:
 
-* `name` - (Required) The name of the column to use for the filter. The allowed values are
+* `name` - (Required) The name of the column to use for the filter. The allowed values are `ChargeType`, `Frequency`, `InvoiceId`, `Meter`, `MeterCategory`, `MeterSubCategory`, `PartNumber`, `PricingModel`, `Product`, `ProductOrderId`, `ProductOrderName`, `PublisherType`, `ReservationId`, `ReservationName`, `ResourceGroupName`, `ResourceGuid`, `ResourceId`, `ResourceLocation`, `ResourceType`, `ServiceFamily`, `ServiceName`, `UnitOfMeasure`.
 
 * `operator` - (Optional) The operator to use for comparison. The allowed values are `In`.
 
-* `values` - (Required) Specifies a list of values for the column. The allowed values are `ChargeType`, `Frequency`, `InvoiceId`, `Meter`, `MeterCategory`, `MeterSubCategory`, `PartNumber`, `PricingModel`, `Product`, `ProductOrderId`, `ProductOrderName`, `PublisherType`, `ReservationId`, `ReservationName`, `ResourceGroupName`, `ResourceGuid`, `ResourceId`, `ResourceLocation`, `ResourceType`, `ServiceFamily`, `ServiceName`, `UnitOfMeasure`.
+* `values` - (Required) Specifies a list of values for the column.
 
 ---
 

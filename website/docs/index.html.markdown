@@ -162,6 +162,8 @@ It's possible to configure the behaviour of certain resources using the `feature
 
 The `features` block supports the following:
 
+* `cognitive_account` - (Optional) A `cognitive_account` block as defined below.
+
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
@@ -174,9 +176,9 @@ The `features` block supports the following:
 
 ---
 
-The `log_analytics_workspace` block supports the following:
+The `cognitive_account` block supports the following:
 
-* `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
+* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_cognitive_account` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
 ---
 
@@ -189,6 +191,12 @@ The `key_vault` block supports the following:
 * `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_key_vault`, `azurerm_key_vault_certificate`, `azurerm_key_vault_key` and `azurerm_key_vault_secret` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
 ~> **Note:** When purge protection is enabled, a key vault or an object in the deleted state cannot be purged until the retention period (7-90 days) has passed.
+
+---
+
+The `log_analytics_workspace` block supports the following:
+
+* `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
 
 ---
 

@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_synapse_role_assignment
 
-Allows you to Manages a Synapse Role Assignment.
+Manages a Synapse Role Assignment.
 
 ## Example Usage
 
@@ -53,7 +53,7 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_synapse_role_assignment" "example" {
   synapse_workspace_id = azurerm_synapse_workspace.example.id
-  role_name            = "Sql Admin"
+  role_name            = "Synapse SQL Administrator"
   principal_id         = data.azurerm_client_config.current.object_id
 
   depends_on = [azurerm_synapse_firewall_rule.example]
@@ -64,13 +64,17 @@ resource "azurerm_synapse_role_assignment" "example" {
 
 The following arguments are supported:
 
-* `synapse_workspace_id` - (Required) The ID of the Synapse Workspace on which to create the Role Assignment. Changing this forces a new resource to be created.
+* `synapse_workspace_id` - (Optional) The Synapse Workspace which the Synapse Role Assignment applies to. Changing this forces a new resource to be created.
 
--> **NOTE:** A Synapse firewall rule including local IP is needed to allow access.
+* `synapse_spark_pool_id` - (Optional) The Synapse Spark Pool which the Synapse Role Assignment applies to. Changing this forces a new resource to be created.
+
+-> **NOTE:** A Synapse firewall rule including local IP is needed to allow access. Only one of `synapse_workspace_id`, `synapse_spark_pool_id` must be set.
 
 * `role_name` - (Required) The Role Name of the Synapse Built-In Role. Changing this forces a new resource to be created.
 
--> **NOTE:** Currently, the Synapse built-in roles are `Workspace Admin`, `Apache Spark Admin` and `Sql Admin`.
+-> **NOTE:** Currently, the Synapse built-in roles are `Apache Spark Administrator`, `Synapse Administrator`, `Synapse Artifact Publisher`, `Synapse Artifact User`, `Synapse Compute Operator`, `Synapse Contributor`, `Synapse Credential User`, `Synapse Linked Data Manager`, `Synapse SQL Administrator` and `Synapse User`.
+
+-> **NOTE:** Old roles are still supported: `Workspace Admin`, `Apache Spark Admin`, `Sql Admin`. These values will be removed in the next Major Version 3.0.
 
 * `principal_id` - (Required) The ID of the Principal (User, Group or Service Principal) to assign the Synapse Role Definition to. Changing this forces a new resource to be created.
 
@@ -96,4 +100,4 @@ Synapse Role Assignment can be imported using the `resource id`, e.g.
 terraform import azurerm_synapse_role_assignment.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Synapse/workspaces/workspace1|000000000000"
 ```
 
--> **NOTE:** This ID is specific to Terraform - and is of the format `{synapseWorkspaceId}|{synapseRoleAssignmentId}`.
+-> **NOTE:** This ID is specific to Terraform - and is of the format `{synapseScope}|{synapseRoleAssignmentId}`.

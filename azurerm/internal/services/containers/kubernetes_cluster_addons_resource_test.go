@@ -301,6 +301,7 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetCIDR(t
 			Config: r.addonProfileIngressApplicationGatewaySubnetCIDRConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_name").Exists(),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").Exists(),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_cidr").HasValue(addOnAppGatewaySubnetCIDR),
 			),
@@ -332,6 +333,7 @@ func testAccKubernetesCluster_addonProfileIngressApplicationGateway_subnetId(t *
 			Config: r.addonProfileIngressApplicationGatewaySubnetIdConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.gateway_name").Exists(),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.effective_gateway_id").Exists(),
 			),
 		},
@@ -968,8 +970,9 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   addon_profile {
     ingress_application_gateway {
-      enabled     = true
-      subnet_cidr = "%s"
+      enabled      = true
+      gateway_name = "acctestgwn%d"
+      subnet_cidr  = "%s"
     }
     kube_dashboard {
       enabled = false
@@ -980,7 +983,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, addOnAppGatewaySubnetCIDR)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, addOnAppGatewaySubnetCIDR)
 }
 
 func (KubernetesClusterResource) addonProfileIngressApplicationGatewayDisabledConfig(data acceptance.TestData) string {
@@ -1077,8 +1080,9 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   addon_profile {
     ingress_application_gateway {
-      enabled   = true
-      subnet_id = azurerm_subnet.test.id
+      enabled      = true
+      gateway_name = "acctestgwn%d"
+      subnet_id    = azurerm_subnet.test.id
     }
     kube_dashboard {
       enabled = false
@@ -1089,5 +1093,5 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

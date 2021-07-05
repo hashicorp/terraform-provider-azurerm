@@ -29,6 +29,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dataprotection"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
@@ -102,6 +103,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 	return []sdk.TypedServiceRegistration{
 		eventhub.Registration{},
 		loadbalancer.Registration{},
+		policy.Registration{},
 		resource.Registration{},
 		web.Registration{},
 	}
@@ -137,6 +139,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		datalake.Registration{},
 		databasemigration.Registration{},
 		databoxedge.Registration{},
+		dataprotection.Registration{},
 		datashare.Registration{},
 		desktopvirtualization.Registration{},
 		devspace.Registration{},

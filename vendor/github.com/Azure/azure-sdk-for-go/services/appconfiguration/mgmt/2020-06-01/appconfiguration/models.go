@@ -37,6 +37,12 @@ type APIKey struct {
 	ReadOnly *bool `json:"readOnly,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for APIKey.
+func (ak APIKey) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // APIKeyListResult the result of a request to list API keys.
 type APIKeyListResult struct {
 	autorest.Response `json:"-"`
@@ -803,6 +809,12 @@ type NameAvailabilityStatus struct {
 	Message *string `json:"message,omitempty"`
 	// Reason - READ-ONLY; If any, the reason that the name is not available.
 	Reason *string `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for NameAvailabilityStatus.
+func (nas NameAvailabilityStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // OperationDefinition the definition of a configuration store operation.
@@ -1656,6 +1668,12 @@ type PrivateLinkResourceProperties struct {
 	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateLinkResourceProperties.
+func (plrp PrivateLinkResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateLinkServiceConnectionState the state of a private link service connection.
 type PrivateLinkServiceConnectionState struct {
 	// Status - The private link service connection status. Possible values include: 'Pending', 'Approved', 'Rejected', 'Disconnected'
@@ -1746,4 +1764,10 @@ type UserIdentity struct {
 	PrincipalID *string `json:"principalId,omitempty"`
 	// ClientID - READ-ONLY; The client ID of the user-assigned identity.
 	ClientID *string `json:"clientId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UserIdentity.
+func (UI UserIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }

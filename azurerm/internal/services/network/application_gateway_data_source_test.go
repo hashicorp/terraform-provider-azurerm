@@ -25,6 +25,21 @@ func TestAccDataSourceAppGateway_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAppGateway_userAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_application_gateway", "test")
+	r := AppGatewayDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+			),
+		},
+	})
+}
+
 func (AppGatewayDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -34,4 +49,15 @@ data "azurerm_application_gateway" "test" {
   name                = azurerm_application_gateway.test.name
 }
 `, ApplicationGatewayResource{}.basic(data))
+}
+
+func (AppGatewayDataSource) userAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_application_gateway" "test" {
+  resource_group_name = azurerm_application_gateway.test.resource_group_name
+  name                = azurerm_application_gateway.test.name
+}
+`, ApplicationGatewayResource{}.UserDefinedIdentity(data))
 }

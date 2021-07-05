@@ -29,17 +29,9 @@ func TestSynapseRoleAssignmentID(t *testing.T) {
 			Name:  "synapse Role Assignment ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1|00000000",
 			Expected: &RoleAssignmentId{
-				Workspace: WorkspaceId{
-					ResourceGroup: "resourceGroup1",
-					Name:          "workspace1",
-				},
+				Scope:                 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1",
 				DataPlaneAssignmentId: "00000000",
 			},
-		},
-		{
-			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/Workspaces/workspace1|00000000",
-			Expected: nil,
 		},
 	}
 
@@ -54,12 +46,8 @@ func TestSynapseRoleAssignmentID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Workspace.ResourceGroup != v.Expected.Workspace.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.Workspace.ResourceGroup, actual.Workspace.ResourceGroup)
-		}
-
-		if actual.Workspace.Name != v.Expected.Workspace.Name {
-			t.Fatalf("Expected %q but got %q for WorkspaceName", v.Expected.Workspace.Name, actual.Workspace.Name)
+		if actual.Scope != v.Expected.Scope {
+			t.Fatalf("Expected %q but got %q for scope", v.Expected.Scope, actual.Scope)
 		}
 
 		if actual.DataPlaneAssignmentId != v.Expected.DataPlaneAssignmentId {

@@ -2,6 +2,7 @@ package recoveryservices
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -163,6 +164,13 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
+						"target_disk_encryption_set_id": {
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							ForceNew:         true,
+							ValidateFunc:     azure.ValidateResourceID,
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
 					},
 				},
 			},
@@ -252,6 +260,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		recoveryResourceGroupId := diskInput["target_resource_group_id"].(string)
 		targetReplicaDiskType := diskInput["target_replica_disk_type"].(string)
 		targetDiskType := diskInput["target_disk_type"].(string)
+		targetEncryptionDiskSetID := diskInput["target_disk_encryption_set_id"].(string)
 
 		managedDisks = append(managedDisks, siterecovery.A2AVMManagedDiskInputDetails{
 			DiskID:                              &diskId,
@@ -259,6 +268,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 			RecoveryResourceGroupID:             &recoveryResourceGroupId,
 			RecoveryReplicaDiskAccountType:      &targetReplicaDiskType,
 			RecoveryTargetDiskAccountType:       &targetDiskType,
+			RecoveryDiskEncryptionSetID:         &targetEncryptionDiskSetID,
 		})
 	}
 
@@ -299,8 +309,11 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 	vaultName := d.Get("recovery_vault_name").(string)
 	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
 
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	// We are only allowed to update the configuration once the VM is fully protected
-	state, err := waitForReplicationToBeHealthy(d, meta)
+	state, err := waitForReplicationToBeHealthy(ctx, d, meta)
 	if err != nil {
 		return err
 	}
@@ -317,9 +330,6 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 	} else {
 		targetAvailabilitySetID = nil
 	}
-
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 
 	vmNics := []siterecovery.VMNicInputDetails{}
 	for _, raw := range d.Get("network_interface").(*pluginsdk.Set).List() {
@@ -452,6 +462,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 				diskOutput["target_resource_group_id"] = *disk.RecoveryResourceGroupID
 				diskOutput["target_replica_disk_type"] = *disk.RecoveryReplicaDiskAccountType
 				diskOutput["target_disk_type"] = *disk.RecoveryTargetDiskAccountType
+				diskOutput["target_disk_encryption_set_id"] = *disk.RecoveryDiskEncryptionSetID
 
 				disksOutput = append(disksOutput, diskOutput)
 			}
@@ -528,7 +539,7 @@ func resourceSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func waitForReplicationToBeHealthy(d *pluginsdk.ResourceData, meta interface{}) (*siterecovery.ReplicationProtectedItem, error) {
+func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (*siterecovery.ReplicationProtectedItem, error) {
 	log.Printf("Waiting for Site Recover to replicate VM.")
 	stateConf := &pluginsdk.StateChangeConf{
 		Target:       []string{"Protected"},
@@ -538,7 +549,7 @@ func waitForReplicationToBeHealthy(d *pluginsdk.ResourceData, meta interface{}) 
 
 	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 
-	result, err := stateConf.WaitForState()
+	result, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Error waiting for site recovery to replicate vm: %+v", err)
 	}

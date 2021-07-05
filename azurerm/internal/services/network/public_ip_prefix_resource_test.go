@@ -153,6 +153,39 @@ func TestAccPublicIpPrefix_disappears(t *testing.T) {
 	})
 }
 
+func TestAccPublicIpPrefix_availabilityZoneRedundant(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	r := PublicIPPrefixResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withAvailabilityZone(data, "Zone-Redundant"),
+		},
+	})
+}
+
+func TestAccPublicIpPrefix_availabilityZoneSingle(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	r := PublicIPPrefixResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withAvailabilityZone(data, "1"),
+		},
+	})
+}
+
+func TestAccPublicIpPrefix_availabilityZoneSNoZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	r := PublicIPPrefixResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withAvailabilityZone(data, "No-Zone"),
+		},
+	})
+}
+
 func (PublicIPPrefixResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -271,4 +304,24 @@ resource "azurerm_public_ip_prefix" "test" {
   prefix_length = 24
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (PublicIPPrefixResource) withAvailabilityZone(data acceptance.TestData, availabilityZone string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "acctestpublicipprefix-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  availability_zone   = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, availabilityZone)
 }

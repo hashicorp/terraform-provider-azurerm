@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
@@ -74,7 +73,7 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			// due to the sensitive nature, these are not returned by the API
@@ -83,7 +82,7 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 				Optional:         true,
 				Sensitive:        true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"tags": tags.Schema(),
@@ -146,7 +145,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if settingsString := d.Get("settings").(string); settingsString != "" {
-		settings, err := structure.ExpandJsonFromString(settingsString)
+		settings, err := pluginsdk.ExpandJsonFromString(settingsString)
 		if err != nil {
 			return fmt.Errorf("unable to parse settings: %s", err)
 		}
@@ -154,7 +153,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
-		protectedSettings, err := structure.ExpandJsonFromString(protectedSettingsString)
+		protectedSettings, err := pluginsdk.ExpandJsonFromString(protectedSettingsString)
 		if err != nil {
 			return fmt.Errorf("unable to parse protected_settings: %s", err)
 		}
@@ -225,7 +224,7 @@ func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interf
 
 		if settings := props.Settings; settings != nil {
 			settingsVal := settings.(map[string]interface{})
-			settingsJson, err := structure.FlattenJsonToString(settingsVal)
+			settingsJson, err := pluginsdk.FlattenJsonToString(settingsVal)
 			if err != nil {
 				return fmt.Errorf("unable to parse settings from response: %s", err)
 			}
