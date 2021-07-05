@@ -46,6 +46,10 @@ type Value struct {
 func (val Value) String() string {
 	typ := val.Type()
 
+	if typ == nil {
+		return "invalid typeless tftypes.Value<>"
+	}
+
 	// null and unknown values we use static strings for
 	if val.IsNull() {
 		return typ.String() + "<null>"
@@ -200,8 +204,14 @@ func (val Value) ApplyTerraform5AttributePathStep(step AttributePathStep) (inter
 // considered equal if their types are considered equal and if they represent
 // data that is considered equal.
 func (val Value) Equal(o Value) bool {
-	if val.typ == nil && o.typ == nil && val.value == nil && o.value == nil {
+	if val.Type() == nil && o.Type() == nil && val.value == nil && o.value == nil {
 		return true
+	}
+	if val.Type() == nil {
+		return false
+	}
+	if o.Type() == nil {
+		return false
 	}
 	if !val.Type().Is(o.Type()) {
 		return false
@@ -415,6 +425,10 @@ func (val Value) As(dst interface{}) error {
 			*target = nil
 			return nil
 		}
+		if *target == nil {
+			var s string
+			*target = &s
+		}
 		return val.As(*target)
 	case *big.Float:
 		if val.IsNull() {
@@ -431,6 +445,9 @@ func (val Value) As(dst interface{}) error {
 		if val.IsNull() {
 			*target = nil
 			return nil
+		}
+		if *target == nil {
+			*target = big.NewFloat(0)
 		}
 		return val.As(*target)
 	case *bool:
@@ -449,6 +466,10 @@ func (val Value) As(dst interface{}) error {
 			*target = nil
 			return nil
 		}
+		if *target == nil {
+			var b bool
+			*target = &b
+		}
 		return val.As(*target)
 	case *map[string]Value:
 		if val.IsNull() {
@@ -466,6 +487,10 @@ func (val Value) As(dst interface{}) error {
 			*target = nil
 			return nil
 		}
+		if *target == nil {
+			m := map[string]Value{}
+			*target = &m
+		}
 		return val.As(*target)
 	case *[]Value:
 		if val.IsNull() {
@@ -482,6 +507,10 @@ func (val Value) As(dst interface{}) error {
 		if val.IsNull() {
 			*target = nil
 			return nil
+		}
+		if *target == nil {
+			l := []Value{}
+			*target = &l
 		}
 		return val.As(*target)
 	}

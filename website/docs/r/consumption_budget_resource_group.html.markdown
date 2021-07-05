@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "eastus"
 }
 
-resource "azurerm_monitor_action_group" "test" {
+resource "azurerm_monitor_action_group" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   short_name          = "example"

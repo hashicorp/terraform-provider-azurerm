@@ -19,10 +19,13 @@ var kubernetesOtherTests = map[string]func(t *testing.T){
 	"linuxProfile":                      testAccKubernetesCluster_linuxProfile,
 	"nodeLabels":                        testAccKubernetesCluster_nodeLabels,
 	"nodeResourceGroup":                 testAccKubernetesCluster_nodeResourceGroup,
+	"nodePoolOther":                     testAccKubernetesCluster_nodePoolOther,
 	"paidSku":                           testAccKubernetesCluster_paidSku,
 	"upgradeConfig":                     testAccKubernetesCluster_upgrade,
 	"tags":                              testAccKubernetesCluster_tags,
 	"windowsProfile":                    testAccKubernetesCluster_windowsProfile,
+	"windowsProfileLicense":             testAccKubernetesCluster_windowsProfileLicense,
+	"updateWindowsProfileLicense":       TestAccKubernetesCluster_updateWindowsProfileLicense,
 	"outboundTypeLoadBalancer":          testAccKubernetesCluster_outboundTypeLoadBalancer,
 	"privateClusterOn":                  testAccKubernetesCluster_privateClusterOn,
 	"privateClusterOff":                 testAccKubernetesCluster_privateClusterOff,
@@ -297,6 +300,26 @@ func testAccKubernetesCluster_nodeResourceGroup(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_nodePoolOther(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_nodePoolOther(t)
+}
+
+func testAccKubernetesCluster_nodePoolOther(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodePoolOther(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_upgradeSkuTier(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccKubernetesCluster_upgradeSkuTier(t)
@@ -426,6 +449,62 @@ func testAccKubernetesCluster_windowsProfile(t *testing.T) {
 		data.ImportStep(
 			"windows_profile.0.admin_password",
 		),
+	})
+}
+
+func TestAccKubernetesCluster_windowsProfileLicense(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_windowsProfileLicense(t)
+}
+
+func testAccKubernetesCluster_windowsProfileLicense(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windowsProfileLicense(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"windows_profile.0.admin_password",
+		),
+	})
+}
+
+func TestAccKubernetesCluster_updateWindowsProfileLicense(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_updateWindowsProfileLicense(t)
+}
+
+func testAccKubernetesCluster_updateWindowsProfileLicense(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windowsProfileConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("windows_profile.0.admin_password"),
+		{
+			Config: r.windowsProfileLicense(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("windows_profile.0.admin_password"),
+		{
+			Config: r.windowsProfileConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("windows_profile.0.admin_password"),
 	})
 }
 
@@ -1044,6 +1123,38 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func (KubernetesClusterResource) nodePoolOther(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name              = "default"
+    node_count        = 1
+    vm_size           = "Standard_DS2_v2"
+    fips_enabled      = true
+    kubelet_disk_type = "OS"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
 func (KubernetesClusterResource) paidSkuConfig(data acceptance.TestData) string {
 	// @tombuildsstuff (2020-05-29) - this is only supported in a handful of regions
 	// 								  whilst in Preview - hard-coding for now
@@ -1246,6 +1357,59 @@ resource "azurerm_kubernetes_cluster" "test" {
   windows_profile {
     admin_username = "azureuser"
     admin_password = "P@55W0rd1234!h@2h1C0rP"
+  }
+
+  # the default node pool /has/ to be Linux agents - Windows agents can be added via the node pools resource
+  default_node_pool {
+    name       = "np"
+    node_count = 3
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin     = "azure"
+    network_policy     = "azure"
+    dns_service_ip     = "10.10.0.10"
+    docker_bridge_cidr = "172.18.0.1/16"
+    service_cidr       = "10.10.0.0/16"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) windowsProfileLicense(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  windows_profile {
+    admin_username = "azureuser"
+    admin_password = "P@55W0rd1234!h@2h1C0rP"
+    license        = "Windows_Server"
   }
 
   # the default node pool /has/ to be Linux agents - Windows agents can be added via the node pools resource

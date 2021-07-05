@@ -267,6 +267,7 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					"None",
 					"bzip2",
 					"gzip",
 					"deflate",
