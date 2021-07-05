@@ -291,7 +291,11 @@ func expandDataFactoryDatasetLocation(d *pluginsdk.ResourceData) datafactory.Bas
 }
 
 func expandDataFactoryDatasetSFTPServerLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
-	props := d.Get("sftp_server_location").([]interface{})[0].(map[string]interface{})
+	sftpServerLocations := d.Get("sftp_server_location").([]interface{})
+	if len(sftpServerLocations) == 0 || sftpServerLocations[0] == nil {
+		return nil
+	}
+	props := sftpServerLocations[0].(map[string]interface{})
 	path := props["path"].(string)
 	filename := props["filename"].(string)
 
@@ -303,7 +307,11 @@ func expandDataFactoryDatasetSFTPServerLocation(d *pluginsdk.ResourceData) dataf
 }
 
 func expandDataFactoryDatasetHttpServerLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
-	props := d.Get("http_server_location").([]interface{})[0].(map[string]interface{})
+	httpServerLocations := d.Get("http_server_location").([]interface{})
+	if len(httpServerLocations) == 0 || httpServerLocations[0] == nil {
+		return nil
+	}
+	props := httpServerLocations[0].(map[string]interface{})
 	relativeUrl := props["relative_url"].(string)
 	path := props["path"].(string)
 	filename := props["filename"].(string)
@@ -317,7 +325,11 @@ func expandDataFactoryDatasetHttpServerLocation(d *pluginsdk.ResourceData) dataf
 }
 
 func expandDataFactoryDatasetAzureBlobStorageLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
-	props := d.Get("azure_blob_storage_location").([]interface{})[0].(map[string]interface{})
+	azureBlobStorageLocations := d.Get("azure_blob_storage_location").([]interface{})
+	if len(azureBlobStorageLocations) == 0 || azureBlobStorageLocations[0] == nil {
+		return nil
+	}
+	props := azureBlobStorageLocations[0].(map[string]interface{})
 	container := props["container"].(string)
 	path := props["path"].(string)
 	filename := props["filename"].(string)
@@ -467,7 +479,11 @@ func flattenDataFactoryDatasetCompression(input datafactory.BasicDatasetCompress
 }
 
 func expandDataFactoryDatasetCompression(d *pluginsdk.ResourceData) datafactory.BasicDatasetCompression {
-	props := d.Get("compression").([]interface{})[0].(map[string]interface{})
+	compression := d.Get("compression").([]interface{})
+	if len(compression) == 0 || compression[0] == nil {
+		return nil
+	}
+	props := compression[0].(map[string]interface{})
 	level := props["level"].(string)
 	compressionType := props["type"].(string)
 

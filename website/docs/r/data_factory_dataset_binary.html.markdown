@@ -129,10 +129,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Data Factory.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory.
-* `update` - (Defaults to 30 minutes) Used when updating the Data Factory.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory.
+* `create` - (Defaults to 30 minutes) Used when creating the Data Factory Dataset.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Dataset.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Dataset.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory Dataset.
 
 ## Import
 
