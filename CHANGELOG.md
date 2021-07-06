@@ -2,6 +2,7 @@
 
 BUG FIXES:
 
+* `azurerm_kusto_eventhub_data_connection` - `APACHEAVRO` can now be used as a `data_format` option [GH-12480]
 * `azurerm_storage_account` - `account_replication_type` can now be updated [GH-12479]
 * `azurerm_storage_management_policy` - fix crash in read of properties [GH-12487]
 * `azurerm_storage_share_directory` now allows underscore in property `name` [GH-12454] 
