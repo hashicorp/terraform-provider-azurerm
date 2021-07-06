@@ -40,103 +40,94 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 				ValidateFunc: validate.ServiceID,
 			},
 
-			"network_acl": {
+			"default_action": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(signalr.Allow),
+					string(signalr.Deny),
+				}, false),
+			},
+
+			"public_network": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(signalr.Allow),
-								string(signalr.Deny),
-							}, false),
-						},
-
-						"private_endpoint": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"id": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: networkValidate.PrivateEndpointID,
-									},
-
-									// API response includes the `Trace` type but it isn't in rest api client.
-									// https://github.com/Azure/azure-rest-api-specs/issues/14923
-									"allowed_request_types": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(signalr.ClientConnection),
-												string(signalr.RESTAPI),
-												string(signalr.ServerConnection),
-												"Trace",
-											}, false),
-										},
-									},
-
-									"denied_request_types": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(signalr.ClientConnection),
-												string(signalr.RESTAPI),
-												string(signalr.ServerConnection),
-												"Trace",
-											}, false),
-										},
-									},
-								},
+						// API response includes the `Trace` type but it isn't in rest api client.
+						// https://github.com/Azure/azure-rest-api-specs/issues/14923
+						"allowed_request_types": {
+							Type:          pluginsdk.TypeSet,
+							Optional:      true,
+							ConflictsWith: []string{"public_network.0.denied_request_types"},
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(signalr.ClientConnection),
+									string(signalr.RESTAPI),
+									string(signalr.ServerConnection),
+									"Trace",
+								}, false),
 							},
 						},
 
-						"public_network": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									// API response includes the `Trace` type but it isn't in rest api client.
-									// https://github.com/Azure/azure-rest-api-specs/issues/14923
-									"allowed_request_types": {
-										Type:          pluginsdk.TypeSet,
-										Optional:      true,
-										ConflictsWith: []string{"network_acl.0.public_network.0.denied_request_types"},
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(signalr.ClientConnection),
-												string(signalr.RESTAPI),
-												string(signalr.ServerConnection),
-												"Trace",
-											}, false),
-										},
-									},
+						"denied_request_types": {
+							Type:          pluginsdk.TypeSet,
+							Optional:      true,
+							ConflictsWith: []string{"public_network.0.allowed_request_types"},
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(signalr.ClientConnection),
+									string(signalr.RESTAPI),
+									string(signalr.ServerConnection),
+									"Trace",
+								}, false),
+							},
+						},
+					},
+				},
+			},
 
-									"denied_request_types": {
-										Type:          pluginsdk.TypeSet,
-										Optional:      true,
-										ConflictsWith: []string{"network_acl.0.public_network.0.allowed_request_types"},
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(signalr.ClientConnection),
-												string(signalr.RESTAPI),
-												string(signalr.ServerConnection),
-												"Trace",
-											}, false),
-										},
-									},
-								},
+			"private_endpoint": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: networkValidate.PrivateEndpointID,
+						},
+
+						// API response includes the `Trace` type but it isn't in rest api client.
+						// https://github.com/Azure/azure-rest-api-specs/issues/14923
+						"allowed_request_types": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(signalr.ClientConnection),
+									string(signalr.RESTAPI),
+									string(signalr.ServerConnection),
+									"Trace",
+								}, false),
+							},
+						},
+
+						"denied_request_types": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(signalr.ClientConnection),
+									string(signalr.RESTAPI),
+									string(signalr.ServerConnection),
+									"Trace",
+								}, false),
 							},
 						},
 					},
@@ -167,7 +158,14 @@ func resourceSignalRServiceNetworkACLCreateUpdate(d *pluginsdk.ResourceData, met
 	parameters := resp
 
 	if props := resp.Properties; props != nil {
-		networkACL := expandSignalRServiceNetworkACL(d.Get("network_acl").([]interface{}), props.PrivateEndpointConnections)
+		networkACL := &signalr.NetworkACLs{
+			DefaultAction: signalr.ACLAction(d.Get("default_action").(string)),
+			PublicNetwork: expandSignalRServicePublicNetwork(d.Get("public_network").([]interface{})),
+		}
+
+		if v, ok := d.GetOk("private_endpoint"); ok {
+			networkACL.PrivateEndpoints = expandSignalRServicePrivateEndpoint(v.(*pluginsdk.Set).List(), props.PrivateEndpointConnections)
+		}
 
 		if networkACL.DefaultAction == signalr.Allow && len(*networkACL.PublicNetwork.Allow) != 0 {
 			return fmt.Errorf("when `default_action` is `Allow` for `public_network`, `allowed_request_types` cannot be specified")
@@ -175,15 +173,17 @@ func resourceSignalRServiceNetworkACLCreateUpdate(d *pluginsdk.ResourceData, met
 			return fmt.Errorf("when `default_action` is `Deny` for `public_network`, `denied_request_types` cannot be specified")
 		}
 
-		for _, privateEndpoint := range *networkACL.PrivateEndpoints {
-			if len(*privateEndpoint.Allow) != 0 && len(*privateEndpoint.Deny) != 0 {
-				return fmt.Errorf("`allowed_request_types` and `denied_request_types` cannot be set together for `private_endpoint`")
-			}
+		if networkACL.PrivateEndpoints != nil {
+			for _, privateEndpoint := range *networkACL.PrivateEndpoints {
+				if len(*privateEndpoint.Allow) != 0 && len(*privateEndpoint.Deny) != 0 {
+					return fmt.Errorf("`allowed_request_types` and `denied_request_types` cannot be set together for `private_endpoint`")
+				}
 
-			if networkACL.DefaultAction == signalr.Allow && len(*privateEndpoint.Allow) != 0 {
-				return fmt.Errorf("when `default_action` is `Allow` for `private_endpoint`, `allowed_request_types` cannot be specified")
-			} else if networkACL.DefaultAction == signalr.Deny && len(*privateEndpoint.Deny) != 0 {
-				return fmt.Errorf("when `default_action` is `Deny` for `private_endpoint`, `denied_request_types` cannot be specified")
+				if networkACL.DefaultAction == signalr.Allow && len(*privateEndpoint.Allow) != 0 {
+					return fmt.Errorf("when `default_action` is `Allow` for `private_endpoint`, `allowed_request_types` cannot be specified")
+				} else if networkACL.DefaultAction == signalr.Deny && len(*privateEndpoint.Deny) != 0 {
+					return fmt.Errorf("when `default_action` is `Deny` for `private_endpoint`, `denied_request_types` cannot be specified")
+				}
 			}
 		}
 
@@ -226,8 +226,14 @@ func resourceSignalRServiceNetworkACLRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("signalr_service_id", id.ID())
 
 	if props := resp.Properties; props != nil {
-		if err := d.Set("network_acl", flattenSignalRServiceNetworkACL(props.NetworkACLs, props.PrivateEndpointConnections)); err != nil {
-			return fmt.Errorf("setting `network_acl`: %+v", err)
+		d.Set("default_action", props.NetworkACLs.DefaultAction)
+
+		if err := d.Set("public_network", flattenSignalRServicePublicNetwork(props.NetworkACLs.PublicNetwork)); err != nil {
+			return fmt.Errorf("setting `public_network`: %+v", err)
+		}
+
+		if err := d.Set("private_endpoint", flattenSignalRServicePrivateEndpoint(props.NetworkACLs.PrivateEndpoints, props.PrivateEndpointConnections)); err != nil {
+			return fmt.Errorf("setting `private_endpoint`: %+v", err)
 		}
 	}
 
@@ -297,16 +303,6 @@ func resourceSignalRServiceNetworkACLDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandSignalRServiceNetworkACL(input []interface{}, privateEndpointConnections *[]signalr.PrivateEndpointConnection) *signalr.NetworkACLs {
-	v := input[0].(map[string]interface{})
-
-	return &signalr.NetworkACLs{
-		DefaultAction:    signalr.ACLAction(v["default_action"].(string)),
-		PublicNetwork:    expandSignalRServicePublicNetwork(v["public_network"].([]interface{})),
-		PrivateEndpoints: expandSignalRServicePrivateEndpoint(v["private_endpoint"].(*pluginsdk.Set).List(), privateEndpointConnections),
-	}
-}
-
 func expandSignalRServicePublicNetwork(input []interface{}) *signalr.NetworkACL {
 	allowedRTs := make([]signalr.RequestType, 0)
 	deniedRTs := make([]signalr.RequestType, 0)
@@ -369,25 +365,6 @@ func expandSignalRServicePrivateEndpoint(input []interface{}, privateEndpointCon
 	}
 
 	return &results
-}
-
-func flattenSignalRServiceNetworkACL(input *signalr.NetworkACLs, privateEndpointConnections *[]signalr.PrivateEndpointConnection) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var defaultAction signalr.ACLAction
-	if input.DefaultAction != "" {
-		defaultAction = input.DefaultAction
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"default_action":   defaultAction,
-			"public_network":   flattenSignalRServicePublicNetwork(input.PublicNetwork),
-			"private_endpoint": flattenSignalRServicePrivateEndpoint(input.PrivateEndpoints, privateEndpointConnections),
-		},
-	}
 }
 
 func flattenSignalRServicePublicNetwork(input *signalr.NetworkACL) []interface{} {

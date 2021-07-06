@@ -61,18 +61,15 @@ resource "azurerm_private_endpoint" "example" {
 
 resource "azurerm_signalr_service_network_acl" "example" {
   signalr_service_id = azurerm_signalr_service.example.id
+  default_action     = "Deny"
 
-  network_acl {
-    default_action = "Deny"
+  public_network {
+    allowed_request_types = ["ClientConnection"]
+  }
 
-    public_network {
-      allowed_request_types = ["ClientConnection"]
-    }
-
-    private_endpoint {
-      id                    = azurerm_private_endpoint.example.id
-      allowed_request_types = ["ServerConnection"]
-    }
+  private_endpoint {
+    id                    = azurerm_private_endpoint.example.id
+    allowed_request_types = ["ServerConnection"]
   }
 }
 ```
@@ -83,15 +80,9 @@ The following arguments are supported:
 
 * `signalr_service_id` - (Required) The ID of the SignalR service. Changing this forces a new resource to be created.
 
-* `network_acl` - (Required) A `network_acl` block as documented below.
+* `default_action` - (Required) The default action to control the network access when no other rule matches. Possible values are `Allow` and `Deny`.
 
----
-
-A `network_acl` block supports the following:
-
-* `default_action` - (Required) The default action when no other rule matches. Possible values are `Allow` and `Deny`.
-
-* `public_network` - (Optional) A `public_network` block as defined below.
+* `public_network` - (Required) A `public_network` block as defined below.
 
 * `private_endpoint` - (Optional) A `private_endpoint` block as defined below.
 
@@ -99,15 +90,15 @@ A `network_acl` block supports the following:
 
 A `public_network` block supports the following:
 
-**Note:** `allowed_request_types` and `denied_request_types` cannot be set together.
-
-* `allowed_request_types` - (Optional) The allowed request types. Possible values are `ClientConnection`, `ServerConnection`, `RESTAPI` and `Trace`.
+* `allowed_request_types` - (Optional) The allowed request types for the public network. Possible values are `ClientConnection`, `ServerConnection`, `RESTAPI` and `Trace`.
 
 **Note:** When `default_action` is `Allow`, `allowed_request_types`cannot be set.
 
-* `denied_request_types` - (Optional) The denied request types. Possible values are `ClientConnection`, `ServerConnection`, `RESTAPI` and `Trace`.
+* `denied_request_types` - (Optional) The denied request types for the public network. Possible values are `ClientConnection`, `ServerConnection`, `RESTAPI` and `Trace`.
 
 **Note:** When `default_action` is `Deny`, `denied_request_types`cannot be set.
+
+**Note:** `allowed_request_types` and `denied_request_types` cannot be set together.
 
 ---
 
@@ -115,15 +106,15 @@ A `private_endpoint` block supports the following:
 
 * `id` - (Required) The ID of the Private Endpoint which is based on the SignalR service.
 
-**Note:** `allowed_request_types` and `denied_request_types` cannot be set together.
-
-* `allowed_request_types` - (Optional) The allowed request types. Possible values are `ClientConnection`, `ServerConnection`, `RESTAPI` and `Trace`.
+* `allowed_request_types` - (Optional) The allowed request types for the Private Endpoint Connection. Possible values are `ClientConnection`, `ServerConnection`, `RESTAPI` and `Trace`.
 
 **Note:** When `default_action` is `Allow`, `allowed_request_types`cannot be set.
 
-* `denied_request_types` - (Optional) The denied request types. Possible values are `ClientConnection`, `ServerConnection`, `RESTAPI` and `Trace`.
+* `denied_request_types` - (Optional) The denied request types for the Private Endpoint Connection. Possible values are `ClientConnection`, `ServerConnection`, `RESTAPI` and `Trace`.
 
 **Note:** When `default_action` is `Deny`, `denied_request_types`cannot be set.
+
+**Note:** `allowed_request_types` and `denied_request_types` cannot be set together.
 
 ## Attributes Reference
 

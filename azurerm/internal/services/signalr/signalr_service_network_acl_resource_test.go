@@ -66,6 +66,13 @@ func TestAccSignalRServiceNetworkACL_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.multiplePrivateEndpoints(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -102,13 +109,10 @@ func (r SignalRServiceNetworkACLResource) basic(data acceptance.TestData) string
 
 resource "azurerm_signalr_service_network_acl" "test" {
   signalr_service_id = azurerm_signalr_service.test.id
+  default_action     = "Deny"
 
-  network_acl {
-    default_action = "Deny"
-
-    public_network {
-      allowed_request_types = ["ClientConnection"]
-    }
+  public_network {
+    allowed_request_types = ["ClientConnection"]
   }
 }
 `, r.template(data))
@@ -150,21 +154,103 @@ resource "azurerm_private_endpoint" "test" {
 
 resource "azurerm_signalr_service_network_acl" "test" {
   signalr_service_id = azurerm_signalr_service.test.id
+  default_action     = "Allow"
 
-  network_acl {
-    default_action = "Allow"
+  public_network {
+    denied_request_types = ["ClientConnection"]
+  }
 
-    public_network {
-      denied_request_types = ["ClientConnection"]
-    }
-
-    private_endpoint {
-      id                   = azurerm_private_endpoint.test.id
-      denied_request_types = ["ClientConnection"]
-    }
+  private_endpoint {
+    id                   = azurerm_private_endpoint.test.id
+    denied_request_types = ["ClientConnection"]
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r SignalRServiceNetworkACLResource) multiplePrivateEndpoints(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.5.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-subnet-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.5.2.0/24"]
+
+  enforce_private_link_endpoint_network_policies = true
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-pe-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.test.id
+
+  private_service_connection {
+    name                           = "psc-sig-test"
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_signalr_service.test.id
+    subresource_names              = ["signalr"]
+  }
+}
+
+resource "azurerm_virtual_network" "test2" {
+  name                = "acctest-vnet2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.5.0.0/16"]
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "acctest-subnet2-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test2.name
+  address_prefixes     = ["10.5.2.0/24"]
+
+  enforce_private_link_endpoint_network_policies = true
+}
+
+resource "azurerm_private_endpoint" "test2" {
+  name                = "acctest-pe2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.test2.id
+
+  private_service_connection {
+    name                           = "psc-sig-test2"
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_signalr_service.test.id
+    subresource_names              = ["signalr"]
+  }
+}
+
+resource "azurerm_signalr_service_network_acl" "test" {
+  signalr_service_id = azurerm_signalr_service.test.id
+  default_action     = "Allow"
+
+  public_network {
+    denied_request_types = ["ClientConnection"]
+  }
+
+  private_endpoint {
+    id                   = azurerm_private_endpoint.test.id
+    denied_request_types = ["ClientConnection"]
+  }
+
+  private_endpoint {
+    id                   = azurerm_private_endpoint.test2.id
+    denied_request_types = ["ServerConnection"]
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SignalRServiceNetworkACLResource) template(data acceptance.TestData) string {
