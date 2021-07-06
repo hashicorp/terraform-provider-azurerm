@@ -43,9 +43,14 @@ type ActiveDirectoryDomainServiceResource struct {
 type ActiveDirectoryDomainServiceReplicaSetResource struct {
 }
 
-// Running all tests sequentially here in the same acctest (including the data source) since you can create only one
-// AADDS resource per tenant, or per location, or per subscription, making parallel testing infeasible.
-func TestAccActiveDirectoryDomainService(t *testing.T) {
+// AADDS has a single test which also includes a step for the data source, because:
+// - There can only be a single domain service per tenant, or per subscription
+// - It takes around 60 mins to stand up each replica set (including the initial one built into the resource)
+// - Deleting them takes around 45 mins and they can stay around for longer than the API reports them as gone
+// - Creating and deleting multiple in a row sometimes causes failures (enters Failed state, is unrecoverable)
+//
+// TODO: we should try proper sequential tests at a later date
+func TestAccActiveDirectoryDomainService_updateWithDatasource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_active_directory_domain_service", "test")
 	replicaSetResourceName := "azurerm_active_directory_domain_service_replica_set.test_secondary"
 	dataSourceData := acceptance.BuildTestData(t, "data.azurerm_active_directory_domain_service", "test")

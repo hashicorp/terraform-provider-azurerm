@@ -750,8 +750,8 @@ func flattenDomainServiceResourceForest(input *aad.ResourceForestSettings) []int
 			ft := map[string]interface{}{
 				"name":                "",
 				"remote_dns_ips":      make([]string, 0),
-				"trust_direction":     "",
-				"trust_password":      "",
+				"direction":           "",
+				"password":            "",
 				"trusted_domain_fqdn": "",
 			}
 
@@ -767,10 +767,10 @@ func flattenDomainServiceResourceForest(input *aad.ResourceForestSettings) []int
 				ft["remote_dns_ips"] = remoteDnsIps
 			}
 			if rf.TrustDirection != nil {
-				ft["trust_direction"] = *rf.TrustDirection
+				ft["direction"] = *rf.TrustDirection
 			}
 			if rf.TrustPassword != nil {
-				ft["trust_password"] = *rf.TrustPassword
+				ft["password"] = *rf.TrustPassword
 			}
 			if rf.TrustedDomainFqdn != nil {
 				ft["trusted_domain_fqdn"] = *rf.TrustedDomainFqdn
@@ -782,7 +782,7 @@ func flattenDomainServiceResourceForest(input *aad.ResourceForestSettings) []int
 
 	result := map[string]interface{}{
 		"resource_forest": "",
-		"forest_trust":    forestTrust,
+		"trust":           forestTrust,
 	}
 	if input.ResourceForest != nil {
 		result["resource_forest"] = *input.ResourceForest
