@@ -1,6 +1,8 @@
 ## 2.67.0 (Unreleased)
 
 BUG FIXES:
+
+* `azurerm_storage_management_policy` - fix crash in read of properties [GH-12487]
 * `azurerm_storage_share_directory` now allows underscore in property `name` [GH-12454] 
 * `security_center_subscription_pricing` - removed Owner permission note from documentation [GH-12481]
 
