@@ -96,6 +96,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"account_replication_type": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"LRS",
 					"ZRS",
