@@ -195,7 +195,7 @@ resource "azurerm_api_management" "test" {
 resource "azurerm_api_management_gateway" "test" {
   name              = "acctestAMGateway-%d"
   api_management_id = azurerm_api_management.test.id
-  description       = %s"
+  description       = "%s"
 
   location_data {
     name = "%s"
