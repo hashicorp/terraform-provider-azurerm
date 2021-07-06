@@ -139,7 +139,7 @@ A `linked_service` block supports the following:
 
 * `name` - (Required) The name of the Data Factory Linked Service.
 
-* `parameters` - (Required) A map of parameters to associate with the Data Factory Linked Service.
+* `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service.
 
 ## Attributes Reference
 
