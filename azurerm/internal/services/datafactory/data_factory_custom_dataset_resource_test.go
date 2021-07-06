@@ -168,7 +168,7 @@ resource "azurerm_data_factory_custom_dataset" "import" {
   data_factory_id      = azurerm_data_factory_custom_dataset.test.data_factory_id
   type                 = azurerm_data_factory_custom_dataset.test.type
   type_properties_json = azurerm_data_factory_custom_dataset.test.type_properties_json
-  
+
   linked_service {
     name = azurerm_data_factory_custom_dataset.test.linked_service.0.name
   }
