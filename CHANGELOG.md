@@ -1,23 +1,54 @@
-## 2.66.0 (Unreleased)
-
-FEATURES:
-
-* **New Resouce** `azurerm_api_management_api_operation_tag` [GH-12384]
-* **New Resouce** `azurerm_data_factory_linked_custom_service` [GH-12224]
+## 2.67.0 (Unreleased)
 
 ENHANCEMENTS:
 
-* `azurerm_api_management_backend` - support for the `client_certificate_id` property  [GH-12402]
-* `azurerm_lighthouse_definition` - support for the `plan` block [GH-12360]
 * `azurerm_app_service` - support for the `acr_use_managed_identity_creds` and `acr_user_managed_identity_id` properties [GH-12277]
-* `azurerm_site_recovery_replicated_vm` - Add support for `target_disk_encryption_set_id` in `managed_disk` [GH-12374]
 
 BUG FIXES:
 
-* `azurerm_app_service` - fix app_setting and SCM setting ordering [GH-12280]
-* `azurerm_hdinsight_kafka_cluster` - will no longer panic from an empty `component_version` property [GH-12261]
-* `azurerm_spatial_anchors_account` - the `tags` property can now be updated without creating a new resource [GH-11985]
+* `azurerm_storage_account` - `account_replication_type` can now be updated [GH-12479]
+* `azurerm_storage_management_policy` - fix crash in read of properties [GH-12487]
+* `azurerm_storage_share_directory` now allows underscore in property `name` [GH-12454] 
+* `security_center_subscription_pricing` - removed Owner permission note from documentation [GH-12481]
 
+
+## 2.66.0 (July 02, 2021)
+
+FEATURES:
+
+* **New Resource** `azurerm_api_management_api_operation_tag` ([#12384](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12384))
+* **New Resource** `azurerm_data_factory_linked_custom_service` ([#12224](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12224))
+* **New Resource** `azurerm_data_factory_trigger_blob_event` ([#12330](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12330))
+* **New Resource** `azurerm_express_route_connection` ([#11320](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11320))
+* **New Resource** `azurerm_express_route_circuit_connection` ([#11303](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11303))
+* **New Resource** `azurerm_management_group_policy_assignment` ([#12349](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12349))
+* **New Resource** `azurerm_resource_group_policy_assignment` ([#12349](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12349))
+* **New Resource** `azurerm_resource_policy_assignment` ([#12349](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12349))
+* **New Resource** `azurerm_subscription_policy_assignment` ([#12349](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12349))
+* **New resource** `azurerm_tenant_configuration` ([#11697](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11697))
+* Cognitive Service now supports purging soft delete accounts ([#12281](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12281))
+
+ENHANCEMENTS:
+
+* dependencies: updating `cognitive` to use API Version `2021-03-01` ([#12281](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12281))
+* dependencies: updating `trafficmanager` to use API Version `2018-08-01` ([#12400](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12400))
+* `azurerm_api_management_backend` - support for the `client_certificate_id` property  ([#12402](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12402))
+* `azurerm_api_management_api` - support for the `revision_description`, `version_description`, and `source_api_id` properties ([#12266](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12266))
+* `azurerm_batch_account` - support for the `public_network_access_enabled` property ([#12401](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12401))
+* `azurerm_eventgrid_event_subscription` - support for additional advanced filters `string_not_begins_with`, `string_not_ends_with`, `string_not_contains`, `is_not_null`, `is_null_or_undefined`, `number_in_range` and `number_not_in_range` ([#12167](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12167))
+* `azurerm_eventgrid_system_topic_event_subscription` - support for additional advanced filters `string_not_begins_with`, `string_not_ends_with`, `string_not_contains`, `is_not_null`, `is_null_or_undefined`, `number_in_range` and `number_not_in_range` ([#12167](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12167))
+* `azurerm_kubernetes_cluster` - support for the `fips_enabled`, `kubelet_disk_type`, and `license` properties ([#11835](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11835))
+* `azurerm_kubernetes_cluster_node_pool` - support for the `fips_enabled`, and `kubelet_disk_type` properties ([#11835](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11835))
+* `azurerm_lighthouse_definition` - support for the `plan` block ([#12360](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12360))
+* `azurerm_site_recovery_replicated_vm` - Add support for `target_disk_encryption_set_id` in `managed_disk` ([#12374](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12374))
+* `azurerm_traffic_manager_endpoint` - supports for the `minimum_required_child_endpoints_ipv4` and `minimum_required_child_endpoints_ipv6` ([#12400](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12400))
+
+BUG FIXES:
+
+* `azurerm_app_service` - fix app_setting and SCM setting ordering ([#12280](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12280))
+* `azurerm_hdinsight_kafka_cluster` - will no longer panic from an empty `component_version` property ([#12261](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12261))
+* `azurerm_spatial_anchors_account` - the `tags` property can now be updated without creating a new resource ([#11985](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11985))
+* **Data Source** `azurerm_app_service_environment_v3` - fix id processing for Read ([#12436](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12436))
 
 
 ## 2.65.0 (June 25, 2021)

@@ -12,7 +12,11 @@ type AttributePathError struct {
 }
 
 func (a AttributePathError) Error() string {
-	return fmt.Sprintf("%s: %s", a.Path, a.err)
+	var path string
+	if len(a.Path.Steps()) > 0 {
+		path = a.Path.String() + ": "
+	}
+	return fmt.Sprintf("%s%s", path, a.err)
 }
 
 func (a AttributePathError) Unwrap() error {
