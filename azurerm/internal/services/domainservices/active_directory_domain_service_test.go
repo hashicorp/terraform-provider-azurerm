@@ -203,12 +203,8 @@ provider "azurerm" {
 provider "azuread" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aadds-%[2]d"
+  name     = "acclongtestRG-aadds-%[2]d"
   location = "%[1]s"
-
-  tags = {
-    DONOTDELETE = "1"
-  }
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -374,12 +370,8 @@ func (r ActiveDirectoryDomainServiceResource) completeWithReplicaSet(data accept
 %[1]s
 
 resource "azurerm_resource_group" "test_secondary" {
-  name     = "acctestRG-aadds-secondary-%[4]d"
+  name     = "acclongtestRG-aadds-secondary-%[4]d"
   location = "%[2]s"
-
-  tags = {
-    DONOTDELETE = "1"
-  }
 }
 
 resource "azurerm_virtual_network" "test_secondary" {
