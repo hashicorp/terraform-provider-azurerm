@@ -544,7 +544,7 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 					if armActionVersion.TierToCool != nil && armActionVersion.TierToCool.DaysAfterCreationGreaterThan != nil {
 						coolAfterCreation = int(*armActionVersion.TierToCool.DaysAfterCreationGreaterThan)
 					}
-					action["version"] = [1]interface{}{map[string]interface{}{
+					action["version"] = []interface{}{map[string]interface{}{
 						"delete_after_days_since_creation":                 deleteAfterCreation,
 						"change_tier_to_archive_after_days_since_creation": archiveAfterCreation,
 						"change_tier_to_cool_after_days_since_creation":    coolAfterCreation,
