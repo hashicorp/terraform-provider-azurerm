@@ -86,6 +86,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 					"ImmersiveReader",
 					"LUIS",
 					"LUIS.Authoring",
+					"MetricsAdvisor",
 					"Personalizer",
 					"QnAMaker",
 					"Recommendations",
@@ -105,6 +106,20 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"F0", "F1", "S0", "S", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2",
 				}, false),
+			},
+
+			"aad_client_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"aad_tenant_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"custom_subdomain_name": {
@@ -244,6 +259,20 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"super_user": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"website_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"tags": tags.Schema(),
 
 			"endpoint": {
@@ -314,12 +343,17 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		publicNetworkAccess = cognitiveservices.PublicNetworkAccessDisabled
 	}
 
+	apiProps, err := expandCognitiveAccountAPIProperties(d)
+	if err != nil {
+		return err
+	}
+
 	props := cognitiveservices.Account{
 		Kind:     utils.String(kind),
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Sku:      sku,
 		Properties: &cognitiveservices.AccountProperties{
-			APIProperties:                 &cognitiveservices.APIProperties{},
+			APIProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
 			CustomSubDomainName:           utils.String(d.Get("custom_subdomain_name").(string)),
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
@@ -337,14 +371,6 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("Error expanding `identity`: %+v", err)
 	}
 	props.Identity = identity
-
-	if kind == "QnAMaker" {
-		if v, ok := d.GetOk("qna_runtime_endpoint"); ok && v != "" {
-			props.Properties.APIProperties.QnaRuntimeEndpoint = utils.String(v.(string))
-		} else {
-			return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
-		}
-	}
 
 	if _, err := client.Create(ctx, id.ResourceGroup, id.Name, props); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -403,10 +429,15 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		publicNetworkAccess = cognitiveservices.PublicNetworkAccessDisabled
 	}
 
+	apiProps, err := expandCognitiveAccountAPIProperties(d)
+	if err != nil {
+		return err
+	}
+
 	props := cognitiveservices.Account{
 		Sku: sku,
 		Properties: &cognitiveservices.AccountProperties{
-			APIProperties:                 &cognitiveservices.APIProperties{},
+			APIProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
 			CustomSubDomainName:           utils.String(d.Get("custom_subdomain_name").(string)),
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
@@ -423,14 +454,6 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("Error expanding `identity`: %+v", err)
 	}
 	props.Identity = identity
-
-	if kind := d.Get("kind"); kind == "QnAMaker" {
-		if v, ok := d.GetOk("qna_runtime_endpoint"); ok && v != "" {
-			props.Properties.APIProperties.QnaRuntimeEndpoint = utils.String(v.(string))
-		} else {
-			return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
-		}
-	}
 
 	if _, err = client.Update(ctx, id.ResourceGroup, id.Name, props); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
@@ -495,6 +518,10 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 	if props := resp.Properties; props != nil {
 		if apiProps := props.APIProperties; apiProps != nil {
 			d.Set("qna_runtime_endpoint", apiProps.QnaRuntimeEndpoint)
+			d.Set("aad_client_id", apiProps.AadClientID)
+			d.Set("aad_tenant_id", apiProps.AadTenantID)
+			d.Set("super_user", apiProps.SuperUser)
+			d.Set("website_name", apiProps.WebsiteName)
 		}
 		d.Set("endpoint", props.Endpoint)
 		d.Set("custom_subdomain_name", props.CustomSubDomainName)
@@ -682,6 +709,47 @@ func expandCognitiveAccountIdentity(vs []interface{}) (*cognitiveservices.Identi
 	}
 
 	return &managedServiceIdentity, nil
+}
+
+func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitiveservices.APIProperties, error) {
+	props := cognitiveservices.APIProperties{}
+	kind := d.Get("kind")
+	if kind == "QnAMaker" {
+		if v, ok := d.GetOk("qna_runtime_endpoint"); ok && v != "" {
+			props.QnaRuntimeEndpoint = utils.String(v.(string))
+		} else {
+			return nil, fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+		}
+	}
+	if v, ok := d.GetOk("aad_client_id"); ok {
+		if kind == "MetricsAdvisor" {
+			props.AadClientID = utils.String(v.(string))
+		} else {
+			return nil, fmt.Errorf("aad_client_id can only used set when kind is set to `MetricsAdvisor`")
+		}
+	}
+	if v, ok := d.GetOk("aad_tenant_id"); ok {
+		if kind == "MetricsAdvisor" {
+			props.AadTenantID = utils.String(v.(string))
+		} else {
+			return nil, fmt.Errorf("aad_tenant_id can only used set when kind is set to `MetricsAdvisor`")
+		}
+	}
+	if v, ok := d.GetOk("super_user"); ok {
+		if kind == "MetricsAdvisor" {
+			props.SuperUser = utils.String(v.(string))
+		} else {
+			return nil, fmt.Errorf("super_user can only used set when kind is set to `MetricsAdvisor`")
+		}
+	}
+	if v, ok := d.GetOk("website_name"); ok {
+		if kind == "MetricsAdvisor" {
+			props.WebsiteName = utils.String(v.(string))
+		} else {
+			return nil, fmt.Errorf("website_name can only used set when kind is set to `MetricsAdvisor`")
+		}
+	}
+	return &props, nil
 }
 
 func flattenCognitiveAccountNetworkAcls(input *cognitiveservices.NetworkRuleSet) []interface{} {

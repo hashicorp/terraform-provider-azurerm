@@ -276,6 +276,21 @@ func TestAccCognitiveAccount_identity(t *testing.T) {
 	})
 }
 
+func TestAccCognitiveAccount_metricsAdvisor(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	r := CognitiveAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.metricsAdvisor(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CognitiveAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AccountID(state.ID)
 	if err != nil {
@@ -574,6 +589,30 @@ resource "azurerm_cognitive_account" "test" {
   sku_name            = "S0"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (CognitiveAccountResource) metricsAdvisor(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%d"
+  location = "%s"
+}
+resource "azurerm_cognitive_account" "test" {
+  name                  = "acctestcogacc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  kind                  = "MetricsAdvisor"
+  sku_name              = "S0"
+  custom_subdomain_name = "acctestcogacc-%d"
+  aad_client_id         = "310d7b2e-d1d1-4b87-9807-5b885b290c00"
+  aad_tenant_id         = "72f988bf-86f1-41af-91ab-2d7cd011db47"
+  super_user            = "mock_user1"
+  website_name          = "mock_name2"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (CognitiveAccountResource) withMultipleCognitiveAccounts(data acceptance.TestData) string {
