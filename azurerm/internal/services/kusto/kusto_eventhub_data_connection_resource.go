@@ -115,6 +115,7 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					string(kusto.APACHEAVRO),
 					string(kusto.AVRO),
 					string(kusto.CSV),
 					string(kusto.JSON),
