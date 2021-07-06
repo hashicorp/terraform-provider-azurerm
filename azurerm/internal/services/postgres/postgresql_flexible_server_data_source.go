@@ -63,6 +63,12 @@ func dataSourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"cmk_enabled": {
+				Type:       pluginsdk.TypeString,
+				Computed:   true,
+				Deprecated: "This attribute has been removed from the API and will be removed in version 3.0 of the provider.",
+			},
+
 			"fqdn": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -101,16 +107,27 @@ func dataSourceArmPostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta i
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+
+	// `cmk_enabled` has been removed from API since 2021-06-01
+	// and should be removed in version 3.0 of the provider.
+	d.Set("cmk_enabled", "")
+
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
-		d.Set("storage_mb", (*props.Storage.StorageSizeGB * 1024))
 		d.Set("version", props.Version)
 		d.Set("fqdn", props.FullyQualifiedDomainName)
-		d.Set("public_network_access_enabled", props.Network.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
-		d.Set("backup_retention_days", props.Backup.BackupRetentionDays)
 
-		if props.Network.DelegatedSubnetResourceID != nil {
-			d.Set("delegated_subnet_id", props.Network.DelegatedSubnetResourceID)
+		if storage := props.Storage; storage != nil && storage.StorageSizeGB != nil {
+			d.Set("storage_mb", (*props.Storage.StorageSizeGB * 1024))
+		}
+
+		if backup := props.Backup; backup != nil {
+			d.Set("backup_retention_days", props.Backup.BackupRetentionDays)
+		}
+
+		if network := props.Network; network != nil {
+			d.Set("delegated_subnet_id", network.DelegatedSubnetResourceID)
+			d.Set("public_network_access_enabled", network.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
 		}
 	}
 

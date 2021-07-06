@@ -169,6 +169,12 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(7, 35),
 			},
 
+			"cmk_enabled": {
+				Type:       pluginsdk.TypeString,
+				Computed:   true,
+				Deprecated: "This attribute has been removed from the API and will be removed in version 3.0 of the provider.",
+			},
+
 			"fqdn": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -330,26 +336,27 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+
+	// `cmk_enabled` has been removed from API since 2021-06-01
+	// and should be removed in version 3.0 of the provider.
+	d.Set("cmk_enabled", "")
+
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("zone", props.AvailabilityZone)
 		d.Set("version", props.Version)
 		d.Set("fqdn", props.FullyQualifiedDomainName)
-		d.Set("public_network_access_enabled", props.Network.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
 
-		if props.SourceServerResourceID != nil {
-			d.Set("source_server_id", props.SourceServerResourceID)
-		}
-
-		if props.Network.DelegatedSubnetResourceID != nil {
-			d.Set("delegated_subnet_id", props.Network.DelegatedSubnetResourceID)
+		if network := props.Network; network != nil {
+			d.Set("public_network_access_enabled", network.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
+			d.Set("delegated_subnet_id", network.DelegatedSubnetResourceID)
 		}
 
 		if err := d.Set("maintenance_window", flattenArmServerMaintenanceWindow(props.MaintenanceWindow)); err != nil {
 			return fmt.Errorf("setting `maintenance_window`: %+v", err)
 		}
 
-		if storage := props.Storage; storage != nil {
+		if storage := props.Storage; storage != nil && storage.StorageSizeGB != nil {
 			d.Set("storage_mb", (*storage.StorageSizeGB * 1024))
 		}
 

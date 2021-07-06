@@ -26,6 +26,7 @@ func TestAccPostgresqlflexibleServer_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
+				check.That(data.ResourceName).Key("cmk_enabled").IsEmpty(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
