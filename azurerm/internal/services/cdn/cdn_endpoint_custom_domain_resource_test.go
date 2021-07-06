@@ -3,15 +3,12 @@ package cdn_test
 import (
 	"context"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"os"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/parse"
@@ -42,7 +39,7 @@ func NewCdnEndpointCustomDomainResource(dnsZoneRg, dnsZoneName string) CdnEndpoi
 	return CdnEndpointCustomDomainResource{
 		DNSZoneRG:     dnsZoneRg,
 		DNSZoneName:   dnsZoneName,
-		SubDomainName: acctest.RandStringFromCharSet(3, acctest.CharSetAlpha),
+		SubDomainName: acceptance.RandString(3),
 	}
 }
 
@@ -53,10 +50,10 @@ func TestAccCdnEndpointCustomDomain_basic(t *testing.T) {
 
 	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -71,10 +68,10 @@ func TestAccCdnEndpointCustomDomain_requiresImport(t *testing.T) {
 
 	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -82,7 +79,7 @@ func TestAccCdnEndpointCustomDomain_requiresImport(t *testing.T) {
 	})
 }
 
-func (r CdnEndpointCustomDomainResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r CdnEndpointCustomDomainResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CustomDomainID(state.ID)
 	if err != nil {
 		return nil, err
@@ -97,7 +94,7 @@ func (r CdnEndpointCustomDomainResource) Exists(ctx context.Context, client *cli
 	return utils.Bool(true), nil
 }
 
-func (r CdnEndpointCustomDomainResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r CdnEndpointCustomDomainResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CustomDomainID(state.ID)
 	if err != nil {
 		return nil, err
@@ -121,7 +118,7 @@ func (r CdnEndpointCustomDomainResource) basic(data acceptance.TestData) string 
 %s
 
 resource "azurerm_cdn_endpoint_custom_domain" "test" {
-  name            = "acctest-customdomain"
+  name            = "acceptance-customdomain"
   cdn_endpoint_id = azurerm_cdn_endpoint.test.id
   host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
 }
@@ -148,12 +145,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acceptanceRG-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[1]d"
+  name                     = "acceptancesa%[1]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -161,14 +158,14 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_cdn_profile" "test" {
-  name                = "acctestcdnprof%[1]d"
+  name                = "acceptancecdnprof%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
-  name                = "acctestcdnend%[1]d"
+  name                = "acceptancecdnend%[1]d"
   profile_name        = azurerm_cdn_profile.test.name
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
