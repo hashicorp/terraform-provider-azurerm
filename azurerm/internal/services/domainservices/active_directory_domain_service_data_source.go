@@ -96,7 +96,7 @@ func dataSourceActiveDirectoryDomainService() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"forest_trust": {
+						"trust": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Resource{
@@ -114,12 +114,12 @@ func dataSourceActiveDirectoryDomainService() *pluginsdk.Resource {
 										},
 									},
 
-									"trust_direction": {
+									"direction": {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 
-									"trust_password": {
+									"password": {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
