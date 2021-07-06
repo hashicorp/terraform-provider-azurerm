@@ -3,9 +3,10 @@ package cdn_test
 import (
 	"context"
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"os"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 
