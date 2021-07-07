@@ -9,6 +9,9 @@ BUG FIXES:
 * `azurerm_storage_share_directory` now allows underscore in property `name` [GH-12454] 
 * `security_center_subscription_pricing` - removed Owner permission note from documentation [GH-12481]
 
+ENHANCEMENTS:
+
+* `azurerm_virtual_machine_configuration_policy_assignment` - has been deprecated and renamed to `azurerm_policy_virtual_machine_configuration_assignment` [GH-12497]
 
 ## 2.66.0 (July 02, 2021)
 
