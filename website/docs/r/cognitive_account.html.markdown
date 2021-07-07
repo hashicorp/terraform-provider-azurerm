@@ -48,33 +48,33 @@ The following arguments are supported:
 
 * `sku_name` - (Required) Specifies the SKU Name for this Cognitive Service Account. Possible values are `F0`, `F1`, `S`, `S0`, `S1`, `S2`, `S3`, `S4`, `S5`, `S6`, `P0`, `P1`, and `P2`.
 
-* `aad_client_id` - (Optional) The Azure AD Client ID (Application ID). This attribute is only set when kind is `MetricsAdvisor`. Changing this forces a new resource to be created.
+* `custom_subdomain_name` - (Optional) The subdomain name used for token-based authentication. Changing this forces a new resource to be created.
 
-* `aad_tenant_id` - (Optional) The Azure AD Tenant ID. This attribute is only set when kind is `MetricsAdvisor`. Changing this forces a new resource to be created.
-  
-* `qna_runtime_endpoint` - (Optional) A URL to link a QnAMaker cognitive account to a QnA runtime.
+* `fqdns` - (Optional) List of FQDNs allowed for the Cognitive Account.
+
+* `identity` - (Optional) An `identity` block is documented below.
+
+* `local_auth_enabled` - (Optional) Whether local authentication methods is enabled for the Cognitive Account. Defaults to `true`.
+
+* `metrics_advisor_aad_client_id` - (Optional) The Azure AD Client ID (Application ID). This attribute is only set when kind is `MetricsAdvisor`. Changing this forces a new resource to be created.
+
+* `metrics_advisor_aad_tenant_id` - (Optional) The Azure AD Tenant ID. This attribute is only set when kind is `MetricsAdvisor`. Changing this forces a new resource to be created.
+
+* `metrics_advisor_super_user_name` - (Optional) The super user of Metrics Advisor. This attribute is only set when kind is `MetricsAdvisor`. Changing this forces a new resource to be created.
+
+* `metrics_advisor_website_name` - (Optional) The website name of Metrics Advisor. This attribute is only set when kind is `MetricsAdvisor`. Changing this forces a new resource to be created.
 
 -> **NOTE:** This URL is mandatory if the `kind` is set to `QnAMaker`.
 
 * `network_acls` - (Optional) A `network_acls` block as defined below.
 
-* `custom_subdomain_name` - (Optional) The subdomain name used for token-based authentication. Changing this forces a new resource to be created.
-
-* `disable_local_auth` - (Optional) Whether local authentication methods is disabled for the Cognitive Account. Defaults to `false`.
-
-* `fqdns` - (Optional) List of FQDNs allowed for the Cognitive Account.
-  
-* `identity` - (Optional) An `identity` block is documented below.
+* `outbound_network_access_restrited` - (Optional) Whether outbound network access is restricted for the Cognitive Account. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the Cognitive Account. Defaults to `true`.
 
-* `restrict_outbound_network_access` - (Optional) Whether outbound network access is restricted for the Cognitive Account. Defaults to `false`.
+* `qna_runtime_endpoint` - (Optional) A URL to link a QnAMaker cognitive account to a QnA runtime.
 
 * `storage` - (Optional) An `identity` block is documented below.
-
-* `super_user` - (Optional) The super user of Metrics Advisor. This attribute is only set when kind is `MetricsAdvisor`. Changing this forces a new resource to be created.
-
-* `website_name` - (Optional) The website name of Metrics Advisor. This attribute is only set when kind is `MetricsAdvisor`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -102,7 +102,7 @@ A `identity` block supports the following:
 
 A `storage` block supports the following:
 
-* `resource_id` - (Required) Full resource id of a Microsoft.Storage resource.
+* `storage_account_id` - (Required) Full resource id of a Microsoft.Storage resource.
 
 * `identity_client_id` - (Optional) The client ID of the managed identity associated with the storage resource.
 

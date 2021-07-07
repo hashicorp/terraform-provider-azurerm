@@ -108,31 +108,11 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"aad_client_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"aad_tenant_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"custom_subdomain_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"disable_local_auth": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
 			},
 
 			"fqdns": {
@@ -185,10 +165,38 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"qna_runtime_endpoint": {
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"metrics_advisor_aad_client_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
+			"metrics_advisor_aad_tenant_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
+			"metrics_advisor_super_user_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"metrics_advisor_website_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"network_acls": {
@@ -227,16 +235,22 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"outbound_network_access_restrited": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
-			"restrict_outbound_network_access": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
+			"qna_runtime_endpoint": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 			},
 
 			"storage": {
@@ -244,7 +258,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"resource_id": {
+						"storage_account_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: storageValidate.StorageAccountID,
@@ -257,20 +271,6 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 						},
 					},
 				},
-			},
-
-			"super_user": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"website_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"tags": tags.Schema(),
@@ -359,8 +359,8 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get("restrict_outbound_network_access").(bool)),
-			DisableLocalAuth:              utils.Bool(d.Get("disable_local_auth").(bool)),
+			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restrited").(bool)),
+			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -443,8 +443,8 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get("restrict_outbound_network_access").(bool)),
-			DisableLocalAuth:              utils.Bool(d.Get("disable_local_auth").(bool)),
+			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restrited").(bool)),
+			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -518,10 +518,10 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 	if props := resp.Properties; props != nil {
 		if apiProps := props.APIProperties; apiProps != nil {
 			d.Set("qna_runtime_endpoint", apiProps.QnaRuntimeEndpoint)
-			d.Set("aad_client_id", apiProps.AadClientID)
-			d.Set("aad_tenant_id", apiProps.AadTenantID)
-			d.Set("super_user", apiProps.SuperUser)
-			d.Set("website_name", apiProps.WebsiteName)
+			d.Set("metrics_advisor_aad_client_id", apiProps.AadClientID)
+			d.Set("metrics_advisor_aad_tenant_id", apiProps.AadTenantID)
+			d.Set("metrics_advisor_super_user_name", apiProps.SuperUser)
+			d.Set("metrics_advisor_website_name", apiProps.WebsiteName)
 		}
 		d.Set("endpoint", props.Endpoint)
 		d.Set("custom_subdomain_name", props.CustomSubDomainName)
@@ -534,10 +534,10 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting `storages` for Cognitive Account %q: %+v", id, err)
 		}
 		if props.RestrictOutboundNetworkAccess != nil {
-			d.Set("restrict_outbound_network_access", *props.RestrictOutboundNetworkAccess)
+			d.Set("outbound_network_access_restrited", *props.RestrictOutboundNetworkAccess)
 		}
 		if props.DisableLocalAuth != nil {
-			d.Set("disable_local_auth", *props.DisableLocalAuth)
+			d.Set("local_auth_enabled", !*props.DisableLocalAuth)
 		}
 	}
 
@@ -667,7 +667,7 @@ func expandCognitiveAccountStorage(input []interface{}) *[]cognitiveservices.Use
 	for _, v := range input {
 		value := v.(map[string]interface{})
 		results = append(results, cognitiveservices.UserOwnedStorage{
-			ResourceID:       utils.String(value["resource_id"].(string)),
+			ResourceID:       utils.String(value["storage_account_id"].(string)),
 			IdentityClientID: utils.String(value["identity_client_id"].(string)),
 		})
 	}
@@ -721,32 +721,32 @@ func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitives
 			return nil, fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
 		}
 	}
-	if v, ok := d.GetOk("aad_client_id"); ok {
+	if v, ok := d.GetOk("metrics_advisor_aad_client_id"); ok {
 		if kind == "MetricsAdvisor" {
 			props.AadClientID = utils.String(v.(string))
 		} else {
-			return nil, fmt.Errorf("aad_client_id can only used set when kind is set to `MetricsAdvisor`")
+			return nil, fmt.Errorf("metrics_advisor_aad_client_id can only used set when kind is set to `MetricsAdvisor`")
 		}
 	}
-	if v, ok := d.GetOk("aad_tenant_id"); ok {
+	if v, ok := d.GetOk("metrics_advisor_aad_tenant_id"); ok {
 		if kind == "MetricsAdvisor" {
 			props.AadTenantID = utils.String(v.(string))
 		} else {
-			return nil, fmt.Errorf("aad_tenant_id can only used set when kind is set to `MetricsAdvisor`")
+			return nil, fmt.Errorf("metrics_advisor_aad_tenant_id can only used set when kind is set to `MetricsAdvisor`")
 		}
 	}
-	if v, ok := d.GetOk("super_user"); ok {
+	if v, ok := d.GetOk("metrics_advisor_super_user_name"); ok {
 		if kind == "MetricsAdvisor" {
 			props.SuperUser = utils.String(v.(string))
 		} else {
-			return nil, fmt.Errorf("super_user can only used set when kind is set to `MetricsAdvisor`")
+			return nil, fmt.Errorf("metrics_advisor_super_user_name can only used set when kind is set to `MetricsAdvisor`")
 		}
 	}
-	if v, ok := d.GetOk("website_name"); ok {
+	if v, ok := d.GetOk("metrics_advisor_website_name"); ok {
 		if kind == "MetricsAdvisor" {
 			props.WebsiteName = utils.String(v.(string))
 		} else {
-			return nil, fmt.Errorf("website_name can only used set when kind is set to `MetricsAdvisor`")
+			return nil, fmt.Errorf("metrics_advisor_website_name can only used set when kind is set to `MetricsAdvisor`")
 		}
 	}
 	return &props, nil
@@ -801,7 +801,7 @@ func flattenCognitiveAccountStorage(input *[]cognitiveservices.UserOwnedStorage)
 	for _, v := range *input {
 		value := make(map[string]interface{})
 		if v.ResourceID != nil {
-			value["resource_id"] = *v.ResourceID
+			value["storage_account_id"] = *v.ResourceID
 		}
 		if v.IdentityClientID != nil {
 			value["identity_client_id"] = *v.IdentityClientID

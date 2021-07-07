@@ -475,7 +475,7 @@ resource "azurerm_cognitive_account" "test" {
   }
 
   storage {
-    resource_id        = azurerm_storage_account.test.id
+    storage_account_id = azurerm_storage_account.test.id
     identity_client_id = azurerm_user_assigned_identity.test.client_id
   }
 }
@@ -515,10 +515,10 @@ resource "azurerm_cognitive_account" "test" {
   kind                = "Face"
   sku_name            = "S0"
 
-  fqdns                            = ["foo.com", "bar.com"]
-  public_network_access_enabled    = false
-  restrict_outbound_network_access = true
-  disable_local_auth               = true
+  fqdns                             = ["foo.com", "bar.com"]
+  public_network_access_enabled     = false
+  outbound_network_access_restrited = true
+  local_auth_enabled                = false
 
   tags = {
     Acceptance = "Test"
@@ -601,16 +601,16 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_cognitive_account" "test" {
-  name                  = "acctestcogacc-%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  kind                  = "MetricsAdvisor"
-  sku_name              = "S0"
-  custom_subdomain_name = "acctestcogacc-%d"
-  aad_client_id         = "310d7b2e-d1d1-4b87-9807-5b885b290c00"
-  aad_tenant_id         = "72f988bf-86f1-41af-91ab-2d7cd011db47"
-  super_user            = "mock_user1"
-  website_name          = "mock_name2"
+  name                            = "acctestcogacc-%d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  kind                            = "MetricsAdvisor"
+  sku_name                        = "S0"
+  custom_subdomain_name           = "acctestcogacc-%d"
+  metrics_advisor_aad_client_id   = "310d7b2e-d1d1-4b87-9807-5b885b290c00"
+  metrics_advisor_aad_tenant_id   = "72f988bf-86f1-41af-91ab-2d7cd011db47"
+  metrics_advisor_super_user_name = "mock_user1"
+  metrics_advisor_website_name    = "mock_name2"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
