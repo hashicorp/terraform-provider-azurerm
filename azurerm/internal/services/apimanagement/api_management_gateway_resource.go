@@ -145,7 +145,7 @@ func resourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("making read request for Gateway %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+		return fmt.Errorf("making read request for %s: %+v", id, err)
 	}
 
 	d.Set("name", resp.Name)
