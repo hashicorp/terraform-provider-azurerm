@@ -174,7 +174,7 @@ func resourceApiManagementGatewayDelete(d *pluginsdk.ResourceData, meta interfac
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting Gateway %s: %+v", id, err)
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
 
