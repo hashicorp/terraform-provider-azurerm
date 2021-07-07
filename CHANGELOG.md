@@ -9,10 +9,11 @@ BUG FIXES:
 
 * `azurerm_api_management` - fix an issue where changing the location of an `additional_location` would force a new resource [GH-12468]
 * `azurerm_kusto_eventhub_data_connection` - `APACHEAVRO` can now be used as a `data_format` option [GH-12480]
+* `azurerm_site_recovery_replicated_vm ` - Fix potential crash in reading `managed_disk` properties [GH-12509]
 * `azurerm_storage_account` - `account_replication_type` can now be updated [GH-12479]
 * `azurerm_storage_management_policy` - fix crash in read of properties [GH-12487]
 * `azurerm_storage_share_directory` now allows underscore in property `name` [GH-12454] 
-* `security_center_subscription_pricing` - removed Owner permission note from documentation [GH-12481]
+* `azurerm_security_center_subscription_pricing` - removed Owner permission note from documentation [GH-12481]
 
 ENHANCEMENTS:
 
