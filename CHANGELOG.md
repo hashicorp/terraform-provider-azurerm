@@ -1,16 +1,23 @@
 ## 2.67.0 (Unreleased)
 
-ENHANCEMENTS:
+FEATURES:
 
-* `azurerm_app_service` - support for the `acr_use_managed_identity_creds` and `acr_user_managed_identity_id` properties [GH-12277]
+* **New Data Source** `azurerm_api_management_gateway` [GH-12297]
+* **New Resource** `azurerm_api_management_gateway` [GH-12297]
 
 BUG FIXES:
 
+* `azurerm_api_management` - fix an issue where changing the location of an `additional_location` would force a new resource [GH-12468]
+* `azurerm_kusto_eventhub_data_connection` - `APACHEAVRO` can now be used as a `data_format` option [GH-12480]
+* `azurerm_site_recovery_replicated_vm ` - Fix potential crash in reading `managed_disk` properties [GH-12509]
 * `azurerm_storage_account` - `account_replication_type` can now be updated [GH-12479]
 * `azurerm_storage_management_policy` - fix crash in read of properties [GH-12487]
 * `azurerm_storage_share_directory` now allows underscore in property `name` [GH-12454] 
-* `security_center_subscription_pricing` - removed Owner permission note from documentation [GH-12481]
+* `azurerm_security_center_subscription_pricing` - removed Owner permission note from documentation [GH-12481]
 
+ENHANCEMENTS:
+
+* `azurerm_virtual_machine_configuration_policy_assignment` - has been deprecated and renamed to `azurerm_policy_virtual_machine_configuration_assignment` [GH-12497]
 
 ## 2.66.0 (July 02, 2021)
 

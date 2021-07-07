@@ -1,14 +1,12 @@
 ---
 subcategory: "Policy"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_virtual_machine_configuration_policy_assignment"
+page_title: "Azure Resource Manager: azurerm_policy_virtual_machine_configuration_assignment"
 description: |-
   Applies a Configuration Policy to a Virtual Machine.
 ---
 
-~> **NOTE:** This resource has been deprecated in favour of the `azurerm_policy_virtual_machine_configuration_assignment` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, information on migrating [can be found in this guide](../guides/migrating-between-renamed-resources.html).
-
-# azurerm_virtual_machine_configuration_policy_assignment
+# azurerm_policy_virtual_machine_configuration_assignment
 
 Applies a Configuration Policy to a Virtual Machine.
 
@@ -83,7 +81,7 @@ resource "azurerm_virtual_machine_extension" "example" {
   auto_upgrade_minor_version = "true"
 }
 
-resource "azurerm_virtual_machine_configuration_policy_assignment" "example" {
+resource "azurerm_policy_virtual_machine_configuration_assignment" "example" {
   name               = "AzureWindowsBaseline"
   location           = azurerm_windows_virtual_machine.example.location
   virtual_machine_id = azurerm_windows_virtual_machine.example.id
@@ -118,11 +116,11 @@ resource "azurerm_virtual_machine_configuration_policy_assignment" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Virtual Machine Configuration Policy Assignment. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Policy Virtual Machine Configuration Assignment. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure location where the Virtual Machine Configuration Policy Assignment should exist. Changing this forces a new resource to be created.
+* `location` - (Required) The Azure location where the Policy Virtual Machine Configuration Assignment should exist. Changing this forces a new resource to be created.
 
-* `virtual_machine_id` - (Required) The resource ID of the Virtual Machine which this Guest Configuration Assignment should apply to. Changing this forces a new resource to be created.
+* `virtual_machine_id` - (Required) The resource ID of the Policy Virtual Machine which this Guest Configuration Assignment should apply to. Changing this forces a new resource to be created.
 
 ---
 
@@ -150,21 +148,21 @@ An `parameter` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Virtual Machine Configuration Policy Assignment.
+* `id` - The ID of the Policy Virtual Machine Configuration Assignment.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Configuration Policy Assignment.
-* `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Configuration Policy Assignment.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Configuration Policy Assignment.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Machine Configuration Policy Assignment.
+* `create` - (Defaults to 30 minutes) Used when creating the Policy Virtual Machine Configuration Assignment.
+* `update` - (Defaults to 30 minutes) Used when updating the Policy Virtual Machine Configuration Assignment.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Policy Virtual Machine Configuration Assignment.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Policy Virtual Machine Configuration Assignment.
 
 ## Import
 
-Virtual Machine Configuration Policy Assignments can be imported using the `resource id`, e.g.
+Policy Virtual Machine Configuration Assignments can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_virtual_machine_configuration_policy_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/assignment1
+terraform import azurerm_policy_virtual_machine_configuration_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/assignment1
 ```
