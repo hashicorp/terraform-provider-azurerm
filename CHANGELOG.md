@@ -1,5 +1,10 @@
 ## 2.67.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source** `azurerm_api_management_gateway` [GH-12297]
+* **New Resource** `azurerm_api_management_gateway` [GH-12297]
+
 BUG FIXES:
 
 * `azurerm_api_management` - fix an issue where changing the location of an `additional_location` would force a new resource [GH-12468]
