@@ -100,7 +100,7 @@ func resourceApiManagementGatewayCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_gateway", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_api_management_gateway", id.ID())
 		}
 	}
 
