@@ -13,12 +13,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type VirtualMachineConfigurationPolicyAssignmentResource struct{}
+type PolicyVirtualMachineConfigurationAssignmentResource struct{}
 
-// TODO: Remove in 3.0
-func TestAccVirtualMachineConfigurationPolicyAssignment_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_configuration_policy_assignment", "test")
-	r := VirtualMachineConfigurationPolicyAssignmentResource{}
+func TestAccPolicyVirtualMachineConfigurationAssignment_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_virtual_machine_configuration_assignment", "test")
+	r := PolicyVirtualMachineConfigurationAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,9 +30,9 @@ func TestAccVirtualMachineConfigurationPolicyAssignment_basic(t *testing.T) {
 	})
 }
 
-func TestAccVirtualMachineConfigurationPolicyAssignment_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_configuration_policy_assignment", "test")
-	r := VirtualMachineConfigurationPolicyAssignmentResource{}
+func TestAccPolicyVirtualMachineConfigurationAssignment_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_virtual_machine_configuration_assignment", "test")
+	r := PolicyVirtualMachineConfigurationAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +45,7 @@ func TestAccVirtualMachineConfigurationPolicyAssignment_requiresImport(t *testin
 	})
 }
 
-func (r VirtualMachineConfigurationPolicyAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PolicyVirtualMachineConfigurationAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualMachineConfigurationPolicyAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
@@ -61,7 +60,7 @@ func (r VirtualMachineConfigurationPolicyAssignmentResource) Exists(ctx context.
 	return utils.Bool(resp.Properties != nil), nil
 }
 
-func (r VirtualMachineConfigurationPolicyAssignmentResource) templateBase(data acceptance.TestData) string {
+func (r PolicyVirtualMachineConfigurationAssignmentResource) templateBase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 locals {
   vm_name = "acctestvm%s"
@@ -100,7 +99,7 @@ resource "azurerm_network_interface" "test" {
 `, data.RandomString, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r VirtualMachineConfigurationPolicyAssignmentResource) template(data acceptance.TestData) string {
+func (r PolicyVirtualMachineConfigurationAssignmentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -130,11 +129,11 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.templateBase(data))
 }
 
-func (r VirtualMachineConfigurationPolicyAssignmentResource) basic(data acceptance.TestData) string {
+func (r PolicyVirtualMachineConfigurationAssignmentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_machine_configuration_policy_assignment" "test" {
+resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
   name               = "acctest-gca-%d"
   location           = azurerm_windows_virtual_machine.test.location
   virtual_machine_id = azurerm_windows_virtual_machine.test.id
@@ -151,14 +150,14 @@ resource "azurerm_virtual_machine_configuration_policy_assignment" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r VirtualMachineConfigurationPolicyAssignmentResource) requiresImport(data acceptance.TestData) string {
+func (r PolicyVirtualMachineConfigurationAssignmentResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_machine_configuration_policy_assignment" "import" {
-  name               = azurerm_virtual_machine_configuration_policy_assignment.test.name
-  location           = azurerm_virtual_machine_configuration_policy_assignment.test.location
-  virtual_machine_id = azurerm_virtual_machine_configuration_policy_assignment.test.virtual_machine_id
+resource "azurerm_policy_virtual_machine_configuration_assignment" "import" {
+  name               = azurerm_policy_virtual_machine_configuration_assignment.test.name
+  location           = azurerm_policy_virtual_machine_configuration_assignment.test.location
+  virtual_machine_id = azurerm_policy_virtual_machine_configuration_assignment.test.virtual_machine_id
 
   configuration {
     name    = "WhitelistedApplication"
