@@ -3,6 +3,7 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -56,8 +57,14 @@ func (ApiManagementGatewayAPIResource) Exists(ctx context.Context, clients *clie
 	gatewayId := id.Path["gateways"]
 	apiName := id.Path["apis"]
 
-	if _, err = clients.ApiManagement.GatewayApisClient.GetEntityTag(ctx, resourceGroup, serviceName, gatewayId, apiName); err != nil {
-		return nil, fmt.Errorf("reading ApiManagement Gateway (%s): %+v", id, err)
+	if resp, err := clients.ApiManagement.GatewayApisClient.GetEntityTag(ctx, resourceGroup, serviceName, gatewayId, apiName); err != nil {
+		if utils.ResponseWasNotFound(resp) {
+			return nil, fmt.Errorf("reading ApiManagement Gateway (%s): %+v", id, err)
+		}
+
+		if !utils.ResponseWasStatusCode(resp, http.StatusNoContent) {
+			return nil, fmt.Errorf("reading ApiManagement Gateway (%s): %+v", id, err)
+		}
 	}
 
 	return utils.Bool(true), nil
@@ -85,12 +92,17 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_api_management_gateway" "test" {
-  api_management_name = azurerm_api_management.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  gateway_id          = "TestGateway"
-  location            = "old world updated"
-  description         = "this is a test gateway updated"
-}
+	name              = "acctestAMGateway-%d"
+	api_management_id = azurerm_api_management.test.id
+	description       = "this is a test gateway"
+  
+	location_data {
+	  name     = "old world"
+	  city     = "test city"
+	  district = "test district"
+	  region   = "test region"
+	}
+  }
 
 resource "azurerm_api_management_api" "test" {
   name                = "acctestapi-%d"
@@ -103,23 +115,19 @@ resource "azurerm_api_management_api" "test" {
 }
 
 resource "azurerm_api_management_gateway_api" "test" {
-  gateway_id          = azurerm_api_management_gateway.test.gateway_id
-  api_name            = azurerm_api_management_api.test.name
-  api_management_name = azurerm_api_management.test.name
-  resource_group_name = azurerm_resource_group.test.name
+	gateway_id          = azurerm_api_management_gateway.test.id
+	api_id          	  = azurerm_api_management_api.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r ApiManagementGatewayAPIResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_api_management_gateway_api" "import" {
-  api_name            = azurerm_api_management_gateway_api.test.api_name
-  gateway_id          = azurerm_api_management_gateway_api.test.gateway_id
-  api_management_name = azurerm_api_management_gateway_api.test.api_management_name
-  resource_group_name = azurerm_api_management_gateway_api.test.resource_group_name
+resource "azurerm_api_management_gateway_api" "test" {
+	gateway_id          = azurerm_api_management_gateway.test.id
+	api_id          	= azurerm_api_management_api.test.id
 }
 `, r.basic(data))
 }

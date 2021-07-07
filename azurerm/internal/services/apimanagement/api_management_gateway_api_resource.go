@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -22,24 +21,32 @@ func resourceApiManagementGatewayApi() *pluginsdk.Resource {
 		Create: resourceApiManagementGatewayApiCreate,
 		Read:   resourceApiManagementGatewayApiRead,
 		Delete: resourceApiManagementGatewayApiDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.GatewayApiID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(15 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(15 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(15 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"api_name": schemaz.SchemaApiManagementApiName(),
-
-			"gateway_id": schemaz.SchemaApiManagementChildName(),
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"api_management_name": schemaz.SchemaApiManagementName(),
+			"api_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+			"gateway_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
 		},
 	}
 }
@@ -49,29 +56,34 @@ func resourceApiManagementGatewayApiCreate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
-	apiName := d.Get("api_name").(string)
-	gatewayID := d.Get("gateway_id").(string)
+	apiID, err := parse.ApiID(d.Get("api_id").(string))
+	if err != nil {
+		return fmt.Errorf("parsing `api_id`: %v", err)
+	}
 
-	exists, err := client.GetEntityTag(ctx, resourceGroup, serviceName, gatewayID, apiName)
+	gatewayID, err := parse.GatewayID(d.Get("gateway_id").(string))
+	if err != nil {
+		return fmt.Errorf("parsing `gateway_id`: %v", err)
+	}
+
+	exists, err := client.GetEntityTag(ctx, gatewayID.ResourceGroup, gatewayID.ServiceName, gatewayID.Name, apiID.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(exists) {
-			return fmt.Errorf("checking for present of existing API %q / Gateway %q (API Management Service %q / Resource Group %q): %+v", apiName, gatewayID, serviceName, resourceGroup, err)
+			return fmt.Errorf("checking for present of existing API %q / Gateway %q (API Management Service %q / Resource Group %q): %+v", apiID.Name, gatewayID, gatewayID.ServiceName, gatewayID.ResourceGroup, err)
 		}
 	}
 
 	if !utils.ResponseWasNotFound(exists) {
 		// TODO: can we pull this from somewhere?
 		subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-		resourceId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/gateways/%s/apis/%s", subscriptionId, resourceGroup, serviceName, gatewayID, apiName)
+		resourceId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/gateways/%s/apis/%s", subscriptionId, gatewayID.ResourceGroup, gatewayID.ServiceName, gatewayID, apiID.Name)
 		return tf.ImportAsExistsError("azurerm_api_management_gateway_api", resourceId)
 	}
 
 	params := &apimanagement.AssociationContract{}
-	resp, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, gatewayID, apiName, params)
+	resp, err := client.CreateOrUpdate(ctx, gatewayID.ResourceGroup, gatewayID.ServiceName, gatewayID.Name, apiID.Name, params)
 	if err != nil {
-		return fmt.Errorf("adding API %q to Gateway %q (API Management Service %q / Resource Group %q): %+v", apiName, gatewayID, serviceName, resourceGroup, err)
+		return fmt.Errorf("adding API %q to Gateway %q (API Management Service %q / Resource Group %q): %+v", apiID.Name, gatewayID.Name, gatewayID.ServiceName, gatewayID.ResourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -92,6 +104,8 @@ func resourceApiManagementGatewayApiRead(d *pluginsdk.ResourceData, meta interfa
 	serviceName := id.ServiceName
 	gatewayID := id.GatewayName
 	apiName := id.ApiName
+
+	apiId := parse.NewApiID(id.SubscriptionId, id.ResourceGroup, id.ServiceName, id.ApiName)
 
 	resp, err := client.GetEntityTag(ctx, resourceGroup, serviceName, gatewayID, apiName)
 	if err != nil {
@@ -114,10 +128,10 @@ func resourceApiManagementGatewayApiRead(d *pluginsdk.ResourceData, meta interfa
 		return nil
 	}
 
-	d.Set("api_name", apiName)
-	d.Set("gateway_id", gatewayID)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
+	gateway := parse.NewGatewayID(id.SubscriptionId, resourceGroup, serviceName, gatewayID)
+
+	d.Set("api_id", apiId.ID())
+	d.Set("gateway_id", gateway.ID())
 
 	return nil
 }
