@@ -457,12 +457,41 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			disksOutput := make([]interface{}, 0)
 			for _, disk := range *a2aDetails.ProtectedManagedDisks {
 				diskOutput := make(map[string]interface{})
-				diskOutput["disk_id"] = *disk.DiskID
-				diskOutput["staging_storage_account_id"] = *disk.PrimaryStagingAzureStorageAccountID
-				diskOutput["target_resource_group_id"] = *disk.RecoveryResourceGroupID
-				diskOutput["target_replica_disk_type"] = *disk.RecoveryReplicaDiskAccountType
-				diskOutput["target_disk_type"] = *disk.RecoveryTargetDiskAccountType
-				diskOutput["target_disk_encryption_set_id"] = *disk.RecoveryDiskEncryptionSetID
+				diskId := ""
+				if disk.DiskID != nil {
+					diskId = *disk.DiskID
+				}
+				diskOutput["disk_id"] = diskId
+
+				primaryStagingAzureStorageAccountID := ""
+				if disk.PrimaryStagingAzureStorageAccountID != nil {
+					primaryStagingAzureStorageAccountID = *disk.PrimaryStagingAzureStorageAccountID
+				}
+				diskOutput["staging_storage_account_id"] = primaryStagingAzureStorageAccountID
+
+				recoveryResourceGroupID := ""
+				if disk.RecoveryResourceGroupID != nil {
+					recoveryResourceGroupID = *disk.RecoveryResourceGroupID
+				}
+				diskOutput["target_resource_group_id"] = recoveryResourceGroupID
+
+				recoveryReplicaDiskAccountType := ""
+				if disk.RecoveryReplicaDiskAccountType != nil {
+					recoveryReplicaDiskAccountType = *disk.RecoveryReplicaDiskAccountType
+				}
+				diskOutput["target_replica_disk_type"] = recoveryReplicaDiskAccountType
+
+				recoveryTargetDiskAccountType := ""
+				if disk.RecoveryTargetDiskAccountType != nil {
+					recoveryTargetDiskAccountType = *disk.RecoveryTargetDiskAccountType
+				}
+				diskOutput["target_disk_type"] = recoveryTargetDiskAccountType
+
+				recoveryEncryptionSetId := ""
+				if disk.RecoveryDiskEncryptionSetID != nil {
+					recoveryEncryptionSetId = *disk.RecoveryDiskEncryptionSetID
+				}
+				diskOutput["target_disk_encryption_set_id"] = recoveryEncryptionSetId
 
 				disksOutput = append(disksOutput, diskOutput)
 			}
