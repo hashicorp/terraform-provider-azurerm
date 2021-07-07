@@ -19,14 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// TODO: Remove in 3.0
-func resourceVirtualMachineConfigurationPolicyAssignment() *pluginsdk.Resource {
+func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		DeprecationMessage: "`azurerm_virtual_machine_configuration_policy_assignment` resource is deprecated in favor of `azurerm_policy_virtual_machine_configuration_assignment` and will be removed in v3.0 of the AzureRM Provider",
-		Create:             resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate,
-		Read:               resourceVirtualMachineConfigurationPolicyAssignmentRead,
-		Update:             resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate,
-		Delete:             resourceVirtualMachineConfigurationPolicyAssignmentDelete,
+		Create: resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate,
+		Read:   resourcePolicyVirtualMachineConfigurationAssignmentRead,
+		Update: resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate,
+		Delete: resourcePolicyVirtualMachineConfigurationAssignmentDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -36,7 +34,7 @@ func resourceVirtualMachineConfigurationPolicyAssignment() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.VirtualMachineConfigurationPolicyAssignmentID(id)
+			_, err := parse.VirtualMachineConfigurationAssignmentID(id)
 			return err
 		}),
 
@@ -98,7 +96,7 @@ func resourceVirtualMachineConfigurationPolicyAssignment() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -109,7 +107,7 @@ func resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate(d *pluginsd
 		return err
 	}
 
-	id := parse.NewVirtualMachineConfigurationPolicyAssignmentID(subscriptionId, vmId.ResourceGroup, vmId.Name, d.Get("name").(string))
+	id := parse.NewVirtualMachineConfigurationAssignmentID(subscriptionId, vmId.ResourceGroup, vmId.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.GuestConfigurationAssignmentName, id.VirtualMachineName)
@@ -119,7 +117,7 @@ func resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate(d *pluginsd
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_virtual_machine_configuration_policy_assignment", id.ID())
+			return tf.ImportAsExistsError("azurerm_policy_virtual_machine_configuration_assignment", id.ID())
 		}
 	}
 
@@ -127,7 +125,7 @@ func resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate(d *pluginsd
 		Name:     utils.String(d.Get("name").(string)),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &guestconfiguration.AssignmentProperties{
-			GuestConfiguration: expandGuestConfigAssignment(d.Get("configuration").([]interface{})),
+			GuestConfiguration: expandGuestConfigurationAssignment(d.Get("configuration").([]interface{})),
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, id.GuestConfigurationAssignmentName, parameter, id.ResourceGroup, id.VirtualMachineName); err != nil {
@@ -136,16 +134,16 @@ func resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate(d *pluginsd
 
 	d.SetId(id.ID())
 
-	return resourceVirtualMachineConfigurationPolicyAssignmentRead(d, meta)
+	return resourcePolicyVirtualMachineConfigurationAssignmentRead(d, meta)
 }
 
-func resourceVirtualMachineConfigurationPolicyAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyVirtualMachineConfigurationAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualMachineConfigurationPolicyAssignmentID(d.Id())
+	id, err := parse.VirtualMachineConfigurationAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -166,19 +164,19 @@ func resourceVirtualMachineConfigurationPolicyAssignmentRead(d *pluginsdk.Resour
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
-		if err := d.Set("configuration", flattenGuestConfigAssignment(props.GuestConfiguration)); err != nil {
+		if err := d.Set("configuration", flattenGuestConfigurationAssignment(props.GuestConfiguration)); err != nil {
 			return fmt.Errorf("setting `configuration`: %+v", err)
 		}
 	}
 	return nil
 }
 
-func resourceVirtualMachineConfigurationPolicyAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyVirtualMachineConfigurationAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualMachineConfigurationPolicyAssignmentID(d.Id())
+	id, err := parse.VirtualMachineConfigurationAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -190,7 +188,7 @@ func resourceVirtualMachineConfigurationPolicyAssignmentDelete(d *pluginsdk.Reso
 	return nil
 }
 
-func expandGuestConfigAssignment(input []interface{}) *guestconfiguration.Navigation {
+func expandGuestConfigurationAssignment(input []interface{}) *guestconfiguration.Navigation {
 	if len(input) == 0 {
 		return nil
 	}
@@ -198,11 +196,11 @@ func expandGuestConfigAssignment(input []interface{}) *guestconfiguration.Naviga
 	return &guestconfiguration.Navigation{
 		Name:                   utils.String(v["name"].(string)),
 		Version:                utils.String(v["version"].(string)),
-		ConfigurationParameter: expandGuestConfigAssignmentConfigurationParameters(v["parameter"].(*pluginsdk.Set).List()),
+		ConfigurationParameter: expandGuestConfigurationAssignmentConfigurationParameters(v["parameter"].(*pluginsdk.Set).List()),
 	}
 }
 
-func expandGuestConfigAssignmentConfigurationParameters(input []interface{}) *[]guestconfiguration.ConfigurationParameter {
+func expandGuestConfigurationAssignmentConfigurationParameters(input []interface{}) *[]guestconfiguration.ConfigurationParameter {
 	results := make([]guestconfiguration.ConfigurationParameter, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
@@ -214,7 +212,7 @@ func expandGuestConfigAssignmentConfigurationParameters(input []interface{}) *[]
 	return &results
 }
 
-func flattenGuestConfigAssignment(input *guestconfiguration.Navigation) []interface{} {
+func flattenGuestConfigurationAssignment(input *guestconfiguration.Navigation) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -230,13 +228,13 @@ func flattenGuestConfigAssignment(input *guestconfiguration.Navigation) []interf
 	return []interface{}{
 		map[string]interface{}{
 			"name":      name,
-			"parameter": flattenGuestConfigAssignmentConfigurationParameters(input.ConfigurationParameter),
+			"parameter": flattenGuestConfigurationAssignmentConfigurationParameters(input.ConfigurationParameter),
 			"version":   version,
 		},
 	}
 }
 
-func flattenGuestConfigAssignmentConfigurationParameters(input *[]guestconfiguration.ConfigurationParameter) []interface{} {
+func flattenGuestConfigurationAssignmentConfigurationParameters(input *[]guestconfiguration.ConfigurationParameter) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

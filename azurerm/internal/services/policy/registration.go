@@ -50,6 +50,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_policy_definition":                               resourceArmPolicyDefinition(),
 		"azurerm_policy_set_definition":                           resourceArmPolicySetDefinition(),
 		"azurerm_policy_remediation":                              resourceArmPolicyRemediation(),
+		"azurerm_policy_virtual_machine_configuration_assignment": resourcePolicyVirtualMachineConfigurationAssignment(),
+		// TODO: Remove in 3.0
 		"azurerm_virtual_machine_configuration_policy_assignment": resourceVirtualMachineConfigurationPolicyAssignment(),
 	}
 
