@@ -46,6 +46,12 @@ A `location_data` block exports the following:
 
 * `name` - A canonical name for the geographic or physical location.
 
+* `city` - The city or locality where the resource is located.
+
+* `district` - The district, state, or province where the resource is located.
+
+* `country` - The country or region where the resource is located.
+
 ---
 
 ## Timeouts
