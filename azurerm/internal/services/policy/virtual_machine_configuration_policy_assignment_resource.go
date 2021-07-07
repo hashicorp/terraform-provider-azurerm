@@ -127,7 +127,7 @@ func resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate(d *pluginsd
 		Name:     utils.String(d.Get("name").(string)),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &guestconfiguration.AssignmentProperties{
-			GuestConfiguration: expandGuestConfigurationAssignment(d.Get("configuration").([]interface{})),
+			GuestConfiguration: expandGuestConfigAssignment(d.Get("configuration").([]interface{})),
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, id.GuestConfigurationAssignmentName, parameter, id.ResourceGroup, id.VirtualMachineName); err != nil {
@@ -166,7 +166,7 @@ func resourceVirtualMachineConfigurationPolicyAssignmentRead(d *pluginsdk.Resour
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
-		if err := d.Set("configuration", flattenGuestConfigurationAssignment(props.GuestConfiguration)); err != nil {
+		if err := d.Set("configuration", flattenGuestConfigAssignment(props.GuestConfiguration)); err != nil {
 			return fmt.Errorf("setting `configuration`: %+v", err)
 		}
 	}
@@ -198,7 +198,7 @@ func expandGuestConfigAssignment(input []interface{}) *guestconfiguration.Naviga
 	return &guestconfiguration.Navigation{
 		Name:                   utils.String(v["name"].(string)),
 		Version:                utils.String(v["version"].(string)),
-		ConfigurationParameter: expandGuestConfigurationAssignmentConfigurationParameters(v["parameter"].(*pluginsdk.Set).List()),
+		ConfigurationParameter: expandGuestConfigAssignmentConfigurationParameters(v["parameter"].(*pluginsdk.Set).List()),
 	}
 }
 
@@ -230,7 +230,7 @@ func flattenGuestConfigAssignment(input *guestconfiguration.Navigation) []interf
 	return []interface{}{
 		map[string]interface{}{
 			"name":      name,
-			"parameter": flattenGuestConfigurationAssignmentConfigurationParameters(input.ConfigurationParameter),
+			"parameter": flattenGuestConfigAssignmentConfigurationParameters(input.ConfigurationParameter),
 			"version":   version,
 		},
 	}
