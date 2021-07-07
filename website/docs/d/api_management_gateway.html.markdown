@@ -42,7 +42,7 @@ The following arguments are supported:
 
 ---
 
-A `location` block exports the following:
+A `location_data` block exports the following:
 
 * `name` - A canonical name for the geographic or physical location.
 
