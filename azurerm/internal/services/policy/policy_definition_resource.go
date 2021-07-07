@@ -2,10 +2,8 @@ package policy
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
-	"reflect"
 	"strconv"
 	"time"
 
@@ -77,6 +75,7 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 				),
 			},
 
+			// TODO: deprecate Name in favour of this
 			"management_group_id": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
@@ -118,38 +117,9 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
-			"metadata": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: policyDefinitionsMetadataDiffSuppressFunc,
-			},
+			"metadata": metadataSchema(),
 		},
 	}
-}
-
-func policyDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	var oldPolicyDefinitionsMetadata map[string]interface{}
-	errOld := json.Unmarshal([]byte(old), &oldPolicyDefinitionsMetadata)
-	if errOld != nil {
-		return false
-	}
-
-	var newPolicyDefinitionsMetadata map[string]interface{}
-	errNew := json.Unmarshal([]byte(new), &newPolicyDefinitionsMetadata)
-	if errNew != nil {
-		return false
-	}
-
-	// Ignore the following keys if they're found in the metadata JSON
-	ignoreKeys := [4]string{"createdBy", "createdOn", "updatedBy", "updatedOn"}
-	for _, key := range ignoreKeys {
-		delete(oldPolicyDefinitionsMetadata, key)
-		delete(newPolicyDefinitionsMetadata, key)
-	}
-
-	return reflect.DeepEqual(oldPolicyDefinitionsMetadata, newPolicyDefinitionsMetadata)
 }
 
 func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

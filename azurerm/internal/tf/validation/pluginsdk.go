@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"fmt"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -133,6 +134,22 @@ func IsURLWithScheme(validSchemes []string) func(interface{}, string) ([]string,
 // IsUUID is a ValidateFunc that ensures a string can be parsed as UUID
 func IsUUID(i interface{}, k string) ([]string, []error) {
 	return validation.IsUUID(i, k)
+}
+
+// None returns a SchemaValidateFunc which tests if the provided value
+// returns errors for all of the provided SchemaValidateFunc
+func None(validators map[string]func(interface{}, string) ([]string, []error)) func(interface{}, string) ([]string, []error) {
+	return func(i interface{}, k string) ([]string, []error) {
+		var allErrors []error
+		var allWarnings []string
+		for name, validator := range validators {
+			validatorWarnings, validatorErrors := validator(i, k)
+			if len(validatorWarnings) == 0 && len(validatorErrors) == 0 {
+				allErrors = append(allErrors, fmt.Errorf("ID cannot be a %s", name))
+			}
+		}
+		return allWarnings, allErrors
+	}
 }
 
 // NoZeroValues is a SchemaValidateFunc which tests if the provided value is
