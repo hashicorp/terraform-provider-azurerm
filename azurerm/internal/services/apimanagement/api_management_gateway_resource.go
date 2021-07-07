@@ -115,7 +115,7 @@ func resourceApiManagementGatewayCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.Name, parameters, ""); err != nil {
-		return fmt.Errorf("creating or updating Gateway %s: %+v", id, err)
+		return fmt.Errorf("creating or updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
