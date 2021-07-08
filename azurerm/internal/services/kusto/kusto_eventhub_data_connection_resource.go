@@ -93,10 +93,12 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 			},
 
 			"consumer_group": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: eventhubValidate.ValidateEventHubConsumerName(),
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.Any(
+					eventhubValidate.ValidateEventHubConsumerName(),
+					validation.StringInSlice([]string{"$Default"}, false)),
 			},
 
 			"table_name": {
