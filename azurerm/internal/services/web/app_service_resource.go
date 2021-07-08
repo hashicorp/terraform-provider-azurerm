@@ -236,7 +236,7 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	// Check if App Service Plan is part of ASE
 	// If so, the name needs updating to <app name>.<ASE name>.appserviceenvironment.net and FQDN setting true for name availability check
 	aspDetails, err := aspClient.Get(ctx, aspID.ResourceGroup, aspID.ServerfarmName)
-	// 404 is incorrectly being considered an acceptable response, issue tracked at https://github.com/Azure/azure-sdk-for-go/issues/15002 
+	// 404 is incorrectly being considered an acceptable response, issue tracked at https://github.com/Azure/azure-sdk-for-go/issues/15002
 	if err != nil || utils.ResponseWasNotFound(aspDetails.Response) {
 		return fmt.Errorf("App Service Environment %q or Resource Group %q does not exist", aspID.ServerfarmName, aspID.ResourceGroup)
 	}
