@@ -182,8 +182,8 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 
 			// Delimited Text Specific Field
 			"null_value": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			"parameters": {
