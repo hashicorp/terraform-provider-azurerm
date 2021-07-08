@@ -8,6 +8,8 @@ FEATURES:
 BUG FIXES:
 
 * `azurerm_api_management` - fix an issue where changing the location of an `additional_location` would force a new resource [GH-12468]
+* `azurerm_automation_variable_int` - fixed value parsing order causing `1` to be considered a bool [GH-12511]
+* `azurerm_automation_variable_bool` - fixed value parsing order causing `1` to be considered a bool [GH-12511]
 * `azurerm_kusto_eventhub_data_connection` - `APACHEAVRO` can now be used as a `data_format` option [GH-12480]
 * `azurerm_site_recovery_replicated_vm ` - Fix potential crash in reading `managed_disk` properties [GH-12509]
 * `azurerm_storage_account` - `account_replication_type` can now be updated [GH-12479]
