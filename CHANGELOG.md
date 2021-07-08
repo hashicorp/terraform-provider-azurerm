@@ -7,6 +7,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurerm_security_center_assessment_policy` - support for the `categories` propety [GH-12383]
 * `azurerm_virtual_machine_configuration_policy_assignment` - has been deprecated and renamed to `azurerm_policy_virtual_machine_configuration_assignment` [GH-12497]
 
 BUG FIXES:
