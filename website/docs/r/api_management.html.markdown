@@ -30,18 +30,6 @@ resource "azurerm_api_management" "example" {
   publisher_email     = "company@terraform.io"
 
   sku_name = "Developer_1"
-
-  policy {
-    xml_content = <<XML
-    <policies>
-      <inbound />
-      <backend />
-      <outbound />
-      <on-error />
-    </policies>
-XML
-
-  }
 }
 ```
 
