@@ -251,8 +251,6 @@ resource "azurerm_subnet" "private" {
 }
 
 resource "azurerm_network_security_group" "nsg" {
-  depends_on = [azurerm_databricks_workspace.test]
-
   name                = "acctest-nsg-private-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -269,6 +267,8 @@ resource "azurerm_subnet_network_security_group_association" "private" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
+  depends_on = [azurerm_network_security_group.nsg]
+
   name                        = "acctestDBW-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
@@ -351,8 +351,6 @@ resource "azurerm_subnet" "private" {
 }
 
 resource "azurerm_network_security_group" "nsg" {
-  depends_on = [azurerm_databricks_workspace.test]
-
   name                = "acctest-nsg-private-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -369,6 +367,8 @@ resource "azurerm_subnet_network_security_group_association" "private" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
+  depends_on = [azurerm_network_security_group.nsg]
+
   name                        = "acctestDBW-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
