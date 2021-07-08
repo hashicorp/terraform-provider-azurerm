@@ -317,7 +317,6 @@ resource "azurerm_data_factory_dataset_parquet" "test" {
   azure_blob_storage_location {
     container = azurerm_storage_container.test.name
     path      = "foo/bar/"
-    filename  = "foo.txt"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
