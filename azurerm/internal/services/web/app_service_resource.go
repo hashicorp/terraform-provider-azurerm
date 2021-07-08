@@ -236,8 +236,8 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	// Check if App Service Plan is part of ASE
 	// If so, the name needs updating to <app name>.<ASE name>.appserviceenvironment.net and FQDN setting true for name availability check
 	aspDetails, err := aspClient.Get(ctx, aspID.ResourceGroup, aspID.ServerfarmName)
-	if err != nil {
-		return fmt.Errorf("App Service Environment %q (Resource Group %q) does not exist", aspID.ServerfarmName, aspID.ResourceGroup)
+	if err != nil || utils.ResponseWasNotFound(aspDetails.Response) {
+		return fmt.Errorf("App Service Environment %q or Resource Group %q does not exist", aspID.ServerfarmName, aspID.ResourceGroup)
 	}
 	if aspDetails.HostingEnvironmentProfile != nil {
 		availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.appserviceenvironment.net", name, *aspDetails.HostingEnvironmentProfile.Name))
