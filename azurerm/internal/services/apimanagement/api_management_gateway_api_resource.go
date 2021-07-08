@@ -68,8 +68,10 @@ func resourceApiManagementGatewayApiCreate(d *pluginsdk.ResourceData, meta inter
 
 	exists, err := client.GetEntityTag(ctx, gatewayID.ResourceGroup, gatewayID.ServiceName, gatewayID.Name, apiID.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(exists) {
-			return fmt.Errorf("checking for present of existing API %q / Gateway %q (API Management Service %q / Resource Group %q): %+v", apiID.Name, gatewayID, gatewayID.ServiceName, gatewayID.ResourceGroup, err)
+		if !utils.ResponseWasStatusCode(exists, http.StatusNoContent) {
+			if !utils.ResponseWasNotFound(exists) {
+				return fmt.Errorf("checking for presence of existing API %q / Gateway %q (API Management Service %q / Resource Group %q): %+v", apiID.Name, gatewayID, gatewayID.ServiceName, gatewayID.ResourceGroup, err)
+			}
 		}
 	}
 

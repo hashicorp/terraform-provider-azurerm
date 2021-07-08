@@ -92,17 +92,17 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_api_management_gateway" "test" {
-	name              = "acctestAMGateway-%d"
-	api_management_id = azurerm_api_management.test.id
-	description       = "this is a test gateway"
-  
-	location_data {
-	  name     = "old world"
-	  city     = "test city"
-	  district = "test district"
-	  region   = "test region"
-	}
+  name              = "acctestAMGateway-%d"
+  api_management_id = azurerm_api_management.test.id
+  description       = "this is a test gateway"
+
+  location_data {
+    name     = "old world"
+    city     = "test city"
+    district = "test district"
+    region   = "test region"
   }
+}
 
 resource "azurerm_api_management_api" "test" {
   name                = "acctestapi-%d"
@@ -115,8 +115,8 @@ resource "azurerm_api_management_api" "test" {
 }
 
 resource "azurerm_api_management_gateway_api" "test" {
-	gateway_id          = azurerm_api_management_gateway.test.id
-	api_id          	  = azurerm_api_management_api.test.id
+  gateway_id = azurerm_api_management_gateway.test.id
+  api_id     = azurerm_api_management_api.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -126,8 +126,8 @@ func (r ApiManagementGatewayAPIResource) requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_api_management_gateway_api" "import" {
-	gateway_id          = azurerm_api_management_gateway.test.id
-	api_id          	= azurerm_api_management_api.test.id
+  gateway_id = azurerm_api_management_gateway.test.id
+  api_id     = azurerm_api_management_api.test.id
 }
 `, r.basic(data))
 }
