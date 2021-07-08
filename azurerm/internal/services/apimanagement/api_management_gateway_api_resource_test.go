@@ -125,7 +125,7 @@ func (r ApiManagementGatewayAPIResource) requiresImport(data acceptance.TestData
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_api_management_gateway_api" "test" {
+resource "azurerm_api_management_gateway_api" "import" {
 	gateway_id          = azurerm_api_management_gateway.test.id
 	api_id          	= azurerm_api_management_api.test.id
 }
