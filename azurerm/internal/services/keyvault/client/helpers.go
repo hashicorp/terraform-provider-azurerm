@@ -176,7 +176,11 @@ func (c *Client) parseNameFromBaseUrl(input string) (*string, error) {
 	}
 
 	// https://the-keyvault.vault.azure.net
+	// https://the-keyvault.vault.microsoftazure.de
+	// https://the-keyvault.vault.usgovcloudapi.net
 	// https://the-keyvault.vault.cloudapi.microsoft
+	// https://the-keyvault.vault.azure.cn
+
 	segments := strings.Split(uri.Host, ".")
 	if len(segments) < 3 || segments[1] != "vault" {
 		return nil, fmt.Errorf("expected a URI in the format `the-keyvault-name.vault.**` but got %q", uri.Host)
