@@ -84,7 +84,7 @@ func (client CheckNameAvailabilityClient) ExecutePreparer(ctx context.Context, n
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-14-preview"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

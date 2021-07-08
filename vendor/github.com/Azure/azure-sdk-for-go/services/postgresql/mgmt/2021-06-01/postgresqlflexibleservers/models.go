@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresqlflexibleservers"
 
 // AzureEntityResource the resource model definition for an Azure Resource Manager resource with an etag.
 type AzureEntityResource struct {
@@ -35,6 +35,28 @@ type AzureEntityResource struct {
 // MarshalJSON is the custom marshaler for AzureEntityResource.
 func (aer AzureEntityResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// Backup backup properties of a server
+type Backup struct {
+	// BackupRetentionDays - Backup retention days for the server.
+	BackupRetentionDays *int32 `json:"backupRetentionDays,omitempty"`
+	// GeoRedundantBackup - A value indicating whether Geo-Redundant backup is enabled on the server. Possible values include: 'GeoRedundantBackupEnumEnabled', 'GeoRedundantBackupEnumDisabled'
+	GeoRedundantBackup GeoRedundantBackupEnum `json:"geoRedundantBackup,omitempty"`
+	// EarliestRestoreDate - READ-ONLY; The earliest restore point time (ISO8601 format) for server.
+	EarliestRestoreDate *date.Time `json:"earliestRestoreDate,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Backup.
+func (b Backup) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if b.BackupRetentionDays != nil {
+		objectMap["backupRetentionDays"] = b.BackupRetentionDays
+	}
+	if b.GeoRedundantBackup != "" {
+		objectMap["geoRedundantBackup"] = b.GeoRedundantBackup
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -207,8 +229,18 @@ func NewCapabilitiesListResultPage(cur CapabilitiesListResult, getNextPage func(
 type CapabilityProperties struct {
 	// Zone - READ-ONLY; zone name
 	Zone *string `json:"zone,omitempty"`
+	// GeoBackupSupported - READ-ONLY; A value indicating whether a new server in this region can have geo-backups to paired region.
+	GeoBackupSupported *bool `json:"geoBackupSupported,omitempty"`
+	// ZoneRedundantHaSupported - READ-ONLY; A value indicating whether a new server in this region can support multi zone HA.
+	ZoneRedundantHaSupported *bool `json:"zoneRedundantHaSupported,omitempty"`
+	// ZoneRedundantHaAndGeoBackupSupported - READ-ONLY; A value indicating whether a new server in this region can have geo-backups to paired region.
+	ZoneRedundantHaAndGeoBackupSupported *bool `json:"zoneRedundantHaAndGeoBackupSupported,omitempty"`
 	// SupportedFlexibleServerEditions - READ-ONLY
-	SupportedFlexibleServerEditions *[]ServerEditionCapability `json:"supportedFlexibleServerEditions,omitempty"`
+	SupportedFlexibleServerEditions *[]FlexibleServerEditionCapability `json:"supportedFlexibleServerEditions,omitempty"`
+	// SupportedHyperscaleNodeEditions - READ-ONLY
+	SupportedHyperscaleNodeEditions *[]HyperscaleNodeEditionCapability `json:"supportedHyperscaleNodeEditions,omitempty"`
+	// Status - READ-ONLY; The status
+	Status *string `json:"status,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CapabilityProperties.
@@ -227,6 +259,8 @@ type Configuration struct {
 	autorest.Response `json:"-"`
 	// ConfigurationProperties - The properties of a configuration.
 	*ConfigurationProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; The system metadata relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
@@ -261,6 +295,15 @@ func (c *Configuration) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				c.ConfigurationProperties = &configurationProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				c.SystemData = &systemData
 			}
 		case "id":
 			if v != nil {
@@ -462,7 +505,7 @@ type ConfigurationProperties struct {
 	Description *string `json:"description,omitempty"`
 	// DefaultValue - READ-ONLY; Default value of the configuration.
 	DefaultValue *string `json:"defaultValue,omitempty"`
-	// DataType - READ-ONLY; Data type of the configuration. Possible values include: 'Boolean', 'Numeric', 'Integer', 'Enumeration'
+	// DataType - READ-ONLY; Data type of the configuration. Possible values include: 'ConfigurationDataTypeBoolean', 'ConfigurationDataTypeNumeric', 'ConfigurationDataTypeInteger', 'ConfigurationDataTypeEnumeration'
 	DataType ConfigurationDataType `json:"dataType,omitempty"`
 	// AllowedValues - READ-ONLY; Allowed values of the configuration.
 	AllowedValues *string `json:"allowedValues,omitempty"`
@@ -480,6 +523,49 @@ func (cp ConfigurationProperties) MarshalJSON() ([]byte, error) {
 		objectMap["source"] = cp.Source
 	}
 	return json.Marshal(objectMap)
+}
+
+// ConfigurationsPutFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ConfigurationsPutFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ConfigurationsClient) (Configuration, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ConfigurationsPutFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ConfigurationsPutFuture.Result.
+func (future *ConfigurationsPutFuture) result(client ConfigurationsClient) (c Configuration, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "postgresqlflexibleservers.ConfigurationsPutFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		c.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("postgresqlflexibleservers.ConfigurationsPutFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if c.Response.Response, err = future.GetResult(sender); err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
+		c, err = client.PutResponder(c.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "postgresqlflexibleservers.ConfigurationsPutFuture", "Result", c.Response.Response, "Failure responding to request")
+		}
+	}
+	return
 }
 
 // ConfigurationsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -522,6 +608,337 @@ func (future *ConfigurationsUpdateFuture) result(client ConfigurationsClient) (c
 			err = autorest.NewErrorWithError(err, "postgresqlflexibleservers.ConfigurationsUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
 		}
 	}
+	return
+}
+
+// Database represents a Database.
+type Database struct {
+	autorest.Response `json:"-"`
+	// DatabaseProperties - The properties of a database.
+	*DatabaseProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; The system metadata relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Database.
+func (d Database) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if d.DatabaseProperties != nil {
+		objectMap["properties"] = d.DatabaseProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for Database struct.
+func (d *Database) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var databaseProperties DatabaseProperties
+				err = json.Unmarshal(*v, &databaseProperties)
+				if err != nil {
+					return err
+				}
+				d.DatabaseProperties = &databaseProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				d.SystemData = &systemData
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				d.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				d.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				d.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// DatabaseListResult a List of databases.
+type DatabaseListResult struct {
+	autorest.Response `json:"-"`
+	// Value - The list of databases housed in a server
+	Value *[]Database `json:"value,omitempty"`
+	// NextLink - The link used to get the next page of databases.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// DatabaseListResultIterator provides access to a complete listing of Database values.
+type DatabaseListResultIterator struct {
+	i    int
+	page DatabaseListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *DatabaseListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DatabaseListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *DatabaseListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter DatabaseListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter DatabaseListResultIterator) Response() DatabaseListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter DatabaseListResultIterator) Value() Database {
+	if !iter.page.NotDone() {
+		return Database{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the DatabaseListResultIterator type.
+func NewDatabaseListResultIterator(page DatabaseListResultPage) DatabaseListResultIterator {
+	return DatabaseListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (dlr DatabaseListResult) IsEmpty() bool {
+	return dlr.Value == nil || len(*dlr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (dlr DatabaseListResult) hasNextLink() bool {
+	return dlr.NextLink != nil && len(*dlr.NextLink) != 0
+}
+
+// databaseListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (dlr DatabaseListResult) databaseListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !dlr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(dlr.NextLink)))
+}
+
+// DatabaseListResultPage contains a page of Database values.
+type DatabaseListResultPage struct {
+	fn  func(context.Context, DatabaseListResult) (DatabaseListResult, error)
+	dlr DatabaseListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *DatabaseListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DatabaseListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.dlr)
+		if err != nil {
+			return err
+		}
+		page.dlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *DatabaseListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page DatabaseListResultPage) NotDone() bool {
+	return !page.dlr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page DatabaseListResultPage) Response() DatabaseListResult {
+	return page.dlr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page DatabaseListResultPage) Values() []Database {
+	if page.dlr.IsEmpty() {
+		return nil
+	}
+	return *page.dlr.Value
+}
+
+// Creates a new instance of the DatabaseListResultPage type.
+func NewDatabaseListResultPage(cur DatabaseListResult, getNextPage func(context.Context, DatabaseListResult) (DatabaseListResult, error)) DatabaseListResultPage {
+	return DatabaseListResultPage{
+		fn:  getNextPage,
+		dlr: cur,
+	}
+}
+
+// DatabaseProperties the properties of a database.
+type DatabaseProperties struct {
+	// Charset - The charset of the database.
+	Charset *string `json:"charset,omitempty"`
+	// Collation - The collation of the database.
+	Collation *string `json:"collation,omitempty"`
+}
+
+// DatabasesCreateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type DatabasesCreateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DatabasesClient) (Database, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *DatabasesCreateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for DatabasesCreateFuture.Result.
+func (future *DatabasesCreateFuture) result(client DatabasesClient) (d Database, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "postgresqlflexibleservers.DatabasesCreateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		d.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("postgresqlflexibleservers.DatabasesCreateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if d.Response.Response, err = future.GetResult(sender); err == nil && d.Response.Response.StatusCode != http.StatusNoContent {
+		d, err = client.CreateResponder(d.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "postgresqlflexibleservers.DatabasesCreateFuture", "Result", d.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// DatabasesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type DatabasesDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(DatabasesClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *DatabasesDeleteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for DatabasesDeleteFuture.Result.
+func (future *DatabasesDeleteFuture) result(client DatabasesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "postgresqlflexibleservers.DatabasesDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("postgresqlflexibleservers.DatabasesDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
 	return
 }
 
@@ -579,6 +996,8 @@ type FirewallRule struct {
 	autorest.Response `json:"-"`
 	// FirewallRuleProperties - The properties of a firewall rule.
 	*FirewallRuleProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; The system metadata relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
@@ -613,6 +1032,15 @@ func (fr *FirewallRule) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				fr.FirewallRuleProperties = &firewallRuleProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				fr.SystemData = &systemData
 			}
 		case "id":
 			if v != nil {
@@ -894,13 +1322,73 @@ func (future *FirewallRulesDeleteFuture) result(client FirewallRulesClient) (ar 
 	return
 }
 
+// FlexibleServerEditionCapability flexible server edition capabilities.
+type FlexibleServerEditionCapability struct {
+	// Name - READ-ONLY; Server edition name
+	Name *string `json:"name,omitempty"`
+	// SupportedStorageEditions - READ-ONLY; The list of editions supported by this server edition.
+	SupportedStorageEditions *[]StorageEditionCapability `json:"supportedStorageEditions,omitempty"`
+	// SupportedServerVersions - READ-ONLY; The list of server versions supported by this server edition.
+	SupportedServerVersions *[]ServerVersionCapability `json:"supportedServerVersions,omitempty"`
+	// Status - READ-ONLY; The status
+	Status *string `json:"status,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for FlexibleServerEditionCapability.
+func (fsec FlexibleServerEditionCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// HighAvailability high availability properties of a server
+type HighAvailability struct {
+	// Mode - The HA mode for the server. Possible values include: 'HighAvailabilityModeDisabled', 'HighAvailabilityModeZoneRedundant'
+	Mode HighAvailabilityMode `json:"mode,omitempty"`
+	// State - READ-ONLY; A state of a HA server that is visible to user. Possible values include: 'ServerHAStateNotEnabled', 'ServerHAStateCreatingStandby', 'ServerHAStateReplicatingData', 'ServerHAStateFailingOver', 'ServerHAStateHealthy', 'ServerHAStateRemovingStandby'
+	State ServerHAState `json:"state,omitempty"`
+	// StandbyAvailabilityZone - availability zone information of the standby.
+	StandbyAvailabilityZone *string `json:"standbyAvailabilityZone,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for HighAvailability.
+func (ha HighAvailability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ha.Mode != "" {
+		objectMap["mode"] = ha.Mode
+	}
+	if ha.StandbyAvailabilityZone != nil {
+		objectMap["standbyAvailabilityZone"] = ha.StandbyAvailabilityZone
+	}
+	return json.Marshal(objectMap)
+}
+
+// HyperscaleNodeEditionCapability hyperscale node edition capabilities.
+type HyperscaleNodeEditionCapability struct {
+	// Name - READ-ONLY; Server edition name
+	Name *string `json:"name,omitempty"`
+	// SupportedStorageEditions - READ-ONLY; The list of editions supported by this server edition.
+	SupportedStorageEditions *[]StorageEditionCapability `json:"supportedStorageEditions,omitempty"`
+	// SupportedServerVersions - READ-ONLY; The list of server versions supported by this server edition.
+	SupportedServerVersions *[]ServerVersionCapability `json:"supportedServerVersions,omitempty"`
+	// SupportedNodeTypes - READ-ONLY; The list of Node Types supported by this server edition.
+	SupportedNodeTypes *[]NodeTypeCapability `json:"supportedNodeTypes,omitempty"`
+	// Status - READ-ONLY; The status
+	Status *string `json:"status,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for HyperscaleNodeEditionCapability.
+func (hnec HyperscaleNodeEditionCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Identity identity for the resource.
 type Identity struct {
 	// PrincipalID - READ-ONLY; The principal ID of resource identity.
 	PrincipalID *string `json:"principalId,omitempty"`
 	// TenantID - READ-ONLY; The tenant ID of resource.
 	TenantID *string `json:"tenantId,omitempty"`
-	// Type - The identity type. Possible values include: 'SystemAssigned'
+	// Type - The identity type. Possible values include: 'ResourceIdentityTypeSystemAssigned'
 	Type ResourceIdentityType `json:"type,omitempty"`
 }
 
@@ -913,7 +1401,7 @@ func (i Identity) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// MaintenanceWindow maintenance window of a server.
+// MaintenanceWindow maintenance window properties of a server.
 type MaintenanceWindow struct {
 	// CustomWindow - indicates whether custom window is enabled or disabled
 	CustomWindow *string `json:"customWindow,omitempty"`
@@ -946,6 +1434,44 @@ type NameAvailabilityRequest struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// Network network properties of a server
+type Network struct {
+	// PublicNetworkAccess - READ-ONLY; public network access is enabled or not. Possible values include: 'ServerPublicNetworkAccessStateEnabled', 'ServerPublicNetworkAccessStateDisabled'
+	PublicNetworkAccess ServerPublicNetworkAccessState `json:"publicNetworkAccess,omitempty"`
+	// DelegatedSubnetResourceID - delegated subnet arm resource id.
+	DelegatedSubnetResourceID *string `json:"delegatedSubnetResourceId,omitempty"`
+	// PrivateDNSZoneArmResourceID - private dns zone arm resource id.
+	PrivateDNSZoneArmResourceID *string `json:"privateDnsZoneArmResourceId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Network.
+func (n Network) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if n.DelegatedSubnetResourceID != nil {
+		objectMap["delegatedSubnetResourceId"] = n.DelegatedSubnetResourceID
+	}
+	if n.PrivateDNSZoneArmResourceID != nil {
+		objectMap["privateDnsZoneArmResourceId"] = n.PrivateDNSZoneArmResourceID
+	}
+	return json.Marshal(objectMap)
+}
+
+// NodeTypeCapability node type capability
+type NodeTypeCapability struct {
+	// Name - READ-ONLY; note type name
+	Name *string `json:"name,omitempty"`
+	// NodeType - READ-ONLY; note type
+	NodeType *string `json:"nodeType,omitempty"`
+	// Status - READ-ONLY; The status
+	Status *string `json:"status,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for NodeTypeCapability.
+func (ntc NodeTypeCapability) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Operation REST API operation definition.
 type Operation struct {
 	// Name - READ-ONLY; The name of the operation being performed on this particular object.
@@ -954,7 +1480,7 @@ type Operation struct {
 	Display *OperationDisplay `json:"display,omitempty"`
 	// IsDataAction - Indicates whether the operation is a data action
 	IsDataAction *bool `json:"isDataAction,omitempty"`
-	// Origin - READ-ONLY; The intended executor of the operation. Possible values include: 'NotSpecified', 'User', 'System'
+	// Origin - READ-ONLY; The intended executor of the operation. Possible values include: 'OperationOriginNotSpecified', 'OperationOriginUser', 'OperationOriginSystem'
 	Origin OperationOrigin `json:"origin,omitempty"`
 	// Properties - READ-ONLY; Additional descriptions for the operation.
 	Properties map[string]interface{} `json:"properties"`
@@ -1102,7 +1628,7 @@ type ResourceModelWithAllowedPropertySetIdentity struct {
 	PrincipalID *string `json:"principalId,omitempty"`
 	// TenantID - READ-ONLY; The tenant ID of resource.
 	TenantID *string `json:"tenantId,omitempty"`
-	// Type - The identity type. Possible values include: 'SystemAssigned'
+	// Type - The identity type. Possible values include: 'ResourceIdentityTypeSystemAssigned'
 	Type ResourceIdentityType `json:"type,omitempty"`
 }
 
@@ -1133,8 +1659,16 @@ type ResourceModelWithAllowedPropertySetPlan struct {
 type ResourceModelWithAllowedPropertySetSku struct {
 	// Name - The name of the sku, typically, tier + family + cores, e.g. Standard_D4s_v3.
 	Name *string `json:"name,omitempty"`
-	// Tier - The tier of the particular SKU, e.g. Burstable. Possible values include: 'Burstable', 'GeneralPurpose', 'MemoryOptimized'
+	// Tier - The tier of the particular SKU, e.g. Burstable. Possible values include: 'SkuTierBurstable', 'SkuTierGeneralPurpose', 'SkuTierMemoryOptimized'
 	Tier SkuTier `json:"tier,omitempty"`
+}
+
+// RestartParameter represents server restart parameters.
+type RestartParameter struct {
+	// RestartWithFailover - Indicates whether to restart the server with failover.
+	RestartWithFailover *bool `json:"restartWithFailover,omitempty"`
+	// FailoverMode - Failover mode.
+	FailoverMode *string `json:"failoverMode,omitempty"`
 }
 
 // Server represents a server.
@@ -1146,6 +1680,8 @@ type Server struct {
 	Sku *Sku `json:"sku,omitempty"`
 	// ServerProperties - Properties of the server.
 	*ServerProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; The system metadata relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
 	// Location - The geo-location where the resource lives
@@ -1215,6 +1751,15 @@ func (s *Server) UnmarshalJSON(body []byte) error {
 				}
 				s.ServerProperties = &serverProperties
 			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				s.SystemData = &systemData
+			}
 		case "tags":
 			if v != nil {
 				var tags map[string]*string
@@ -1264,22 +1809,6 @@ func (s *Server) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
-}
-
-// ServerEditionCapability server edition capabilities.
-type ServerEditionCapability struct {
-	// Name - READ-ONLY; Server edition name
-	Name *string `json:"name,omitempty"`
-	// SupportedStorageEditions - READ-ONLY
-	SupportedStorageEditions *[]StorageEditionCapability `json:"supportedStorageEditions,omitempty"`
-	// SupportedServerVersions - READ-ONLY
-	SupportedServerVersions *[]ServerVersionCapability `json:"supportedServerVersions,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ServerEditionCapability.
-func (sec ServerEditionCapability) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // ServerForUpdate represents a server to be updated.
@@ -1528,41 +2057,31 @@ type ServerProperties struct {
 	AdministratorLogin *string `json:"administratorLogin,omitempty"`
 	// AdministratorLoginPassword - The administrator login password (required for server creation).
 	AdministratorLoginPassword *string `json:"administratorLoginPassword,omitempty"`
-	// Version - PostgreSQL Server version. Possible values include: 'OneTwo', 'OneOne'
+	// Version - PostgreSQL Server version. Possible values include: 'ServerVersionOneThree', 'ServerVersionOneTwo', 'ServerVersionOneOne'
 	Version ServerVersion `json:"version,omitempty"`
+	// MinorVersion - READ-ONLY; The minor version of the server.
+	MinorVersion *string `json:"minorVersion,omitempty"`
 	// State - READ-ONLY; A state of a server that is visible to user. Possible values include: 'ServerStateReady', 'ServerStateDropping', 'ServerStateDisabled', 'ServerStateStarting', 'ServerStateStopping', 'ServerStateStopped', 'ServerStateUpdating'
 	State ServerState `json:"state,omitempty"`
-	// HaState - READ-ONLY; A state of a HA server that is visible to user. Possible values include: 'NotEnabled', 'CreatingStandby', 'ReplicatingData', 'FailingOver', 'Healthy', 'RemovingStandby'
-	HaState ServerHAState `json:"haState,omitempty"`
 	// FullyQualifiedDomainName - READ-ONLY; The fully qualified domain name of a server.
 	FullyQualifiedDomainName *string `json:"fullyQualifiedDomainName,omitempty"`
-	// DisplayName - The display name of a server.
-	DisplayName *string `json:"displayName,omitempty"`
-	// StorageProfile - Storage profile of a server.
-	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
-	// PublicNetworkAccess - READ-ONLY; public network access is enabled or not. Possible values include: 'ServerPublicNetworkAccessStateEnabled', 'ServerPublicNetworkAccessStateDisabled'
-	PublicNetworkAccess ServerPublicNetworkAccessState `json:"publicNetworkAccess,omitempty"`
-	// MaintenanceWindow - Maintenance window of a server.
+	// Storage - Storage properties of a server.
+	Storage *Storage `json:"storage,omitempty"`
+	// Backup - Backup properties of a server.
+	Backup *Backup `json:"backup,omitempty"`
+	// Network - Network properties of a server.
+	Network *Network `json:"network,omitempty"`
+	// HighAvailability - High availability properties of a server.
+	HighAvailability *HighAvailability `json:"highAvailability,omitempty"`
+	// MaintenanceWindow - Maintenance window properties of a server.
 	MaintenanceWindow *MaintenanceWindow `json:"maintenanceWindow,omitempty"`
-	// HaEnabled - stand by count value can be either enabled or disabled. Possible values include: 'Enabled', 'Disabled'
-	HaEnabled HAEnabledEnum `json:"haEnabled,omitempty"`
-	// SourceServerName - The source PostgreSQL server name to restore from.
-	SourceServerName *string `json:"sourceServerName,omitempty"`
-	// SourceSubscriptionID - The subscription id of source serve PostgreSQL server name to restore from.
-	SourceSubscriptionID *string `json:"sourceSubscriptionId,omitempty"`
-	// SourceResourceGroupName - The resource group name of source serve PostgreSQL server name to restore from.
-	SourceResourceGroupName *string `json:"sourceResourceGroupName,omitempty"`
-	// PointInTimeUTC - Restore point creation time (ISO8601 format), specifying the time to restore from.
+	// SourceServerResourceID - The source server resource ID to restore from. It's required when 'createMode' is 'PointInTimeRestore'.
+	SourceServerResourceID *string `json:"sourceServerResourceId,omitempty"`
+	// PointInTimeUTC - Restore point creation time (ISO8601 format), specifying the time to restore from. It's required when 'createMode' is 'PointInTimeRestore'.
 	PointInTimeUTC *date.Time `json:"pointInTimeUTC,omitempty"`
-	// AvailabilityZone - availability Zone information of the server.
+	// AvailabilityZone - availability zone information of the server.
 	AvailabilityZone *string `json:"availabilityZone,omitempty"`
-	// StandbyAvailabilityZone - READ-ONLY; availability Zone information of the server.
-	StandbyAvailabilityZone *string `json:"standbyAvailabilityZone,omitempty"`
-	// ByokEnforcement - READ-ONLY; Status showing whether the data encryption is enabled with customer-managed keys.
-	ByokEnforcement          *string                                   `json:"byokEnforcement,omitempty"`
-	DelegatedSubnetArguments *ServerPropertiesDelegatedSubnetArguments `json:"delegatedSubnetArguments,omitempty"`
-	PrivateDNSZoneArguments  *ServerPropertiesPrivateDNSZoneArguments  `json:"privateDnsZoneArguments,omitempty"`
-	// CreateMode - The mode to create a new PostgreSQL server. Possible values include: 'Default', 'PointInTimeRestore'
+	// CreateMode - The mode to create a new PostgreSQL server. Possible values include: 'CreateModeDefault', 'CreateModeCreate', 'CreateModeUpdate', 'CreateModePointInTimeRestore'
 	CreateMode CreateMode `json:"createMode,omitempty"`
 	// Tags - Application-specific metadata in the form of key-value pairs.
 	Tags map[string]*string `json:"tags"`
@@ -1580,38 +2099,29 @@ func (sp ServerProperties) MarshalJSON() ([]byte, error) {
 	if sp.Version != "" {
 		objectMap["version"] = sp.Version
 	}
-	if sp.DisplayName != nil {
-		objectMap["displayName"] = sp.DisplayName
+	if sp.Storage != nil {
+		objectMap["storage"] = sp.Storage
 	}
-	if sp.StorageProfile != nil {
-		objectMap["storageProfile"] = sp.StorageProfile
+	if sp.Backup != nil {
+		objectMap["backup"] = sp.Backup
+	}
+	if sp.Network != nil {
+		objectMap["network"] = sp.Network
+	}
+	if sp.HighAvailability != nil {
+		objectMap["highAvailability"] = sp.HighAvailability
 	}
 	if sp.MaintenanceWindow != nil {
 		objectMap["maintenanceWindow"] = sp.MaintenanceWindow
 	}
-	if sp.HaEnabled != "" {
-		objectMap["haEnabled"] = sp.HaEnabled
-	}
-	if sp.SourceServerName != nil {
-		objectMap["sourceServerName"] = sp.SourceServerName
-	}
-	if sp.SourceSubscriptionID != nil {
-		objectMap["sourceSubscriptionId"] = sp.SourceSubscriptionID
-	}
-	if sp.SourceResourceGroupName != nil {
-		objectMap["sourceResourceGroupName"] = sp.SourceResourceGroupName
+	if sp.SourceServerResourceID != nil {
+		objectMap["sourceServerResourceId"] = sp.SourceServerResourceID
 	}
 	if sp.PointInTimeUTC != nil {
 		objectMap["pointInTimeUTC"] = sp.PointInTimeUTC
 	}
 	if sp.AvailabilityZone != nil {
 		objectMap["availabilityZone"] = sp.AvailabilityZone
-	}
-	if sp.DelegatedSubnetArguments != nil {
-		objectMap["delegatedSubnetArguments"] = sp.DelegatedSubnetArguments
-	}
-	if sp.PrivateDNSZoneArguments != nil {
-		objectMap["privateDnsZoneArguments"] = sp.PrivateDNSZoneArguments
 	}
 	if sp.CreateMode != "" {
 		objectMap["createMode"] = sp.CreateMode
@@ -1622,28 +2132,20 @@ func (sp ServerProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ServerPropertiesDelegatedSubnetArguments ...
-type ServerPropertiesDelegatedSubnetArguments struct {
-	// SubnetArmResourceID - delegated subnet arm resource id.
-	SubnetArmResourceID *string `json:"subnetArmResourceId,omitempty"`
-}
-
 // ServerPropertiesForUpdate ...
 type ServerPropertiesForUpdate struct {
 	// AdministratorLoginPassword - The password of the administrator login.
 	AdministratorLoginPassword *string `json:"administratorLoginPassword,omitempty"`
-	// StorageProfile - Storage profile of a server.
-	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
-	// HaEnabled - stand by count value can be either enabled or disabled. Possible values include: 'Enabled', 'Disabled'
-	HaEnabled HAEnabledEnum `json:"haEnabled,omitempty"`
-	// MaintenanceWindow - Maintenance window of a server.
+	// Storage - Storage properties of a server.
+	Storage *Storage `json:"storage,omitempty"`
+	// Backup - Backup properties of a server.
+	Backup *Backup `json:"backup,omitempty"`
+	// HighAvailability - High availability properties of a server.
+	HighAvailability *HighAvailability `json:"highAvailability,omitempty"`
+	// MaintenanceWindow - Maintenance window properties of a server.
 	MaintenanceWindow *MaintenanceWindow `json:"maintenanceWindow,omitempty"`
-}
-
-// ServerPropertiesPrivateDNSZoneArguments ...
-type ServerPropertiesPrivateDNSZoneArguments struct {
-	// PrivateDNSZoneArmResourceID - private dns zone arm resource id.
-	PrivateDNSZoneArmResourceID *string `json:"privateDnsZoneArmResourceId,omitempty"`
+	// CreateMode - The mode to update a new PostgreSQL server. Possible values include: 'CreateModeForUpdateDefault', 'CreateModeForUpdateUpdate'
+	CreateMode CreateModeForUpdate `json:"createMode,omitempty"`
 }
 
 // ServersCreateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -1884,6 +2386,8 @@ type ServerVersionCapability struct {
 	Name *string `json:"name,omitempty"`
 	// SupportedVcores - READ-ONLY
 	SupportedVcores *[]VcoreCapability `json:"supportedVcores,omitempty"`
+	// Status - READ-ONLY; The status
+	Status *string `json:"status,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ServerVersionCapability.
@@ -1896,8 +2400,14 @@ func (svc ServerVersionCapability) MarshalJSON() ([]byte, error) {
 type Sku struct {
 	// Name - The name of the sku, typically, tier + family + cores, e.g. Standard_D4s_v3.
 	Name *string `json:"name,omitempty"`
-	// Tier - The tier of the particular SKU, e.g. Burstable. Possible values include: 'Burstable', 'GeneralPurpose', 'MemoryOptimized'
+	// Tier - The tier of the particular SKU, e.g. Burstable. Possible values include: 'SkuTierBurstable', 'SkuTierGeneralPurpose', 'SkuTierMemoryOptimized'
 	Tier SkuTier `json:"tier,omitempty"`
+}
+
+// Storage storage properties of a server
+type Storage struct {
+	// StorageSizeGB - Max storage allowed for a server.
+	StorageSizeGB *int32 `json:"storageSizeGB,omitempty"`
 }
 
 // StorageEditionCapability storage edition capability
@@ -1906,6 +2416,8 @@ type StorageEditionCapability struct {
 	Name *string `json:"name,omitempty"`
 	// SupportedStorageMB - READ-ONLY
 	SupportedStorageMB *[]StorageMBCapability `json:"supportedStorageMB,omitempty"`
+	// Status - READ-ONLY; The status
+	Status *string `json:"status,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for StorageEditionCapability.
@@ -1922,6 +2434,8 @@ type StorageMBCapability struct {
 	SupportedIops *int64 `json:"supportedIops,omitempty"`
 	// StorageSizeMB - READ-ONLY; storage size in MB
 	StorageSizeMB *int64 `json:"storageSizeMB,omitempty"`
+	// Status - READ-ONLY; The status
+	Status *string `json:"status,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for StorageMBCapability.
@@ -1930,12 +2444,26 @@ func (smc StorageMBCapability) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// StorageProfile storage Profile properties of a server
-type StorageProfile struct {
-	// BackupRetentionDays - Backup retention days for the server.
-	BackupRetentionDays *int32 `json:"backupRetentionDays,omitempty"`
-	// StorageMB - Max storage allowed for a server.
-	StorageMB *int32 `json:"storageMB,omitempty"`
+// String ...
+type String struct {
+	autorest.Response `json:"-"`
+	Value             *string `json:"value,omitempty"`
+}
+
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - The identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - The identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The timestamp of resource last modification (UTC)
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
 }
 
 // TrackedResource the resource model definition for an Azure Resource Manager tracked top level resource
@@ -1975,6 +2503,8 @@ type VcoreCapability struct {
 	SupportedIops *int64 `json:"supportedIops,omitempty"`
 	// SupportedMemoryPerVcoreMB - READ-ONLY; supported memory per vCore in MB
 	SupportedMemoryPerVcoreMB *int64 `json:"supportedMemoryPerVcoreMB,omitempty"`
+	// Status - READ-ONLY; The status
+	Status *string `json:"status,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for VcoreCapability.

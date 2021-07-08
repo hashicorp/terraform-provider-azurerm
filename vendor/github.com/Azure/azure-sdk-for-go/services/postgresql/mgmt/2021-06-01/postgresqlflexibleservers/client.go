@@ -1,5 +1,4 @@
-// Package postgresqlflexibleservers implements the Azure ARM Postgresqlflexibleservers service API version
-// 2020-02-14-preview.
+// Package postgresqlflexibleservers implements the Azure ARM Postgresqlflexibleservers service API version 2021-06-01.
 //
 // The Microsoft Azure management API provides create, read, update, and delete functionality for Azure PostgreSQL
 // resources including servers, databases, firewall rules, VNET rules, security alert policies, log files and
