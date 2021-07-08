@@ -7,8 +7,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating `postgresqlflexibleservers` to use API Version `2021-06-01` [GH-12405]
 * `azurerm_security_center_assessment_policy` - support for the `categories` propety [GH-12383]
-* `azurerm_virtual_machine_configuration_policy_assignment` - has been deprecated and renamed to `azurerm_policy_virtual_machine_configuration_assignment` [GH-12497]
 
 BUG FIXES:
 
@@ -23,6 +23,11 @@ BUG FIXES:
 * `azurerm_storage_management_policy` - fix crash in read of properties [GH-12487]
 * `azurerm_storage_share_directory` now allows underscore in property `name` [GH-12454] 
 * `azurerm_security_center_subscription_pricing` - removed Owner permission note from documentation [GH-12481]
+
+DEPRECATIONS:
+
+* `azurerm_postgresql_flexible_server` - the `cmk_enabled` property has been deprecated as it has been removed from the API [GH-12405]
+* `azurerm_virtual_machine_configuration_policy_assignment` - has been deprecated and renamed to `azurerm_policy_virtual_machine_configuration_assignment` [GH-12497]
 
 ## 2.66.0 (July 02, 2021)
 
