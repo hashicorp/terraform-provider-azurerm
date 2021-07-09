@@ -1,25 +1,25 @@
 ---
 subcategory: "Consumption"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_consumption_budget"
+page_title: "Azure Resource Manager: Data Source: azurerm_consumption_budget_resource_group"
 description: |-
-  Gets information about an existing Consumption Budget.
+  Gets information about an existing Consumption Budget in a specific resource group.
 ---
 
-# Data Source: azurerm_consumption_budget
+# Data Source: azurerm_consumption_budget_resource_group
 
-Use this data source to access information about an existing Consumption Budget.
+Use this data source to access information about an existing Consumption Budget in a specific resource group.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_consumption_budget" "example" {
+data "azurerm_consumption_budget_resource_group" "example" {
   name            = "existing"
   subscription_id = "/subscriptions/00000000-0000-0000-0000-000000000000/"
 }
 
 output "id" {
-  value = data.azurerm_consumption_budget.example.id
+  value = data.azurerm_consumption_budget_resource_group.example.id
 }
 ```
 

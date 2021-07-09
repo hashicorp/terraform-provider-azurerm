@@ -23,6 +23,7 @@ func TestAccDataSourceBudget_current(t *testing.T) {
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("subscription_id").HasValue(data.Client().SubscriptionID),
+        check.That(data.ResourceName).Key("name").HasValue("acctestconsumptionbudget"),
 			),
 		},
 	})
@@ -36,8 +37,8 @@ provider "azurerm" {
 
 data "azurerm_subscription" "current" {}
 
-data "azurerm_consumption_budget" "current" {
-  name            = "acctestconsumptionbudgetresourcegroup"
+data "azurerm_consumption_budget_resource_Group" "current" {
+  name            = "acctestconsumptionbudget"
   subscription_id = data.azurerm_subscription.current.subscription_id
 }
 `
@@ -60,7 +61,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_consumption_budget_resource_group" "test" {
-  name              = "acctestconsumptionbudgetresourcegroup"
+  name              = "acctestconsumptionbudget"
   resource_group_id = azurerm_resource_group.test.id
 
   amount     = 1000
