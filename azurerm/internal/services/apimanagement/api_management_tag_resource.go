@@ -52,7 +52,8 @@ func resourceApiManagementTag() *pluginsdk.Resource {
 
 			"display_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
@@ -85,10 +86,15 @@ func resourceApiManagementTagCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			return tf.ImportAsExistsError("azurerm_api_management_tag", id.ID())
 		}
 	}
+	displayName := d.Get("name").(string)
+
+	if v, ok := d.GetOk("display_name"); ok {
+		displayName = v.(string)
+	}
 
 	parameters := apimanagement.TagCreateUpdateParameters{
 		TagContractProperties: &apimanagement.TagContractProperties{
-			DisplayName: utils.String(d.Get("display_name").(string)),
+			DisplayName: &displayName,
 		},
 	}
 
@@ -138,12 +144,12 @@ func resourceApiManagementTagDelete(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.OperationTagID(d.Id())
+	id, err := parse.TagID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.TagName, ""); err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, ""); err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)
 	}
 

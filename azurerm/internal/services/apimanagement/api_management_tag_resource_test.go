@@ -76,12 +76,12 @@ func TestAccApiManagementTag_update(t *testing.T) {
 }
 
 func (ApiManagementTagResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.OperationTagID(state.ID)
+	id, err := parse.TagID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ApiManagement.TagClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.TagName)
+	resp, err := clients.ApiManagement.TagClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("reading %q: %+v", id, err)
 	}
@@ -96,7 +96,6 @@ func (r ApiManagementTagResource) basic(data acceptance.TestData) string {
 resource "azurerm_api_management_tag" "test" {
   api_management_id = azurerm_api_management.test.id
   name              = "acctest-Op-Tag-%d"
-  display_name      = "Display-Op-Tag"
 }
 `, ApiManagementResource{}.consumption(data), data.RandomInteger)
 }
@@ -108,7 +107,6 @@ func (r ApiManagementTagResource) requiresImport(data acceptance.TestData) strin
 resource "azurerm_api_management_tag" "import" {
   api_management_id = azurerm_api_management_tag.test.api_management_id
   name              = azurerm_api_management_tag.test.name
-  display_name      = azurerm_api_management_tag.test.display_name
 }
 `, r.basic(data))
 }
@@ -120,7 +118,6 @@ func (r ApiManagementTagResource) update(data acceptance.TestData) string {
 resource "azurerm_api_management_tag" "test" {
   api_management_id = azurerm_api_management.test.id
   name              = "acctest-Op-Tag-%d"
-
   display_name = "Display-Op-Tag Updated"
 }
 `, ApiManagementResource{}.consumption(data), data.RandomInteger)
