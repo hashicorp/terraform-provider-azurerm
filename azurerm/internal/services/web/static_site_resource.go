@@ -51,14 +51,21 @@ func resourceStaticSite() *pluginsdk.Resource {
 
 			"sku_tier": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"Free", "Standard"}, false),
+				Optional:     true,
+				Default:      "Free",
+				ValidateFunc: validation.StringInSlice([]string{
+					"Free",
+					"Standard",
+				}, false),
 			},
 
 			"sku_size": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"Free", "Standard"}, false),
+				Default:      "Free",
+				ValidateFunc: validation.StringInSlice([]string{
+					"Free",
+					"Standard",
+				}, false),
 			},
 
 			"default_host_name": {
