@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func PortOrPortRangeWithin(min int, max int) schema.SchemaValidateFunc {
+func PortOrPortRangeWithin(min int, max int) func(interface{}, string) ([]string, []error) {
 	return func(i interface{}, k string) (warnings []string, errors []error) {
 		v, ok := i.(string)
 		if !ok {

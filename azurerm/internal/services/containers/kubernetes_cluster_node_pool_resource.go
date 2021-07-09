@@ -111,6 +111,21 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 
 			"linux_os_config": schemaNodePoolLinuxOSConfig(),
 
+			"fips_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
+			"kubelet_disk_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.KubeletDiskTypeOS),
+				}, false),
+			},
+
 			"max_count": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -308,7 +323,9 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	profile := containerservice.ManagedClusterAgentPoolProfileProperties{
 		OsType:                 containerservice.OSType(osType),
 		EnableAutoScaling:      utils.Bool(enableAutoScaling),
+		EnableFIPS:             utils.Bool(d.Get("fips_enabled").(bool)),
 		EnableNodePublicIP:     utils.Bool(d.Get("enable_node_public_ip").(bool)),
+		KubeletDiskType:        containerservice.KubeletDiskType(d.Get("kubelet_disk_type").(string)),
 		Mode:                   mode,
 		ScaleSetPriority:       containerservice.ScaleSetPriority(priority),
 		Tags:                   tags.Expand(t),
@@ -647,6 +664,8 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("enable_auto_scaling", props.EnableAutoScaling)
 		d.Set("enable_node_public_ip", props.EnableNodePublicIP)
 		d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
+		d.Set("fips_enabled", props.EnableFIPS)
+		d.Set("kubelet_disk_type", string(props.KubeletDiskType))
 
 		evictionPolicy := ""
 		if props.ScaleSetEvictionPolicy != "" {

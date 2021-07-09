@@ -201,7 +201,7 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Timeout: d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("failed waiting for Blueprint Assignment %q (Scope %q): %+v", name, targetScope, err)
 	}
 
@@ -329,7 +329,7 @@ func resourceBlueprintAssignmentDelete(d *pluginsdk.ResourceData, meta interface
 		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Failed waiting for Blueprint Assignment %q (Scope %q): %+v", id.Name, id.Scope, err)
 	}
 

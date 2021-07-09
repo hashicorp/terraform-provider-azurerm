@@ -1,8 +1,8 @@
 package pluginsdk
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // This file is intended to provide a transition from Plugin SDKv1 to Plugin SDKv2
@@ -17,7 +17,7 @@ type (
 	ResourceDiff           = schema.ResourceDiff
 	SchemaDiffSuppressFunc = schema.SchemaDiffSuppressFunc
 	StateUpgrader          = schema.StateUpgrader
-	SchemaValidateFunc     = schema.SchemaValidateFunc
+	SchemaValidateFunc     = func(interface{}, string) ([]string, []error)
 	ValueType              = schema.ValueType
 )
 
@@ -27,7 +27,7 @@ type (
 )
 
 type (
-	CreateFunc = schema.CreateFunc
+	CreateFunc = schema.CreateFunc //nolint:SA1019
 	DeleteFunc = schema.DeleteFunc
 	ExistsFunc = schema.ExistsFunc
 	ReadFunc   = schema.ReadFunc
