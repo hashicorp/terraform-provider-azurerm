@@ -9,11 +9,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-type BudgetDataSource struct{}
+type BudgetSubscriptionDataSource struct{}
 
-func TestAccDataSourceBudget_current(t *testing.T) {
+func TestAccBudgetSubscriptionDataSource_current(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_consumption_budget", "current")
-	r := BudgetDataSource{}
+	r := BudgetSubscriptionDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -23,12 +23,13 @@ func TestAccDataSourceBudget_current(t *testing.T) {
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("subscription_id").HasValue(data.Client().SubscriptionID),
+        check.That(data.ResourceName).Key("name").HasValue("acctestconsumptionbudget-sub"),
 			),
 		},
 	})
 }
 
-func (d BudgetDataSource) basic() string {
+func (d BudgetSubscriptionDataSource) basic() string {
 	return `
 provider "azurerm" {
   features {}
@@ -37,13 +38,13 @@ provider "azurerm" {
 data "azurerm_subscription" "current" {}
 
 data "azurerm_consumption_budget" "current" {
-  name            = "acctestconsumptionbudgetresourcegroup"
+  name            = "acctestconsumptionbudget-sub"
   subscription_id = data.azurerm_subscription.current.subscription_id
 }
 `
 }
 
-func (BudgetDataSource) template(data acceptance.TestData) string {
+func (BudgetSubscriptionDataSource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -60,7 +61,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_consumption_budget_resource_group" "test" {
-  name              = "acctestconsumptionbudgetresourcegroup"
+  name              = "acctestconsumptionbudget-sub"
   resource_group_id = azurerm_resource_group.test.id
 
   amount     = 1000
