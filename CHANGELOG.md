@@ -1,5 +1,13 @@
 ## 2.68.0 (Unreleased)
 
+FEATURES:
+
+ENHANCEMENTS:
+
+* dependencies: updating `bot` to use API Version `2021-03-01` [GH-12449]
+
+BUG FIXES:
+
 ## 2.67.0 (July 09, 2021)
 
 FEATURES:
