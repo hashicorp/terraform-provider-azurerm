@@ -434,7 +434,7 @@ resource "azurerm_cognitive_account" "test" {
   kind                = "SpeechServices"
   sku_name            = "S0"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
 
 func (CognitiveAccountResource) speechServicesWithStorage(data acceptance.TestData) string {
@@ -479,7 +479,7 @@ resource "azurerm_cognitive_account" "test" {
     identity_client_id = azurerm_user_assigned_identity.test.client_id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8), data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomInteger, data.RandomInteger)
 }
 
 func (CognitiveAccountResource) requiresImport(data acceptance.TestData) string {
@@ -546,7 +546,7 @@ resource "azurerm_cognitive_account" "test" {
   qna_runtime_endpoint = "%s"
   sku_name             = "S0"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, url)
+`, data.RandomInteger, "West US", data.RandomInteger, url) // QnAMaker only available in West US
 }
 
 func (CognitiveAccountResource) qnaRuntimeEndpointUnspecified(data acceptance.TestData) string {
@@ -567,7 +567,7 @@ resource "azurerm_cognitive_account" "test" {
   kind                = "QnAMaker"
   sku_name            = "S0"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, "West US", data.RandomInteger) // QnAMaker only available in West US
 }
 
 func (CognitiveAccountResource) cognitiveServices(data acceptance.TestData) string {
