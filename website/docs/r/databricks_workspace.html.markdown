@@ -42,11 +42,15 @@ The following arguments are supported:
 
 * `sku` - (Required) The `sku` to use for the Databricks Workspace. Possible values are `standard`, `premium`, or `trial`. Changing this can force a new resource to be created in some circumstances.
 
-~> **NOTE** While downgrading to `trial`, the Databricks Workspace resource would be recreated.
+~> **NOTE** Downgrading to a `trial sku` from a `standard` or `premium sku` will force a new resource to be created.
 
 * `managed_resource_group_name` - (Optional) The name of the resource group where Azure should place the managed Databricks resources. Changing this forces a new resource to be created.
 
 ~> **NOTE** Azure requires that this Resource Group does not exist in this Subscription (and that the Azure API creates it) - otherwise the deployment will fail.
+
+* `customer_managed_key_enabled` - (Optional) Is the workspace enabled for customer managed key encryption? If `true` this enables the Managed Identity for the managed storage account. Possible values are `true` or `false`. Defaults to `false`. This field is only valid if the Databricks Workspace `sku` is set to `premium`. Changing this forces a new resource to be created.
+
+* `infrastructure_encryption_enabled`- (Optional) Is the Databricks File System root file system enabled with a secondary layer of encryption with platform managed keys? Possible values are `true` or `false`. Defaults to `false`. This field is only valid if the Databricks Workspace `sku` is set to `premium`. Changing this forces a new resource to be created.
 
 * `custom_parameters` - (Optional) A `custom_parameters` block as documented below.
 
@@ -54,17 +58,20 @@ The following arguments are supported:
 
 ---
 
-`custom_parameters` supports the following:
+A `custom_parameters` block supports the following:
 
-* `no_public_ip` - (Optional) Are public IP Addresses not allowed?
+* `aml_workspace_id` - (Optional) The ID of a Azure Machine Learning workspace to link with Databricks workspace. Changing this forces a new resource to be created.
 
-* `public_subnet_name` - (Optional) The name of the Public Subnet within the Virtual Network. Required if `virtual_network_id` is set.
+* `no_public_ip` - (Optional) Are public IP Addresses not allowed? Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `private_subnet_name` - (Optional) The name of the Private Subnet within the Virtual Network. Required if `virtual_network_id` is set.
+* `public_subnet_name` - (Optional) The name of the Public Subnet within the Virtual Network. Required if `virtual_network_id` is set. Changing this forces a new resource to be created.
 
-* `virtual_network_id` - (Optional) The ID of a Virtual Network where this Databricks Cluster should be created.
+* `private_subnet_name` - (Optional) The name of the Private Subnet within the Virtual Network. Required if `virtual_network_id` is set. Changing this forces a new resource to be created.
 
-~> **NOTE** Databricks requires that a network security group is associated with public and private subnets when `virtual_network_id` is set. Also, both public and private subnets must be delegated to `Microsoft.Databricks/workspaces`.
+* `virtual_network_id` - (Optional) The ID of a Virtual Network where this Databricks Cluster should be created. Changing this forces a new resource to be created.
+
+~> **NOTE** Databricks requires that a network security group is associated with the `public` and `private` subnets when a `virtual_network_id` has been defined. Both `public` and `private` subnets must be delegated to `Microsoft.Databricks/workspaces`. For more information about subnet delegation see the [product documentation](https://docs.microsoft.com/azure/virtual-network/subnet-delegation-overview).
+
 
 ## Attributes Reference
 
@@ -77,6 +84,19 @@ The following attributes are exported:
 * `workspace_url` - The workspace URL which is of the format 'adb-{workspaceId}.{random}.azuredatabricks.net'
 
 * `workspace_id` - The unique identifier of the databricks workspace in Databricks control plane.
+
+* `storage_account_identity` - A `storage_account_identity` block as documented below.
+
+---
+
+A `storage_account_identity` block exports the following:
+
+* `principal_id` - The principal UUID for the internal databricks storage account needed to provide access to the workspace for enabling Customer Managed Keys.
+
+* `tenant_id` - The UUID of the tenant where the internal databricks storage account was created.
+
+* `type` - The type of the internal databricks storage account.
+
 
 ## Timeouts
 

@@ -4,10 +4,12 @@ FEATURES:
 
 * **New Data Source** `azurerm_api_management_gateway` [GH-12297]
 * **New Resource** `azurerm_api_management_gateway` [GH-12297]
+* **New Resource** `azurerm_databricks_workspace_customer_managed_key`[GH-12331]
 
 ENHANCEMENTS:
 
 * dependencies: updating `postgresqlflexibleservers` to use API Version `2021-06-01` [GH-12405]
+* `azurerm_databricks_workspace` - add support for `machine_learning_workspace_id`, `customer_managed_key_enabled`, `infrastructure_encryption_enabled` and `storage_account_identity` [GH-12331]
 * `azurerm_security_center_assessment_policy` - support for the `categories` propety [GH-12383]
 
 BUG FIXES:
