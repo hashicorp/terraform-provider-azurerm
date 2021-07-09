@@ -67,7 +67,7 @@ resource "azurerm_kusto_eventhub_data_connection" "eventhub_connection" {
   cluster_name        = azurerm_kusto_cluster.cluster.name
   database_name       = azurerm_kusto_database.database.name
 
-  eventhub_id    = azurerm_eventhub.evenhub.id
+  eventhub_id    = azurerm_eventhub.eventhub.id
   consumer_group = azurerm_eventhub_consumer_group.consumer_group.name
 
   table_name        = "my-table"         #(Optional)
@@ -92,7 +92,6 @@ The following arguments are supported:
 
 * `database_name` - (Required) Specifies the name of the Kusto Database this data connection will be added to. Changing this forces a new resource to be created.
 
-* `data_format` - (Optional) Specifies the data format of the EventHub messages. Allowed values: `AVRO`, `CSV`, `JSON`, `MULTIJSON`, `PSV`, `RAW`, `SCSV`, `SINGLEJSON`, `SOHSV`, `TSV` and `TXT`
 
 * `eventhub_id` - (Required) Specifies the resource id of the EventHub this data connection will use for ingestion. Changing this forces a new resource to be created.
 
@@ -104,6 +103,7 @@ The following arguments are supported:
 
 * `mapping_rule_name` - (Optional) Specifies the mapping rule used for the message ingestion. Mapping rule must exist before resource is created.
 
+* `data_format` - (Optional) Specifies the data format of the EventHub messages. Allowed values: `APACHEAVRO`, `AVRO`, `CSV`, `JSON`, `MULTIJSON`, `PSV`, `RAW`, `SCSV`, `SINGLEJSON`, `SOHSV`, `TSV` and `TXT`
 
 ## Attributes Reference
 

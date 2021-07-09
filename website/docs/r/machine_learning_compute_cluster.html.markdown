@@ -86,9 +86,9 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
   subnet_resource_id            = azurerm_subnet.example.id
 
   scale_settings {
-    min_node_count                   = 0
-    max_node_count                   = 1
-    node_idle_time_before_scale_down = "PT30S" # 30 seconds
+    min_node_count                       = 0
+    max_node_count                       = 1
+    scale_down_nodes_after_idle_duration = "PT30S" # 30 seconds
   }
 
   identity {
@@ -113,11 +113,11 @@ The following arguments are supported:
 * `identity` - (Required) A `identity` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `scale_settings` - (Required) A `scale_settings` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
-
+  
 ---
 
 * `description` - (Optional) The description of the Machine Learning compute. Changing this forces a new Machine Learning Compute Cluster to be created.
-
+  
 * `subnet_resource_id` - (Optional) The ID of the Subnet that the Compute Cluster should reside in. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning Compute Cluster. Changing this forces a new Machine Learning Compute Cluster to be created.
@@ -136,7 +136,7 @@ A `scale_settings` block supports the following:
 
 * `min_node_count` - (Required) Minimal node count. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `node_idle_time_before_scale_down` - (Required) Node Idle Time Before Scale Down: defines the time until the compute is shutdown when it has gone into Idle state. Is defined according to W3C XML schema standard for duration. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `scale_down_nodes_after_idle_duration` - (Required) Node Idle Time Before Scale Down: defines the time until the compute is shutdown when it has gone into Idle state. Is defined according to W3C XML schema standard for duration. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 ## Attributes Reference
 

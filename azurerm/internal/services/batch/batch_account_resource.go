@@ -51,12 +51,14 @@ func resourceBatchAccount() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"location": azure.SchemaLocation(),
+
 			"storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
+
 			"pool_allocation_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -66,6 +68,14 @@ func resourceBatchAccount() *pluginsdk.Resource {
 					string(batch.UserSubscription),
 				}, false),
 			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+				ForceNew: true,
+			},
+
 			"key_vault_reference": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -85,16 +95,19 @@ func resourceBatchAccount() *pluginsdk.Resource {
 					},
 				},
 			},
+
 			"primary_access_key": {
 				Type:      pluginsdk.TypeString,
 				Sensitive: true,
 				Computed:  true,
 			},
+
 			"secondary_access_key": {
 				Type:      pluginsdk.TypeString,
 				Sensitive: true,
 				Computed:  true,
 			},
+
 			"account_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -134,9 +147,14 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	parameters := batch.AccountCreateParameters{
 		Location: &location,
 		AccountCreateProperties: &batch.AccountCreateProperties{
-			PoolAllocationMode: batch.PoolAllocationMode(poolAllocationMode),
+			PoolAllocationMode:  batch.PoolAllocationMode(poolAllocationMode),
+			PublicNetworkAccess: batch.PublicNetworkAccessTypeEnabled,
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+		parameters.AccountCreateProperties.PublicNetworkAccess = batch.PublicNetworkAccessTypeDisabled
 	}
 
 	// if pool allocation mode is UserSubscription, a key vault reference needs to be set
@@ -215,6 +233,11 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 		if autoStorage := props.AutoStorage; autoStorage != nil {
 			d.Set("storage_account_id", autoStorage.StorageAccountID)
 		}
+
+		if props.PublicNetworkAccess != "" {
+			d.Set("public_network_access_enabled", props.PublicNetworkAccess == batch.PublicNetworkAccessTypeEnabled)
+		}
+
 		d.Set("pool_allocation_mode", props.PoolAllocationMode)
 	}
 

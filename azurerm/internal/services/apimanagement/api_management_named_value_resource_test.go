@@ -143,7 +143,7 @@ func (r ApiManagementNamedValueResource) basic(data acceptance.TestData) string 
 
 resource "azurerm_api_management_named_value" "test" {
   name                = "acctestAMProperty-%d"
-  resource_group_name = azurerm_resource_group.test.name
+  resource_group_name = azurerm_api_management.test.resource_group_name
   api_management_name = azurerm_api_management.test.name
   display_name        = "TestProperty%d"
   value               = "Test Value"

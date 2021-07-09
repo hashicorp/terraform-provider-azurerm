@@ -182,9 +182,8 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 
 			// Delimited Text Specific Field
 			"null_value": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			"parameters": {
@@ -267,6 +266,7 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					"None",
 					"bzip2",
 					"gzip",
 					"deflate",

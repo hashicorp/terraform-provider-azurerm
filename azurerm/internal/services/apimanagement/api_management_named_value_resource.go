@@ -48,11 +48,10 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 			},
 
 			"key_vault": {
-				Type:          pluginsdk.TypeList,
-				Optional:      true,
-				MaxItems:      1,
-				ConflictsWith: []string{"value"},
-				ExactlyOneOf:  []string{"value", "key_vault"},
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				MaxItems:     1,
+				ExactlyOneOf: []string{"value", "key_vault"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"secret_id": {
@@ -70,12 +69,11 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 			},
 
 			"value": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Sensitive:     true,
-				ValidateFunc:  validation.StringIsNotEmpty,
-				ConflictsWith: []string{"key_vault"},
-				ExactlyOneOf:  []string{"value", "key_vault"},
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"value", "key_vault"},
 			},
 
 			"secret": {

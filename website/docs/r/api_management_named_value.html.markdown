@@ -65,9 +65,9 @@ The following arguments are supported:
 
 A `key_vault` block supports the following:
 
-* `secret_id` - (Required) The resource id of the Key Vault Secret.
+* `secret_id` - (Required) The resource ID of the Key Vault Secret.
 
-* `identity_client_id` - (Required) The client id of the SystemAssigned Identity or UserAssigned Identity of the Api Management Service, which will be used to access the key vault secret.
+* `identity_client_id` - (Required) The client ID of the System Assigned Identity, or User Assigned Identity, for the API Management Service, which will be used to access the key vault secret.
 
 ## Attributes Reference
 

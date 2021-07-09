@@ -455,7 +455,7 @@ func TestAccEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(t *testing
 }
 
 func (EventHubNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := namespaces.NamespaceID(state.ID)
+	id, err := namespaces.ParseNamespaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
