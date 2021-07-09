@@ -99,7 +99,7 @@ The following arguments are supported:
 
 * `private_dns_zone_id` - (Optional) The ID of the private dns zone to create the PostgreSQL Flexible Server. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-~> **NOTE:** There will be a breaking change from upstream service soon, the `private_dns_zone_id` will be required when setting a `delegated_subnet_id`. 
+~> **NOTE:** There will be a breaking change from upstream service at 15th July 2021, the `private_dns_zone_id` will be required when setting a `delegated_subnet_id`. 
 For existing flexible servers who don't want to be recreated, you need to provide the `private_dns_zone_id` to the service team to manually migrate to the specified private dns zone.
 The `azurerm_private_dns_zone` should end with suffix `.postgres.database.azure.com`.
 

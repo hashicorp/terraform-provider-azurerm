@@ -363,7 +363,6 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("public_network_access_enabled", network.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
 			d.Set("delegated_subnet_id", network.DelegatedSubnetResourceID)
 			d.Set("private_dns_zone_id", network.PrivateDNSZoneArmResourceID)
-
 		}
 
 		if err := d.Set("maintenance_window", flattenArmServerMaintenanceWindow(props.MaintenanceWindow)); err != nil {
