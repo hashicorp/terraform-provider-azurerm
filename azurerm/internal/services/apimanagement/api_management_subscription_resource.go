@@ -81,14 +81,14 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 			"state": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(apimanagement.Submitted),
+				Default:  string(apimanagement.SubscriptionStateSubmitted),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.Active),
-					string(apimanagement.Cancelled),
-					string(apimanagement.Expired),
-					string(apimanagement.Rejected),
-					string(apimanagement.Submitted),
-					string(apimanagement.Suspended),
+					string(apimanagement.SubscriptionStateActive),
+					string(apimanagement.SubscriptionStateCancelled),
+					string(apimanagement.SubscriptionStateExpired),
+					string(apimanagement.SubscriptionStateRejected),
+					string(apimanagement.SubscriptionStateSubmitted),
+					string(apimanagement.SubscriptionStateSuspended),
 				}, false),
 			},
 
@@ -182,7 +182,7 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	sendEmail := utils.Bool(false)
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, subscriptionId, params, sendEmail, "", apimanagement.DeveloperPortal)
+	_, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, subscriptionId, params, sendEmail, "", apimanagement.AppTypeDeveloperPortal)
 	if err != nil {
 		return fmt.Errorf("creating/updating Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
 	}

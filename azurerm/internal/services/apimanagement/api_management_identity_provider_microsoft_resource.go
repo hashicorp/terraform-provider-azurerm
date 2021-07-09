@@ -65,10 +65,10 @@ func resourceApiManagementIdentityProviderMicrosoftCreateUpdate(d *pluginsdk.Res
 	clientSecret := d.Get("client_secret").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Microsoft)
+		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderTypeMicrosoft)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Identity Provider %q (API Management Service %q / Resource Group %q): %s", apimanagement.Microsoft, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Identity Provider %q (API Management Service %q / Resource Group %q): %s", apimanagement.IdentityProviderTypeMicrosoft, serviceName, resourceGroup, err)
 			}
 		}
 
@@ -81,20 +81,20 @@ func resourceApiManagementIdentityProviderMicrosoftCreateUpdate(d *pluginsdk.Res
 		IdentityProviderCreateContractProperties: &apimanagement.IdentityProviderCreateContractProperties{
 			ClientID:     utils.String(clientID),
 			ClientSecret: utils.String(clientSecret),
-			Type:         apimanagement.Microsoft,
+			Type:         apimanagement.IdentityProviderTypeMicrosoft,
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apimanagement.Microsoft, parameters, ""); err != nil {
-		return fmt.Errorf("creating or updating Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.Microsoft, resourceGroup, serviceName, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderTypeMicrosoft, parameters, ""); err != nil {
+		return fmt.Errorf("creating or updating Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.IdentityProviderTypeMicrosoft, resourceGroup, serviceName, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Microsoft)
+	resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderTypeMicrosoft)
 	if err != nil {
-		return fmt.Errorf("retrieving Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.Microsoft, resourceGroup, serviceName, err)
+		return fmt.Errorf("retrieving Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.IdentityProviderTypeMicrosoft, resourceGroup, serviceName, err)
 	}
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Identity Provider %q (Resource Group %q / API Management Service %q)", apimanagement.Microsoft, resourceGroup, serviceName)
+		return fmt.Errorf("Cannot read ID for Identity Provider %q (Resource Group %q / API Management Service %q)", apimanagement.IdentityProviderTypeMicrosoft, resourceGroup, serviceName)
 	}
 	d.SetId(*resp.ID)
 

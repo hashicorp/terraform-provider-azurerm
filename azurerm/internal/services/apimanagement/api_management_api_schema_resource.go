@@ -92,9 +92,7 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 	parameters := apimanagement.SchemaContract{
 		SchemaContractProperties: &apimanagement.SchemaContractProperties{
 			ContentType: &contentType,
-			Document: &apimanagement.Document{
-				Value: &value,
-			},
+			Document:    &value,
 		},
 	}
 
@@ -155,33 +153,21 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 
 	if properties := resp.SchemaContractProperties; properties != nil {
 		d.Set("content_type", properties.ContentType)
-		if documentProperties := properties.Document; documentProperties != nil {
-			/*
-				As per https://docs.microsoft.com/en-us/rest/api/apimanagement/2019-12-01/api-schema/get#schemacontract
+		/*
+			As per https://docs.microsoft.com/en-us/rest/api/apimanagement/2019-12-01/api-schema/get#schemacontract
 
-				- Swagger Schema use application/vnd.ms-azure-apim.swagger.definitions+json
-				- WSDL Schema use application/vnd.ms-azure-apim.xsd+xml
-				- OpenApi Schema use application/vnd.oai.openapi.components+json
-				- WADL Schema use application/vnd.ms-azure-apim.wadl.grammars+xml.
+			- Swagger Schema use application/vnd.ms-azure-apim.swagger.definitions+json
+			- WSDL Schema use application/vnd.ms-azure-apim.xsd+xml
+			- OpenApi Schema use application/vnd.oai.openapi.components+json
+			- WADL Schema use application/vnd.ms-azure-apim.wadl.grammars+xml.
 
-				Definitions used for Swagger/OpenAPI schemas only, otherwise Value is used
-			*/
-			switch *properties.ContentType {
-			case "application/vnd.ms-azure-apim.swagger.definitions+json", "application/vnd.oai.openapi.components+json":
-				if documentProperties.Definitions != nil {
-					value, err := json.Marshal(documentProperties.Definitions)
-					if err != nil {
-						return fmt.Errorf("[FATAL] Unable to serialize schema to json. Error: %+v. Schema struct: %+v", err, documentProperties.Definitions)
-					}
-					d.Set("value", string(value))
-				}
-			case "application/vnd.ms-azure-apim.xsd+xml", "application/vnd.ms-azure-apim.wadl.grammars+xml":
-				d.Set("value", documentProperties.Value)
-			default:
-				log.Printf("[WARN] Unknown content type %q for schema %q (API Management Service %q / API %q / Resource Group %q)", *properties.ContentType, schemaID, serviceName, apiName, resourceGroup)
-				d.Set("value", documentProperties.Value)
-			}
+			Definitions used for Swagger/OpenAPI schemas only, otherwise Value is used
+		*/
+		value, err := json.Marshal(properties.Document)
+		if err != nil {
+			return fmt.Errorf("[FATAL] Unable to serialize schema to json. Error: %+v. Schema struct: %+v", err, properties.Document)
 		}
+		d.Set("value", string(value))
 	}
 	return nil
 }

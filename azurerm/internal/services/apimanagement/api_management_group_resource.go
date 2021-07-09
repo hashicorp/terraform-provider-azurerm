@@ -61,10 +61,10 @@ func resourceApiManagementGroup() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(apimanagement.Custom),
+				Default:  string(apimanagement.GroupTypeCustom),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.Custom),
-					string(apimanagement.External),
+					string(apimanagement.GroupTypeCustom),
+					string(apimanagement.GroupTypeExternal),
 				}, false),
 			},
 		},

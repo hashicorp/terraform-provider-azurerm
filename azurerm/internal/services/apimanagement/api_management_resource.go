@@ -96,12 +96,12 @@ func resourceApiManagementService() *pluginsdk.Resource {
 						"type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(apimanagement.None),
+							Default:  string(apimanagement.ApimIdentityTypeNone),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(apimanagement.None),
-								string(apimanagement.SystemAssigned),
-								string(apimanagement.UserAssigned),
-								string(apimanagement.SystemAssignedUserAssigned),
+								string(apimanagement.ApimIdentityTypeNone),
+								string(apimanagement.ApimIdentityTypeSystemAssigned),
+								string(apimanagement.ApimIdentityTypeUserAssigned),
+								string(apimanagement.ApimIdentityTypeSystemAssignedUserAssigned),
 							}, false),
 						},
 						"principal_id": {
@@ -244,8 +244,8 @@ func resourceApiManagementService() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(apimanagement.CertificateAuthority),
-								string(apimanagement.Root),
+								string(apimanagement.StoreNameCertificateAuthority),
+								string(apimanagement.StoreNameRoot),
 							}, false),
 						},
 					},
@@ -1260,7 +1260,7 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 func expandAzureRmApiManagementIdentity(vs []interface{}) (*apimanagement.ServiceIdentity, error) {
 	if len(vs) == 0 {
 		return &apimanagement.ServiceIdentity{
-			Type: apimanagement.None,
+			Type: apimanagement.ApimIdentityTypeNone,
 		}, nil
 	}
 
@@ -1275,7 +1275,7 @@ func expandAzureRmApiManagementIdentity(vs []interface{}) (*apimanagement.Servic
 	}
 
 	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
-	if managedServiceIdentity.Type == apimanagement.UserAssigned || managedServiceIdentity.Type == apimanagement.SystemAssignedUserAssigned {
+	if managedServiceIdentity.Type == apimanagement.ApimIdentityTypeUserAssigned || managedServiceIdentity.Type == apimanagement.ApimIdentityTypeSystemAssignedUserAssigned {
 		if len(identityIdSet) == 0 {
 			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
 		}
@@ -1295,7 +1295,7 @@ func expandAzureRmApiManagementIdentity(vs []interface{}) (*apimanagement.Servic
 }
 
 func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity) ([]interface{}, error) {
-	if identity == nil || identity.Type == apimanagement.None {
+	if identity == nil || identity.Type == apimanagement.ApimIdentityTypeNone {
 		return make([]interface{}, 0), nil
 	}
 
@@ -1676,7 +1676,7 @@ func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyCont
 	if xmlLink != "" {
 		return &apimanagement.PolicyContract{
 			PolicyContractProperties: &apimanagement.PolicyContractProperties{
-				Format: apimanagement.XMLLink,
+				Format: apimanagement.PolicyContentFormatXMLLink,
 				Value:  utils.String(xmlLink),
 			},
 		}, nil
