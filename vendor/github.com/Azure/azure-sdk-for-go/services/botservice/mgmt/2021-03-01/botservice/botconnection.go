@@ -35,7 +35,7 @@ func NewBotConnectionClientWithBaseURI(baseURI string, subscriptionID string) Bo
 // Parameters:
 // resourceGroupName - the name of the Bot resource group in the user subscription.
 // resourceName - the name of the Bot resource.
-// connectionName - the name of the Bot Service Connection Setting resource
+// connectionName - the name of the Bot Service Connection Setting resource.
 // parameters - the parameters to provide for creating the Connection Setting.
 func (client BotConnectionClient) Create(ctx context.Context, resourceGroupName string, resourceName string, connectionName string, parameters ConnectionSetting) (result ConnectionSetting, err error) {
 	if tracing.IsEnabled() {
@@ -60,7 +60,7 @@ func (client BotConnectionClient) Create(ctx context.Context, resourceGroupName 
 		{TargetValue: connectionName,
 			Constraints: []validation.Constraint{{Target: "connectionName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "connectionName", Name: validation.MinLength, Rule: 2, Chain: nil},
-				{Target: "connectionName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9_.-]*$`, Chain: nil}}}}); err != nil {
+				{Target: "connectionName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][\sa-zA-Z0-9_.-]*$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("botservice.BotConnectionClient", "Create", err.Error())
 	}
 
@@ -95,7 +95,7 @@ func (client BotConnectionClient) CreatePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-12"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -104,7 +104,7 @@ func (client BotConnectionClient) CreatePreparer(ctx context.Context, resourceGr
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.BotService/botServices/{resourceName}/Connections/{connectionName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.BotService/botServices/{resourceName}/connections/{connectionName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -132,7 +132,7 @@ func (client BotConnectionClient) CreateResponder(resp *http.Response) (result C
 // Parameters:
 // resourceGroupName - the name of the Bot resource group in the user subscription.
 // resourceName - the name of the Bot resource.
-// connectionName - the name of the Bot Service Connection Setting resource
+// connectionName - the name of the Bot Service Connection Setting resource.
 func (client BotConnectionClient) Delete(ctx context.Context, resourceGroupName string, resourceName string, connectionName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BotConnectionClient.Delete")
@@ -156,7 +156,7 @@ func (client BotConnectionClient) Delete(ctx context.Context, resourceGroupName 
 		{TargetValue: connectionName,
 			Constraints: []validation.Constraint{{Target: "connectionName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "connectionName", Name: validation.MinLength, Rule: 2, Chain: nil},
-				{Target: "connectionName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9_.-]*$`, Chain: nil}}}}); err != nil {
+				{Target: "connectionName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][\sa-zA-Z0-9_.-]*$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("botservice.BotConnectionClient", "Delete", err.Error())
 	}
 
@@ -191,7 +191,7 @@ func (client BotConnectionClient) DeletePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-12"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -199,7 +199,7 @@ func (client BotConnectionClient) DeletePreparer(ctx context.Context, resourceGr
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.BotService/botServices/{resourceName}/Connections/{connectionName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.BotService/botServices/{resourceName}/connections/{connectionName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -225,7 +225,7 @@ func (client BotConnectionClient) DeleteResponder(resp *http.Response) (result a
 // Parameters:
 // resourceGroupName - the name of the Bot resource group in the user subscription.
 // resourceName - the name of the Bot resource.
-// connectionName - the name of the Bot Service Connection Setting resource
+// connectionName - the name of the Bot Service Connection Setting resource.
 func (client BotConnectionClient) Get(ctx context.Context, resourceGroupName string, resourceName string, connectionName string) (result ConnectionSetting, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BotConnectionClient.Get")
@@ -249,7 +249,7 @@ func (client BotConnectionClient) Get(ctx context.Context, resourceGroupName str
 		{TargetValue: connectionName,
 			Constraints: []validation.Constraint{{Target: "connectionName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "connectionName", Name: validation.MinLength, Rule: 2, Chain: nil},
-				{Target: "connectionName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9_.-]*$`, Chain: nil}}}}); err != nil {
+				{Target: "connectionName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][\sa-zA-Z0-9_.-]*$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("botservice.BotConnectionClient", "Get", err.Error())
 	}
 
@@ -284,7 +284,7 @@ func (client BotConnectionClient) GetPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-12"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -292,7 +292,7 @@ func (client BotConnectionClient) GetPreparer(ctx context.Context, resourceGroup
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.BotService/botServices/{resourceName}/Connections/{connectionName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.BotService/botServices/{resourceName}/connections/{connectionName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -377,7 +377,7 @@ func (client BotConnectionClient) ListByBotServicePreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-12"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -485,7 +485,7 @@ func (client BotConnectionClient) ListServiceProvidersPreparer(ctx context.Conte
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-12"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -520,7 +520,7 @@ func (client BotConnectionClient) ListServiceProvidersResponder(resp *http.Respo
 // Parameters:
 // resourceGroupName - the name of the Bot resource group in the user subscription.
 // resourceName - the name of the Bot resource.
-// connectionName - the name of the Bot Service Connection Setting resource
+// connectionName - the name of the Bot Service Connection Setting resource.
 func (client BotConnectionClient) ListWithSecrets(ctx context.Context, resourceGroupName string, resourceName string, connectionName string) (result ConnectionSetting, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BotConnectionClient.ListWithSecrets")
@@ -544,7 +544,7 @@ func (client BotConnectionClient) ListWithSecrets(ctx context.Context, resourceG
 		{TargetValue: connectionName,
 			Constraints: []validation.Constraint{{Target: "connectionName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "connectionName", Name: validation.MinLength, Rule: 2, Chain: nil},
-				{Target: "connectionName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9_.-]*$`, Chain: nil}}}}); err != nil {
+				{Target: "connectionName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][\sa-zA-Z0-9_.-]*$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("botservice.BotConnectionClient", "ListWithSecrets", err.Error())
 	}
 
@@ -579,7 +579,7 @@ func (client BotConnectionClient) ListWithSecretsPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-12"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -587,7 +587,7 @@ func (client BotConnectionClient) ListWithSecretsPreparer(ctx context.Context, r
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.BotService/botServices/{resourceName}/Connections/{connectionName}/listWithSecrets", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.BotService/botServices/{resourceName}/connections/{connectionName}/listWithSecrets", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -614,7 +614,7 @@ func (client BotConnectionClient) ListWithSecretsResponder(resp *http.Response) 
 // Parameters:
 // resourceGroupName - the name of the Bot resource group in the user subscription.
 // resourceName - the name of the Bot resource.
-// connectionName - the name of the Bot Service Connection Setting resource
+// connectionName - the name of the Bot Service Connection Setting resource.
 // parameters - the parameters to provide for updating the Connection Setting.
 func (client BotConnectionClient) Update(ctx context.Context, resourceGroupName string, resourceName string, connectionName string, parameters ConnectionSetting) (result ConnectionSetting, err error) {
 	if tracing.IsEnabled() {
@@ -639,7 +639,7 @@ func (client BotConnectionClient) Update(ctx context.Context, resourceGroupName 
 		{TargetValue: connectionName,
 			Constraints: []validation.Constraint{{Target: "connectionName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "connectionName", Name: validation.MinLength, Rule: 2, Chain: nil},
-				{Target: "connectionName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9_.-]*$`, Chain: nil}}}}); err != nil {
+				{Target: "connectionName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][\sa-zA-Z0-9_.-]*$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("botservice.BotConnectionClient", "Update", err.Error())
 	}
 
@@ -674,7 +674,7 @@ func (client BotConnectionClient) UpdatePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-12"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -683,7 +683,7 @@ func (client BotConnectionClient) UpdatePreparer(ctx context.Context, resourceGr
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.BotService/botServices/{resourceName}/Connections/{connectionName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.BotService/botServices/{resourceName}/connections/{connectionName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
