@@ -142,7 +142,6 @@ func resourceApiManagementApiDiagnosticAdditionalContentSchema() *pluginsdk.Sche
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"query_params": schemaApiManagementDataMaskingEntityList(),
-
 							"headers": schemaApiManagementDataMaskingEntityList(),
 						},
 					},
