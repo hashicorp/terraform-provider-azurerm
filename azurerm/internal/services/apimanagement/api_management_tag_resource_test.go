@@ -118,7 +118,7 @@ func (r ApiManagementTagResource) update(data acceptance.TestData) string {
 resource "azurerm_api_management_tag" "test" {
   api_management_id = azurerm_api_management.test.id
   name              = "acctest-Op-Tag-%d"
-  display_name = "Display-Op-Tag Updated"
+  display_name      = "Display-Op-Tag Updated"
 }
 `, ApiManagementResource{}.consumption(data), data.RandomInteger)
 }
