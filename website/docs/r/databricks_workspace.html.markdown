@@ -66,11 +66,11 @@ A `custom_parameters` block supports the following:
 
 * `public_subnet_name` - (Optional) The name of the Public Subnet within the Virtual Network. Required if `virtual_network_id` is set. Changing this forces a new resource to be created.
 
-* `public_subnet_network_security_group_association_id` - (Optional) The resource ID of the `azurerm_subnet_network_security_group_association` resource which is refered to by the `public_subnet_name` field. Required if `virtual_network_id` is set. Changing this forces a new resource to be created.
+* `public_subnet_network_security_group_association_id` - (Optional) The resource ID of the `azurerm_subnet_network_security_group_association` resource which is referred to by the `public_subnet_name` field. Required if `virtual_network_id` is set. Changing this forces a new resource to be created.
 
 * `private_subnet_name` - (Optional) The name of the Private Subnet within the Virtual Network. Required if `virtual_network_id` is set. Changing this forces a new resource to be created.
 
-* `private_subnet_network_security_group_association_id` - (Optional) The resource ID of the `azurerm_subnet_network_security_group_association` resource which is refered to by the `private_subnet_name` field. Required if `virtual_network_id` is set. Changing this forces a new resource to be created.
+* `private_subnet_network_security_group_association_id` - (Optional) The resource ID of the `azurerm_subnet_network_security_group_association` resource which is referred to by the `private_subnet_name` field. Required if `virtual_network_id` is set. Changing this forces a new resource to be created.
 
 * `virtual_network_id` - (Optional) The ID of a Virtual Network where this Databricks Cluster should be created. Changing this forces a new resource to be created.
 
