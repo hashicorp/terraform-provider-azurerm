@@ -1,6 +1,7 @@
 package eventgrid
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"time"
@@ -36,6 +37,27 @@ const (
 	// WebHookEndpoint ...
 	WebHookEndpoint EventSubscriptionEndpointType = "webhook_endpoint"
 )
+
+func eventSubscriptionCustomizeDiffAdvancedFilter(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	if filterRaw := d.Get("advanced_filter"); len(filterRaw.([]interface{})) == 1 {
+		filters := filterRaw.([]interface{})[0].(map[string]interface{})
+		valueCount := 0
+		for _, valRaw := range filters {
+			for _, val := range valRaw.([]interface{}) {
+				v := val.(map[string]interface{})
+				if values, ok := v["values"]; ok {
+					valueCount += len(values.([]interface{}))
+				} else if _, ok := v["value"]; ok {
+					valueCount++
+				}
+			}
+		}
+		if valueCount > 25 {
+			return fmt.Errorf("the total number of `advanced_filter` values allowed on a single event subscription is 25, but %d are configured", valueCount)
+		}
+	}
+	return nil
+}
 
 func eventSubscriptionSchemaEventSubscriptionName() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
@@ -286,8 +308,9 @@ func eventSubscriptionSchemaSubjectFilter() *pluginsdk.Schema {
 
 func eventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 	atLeastOneOf := []string{"advanced_filter.0.bool_equals", "advanced_filter.0.number_greater_than", "advanced_filter.0.number_greater_than_or_equals", "advanced_filter.0.number_less_than",
-		"advanced_filter.0.number_less_than_or_equals", "advanced_filter.0.number_in", "advanced_filter.0.number_not_in", "advanced_filter.0.string_begins_with",
-		"advanced_filter.0.string_ends_with", "advanced_filter.0.string_contains", "advanced_filter.0.string_in", "advanced_filter.0.string_not_in",
+		"advanced_filter.0.number_less_than_or_equals", "advanced_filter.0.number_in", "advanced_filter.0.number_not_in", "advanced_filter.0.string_begins_with", "advanced_filter.0.string_not_begins_with",
+		"advanced_filter.0.string_ends_with", "advanced_filter.0.string_not_ends_with", "advanced_filter.0.string_contains", "advanced_filter.0.string_not_contains", "advanced_filter.0.string_in",
+		"advanced_filter.0.string_not_in", "advanced_filter.0.is_not_null", "advanced_filter.0.is_null_or_undefined", "advanced_filter.0.number_in_range", "advanced_filter.0.number_not_in_range",
 	}
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -451,6 +474,28 @@ func eventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 					},
 					AtLeastOneOf: atLeastOneOf,
 				},
+				"string_not_begins_with": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"values": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MaxItems: 25,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
 				"string_ends_with": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -473,7 +518,51 @@ func eventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 					},
 					AtLeastOneOf: atLeastOneOf,
 				},
+				"string_not_ends_with": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"values": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MaxItems: 25,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
 				"string_contains": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"values": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MaxItems: 25,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"string_not_contains": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem: &pluginsdk.Resource{
@@ -533,6 +622,88 @@ func eventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
 								MaxItems: 25,
 								Elem: &pluginsdk.Schema{
 									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"is_not_null": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"is_null_or_undefined": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"number_in_range": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"values": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MaxItems: 25,
+								Elem: &pluginsdk.Schema{
+									Type:     pluginsdk.TypeList,
+									MinItems: 2,
+									MaxItems: 2,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeFloat,
+									},
+								},
+							},
+						},
+					},
+					AtLeastOneOf: atLeastOneOf,
+				},
+				"number_not_in_range": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"key": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"values": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								MaxItems: 25,
+								Elem: &pluginsdk.Schema{
+									Type:     pluginsdk.TypeList,
+									MinItems: 2,
+									MaxItems: 2,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeFloat,
+									},
 								},
 							},
 						},
@@ -847,22 +1018,41 @@ func expandAdvancedFilter(operatorType string, config map[string]interface{}) (e
 		return eventgrid.NumberInAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeNumberIn, Values: v}, nil
 	case "number_not_in":
 		v := utils.ExpandFloatSlice(config["values"].([]interface{}))
-		return eventgrid.NumberNotInAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeNumberIn, Values: v}, nil
+		return eventgrid.NumberNotInAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeNumberNotIn, Values: v}, nil
 	case "string_begins_with":
 		v := utils.ExpandStringSlice(config["values"].([]interface{}))
 		return eventgrid.StringBeginsWithAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeStringBeginsWith, Values: v}, nil
+	case "string_not_begins_with":
+		v := utils.ExpandStringSlice(config["values"].([]interface{}))
+		return eventgrid.StringNotBeginsWithAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeStringNotBeginsWith, Values: v}, nil
 	case "string_ends_with":
 		v := utils.ExpandStringSlice(config["values"].([]interface{}))
 		return eventgrid.StringEndsWithAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeStringEndsWith, Values: v}, nil
+	case "string_not_ends_with":
+		v := utils.ExpandStringSlice(config["values"].([]interface{}))
+		return eventgrid.StringNotEndsWithAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeStringNotEndsWith, Values: v}, nil
 	case "string_contains":
 		v := utils.ExpandStringSlice(config["values"].([]interface{}))
 		return eventgrid.StringContainsAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeStringContains, Values: v}, nil
+	case "string_not_contains":
+		v := utils.ExpandStringSlice(config["values"].([]interface{}))
+		return eventgrid.StringNotContainsAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeStringNotContains, Values: v}, nil
 	case "string_in":
 		v := utils.ExpandStringSlice(config["values"].([]interface{}))
 		return eventgrid.StringInAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeStringIn, Values: v}, nil
 	case "string_not_in":
 		v := utils.ExpandStringSlice(config["values"].([]interface{}))
 		return eventgrid.StringNotInAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeStringNotIn, Values: v}, nil
+	case "is_not_null":
+		return eventgrid.IsNotNullAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeIsNotNull}, nil
+	case "is_null_or_undefined":
+		return eventgrid.IsNullOrUndefinedAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeIsNullOrUndefined}, nil
+	case "number_in_range":
+		v := utils.ExpandFloatRangeSlice(config["values"].([]interface{}))
+		return eventgrid.NumberInRangeAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeNumberInRange, Values: v}, nil
+	case "number_not_in_range":
+		v := utils.ExpandFloatRangeSlice(config["values"].([]interface{}))
+		return eventgrid.NumberNotInRangeAdvancedFilter{Key: &k, OperatorType: eventgrid.OperatorTypeNumberNotInRange, Values: v}, nil
 	default:
 		return nil, fmt.Errorf("Invalid `advanced_filter` operator_type %q used", operatorType)
 	}
@@ -1055,11 +1245,18 @@ func flattenEventGridEventSubscriptionAdvancedFilter(input *eventgrid.EventSubsc
 	numberLessThanOrEquals := make([]interface{}, 0)
 	numberIn := make([]interface{}, 0)
 	numberNotIn := make([]interface{}, 0)
+	numberInRange := make([]interface{}, 0)
+	numberNotInRange := make([]interface{}, 0)
 	stringBeginsWith := make([]interface{}, 0)
+	stringNotBeginsWith := make([]interface{}, 0)
 	stringEndsWith := make([]interface{}, 0)
+	stringNotEndsWith := make([]interface{}, 0)
 	stringContains := make([]interface{}, 0)
+	stringNotContains := make([]interface{}, 0)
 	stringIn := make([]interface{}, 0)
 	stringNotIn := make([]interface{}, 0)
+	isNotNull := make([]interface{}, 0)
+	isNullOrUndefined := make([]interface{}, 0)
 
 	for _, item := range *input.AdvancedFilters {
 		switch f := item.(type) {
@@ -1087,18 +1284,37 @@ func flattenEventGridEventSubscriptionAdvancedFilter(input *eventgrid.EventSubsc
 		case eventgrid.StringBeginsWithAdvancedFilter:
 			v := utils.FlattenStringSlice(f.Values)
 			stringBeginsWith = append(stringBeginsWith, flattenValues(f.Key, &v))
+		case eventgrid.StringNotBeginsWithAdvancedFilter:
+			v := utils.FlattenStringSlice(f.Values)
+			stringNotBeginsWith = append(stringNotBeginsWith, flattenValues(f.Key, &v))
 		case eventgrid.StringEndsWithAdvancedFilter:
 			v := utils.FlattenStringSlice(f.Values)
 			stringEndsWith = append(stringEndsWith, flattenValues(f.Key, &v))
+		case eventgrid.StringNotEndsWithAdvancedFilter:
+			v := utils.FlattenStringSlice(f.Values)
+			stringNotEndsWith = append(stringNotEndsWith, flattenValues(f.Key, &v))
 		case eventgrid.StringContainsAdvancedFilter:
 			v := utils.FlattenStringSlice(f.Values)
 			stringContains = append(stringContains, flattenValues(f.Key, &v))
+		case eventgrid.StringNotContainsAdvancedFilter:
+			v := utils.FlattenStringSlice(f.Values)
+			stringNotContains = append(stringNotContains, flattenValues(f.Key, &v))
 		case eventgrid.StringInAdvancedFilter:
 			v := utils.FlattenStringSlice(f.Values)
 			stringIn = append(stringIn, flattenValues(f.Key, &v))
 		case eventgrid.StringNotInAdvancedFilter:
 			v := utils.FlattenStringSlice(f.Values)
 			stringNotIn = append(stringNotIn, flattenValues(f.Key, &v))
+		case eventgrid.NumberInRangeAdvancedFilter:
+			v := utils.FlattenFloatRangeSlice(f.Values)
+			numberInRange = append(numberInRange, flattenRangeValues(f.Key, &v))
+		case eventgrid.NumberNotInRangeAdvancedFilter:
+			v := utils.FlattenFloatRangeSlice(f.Values)
+			numberNotInRange = append(numberNotInRange, flattenRangeValues(f.Key, &v))
+		case eventgrid.IsNotNullAdvancedFilter:
+			isNotNull = append(isNotNull, flattenKey(f.Key))
+		case eventgrid.IsNullOrUndefinedAdvancedFilter:
+			isNullOrUndefined = append(isNullOrUndefined, flattenKey(f.Key))
 		}
 	}
 
@@ -1111,11 +1327,18 @@ func flattenEventGridEventSubscriptionAdvancedFilter(input *eventgrid.EventSubsc
 			"number_less_than_or_equals":    numberLessThanOrEquals,
 			"number_in":                     numberIn,
 			"number_not_in":                 numberNotIn,
+			"number_in_range":               numberInRange,
+			"number_not_in_range":           numberNotInRange,
 			"string_begins_with":            stringBeginsWith,
+			"string_not_begins_with":        stringNotBeginsWith,
 			"string_ends_with":              stringEndsWith,
+			"string_not_ends_with":          stringNotEndsWith,
 			"string_contains":               stringContains,
+			"string_not_contains":           stringNotContains,
 			"string_in":                     stringIn,
 			"string_not_in":                 stringNotIn,
+			"is_not_null":                   isNotNull,
+			"is_null_or_undefined":          isNullOrUndefined,
 		},
 	}
 }
@@ -1180,5 +1403,34 @@ func flattenValues(inputKey *string, inputValues *[]interface{}) map[string]inte
 	return map[string]interface{}{
 		"key":    key,
 		"values": values,
+	}
+}
+
+func flattenRangeValues(inputKey *string, inputValues *[][]interface{}) map[string]interface{} {
+	key := ""
+	if inputKey != nil {
+		key = *inputKey
+	}
+	values := make([]interface{}, 0)
+	if inputValues != nil {
+		for _, item := range *inputValues {
+			values = append(values, item)
+		}
+	}
+
+	return map[string]interface{}{
+		"key":    key,
+		"values": values,
+	}
+}
+
+func flattenKey(inputKey *string) map[string]interface{} {
+	key := ""
+	if inputKey != nil {
+		key = *inputKey
+	}
+
+	return map[string]interface{}{
+		"key": key,
 	}
 }

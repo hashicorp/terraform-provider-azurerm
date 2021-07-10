@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
@@ -11,6 +11,21 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	//       specifying the block otherwise) - however for 2+ they should be optional
 	features := map[string]*pluginsdk.Schema{
 		// lintignore:XS003
+		"cognitive_account": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"purge_soft_delete_on_destroy": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+				},
+			},
+		},
+
 		"key_vault": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -144,6 +159,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	val := input[0].(map[string]interface{})
+
+	if raw, ok := val["cognitive_account"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 && items[0] != nil {
+			cognitiveRaw := items[0].(map[string]interface{})
+			if v, ok := cognitiveRaw["purge_soft_delete_on_destroy"]; ok {
+				features.CognitiveAccount.PurgeSoftDeleteOnDestroy = v.(bool)
+			}
+		}
+	}
 
 	if raw, ok := val["key_vault"]; ok {
 		items := raw.([]interface{})

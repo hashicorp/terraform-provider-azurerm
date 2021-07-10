@@ -292,7 +292,7 @@ func resourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta interfa
 	if policy := result.Policy; policy != nil {
 		policy := result.Policy
 		if rules := policy.Rules; rules != nil {
-			if err := d.Set("rule", flattenStorageManagementPolicyRules(policy.Rules)); err != nil {
+			if err := d.Set("rule", flattenStorageManagementPolicyRules(rules)); err != nil {
 				return fmt.Errorf("flattening `rule`: %+v", err)
 			}
 		}
@@ -490,7 +490,7 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 
 				filter["match_blob_index_tag"] = flattenAzureRmStorageBlobIndexMatch(armFilter.BlobIndexMatch)
 
-				rule["filters"] = [1]interface{}{filter}
+				rule["filters"] = []interface{}{filter}
 			}
 
 			armAction := armDefinition.Actions
@@ -511,7 +511,7 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 						intTemp := int(*armActionBaseBlob.Delete.DaysAfterModificationGreaterThan)
 						baseBlob["delete_after_days_since_modification_greater_than"] = intTemp
 					}
-					action["base_blob"] = [1]interface{}{baseBlob}
+					action["base_blob"] = []interface{}{baseBlob}
 				}
 
 				armActionSnaphost := armAction.Snapshot
@@ -526,7 +526,7 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 					if armActionSnaphost.TierToCool != nil && armActionSnaphost.TierToCool.DaysAfterCreationGreaterThan != nil {
 						coolAfterCreation = int(*armActionSnaphost.TierToCool.DaysAfterCreationGreaterThan)
 					}
-					action["snapshot"] = [1]interface{}{map[string]interface{}{
+					action["snapshot"] = []interface{}{map[string]interface{}{
 						"delete_after_days_since_creation_greater_than":    deleteAfterCreation,
 						"change_tier_to_archive_after_days_since_creation": archiveAfterCreation,
 						"change_tier_to_cool_after_days_since_creation":    coolAfterCreation,
@@ -544,14 +544,14 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 					if armActionVersion.TierToCool != nil && armActionVersion.TierToCool.DaysAfterCreationGreaterThan != nil {
 						coolAfterCreation = int(*armActionVersion.TierToCool.DaysAfterCreationGreaterThan)
 					}
-					action["version"] = [1]interface{}{map[string]interface{}{
+					action["version"] = []interface{}{map[string]interface{}{
 						"delete_after_days_since_creation":                 deleteAfterCreation,
 						"change_tier_to_archive_after_days_since_creation": archiveAfterCreation,
 						"change_tier_to_cool_after_days_since_creation":    coolAfterCreation,
 					}}
 				}
 
-				rule["actions"] = [1]interface{}{action}
+				rule["actions"] = []interface{}{action}
 			}
 		}
 
