@@ -1,6 +1,6 @@
-// Package databricks implements the Azure ARM Databricks service API version 2018-04-01.
+// Package databricks implements the Azure ARM Databricks service API version .
 //
-// ARM Databricks
+// The Microsoft Azure management APIs allow end users to operate on Azure Databricks Workspace resources.
 package databricks
 
 // Copyright (c) Microsoft Corporation. All rights reserved.

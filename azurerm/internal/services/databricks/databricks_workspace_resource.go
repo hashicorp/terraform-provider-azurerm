@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
+	"github.com/Azure/azure-sdk-for-go/services/preview/databricks/mgmt/2021-04-01-preview/databricks"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -114,7 +114,21 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
+						"public_subnet_network_security_group_association_id": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
 						"private_subnet_name": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"private_subnet_network_security_group_association_id": {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Optional:     true,
@@ -177,6 +191,18 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			_, customerEncryptionEnabled := d.GetChange("customer_managed_key_enabled")
 			_, infrastructureEncryptionEnabled := d.GetChange("infrastructure_encryption_enabled")
 			oldSku, newSku := d.GetChange("sku")
+
+			_, customParamsRaw := d.GetChange("custom_parameters")
+			if customParamsRaw != nil {
+				customParams := expandWorkspaceCustomParameters(customParamsRaw.([]interface{}), customerEncryptionEnabled.(bool), infrastructureEncryptionEnabled.(bool))
+
+				if customParams.CustomVirtualNetworkID != nil && (customParams.CustomPrivateSubnetName == nil || customParams.CustomPublicSubnetName == nil) {
+					return fmt.Errorf("'public_subnet_name' and 'private_subnet_name' must both have values if 'virtual_network_id' is set")
+				}
+				if customParams.CustomVirtualNetworkID == nil && (customParams.CustomPrivateSubnetName != nil || customParams.CustomPublicSubnetName != nil) {
+					return fmt.Errorf("'virtual_network_id' must have a value if 'public_subnet_name' and/or 'private_subnet_name' are set")
+				}
+			}
 
 			if d.HasChange("sku") {
 				if newSku == "trial" {
@@ -510,5 +536,6 @@ func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnab
 
 func workspaceCustomParametersString() []string {
 	return []string{"custom_parameters.0.machine_learning_workspace_id", "custom_parameters.0.no_public_ip",
-		"custom_parameters.0.public_subnet_name", "custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id"}
+		"custom_parameters.0.public_subnet_name", "custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
+		"custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id"}
 }
