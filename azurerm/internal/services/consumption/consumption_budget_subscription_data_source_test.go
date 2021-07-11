@@ -23,7 +23,7 @@ func TestAccBudgetSubscriptionDataSource_current(t *testing.T) {
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("subscription_id").HasValue(data.Client().SubscriptionID),
-        check.That(data.ResourceName).Key("name").HasValue("acctestconsumptionbudget-sub"),
+				check.That(data.ResourceName).Key("name").HasValue("acctestconsumptionbudget-sub"),
 			),
 		},
 	})
