@@ -2,21 +2,21 @@ package storage
 
 import (
 	"fmt"
-	"log"
-	"time"
-
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
+	msiValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	storageParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"log"
+	"time"
 )
 
 func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
@@ -61,6 +61,12 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"user_assigned_identity": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: msiValidate.UserAssignedIdentityID,
 			},
 		},
 	}
@@ -161,6 +167,12 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 		},
 	}
 
+	if v, ok := d.GetOk("user_assigned_identity"); ok {
+		props.AccountPropertiesUpdateParameters.Encryption.EncryptionIdentity = &storage.EncryptionIdentity{
+			EncryptionUserAssignedIdentity: utils.String(v.(string)),
+		}
+	}
+
 	if _, err = storageClient.Update(ctx, storageAccountID.ResourceGroup, storageAccountID.Name, props); err != nil {
 		return fmt.Errorf("Error updating Customer Managed Key for Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
 	}
@@ -205,6 +217,7 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 	keyName := ""
 	keyVaultURI := ""
 	keyVersion := ""
+	userAssignedIdentity := ""
 	if props := encryption.KeyVaultProperties; props != nil {
 		if props.KeyName != nil {
 			keyName = *props.KeyName
@@ -215,6 +228,10 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 		if props.KeyVersion != nil {
 			keyVersion = *props.KeyVersion
 		}
+	}
+
+	if encryption.EncryptionIdentity != nil && encryption.EncryptionIdentity.EncryptionUserAssignedIdentity != nil {
+		userAssignedIdentity = *encryption.EncryptionIdentity.EncryptionUserAssignedIdentity
 	}
 
 	if keyVaultURI == "" {
@@ -232,6 +249,7 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 	d.Set("key_vault_id", keyVaultID)
 	d.Set("key_name", keyName)
 	d.Set("key_version", keyVersion)
+	d.Set("user_assigned_identity", userAssignedIdentity)
 
 	return nil
 }

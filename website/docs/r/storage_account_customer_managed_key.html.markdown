@@ -95,6 +95,10 @@ The following arguments are supported:
 
 * `key_version` - (Optional) The version of Key Vault Key. Remove or omit this argument to enable Automatic Key Rotation.
 
+* `user_assigned_identity` - (Optional) The resource ID of the User Assigned Identity which have permission on the key vault. 
+
+~> **NOTE:** The Storage Account should be assigned the User Assigned Identity when `user_assigned_identity` is set.
+
 ## Attributes Reference
 
 The following attributes are exported in addition to the arguments listed above:
