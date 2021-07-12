@@ -61,6 +61,7 @@ func resourceStaticSite() *pluginsdk.Resource {
 
 			"sku_size": {
 				Type:         pluginsdk.TypeString,
+				Optional:     true,
 				Default:      "Free",
 				ValidateFunc: validation.StringInSlice([]string{
 					"Free",
