@@ -11,6 +11,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_postgresql_flexible_server` - add new computed property `private_dns_zone_id` to work around a upcomming breaking change in the API [GH-12288]
+
 ## 2.67.0 (July 09, 2021)
 
 FEATURES:
