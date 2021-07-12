@@ -226,10 +226,36 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 							},
 							Set: set.HashIPv4AddressOrCIDR,
 						},
+						// TODO 3.0 - Remove below property
 						"virtual_network_subnet_ids": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Type:          pluginsdk.TypeSet,
+							Optional:      true,
+							Computed:      true,
+							ConflictsWith: []string{"network_acls.0.virtual_network_rules"},
+							Deprecated:    "Deprecated in favour of `virtual_network_rules`",
+							Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						},
+
+						"virtual_network_rules": {
+							Type:          pluginsdk.TypeSet,
+							Optional:      true,
+							Computed:      true, // TODO -- remove this when deprecation resolves
+							ConflictsWith: []string{"network_acls.0.virtual_network_subnet_ids"},
+							ConfigMode:    pluginsdk.SchemaConfigModeAttr, // TODO -- remove in 3.0, because this property is optional and computed, it has to be declared as empty array to remove existed values
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"subnet_id": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+									},
+
+									"ignore_missing_vnet_service_endpoint": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -322,7 +348,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("expanding sku_name for %s: %v", id, err)
 	}
 
-	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d.Get("network_acls").([]interface{}))
+	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d)
 
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
@@ -407,7 +433,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("error expanding sku_name for %s: %+v", *id, err)
 	}
 
-	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d.Get("network_acls").([]interface{}))
+	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d)
 
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
@@ -620,7 +646,8 @@ func cognitiveAccountStateRefreshFunc(ctx context.Context, client *cognitiveserv
 	}
 }
 
-func expandCognitiveAccountNetworkAcls(input []interface{}) (*cognitiveservices.NetworkRuleSet, []string) {
+func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveservices.NetworkRuleSet, []string) {
+	input := d.Get("network_acls").([]interface{})
 	subnetIds := make([]string, 0)
 	if len(input) == 0 || input[0] == nil {
 		return nil, subnetIds
@@ -640,15 +667,30 @@ func expandCognitiveAccountNetworkAcls(input []interface{}) (*cognitiveservices.
 		ipRules = append(ipRules, rule)
 	}
 
-	networkRulesRaw := v["virtual_network_subnet_ids"].(*pluginsdk.Set)
 	networkRules := make([]cognitiveservices.VirtualNetworkRule, 0)
-	for _, v := range networkRulesRaw.List() {
-		rawId := v.(string)
-		subnetIds = append(subnetIds, rawId)
-		rule := cognitiveservices.VirtualNetworkRule{
-			ID: utils.String(rawId),
+	if d.HasChange("network_acls.0.virtual_network_subnet_ids") {
+		networkRulesRaw := v["virtual_network_subnet_ids"]
+		for _, v := range networkRulesRaw.(*pluginsdk.Set).List() {
+			rawId := v.(string)
+			subnetIds = append(subnetIds, rawId)
+			rule := cognitiveservices.VirtualNetworkRule{
+				ID: utils.String(rawId),
+			}
+			networkRules = append(networkRules, rule)
 		}
-		networkRules = append(networkRules, rule)
+	}
+	if d.HasChange("network_acls.0.virtual_network_rules") {
+		networkRulesRaw := v["virtual_network_rules"]
+		for _, v := range networkRulesRaw.(*pluginsdk.Set).List() {
+			value := v.(map[string]interface{})
+			subnetId := value["subnet_id"].(string)
+			subnetIds = append(subnetIds, subnetId)
+			rule := cognitiveservices.VirtualNetworkRule{
+				ID:                               utils.String(subnetId),
+				IgnoreMissingVnetServiceEndpoint: utils.Bool(value["ignore_missing_vnet_service_endpoint"].(bool)),
+			}
+			networkRules = append(networkRules, rule)
+		}
 	}
 
 	ruleSet := cognitiveservices.NetworkRuleSet{
@@ -768,6 +810,7 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservices.NetworkRuleSet)
 		}
 	}
 
+	virtualNetworkSubnetIds := make([]interface{}, 0)
 	virtualNetworkRules := make([]interface{}, 0)
 	if input.VirtualNetworkRules != nil {
 		for _, v := range *input.VirtualNetworkRules {
@@ -781,14 +824,19 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservices.NetworkRuleSet)
 				id = subnetId.ID()
 			}
 
-			virtualNetworkRules = append(virtualNetworkRules, id)
+			virtualNetworkSubnetIds = append(virtualNetworkSubnetIds, id)
+			virtualNetworkRules = append(virtualNetworkRules, map[string]interface{}{
+				"subnet_id":                            id,
+				"ignore_missing_vnet_service_endpoint": *v.IgnoreMissingVnetServiceEndpoint,
+			})
 		}
 	}
 	return []interface{}{
 		map[string]interface{}{
 			"default_action":             string(input.DefaultAction),
 			"ip_rules":                   pluginsdk.NewSet(pluginsdk.HashString, ipRules),
-			"virtual_network_subnet_ids": pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkRules),
+			"virtual_network_subnet_ids": pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkSubnetIds),
+			"virtual_network_rules":      virtualNetworkRules,
 		},
 	}
 }
