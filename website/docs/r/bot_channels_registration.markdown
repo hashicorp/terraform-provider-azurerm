@@ -43,7 +43,11 @@ The following arguments are supported:
 
 * `microsoft_app_id` - (Required) The Microsoft Application ID for the Bot Channels Registration. Changing this forces a new resource to be created.
 
+* `cmek_key_vault_url` - (Optional) The CMEK Key Vault Key URL to encrypt the Bot Channels Registration with the Customer Managed Encryption Key.
+
 * `display_name` - (Optional) The name of the Bot Channels Registration will be displayed as. This defaults to `name` if not specified.
+
+* `description` - (Optional) The description of the Bot Channels Registration.
 
 * `endpoint` - (Optional) The Bot Channels Registration endpoint.
 
@@ -52,6 +56,10 @@ The following arguments are supported:
 * `developer_app_insights_api_key` - (Optional) The Application Insights API Key to associate with the Bot Channels Registration.
 
 * `developer_app_insights_application_id` - (Optional) The Application Insights Application ID to associate with the Bot Channels Registration.
+
+* `icon_url` - (Optional) The icon URL to visually identify the Bot Channels Registration.
+
+* `is_isolated_network_enabled` - (Optional) Is the Bot Channels Registration in an isolated network?
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

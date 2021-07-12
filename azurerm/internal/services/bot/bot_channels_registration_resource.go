@@ -13,6 +13,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/validate"
+	kvValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -89,6 +91,18 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
+			"cmek_key_vault_url": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: kvValidate.NestedItemIdWithOptionalVersion,
+			},
+
+			"description": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.BotChannelRegistrationDescription,
+			},
+
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -122,6 +136,18 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IsUUID,
+			},
+
+			"icon_url": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validate.BotChannelRegistrationIconUrl,
+			},
+
+			"is_isolated_network_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"tags": tags.Schema(),
@@ -158,9 +184,13 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 			DisplayName:                       utils.String(displayName),
 			Endpoint:                          utils.String(d.Get("endpoint").(string)),
 			MsaAppID:                          utils.String(d.Get("microsoft_app_id").(string)),
+			CmekKeyVaultURL:                   utils.String(d.Get("cmek_key_vault_url").(string)),
+			Description:                       utils.String(d.Get("description").(string)),
 			DeveloperAppInsightKey:            utils.String(d.Get("developer_app_insights_key").(string)),
 			DeveloperAppInsightsAPIKey:        utils.String(d.Get("developer_app_insights_api_key").(string)),
 			DeveloperAppInsightsApplicationID: utils.String(d.Get("developer_app_insights_application_id").(string)),
+			IconURL:                           utils.String(d.Get("icon_url").(string)),
+			IsCmekEnabled:                     utils.Bool(false),
 		},
 		Location: utils.String(d.Get("location").(string)),
 		Sku: &botservice.Sku{
@@ -170,12 +200,21 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if _, ok := d.GetOk("cmek_key_vault_url"); ok {
+		bot.Properties.IsCmekEnabled = utils.Bool(true)
+	}
+
 	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.Name, bot); err != nil {
 		return fmt.Errorf("creating Bot Channels Registration %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
 	d.SetId(resourceId.ID())
-	return resourceBotChannelsRegistrationRead(d, meta)
+
+	if v, ok := d.GetOk("is_isolated_network_enabled"); ok && v.(bool) {
+		return resourceBotChannelsRegistrationUpdate(d, meta)
+	} else {
+		return resourceBotChannelsRegistrationRead(d, meta)
+	}
 }
 
 func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -208,11 +247,15 @@ func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if props := resp.Properties; props != nil {
+		d.Set("cmek_key_vault_url", props.CmekKeyVaultURL)
 		d.Set("microsoft_app_id", props.MsaAppID)
 		d.Set("endpoint", props.Endpoint)
+		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
 		d.Set("developer_app_insights_key", props.DeveloperAppInsightKey)
 		d.Set("developer_app_insights_application_id", props.DeveloperAppInsightsApplicationID)
+		d.Set("icon_url", props.IconURL)
+		d.Set("is_isolated_network_enabled", props.IsIsolated)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -239,9 +282,14 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 			DisplayName:                       utils.String(displayName),
 			Endpoint:                          utils.String(d.Get("endpoint").(string)),
 			MsaAppID:                          utils.String(d.Get("microsoft_app_id").(string)),
+			CmekKeyVaultURL:                   utils.String(d.Get("cmek_key_vault_url").(string)),
+			Description:                       utils.String(d.Get("description").(string)),
 			DeveloperAppInsightKey:            utils.String(d.Get("developer_app_insights_key").(string)),
 			DeveloperAppInsightsAPIKey:        utils.String(d.Get("developer_app_insights_api_key").(string)),
 			DeveloperAppInsightsApplicationID: utils.String(d.Get("developer_app_insights_application_id").(string)),
+			IconURL:                           utils.String(d.Get("icon_url").(string)),
+			IsCmekEnabled:                     utils.Bool(false),
+			IsIsolated:                        utils.Bool(d.Get("is_isolated_network_enabled").(bool)),
 		},
 		Location: utils.String(d.Get("location").(string)),
 		Sku: &botservice.Sku{
@@ -249,6 +297,10 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 		},
 		Kind: botservice.KindBot,
 		Tags: tags.Expand(t),
+	}
+
+	if _, ok := d.GetOk("cmek_key_vault_url"); ok {
+		bot.Properties.IsCmekEnabled = utils.Bool(true)
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, bot); err != nil {
