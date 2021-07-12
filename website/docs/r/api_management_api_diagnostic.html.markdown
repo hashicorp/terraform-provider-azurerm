@@ -155,6 +155,24 @@ A `backend_request`, `backend_response`, `frontend_request` or `frontend_respons
 
 * `headers_to_log` - (Optional) Specifies a list of headers to log.
 
+* `data_masking` - (Optional) A `data_masking` block as defined below.
+
+---
+
+A `data_masking` block supports the following:
+
+* `query_params` - (Optional) A `query_params` block as defined below.
+
+* `headers` - (Optional) A `headers` block as defined below.
+
+---
+
+The `query_params` and `headers` blocks support the following:
+
+* `mode` - (Required) The data masking mode. Possible values are `Mask` and `Hide` for `query_params`. The only possible value is `Mask` for `headers`.
+
+* `value` - (Required) The name of the header or the uery parameter to mask.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
