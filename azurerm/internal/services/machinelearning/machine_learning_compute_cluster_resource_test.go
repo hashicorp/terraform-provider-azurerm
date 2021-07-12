@@ -310,4 +310,3 @@ resource "azurerm_subnet" "test" {
 		data.RandomIntOfLength(12), data.RandomIntOfLength(15), data.RandomIntOfLength(16),
 		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
-
