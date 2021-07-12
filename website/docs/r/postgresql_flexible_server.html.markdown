@@ -45,6 +45,17 @@ resource "azurerm_subnet" "example" {
     }
   }
 }
+resource "azurerm_private_dns_zone" "example" {
+  name                = "example.postgres.database.azure.com"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "example" {
+  name                  = "exampleVnetZone.com"
+  private_dns_zone_name = azurerm_private_dns_zone.example.name
+  virtual_network_id    = azurerm_virtual_network.example.id
+  resource_group_name   = azurerm_resource_group.example.name
+}
 
 resource "azurerm_postgresql_flexible_server" "example" {
   name                   = "example-psqlflexibleserver"
@@ -52,12 +63,15 @@ resource "azurerm_postgresql_flexible_server" "example" {
   location               = azurerm_resource_group.example.location
   version                = "12"
   delegated_subnet_id    = azurerm_subnet.example.id
+  private_dns_zone_id    = azurerm_private_dns_zone.example.id
   administrator_login    = "psqladminun"
   administrator_password = "H@Sh1CoR3!"
 
   storage_mb = 32768
 
-  sku_name = "GP_Standard_D4s_v3"
+  sku_name   = "GP_Standard_D4s_v3"
+  depends_on = [azurerm_private_dns_zone_virtual_network_link.example]
+
 }
 ```
 
@@ -82,6 +96,10 @@ The following arguments are supported:
 * `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default` and `PointInTimeRestore`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 * `delegated_subnet_id` - (Optional) The ID of the virtual network subnet to create the PostgreSQL Flexible Server. The provided subnet should not have any other resource deployed in it and this subnet will be delegated to the PostgreSQL Flexible Server, if not already delegated. Changing this forces a new PostgreSQL Flexible Server to be created.
+
+* `private_dns_zone_id` - (Optional) The ID of the private dns zone to create the PostgreSQL Flexible Server. Changing this forces a new PostgreSQL Flexible Server to be created.
+
+~> **NOTE:** There will be a breaking change from upstream service at 15th July 2021, the `private_dns_zone_id` will be required when setting a `delegated_subnet_id`. For existing flexible servers who don't want to be recreated, you need to provide the `private_dns_zone_id` to the service team to manually migrate to the specified private dns zone. The `azurerm_private_dns_zone` should end with suffix `.postgres.database.azure.com`.
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
