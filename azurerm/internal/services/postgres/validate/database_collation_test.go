@@ -1,11 +1,10 @@
 package validate
 
 import (
-	"strings"
 	"testing"
 )
 
-func TestFlexibleServerFirewallRuleName(t *testing.T) {
+func TestDatabaseCollation(t *testing.T) {
 	tests := []struct {
 		name  string
 		input string
@@ -18,44 +17,29 @@ func TestFlexibleServerFirewallRuleName(t *testing.T) {
 		},
 		{
 			name:  "Invalid Characters",
-			input: "flexible%",
+			input: "en_US%",
 			valid: false,
 		},
 		{
-			name:  "One character",
-			input: "a",
+			name:  "Basic",
+			input: "en_US",
 			valid: true,
 		},
 		{
-			name:  "End with `_`",
-			input: "test_",
+			name:  "With hyphen",
+			input: "en-US",
 			valid: true,
 		},
 		{
-			name:  "Start with `_`",
-			input: "_test",
+			name:  "With underscore, space and dot",
+			input: "English_United States.1252",
 			valid: true,
-		},
-		{
-			name:  "Valid",
-			input: "flexible-6-test",
-			valid: true,
-		},
-		{
-			name:  "Valid2",
-			input: "flex6ible6-6-te6st",
-			valid: true,
-		},
-		{
-			name:  "too long",
-			input: strings.Repeat("a", 129),
-			valid: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := FlexibleServerFirewallRuleName(tt.input, "name")
+			_, err := DatabaseCollation(tt.input, "collation")
 			valid := err == nil
 			if valid != tt.valid {
 				t.Errorf("Expected valid status %t but got %t for input %s", tt.valid, valid, tt.input)

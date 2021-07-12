@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestFlexibleServerFirewallRuleName(t *testing.T) {
+func TestFlexibleServerDatabaseName(t *testing.T) {
 	tests := []struct {
 		name  string
 		input string
@@ -18,7 +18,17 @@ func TestFlexibleServerFirewallRuleName(t *testing.T) {
 		},
 		{
 			name:  "Invalid Characters",
-			input: "flexible%",
+			input: "flexdb%",
+			valid: false,
+		},
+		{
+			name:  "Start with integer",
+			input: "1flexdb",
+			valid: false,
+		},
+		{
+			name:  "Name to long",
+			input: strings.Repeat("a", 64),
 			valid: false,
 		},
 		{
@@ -28,34 +38,24 @@ func TestFlexibleServerFirewallRuleName(t *testing.T) {
 		},
 		{
 			name:  "End with `_`",
-			input: "test_",
+			input: "flexdb_",
 			valid: true,
 		},
 		{
 			name:  "Start with `_`",
-			input: "_test",
+			input: "_flexdb",
 			valid: true,
 		},
 		{
 			name:  "Valid",
-			input: "flexible-6-test",
+			input: "flexdb-1-test",
 			valid: true,
-		},
-		{
-			name:  "Valid2",
-			input: "flex6ible6-6-te6st",
-			valid: true,
-		},
-		{
-			name:  "too long",
-			input: strings.Repeat("a", 129),
-			valid: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := FlexibleServerFirewallRuleName(tt.input, "name")
+			_, err := FlexibleServerDatabaseName(tt.input, "name")
 			valid := err == nil
 			if valid != tt.valid {
 				t.Errorf("Expected valid status %t but got %t for input %s", tt.valid, valid, tt.input)
