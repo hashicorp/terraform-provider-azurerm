@@ -896,7 +896,6 @@ func readBackSensitiveValue(input []interface{}, propertyName string, filters ma
 		if found {
 			return raw[propertyName].(string)
 		}
-
 	}
 	return ""
 }
