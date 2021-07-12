@@ -1,35 +1,46 @@
-## 2.67.0 (Unreleased)
+## 2.68.0 (Unreleased)
 
 FEATURES:
 
-* **New Data Source** `azurerm_api_management_gateway` [GH-12297]
-* **New Resource** `azurerm_api_management_gateway` [GH-12297]
-* **New Resource** `azurerm_databricks_workspace_customer_managed_key`[GH-12331]
-
 ENHANCEMENTS:
 
-* dependencies: updating `postgresqlflexibleservers` to use API Version `2021-06-01` [GH-12405]
-* `azurerm_databricks_workspace` - add support for `machine_learning_workspace_id`, `customer_managed_key_enabled`, `infrastructure_encryption_enabled` and `storage_account_identity` [GH-12331]
-* `azurerm_security_center_assessment_policy` - support for the `categories` propety [GH-12383]
+* dependencies: updating `bot` to use API Version `2021-03-01` [GH-12449]
+* `azurerm_cognitive_account` - support for the `identity`, `storage`, `disable_local_auth`, `fqdns`, `public_network_access_enabled`, and `restrict_outbound_network_access` properties [GH-12469]
 
 BUG FIXES:
 
-* `azurerm_api_management` - fix an issue where changing the location of an `additional_location` would force a new resource [GH-12468]
-* `azurerm_app_service` - fix crash when resource group or ASE is missing. [GH-12518]
-* `azurerm_automation_variable_int` - fixed value parsing order causing `1` to be considered a bool [GH-12511]
-* `azurerm_automation_variable_bool` - fixed value parsing order causing `1` to be considered a bool [GH-12511]
-* `azurerm_data_factory_dataset_parquet` - the `azure_blob_storage_location.filename` property cis now optional [GH-12414]
-* `azurerm_kusto_eventhub_data_connection` - `APACHEAVRO` can now be used as a `data_format` option [GH-12480]
-* `azurerm_site_recovery_replicated_vm ` - Fix potential crash in reading `managed_disk` properties [GH-12509]
-* `azurerm_storage_account` - `account_replication_type` can now be updated [GH-12479]
-* `azurerm_storage_management_policy` - fix crash in read of properties [GH-12487]
-* `azurerm_storage_share_directory` now allows underscore in property `name` [GH-12454] 
-* `azurerm_security_center_subscription_pricing` - removed Owner permission note from documentation [GH-12481]
+## 2.67.0 (July 09, 2021)
+
+FEATURES:
+
+* **New Data Source** `azurerm_api_management_gateway` ([#12297](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12297))
+* **New Resource** `azurerm_api_management_gateway` ([#12297](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12297))
+* **New Resource** `azurerm_databricks_workspace_customer_managed_key`([#12331](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12331))
+
+ENHANCEMENTS:
+
+* dependencies: updating `postgresqlflexibleservers` to use API Version `2021-06-01` ([#12405](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12405))
+* `azurerm_databricks_workspace` - add support for `machine_learning_workspace_id`, `customer_managed_key_enabled`, `infrastructure_encryption_enabled` and `storage_account_identity` ([#12331](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12331))
+* `azurerm_security_center_assessment_policy` - support for the `categories` propety ([#12383](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12383))
+
+BUG FIXES:
+
+* `azurerm_api_management` - fix an issue where changing the location of an `additional_location` would force a new resource ([#12468](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12468))
+* `azurerm_app_service` - fix crash when resource group or ASE is missing. ([#12518](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12518))
+* `azurerm_automation_variable_int` - fixed value parsing order causing `1` to be considered a bool ([#12511](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12511))
+* `azurerm_automation_variable_bool` - fixed value parsing order causing `1` to be considered a bool ([#12511](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12511))
+* `azurerm_data_factory_dataset_parquet` - the `azure_blob_storage_location.filename` property cis now optional ([#12414](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12414))
+* `azurerm_kusto_eventhub_data_connection` - `APACHEAVRO` can now be used as a `data_format` option ([#12480](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12480))
+* `azurerm_site_recovery_replicated_vm ` - Fix potential crash in reading `managed_disk` properties ([#12509](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12509))
+* `azurerm_storage_account` - `account_replication_type` can now be updated ([#12479](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12479))
+* `azurerm_storage_management_policy` - fix crash in read of properties ([#12487](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12487))
+* `azurerm_storage_share_directory` now allows underscore in property `name` [[#12454](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12454)] 
+* `azurerm_security_center_subscription_pricing` - removed Owner permission note from documentation ([#12481](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12481))
 
 DEPRECATIONS:
 
-* `azurerm_postgresql_flexible_server` - the `cmk_enabled` property has been deprecated as it has been removed from the API [GH-12405]
-* `azurerm_virtual_machine_configuration_policy_assignment` - has been deprecated and renamed to `azurerm_policy_virtual_machine_configuration_assignment` [GH-12497]
+* `azurerm_postgresql_flexible_server` - the `cmk_enabled` property has been deprecated as it has been removed from the API ([#12405](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12405))
+* `azurerm_virtual_machine_configuration_policy_assignment` - has been deprecated and renamed to `azurerm_policy_virtual_machine_configuration_assignment` ([#12497](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12497))
 
 ## 2.66.0 (July 02, 2021)
 
