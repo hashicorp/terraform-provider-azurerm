@@ -47,11 +47,11 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"key_vault": {
+			"value_from_key_vault": {
 				Type:         pluginsdk.TypeList,
 				Optional:     true,
 				MaxItems:     1,
-				ExactlyOneOf: []string{"value", "key_vault"},
+				ExactlyOneOf: []string{"value", "value_from_key_vault"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"secret_id": {
@@ -73,7 +73,7 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"value", "key_vault"},
+				ExactlyOneOf: []string{"value", "value_from_key_vault"},
 			},
 
 			"secret": {
@@ -119,7 +119,7 @@ func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta
 		NamedValueCreateContractProperties: &apimanagement.NamedValueCreateContractProperties{
 			DisplayName: utils.String(d.Get("display_name").(string)),
 			Secret:      utils.Bool(d.Get("secret").(bool)),
-			KeyVault:    expandApiManagementNamedValueKeyVault(d.Get("key_vault").([]interface{})),
+			KeyVault:    expandApiManagementNamedValueKeyVault(d.Get("value_from_key_vault").([]interface{})),
 		},
 	}
 
@@ -187,8 +187,8 @@ func resourceApiManagementNamedValueRead(d *pluginsdk.ResourceData, meta interfa
 		if properties.Secret != nil && !*properties.Secret {
 			d.Set("value", properties.Value)
 		}
-		if err := d.Set("key_vault", flattenApiManagementNamedValueKeyVault(properties.KeyVault)); err != nil {
-			return fmt.Errorf("setting `key_vault`: %+v", err)
+		if err := d.Set("value_from_key_vault", flattenApiManagementNamedValueKeyVault(properties.KeyVault)); err != nil {
+			return fmt.Errorf("setting `value_from_key_vault`: %+v", err)
 		}
 		d.Set("tags", properties.Tags)
 	}

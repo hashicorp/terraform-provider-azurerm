@@ -284,7 +284,7 @@ resource "azurerm_api_management_named_value" "test" {
   api_management_name = azurerm_api_management.test.name
   display_name        = "TestKeyVault%[2]d"
   secret              = true
-  key_vault {
+  value_from_key_vault {
     secret_id          = azurerm_key_vault_secret.test.id
     identity_client_id = azurerm_user_assigned_identity.test.client_id
   }
@@ -306,7 +306,7 @@ resource "azurerm_api_management_named_value" "test" {
   api_management_name = azurerm_api_management.test.name
   display_name        = "TestKeyVault%[2]d"
   secret              = true
-  key_vault {
+  value_from_key_vault {
     secret_id          = azurerm_key_vault_secret.test2.id
     identity_client_id = azurerm_user_assigned_identity.test.client_id
   }

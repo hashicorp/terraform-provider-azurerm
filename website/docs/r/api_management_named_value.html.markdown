@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `value` - (Optional) The value of this API Management Named Value.
 
-* `key_vault` - (Optional) A `key_vault` block as defined below.
+* `value_from_key_vault` - (Optional) A `value_from_key_vault` block as defined below.
 
 * `secret` - (Optional) Specifies whether the API Management Named Value is secret. Valid values are `true` or `false`. The default value is `false`.
 
@@ -63,7 +63,7 @@ The following arguments are supported:
 
 ---
 
-A `key_vault` block supports the following:
+A `value_from_key_vault` block supports the following:
 
 * `secret_id` - (Required) The resource ID of the Key Vault Secret.
 
