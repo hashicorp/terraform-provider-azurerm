@@ -283,8 +283,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				if customParams.CustomVirtualNetworkID == nil && (customParams.CustomPrivateSubnetName != nil || customParams.CustomPublicSubnetName != nil) {
 					return fmt.Errorf("'virtual_network_id' must have a value if 'public_subnet_name' and/or 'private_subnet_name' are set")
 				}
-
-				if customParams.EnableNoPublicIP != nil && *customParams.EnableNoPublicIP.Value == false {
+				if customParams.EnableNoPublicIP != nil && !*customParams.EnableNoPublicIP.Value {
 					if customParams.LoadBalancerBackendPoolName != nil || customParams.LoadBalancerID != nil || customParams.NatGatewayName != nil || customParams.PublicIPName != nil {
 						return fmt.Errorf("'load_balancer_backend_pool_name', 'load_balancer_id', 'nat_gateway_name' and 'public_ip_name' must not have a value if 'no_public_ip' is 'false'")
 					}
