@@ -5,6 +5,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating `bot` to use API Version `2021-03-01` [GH-12449]
+* `azurerm_api_management_named_value` - support for the `value_from_key_vault` block [GH-12309]
 * `azurerm_cognitive_account` - support for the `identity`, `storage`, `disable_local_auth`, `fqdns`, `public_network_access_enabled`, and `restrict_outbound_network_access` properties [GH-12469]
 
 BUG FIXES:
