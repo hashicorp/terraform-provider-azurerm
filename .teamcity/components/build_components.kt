@@ -1,3 +1,4 @@
+import jetbrains.buildServer.configs.kotlin.v10.triggers.ScheduleTrigger
 import jetbrains.buildServer.configs.kotlin.v2019_2.*
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.GolangFeature
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.ScriptBuildStep
@@ -127,14 +128,17 @@ fun ParametrizedWithType.hiddenPasswordVariable(name: String, value: String, des
     password(name, value, "", description, ParameterDisplay.HIDDEN)
 }
 
-fun Triggers.RunNightly(nightlyTestsEnabled: Boolean, startHour: Int) {
+fun Triggers.RunNightly(nightlyTestsEnabled: Boolean, startHour: Int, daysOfWeek: String, daysOfMonth: String) {
     schedule{
         enabled = nightlyTestsEnabled
         branchFilter = "+:refs/heads/master"
 
-        schedulingPolicy = daily {
-            hour = startHour
+        schedulingPolicy = cron {
+            hours = startHour.toString()
             timezone = "SERVER"
+
+            dayOfWeek = daysOfWeek
+            dayOfMonth = daysOfMonth
         }
     }
 }

@@ -5,7 +5,14 @@ var defaultStartHour = 0
 var defaultParallelism = 20
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "1.0.0"
+var defaultTerraformCoreVersion = "1.0.1"
+
+// This represents a cron view of days of the week, Monday - Friday.
+const val defaultDaysOfWeek = "1,2,3,4,5"
+
+// Cron value for any day of month
+const val defaultDaysOfMonth = "*"
+
 
 var locations = mapOf(
         "public" to LocationConfiguration("westeurope", "eastus2", "francecentral", false),
