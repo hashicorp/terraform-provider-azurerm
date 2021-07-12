@@ -475,7 +475,6 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 		if err := d.Set("proxy", flattenDataFactoryIntegrationRuntimeAzureSsisProxy(ssisProps.DataProxyProperties)); err != nil {
 			return fmt.Errorf("setting `proxy`: %+v", err)
 		}
-
 	}
 
 	return nil
