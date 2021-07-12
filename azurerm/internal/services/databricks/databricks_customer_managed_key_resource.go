@@ -293,7 +293,6 @@ func DatabricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta
 }
 
 func getProps(workspace databricks.Workspace, params *databricks.WorkspaceCustomParameters) databricks.Workspace {
-
 	props := databricks.Workspace{
 		Location: workspace.Location,
 		Sku:      workspace.Sku,
