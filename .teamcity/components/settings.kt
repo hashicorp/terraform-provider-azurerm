@@ -13,7 +13,6 @@ const val defaultDaysOfWeek = "1,2,3,4,5"
 // Cron value for any day of month
 const val defaultDaysOfMonth = "*"
 
-
 var locations = mapOf(
         "public" to LocationConfiguration("westeurope", "eastus2", "francecentral", false),
         "germany" to LocationConfiguration("germanynortheast", "germanycentral", "", false)
