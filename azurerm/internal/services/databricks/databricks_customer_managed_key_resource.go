@@ -155,15 +155,7 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 		},
 	}
 
-	props := databricks.Workspace{
-		Location: workspace.Location,
-		Sku:      workspace.Sku,
-		WorkspaceProperties: &databricks.WorkspaceProperties{
-			ManagedResourceGroupID: workspace.WorkspaceProperties.ManagedResourceGroupID,
-			Parameters:             params,
-		},
-		Tags: workspace.Tags,
-	}
+	props := getProps(workspace, params)
 
 	future, err := workspaceClient.CreateOrUpdate(ctx, props, resourceID.ResourceGroup, resourceID.CustomerMangagedKeyName)
 	if err != nil {
@@ -286,15 +278,7 @@ func DatabricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	props := databricks.Workspace{
-		Location: workspace.Location,
-		Sku:      workspace.Sku,
-		WorkspaceProperties: &databricks.WorkspaceProperties{
-			ManagedResourceGroupID: workspace.WorkspaceProperties.ManagedResourceGroupID,
-			Parameters:             params,
-		},
-		Tags: workspace.Tags,
-	}
+	props := getProps(workspace, params)
 
 	future, err := client.CreateOrUpdate(ctx, props, workspaceID.ResourceGroup, workspaceID.Name)
 	if err != nil {
@@ -306,4 +290,25 @@ func DatabricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta
 	}
 
 	return nil
+}
+
+func getProps(workspace databricks.Workspace, params *databricks.WorkspaceCustomParameters) databricks.Workspace {
+
+	props := databricks.Workspace{
+		Location: workspace.Location,
+		Sku:      workspace.Sku,
+		WorkspaceProperties: &databricks.WorkspaceProperties{
+			PublicNetworkAccess:    workspace.PublicNetworkAccess,
+			ManagedResourceGroupID: workspace.WorkspaceProperties.ManagedResourceGroupID,
+			Parameters:             params,
+		},
+		Tags: workspace.Tags,
+	}
+
+	// This is only valid if Private Link only is set
+	if workspace.PublicNetworkAccess == databricks.PublicNetworkAccessDisabled {
+		props.WorkspaceProperties.RequiredNsgRules = workspace.WorkspaceProperties.RequiredNsgRules
+	}
+
+	return props
 }

@@ -85,6 +85,25 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"public_network_access": {
+				Type:     pluginsdk.TypeBool,
+				ForceNew: true,
+				Optional: true,
+				Default:  true,
+			},
+
+			"require_nsg_rules": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(databricks.RequiredNsgRulesAllRules),
+					string(databricks.RequiredNsgRulesNoAzureDatabricksRules),
+					string(databricks.RequiredNsgRulesNoAzureServiceRules),
+				}, false),
+			},
+
 			"custom_parameters": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -92,16 +111,45 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"load_balancer_backend_pool_name": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"load_balancer_id": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceIDOrEmpty,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
 						"machine_learning_workspace_id": {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Optional:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: azure.ValidateResourceIDOrEmpty,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"nat_gateway_name": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
 						"no_public_ip": {
 							Type:         pluginsdk.TypeBool,
+							ForceNew:     true,
+							Optional:     true,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"public_ip_name": {
+							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Optional:     true,
 							AtLeastOneOf: workspaceCustomParametersString(),
@@ -142,6 +190,27 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
+
+						"storage_account_name": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"storage_account_sku_name": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
+
+						"vnet_address_prefix": {
+							Type:         pluginsdk.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							AtLeastOneOf: workspaceCustomParametersString(),
+						},
 					},
 				},
 			},
@@ -160,6 +229,8 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			// PrivateEndpointConnections
 
 			"storage_account_identity": {
 				Type:     pluginsdk.TypeList,
@@ -190,7 +261,17 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			_, customerEncryptionEnabled := d.GetChange("customer_managed_key_enabled")
 			_, infrastructureEncryptionEnabled := d.GetChange("infrastructure_encryption_enabled")
+			_, publicNetworkAccess := d.GetChange("public_network_access")
+			_, requireNsgRules := d.GetChange("require_nsg_rules")
+
 			oldSku, newSku := d.GetChange("sku")
+
+			if !publicNetworkAccess.(bool) && requireNsgRules.(string) == "" {
+				return fmt.Errorf("'require_nsg_rules' is required if 'public_network_access' is 'false'")
+			}
+			if publicNetworkAccess.(bool) && requireNsgRules.(string) != "" {
+				return fmt.Errorf("'require_nsg_rules' must not be defined if 'public_network_access' is 'true'")
+			}
 
 			_, customParamsRaw := d.GetChange("custom_parameters")
 			if customParamsRaw != nil {
@@ -201,6 +282,12 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				}
 				if customParams.CustomVirtualNetworkID == nil && (customParams.CustomPrivateSubnetName != nil || customParams.CustomPublicSubnetName != nil) {
 					return fmt.Errorf("'virtual_network_id' must have a value if 'public_subnet_name' and/or 'private_subnet_name' are set")
+				}
+
+				if customParams.EnableNoPublicIP != nil && *customParams.EnableNoPublicIP.Value == false {
+					if customParams.LoadBalancerBackendPoolName != nil || customParams.LoadBalancerID != nil || customParams.NatGatewayName != nil || customParams.PublicIPName != nil {
+						return fmt.Errorf("'load_balancer_backend_pool_name', 'load_balancer_id', 'nat_gateway_name' and 'public_ip_name' must not have a value if 'no_public_ip' is 'false'")
+					}
 				}
 			}
 
@@ -261,7 +348,12 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	managedResourceGroupID := resourcesParse.NewResourceGroupID(subscriptionId, managedResourceGroupName).ID()
 	customerEncryptionEnabled := d.Get("customer_managed_key_enabled").(bool)
 	infrastructureEncryptionEnabled := d.Get("infrastructure_encryption_enabled").(bool)
-
+	publicNetowrkAccessRaw := d.Get("public_network_access").(bool)
+	publicNetworkAccess := databricks.PublicNetworkAccessDisabled
+	if publicNetowrkAccessRaw {
+		publicNetworkAccess = databricks.PublicNetworkAccessEnabled
+	}
+	requireNsgRules := d.Get("require_nsg_rules").(string)
 	customParamsRaw := d.Get("custom_parameters").([]interface{})
 	customParams := expandWorkspaceCustomParameters(customParamsRaw, customerEncryptionEnabled, infrastructureEncryptionEnabled)
 
@@ -273,10 +365,15 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		},
 		Location: utils.String(location),
 		WorkspaceProperties: &databricks.WorkspaceProperties{
+			PublicNetworkAccess:    publicNetworkAccess,
 			ManagedResourceGroupID: &managedResourceGroupID,
 			Parameters:             customParams,
 		},
 		Tags: expandedTags,
+	}
+
+	if !publicNetowrkAccessRaw {
+		workspace.WorkspaceProperties.RequiredNsgRules = databricks.RequiredNsgRules(requireNsgRules)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, workspace, id.ResourceGroup, id.Name)
@@ -350,6 +447,11 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		d.Set("managed_resource_group_id", props.ManagedResourceGroupID)
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
+		d.Set("public_network_access", (props.PublicNetworkAccess == databricks.PublicNetworkAccessEnabled))
+
+		if props.PublicNetworkAccess == databricks.PublicNetworkAccessDisabled {
+			d.Set("require_nsg_rules", string(props.RequiredNsgRules))
+		}
 
 		if err := d.Set("custom_parameters", flattenWorkspaceCustomParameters(props.Parameters)); err != nil {
 			return fmt.Errorf("setting `custom_parameters`: %+v", err)
@@ -439,6 +541,48 @@ func flattenWorkspaceCustomParameters(input *databricks.WorkspaceCustomParameter
 
 	parameters := make(map[string]interface{})
 
+	if v := input.LoadBalancerBackendPoolName; v != nil {
+		if v.Value != nil {
+			parameters["load_balancer_backend_pool_name"] = *v.Value
+		}
+	}
+
+	if v := input.LoadBalancerID; v != nil {
+		if v.Value != nil {
+			parameters["load_balancer_id"] = *v.Value
+		}
+	}
+
+	if v := input.NatGatewayName; v != nil {
+		if v.Value != nil {
+			parameters["nat_gateway_name"] = *v.Value
+		}
+	}
+
+	if v := input.PublicIPName; v != nil {
+		if v.Value != nil {
+			parameters["public_ip_name"] = *v.Value
+		}
+	}
+
+	if v := input.StorageAccountName; v != nil {
+		if v.Value != nil {
+			parameters["storage_account_name"] = *v.Value
+		}
+	}
+
+	if v := input.StorageAccountSkuName; v != nil {
+		if v.Value != nil {
+			parameters["storage_account_sku_name"] = *v.Value
+		}
+	}
+
+	if v := input.VnetAddressPrefix; v != nil {
+		if v.Value != nil {
+			parameters["vnet_address_prefix"] = *v.Value
+		}
+	}
+
 	if v := input.AmlWorkspaceID; v != nil {
 		if v.Value != nil {
 			parameters["machine_learning_workspace_id"] = *v.Value
@@ -493,6 +637,48 @@ func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnab
 	config := input[0].(map[string]interface{})
 	parameters := databricks.WorkspaceCustomParameters{}
 
+	if v, ok := config["load_balancer_backend_pool_name"].(string); ok && v != "" {
+		parameters.LoadBalancerBackendPoolName = &databricks.WorkspaceCustomStringParameter{
+			Value: &v,
+		}
+	}
+
+	if v, ok := config["load_balancer_id"].(string); ok && v != "" {
+		parameters.LoadBalancerID = &databricks.WorkspaceCustomStringParameter{
+			Value: &v,
+		}
+	}
+
+	if v, ok := config["nat_gateway_name"].(string); ok && v != "" {
+		parameters.NatGatewayName = &databricks.WorkspaceCustomStringParameter{
+			Value: &v,
+		}
+	}
+
+	if v, ok := config["public_ip_name"].(string); ok && v != "" {
+		parameters.PublicIPName = &databricks.WorkspaceCustomStringParameter{
+			Value: &v,
+		}
+	}
+
+	if v, ok := config["storage_account_name"].(string); ok && v != "" {
+		parameters.StorageAccountName = &databricks.WorkspaceCustomStringParameter{
+			Value: &v,
+		}
+	}
+
+	if v, ok := config["storage_account_sku_name"].(string); ok && v != "" {
+		parameters.StorageAccountSkuName = &databricks.WorkspaceCustomStringParameter{
+			Value: &v,
+		}
+	}
+
+	if v, ok := config["vnet_address_prefix"].(string); ok && v != "" {
+		parameters.VnetAddressPrefix = &databricks.WorkspaceCustomStringParameter{
+			Value: &v,
+		}
+	}
+
 	if v, ok := config["machine_learning_workspace_id"].(string); ok && v != "" {
 		parameters.AmlWorkspaceID = &databricks.WorkspaceCustomStringParameter{
 			Value: &v,
@@ -505,7 +691,7 @@ func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnab
 		}
 	}
 
-	if v := config["public_subnet_name"].(string); v != "" {
+	if v, ok := config["public_subnet_name"].(string); ok && v != "" {
 		parameters.CustomPublicSubnetName = &databricks.WorkspaceCustomStringParameter{
 			Value: &v,
 		}
@@ -519,13 +705,13 @@ func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnab
 		Value: &infrastructureEncryptionEnabled,
 	}
 
-	if v := config["private_subnet_name"].(string); v != "" {
+	if v, ok := config["private_subnet_name"].(string); ok && v != "" {
 		parameters.CustomPrivateSubnetName = &databricks.WorkspaceCustomStringParameter{
 			Value: &v,
 		}
 	}
 
-	if v := config["virtual_network_id"].(string); v != "" {
+	if v, ok := config["virtual_network_id"].(string); ok && v != "" {
 		parameters.CustomVirtualNetworkID = &databricks.WorkspaceCustomStringParameter{
 			Value: &v,
 		}
@@ -537,5 +723,9 @@ func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnab
 func workspaceCustomParametersString() []string {
 	return []string{"custom_parameters.0.machine_learning_workspace_id", "custom_parameters.0.no_public_ip",
 		"custom_parameters.0.public_subnet_name", "custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
-		"custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id"}
+		"custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id",
+		"custom_parameters.0.load_balancer_backend_pool_name", "custom_parameters.0.load_balancer_id", "custom_parameters.0.nat_gateway_name",
+		"custom_parameters.0.public_ip_name", "custom_parameters.0.storage_account_name", "custom_parameters.0.storage_account_sku_name",
+		"custom_parameters.0.vnet_address_prefix",
+	}
 }
