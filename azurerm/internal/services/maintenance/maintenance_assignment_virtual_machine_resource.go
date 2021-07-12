@@ -90,7 +90,6 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 	}
 
 	// It may take a few minutes after starting a VM for it to become available to assign to a configuration
-	//lintignore:R006
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		if _, err := client.CreateOrUpdate(ctx, virtualMachineId.ResourceGroup, "Microsoft.Compute", "virtualMachines", virtualMachineId.Name, assignmentName, assignment); err != nil {
 			if strings.Contains(err.Error(), "It may take a few minutes after starting a VM for it to become available to assign to a configuration") {
@@ -100,7 +99,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 		}
 
 		return nil
-	})
+	}) //lintignore:R006
 	if err != nil {
 		return err
 	}

@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "example" {
   location = "eastus"
 }
 
-resource "azurerm_monitor_action_group" "test" {
+resource "azurerm_monitor_action_group" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   short_name          = "example"
@@ -138,6 +138,8 @@ A `notification` block supports the following:
 * `contact_roles` - (Optional) Specifies a list of contact roles to send the budget notification to when the threshold is exceeded.
 
 * `enabled` - (Optional) Should the notification be enabled?
+
+~> **NOTE:** A `notification` block cannot have all of `contact_emails`, `contact_roles`, and `contact_groups` empty. This means that at least one of the three must be specified.
 
 ---
 

@@ -44,6 +44,8 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(eventSubscriptionCustomizeDiffAdvancedFilter),
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.EventSubscriptionID(id)
 			return err
