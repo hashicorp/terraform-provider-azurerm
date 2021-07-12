@@ -534,7 +534,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting `storages` for Cognitive Account %q: %+v", id, err)
 		}
 		if props.RestrictOutboundNetworkAccess != nil {
-			d.Set("outbound_network_access_restrited", *props.RestrictOutboundNetworkAccess)
+			d.Set("outbound_network_access_restrited", props.RestrictOutboundNetworkAccess)
 		}
 		if props.DisableLocalAuth != nil {
 			d.Set("local_auth_enabled", !*props.DisableLocalAuth)

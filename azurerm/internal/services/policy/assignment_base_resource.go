@@ -155,8 +155,9 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 			}
 
 			metadata.ResourceData.Set("name", id.Name)
-			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 			metadata.ResourceData.Set("location", location.NormalizeNilable(resp.Location))
+			// lintignore:R001
+			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 
 			if err := metadata.ResourceData.Set("identity", br.flattenIdentity(resp.Identity)); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
