@@ -65,8 +65,9 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 			},
 
 			"workspace_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
 			"retention_in_days": {
@@ -173,16 +174,8 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		DisableIPMasking:   utils.Bool(disableIpMasking),
 	}
 
-	if v, ok := d.GetOk("workspace_id"); ok {
-		applicationInsightsComponentProperties.WorkspaceResourceID = utils.String(string(v.(string)))
-	}
-
-	if v, ok := d.GetOk("retention_in_days"); ok {
-		retentionInDays := utils.Int32(int32(v.(int)))
-
-		if applicationInsightsComponentProperties.WorkspaceResourceID != nil {
-			return fmt.Errorf("You cannot specify data retention period '%s' for workspace mode Application Insights resource '%s'. Retention is controlled on the associated workspace", retentionInDays, name)
-		}
+	if workspaceRaw, hasWorkspaceId := d.GetOk("workspace_id"); hasWorkspaceId {
+		applicationInsightsComponentProperties.WorkspaceResourceID = utils.String(workspaceRaw.(string))
 	}
 
 	insightProperties := insights.ApplicationInsightsComponent{
@@ -206,7 +199,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("Cannot read AzureRM Application Insights '%s' (Resource Group %s) ID", name, resGroup)
 	}
 
-	if v, ok := d.GetOk("retention_in_days"); ok {
+	if v, hasRetention := d.GetOk("retention_in_days"); hasRetention {
 
 		resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 		genericResource := resources.GenericResource{
