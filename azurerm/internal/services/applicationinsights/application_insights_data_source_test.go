@@ -54,7 +54,7 @@ resource "azurerm_application_insights" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "other"
-
+  workspace_id        = azurerm_log_analytics_workspace.test.id
   tags = {
     "foo" = "bar"
   }
