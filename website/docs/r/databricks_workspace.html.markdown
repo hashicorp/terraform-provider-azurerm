@@ -70,9 +70,9 @@ A `custom_parameters` block supports the following:
 
 * `load_balancer_id` - (Optional) Resource URI of Outbound Load balancer for Secure Cluster Connectivity (No Public IP) workspace. Changing this forces a new resource to be created.
 
-* `nat_gateway_name` - (Optional) Name of the NAT gateway for Secure Cluster Connectivity (No Public IP) workspace subnets. Changing this forces a new resource to be created.
+* `nat_gateway_name` - (Optional) Name of the NAT gateway for Secure Cluster Connectivity (No Public IP) workspace subnets. Defaults to `nat-gateway`. Changing this forces a new resource to be created.
 
-* `public_ip_name` - (Optional) Name of the Public IP for No Public IP workspace with managed vNet. Changing this forces a new resource to be created.
+* `public_ip_name` - (Optional) Name of the Public IP for No Public IP workspace with managed vNet. Defaults to `nat-gw-public-ip`. Changing this forces a new resource to be created.
 
 * `no_public_ip` - (Optional) Are public IP Addresses not allowed? Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -84,13 +84,13 @@ A `custom_parameters` block supports the following:
 
 * `private_subnet_network_security_group_association_id` - (Optional) The resource ID of the `azurerm_subnet_network_security_group_association` resource which is referred to by the `private_subnet_name` field. Required if `virtual_network_id` is set. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Optional) Default Databricks File Storage account name. Changing this forces a new resource to be created.
+* `storage_account_name` - (Optional) Default Databricks File Storage account name. Defaults to a randomized name(e.g. `dbstoragel6mfeghoe5kxu`). Changing this forces a new resource to be created.
 
-* `storage_account_sku_name` - (Optional) Storage account SKU name. Possible values inclued`Standard_LRS`, `Standard_GRS`, `Standard_RAGRS`, `Standard_ZRS`, `Premium_LRS`, `Premium_ZRS`, `Standard_GZRS`, `Standard_RAGZRS`. Changing this forces a new resource to be created.
+* `storage_account_sku_name` - (Optional) Storage account SKU name. Possible values inclued`Standard_LRS`, `Standard_GRS`, `Standard_RAGRS`, `Standard_ZRS`, `Premium_LRS`, `Premium_ZRS`, `Standard_GZRS`, `Standard_RAGZRS`. Defaults to `Standard_GRS`. Changing this forces a new resource to be created.
 
 * `virtual_network_id` - (Optional) The ID of a Virtual Network where this Databricks Cluster should be created. Changing this forces a new resource to be created.
 
-* `vnet_address_prefix` - (Optional) Address prefix for Managed virtual network. `Default` value for this input is `10.139.`. Changing this forces a new resource to be created.
+* `vnet_address_prefix` - (Optional) Address prefix for Managed virtual network. Defaults to `10.139`. Changing this forces a new resource to be created.
 
 ~> **NOTE** Databricks requires that a network security group is associated with the `public` and `private` subnets when a `virtual_network_id` has been defined. Both `public` and `private` subnets must be delegated to `Microsoft.Databricks/workspaces`. For more information about subnet delegation see the [product documentation](https://docs.microsoft.com/azure/virtual-network/subnet-delegation-overview).
 
@@ -109,6 +109,8 @@ The following attributes are exported:
 
 * `storage_account_identity` - A `storage_account_identity` block as documented below.
 
+* `private_endpoint_connections` - `private_endpoint_connections` block as documented below.
+
 ---
 
 A `storage_account_identity` block exports the following:
@@ -118,6 +120,18 @@ A `storage_account_identity` block exports the following:
 * `tenant_id` - The UUID of the tenant where the internal databricks storage account was created.
 
 * `type` - The type of the internal databricks storage account.
+
+---
+
+A `private_endpoint_connections` block exports the following:
+
+* `name` - The name of the private endpoint connection.
+
+* `status` - The status of a private endpoint connection. Possible values are `PrivateLinkServiceConnectionStatusPending`, `PrivateLinkServiceConnectionStatusApproved`, `PrivateLinkServiceConnectionStatusRejected` or `PrivateLinkServiceConnectionStatusDisconnected`.
+
+* `description` - The description for the current state of a private endpoint connection.
+
+* `action_required` - Actions required for a private endpoint connection.
 
 
 ## Timeouts
