@@ -379,8 +379,8 @@ func schemaApiManagementDataMaskingEntityList() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(apimanagement.Hide),
-						string(apimanagement.Mask),
+						string(apimanagement.DataMaskingModeHide),
+						string(apimanagement.DataMaskingModeMask),
 					}, false),
 				},
 
