@@ -47,7 +47,7 @@ resource "azurerm_api_management_api" "example" {
 }
 
 resource "azurerm_api_management_api_release" "example" {
-  name = "example-Api-Release"
+  name   = "example-Api-Release"
   api_id = azurerm_api_management_api.example.id
 }
 ```
