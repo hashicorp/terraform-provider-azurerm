@@ -282,7 +282,11 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("sampling_percentage", props.SamplingPercentage)
 		d.Set("disable_ip_masking", props.DisableIPMasking)
 		d.Set("connection_string", props.ConnectionString)
-		d.Set("workspace_id", props.WorkspaceResourceID)
+
+		if v := props.WorkspaceResourceID; v != nil {
+			d.Set("workspace_id", v)
+		}
+
 		if v := props.RetentionInDays; v != nil {
 			d.Set("retention_in_days", v)
 		}

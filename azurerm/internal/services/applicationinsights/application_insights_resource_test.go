@@ -231,18 +231,18 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-	name                = "acctest-%d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	sku                 = "PerGB2018"
-	retention_in_days   = 30
-  }
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
 
 resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  workspace_id		  = azurerm_log_analytics_workspace.test.id
+  workspace_id        = azurerm_log_analytics_workspace.test.id
   application_type    = "web"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
