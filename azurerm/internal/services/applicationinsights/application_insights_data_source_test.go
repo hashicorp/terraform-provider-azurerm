@@ -21,6 +21,7 @@ func TestAccApplicationInsightsDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("instrumentation_key").Exists(),
 				check.That(data.ResourceName).Key("app_id").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("workspace_id").Exists(),
 				check.That(data.ResourceName).Key("application_type").HasValue("other"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.foo").HasValue("bar"),
@@ -38,6 +39,14 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-appinsights-%[1]d"
   location = "%[2]s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 resource "azurerm_application_insights" "test" {
