@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/appinsights/mgmt/2020-02-02-preview/insights"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -177,7 +178,11 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if v, ok := d.GetOk("retention_in_days"); ok {
-		applicationInsightsComponentProperties.RetentionInDays = utils.Int32(int32(v.(int)))
+		retentionInDays := utils.Int32(int32(v.(int)))
+
+		if applicationInsightsComponentProperties.WorkspaceResourceID != nil {
+			return fmt.Errorf("You cannot specify data retention period '%s' for workspace mode Application Insights resource '%s'. Retention is controlled on the associated workspace", retentionInDays, name)
+		}
 	}
 
 	insightProperties := insights.ApplicationInsightsComponent{
@@ -199,6 +204,22 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read AzureRM Application Insights '%s' (Resource Group %s) ID", name, resGroup)
+	}
+
+	if v, ok := d.GetOk("retention_in_days"); ok {
+
+		resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
+		genericResource := resources.GenericResource{
+			Properties: &map[string]interface{}{
+				"retentionInDays": utils.Int32(int32(v.(int))),
+			},
+		}
+
+		retentionUpdate, err := resourcesClient.UpdateByID(ctx, *read.ID, "2020-02-02-preview", genericResource)
+		if err != nil {
+			return fmt.Errorf("Error updating Application Insights data retention settings %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+		retentionUpdate.WaitForCompletionRef(ctx, resourcesClient.Client)
 	}
 
 	billingRead, err := billingClient.Get(ctx, resGroup, name)
