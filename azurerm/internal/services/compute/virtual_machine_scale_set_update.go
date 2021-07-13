@@ -86,7 +86,7 @@ func (metadata virtualMachineScaleSetUpdateMetaData) updateVmss(ctx context.Cont
 	log.Printf("[DEBUG] Updating %s Virtual Machine Scale Set %q (Resource Group %q)..", metadata.OSType, id.Name, id.ResourceGroup)
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)
 	if err != nil {
-		return fmt.Errorf("Error updating L%sinux Virtual Machine Scale Set %q (Resource Group %q): %+v", metadata.OSType, id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error updating %s Virtual Machine Scale Set %q (Resource Group %q): %+v", metadata.OSType, id.Name, id.ResourceGroup, err)
 	}
 
 	log.Printf("[DEBUG] Waiting for update of %s Virtual Machine Scale Set %q (Resource Group %q)..", metadata.OSType, id.Name, id.ResourceGroup)
