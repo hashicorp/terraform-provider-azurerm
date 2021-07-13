@@ -523,11 +523,11 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account_customer_managed_key" "test" {
-  storage_account_id     = azurerm_storage_account.test.id
-  key_vault_id           = azurerm_key_vault.test.id
-  key_name               = azurerm_key_vault_key.first.name
-  key_version            = azurerm_key_vault_key.first.version
-  user_assigned_identity = azurerm_user_assigned_identity.test.id
+  storage_account_id        = azurerm_storage_account.test.id
+  key_vault_id              = azurerm_key_vault.test.id
+  key_name                  = azurerm_key_vault_key.first.name
+  key_version               = azurerm_key_vault_key.first.version
+  user_assigned_identity_id = azurerm_user_assigned_identity.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

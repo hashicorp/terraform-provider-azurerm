@@ -64,7 +64,7 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"user_assigned_identity": {
+			"user_assigned_identity_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: msiValidate.UserAssignedIdentityID,
@@ -168,7 +168,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 		},
 	}
 
-	if v, ok := d.GetOk("user_assigned_identity"); ok {
+	if v, ok := d.GetOk("user_assigned_identity_id"); ok {
 		props.AccountPropertiesUpdateParameters.Encryption.EncryptionIdentity = &storage.EncryptionIdentity{
 			EncryptionUserAssignedIdentity: utils.String(v.(string)),
 		}
@@ -250,7 +250,7 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 	d.Set("key_vault_id", keyVaultID)
 	d.Set("key_name", keyName)
 	d.Set("key_version", keyVersion)
-	d.Set("user_assigned_identity", userAssignedIdentity)
+	d.Set("user_assigned_identity_id", userAssignedIdentity)
 
 	return nil
 }
