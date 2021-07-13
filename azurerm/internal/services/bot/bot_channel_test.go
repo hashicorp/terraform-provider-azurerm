@@ -11,27 +11,27 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 	// Azure only being able provision against one app id at a time
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"basic": {
-			"basic":    testAccBotChannelsRegistration_basic,
-			"update":   testAccBotChannelsRegistration_update,
-			"complete": testAccBotChannelsRegistration_complete,
+			//"basic":    testAccBotChannelsRegistration_basic,
+			"update": testAccBotChannelsRegistration_update,
+			//"complete": testAccBotChannelsRegistration_complete,
 		},
-		"connection": {
-			"basic":    testAccBotConnection_basic,
-			"complete": testAccBotConnection_complete,
-		},
-		"channel": {
-			"slackBasic":         testAccBotChannelSlack_basic,
-			"slackUpdate":        testAccBotChannelSlack_update,
-			"msteamsBasic":       testAccBotChannelMsTeams_basic,
-			"msteamsUpdate":      testAccBotChannelMsTeams_update,
-			"directlineBasic":    testAccBotChannelDirectline_basic,
-			"directlineComplete": testAccBotChannelDirectline_complete,
-			"directlineUpdate":   testAccBotChannelDirectline_update,
-		},
-		"web_app": {
-			"basic":    testAccBotWebApp_basic,
-			"update":   testAccBotWebApp_update,
-			"complete": testAccBotWebApp_complete,
-		},
+		//"connection": {
+		//	"basic":    testAccBotConnection_basic,
+		//	"complete": testAccBotConnection_complete,
+		//},
+		//"channel": {
+		//	"slackBasic":         testAccBotChannelSlack_basic,
+		//	"slackUpdate":        testAccBotChannelSlack_update,
+		//	"msteamsBasic":       testAccBotChannelMsTeams_basic,
+		//	"msteamsUpdate":      testAccBotChannelMsTeams_update,
+		//	"directlineBasic":    testAccBotChannelDirectline_basic,
+		//	"directlineComplete": testAccBotChannelDirectline_complete,
+		//	"directlineUpdate":   testAccBotChannelDirectline_update,
+		//},
+		//"web_app": {
+		//	"basic":    testAccBotWebApp_basic,
+		//	"update":   testAccBotWebApp_update,
+		//	"complete": testAccBotWebApp_complete,
+		//},
 	})
 }
