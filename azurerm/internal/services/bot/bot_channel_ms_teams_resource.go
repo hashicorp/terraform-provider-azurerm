@@ -56,7 +56,7 @@ func resourceBotChannelMsTeams() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.BotMSTeamsCallingWebHook(),
+				ValidateFunc: validate.BotCallingWebHook(),
 			},
 
 			"enable_calling": {

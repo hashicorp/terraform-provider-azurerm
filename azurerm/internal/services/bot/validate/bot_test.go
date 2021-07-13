@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestValidateBotMSTeamsCallingWebHook(t *testing.T) {
+func TestValidateBotCallingWebHook(t *testing.T) {
 	tests := []struct {
 		webhook string
 		valid   bool
@@ -32,7 +32,7 @@ func TestValidateBotMSTeamsCallingWebHook(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.webhook, func(t *testing.T) {
-			_, err := BotMSTeamsCallingWebHook()(tt.webhook, "")
+			_, err := BotCallingWebHook()(tt.webhook, "")
 			valid := err == nil
 			if valid != tt.valid {
 				t.Errorf("Expected valid status %t but got %t for input %s", tt.valid, valid, tt.webhook)

@@ -27,6 +27,9 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 			"directlineBasic":    testAccBotChannelDirectline_basic,
 			"directlineComplete": testAccBotChannelDirectline_complete,
 			"directlineUpdate":   testAccBotChannelDirectline_update,
+			"skypeBasic":         testAccBotChannelSkype_basic,
+			"skypeComplete":      testAccBotChannelSkype_complete,
+			"skypeUpdate":        testAccBotChannelSkype_update,
 		},
 		"web_app": {
 			"basic":    testAccBotWebApp_basic,

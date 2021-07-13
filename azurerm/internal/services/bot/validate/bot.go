@@ -7,7 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func BotMSTeamsCallingWebHook() pluginsdk.SchemaValidateFunc {
+func BotCallingWebHook() pluginsdk.SchemaValidateFunc {
 	return func(i interface{}, k string) (warnings []string, errors []error) {
 		value := i.(string)
 		if !strings.HasPrefix(value, "https://") || !strings.HasSuffix(value, "/") {
