@@ -147,6 +147,22 @@ func TestAccApplicationInsights_basiciOS(t *testing.T) {
 	})
 }
 
+func TestAccApplicationInsights_basicWorkspaceMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
+	r := AppInsightsResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic_workspace_mode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("workspace_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t AppInsightsResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ComponentID(state.ID)
 	if err != nil {
@@ -201,6 +217,35 @@ resource "azurerm_application_insights" "test" {
   application_type    = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, applicationType)
+}
+
+func (AppInsightsResource) basic_workspace_mode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appinsights-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+	name                = "acctest-%d"
+	location            = azurerm_resource_group.test.location
+	resource_group_name = azurerm_resource_group.test.name
+	sku                 = "PerGB2018"
+	retention_in_days   = 30
+  }
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id		  = azurerm_log_analytics_workspace.test.id
+  application_type    = "web"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (AppInsightsResource) requiresImport(data acceptance.TestData, applicationType string) string {

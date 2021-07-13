@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appinsights/mgmt/2020-02-02-preview/insights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -68,10 +68,10 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(insights.Query),
-					string(insights.Function),
-					string(insights.Folder),
-					string(insights.Recent),
+					string(insights.ItemTypeQuery),
+					string(insights.ItemTypeFunction),
+					string(insights.ItemTypeFolder),
+					string(insights.ItemTypeRecent),
 				}, false),
 			},
 
@@ -147,9 +147,9 @@ func resourceApplicationInsightsAnalyticsItemCreateUpdate(d *pluginsdk.ResourceD
 
 	var itemScopePath insights.ItemScopePath
 	if itemScope == insights.ItemScopeUser {
-		itemScopePath = insights.MyanalyticsItems
+		itemScopePath = insights.ItemScopePathMyanalyticsItems
 	} else {
-		itemScopePath = insights.AnalyticsItems
+		itemScopePath = insights.ItemScopePathAnalyticsItems
 	}
 	result, err := client.Put(ctx, resourceGroupName, appInsightsName, itemScopePath, properties, &overwrite)
 	if err != nil {
@@ -228,11 +228,11 @@ func ResourcesArmApplicationInsightsAnalyticsItemParseID(id string) (string, str
 	//  <appinsightsID>/myanalyticsItems/<itemID>   [for user scope items]
 	// Pull out the itemID and note the scope used
 	itemID := resourceID.Path["analyticsItems"]
-	itemScopePath := insights.AnalyticsItems
+	itemScopePath := insights.ItemScopePathAnalyticsItems
 	if itemID == "" {
 		// no "analyticsItems" component - try "myanalyticsItems" and set scope path
 		itemID = resourceID.Path["myanalyticsItems"]
-		itemScopePath = insights.MyanalyticsItems
+		itemScopePath = insights.ItemScopePathMyanalyticsItems
 	}
 
 	return resourceGroupName, appInsightsName, itemScopePath, itemID, nil

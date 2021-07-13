@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appinsights/mgmt/2020-02-02-preview/insights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -61,6 +61,11 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 					"ios",
 					"Node.JS",
 				}, false),
+			},
+
+			"workspace_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			"retention_in_days": {
@@ -167,6 +172,10 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		DisableIPMasking:   utils.Bool(disableIpMasking),
 	}
 
+	if v, ok := d.GetOk("workspace_id"); ok {
+		applicationInsightsComponentProperties.WorkspaceResourceID = utils.String(string(v.(string)))
+	}
+
 	if v, ok := d.GetOk("retention_in_days"); ok {
 		applicationInsightsComponentProperties.RetentionInDays = utils.Int32(int32(v.(int)))
 	}
@@ -259,6 +268,7 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("sampling_percentage", props.SamplingPercentage)
 		d.Set("disable_ip_masking", props.DisableIPMasking)
 		d.Set("connection_string", props.ConnectionString)
+		d.Set("workspace_id", props.WorkspaceResourceID)
 		if v := props.RetentionInDays; v != nil {
 			d.Set("retention_in_days", v)
 		}
