@@ -4,6 +4,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: upgrading to `v55.5.0` of `github.com/Azure/azure-sdk-for-go` [GH-12435]
 * dependencies: updating `bot` to use API Version `2021-03-01` [GH-12449]
 * `azurerm_api_management_named_value` - support for the `value_from_key_vault` block [GH-12309]
 * `azurerm_api_management_api_diagnostic` - support for the `data_masking`1 property [GH-12419]
