@@ -318,10 +318,10 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 						return fmt.Errorf("'public_subnet_name' and 'private_subnet_name' must both have values if 'virtual_network_id' is set")
 					}
 					if pubSubAssoc == nil {
-						return fmt.Errorf("you must define value for 'dsfsdfsdf' if 'public_subnet_name' is set")
+						return fmt.Errorf("you must define value for 'public_subnet_network_security_group_association_id' if 'public_subnet_name' is set")
 					}
 					if priSubAssoc == nil {
-						return fmt.Errorf("you must define value for 'dsfsdfsdf' if 'private_subnet_name' is set")
+						return fmt.Errorf("you must define value for 'private_subnet_network_security_group_association_id' if 'private_subnet_name' is set")
 					}
 				}
 
@@ -506,35 +506,46 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		var cmkEnabled, infraEnabled *bool
 
-		if props.Parameters != nil && props.Parameters.PrepareEncryption != nil {
-			cmkEnabled = props.Parameters.PrepareEncryption.Value
-			d.Set("customer_managed_key_enabled", &props.Parameters.PrepareEncryption.Value)
+		if props.Parameters != nil {
+			if props.Parameters.PrepareEncryption != nil {
+				cmkEnabled = props.Parameters.PrepareEncryption.Value
+				d.Set("customer_managed_key_enabled", &props.Parameters.PrepareEncryption.Value)
+			}
+
+			if props.Parameters.RequireInfrastructureEncryption != nil {
+				infraEnabled = props.Parameters.RequireInfrastructureEncryption.Value
+				d.Set("infrastructure_encryption_enabled", &props.Parameters.RequireInfrastructureEncryption.Value)
+			}
+
+			// The subnet associations only exist in the statefile, so we need to do a Get before we Set
+			// with what has come back from the Azure response...
+			customParamsRaw := d.Get("custom_parameters").([]interface{})
+			_, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(customParamsRaw, *cmkEnabled, *infraEnabled)
+
+			if err := d.Set("custom_parameters", flattenWorkspaceCustomParameters(props.Parameters, pubSubAssoc, priSubAssoc)); err != nil {
+				return fmt.Errorf("setting `custom_parameters`: %+v", err)
+			}
 		}
 
-		if props.Parameters != nil && props.Parameters.RequireInfrastructureEncryption != nil {
-			infraEnabled = props.Parameters.RequireInfrastructureEncryption.Value
-			d.Set("infrastructure_encryption_enabled", &props.Parameters.RequireInfrastructureEncryption.Value)
+		if props.StorageAccountIdentity != nil {
+			if err := d.Set("storage_account_identity", flattenWorkspaceStorageAccountIdentity(props.StorageAccountIdentity)); err != nil {
+				return fmt.Errorf("setting `storage_account_identity`: %+v", err)
+			}
 		}
 
-		// The subnet associations only exist in the statefile, so we need to do a Get before we Set
-		// with what has come back from the Azure response...
-		customParamsRaw := d.Get("custom_parameters").([]interface{})
-		_, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(customParamsRaw, *cmkEnabled, *infraEnabled)
-
-		if err := d.Set("custom_parameters", flattenWorkspaceCustomParameters(props.Parameters, pubSubAssoc, priSubAssoc)); err != nil {
-			return fmt.Errorf("setting `custom_parameters`: %+v", err)
+		if props.PrivateEndpointConnections != nil {
+			if err := d.Set("private_endpoint_connections", flattenPrivateEndpointConnections(props.PrivateEndpointConnections)); err != nil {
+				return fmt.Errorf("setting `storage_account_identity`: %+v", err)
+			}
 		}
 
-		if err := d.Set("storage_account_identity", flattenWorkspaceStorageAccountIdentity(props.StorageAccountIdentity)); err != nil {
-			return fmt.Errorf("setting `storage_account_identity`: %+v", err)
+		if props.WorkspaceURL != nil {
+			d.Set("workspace_url", props.WorkspaceURL)
 		}
 
-		if err := d.Set("private_endpoint_connections", flattenPrivateEndpointConnections(props.PrivateEndpointConnections)); err != nil {
-			return fmt.Errorf("setting `storage_account_identity`: %+v", err)
+		if props.WorkspaceID != nil {
+			d.Set("workspace_id", props.WorkspaceID)
 		}
-
-		d.Set("workspace_url", props.WorkspaceURL)
-		d.Set("workspace_id", props.WorkspaceID)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
