@@ -7,10 +7,20 @@ if [ $# != 1 ] ; then
   exit 1
 fi
 
-sed -i '' -e '
+# remove empty lines inside import block via sed
+sed_expression='
   /^import/,/)/ {
     /^$/d
   }
-' $1
+'
+
+case "$OSTYPE" in
+    "linux-gnu"*)
+        sed -i -e "$sed_expression" $1
+        ;;
+    "darwin"*)
+        sed -i '' -e "$sed_expression" $1
+        ;;
+esac 
 
 goimports -w $1
