@@ -3,7 +3,7 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_local_network_gateway"
 description: |-
-Gets information about an existing Local Network Gateway.
+  Gets information about an existing Local Network Gateway.
 ---
 
 # Data Source: azurerm_local_network_gateway
@@ -30,7 +30,6 @@ The following arguments are supported:
 * `name` - (Required) The name of the Local Network Gateway.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Local Network Gateway exists.
-
 
 ## Attributes Reference
 
