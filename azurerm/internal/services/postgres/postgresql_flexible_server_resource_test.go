@@ -174,6 +174,22 @@ func TestAccPostgresqlflexibleServer_updateSku(t *testing.T) {
 	})
 }
 
+func TestAccPostgresqlflexibleServer_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
 func TestAccPostgresqlflexibleServer_pitr(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
@@ -304,18 +320,23 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                   = "acctest-fs-%[2]d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
-  administrator_password = "QAZwsx123"
-  zone                   = "1"
-  version                = "13"
-  backup_retention_days  = 7
-  storage_mb             = 32768
-  delegated_subnet_id    = azurerm_subnet.test.id
-  private_dns_zone_id    = azurerm_private_dns_zone.test.id
-  sku_name               = "GP_Standard_D2s_v3"
+  name                         = "acctest-fs-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "adminTerraform"
+  administrator_password       = "QAZwsx123"
+  zone                         = "1"
+  version                      = "13"
+  backup_retention_days        = 7
+  storage_mb                   = 32768
+  delegated_subnet_id          = azurerm_subnet.test.id
+  private_dns_zone_id          = azurerm_private_dns_zone.test.id
+  sku_name                     = "GP_Standard_D2s_v3"
+  geo_redundant_backup_enabled = true
+
+  high_availability {
+    standby_availability_zone = "1"
+  }
 
   maintenance_window {
     day_of_week  = 0
@@ -460,6 +481,27 @@ resource "azurerm_postgresql_flexible_server" "test" {
   version                = "12"
   storage_mb             = 32768
   sku_name               = "MO_Standard_E2s_v3"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) identity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  storage_mb             = 32768
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

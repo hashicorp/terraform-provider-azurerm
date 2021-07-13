@@ -93,6 +93,8 @@ The following arguments are supported:
 
 * `backup_retention_days` - (Optional) The backup retention days for the PostgreSQL Flexible Server. Possible values are between `7` and `35` days.
 
+* `geo_redundant_backup_enabled` - (Optional) Is Geo-Redundant backup enabled on the Flexible Server? Defaults to `false`.
+
 * `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default` and `PointInTimeRestore`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 * `delegated_subnet_id` - (Optional) The ID of the virtual network subnet to create the PostgreSQL Flexible Server. The provided subnet should not have any other resource deployed in it and this subnet will be delegated to the PostgreSQL Flexible Server, if not already delegated. Changing this forces a new PostgreSQL Flexible Server to be created.
@@ -100,6 +102,8 @@ The following arguments are supported:
 * `private_dns_zone_id` - (Optional) The ID of the private dns zone to create the PostgreSQL Flexible Server. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 ~> **NOTE:** There will be a breaking change from upstream service at 15th July 2021, the `private_dns_zone_id` will be required when setting a `delegated_subnet_id`. For existing flexible servers who don't want to be recreated, you need to provide the `private_dns_zone_id` to the service team to manually migrate to the specified private dns zone. The `azurerm_private_dns_zone` should end with suffix `.postgres.database.azure.com`.
+
+* `high_availability` - (Optional) A `high_availability` block as defined below.
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
@@ -124,6 +128,12 @@ A `maintenance_window` block supports the following:
 * `start_hour` - (Optional) The day of week for maintenance window. Defaults to `0`.
 
 * `start_minute` - (Optional) The start minute for maintenance window. Defaults to `0`.
+
+---
+
+A `high_availability` block supports the following:
+
+* `standby_availability_zone` - (Optional) The availability zone of the standby Flexible Server. Possible values are `1`, `2` and `3`.
 
 ## Attributes Reference
 
