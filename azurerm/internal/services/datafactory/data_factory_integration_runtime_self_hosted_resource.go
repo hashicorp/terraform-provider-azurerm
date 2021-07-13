@@ -210,7 +210,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceDa
 	}
 
 	d.Set("auth_key_1", respKey.AuthKey1)
-	d.Set("auth_key_1", respKey.AuthKey2)
+	d.Set("auth_key_2", respKey.AuthKey2)
 
 	return nil
 }

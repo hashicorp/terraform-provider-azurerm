@@ -25,7 +25,7 @@ func TestAccStorageManagementPolicy_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
-				check.That(data.ResourceName).Key("rule.0.name").HasValue("rule1"),
+				check.That(data.ResourceName).Key("rule.0.name").HasValue("rule-1"),
 				check.That(data.ResourceName).Key("rule.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("rule.0.filters.#").HasValue("1"),
 				check.That(data.ResourceName).Key("rule.0.filters.0.prefix_match.#").HasValue("1"),

@@ -15,8 +15,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive/validate"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	msiValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	networkParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
@@ -83,6 +86,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 					"ImmersiveReader",
 					"LUIS",
 					"LUIS.Authoring",
+					"MetricsAdvisor",
 					"Personalizer",
 					"QnAMaker",
 					"Recommendations",
@@ -104,10 +108,95 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"qna_runtime_endpoint": {
+			"custom_subdomain_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"fqdns": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			"identity": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(cognitiveservices.ResourceIdentityTypeNone),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cognitiveservices.ResourceIdentityTypeNone),
+								string(cognitiveservices.ResourceIdentityTypeSystemAssigned),
+								string(cognitiveservices.ResourceIdentityTypeUserAssigned),
+								string(cognitiveservices.ResourceIdentityTypeSystemAssignedUserAssigned),
+							}, false),
+						},
+
+						"principal_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"identity_ids": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							MinItems: 1,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: msiValidate.UserAssignedIdentityID,
+							},
+						},
+					},
+				},
+			},
+
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"metrics_advisor_aad_client_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
+			"metrics_advisor_aad_tenant_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
+			"metrics_advisor_super_user_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"metrics_advisor_website_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"network_acls": {
@@ -146,11 +235,42 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"custom_subdomain_name": {
+			"outbound_network_access_restrited": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"qna_runtime_endpoint": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+			},
+
+			"storage": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"storage_account_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: storageValidate.StorageAccountID,
+						},
+
+						"identity_client_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+					},
+				},
 			},
 
 			"tags": tags.Schema(),
@@ -218,26 +338,39 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+	publicNetworkAccess := cognitiveservices.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = cognitiveservices.PublicNetworkAccessDisabled
+	}
+
+	apiProps, err := expandCognitiveAccountAPIProperties(d)
+	if err != nil {
+		return err
+	}
 
 	props := cognitiveservices.Account{
 		Kind:     utils.String(kind),
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Sku:      sku,
 		Properties: &cognitiveservices.AccountProperties{
-			APIProperties:       &cognitiveservices.APIProperties{},
-			NetworkAcls:         networkAcls,
-			CustomSubDomainName: utils.String(d.Get("custom_subdomain_name").(string)),
+			APIProperties:                 apiProps,
+			NetworkAcls:                   networkAcls,
+			CustomSubDomainName:           utils.String(d.Get("custom_subdomain_name").(string)),
+			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
+			PublicNetworkAccess:           publicNetworkAccess,
+			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
+			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restrited").(bool)),
+			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if kind == "QnAMaker" {
-		if v, ok := d.GetOk("qna_runtime_endpoint"); ok && v != "" {
-			props.Properties.APIProperties.QnaRuntimeEndpoint = utils.String(v.(string))
-		} else {
-			return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
-		}
+	identityRaw := d.Get("identity").([]interface{})
+	identity, err := expandCognitiveAccountIdentity(identityRaw)
+	if err != nil {
+		return fmt.Errorf("Error expanding `identity`: %+v", err)
 	}
+	props.Identity = identity
 
 	if _, err := client.Create(ctx, id.ResourceGroup, id.Name, props); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -291,23 +424,36 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
+	publicNetworkAccess := cognitiveservices.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = cognitiveservices.PublicNetworkAccessDisabled
+	}
+
+	apiProps, err := expandCognitiveAccountAPIProperties(d)
+	if err != nil {
+		return err
+	}
+
 	props := cognitiveservices.Account{
 		Sku: sku,
 		Properties: &cognitiveservices.AccountProperties{
-			APIProperties:       &cognitiveservices.APIProperties{},
-			NetworkAcls:         networkAcls,
-			CustomSubDomainName: utils.String(d.Get("custom_subdomain_name").(string)),
+			APIProperties:                 apiProps,
+			NetworkAcls:                   networkAcls,
+			CustomSubDomainName:           utils.String(d.Get("custom_subdomain_name").(string)),
+			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
+			PublicNetworkAccess:           publicNetworkAccess,
+			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
+			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restrited").(bool)),
+			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-
-	if kind := d.Get("kind"); kind == "QnAMaker" {
-		if v, ok := d.GetOk("qna_runtime_endpoint"); ok && v != "" {
-			props.Properties.APIProperties.QnaRuntimeEndpoint = utils.String(v.(string))
-		} else {
-			return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
-		}
+	identityRaw := d.Get("identity").([]interface{})
+	identity, err := expandCognitiveAccountIdentity(identityRaw)
+	if err != nil {
+		return fmt.Errorf("Error expanding `identity`: %+v", err)
 	}
+	props.Identity = identity
 
 	if _, err = client.Update(ctx, id.ResourceGroup, id.Name, props); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
@@ -363,14 +509,35 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("sku_name", sku.Name)
 	}
 
+	identity, err := flattenCognitiveAccountIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
+	d.Set("identity", identity)
+
 	if props := resp.Properties; props != nil {
 		if apiProps := props.APIProperties; apiProps != nil {
 			d.Set("qna_runtime_endpoint", apiProps.QnaRuntimeEndpoint)
+			d.Set("metrics_advisor_aad_client_id", apiProps.AadClientID)
+			d.Set("metrics_advisor_aad_tenant_id", apiProps.AadTenantID)
+			d.Set("metrics_advisor_super_user_name", apiProps.SuperUser)
+			d.Set("metrics_advisor_website_name", apiProps.WebsiteName)
 		}
 		d.Set("endpoint", props.Endpoint)
 		d.Set("custom_subdomain_name", props.CustomSubDomainName)
 		if err := d.Set("network_acls", flattenCognitiveAccountNetworkAcls(props.NetworkAcls)); err != nil {
-			return fmt.Errorf("setting `network_acls` for Cognitive Account %q: %+v", *resp.Name, err)
+			return fmt.Errorf("setting `network_acls` for Cognitive Account %q: %+v", id, err)
+		}
+		d.Set("fqdns", utils.FlattenStringSlice(props.AllowedFqdnList))
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == cognitiveservices.PublicNetworkAccessEnabled)
+		if err := d.Set("storage", flattenCognitiveAccountStorage(props.UserOwnedStorage)); err != nil {
+			return fmt.Errorf("setting `storages` for Cognitive Account %q: %+v", id, err)
+		}
+		if props.RestrictOutboundNetworkAccess != nil {
+			d.Set("outbound_network_access_restrited", props.RestrictOutboundNetworkAccess)
+		}
+		if props.DisableLocalAuth != nil {
+			d.Set("local_auth_enabled", !*props.DisableLocalAuth)
 		}
 	}
 
@@ -492,6 +659,99 @@ func expandCognitiveAccountNetworkAcls(input []interface{}) (*cognitiveservices.
 	return &ruleSet, subnetIds
 }
 
+func expandCognitiveAccountStorage(input []interface{}) *[]cognitiveservices.UserOwnedStorage {
+	if len(input) == 0 {
+		return nil
+	}
+	results := make([]cognitiveservices.UserOwnedStorage, 0)
+	for _, v := range input {
+		value := v.(map[string]interface{})
+		results = append(results, cognitiveservices.UserOwnedStorage{
+			ResourceID:       utils.String(value["storage_account_id"].(string)),
+			IdentityClientID: utils.String(value["identity_client_id"].(string)),
+		})
+	}
+	return &results
+}
+
+func expandCognitiveAccountIdentity(vs []interface{}) (*cognitiveservices.Identity, error) {
+	if len(vs) == 0 {
+		return &cognitiveservices.Identity{
+			Type: cognitiveservices.ResourceIdentityTypeNone,
+		}, nil
+	}
+
+	v := vs[0].(map[string]interface{})
+	managedServiceIdentity := cognitiveservices.Identity{
+		Type: cognitiveservices.ResourceIdentityType(v["type"].(string)),
+	}
+
+	var identityIdSet []interface{}
+	if identityIds, ok := v["identity_ids"]; ok {
+		identityIdSet = identityIds.(*pluginsdk.Set).List()
+	}
+
+	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
+	if managedServiceIdentity.Type == cognitiveservices.ResourceIdentityTypeUserAssigned || managedServiceIdentity.Type == cognitiveservices.ResourceIdentityTypeSystemAssignedUserAssigned {
+		if len(identityIdSet) == 0 {
+			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
+		}
+
+		userAssignedIdentities := make(map[string]*cognitiveservices.UserAssignedIdentity)
+		for _, id := range identityIdSet {
+			userAssignedIdentities[id.(string)] = &cognitiveservices.UserAssignedIdentity{}
+		}
+
+		managedServiceIdentity.UserAssignedIdentities = userAssignedIdentities
+	} else if len(identityIdSet) > 0 {
+		// If type does _not_ contain `UserAssigned` (i.e. is set to `SystemAssigned` or defaulted to `None`), `identity_ids` is not allowed
+		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`; but `type` is currently %q", managedServiceIdentity.Type)
+	}
+
+	return &managedServiceIdentity, nil
+}
+
+func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitiveservices.APIProperties, error) {
+	props := cognitiveservices.APIProperties{}
+	kind := d.Get("kind")
+	if kind == "QnAMaker" {
+		if v, ok := d.GetOk("qna_runtime_endpoint"); ok && v != "" {
+			props.QnaRuntimeEndpoint = utils.String(v.(string))
+		} else {
+			return nil, fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+		}
+	}
+	if v, ok := d.GetOk("metrics_advisor_aad_client_id"); ok {
+		if kind == "MetricsAdvisor" {
+			props.AadClientID = utils.String(v.(string))
+		} else {
+			return nil, fmt.Errorf("metrics_advisor_aad_client_id can only used set when kind is set to `MetricsAdvisor`")
+		}
+	}
+	if v, ok := d.GetOk("metrics_advisor_aad_tenant_id"); ok {
+		if kind == "MetricsAdvisor" {
+			props.AadTenantID = utils.String(v.(string))
+		} else {
+			return nil, fmt.Errorf("metrics_advisor_aad_tenant_id can only used set when kind is set to `MetricsAdvisor`")
+		}
+	}
+	if v, ok := d.GetOk("metrics_advisor_super_user_name"); ok {
+		if kind == "MetricsAdvisor" {
+			props.SuperUser = utils.String(v.(string))
+		} else {
+			return nil, fmt.Errorf("metrics_advisor_super_user_name can only used set when kind is set to `MetricsAdvisor`")
+		}
+	}
+	if v, ok := d.GetOk("metrics_advisor_website_name"); ok {
+		if kind == "MetricsAdvisor" {
+			props.WebsiteName = utils.String(v.(string))
+		} else {
+			return nil, fmt.Errorf("metrics_advisor_website_name can only used set when kind is set to `MetricsAdvisor`")
+		}
+	}
+	return &props, nil
+}
+
 func flattenCognitiveAccountNetworkAcls(input *cognitiveservices.NetworkRuleSet) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -531,4 +791,53 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservices.NetworkRuleSet)
 			"virtual_network_subnet_ids": pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkRules),
 		},
 	}
+}
+
+func flattenCognitiveAccountStorage(input *[]cognitiveservices.UserOwnedStorage) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	results := make([]interface{}, 0)
+	for _, v := range *input {
+		value := make(map[string]interface{})
+		if v.ResourceID != nil {
+			value["storage_account_id"] = *v.ResourceID
+		}
+		if v.IdentityClientID != nil {
+			value["identity_client_id"] = *v.IdentityClientID
+		}
+		results = append(results, value)
+	}
+	return results
+}
+
+func flattenCognitiveAccountIdentity(identity *cognitiveservices.Identity) ([]interface{}, error) {
+	if identity == nil || identity.Type == cognitiveservices.ResourceIdentityTypeNone {
+		return make([]interface{}, 0), nil
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	identityIds := make([]interface{}, 0)
+	if identity.UserAssignedIdentities != nil {
+		for key := range identity.UserAssignedIdentities {
+			parsedId, err := msiparse.UserAssignedIdentityID(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
+		}
+		result["identity_ids"] = pluginsdk.NewSet(pluginsdk.HashString, identityIds)
+	}
+
+	return []interface{}{result}, nil
 }

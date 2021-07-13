@@ -51,13 +51,23 @@ The following arguments are supported:
 
 * `display_name` - (Required) The display name of this API Management Named Value.
 
-* `value` - (Required) The value of this API Management Named Value.
+* `value` - (Optional) The value of this API Management Named Value.
+
+* `value_from_key_vault` - (Optional) A `value_from_key_vault` block as defined below.
 
 * `secret` - (Optional) Specifies whether the API Management Named Value is secret. Valid values are `true` or `false`. The default value is `false`.
 
 ~> **NOTE:** setting the field `secret` to `true` doesn't make this field sensitive in Terraform, instead it marks the value as secret and encrypts the value in Azure.
 
 * `tags` - (Optional) A list of tags to be applied to the API Management Named Value.
+
+---
+
+A `value_from_key_vault` block supports the following:
+
+* `secret_id` - (Required) The resource ID of the Key Vault Secret.
+
+* `identity_client_id` - (Required) The client ID of the System Assigned Identity, or User Assigned Identity, for the API Management Service, which will be used to access the key vault secret.
 
 ## Attributes Reference
 
