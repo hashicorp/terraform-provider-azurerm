@@ -21,6 +21,7 @@ github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights
 github.com/Azure/azure-sdk-for-go/services/attestation/mgmt/2018-09-01/attestation
 github.com/Azure/azure-sdk-for-go/services/avs/mgmt/2020-03-20/avs
 github.com/Azure/azure-sdk-for-go/services/azurestackhci/mgmt/2020-10-01/azurestackhci
+github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batch
 github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch
 github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn

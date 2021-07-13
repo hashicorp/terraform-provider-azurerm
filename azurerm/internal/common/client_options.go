@@ -19,6 +19,7 @@ type ClientOptions struct {
 	PartnerId        string
 	TerraformVersion string
 
+	BatchAuthorizer           autorest.Authorizer
 	GraphAuthorizer           autorest.Authorizer
 	GraphEndpoint             string
 	KeyVaultAuthorizer        autorest.Authorizer

@@ -112,11 +112,15 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	// Key Vault Endpoints
 	keyVaultAuth := builder.AuthConfig.BearerAuthorizerCallback(sender, oauthConfig)
 
+	// Batch Endpoints
+	batchAuth := builder.AuthConfig.BearerAuthorizerCallback(sender, oauthConfig)
+
 	o := &common.ClientOptions{
 		SubscriptionId:              builder.AuthConfig.SubscriptionID,
 		TenantID:                    builder.AuthConfig.TenantID,
 		PartnerId:                   builder.PartnerId,
 		TerraformVersion:            builder.TerraformVersion,
+		BatchAuthorizer:             batchAuth,
 		GraphAuthorizer:             graphAuth,
 		GraphEndpoint:               graphEndpoint,
 		KeyVaultAuthorizer:          keyVaultAuth,
