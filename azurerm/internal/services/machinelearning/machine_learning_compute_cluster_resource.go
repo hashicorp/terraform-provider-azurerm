@@ -163,12 +163,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.Get("subnet_resource_id") != nil {
-		computeClusterAmlComputeProperties.AmlComputeProperties.Subnet = &machinelearningservices.ResourceID{ID: utils.String(d.Get("subnet_resource_id").(string))}
-			VMSize:        utils.String(d.Get("vm_size").(string)),
-			VMPriority:    machinelearningservices.VMPriority(d.Get("vm_priority").(string)),
-			ScaleSettings: expandScaleSettings(d.Get("scale_settings").([]interface{})),
-			Subnet:        &machinelearningservices.ResourceID{ID: utils.String(d.Get("subnet_resource_id").(string))},
-		}
+		computeClusterAmlComputeProperties.Subnet = &machinelearningservices.ResourceID{ID: utils.String(d.Get("subnet_resource_id").(string))}
 	}
 
 	computeClusterProperties := machinelearningservices.AmlCompute{
