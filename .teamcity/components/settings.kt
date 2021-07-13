@@ -31,14 +31,20 @@ var serviceTestConfigurationOverrides = mapOf(
         //Blueprints are constrained on the number of targets available - these execute quickly, so can be serialised
         "blueprints" to testConfiguration(parallelism = 1),
 
+        // "cognitive" is expensive - Monday, Wednesday, Friday
+        "cognitive" to testConfiguration(daysOfWeek = "1,3,5"),
+
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5),
 
         // Data Lake has a low quota
         "datalake" to testConfiguration(parallelism = 2),
 
+        // "hdinsight" is super expensive
+        "hdinsight" to testConfiguration(daysOfWeek = "1,3,5"),
+
         // HPC Cache has a 4 instance per subscription quota as of early 2021
-        "hpccache" to testConfiguration(parallelism = 3),
+        "hpccache" to testConfiguration(parallelism = 3, daysOfWeek = "1,3,5"),
 
         // HSM has low quota and potentially slow recycle time, Only run on Mondays
         "hsm" to testConfiguration(parallelism = 1, daysOfWeek = "1"),
@@ -46,8 +52,11 @@ var serviceTestConfigurationOverrides = mapOf(
         // Log Analytics Clusters have a max deployments of 2 - parallelism set to 1 or `importTest` fails
         "loganalytics" to testConfiguration(parallelism = 1),
 
-        // netapp has a max of 20 accounts per subscription so lets limit it to 10 to account for broken ones
-        "netapp" to testConfiguration(parallelism = 10),
+        // netapp has a max of 20 accounts per subscription so lets limit it to 10 to account for broken ones, run Monday, Wednesday, Friday
+        "netapp" to testConfiguration(parallelism = 10, daysOfWeek = "1,3,5"),
+
+        // redisenterprise is costly - Monday, Wednesday, Friday
+        "redisenterprise" to testConfiguration(daysOfWeek = "1,3,5"),
 
         // servicebus quotas are limited and we experience failures if tests
         // execute too quickly as we run out of namespaces in the sub
