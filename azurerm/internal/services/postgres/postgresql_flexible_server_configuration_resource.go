@@ -83,11 +83,11 @@ func resourceFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta i
 
 	future, err := client.Update(ctx, serverId.ResourceGroup, serverId.Name, name, props)
 	if err != nil {
-		return fmt.Errorf("update Azure Postgresql Flexible Server configuration %q (Resource Group %q): %+v", id.ConfigurationName, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the Azure Postgresql Flexible Server configuration update %q (Resource Group %q): %+v", id.ConfigurationName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -109,12 +109,12 @@ func resourceFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta int
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.ConfigurationName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Azure Postgresql Flexible Server configuration '%s' was not found (resource group '%s')", id.ConfigurationName, id.ResourceGroup)
+			log.Printf("[WARN] %s was not found, removing from state", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure Postgresql Flexible Server configuration %s: %+v", id.ConfigurationName, err)
+		return fmt.Errorf("making Read request for %s: %+v", id, err)
 	}
 
 	d.Set("name", id.ConfigurationName)
@@ -139,7 +139,7 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.ConfigurationName)
 	if err != nil {
-		return fmt.Errorf("retrieving Azure Postgresql Flexible Server configuration '%s': %+v", id.ConfigurationName, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	props := postgresqlflexibleservers.Configuration{
@@ -151,11 +151,11 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.FlexibleServerName, id.ConfigurationName, props)
 	if err != nil {
-		return fmt.Errorf("deleting Azure Postgresql Flexible Server configuration %q (Resource Group %q): %+v", id.ConfigurationName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for Azure Postgresql Flexible Server configuration deletion %q (Resource Group %q): %+v", id.ConfigurationName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	return nil

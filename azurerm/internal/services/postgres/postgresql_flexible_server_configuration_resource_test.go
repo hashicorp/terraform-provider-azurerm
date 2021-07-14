@@ -114,7 +114,7 @@ func (r PostgresqlFlexibleServerConfigurationResource) checkReset(configurationN
 }
 
 // Helper functions for verification
-func (t PostgresqlFlexibleServerConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PostgresqlFlexibleServerConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FlexibleServerConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
