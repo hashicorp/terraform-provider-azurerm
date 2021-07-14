@@ -167,7 +167,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 						"public_subnet_network_security_group_association_id": {
 							Type:         pluginsdk.TypeString,
-							ForceNew:     true,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceID,
 							AtLeastOneOf: workspaceCustomParametersString(),
@@ -182,7 +181,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 						"private_subnet_network_security_group_association_id": {
 							Type:         pluginsdk.TypeString,
-							ForceNew:     true,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceID,
 							AtLeastOneOf: workspaceCustomParametersString(),
@@ -309,33 +307,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				return fmt.Errorf("'require_nsg_rules' must not be defined if 'public_network_access' is 'true'")
 			}
 
-			_, customParamsRaw := d.GetChange("custom_parameters")
-			if customParamsRaw != nil {
-				customParams, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(customParamsRaw.([]interface{}), customerEncryptionEnabled.(bool), infrastructureEncryptionEnabled.(bool))
-
-				if customParams.CustomVirtualNetworkID != nil {
-					if customParams.CustomPrivateSubnetName == nil || customParams.CustomPublicSubnetName == nil {
-						return fmt.Errorf("'public_subnet_name' and 'private_subnet_name' must both have values if 'virtual_network_id' is set")
-					}
-					if pubSubAssoc == nil {
-						return fmt.Errorf("you must define value for 'public_subnet_network_security_group_association_id' if 'public_subnet_name' is set")
-					}
-					if priSubAssoc == nil {
-						return fmt.Errorf("you must define value for 'private_subnet_network_security_group_association_id' if 'private_subnet_name' is set")
-					}
-				}
-
-				// if customParams.CustomVirtualNetworkID == nil && (customParams.CustomPrivateSubnetName != nil || customParams.CustomPublicSubnetName != nil) {
-				// 	return fmt.Errorf("'virtual_network_id' must have a value if 'public_subnet_name' and/or 'private_subnet_name' are set")
-				// }
-
-				// if customParams.EnableNoPublicIP != nil && !*customParams.EnableNoPublicIP.Value {
-				// 	if customParams.LoadBalancerBackendPoolName != nil || customParams.LoadBalancerID != nil || customParams.NatGatewayName != nil || customParams.PublicIPName != nil {
-				// 		return fmt.Errorf("'load_balancer_backend_pool_name', 'load_balancer_id', 'nat_gateway_name' and 'public_ip_name' must not have a value if 'no_public_ip' is 'false'")
-				// 	}
-				// }
-			}
-
 			if d.HasChange("sku") {
 				if newSku == "trial" {
 					log.Printf("[DEBUG] recreate databricks workspace, cannot be migrated to %s", newSku)
@@ -401,6 +372,25 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	requireNsgRules := d.Get("require_nsg_rules").(string)
 	customParamsRaw := d.Get("custom_parameters").([]interface{})
 	customParams, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(customParamsRaw, customerEncryptionEnabled, infrastructureEncryptionEnabled)
+
+	if len(customParamsRaw) > 0 && customParamsRaw[0] != nil {
+		config := customParamsRaw[0].(map[string]interface{})
+		pubSub := config["public_subnet_name"].(string)
+		priSub := config["private_subnet_name"].(string)
+
+		if config["virtual_network_id"].(string) == "" && (pubSub != "" || priSub != "") {
+			return fmt.Errorf("'public_subnet_name' and/or 'private_subnet_name' cannot be defined if 'virtual_network_id' is not set")
+		}
+		if config["virtual_network_id"].(string) != "" && (pubSub == "" || priSub == "") {
+			return fmt.Errorf("'public_subnet_name' and 'private_subnet_name' must both have values if 'virtual_network_id' is set")
+		}
+		if pubSub != "" && pubSubAssoc == nil {
+			return fmt.Errorf("you must define a value for 'public_subnet_network_security_group_association_id' if 'public_subnet_name' is set")
+		}
+		if priSub != "" && priSubAssoc == nil {
+			return fmt.Errorf("you must define a value for 'private_subnet_network_security_group_association_id' if 'private_subnet_name' is set")
+		}
+	}
 
 	// Including the Tags in the workspace parameters will update the tags on
 	// the workspace only
@@ -527,16 +517,12 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
-		if props.StorageAccountIdentity != nil {
-			if err := d.Set("storage_account_identity", flattenWorkspaceStorageAccountIdentity(props.StorageAccountIdentity)); err != nil {
-				return fmt.Errorf("setting `storage_account_identity`: %+v", err)
-			}
+		if err := d.Set("storage_account_identity", flattenWorkspaceStorageAccountIdentity(props.StorageAccountIdentity)); err != nil {
+			return fmt.Errorf("setting `storage_account_identity`: %+v", err)
 		}
 
-		if props.PrivateEndpointConnections != nil {
-			if err := d.Set("private_endpoint_connections", flattenPrivateEndpointConnections(props.PrivateEndpointConnections)); err != nil {
-				return fmt.Errorf("setting `storage_account_identity`: %+v", err)
-			}
+		if err := d.Set("private_endpoint_connections", flattenPrivateEndpointConnections(props.PrivateEndpointConnections)); err != nil {
+			return fmt.Errorf("setting `storage_account_identity`: %+v", err)
 		}
 
 		if props.WorkspaceURL != nil {

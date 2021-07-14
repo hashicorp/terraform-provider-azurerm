@@ -78,15 +78,15 @@ A `custom_parameters` block supports the following:
 
 * `public_subnet_name` - (Optional) The name of the Public Subnet within the Virtual Network. Required if `virtual_network_id` is set. Changing this forces a new resource to be created.
 
-* `public_subnet_network_security_group_association_id` - (Optional) The resource ID of the `azurerm_subnet_network_security_group_association` resource which is referred to by the `public_subnet_name` field. Required if `virtual_network_id` is set. Changing this forces a new resource to be created.
+* `public_subnet_network_security_group_association_id` - (Optional) The resource ID of the `azurerm_subnet_network_security_group_association` resource which is referred to by the `public_subnet_name` field. Required if `virtual_network_id` is set.
 
 * `private_subnet_name` - (Optional) The name of the Private Subnet within the Virtual Network. Required if `virtual_network_id` is set. Changing this forces a new resource to be created.
 
-* `private_subnet_network_security_group_association_id` - (Optional) The resource ID of the `azurerm_subnet_network_security_group_association` resource which is referred to by the `private_subnet_name` field. Required if `virtual_network_id` is set. Changing this forces a new resource to be created.
+* `private_subnet_network_security_group_association_id` - (Optional) The resource ID of the `azurerm_subnet_network_security_group_association` resource which is referred to by the `private_subnet_name` field. Required if `virtual_network_id` is set.
 
 * `storage_account_name` - (Optional) Default Databricks File Storage account name. Defaults to a randomized name(e.g. `dbstoragel6mfeghoe5kxu`). Changing this forces a new resource to be created.
 
-* `storage_account_sku_name` - (Optional) Storage account SKU name. Possible values inclued`Standard_LRS`, `Standard_GRS`, `Standard_RAGRS`, `Standard_ZRS`, `Premium_LRS`, `Premium_ZRS`, `Standard_GZRS`, `Standard_RAGZRS`. Defaults to `Standard_GRS`. Changing this forces a new resource to be created.
+* `storage_account_sku_name` - (Optional) Storage account SKU name. Possible values inclued`Standard_LRS`, `Standard_GRS`, `Standard_RAGRS`, `Standard_GZRS`, `Standard_RAGZRS`, `Standard_ZRS`, `Premium_LRS` or `Premium_ZRS`. Defaults to `Standard_GRS`. Changing this forces a new resource to be created.
 
 * `virtual_network_id` - (Optional) The ID of a Virtual Network where this Databricks Cluster should be created. Changing this forces a new resource to be created.
 

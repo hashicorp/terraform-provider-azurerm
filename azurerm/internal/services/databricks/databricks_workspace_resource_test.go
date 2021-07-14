@@ -267,8 +267,6 @@ resource "azurerm_subnet_network_security_group_association" "private" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  depends_on = [azurerm_subnet_network_security_group_association.public, azurerm_subnet_network_security_group_association.private]
-
   name                        = "acctestDBW-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
@@ -280,6 +278,9 @@ resource "azurerm_databricks_workspace" "test" {
     public_subnet_name  = azurerm_subnet.public.name
     private_subnet_name = azurerm_subnet.private.name
     virtual_network_id  = azurerm_virtual_network.test.id
+
+    public_subnet_network_security_group_association_id  = azurerm_subnet_network_security_group_association.public.id
+    private_subnet_network_security_group_association_id = azurerm_subnet_network_security_group_association.private.id
   }
 
   tags = {
@@ -380,6 +381,9 @@ resource "azurerm_databricks_workspace" "test" {
     public_subnet_name  = azurerm_subnet.public.name
     private_subnet_name = azurerm_subnet.private.name
     virtual_network_id  = azurerm_virtual_network.test.id
+
+    public_subnet_network_security_group_association_id  = azurerm_subnet_network_security_group_association.public.id
+    private_subnet_network_security_group_association_id = azurerm_subnet_network_security_group_association.private.id
   }
 
   tags = {
