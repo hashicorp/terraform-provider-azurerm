@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * `azurerm_api_management_named_value` - support for the `value_from_key_vault` block [GH-12309]
 * `azurerm_api_management_api_diagnostic` - support for the `data_masking`1 property [GH-12419]
 * `azurerm_cognitive_account` - support for the `identity`, `storage`, `disable_local_auth`, `fqdns`, `public_network_access_enabled`, and `restrict_outbound_network_access` properties [GH-12469]
+* `azurerm_powerbi_embedded` - support for the `mode` property [GH-12394]
 
 BUG FIXES:
 
