@@ -11,13 +11,256 @@ import (
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/powerbidedicated/mgmt/2017-10-01/powerbidedicated"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/powerbidedicated/mgmt/2021-01-01/powerbidedicated"
+
+// AutoScaleVCore represents an instance of an auto scale v-core resource.
+type AutoScaleVCore struct {
+	autorest.Response `json:"-"`
+	// Sku - The SKU of the auto scale v-core resource.
+	Sku *AutoScaleVCoreSku `json:"sku,omitempty"`
+	// AutoScaleVCoreProperties - Properties of an auto scale v-core resource.
+	*AutoScaleVCoreProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; An identifier that represents the PowerBI Dedicated resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the PowerBI Dedicated resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the PowerBI Dedicated resource.
+	Type *string `json:"type,omitempty"`
+	// Location - Location of the PowerBI Dedicated resource.
+	Location *string `json:"location,omitempty"`
+	// Tags - Key-value pairs of additional resource provisioning properties.
+	Tags map[string]*string `json:"tags"`
+	// SystemData - Metadata pertaining to creation and last modification of the resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AutoScaleVCore.
+func (asvc AutoScaleVCore) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if asvc.Sku != nil {
+		objectMap["sku"] = asvc.Sku
+	}
+	if asvc.AutoScaleVCoreProperties != nil {
+		objectMap["properties"] = asvc.AutoScaleVCoreProperties
+	}
+	if asvc.Location != nil {
+		objectMap["location"] = asvc.Location
+	}
+	if asvc.Tags != nil {
+		objectMap["tags"] = asvc.Tags
+	}
+	if asvc.SystemData != nil {
+		objectMap["systemData"] = asvc.SystemData
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for AutoScaleVCore struct.
+func (asvc *AutoScaleVCore) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "sku":
+			if v != nil {
+				var sku AutoScaleVCoreSku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				asvc.Sku = &sku
+			}
+		case "properties":
+			if v != nil {
+				var autoScaleVCoreProperties AutoScaleVCoreProperties
+				err = json.Unmarshal(*v, &autoScaleVCoreProperties)
+				if err != nil {
+					return err
+				}
+				asvc.AutoScaleVCoreProperties = &autoScaleVCoreProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				asvc.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				asvc.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				asvc.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				asvc.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				asvc.Tags = tags
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				asvc.SystemData = &systemData
+			}
+		}
+	}
+
+	return nil
+}
+
+// AutoScaleVCoreListResult an array of auto scale v-core resources.
+type AutoScaleVCoreListResult struct {
+	autorest.Response `json:"-"`
+	// Value - An array of auto scale v-core resources.
+	Value *[]AutoScaleVCore `json:"value,omitempty"`
+}
+
+// AutoScaleVCoreMutableProperties an object that represents a set of mutable auto scale v-core resource
+// properties.
+type AutoScaleVCoreMutableProperties struct {
+	// CapacityLimit - The maximum capacity of an auto scale v-core resource.
+	CapacityLimit *int32 `json:"capacityLimit,omitempty"`
+}
+
+// AutoScaleVCoreProperties properties of an auto scale v-core resource.
+type AutoScaleVCoreProperties struct {
+	// CapacityObjectID - The object ID of the capacity resource associated with the auto scale v-core resource.
+	CapacityObjectID *string `json:"capacityObjectId,omitempty"`
+	// ProvisioningState - READ-ONLY; The current deployment state of an auto scale v-core resource. The provisioningState is to indicate states for resource provisioning. Possible values include: 'VCoreProvisioningStateSucceeded'
+	ProvisioningState VCoreProvisioningState `json:"provisioningState,omitempty"`
+	// CapacityLimit - The maximum capacity of an auto scale v-core resource.
+	CapacityLimit *int32 `json:"capacityLimit,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AutoScaleVCoreProperties.
+func (asvcp AutoScaleVCoreProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if asvcp.CapacityObjectID != nil {
+		objectMap["capacityObjectId"] = asvcp.CapacityObjectID
+	}
+	if asvcp.CapacityLimit != nil {
+		objectMap["capacityLimit"] = asvcp.CapacityLimit
+	}
+	return json.Marshal(objectMap)
+}
+
+// AutoScaleVCoreSku represents the SKU name and Azure pricing tier for auto scale v-core resource.
+type AutoScaleVCoreSku struct {
+	// Name - Name of the SKU level.
+	Name *string `json:"name,omitempty"`
+	// Tier - The name of the Azure pricing tier to which the SKU applies. Possible values include: 'VCoreSkuTierAutoScale'
+	Tier VCoreSkuTier `json:"tier,omitempty"`
+	// Capacity - The capacity of an auto scale v-core resource.
+	Capacity *int32 `json:"capacity,omitempty"`
+}
+
+// AutoScaleVCoreUpdateParameters update request specification
+type AutoScaleVCoreUpdateParameters struct {
+	// Sku - The SKU of the auto scale v-core resource.
+	Sku *AutoScaleVCoreSku `json:"sku,omitempty"`
+	// Tags - Key-value pairs of additional provisioning properties.
+	Tags map[string]*string `json:"tags"`
+	// AutoScaleVCoreMutableProperties - Properties of the update operation request.
+	*AutoScaleVCoreMutableProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AutoScaleVCoreUpdateParameters.
+func (asvcup AutoScaleVCoreUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if asvcup.Sku != nil {
+		objectMap["sku"] = asvcup.Sku
+	}
+	if asvcup.Tags != nil {
+		objectMap["tags"] = asvcup.Tags
+	}
+	if asvcup.AutoScaleVCoreMutableProperties != nil {
+		objectMap["properties"] = asvcup.AutoScaleVCoreMutableProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for AutoScaleVCoreUpdateParameters struct.
+func (asvcup *AutoScaleVCoreUpdateParameters) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "sku":
+			if v != nil {
+				var sku AutoScaleVCoreSku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				asvcup.Sku = &sku
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				asvcup.Tags = tags
+			}
+		case "properties":
+			if v != nil {
+				var autoScaleVCoreMutableProperties AutoScaleVCoreMutableProperties
+				err = json.Unmarshal(*v, &autoScaleVCoreMutableProperties)
+				if err != nil {
+					return err
+				}
+				asvcup.AutoScaleVCoreMutableProperties = &autoScaleVCoreMutableProperties
+			}
+		}
+	}
+
+	return nil
+}
 
 // CapacitiesCreateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
@@ -216,6 +459,14 @@ func (future *CapacitiesUpdateFuture) result(client CapacitiesClient) (dc Dedica
 	return
 }
 
+// CapacitySku represents the SKU name and Azure pricing tier for PowerBI Dedicated capacity resource.
+type CapacitySku struct {
+	// Name - Name of the SKU level.
+	Name *string `json:"name,omitempty"`
+	// Tier - The name of the Azure pricing tier to which the SKU applies. Possible values include: 'CapacitySkuTierPBIEAzure', 'CapacitySkuTierPremium', 'CapacitySkuTierAutoPremiumHost'
+	Tier CapacitySkuTier `json:"tier,omitempty"`
+}
+
 // CheckCapacityNameAvailabilityParameters details of capacity name request body.
 type CheckCapacityNameAvailabilityParameters struct {
 	// Name - Name for checking availability.
@@ -245,6 +496,8 @@ type DedicatedCapacities struct {
 // DedicatedCapacity represents an instance of a Dedicated Capacity resource.
 type DedicatedCapacity struct {
 	autorest.Response `json:"-"`
+	// Sku - The SKU of the PowerBI Dedicated capacity resource.
+	Sku *CapacitySku `json:"sku,omitempty"`
 	// DedicatedCapacityProperties - Properties of the provision operation request.
 	*DedicatedCapacityProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; An identifier that represents the PowerBI Dedicated resource.
@@ -255,26 +508,29 @@ type DedicatedCapacity struct {
 	Type *string `json:"type,omitempty"`
 	// Location - Location of the PowerBI Dedicated resource.
 	Location *string `json:"location,omitempty"`
-	// Sku - The SKU of the PowerBI Dedicated resource.
-	Sku *ResourceSku `json:"sku,omitempty"`
 	// Tags - Key-value pairs of additional resource provisioning properties.
 	Tags map[string]*string `json:"tags"`
+	// SystemData - Metadata pertaining to creation and last modification of the resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DedicatedCapacity.
 func (dc DedicatedCapacity) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if dc.Sku != nil {
+		objectMap["sku"] = dc.Sku
+	}
 	if dc.DedicatedCapacityProperties != nil {
 		objectMap["properties"] = dc.DedicatedCapacityProperties
 	}
 	if dc.Location != nil {
 		objectMap["location"] = dc.Location
 	}
-	if dc.Sku != nil {
-		objectMap["sku"] = dc.Sku
-	}
 	if dc.Tags != nil {
 		objectMap["tags"] = dc.Tags
+	}
+	if dc.SystemData != nil {
+		objectMap["systemData"] = dc.SystemData
 	}
 	return json.Marshal(objectMap)
 }
@@ -288,6 +544,15 @@ func (dc *DedicatedCapacity) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
+		case "sku":
+			if v != nil {
+				var sku CapacitySku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				dc.Sku = &sku
+			}
 		case "properties":
 			if v != nil {
 				var dedicatedCapacityProperties DedicatedCapacityProperties
@@ -333,15 +598,6 @@ func (dc *DedicatedCapacity) UnmarshalJSON(body []byte) error {
 				}
 				dc.Location = &location
 			}
-		case "sku":
-			if v != nil {
-				var sku ResourceSku
-				err = json.Unmarshal(*v, &sku)
-				if err != nil {
-					return err
-				}
-				dc.Sku = &sku
-			}
 		case "tags":
 			if v != nil {
 				var tags map[string]*string
@@ -350,6 +606,15 @@ func (dc *DedicatedCapacity) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				dc.Tags = tags
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				dc.SystemData = &systemData
 			}
 		}
 	}
@@ -368,16 +633,20 @@ type DedicatedCapacityAdministrators struct {
 type DedicatedCapacityMutableProperties struct {
 	// Administration - A collection of Dedicated capacity administrators
 	Administration *DedicatedCapacityAdministrators `json:"administration,omitempty"`
+	// Mode - The capacity mode. Possible values include: 'ModeGen1', 'ModeGen2'
+	Mode Mode `json:"mode,omitempty"`
 }
 
 // DedicatedCapacityProperties properties of Dedicated Capacity resource.
 type DedicatedCapacityProperties struct {
 	// State - READ-ONLY; The current state of PowerBI Dedicated resource. The state is to indicate more states outside of resource provisioning. Possible values include: 'StateDeleting', 'StateSucceeded', 'StateFailed', 'StatePaused', 'StateSuspended', 'StateProvisioning', 'StateUpdating', 'StateSuspending', 'StatePausing', 'StateResuming', 'StatePreparing', 'StateScaling'
 	State State `json:"state,omitempty"`
-	// ProvisioningState - READ-ONLY; The current deployment state of PowerBI Dedicated resource. The provisioningState is to indicate states for resource provisioning. Possible values include: 'Deleting', 'Succeeded', 'Failed', 'Paused', 'Suspended', 'Provisioning', 'Updating', 'Suspending', 'Pausing', 'Resuming', 'Preparing', 'Scaling'
-	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+	// ProvisioningState - READ-ONLY; The current deployment state of PowerBI Dedicated resource. The provisioningState is to indicate states for resource provisioning. Possible values include: 'CapacityProvisioningStateDeleting', 'CapacityProvisioningStateSucceeded', 'CapacityProvisioningStateFailed', 'CapacityProvisioningStatePaused', 'CapacityProvisioningStateSuspended', 'CapacityProvisioningStateProvisioning', 'CapacityProvisioningStateUpdating', 'CapacityProvisioningStateSuspending', 'CapacityProvisioningStatePausing', 'CapacityProvisioningStateResuming', 'CapacityProvisioningStatePreparing', 'CapacityProvisioningStateScaling'
+	ProvisioningState CapacityProvisioningState `json:"provisioningState,omitempty"`
 	// Administration - A collection of Dedicated capacity administrators
 	Administration *DedicatedCapacityAdministrators `json:"administration,omitempty"`
+	// Mode - The capacity mode. Possible values include: 'ModeGen1', 'ModeGen2'
+	Mode Mode `json:"mode,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DedicatedCapacityProperties.
@@ -386,13 +655,16 @@ func (dcp DedicatedCapacityProperties) MarshalJSON() ([]byte, error) {
 	if dcp.Administration != nil {
 		objectMap["administration"] = dcp.Administration
 	}
+	if dcp.Mode != "" {
+		objectMap["mode"] = dcp.Mode
+	}
 	return json.Marshal(objectMap)
 }
 
 // DedicatedCapacityUpdateParameters provision request specification
 type DedicatedCapacityUpdateParameters struct {
 	// Sku - The SKU of the Dedicated capacity resource.
-	Sku *ResourceSku `json:"sku,omitempty"`
+	Sku *CapacitySku `json:"sku,omitempty"`
 	// Tags - Key-value pairs of additional provisioning properties.
 	Tags map[string]*string `json:"tags"`
 	// DedicatedCapacityMutableProperties - Properties of the provision operation request.
@@ -425,7 +697,7 @@ func (dcup *DedicatedCapacityUpdateParameters) UnmarshalJSON(body []byte) error 
 		switch k {
 		case "sku":
 			if v != nil {
-				var sku ResourceSku
+				var sku CapacitySku
 				err = json.Unmarshal(*v, &sku)
 				if err != nil {
 					return err
@@ -458,6 +730,12 @@ func (dcup *DedicatedCapacityUpdateParameters) UnmarshalJSON(body []byte) error 
 
 // ErrorResponse describes the format of Error response.
 type ErrorResponse struct {
+	// Error - The error object
+	Error *ErrorResponseError `json:"error,omitempty"`
+}
+
+// ErrorResponseError the error object
+type ErrorResponseError struct {
 	// Code - Error code
 	Code *string `json:"code,omitempty"`
 	// Message - Error message indicating why the operation failed.
@@ -673,10 +951,10 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 	// Location - Location of the PowerBI Dedicated resource.
 	Location *string `json:"location,omitempty"`
-	// Sku - The SKU of the PowerBI Dedicated resource.
-	Sku *ResourceSku `json:"sku,omitempty"`
 	// Tags - Key-value pairs of additional resource provisioning properties.
 	Tags map[string]*string `json:"tags"`
+	// SystemData - Metadata pertaining to creation and last modification of the resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Resource.
@@ -685,27 +963,19 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 	if r.Location != nil {
 		objectMap["location"] = r.Location
 	}
-	if r.Sku != nil {
-		objectMap["sku"] = r.Sku
-	}
 	if r.Tags != nil {
 		objectMap["tags"] = r.Tags
 	}
+	if r.SystemData != nil {
+		objectMap["systemData"] = r.SystemData
+	}
 	return json.Marshal(objectMap)
-}
-
-// ResourceSku represents the SKU name and Azure pricing tier for PowerBI Dedicated resource.
-type ResourceSku struct {
-	// Name - Name of the SKU level.
-	Name *string `json:"name,omitempty"`
-	// Tier - The name of the Azure pricing tier to which the SKU applies. Possible values include: 'PBIEAzure'
-	Tier SkuTier `json:"tier,omitempty"`
 }
 
 // SkuDetailsForExistingResource an object that represents SKU details for existing resources
 type SkuDetailsForExistingResource struct {
 	// Sku - The SKU in SKU details for existing resources.
-	Sku *ResourceSku `json:"sku,omitempty"`
+	Sku *CapacitySku `json:"sku,omitempty"`
 }
 
 // SkuEnumerationForExistingResourceResult an object that represents enumerating SKUs for existing
@@ -720,5 +990,21 @@ type SkuEnumerationForExistingResourceResult struct {
 type SkuEnumerationForNewResourceResult struct {
 	autorest.Response `json:"-"`
 	// Value - The collection of available SKUs for new resources
-	Value *[]ResourceSku `json:"value,omitempty"`
+	Value *[]CapacitySku `json:"value,omitempty"`
+}
+
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - An identifier for the identity that created the resource
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'IdentityTypeUser', 'IdentityTypeApplication', 'IdentityTypeManagedIdentity', 'IdentityTypeKey'
+	CreatedByType IdentityType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC)
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - An identifier for the identity that last modified the resource
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'IdentityTypeUser', 'IdentityTypeApplication', 'IdentityTypeManagedIdentity', 'IdentityTypeKey'
+	LastModifiedByType IdentityType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The timestamp of resource last modification (UTC)
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
 }
