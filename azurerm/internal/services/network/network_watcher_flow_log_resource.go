@@ -47,6 +47,14 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+				// TODO 3.0: Make this required, and remove computed.
+				//Required: true,
+				//ValidateFunc: validate.NetworkWatcherFlowLogName,
+			},
+
 			"network_security_group_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -250,6 +258,7 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("network_security_group_id", id.NetworkSecurityGroupID())
 	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", resp.Name)
 
 	if prop := resp.FlowLogPropertiesFormat; prop != nil {
 		if err := d.Set("traffic_analytics", flattenAzureRmNetworkWatcherFlowLogTrafficAnalytics(prop.FlowAnalyticsConfiguration)); err != nil {

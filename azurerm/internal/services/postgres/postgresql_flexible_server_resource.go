@@ -15,6 +15,7 @@ import (
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
+	privateDnsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -116,6 +117,17 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: networkValidate.SubnetID,
+			},
+
+			"private_dns_zone_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				// This is `computed`, because there is a breaking change to require this field when setting vnet.
+				// For existing fs who don't want to be recreated, they could contact service team to manually migrate to the private dns zone
+				// We need to ignore the diff when remote is set private dns zone
+				ForceNew:     true,
+				ValidateFunc: privateDnsValidate.PrivateDnsZoneID,
 			},
 
 			"point_in_time_restore_time_in_utc": {
@@ -350,6 +362,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 		if network := props.Network; network != nil {
 			d.Set("public_network_access_enabled", network.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
 			d.Set("delegated_subnet_id", network.DelegatedSubnetResourceID)
+			d.Set("private_dns_zone_id", network.PrivateDNSZoneArmResourceID)
 		}
 
 		if err := d.Set("maintenance_window", flattenArmServerMaintenanceWindow(props.MaintenanceWindow)); err != nil {
@@ -456,6 +469,10 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *postgresqlflexibleserver
 
 	if v, ok := d.GetOk("delegated_subnet_id"); ok {
 		network.DelegatedSubnetResourceID = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("private_dns_zone_id"); ok {
+		network.PrivateDNSZoneArmResourceID = utils.String(v.(string))
 	}
 
 	return &network

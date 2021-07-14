@@ -291,6 +291,18 @@ resource "azurerm_subnet" "test" {
   }
 }
 
+resource "azurerm_private_dns_zone" "test" {
+  name                = "acc%[2]d.postgres.database.azure.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "test" {
+  name                  = "acctestVnetZone%[2]d.com"
+  private_dns_zone_name = azurerm_private_dns_zone.test.name
+  virtual_network_id    = azurerm_virtual_network.test.id
+  resource_group_name   = azurerm_resource_group.test.name
+}
+
 resource "azurerm_postgresql_flexible_server" "test" {
   name                   = "acctest-fs-%[2]d"
   resource_group_name    = azurerm_resource_group.test.name
@@ -302,6 +314,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   backup_retention_days  = 7
   storage_mb             = 32768
   delegated_subnet_id    = azurerm_subnet.test.id
+  private_dns_zone_id    = azurerm_private_dns_zone.test.id
   sku_name               = "GP_Standard_D2s_v3"
 
   maintenance_window {
@@ -313,6 +326,8 @@ resource "azurerm_postgresql_flexible_server" "test" {
   tags = {
     ENV = "Test"
   }
+
+  depends_on = [azurerm_private_dns_zone_virtual_network_link.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -345,6 +360,18 @@ resource "azurerm_subnet" "test" {
   }
 }
 
+resource "azurerm_private_dns_zone" "test" {
+  name                = "acc%[2]d.postgres.database.azure.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "test" {
+  name                  = "acctestVnetZone%[2]d.com"
+  private_dns_zone_name = azurerm_private_dns_zone.test.name
+  virtual_network_id    = azurerm_virtual_network.test.id
+  resource_group_name   = azurerm_resource_group.test.name
+}
+
 resource "azurerm_postgresql_flexible_server" "test" {
   name                   = "acctest-fs-%[2]d"
   resource_group_name    = azurerm_resource_group.test.name
@@ -356,6 +383,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   backup_retention_days  = 10
   storage_mb             = 65536
   delegated_subnet_id    = azurerm_subnet.test.id
+  private_dns_zone_id    = azurerm_private_dns_zone.test.id
   sku_name               = "GP_Standard_D2s_v3"
 
   maintenance_window {
@@ -367,6 +395,8 @@ resource "azurerm_postgresql_flexible_server" "test" {
   tags = {
     ENV = "Stage"
   }
+
+  depends_on = [azurerm_private_dns_zone_virtual_network_link.test]
 }
 `, r.template(data), data.RandomInteger)
 }
