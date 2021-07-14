@@ -133,6 +133,8 @@ A `maintenance_window` block supports the following:
 
 A `high_availability` block supports the following:
 
+* `mode` - (Required) The high availability mode for the PostgreSQL Flexible Server. The only possible value is `ZoneRedundant`.
+
 * `standby_availability_zone` - (Optional) The availability zone of the standby Flexible Server. Possible values are `1`, `2` and `3`.
 
 ## Attributes Reference

@@ -193,33 +193,14 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"standby_availability_zone": azure.SchemaZoneComputed(),
-					},
-				},
-			},
-
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
+						"mode": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(postgresqlflexibleservers.ResourceIdentityTypeSystemAssigned),
+								string(postgresqlflexibleservers.HighAvailabilityModeZoneRedundant),
 							}, false),
 						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
+						"standby_availability_zone": azure.SchemaZoneComputed(),
 					},
 				},
 			},
@@ -309,9 +290,8 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{})),
 			Backup:           expandArmServerBackup(d),
 		},
-		Identity: expandPostgresqlFlexibleServerIdentity(d.Get("identity").([]interface{})),
-		Sku:      sku,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Sku:  sku,
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("administrator_login"); ok && v.(string) != "" {
@@ -434,10 +414,6 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 	}
 
 	d.Set("sku_name", sku)
-
-	if err := d.Set("identity", flattenPostgresqlFlexibleServerIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("setting `identity`")
-	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -651,21 +627,20 @@ func flattenArmServerMaintenanceWindow(input *postgresqlflexibleservers.Maintena
 }
 
 func expandFlexibleServerHighAvailability(inputs []interface{}) *postgresqlflexibleservers.HighAvailability {
-	if len(inputs) == 0 {
+	if len(inputs) == 0 || inputs[0] == nil {
 		return &postgresqlflexibleservers.HighAvailability{
 			Mode: postgresqlflexibleservers.HighAvailabilityModeDisabled,
 		}
 	}
+
+	input := inputs[0].(map[string]interface{})
+
 	result := postgresqlflexibleservers.HighAvailability{
-		Mode: postgresqlflexibleservers.HighAvailabilityModeZoneRedundant,
+		Mode: postgresqlflexibleservers.HighAvailabilityMode(input["mode"].(string)),
 	}
 
-	if inputs[0] != nil {
-		input := inputs[0].(map[string]interface{})
-
-		if v, ok := input["standby_availability_zone"]; ok && v.(string) != "" {
-			result.StandbyAvailabilityZone = utils.String(v.(string))
-		}
+	if v, ok := input["standby_availability_zone"]; ok && v.(string) != "" {
+		result.StandbyAvailabilityZone = utils.String(v.(string))
 	}
 
 	return &result
@@ -683,41 +658,8 @@ func flattenFlexibleServerHighAvailability(ha *postgresqlflexibleservers.HighAva
 
 	return []interface{}{
 		map[string]interface{}{
+			"mode":                      string(ha.Mode),
 			"standby_availability_zone": zone,
-		},
-	}
-}
-
-func expandPostgresqlFlexibleServerIdentity(identities []interface{}) *postgresqlflexibleservers.Identity {
-	if len(identities) == 0 || identities[0] == nil {
-		return nil
-	}
-	identity := identities[0].(map[string]interface{})
-	return &postgresqlflexibleservers.Identity{
-		Type: postgresqlflexibleservers.ResourceIdentityType(identity["type"].(string)),
-	}
-}
-
-func flattenPostgresqlFlexibleServerIdentity(identity *postgresqlflexibleservers.Identity) []interface{} {
-	if identity == nil {
-		return []interface{}{}
-	}
-
-	principalId := ""
-	if identity.PrincipalID != nil {
-		principalId = *identity.PrincipalID
-	}
-
-	tenantId := ""
-	if identity.TenantID != nil {
-		tenantId = *identity.TenantID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(identity.Type),
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
 		},
 	}
 }
