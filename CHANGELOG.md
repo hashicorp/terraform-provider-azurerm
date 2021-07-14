@@ -16,6 +16,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_postgresql_flexible_server` - add new computed property `private_dns_zone_id` to work around a upcomming breaking change in the API [GH-12288]
+* `azurerm_mssql_database` - don't allow license_type to be set for serverless SQL databases [GH-12555]
 
 ## 2.67.0 (July 09, 2021)
 
