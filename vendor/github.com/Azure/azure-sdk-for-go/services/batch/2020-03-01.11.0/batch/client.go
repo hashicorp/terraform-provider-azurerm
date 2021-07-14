@@ -1,7 +1,7 @@
 // Package batch implements the Azure ARM Batch service API version 2020-03-01.11.0.
 //
 // A client for issuing REST requests to the Azure Batch service.
-package batchDataplane
+package batch
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.

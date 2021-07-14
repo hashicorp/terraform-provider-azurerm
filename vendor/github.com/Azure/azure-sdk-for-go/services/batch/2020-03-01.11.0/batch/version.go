@@ -1,4 +1,4 @@
-package batchDataplane
+package batch
 
 import "github.com/Azure/azure-sdk-for-go/version"
 
