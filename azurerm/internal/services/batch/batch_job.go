@@ -117,7 +117,7 @@ func (r BatchJobResource) Create() sdk.ResourceFunc {
 			if metadata.ResourceData.IsNewResource() {
 				existing, err := r.getJob(ctx, client, id)
 				if err != nil {
-					if existing == nil || !utils.ResponseWasNotFound(existing.Response) {
+					if !utils.ResponseWasNotFound(existing.Response) {
 						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 					}
 				}
@@ -176,7 +176,7 @@ func (r BatchJobResource) Read() sdk.ResourceFunc {
 
 			resp, err := r.getJob(ctx, client, *id)
 			if err != nil {
-				if resp != nil && utils.ResponseWasNotFound(resp.Response) {
+				if utils.ResponseWasNotFound(resp.Response) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -184,7 +184,7 @@ func (r BatchJobResource) Read() sdk.ResourceFunc {
 
 			model := BatchJobModel{
 				Name:              id.Name,
-				BatchPoolId:       parse.NewPoolID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.PoolName).String(),
+				BatchPoolId:       parse.NewPoolID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.PoolName).ID(),
 				MaxTaskRetryCount: 0,
 			}
 
@@ -276,8 +276,9 @@ func (r BatchJobResource) buildClient(ctx context.Context, client *client.Client
 	}
 
 	// Copy the client since we'll manipulate its BatchURL
-	c := *client.JobClient
-	c.BatchURL = "https://" + *account.AccountProperties.AccountEndpoint
+	endpoint := "https://" + *account.AccountProperties.AccountEndpoint
+	c := batchDataplane.NewJobClient(endpoint)
+	c.BaseClient.Client.Authorizer = client.BatchManagementAuthorizer
 	return &c, nil
 }
 
@@ -292,15 +293,11 @@ func (r BatchJobResource) addJob(ctx context.Context, client *batchDataplane.Job
 	return nil
 }
 
-func (r BatchJobResource) getJob(ctx context.Context, client *batchDataplane.JobClient, id parse.JobId) (*batchDataplane.CloudJob, error) {
+func (r BatchJobResource) getJob(ctx context.Context, client *batchDataplane.JobClient, id parse.JobId) (batchDataplane.CloudJob, error) {
 	deadline, _ := ctx.Deadline()
 	now := time.Now()
 	timeout := deadline.Sub(now)
-	resp, err := client.Get(ctx, id.Name, "", "", utils.Int32(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now}, "", "", nil, nil)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %v", id, err)
-	}
-	return &resp, nil
+	return client.Get(ctx, id.Name, "", "", utils.Int32(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now}, "", "", nil, nil)
 }
 
 func (r BatchJobResource) patchJob(ctx context.Context, client *batchDataplane.JobClient, id parse.JobId, job batchDataplane.JobPatchParameter) error {
@@ -308,10 +305,7 @@ func (r BatchJobResource) patchJob(ctx context.Context, client *batchDataplane.J
 	now := time.Now()
 	timeout := deadline.Sub(now)
 	_, err := client.Patch(ctx, id.Name, job, utils.Int32(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now}, "", "", nil, nil)
-	if err != nil {
-		return fmt.Errorf("updating %s: %v", id, err)
-	}
-	return nil
+	return err
 }
 
 func (r BatchJobResource) deleteJob(ctx context.Context, client *batchDataplane.JobClient, id parse.JobId) error {
@@ -319,8 +313,5 @@ func (r BatchJobResource) deleteJob(ctx context.Context, client *batchDataplane.
 	now := time.Now()
 	timeout := deadline.Sub(now)
 	_, err := client.Delete(ctx, id.Name, utils.Int32(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now}, "", "", nil, nil)
-	if err != nil {
-		return fmt.Errorf("deleting %s: %v", id, err)
-	}
-	return nil
+	return err
 }

@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batchDataplane"
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -12,7 +12,7 @@ type Client struct {
 	CertificateClient *batch.CertificateClient
 	PoolClient        *batch.PoolClient
 
-	JobClient *batchDataplane.JobClient
+	BatchManagementAuthorizer autorest.Authorizer
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -28,14 +28,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	poolClient := batch.NewPoolClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&poolClient.Client, o.ResourceManagerAuthorizer)
 
-	jobClient := batchDataplane.NewJobClient("")
-	o.ConfigureClient(&jobClient.Client, o.BatchAuthorizer)
-
 	return &Client{
-		AccountClient:     &accountClient,
-		ApplicationClient: &applicationClient,
-		CertificateClient: &certificateClient,
-		PoolClient:        &poolClient,
-		JobClient:         &jobClient,
+		AccountClient:             &accountClient,
+		ApplicationClient:         &applicationClient,
+		CertificateClient:         &certificateClient,
+		PoolClient:                &poolClient,
+		BatchManagementAuthorizer: o.BatchManagementAuthorizer,
 	}
 }

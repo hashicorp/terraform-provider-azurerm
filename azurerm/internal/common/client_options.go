@@ -19,7 +19,6 @@ type ClientOptions struct {
 	PartnerId        string
 	TerraformVersion string
 
-	BatchAuthorizer           autorest.Authorizer
 	GraphAuthorizer           autorest.Authorizer
 	GraphEndpoint             string
 	KeyVaultAuthorizer        autorest.Authorizer
@@ -27,6 +26,7 @@ type ClientOptions struct {
 	ResourceManagerEndpoint   string
 	StorageAuthorizer         autorest.Authorizer
 	SynapseAuthorizer         autorest.Authorizer
+	BatchManagementAuthorizer autorest.Authorizer
 
 	SkipProviderReg             bool
 	CustomCorrelationRequestID  string
