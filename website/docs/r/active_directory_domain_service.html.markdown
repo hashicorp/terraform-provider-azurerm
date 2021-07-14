@@ -160,7 +160,7 @@ The following arguments are supported:
 
 * `domain_name` - (Required) The Active Directory domain to use. See [official documentation](https://docs.microsoft.com/en-us/azure/active-directory-domain-services/tutorial-create-instance#create-a-managed-domain) for constraints and recommendations.
 
-* `filtered_sync_enabled` - (Optional) Whether to enable filtered sync for users and groups in Azure Active Directory. Defaults to `false`.
+* `filtered_sync_enabled` - Whether to enable group-based filtered sync (also called scoped synchronisation). Defaults to `false`.
 
 * `secure_ldap` - (Optional) A `secure_ldap` block as defined below.
 
