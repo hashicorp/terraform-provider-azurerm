@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Resource** `azurerm_postgresql_flexible_server_configuration` [GH-12294]
+
 ENHANCEMENTS:
 
 * dependencies: upgrading to `v55.5.0` of `github.com/Azure/azure-sdk-for-go` [GH-12435]
