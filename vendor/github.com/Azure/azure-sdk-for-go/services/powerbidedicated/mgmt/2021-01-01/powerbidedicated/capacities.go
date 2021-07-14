@@ -86,7 +86,7 @@ func (client CapacitiesClient) CheckNameAvailabilityPreparer(ctx context.Context
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -145,7 +145,10 @@ func (client CapacitiesClient) Create(ctx context.Context, resourceGroupName str
 		{TargetValue: dedicatedCapacityName,
 			Constraints: []validation.Constraint{{Target: "dedicatedCapacityName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "dedicatedCapacityName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "dedicatedCapacityName", Name: validation.Pattern, Rule: `^[a-z][a-z0-9]*$`, Chain: nil}}}}); err != nil {
+				{Target: "dedicatedCapacityName", Name: validation.Pattern, Rule: `^[a-z][a-z0-9]*$`, Chain: nil}}},
+		{TargetValue: capacityParameters,
+			Constraints: []validation.Constraint{{Target: "capacityParameters.Sku", Name: validation.Null, Rule: true,
+				Chain: []validation.Constraint{{Target: "capacityParameters.Sku.Name", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
 		return result, validation.NewError("powerbidedicated.CapacitiesClient", "Create", err.Error())
 	}
 
@@ -172,7 +175,7 @@ func (client CapacitiesClient) CreatePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -266,7 +269,7 @@ func (client CapacitiesClient) DeletePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -364,7 +367,7 @@ func (client CapacitiesClient) GetDetailsPreparer(ctx context.Context, resourceG
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -435,7 +438,7 @@ func (client CapacitiesClient) ListPreparer(ctx context.Context) (*http.Request,
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -518,7 +521,7 @@ func (client CapacitiesClient) ListByResourceGroupPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -589,7 +592,7 @@ func (client CapacitiesClient) ListSkusPreparer(ctx context.Context) (*http.Requ
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -679,7 +682,7 @@ func (client CapacitiesClient) ListSkusForCapacityPreparer(ctx context.Context, 
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -762,7 +765,7 @@ func (client CapacitiesClient) ResumePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -853,7 +856,7 @@ func (client CapacitiesClient) SuspendPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -945,7 +948,7 @@ func (client CapacitiesClient) UpdatePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-01"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
