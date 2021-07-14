@@ -47,8 +47,6 @@ data "azurerm_active_directory_domain_service" "example" {
   
 * `additional_replica_sets` - Zero or more `replica_set` block as defined below.
 
-* `resource_forest` - A `resource_forest` block as defined below.
-
 * `security` - A `security` block as defined below.
 
 * `sku` - The SKU of the Domain Service resource. One of `Standard`, `Enterprise` or `Premium`.
@@ -92,28 +90,6 @@ A `replica_set` block exports the following:
 * `service_status` - The current service status for the replica set.
 
 * `subnet_id` - The ID of the subnet in which the replica set resides.
-
----
-
-A `resource_forest` block exports the following:
-
-* `resource_forest` - Resource forest
-
-* `forest_trust` - One or more `forest_trust` blocks as defined below.
-
----
-
-A `forest_trust` block exports the following:
-
-* `name` - A display name to identity the forest trust.
-
-* `remote_dns_ips` - A list of DNS server IP addresses for the trusted forest root domain.
-
-* `trust_direction` - The direction of trust.
-
-* `trust_password` - The password for authenticating the forest trust.
-
-* `trusted_domain_fqdn` - The fully-qualified DNS name for the trusted forest.
 
 ---
 

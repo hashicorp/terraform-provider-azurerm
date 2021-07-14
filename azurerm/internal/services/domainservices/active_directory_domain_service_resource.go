@@ -739,62 +739,6 @@ func flattenDomainServiceReplicaSets(input *[]aad.ReplicaSet) (ret []interface{}
 	return
 }
 
-func flattenDomainServiceResourceForest(input *aad.ResourceForestSettings) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	forestTrust := make([]map[string]interface{}, 0)
-	if input.Settings != nil {
-		for _, rf := range *input.Settings {
-			ft := map[string]interface{}{
-				"name":                "",
-				"remote_dns_ips":      make([]string, 0),
-				"direction":           "",
-				"password":            "",
-				"trusted_domain_fqdn": "",
-			}
-
-			if rf.FriendlyName != nil {
-				ft["name"] = *rf.FriendlyName
-			}
-			if rf.RemoteDNSIps != nil {
-				remoteDnsIps := make([]string, 0)
-				r := strings.Split(*rf.RemoteDNSIps, ",")
-				for _, i := range r {
-					remoteDnsIps = append(remoteDnsIps, strings.TrimSpace(i))
-				}
-				ft["remote_dns_ips"] = remoteDnsIps
-			}
-			if rf.TrustDirection != nil {
-				ft["direction"] = *rf.TrustDirection
-			}
-			if rf.TrustPassword != nil {
-				ft["password"] = *rf.TrustPassword
-			}
-			if rf.TrustedDomainFqdn != nil {
-				ft["trusted_domain_fqdn"] = *rf.TrustedDomainFqdn
-			}
-
-			forestTrust = append(forestTrust, ft)
-		}
-	}
-
-	result := map[string]interface{}{
-		"resource_forest": "",
-		"trust":           forestTrust,
-	}
-	if input.ResourceForest != nil {
-		result["resource_forest"] = *input.ResourceForest
-	}
-
-	if result["resource_forest"].(string) == "" && len(result["forest_trust"].([]map[string]interface{})) == 0 {
-		return make([]interface{}, 0)
-	}
-
-	return []interface{}{result}
-}
-
 func flattenDomainServiceSecurity(input *aad.DomainSecuritySettings) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)

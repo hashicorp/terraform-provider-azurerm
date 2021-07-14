@@ -116,7 +116,6 @@ func TestAccActiveDirectoryDomainService_updateWithDatasource(t *testing.T) {
 				check.That(dataSourceData.ResourceName).Key("replica_sets.1.location").Exists(),
 				check.That(dataSourceData.ResourceName).Key("replica_sets.1.service_status").Exists(),
 				check.That(dataSourceData.ResourceName).Key("replica_sets.1.subnet_id").Exists(),
-				check.That(dataSourceData.ResourceName).Key("resource_forest.#").HasValue("0"),
 				check.That(dataSourceData.ResourceName).Key("secure_ldap.#").HasValue("1"),
 				check.That(dataSourceData.ResourceName).Key("secure_ldap.#").HasValue("1"),
 				check.That(dataSourceData.ResourceName).Key("secure_ldap.0.certificate_expiry").Exists(),
