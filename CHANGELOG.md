@@ -16,6 +16,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_function_app` - set a default value for `os_type` and allow a blank string to be specified as per documentation [GH-12482]
 * `azurerm_postgresql_flexible_server` - add new computed property `private_dns_zone_id` to work around a upcomming breaking change in the API [GH-12288]
 * `azurerm_mssql_database` - don't allow license_type to be set for serverless SQL databases [GH-12555]
 
