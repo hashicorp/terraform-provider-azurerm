@@ -32,6 +32,21 @@ func testAccBotChannelSkype_basic(t *testing.T) {
 	})
 }
 
+func testAccBotChannelSkype_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_skype", "test")
+	r := BotChannelSkypeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func testAccBotChannelSkype_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_skype", "test")
 	r := BotChannelSkypeResource{}
@@ -102,6 +117,18 @@ resource "azurerm_bot_channel_skype" "test" {
 `, BotChannelsRegistrationResource{}.basicConfig(data))
 }
 
+func (t BotChannelSkypeResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_bot_channel_skype" "import" {
+  bot_name            = azurerm_bot_channel_skype.test.bot_name
+  location            = azurerm_bot_channel_skype.test.location
+  resource_group_name = azurerm_bot_channel_skype.test.resource_group_name
+}
+`, t.basic(data))
+}
+
 func (BotChannelSkypeResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -116,9 +143,6 @@ resource "azurerm_bot_channel_skype" "test" {
   enable_groups         = true
   enable_media_cards    = true
   enable_messaging      = true
-  enable_screen_sharing = true
-  enable_video          = true
-  groups_mode           = "test"
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))
 }

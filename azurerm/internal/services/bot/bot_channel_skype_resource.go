@@ -48,6 +48,8 @@ func resourceBotChannelSkype() *pluginsdk.Resource {
 				ValidateFunc: validate.BotName,
 			},
 
+			// issue: https://github.com/Azure/azure-rest-api-specs/issues/15170
+			// this field could not update to empty, so add `Computed: true` to avoid diff
 			"calling_web_hook": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -72,21 +74,6 @@ func resourceBotChannelSkype() *pluginsdk.Resource {
 
 			"enable_messaging": {
 				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
-			"enable_screen_sharing": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
-			"enable_video": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
-			"groups_mode": {
-				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 		},
@@ -122,13 +109,11 @@ func resourceBotChannelSkypeCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	parameters := botservice.BotChannel{
 		Properties: botservice.SkypeChannel{
 			Properties: &botservice.SkypeChannelProperties{
-				EnableCalling:       utils.Bool(d.Get("enable_calling").(bool)),
-				EnableGroups:        utils.Bool(d.Get("enable_groups").(bool)),
-				EnableMediaCards:    utils.Bool(d.Get("enable_media_cards").(bool)),
-				EnableMessaging:     utils.Bool(d.Get("enable_messaging").(bool)),
-				EnableScreenSharing: utils.Bool(d.Get("enable_screen_sharing").(bool)),
-				EnableVideo:         utils.Bool(d.Get("enable_video").(bool)),
-				IsEnabled:           utils.Bool(true),
+				EnableCalling:    utils.Bool(d.Get("enable_calling").(bool)),
+				EnableGroups:     utils.Bool(d.Get("enable_groups").(bool)),
+				EnableMediaCards: utils.Bool(d.Get("enable_media_cards").(bool)),
+				EnableMessaging:  utils.Bool(d.Get("enable_messaging").(bool)),
+				IsEnabled:        utils.Bool(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameSkypeChannel,
 		},
@@ -139,11 +124,6 @@ func resourceBotChannelSkypeCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	if v, ok := d.GetOk("calling_web_hook"); ok {
 		channel, _ := parameters.Properties.AsSkypeChannel()
 		channel.Properties.CallingWebHook = utils.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("groups_mode"); ok {
-		channel, _ := parameters.Properties.AsSkypeChannel()
-		channel.Properties.GroupsMode = utils.String(v.(string))
 	}
 
 	if _, err := client.Create(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameSkypeChannel, parameters); err != nil {
@@ -187,9 +167,6 @@ func resourceBotChannelSkypeRead(d *pluginsdk.ResourceData, meta interface{}) er
 				d.Set("enable_groups", channelProps.EnableGroups)
 				d.Set("enable_media_cards", channelProps.EnableMediaCards)
 				d.Set("enable_messaging", channelProps.EnableMessaging)
-				d.Set("enable_screen_sharing", channelProps.EnableScreenSharing)
-				d.Set("enable_video", channelProps.EnableVideo)
-				d.Set("groups_mode", channelProps.GroupsMode)
 			}
 		}
 	}
@@ -210,13 +187,11 @@ func resourceBotChannelSkypeUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	parameters := botservice.BotChannel{
 		Properties: botservice.SkypeChannel{
 			Properties: &botservice.SkypeChannelProperties{
-				EnableCalling:       utils.Bool(d.Get("enable_calling").(bool)),
-				EnableGroups:        utils.Bool(d.Get("enable_groups").(bool)),
-				EnableMediaCards:    utils.Bool(d.Get("enable_media_cards").(bool)),
-				EnableMessaging:     utils.Bool(d.Get("enable_messaging").(bool)),
-				EnableScreenSharing: utils.Bool(d.Get("enable_screen_sharing").(bool)),
-				EnableVideo:         utils.Bool(d.Get("enable_video").(bool)),
-				IsEnabled:           utils.Bool(true),
+				EnableCalling:    utils.Bool(d.Get("enable_calling").(bool)),
+				EnableGroups:     utils.Bool(d.Get("enable_groups").(bool)),
+				EnableMediaCards: utils.Bool(d.Get("enable_media_cards").(bool)),
+				EnableMessaging:  utils.Bool(d.Get("enable_messaging").(bool)),
+				IsEnabled:        utils.Bool(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameSkypeChannel,
 		},
@@ -227,11 +202,6 @@ func resourceBotChannelSkypeUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	if v, ok := d.GetOk("calling_web_hook"); ok {
 		channel, _ := parameters.Properties.AsSkypeChannel()
 		channel.Properties.CallingWebHook = utils.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("groups_mode"); ok {
-		channel, _ := parameters.Properties.AsSkypeChannel()
-		channel.Properties.GroupsMode = utils.String(v.(string))
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameSkypeChannel, parameters); err != nil {
