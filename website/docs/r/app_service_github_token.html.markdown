@@ -1,5 +1,5 @@
 ---
-subcategory: "App Service"
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_github_token"
 description: |-
