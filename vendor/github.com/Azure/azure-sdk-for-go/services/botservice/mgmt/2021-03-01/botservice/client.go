@@ -1,4 +1,4 @@
-// Package botservice implements the Azure ARM Botservice service API version 2018-07-12.
+// Package botservice implements the Azure ARM Botservice service API version 2021-03-01.
 //
 // Azure Bot Service is a platform for creating smart conversational agents.
 package botservice

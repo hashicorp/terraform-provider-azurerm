@@ -1,3 +1,14 @@
+## 2.68.0 (Unreleased)
+
+FEATURES:
+
+ENHANCEMENTS:
+
+* dependencies: updating `bot` to use API Version `2021-03-01` [GH-12449]
+* `azurerm_cognitive_account` - support for the `identity`, `storage`, `disable_local_auth`, `fqdns`, `public_network_access_enabled`, and `restrict_outbound_network_access` properties [GH-12469]
+
+BUG FIXES:
+
 ## 2.67.0 (July 09, 2021)
 
 FEATURES:

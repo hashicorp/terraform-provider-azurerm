@@ -95,7 +95,7 @@ func (client BotsClient) CreatePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-12"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -185,7 +185,7 @@ func (client BotsClient) DeletePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-12"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -272,7 +272,7 @@ func (client BotsClient) GetPreparer(ctx context.Context, resourceGroupName stri
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-12"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -341,7 +341,7 @@ func (client BotsClient) GetCheckNameAvailability(ctx context.Context, parameter
 
 // GetCheckNameAvailabilityPreparer prepares the GetCheckNameAvailability request.
 func (client BotsClient) GetCheckNameAvailabilityPreparer(ctx context.Context, parameters CheckNameAvailabilityRequestBody) (*http.Request, error) {
-	const APIVersion = "2018-07-12"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -419,7 +419,7 @@ func (client BotsClient) ListPreparer(ctx context.Context) (*http.Request, error
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-12"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -543,7 +543,7 @@ func (client BotsClient) ListByResourceGroupPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-12"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -669,7 +669,7 @@ func (client BotsClient) UpdatePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-12"
+	const APIVersion = "2021-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
