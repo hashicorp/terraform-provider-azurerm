@@ -5,18 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
-
-	"github.com/Azure/go-autorest/autorest/date"
-
 	"github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batchDataplane"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
-
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -30,7 +25,8 @@ type BatchJobModel struct {
 	DisplayName string `tfschema:"display_name"`
 	Priority    int    `tfschema:"priority"`
 	//MaxWallClockTime  string `tfschema:"max_wall_clock_time"`
-	MaxTaskRetryCount int `tfschema:"max_task_retry_count"`
+	MaxTaskRetryCount        int               `tfschema:"max_task_retry_count"`
+	CommonEnvironmentSetting map[string]string `tfschema:"common_environment_setting"`
 }
 
 func (r BatchJobResource) Arguments() map[string]*pluginsdk.Schema {
@@ -47,19 +43,28 @@ func (r BatchJobResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validate.PoolID,
 		},
+		"display_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"common_environment_setting": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			ForceNew: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
 		"priority": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      0,
 			ValidateFunc: validation.IntBetween(-1000, 1000),
 		},
-		"display_name": {
-			Type:         pluginsdk.TypeString,
-			ForceNew:     true,
-			Optional:     true,
-			ValidateFunc: validation.IsRFC3339Time,
-		},
 		// TODO: identify how to represent "unlimited", it appears that a duration larger than some threshold is regarded as unlimited
+		// Tracked in: https://github.com/Azure/azure-rest-api-specs/issues/15198
 		//"max_wall_clock_time": {
 		//	Type:         pluginsdk.TypeString,
 		//	Optional:     true,
@@ -69,7 +74,7 @@ func (r BatchJobResource) Arguments() map[string]*pluginsdk.Schema {
 		"max_task_retry_count": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(0),
+			ValidateFunc: validation.IntAtLeast(-1),
 		},
 	}
 }
@@ -106,8 +111,7 @@ func (r BatchJobResource) Create() sdk.ResourceFunc {
 			}
 
 			accountId := parse.NewAccountID(poolId.SubscriptionId, poolId.ResourceGroup, poolId.BatchAccountName)
-
-			client, err := r.buildClient(ctx, metadata.Client.Batch, accountId)
+			client, err := metadata.Client.Batch.JobClient(ctx, accountId)
 			if err != nil {
 				return err
 			}
@@ -134,19 +138,10 @@ func (r BatchJobResource) Create() sdk.ResourceFunc {
 					//MaxWallClockTime:  nil,
 					MaxTaskRetryCount: utils.Int32(int32(model.MaxTaskRetryCount)),
 				},
-				//JobManagerTask:            r.expandJobManagerTask(model),
-				//JobPreparationTask:        r.expandJobPreparationTask(model),
-				//JobReleaseTask:            r.expandJobReleaseTask(model),
-				//CommonEnvironmentSettings: r.expandEnvironmentSettings(model),
+				CommonEnvironmentSettings: r.expandEnvironmentSettings(model.CommonEnvironmentSetting),
 				PoolInfo: &batchDataplane.PoolInformation{
 					PoolID: &poolId.Name,
-					//AutoPoolSpecification: nil,
 				},
-				//OnAllTasksComplete:        "",
-				//OnTaskFailure:             "",
-				//Metadata:                  nil,
-				//UsesTaskDependencies:      nil,
-				//NetworkConfiguration:      nil,
 			}
 
 			if err := r.addJob(ctx, client, id, params); err != nil {
@@ -169,7 +164,7 @@ func (r BatchJobResource) Read() sdk.ResourceFunc {
 				return err
 			}
 			accountId := parse.NewAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
-			client, err := r.buildClient(ctx, metadata.Client.Batch, accountId)
+			client, err := metadata.Client.Batch.JobClient(ctx, accountId)
 			if err != nil {
 				return err
 			}
@@ -202,6 +197,8 @@ func (r BatchJobResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			model.CommonEnvironmentSetting = r.flattenEnvironmentSettings(resp.CommonEnvironmentSettings)
+
 			return metadata.Encode(&model)
 		},
 	}
@@ -222,12 +219,19 @@ func (r BatchJobResource) Update() sdk.ResourceFunc {
 				patch.Priority = utils.Int32(int32(model.Priority))
 			}
 
+			if metadata.ResourceData.HasChange("max_task_retry_count") {
+				if patch.Constraints == nil {
+					patch.Constraints = new(batchDataplane.JobConstraints)
+				}
+				patch.Constraints.MaxTaskRetryCount = utils.Int32(int32(model.MaxTaskRetryCount))
+			}
+
 			id, err := parse.JobID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 			accountId := parse.NewAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
-			client, err := r.buildClient(ctx, metadata.Client.Batch, accountId)
+			client, err := metadata.Client.Batch.JobClient(ctx, accountId)
 			if err != nil {
 				return err
 			}
@@ -249,7 +253,7 @@ func (r BatchJobResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 			accountId := parse.NewAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
-			client, err := r.buildClient(ctx, metadata.Client.Batch, accountId)
+			client, err := metadata.Client.Batch.JobClient(ctx, accountId)
 			if err != nil {
 				return err
 			}
@@ -259,27 +263,6 @@ func (r BatchJobResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func (r BatchJobResource) buildClient(ctx context.Context, client *client.Client, accountId parse.AccountId) (*batchDataplane.JobClient, error) {
-	// Retrieve the batch account to find the batch account endpoint
-	accountClient := client.AccountClient
-	account, err := accountClient.Get(ctx, accountId.ResourceGroup, accountId.BatchAccountName)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %v", accountId, err)
-	}
-	if account.AccountProperties == nil {
-		return nil, fmt.Errorf(`unexpected nil of "AccountProperties" of %s`, accountId)
-	}
-	if account.AccountProperties.AccountEndpoint == nil {
-		return nil, fmt.Errorf(`unexpected nil of "AccountProperties.AccountEndpoint" of %s`, accountId)
-	}
-
-	// Copy the client since we'll manipulate its BatchURL
-	endpoint := "https://" + *account.AccountProperties.AccountEndpoint
-	c := batchDataplane.NewJobClient(endpoint)
-	c.BaseClient.Client.Authorizer = client.BatchManagementAuthorizer
-	return &c, nil
 }
 
 func (r BatchJobResource) addJob(ctx context.Context, client *batchDataplane.JobClient, id parse.JobId, job batchDataplane.JobAddParameter) error {
@@ -314,4 +297,36 @@ func (r BatchJobResource) deleteJob(ctx context.Context, client *batchDataplane.
 	timeout := deadline.Sub(now)
 	_, err := client.Delete(ctx, id.Name, utils.Int32(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now}, "", "", nil, nil)
 	return err
+}
+
+func (r BatchJobResource) expandEnvironmentSettings(input map[string]string) *[]batchDataplane.EnvironmentSetting {
+	if len(input) == 0 {
+		return nil
+	}
+	m := make([]batchDataplane.EnvironmentSetting, 0, len(input))
+	for k, v := range input {
+		m = append(m, batchDataplane.EnvironmentSetting{
+			Name:  &k,
+			Value: &v,
+		})
+	}
+	return &m
+}
+
+func (r BatchJobResource) flattenEnvironmentSettings(input *[]batchDataplane.EnvironmentSetting) map[string]string {
+	if input == nil {
+		return nil
+	}
+
+	m := make(map[string]string)
+	for _, setting := range *input {
+		if setting.Name == nil {
+			continue
+		}
+		if setting.Value == nil {
+			continue
+		}
+		m[*setting.Name] = *setting.Value
+	}
+	return m
 }
