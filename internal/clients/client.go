@@ -12,6 +12,7 @@ import (
 	apiManagement "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 	appConfiguration "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/client"
 	applicationInsights "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/client"
+	appService "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	attestation "github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/client"
 	authorization "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	automation "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
@@ -116,6 +117,7 @@ type Client struct {
 	AppConfiguration      *appConfiguration.Client
 	AppInsights           *applicationInsights.Client
 	AppPlatform           *appPlatform.Client
+	AppService            *appService.Client
 	Attestation           *attestation.Client
 	Authorization         *authorization.Client
 	Automation            *automation.Client
