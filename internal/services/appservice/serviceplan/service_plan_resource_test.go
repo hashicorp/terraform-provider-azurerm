@@ -1,0 +1,400 @@
+package serviceplan_test
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appservice/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+)
+
+type ServicePlanResource struct{}
+
+func TestAccServicePlan_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServicePlan_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccServicePlan_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServicePlan_completeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServicePlan_maxElasticWorkerCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.maxElasticWorkerCount(data, 5),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.maxElasticWorkerCount(data, 10),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// ASE tests given longer prefix to allow them to be more easily filtered out due to exceptionally long running time
+func TestAccServicePlanIsolated_appServiceEnvironmentV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aseV2(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// ASE tests given longer prefix to allow them to be more easily filtered out due to exceptionally long running time
+func TestAccServicePlanIsolated_appServiceEnvironmentV3(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aseV3(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r ServicePlanResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.ServicePlanID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.AppService.ServicePlanClient.Get(ctx, id.ResourceGroup, id.ServerfarmName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retreiving %s: %v", id, err)
+	}
+	if utils.ResponseWasNotFound(resp.Response) {
+		return utils.Bool(false), nil
+	}
+	return utils.Bool(true), nil
+}
+
+// Configs
+
+func (r ServicePlanResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-SP-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctest-SP-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "B1"
+
+  tags = {
+    environment = "AccTest"
+    Foo         = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+// (@jackofallops) - `complete` deliberately omits ASE testing for the moment and will be tested separately later
+func (r ServicePlanResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-SP-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctest-SP-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "S1"
+  os_type             = "Linux"
+  per_site_scaling    = true
+  number_of_workers   = 2
+
+  tags = {
+    environment = "AccTest"
+    Foo         = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ServicePlanResource) completeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-SP-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctest-SP-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "P1v2"
+  os_type             = "Linux"
+  per_site_scaling    = true
+  number_of_workers   = 3
+
+  tags = {
+    Foo = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ServicePlanResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%s
+
+resource "azurerm_service_plan" "import" {
+  name                = azurerm_service_plan.test.name
+  resource_group_name = azurerm_service_plan.test.resource_group_name
+  location            = azurerm_service_plan.test.location
+  sku_name            = azurerm_service_plan.test.sku_name
+}
+`, r.basic(data))
+}
+
+func (r ServicePlanResource) maxElasticWorkerCount(data acceptance.TestData, count int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-SP-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                         = "acctest-SP-%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  sku_name                     = "EP1"
+  os_type                      = "Linux"
+  maximum_elastic_worker_count = %[3]d
+
+  tags = {
+    environment = "AccTest"
+    Foo         = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, count)
+}
+
+func (r ServicePlanResource) aseV2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-SP-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "ase" {
+  name                 = "asesubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_subnet" "gateway" {
+  name                 = "gatewaysubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_app_service_environment" "test" {
+  name      = "acctest-ase-%[1]d"
+  subnet_id = azurerm_subnet.ase.id
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctest-SP-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "I1"
+
+  app_service_environment_id = azurerm_app_service_environment.test.id
+
+  tags = {
+    environment = "AccTest"
+    Foo         = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ServicePlanResource) aseV3(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-SP-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG2-ase-%[1]d"
+  location = "%[2]s"
+}
+
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "inbound" {
+  name                 = "inbound"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_subnet" "outbound" {
+  name                 = "outbound"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+  delegation {
+    name = "asedelegation"
+    service_delegation {
+      name    = "Microsoft.Web/hostingEnvironments"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_app_service_environment_v3" "test" {
+  name                = "acctest-ase-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.outbound.id
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctest-SP-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "I1v2"
+
+  app_service_environment_id = azurerm_app_service_environment_v3.test.id
+
+  tags = {
+    environment = "AccTest"
+    Foo         = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
