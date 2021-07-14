@@ -299,7 +299,7 @@ func FlattenApiManagementOperationParameterContract(input *[]apimanagement.Param
 			output["default_value"] = *v.DefaultValue
 		}
 
-		output["values"] = pluginsdk.NewSet(pluginsdk.HashString, utils.FlattenStringSlice(v.Values))
+		output["values"] = utils.FlattenStringSlice(v.Values)
 
 		outputs = append(outputs, output)
 	}

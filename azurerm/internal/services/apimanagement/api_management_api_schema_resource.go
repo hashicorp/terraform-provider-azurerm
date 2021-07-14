@@ -92,7 +92,9 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 	parameters := apimanagement.SchemaContract{
 		SchemaContractProperties: &apimanagement.SchemaContractProperties{
 			ContentType: &contentType,
-			Document:    &value,
+			Document: map[string]string{
+				"value": value,
+			},
 		},
 	}
 
@@ -153,21 +155,34 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 
 	if properties := resp.SchemaContractProperties; properties != nil {
 		d.Set("content_type", properties.ContentType)
-		/*
-			As per https://docs.microsoft.com/en-us/rest/api/apimanagement/2019-12-01/api-schema/get#schemacontract
+		if properties.Document != nil {
+			/*
+				As per https://docs.microsoft.com/en-us/rest/api/apimanagement/2019-12-01/api-schema/get#schemacontract
 
-			- Swagger Schema use application/vnd.ms-azure-apim.swagger.definitions+json
-			- WSDL Schema use application/vnd.ms-azure-apim.xsd+xml
-			- OpenApi Schema use application/vnd.oai.openapi.components+json
-			- WADL Schema use application/vnd.ms-azure-apim.wadl.grammars+xml.
+				- Swagger Schema use application/vnd.ms-azure-apim.swagger.definitions+json
+				- WSDL Schema use application/vnd.ms-azure-apim.xsd+xml
+				- OpenApi Schema use application/vnd.oai.openapi.components+json
+				- WADL Schema use application/vnd.ms-azure-apim.wadl.grammars+xml.
 
-			Definitions used for Swagger/OpenAPI schemas only, otherwise Value is used
-		*/
-		value, err := json.Marshal(properties.Document)
-		if err != nil {
-			return fmt.Errorf("[FATAL] Unable to serialize schema to json. Error: %+v. Schema struct: %+v", err, properties.Document)
+				Definitions used for Swagger/OpenAPI schemas only, otherwise Value is used
+			*/
+			document := properties.Document.(map[string]interface{})
+			switch *properties.ContentType {
+			case "application/vnd.ms-azure-apim.swagger.definitions+json", "application/vnd.oai.openapi.components+json":
+				if v, ok := document["definitions"]; ok {
+					value, err := json.Marshal(v)
+					if err != nil {
+						return fmt.Errorf("[FATAL] Unable to serialize schema to json. Error: %+v. Schema struct: %+v", err, v)
+					}
+					d.Set("value", string(value))
+				}
+			case "application/vnd.ms-azure-apim.xsd+xml", "application/vnd.ms-azure-apim.wadl.grammars+xml":
+				d.Set("value", document["value"])
+			default:
+				log.Printf("[WARN] Unknown content type %q for schema %q (API Management Service %q / API %q / Resource Group %q)", *properties.ContentType, schemaID, serviceName, apiName, resourceGroup)
+				d.Set("value", document["value"])
+			}
 		}
-		d.Set("value", string(value))
 	}
 	return nil
 }
