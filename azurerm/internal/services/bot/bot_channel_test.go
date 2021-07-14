@@ -30,7 +30,6 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 			"skypeBasic":         testAccBotChannelSkype_basic,
 			"skypeComplete":      testAccBotChannelSkype_complete,
 			"skypeUpdate":        testAccBotChannelSkype_update,
-			"skypeImport":        testAccBotChannelSkype_requiresImport,
 		},
 		"web_app": {
 			"basic":    testAccBotWebApp_basic,
