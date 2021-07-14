@@ -86,55 +86,6 @@ func dataSourceActiveDirectoryDomainService() *pluginsdk.Resource {
 				},
 			},
 
-			"resource_forest": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"resource_forest": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"trust": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-
-									"remote_dns_ips": {
-										Type:     pluginsdk.TypeList,
-										Computed: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-										},
-									},
-
-									"direction": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-
-									"password": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-
-									"trusted_domain_fqdn": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-
 			"secure_ldap": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -314,10 +265,6 @@ func dataSourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta 
 
 		if err := d.Set("notifications", flattenDomainServiceNotifications(props.NotificationSettings)); err != nil {
 			return fmt.Errorf("setting `notifications`: %+v", err)
-		}
-
-		if err := d.Set("resource_forest", flattenDomainServiceResourceForest(props.ResourceForestSettings)); err != nil {
-			return fmt.Errorf("setting `resource_forest`: %+v", err)
 		}
 
 		if err := d.Set("secure_ldap", flattenDomainServiceLdaps(d, props.LdapsSettings, true)); err != nil {
