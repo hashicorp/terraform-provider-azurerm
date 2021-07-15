@@ -74,10 +74,15 @@ func resourceAppServiceCertificate() *pluginsdk.Resource {
 				ConflictsWith: []string{"pfx_blob", "password"},
 			},
 
-			"hosting_environment_profile_id": {
+			"app_service_plan_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
+			},
+
+			"hosting_environment_profile_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"friendly_name": {
@@ -138,7 +143,7 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 	pfxBlob := d.Get("pfx_blob").(string)
 	password := d.Get("password").(string)
 	keyVaultSecretId := d.Get("key_vault_secret_id").(string)
-	hostingEnvironmentProfileId := d.Get("hosting_environment_profile_id").(string)
+	appServicePlanId := d.Get("app_service_plan_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	if pfxBlob == "" && keyVaultSecretId == "" {
@@ -166,10 +171,8 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 		Tags:     tags.Expand(t),
 	}
 
-	if len(hostingEnvironmentProfileId) > 0 {
-		certificate.CertificateProperties.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
-			ID: &hostingEnvironmentProfileId,
-		}
+	if appServicePlanId != "" {
+		certificate.CertificateProperties.ServerFarmID = &appServicePlanId
 	}
 
 	if pfxBlob != "" {
