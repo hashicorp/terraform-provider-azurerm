@@ -111,11 +111,11 @@ resource "azurerm_bot_channel_skype" "test" {
   location            = azurerm_bot_channels_registration.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  calling_web_hook      = "https://example.com/"
-  enable_calling        = true
-  enable_groups         = true
-  enable_media_cards    = true
-  enable_messaging      = true
+  calling_web_hook   = "https://example.com/"
+  enable_calling     = true
+  enable_groups      = true
+  enable_media_cards = true
+  enable_messaging   = true
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))
 }
