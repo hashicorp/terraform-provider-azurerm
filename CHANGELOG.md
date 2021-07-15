@@ -6,6 +6,7 @@ FEATURES:
 * **New Resource** `azurerm_api_management_api_release` [GH-12562]
 * **New Resource** `azurerm_data_protection_backup_policy_disk` [GH-12361]
 * **New Resource** `azurerm_data_factory_custom_dataset` [GH-12484]
+* **New Resource** `azurerm_maintenance_assignment_virtual_machine_scale_set` [GH-12273]
 * **New Resource** `azurerm_postgresql_flexible_server_configuration` [GH-12294]
 * **New Resource** `azurerm_synapse_private_link_hub` [GH-12495]
 
@@ -13,12 +14,14 @@ ENHANCEMENTS:
 
 * dependencies: upgrading to `v55.5.0` of `github.com/Azure/azure-sdk-for-go` [GH-12435]
 * dependencies: updating `bot` to use API Version `2021-03-01` [GH-12449]
+* dependencies: updating `maintenance` to use API Version `2021-05-01` [GH-12273]
 * `azurerm_api_management_named_value` - support for the `value_from_key_vault` block [GH-12309]
 * `azurerm_api_management_api_diagnostic` - support for the `data_masking`1 property [GH-12419]
 * `azurerm_cognitive_account` - support for the `identity`, `storage`, `disable_local_auth`, `fqdns`, `public_network_access_enabled`, and `restrict_outbound_network_access` properties [GH-12469]
 * `azurerm_cognitive_account` - the `virtual_network_subnet_ids` property has been deprecated in favour of `virtual_network_rules` block to supoport the `ignore_missing_vnet_service_endpoint` property [GH-12600]
 * `azurerm_container_registry` - now exports the `principal_id` and `tenant_id` attributes in the `identity` block [GH-12378]
 * `azurerm_linux_virtual_machine_scale_set` - Fix un-necessary VMSS instance rolling request [GH-12590]
+* `azurerm_maintenance_configuration` - support for the `window`, `visibility`, and `properties` blocks [GH-12273]
 * `azurerm_powerbi_embedded` - support for the `mode` property [GH-12394]
 * `azurerm_redis_cache` - support for the `maintenance_window` property in the `patch_schedule` block [GH-12472]
 * `azurerm_storage_account_customer_managed_key` - support for the `user_assigned_identity_id` property [GH-12516]
