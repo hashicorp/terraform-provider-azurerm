@@ -221,10 +221,38 @@ func resourceBotChannelSkypeDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameSkypeChannel))
+	parameters := botservice.BotChannel{
+		Properties: botservice.SkypeChannel{
+			Properties: &botservice.SkypeChannelProperties{
+				EnableMessaging: utils.Bool(true),
+				IsEnabled:       utils.Bool(true),
+			},
+			ChannelName: botservice.ChannelNameBasicChannelChannelNameSkypeChannel,
+		},
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Kind:     botservice.KindBot,
+	}
+
+	existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameSkypeChannel))
 	if err != nil {
-		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("deleting %s: %+v", id, err)
+		return err
+	}
+
+	channel, _ := existing.Properties.AsSkypeChannel()
+
+	if channel.Properties.CallingWebHook != nil && *channel.Properties.CallingWebHook != "" {
+		// As there is a default Skype Channel and the `callingWebHook` property cannot be updated from a valid value to empty value, so it has to recreate it for restoring to default one
+		if _, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameSkypeChannel)); err != nil {
+			return err
+		}
+
+		if _, err := client.Create(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameSkypeChannel, parameters); err != nil {
+			return fmt.Errorf("recreating for restoring %s: %+v", id, err)
+		}
+	} else {
+		// As there is a default Skype Channel, so it has to restore it to default one
+		if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameSkypeChannel, parameters); err != nil {
+			return fmt.Errorf("updating for restoring %s: %+v", id, err)
 		}
 	}
 
