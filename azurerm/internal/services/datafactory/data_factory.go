@@ -295,6 +295,7 @@ func expandDataFactoryDatasetSFTPServerLocation(d *pluginsdk.ResourceData) dataf
 	if len(sftpServerLocations) == 0 || sftpServerLocations[0] == nil {
 		return nil
 	}
+
 	props := sftpServerLocations[0].(map[string]interface{})
 
 	sftpServerLocation := datafactory.SftpLocation{
