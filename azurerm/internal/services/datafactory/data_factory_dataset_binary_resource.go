@@ -360,10 +360,8 @@ func resourceDataFactoryDatasetBinaryRead(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	if folder := binaryTable.Folder; folder != nil {
-		if folder.Name != nil {
-			d.Set("folder", folder.Name)
-		}
+	if folder := binaryTable.Folder; folder != nil && folder.Name != nil {
+		d.Set("folder", folder.Name)
 	}
 
 	return nil
