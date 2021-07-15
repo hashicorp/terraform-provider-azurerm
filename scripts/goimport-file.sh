@@ -19,7 +19,11 @@ case "$OSTYPE" in
         sed -i -e "$sed_expression" $1
         ;;
     "darwin"*)
-        sed -i '' -e "$sed_expression" $1
+        if command -v gsed; then
+            gsed -i -e "$sed_expression" $1
+        else
+            sed -i '' -e "$sed_expression" $1
+        fi
         ;;
 esac 
 
