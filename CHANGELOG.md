@@ -21,6 +21,7 @@ ENHANCEMENTS:
 * `azurerm_linux_virtual_machine_scale_set` - Fix un-necessary VMSS instance rolling request [GH-12590]
 * `azurerm_powerbi_embedded` - support for the `mode` property [GH-12394]
 * `azurerm_redis_cache` - support for the `maintenance_window` property in the `patch_schedule` block [GH-12472]
+* `azurerm_storage_account_customer_managed_key` - support for the `user_assigned_identity_id` property [GH-12516]
 
 BUG FIXES:
 
