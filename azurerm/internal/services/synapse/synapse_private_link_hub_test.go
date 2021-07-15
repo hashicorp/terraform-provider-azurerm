@@ -15,7 +15,7 @@ import (
 
 type SynapsePrivateLinkHubResource struct{}
 
-func TestAccSynapsePrivateLinkHub_create(t *testing.T) {
+func TestAccSynapsePrivateLinkHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_private_link_hub", "test")
 	r := SynapsePrivateLinkHubResource{}
 
@@ -62,7 +62,7 @@ func (r SynapsePrivateLinkHubResource) Exists(ctx context.Context, client *clien
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Synapse Private Link Hub %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return utils.Bool(true), nil
@@ -71,10 +71,10 @@ func (r SynapsePrivateLinkHubResource) Exists(ctx context.Context, client *clien
 func (r SynapsePrivateLinkHubResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_synapse_private_link_hub" "test" {
-  name                = "acctestsw%d"
+  name                = "acctestsw%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
@@ -84,10 +84,10 @@ resource "azurerm_synapse_private_link_hub" "test" {
 func (r SynapsePrivateLinkHubResource) withUpdateFields(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_synapse_private_link_hub" "test" {
-  name                = "acctestsw%d"
+  name                = "acctestsw%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
