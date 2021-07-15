@@ -19,9 +19,17 @@ func TestAccMaintenanceConfigurationDataSource_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("scope").HasValue("Host"),
+				check.That(data.ResourceName).Key("scope").HasValue("SQLDB"),
+				check.That(data.ResourceName).Key("visibility").HasValue("Custom"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.env").HasValue("TesT"),
+				check.That(data.ResourceName).Key("tags.enV").HasValue("TesT"),
+				check.That(data.ResourceName).Key("window.0.start_date_time").HasValue("5555-12-31 00:00"),
+				check.That(data.ResourceName).Key("window.0.expiration_date_time").HasValue("6666-12-31 00:00"),
+				check.That(data.ResourceName).Key("window.0.duration").HasValue("06:00"),
+				check.That(data.ResourceName).Key("window.0.time_zone").HasValue("Pacific Standard Time"),
+				check.That(data.ResourceName).Key("window.0.recur_every").HasValue("2Days"),
+				check.That(data.ResourceName).Key("properties.%").HasValue("1"),
+				check.That(data.ResourceName).Key("properties.description").HasValue("acceptance test"),
 			),
 		},
 	})
