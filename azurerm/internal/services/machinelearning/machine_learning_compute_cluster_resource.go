@@ -162,8 +162,8 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		ScaleSettings: expandScaleSettings(d.Get("scale_settings").([]interface{})),
 	}
 
-	if d.Get("subnet_resource_id") != nil {
-		computeClusterAmlComputeProperties.Subnet = &machinelearningservices.ResourceID{ID: utils.String(d.Get("subnet_resource_id").(string))}
+	if subnetId, ok := d.GetOk("subnet_resource_id"); ok && subnetId.(string) != "" {
+		computeClusterAmlComputeProperties.Subnet = &machinelearningservices.ResourceID{ID: utils.String(subnetId.(string))}
 	}
 
 	computeClusterProperties := machinelearningservices.AmlCompute{
