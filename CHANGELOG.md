@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * `azurerm_cognitive_account` - support for the `identity`, `storage`, `disable_local_auth`, `fqdns`, `public_network_access_enabled`, and `restrict_outbound_network_access` properties [GH-12469]
 * `azurerm_cognitive_account` - the `virtual_network_subnet_ids` property has been deprecated in favour of `virtual_network_rules` block to supoport the `ignore_missing_vnet_service_endpoint` property [GH-12600]
 * `azurerm_container_registry` - now exports the `principal_id` and `tenant_id` attributes in the `identity` block [GH-12378]
+* `azurerm_data_factory` - support for the `managed_virtual_network_enabled` property [GH-12343]
 * `azurerm_linux_virtual_machine_scale_set` - Fix un-necessary VMSS instance rolling request [GH-12590]
 * `azurerm_maintenance_configuration` - support for the `window`, `visibility`, and `properties` blocks [GH-12273]
 * `azurerm_powerbi_embedded` - support for the `mode` property [GH-12394]
