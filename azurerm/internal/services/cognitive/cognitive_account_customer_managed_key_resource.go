@@ -1,6 +1,7 @@
 package cognitive
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -64,6 +65,20 @@ func resourceCognitiveAccountCustomerManagedKey() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			keySource := cognitiveservices.KeySource(d.Get("key_source").(string))
+			if keySource == cognitiveservices.KeySourceMicrosoftCognitiveServices {
+				if _, ok := d.GetOk("key_vault_key_id"); ok {
+					return fmt.Errorf("can't specify key_vault_key_id when using Microsoft.CognitiveServices key source")
+				}
+				if _, ok := d.GetOk("identity_client_id"); ok {
+					return fmt.Errorf("can't specify key_name when using Microsoft.CognitiveServices key source")
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 
@@ -82,7 +97,7 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	if d.IsNewResource() {
@@ -120,19 +135,20 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	if _, err = client.Update(ctx, id.ResourceGroup, id.Name, props); err != nil {
-		return fmt.Errorf("updating %s: %+v", *id, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
+	timeout, _ := ctx.Deadline()
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Accepted"},
 		Target:     []string{"Succeeded"},
 		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, *id),
 		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+		Timeout:    time.Until(timeout),
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
 
@@ -151,9 +167,9 @@ func resourceCognitiveAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, m
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if resp.Properties == nil && resp.Properties.Encryption == nil {
+	if resp.Properties == nil || resp.Properties.Encryption == nil {
 		d.SetId("")
 		return nil
 	}
@@ -207,28 +223,28 @@ func resourceCognitiveAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData,
 
 	account, err := accountsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	// Since this isn't a real object and it cannot be disabled once Customer Managed Key at rest has been enabled
 	// And it must keep at least one key once Customer Managed Key is enabled
 	// So for the delete operation, it has to recreate the Cognitive Account with disabled Customer Managed Key
-	log.Printf("[DEBUG] Deleting %s..", *id)
+	log.Printf("[DEBUG] Deleting %s..", id)
 	deleteFuture, err := accountsClient.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 	if err := deleteFuture.WaitForCompletionRef(ctx, accountsClient.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Purging %s..", *id)
+	log.Printf("[DEBUG] Purging %s..", id)
 	purgeFuture, err := deletedAccountsClient.Purge(ctx, *account.Location, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("purging %s: %+v", *id, err)
+		return fmt.Errorf("purging %s: %+v", id, err)
 	}
 	if err := purgeFuture.WaitForCompletionRef(ctx, deletedAccountsClient.Client); err != nil {
-		return fmt.Errorf("waiting for purge of %s: %+v", *id, err)
+		return fmt.Errorf("waiting for purge of %s: %+v", id, err)
 	}
 
 	account.SystemData = nil
@@ -237,12 +253,13 @@ func resourceCognitiveAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData,
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	timeout, _ := ctx.Deadline()
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Creating"},
 		Target:     []string{"Succeeded"},
 		Refresh:    cognitiveAccountStateRefreshFunc(ctx, accountsClient, *id),
 		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+		Timeout:    time.Until(timeout),
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
