@@ -70,17 +70,19 @@ func resourceApiManagementApiReleaseCreateUpdate(d *pluginsdk.ResourceData, meta
 		return err
 	}
 	id := parse.NewApiReleaseID(subscriptionId, apiId.ResourceGroup, apiId.ServiceName, apiId.Name, name)
+	ifMatch := "*"
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, apiId.ResourceGroup, apiId.ServiceName, apiId.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %q: %+v", id, err)
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_api_management_api_release", id.ID())
 		}
+		ifMatch = ""
 	}
 
 	parameters := apimanagement.APIReleaseContract{
@@ -90,8 +92,8 @@ func resourceApiManagementApiReleaseCreateUpdate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, apiId.ResourceGroup, apiId.ServiceName, apiId.Name, name, parameters, ""); err != nil {
-		return fmt.Errorf("creating/ updating %q: %+v", id, err)
+	if _, err := client.CreateOrUpdate(ctx, apiId.ResourceGroup, apiId.ServiceName, apiId.Name, name, parameters, ifMatch); err != nil {
+		return fmt.Errorf("creating/ updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -99,6 +101,7 @@ func resourceApiManagementApiReleaseCreateUpdate(d *pluginsdk.ResourceData, meta
 }
 
 func resourceApiManagementApiReleaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.ApiReleasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -111,15 +114,15 @@ func resourceApiManagementApiReleaseRead(d *pluginsdk.ResourceData, meta interfa
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.ReleaseName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] apimanagement %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] apimanagement %s does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %q: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	d.Set("name", id.ReleaseName)
 	if props := resp.APIReleaseContractProperties; props != nil {
-		d.Set("api_id", props.APIID)
+		d.Set("api_id", parse.NewApiID(subscriptionId, id.ResourceGroup, id.ServiceName, id.ApiName).ID())
 		d.Set("notes", props.Notes)
 	}
 	return nil
@@ -136,7 +139,7 @@ func resourceApiManagementApiReleaseDelete(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.ReleaseName, "*"); err != nil {
-		return fmt.Errorf("deleting %q: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 	return nil
 }
