@@ -49,11 +49,11 @@ The following arguments are supported:
 
 * `calling_web_hook` - (Optional) The webhook for Skype channel calls.
 
-* `enable_calling` - (Optional) Is Skype channel calls enabled?
+* `enable_calling` - (Optional) Is Skype channel calling enabled?
 
-* `enable_groups` - (Optional) Is Skype channel groups enabled?
+* `enable_groups` - (Optional) Are Skype channel groups enabled?
 
-* `enable_media_cards` - (Optional) Is Skype channel media cards enabled?
+* `enable_media_cards` - (Optional) Are Skype channel media cards enabled?
 
 * `enable_messaging` - (Optional) Is Skype channel messaging enabled?
 
