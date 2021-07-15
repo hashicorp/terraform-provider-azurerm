@@ -37,7 +37,7 @@ func (id PrivateLinkHubId) ID() string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
-// PrivateLinkHubID parses a Private Link Hub ID into an PrivateLinkHubId struct
+// PrivateLinkHubID parses a PrivateLinkHub ID into an PrivateLinkHubId struct
 func PrivateLinkHubID(input string) (*PrivateLinkHubId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
