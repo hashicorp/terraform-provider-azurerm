@@ -212,7 +212,10 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		if err != nil {
 			return fmt.Errorf("Error updating Application Insights data retention settings %q (Resource Group %q): %+v", name, resGroup, err)
 		}
-		retentionUpdate.WaitForCompletionRef(ctx, resourcesClient.Client)
+
+		if err := retentionUpdate.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for update of data retention settings %q (Resource Group %q): %+v", name, resGroup, err)
+		}
 	}
 
 	billingRead, err := billingClient.Get(ctx, resGroup, name)
