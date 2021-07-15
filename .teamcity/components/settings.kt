@@ -8,7 +8,7 @@ var defaultParallelism = 20
 var defaultTerraformCoreVersion = "1.0.1"
 
 // This represents a cron view of days of the week, Monday - Friday.
-const val defaultDaysOfWeek = "1,2,3,4,5"
+const val defaultDaysOfWeek = "2,3,4,5,6"
 
 // Cron value for any day of month
 const val defaultDaysOfMonth = "*"
@@ -32,7 +32,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "blueprints" to testConfiguration(parallelism = 1),
 
         // "cognitive" is expensive - Monday, Wednesday, Friday
-        "cognitive" to testConfiguration(daysOfWeek = "1,3,5"),
+        "cognitive" to testConfiguration(daysOfWeek = "2,4,6"),
 
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5),
@@ -41,10 +41,10 @@ var serviceTestConfigurationOverrides = mapOf(
         "datalake" to testConfiguration(parallelism = 2),
 
         // "hdinsight" is super expensive
-        "hdinsight" to testConfiguration(daysOfWeek = "1,3,5"),
+        "hdinsight" to testConfiguration(daysOfWeek = "2,4,6"),
 
         // HPC Cache has a 4 instance per subscription quota as of early 2021
-        "hpccache" to testConfiguration(parallelism = 3, daysOfWeek = "1,3,5"),
+        "hpccache" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6"),
 
         // HSM has low quota and potentially slow recycle time, Only run on Mondays
         "hsm" to testConfiguration(parallelism = 1, daysOfWeek = "1"),
@@ -53,10 +53,10 @@ var serviceTestConfigurationOverrides = mapOf(
         "loganalytics" to testConfiguration(parallelism = 1),
 
         // netapp has a max of 20 accounts per subscription so lets limit it to 10 to account for broken ones, run Monday, Wednesday, Friday
-        "netapp" to testConfiguration(parallelism = 10, daysOfWeek = "1,3,5"),
+        "netapp" to testConfiguration(parallelism = 10, daysOfWeek = "2,4,6"),
 
         // redisenterprise is costly - Monday, Wednesday, Friday
-        "redisenterprise" to testConfiguration(daysOfWeek = "1,3,5"),
+        "redisenterprise" to testConfiguration(daysOfWeek = "2,4,6"),
 
         // servicebus quotas are limited and we experience failures if tests
         // execute too quickly as we run out of namespaces in the sub
