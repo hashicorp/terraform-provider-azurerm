@@ -137,6 +137,8 @@ A `notification` block supports the following:
 
 * `enabled` - (Optional) Should the notification be enabled?
 
+~> **NOTE:** A `notification` block cannot have all of `contact_emails`, `contact_roles`, and `contact_groups` empty. This means that at least one of the three must be specified.
+
 ---
 
 A `dimension` block supports the following:

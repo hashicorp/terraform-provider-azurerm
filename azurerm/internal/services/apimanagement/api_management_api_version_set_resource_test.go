@@ -209,7 +209,7 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
+  sku_name            = "Consumption_0"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

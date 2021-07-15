@@ -6,6 +6,8 @@ description: |-
   Applies a Configuration Policy to a Virtual Machine.
 ---
 
+~> **NOTE:** This resource has been deprecated in favour of the `azurerm_policy_virtual_machine_configuration_assignment` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, information on migrating [can be found in this guide](../guides/migrating-between-renamed-resources.html).
+
 # azurerm_virtual_machine_configuration_policy_assignment
 
 Applies a Configuration Policy to a Virtual Machine.

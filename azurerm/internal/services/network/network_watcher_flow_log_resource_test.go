@@ -270,6 +270,23 @@ func testAccNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 	})
 }
 
+// TODO 3.0: remove this test as we will validate the length for the `name` property, rather than truncate the name for the users.
+func testAccNetworkWatcherFlowLog_longName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+	r := NetworkWatcherFlowLogResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.longName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue("Microsoft.NetworkacctestRG-watcher-01234567890123456789012345678901acctestNSG012"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func testAccNetworkWatcherFlowLog_version(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
@@ -653,4 +670,56 @@ resource "azurerm_network_watcher_flow_log" "test" {
   }
 }
 `, r.prerequisites(data), v)
+}
+
+func (r NetworkWatcherFlowLogResource) longName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  #           01234567890123456789012345678901234567890123456789 = 40
+  name     = "acctestRG-watcher-01234567890123456789012345678901"
+  location = "%s"
+}
+
+resource "azurerm_network_security_group" "test" {
+  #           		     01234567890123456789012345678901234567890123456789 = 40
+  name                = "acctestNSG0123456789012345678901234567890123456789"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_network_watcher" "test" {
+  name                = "acctest-NW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "acctestsa%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  account_tier              = "Standard"
+  account_kind              = "StorageV2"
+  account_replication_type  = "LRS"
+  enable_https_traffic_only = true
+}
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+
+  network_security_group_id = azurerm_network_security_group.test.id
+  storage_account_id        = azurerm_storage_account.test.id
+  enabled                   = true
+
+  retention_policy {
+    enabled = false
+    days    = 0
+  }
+}
+`, data.Locations.Primary, data.RandomInteger, data.RandomInteger%1000000)
 }
