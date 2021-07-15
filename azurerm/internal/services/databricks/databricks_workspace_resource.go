@@ -187,9 +187,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				}
 			}
 
-			// if customerEncryptionEnabled.(bool) && infrastructureEncryptionEnabled.(bool) {
-			// 	return fmt.Errorf("'customer_managed_key_enabled' and 'infrastructure_encryption_enabled' cannot both be set to 'true'")
-			// }
 			if (customerEncryptionEnabled.(bool) || infrastructureEncryptionEnabled.(bool)) && !strings.EqualFold("premium", newSku.(string)) {
 				return fmt.Errorf("'customer_managed_key_enabled' and 'infrastructure_encryption_enabled' are only available with a 'premium' workspace 'sku', got %q", newSku)
 			}
