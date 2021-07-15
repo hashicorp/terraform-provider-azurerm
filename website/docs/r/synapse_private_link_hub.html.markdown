@@ -14,8 +14,9 @@ Manages a Synapse Private Link Hub.
 
 ```hcl
 resource "azurerm_synapse_private_link_hub" "example" {
-  name     = "example-resources"
-  location = "West Europe"
+  name                = "example-resource"
+  resource_group_name = "example-rg"
+  location            = "West Europe"
 }
 ```
 
@@ -24,6 +25,10 @@ resource "azurerm_synapse_private_link_hub" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Synapse Private Link Hub. Changing this forces a new Synapse Private Link Hub to be created.
+
+* `resource_group_name` - (Required) The name of the resource group in which to create the Synapse Private Link Hub. Changing this forces a new resource to be created.
+
+* `location` - (Required) Specifies the Azure location where the Synapse Private Link Hub exists. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Private Link Hub.
 
