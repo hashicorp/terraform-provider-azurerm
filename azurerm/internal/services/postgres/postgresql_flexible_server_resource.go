@@ -647,7 +647,7 @@ func expandFlexibleServerHighAvailability(inputs []interface{}) *postgresqlflexi
 }
 
 func flattenFlexibleServerHighAvailability(ha *postgresqlflexibleservers.HighAvailability) []interface{} {
-	if ha == nil || (*ha).Mode == postgresqlflexibleservers.HighAvailabilityModeDisabled {
+	if ha == nil || ha.Mode == postgresqlflexibleservers.HighAvailabilityModeDisabled {
 		return []interface{}{}
 	}
 
