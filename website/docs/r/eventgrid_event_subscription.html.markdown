@@ -91,6 +91,7 @@ The following arguments are supported:
 
 * `labels` - (Optional) A list of labels to assign to the event subscription.
 
+* `advanced_filtering_on_arrays_enabled` - (Optional) Boolean flag  to allows advanced filters to be evaluated against an array of values instead of expecting a singular value. Defaults to `true`.
 ---
 
 A `storage_queue_endpoint` supports the following:
