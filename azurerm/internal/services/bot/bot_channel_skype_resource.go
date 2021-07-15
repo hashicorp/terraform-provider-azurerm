@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
@@ -87,24 +86,9 @@ func resourceBotChannelSkypeCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	defer cancel()
 
 	id := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameSkypeChannel))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-		if existing.ID != nil && *existing.ID != "" {
-			// As Bot Skype Channel would be created by default while creating Bot Registrations Channel
-			// So it has to delete default one
-			resp, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameSkypeChannel))
-			if err != nil {
-				if !response.WasNotFound(resp.Response) {
-					return fmt.Errorf("deleting default Bot Skype Channel %s: %+v", id, err)
-				}
-			}
-		}
-	}
+
+	// As Bot Skype Channel would be created by default while creating Bot Registrations Channel
+	// So it has to leverage the default one
 
 	parameters := botservice.BotChannel{
 		Properties: botservice.SkypeChannel{
@@ -126,7 +110,7 @@ func resourceBotChannelSkypeCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		channel.Properties.CallingWebHook = utils.String(v.(string))
 	}
 
-	if _, err := client.Create(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameSkypeChannel, parameters); err != nil {
+	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameSkypeChannel, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
