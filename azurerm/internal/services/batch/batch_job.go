@@ -24,7 +24,7 @@ type BatchJobModel struct {
 	BatchPoolId string `tfschema:"batch_pool_id"`
 	DisplayName string `tfschema:"display_name"`
 	Priority    int    `tfschema:"priority"`
-	//MaxWallClockTime  string `tfschema:"max_wall_clock_time"`
+	// MaxWallClockTime  string `tfschema:"max_wall_clock_time"`
 	MaxTaskRetryCount        int               `tfschema:"max_task_retry_count"`
 	CommonEnvironmentSetting map[string]string `tfschema:"common_environment_setting"`
 }
@@ -65,12 +65,12 @@ func (r BatchJobResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		// TODO: identify how to represent "unlimited", it appears that a duration larger than some threshold is regarded as unlimited
 		// Tracked in: https://github.com/Azure/azure-rest-api-specs/issues/15198
-		//"max_wall_clock_time": {
+		// "max_wall_clock_time": {
 		//	Type:         pluginsdk.TypeString,
 		//	Optional:     true,
 		//	Computed:     true,
 		//	ValidateFunc: commonValidate.ISO8601Duration,
-		//},
+		// },
 		"max_task_retry_count": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
@@ -99,7 +99,6 @@ func (r BatchJobResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			var model BatchJobModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
@@ -135,7 +134,7 @@ func (r BatchJobResource) Create() sdk.ResourceFunc {
 				DisplayName: &model.DisplayName,
 				Priority:    utils.Int32(int32(model.Priority)),
 				Constraints: &batchDataplane.JobConstraints{
-					//MaxWallClockTime:  nil,
+					// MaxWallClockTime:  nil,
 					MaxTaskRetryCount: utils.Int32(int32(model.MaxTaskRetryCount)),
 				},
 				CommonEnvironmentSettings: r.expandEnvironmentSettings(model.CommonEnvironmentSetting),
