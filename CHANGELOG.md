@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource** `azurerm_api_management_api_release` [GH-12562]
 * **New Resource** `azurerm_postgresql_flexible_server_configuration` [GH-12294]
 
 ENHANCEMENTS:
