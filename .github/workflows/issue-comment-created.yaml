@@ -11,6 +11,8 @@ jobs:
       - uses: actions-ecosystem/action-remove-labels@v1
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
-          labels: |
-            stale
-            waiting-response
+          labels: stale
+      - uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          labels: waiting-response
