@@ -296,12 +296,10 @@ func expandDataFactoryDatasetSFTPServerLocation(d *pluginsdk.ResourceData) dataf
 		return nil
 	}
 	props := sftpServerLocations[0].(map[string]interface{})
-	path := props["path"].(string)
-	filename := props["filename"].(string)
 
 	sftpServerLocation := datafactory.SftpLocation{
-		FolderPath: path,
-		FileName:   filename,
+		FolderPath: props["path"].(string),
+		FileName:   props["filename"].(string),
 	}
 	return sftpServerLocation
 }
@@ -311,15 +309,13 @@ func expandDataFactoryDatasetHttpServerLocation(d *pluginsdk.ResourceData) dataf
 	if len(httpServerLocations) == 0 || httpServerLocations[0] == nil {
 		return nil
 	}
+
 	props := httpServerLocations[0].(map[string]interface{})
-	relativeUrl := props["relative_url"].(string)
-	path := props["path"].(string)
-	filename := props["filename"].(string)
 
 	httpServerLocation := datafactory.HTTPServerLocation{
-		RelativeURL: relativeUrl,
-		FolderPath:  path,
-		FileName:    filename,
+		RelativeURL: props["relative_url"].(string),
+		FolderPath:  props["path"].(string),
+		FileName:    props["filename"].(string),
 	}
 	return httpServerLocation
 }
@@ -329,15 +325,13 @@ func expandDataFactoryDatasetAzureBlobStorageLocation(d *pluginsdk.ResourceData)
 	if len(azureBlobStorageLocations) == 0 || azureBlobStorageLocations[0] == nil {
 		return nil
 	}
+
 	props := azureBlobStorageLocations[0].(map[string]interface{})
-	container := props["container"].(string)
-	path := props["path"].(string)
-	filename := props["filename"].(string)
 
 	blobStorageLocation := datafactory.AzureBlobStorageLocation{
-		Container:  container,
-		FolderPath: path,
-		FileName:   filename,
+		Container:  props["container"].(string),
+		FolderPath: props["path"].(string),
+		FileName:   props["filename"].(string),
 	}
 	return blobStorageLocation
 }
@@ -347,6 +341,7 @@ func expandDataFactoryDatasetAzureBlobFSLocation(d *pluginsdk.ResourceData) data
 	if len(azureBlobFsLocations) == 0 || azureBlobFsLocations[0] == nil {
 		return nil
 	}
+
 	props := azureBlobFsLocations[0].(map[string]interface{})
 
 	blobStorageLocation := datafactory.AzureBlobFSLocation{

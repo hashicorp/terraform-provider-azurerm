@@ -61,7 +61,7 @@ func TestAccDataFactoryDatasetBinary_sftp(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryDatasetBinary_SftpComplete(t *testing.T) {
+func TestAccDataFactoryDatasetBinary_sftpComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_binary", "test")
 	r := DatasetBinaryResource{}
 

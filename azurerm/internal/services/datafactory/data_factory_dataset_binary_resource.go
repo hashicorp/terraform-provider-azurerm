@@ -62,10 +62,9 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 
 			// Binary Dataset Specific Field
 			"http_server_location": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
+				Type:          pluginsdk.TypeList,
+				MaxItems:      1,
+				Optional:      true,
 				ConflictsWith: []string{"azure_blob_storage_location", "sftp_server_location"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -89,10 +88,9 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 			},
 
 			"sftp_server_location": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
+				Type:          pluginsdk.TypeList,
+				MaxItems:      1,
+				Optional:      true,
 				ConflictsWith: []string{"azure_blob_storage_location", "http_server_location"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -111,10 +109,9 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 
 			// Binary Dataset Specific Field
 			"azure_blob_storage_location": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
+				Type:          pluginsdk.TypeList,
+				MaxItems:      1,
+				Optional:      true,
 				ConflictsWith: []string{"http_server_location", "sftp_server_location"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -242,18 +239,13 @@ func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, met
 		binaryDatasetProperties.Compression = expandDataFactoryDatasetCompression(d)
 	}
 
-	linkedServiceName := d.Get("linked_service_name").(string)
-	linkedServiceType := "LinkedServiceReference"
-	linkedService := &datafactory.LinkedServiceReference{
-		ReferenceName: &linkedServiceName,
-		Type:          &linkedServiceType,
-	}
-
-	description := d.Get("description").(string)
 	binaryTableset := datafactory.BinaryDataset{
 		BinaryDatasetTypeProperties: &binaryDatasetProperties,
-		LinkedServiceName:           linkedService,
-		Description:                 &description,
+		Description:                 utils.String(d.Get("description").(string)),
+		LinkedServiceName: &datafactory.LinkedServiceReference{
+			ReferenceName: utils.String(d.Get("linked_service_name").(string)),
+			Type:          utils.String("LinkedServiceReference"),
+		},
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
@@ -286,8 +278,7 @@ func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("creating/updating Data Factory Dataset Binary  %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
-	_, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-	if err != nil {
+	if _, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, ""); err != nil {
 		return fmt.Errorf("retrieving Data Factory Dataset Binary %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
@@ -331,8 +322,7 @@ func resourceDataFactoryDatasetBinaryRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("description", binaryTable.Description)
 	}
 
-	parameters := flattenDataFactoryParameters(binaryTable.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenDataFactoryParameters(binaryTable.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
