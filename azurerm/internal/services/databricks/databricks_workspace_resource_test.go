@@ -31,6 +31,21 @@ func TestAccDatabricksWorkspace_basic(t *testing.T) {
 	})
 }
 
+func TestAccDatabricksWorkspace_sameName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sameName(data, "standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDatabricksWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceResource{}
@@ -174,6 +189,28 @@ resource "azurerm_databricks_workspace" "test" {
   sku                 = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
+}
+
+func (DatabricksWorkspaceResource) sameName(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-db-%d"
+  location = "%s"
+}
+
+resource "azurerm_databricks_workspace" "test" {
+  name                = "acctestDBW-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%s"
+
+  managed_resource_group_name = "acctestDBW-%d"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, data.RandomInteger)
 }
 
 func (DatabricksWorkspaceResource) requiresImport(data acceptance.TestData) string {
