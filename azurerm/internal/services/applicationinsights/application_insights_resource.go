@@ -198,7 +198,6 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read AzureRM Application Insights '%s' (Resource Group %s) ID", name, resGroup)
 	}
-
 	if v, hasRetention := d.GetOk("retention_in_days"); hasRetention {
 
 		resourcesClient := meta.(*clients.Client).Resource.ResourcesClient

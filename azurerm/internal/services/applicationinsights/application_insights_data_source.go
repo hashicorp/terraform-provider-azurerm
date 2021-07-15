@@ -112,7 +112,7 @@ func dataSourceArmApplicationInsightsRead(d *pluginsdk.ResourceData, meta interf
 
 		workspaceId := ""
 		if props.WorkspaceResourceID != nil {
-			workspaceId = string(*props.WorkspaceResourceID)
+			workspaceId = *props.WorkspaceResourceID
 		}
 		d.Set("workspace_id", workspaceId)
 	}
