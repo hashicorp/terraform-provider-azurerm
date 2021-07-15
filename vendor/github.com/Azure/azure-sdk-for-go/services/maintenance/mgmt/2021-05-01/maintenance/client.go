@@ -1,4 +1,4 @@
-// Package maintenance implements the Azure ARM Maintenance service API version 2018-06-01-preview.
+// Package maintenance implements the Azure ARM Maintenance service API version 2021-05-01.
 //
 // Maintenance Client
 package maintenance
