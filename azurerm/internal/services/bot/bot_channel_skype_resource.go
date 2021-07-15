@@ -235,7 +235,8 @@ func resourceBotChannelSkypeDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	} else {
 		// As there is a default Skype Channel, so it has to restore it to default one
-		if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameSkypeChannel, parameters); err != nil {
+		_, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameSkypeChannel, parameters)
+		if err != nil {
 			return fmt.Errorf("updating for restoring %s: %+v", id, err)
 		}
 	}
