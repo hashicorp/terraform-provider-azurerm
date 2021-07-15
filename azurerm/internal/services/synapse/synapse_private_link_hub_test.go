@@ -26,6 +26,22 @@ func TestAccSynapsePrivateLinkHub_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSynapsePrivateLinkHub_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_private_link_hub", "test")
+	r := SynapsePrivateLinkHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -79,6 +95,19 @@ resource "azurerm_synapse_private_link_hub" "test" {
   location            = azurerm_resource_group.test.location
 }
 `, template, data.RandomInteger)
+}
+
+func (r SynapsePrivateLinkHubResource) requiresImport(data acceptance.TestData) string {
+	config := r.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_synapse_private_link_hub" "import" {
+  name                = azurerm_synapse_private_link_hub.test.name
+  resource_group_name = azurerm_synapse_private_link_hub.test.resource_group_name
+  location            = azurerm_synapse_private_link_hub.test.location
+}
+`, config)
 }
 
 func (r SynapsePrivateLinkHubResource) withUpdateFields(data acceptance.TestData) string {
