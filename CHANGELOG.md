@@ -1,3 +1,9 @@
+## 2.69.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies: Updgrading to `v55.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-12565]
+
 ## 2.68.0 (July 16, 2021)
 
 FEATURES:
