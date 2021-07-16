@@ -58,7 +58,7 @@ func testAccBotChannelsRegistration_update(t *testing.T) {
 		},
 		data.ImportStep("developer_app_insights_api_key"),
 		{
-			Config: r.withoutCMEKKeyVaultURL(data),
+			Config: r.withoutCMKKeyVaultURL(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -251,7 +251,7 @@ resource "azurerm_bot_channels_registration" "test" {
   description                 = "TestDescription2"
   is_isolated_network_enabled = false
   icon_url                    = "http://myprofile/myicon2.png"
-  cmek_key_vault_url          = azurerm_key_vault_key.test2.id
+  cmk_key_vault_url           = azurerm_key_vault_key.test2.id
 
   tags = {
     environment = "production2"
@@ -350,7 +350,7 @@ resource "azurerm_bot_channels_registration" "test" {
   description                 = "TestDescription"
   is_isolated_network_enabled = true
   icon_url                    = "http://myprofile/myicon.png"
-  cmek_key_vault_url          = azurerm_key_vault_key.test.id
+  cmk_key_vault_url           = azurerm_key_vault_key.test.id
 
   tags = {
     environment = "production"
@@ -359,7 +359,7 @@ resource "azurerm_bot_channels_registration" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
-func (BotChannelsRegistrationResource) withoutCMEKKeyVaultURL(data acceptance.TestData) string {
+func (BotChannelsRegistrationResource) withoutCMKKeyVaultURL(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

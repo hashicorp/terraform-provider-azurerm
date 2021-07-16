@@ -91,7 +91,7 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
-			"cmek_key_vault_url": {
+			"cmk_key_vault_url": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: kvValidate.NestedItemIdWithOptionalVersion,
@@ -184,7 +184,7 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 			DisplayName:                       utils.String(displayName),
 			Endpoint:                          utils.String(d.Get("endpoint").(string)),
 			MsaAppID:                          utils.String(d.Get("microsoft_app_id").(string)),
-			CmekKeyVaultURL:                   utils.String(d.Get("cmek_key_vault_url").(string)),
+			CmekKeyVaultURL:                   utils.String(d.Get("cmk_key_vault_url").(string)),
 			Description:                       utils.String(d.Get("description").(string)),
 			DeveloperAppInsightKey:            utils.String(d.Get("developer_app_insights_key").(string)),
 			DeveloperAppInsightsAPIKey:        utils.String(d.Get("developer_app_insights_api_key").(string)),
@@ -200,7 +200,7 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, ok := d.GetOk("cmek_key_vault_url"); ok {
+	if _, ok := d.GetOk("cmk_key_vault_url"); ok {
 		bot.Properties.IsCmekEnabled = utils.Bool(true)
 	}
 
@@ -247,7 +247,7 @@ func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if props := resp.Properties; props != nil {
-		d.Set("cmek_key_vault_url", props.CmekKeyVaultURL)
+		d.Set("cmk_key_vault_url", props.CmekKeyVaultURL)
 		d.Set("microsoft_app_id", props.MsaAppID)
 		d.Set("endpoint", props.Endpoint)
 		d.Set("description", props.Description)
@@ -282,7 +282,7 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 			DisplayName:                       utils.String(displayName),
 			Endpoint:                          utils.String(d.Get("endpoint").(string)),
 			MsaAppID:                          utils.String(d.Get("microsoft_app_id").(string)),
-			CmekKeyVaultURL:                   utils.String(d.Get("cmek_key_vault_url").(string)),
+			CmekKeyVaultURL:                   utils.String(d.Get("cmk_key_vault_url").(string)),
 			Description:                       utils.String(d.Get("description").(string)),
 			DeveloperAppInsightKey:            utils.String(d.Get("developer_app_insights_key").(string)),
 			DeveloperAppInsightsAPIKey:        utils.String(d.Get("developer_app_insights_api_key").(string)),
@@ -299,7 +299,7 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 		Tags: tags.Expand(t),
 	}
 
-	if _, ok := d.GetOk("cmek_key_vault_url"); ok {
+	if _, ok := d.GetOk("cmk_key_vault_url"); ok {
 		bot.Properties.IsCmekEnabled = utils.Bool(true)
 	}
 
