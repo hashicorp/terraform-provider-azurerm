@@ -1000,9 +1000,9 @@ func expandEventGridEventSubscriptionFilter(d *pluginsdk.ResourceData) (*eventgr
 	}
 
 	if v, ok := d.GetOk("advanced_filtering_on_arrays_enabled"); ok {
-		filter.EnableAdvancedFilteringOnArrays = eventgrid.Disabled
+		filter.EnableAdvancedFilteringOnArrays = &eventgrid.Disabled
 		if v.(bool) {
-			filter.EnableAdvancedFilteringOnArrays = eventgrid.Enabled
+			filter.EnableAdvancedFilteringOnArrays = &eventgrid.Enabled
 		}		
 	}
 
