@@ -92,7 +92,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"require_nsg_rules": {
+			"require_network_security_group_rules": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
