@@ -20,11 +20,10 @@ type BatchJobResource struct{}
 var _ sdk.ResourceWithUpdate = BatchJobResource{}
 
 type BatchJobModel struct {
-	Name        string `tfschema:"name"`
-	BatchPoolId string `tfschema:"batch_pool_id"`
-	DisplayName string `tfschema:"display_name"`
-	Priority    int    `tfschema:"priority"`
-	// MaxWallClockTime  string `tfschema:"max_wall_clock_time"`
+	Name                     string            `tfschema:"name"`
+	BatchPoolId              string            `tfschema:"batch_pool_id"`
+	DisplayName              string            `tfschema:"display_name"`
+	Priority                 int               `tfschema:"priority"`
 	MaxTaskRetryCount        int               `tfschema:"max_task_retry_count"`
 	CommonEnvironmentSetting map[string]string `tfschema:"common_environment_setting"`
 }
@@ -63,14 +62,6 @@ func (r BatchJobResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:      0,
 			ValidateFunc: validation.IntBetween(-1000, 1000),
 		},
-		// TODO: identify how to represent "unlimited", it appears that a duration larger than some threshold is regarded as unlimited
-		// Tracked in: https://github.com/Azure/azure-rest-api-specs/issues/15198
-		// "max_wall_clock_time": {
-		//	Type:         pluginsdk.TypeString,
-		//	Optional:     true,
-		//	Computed:     true,
-		//	ValidateFunc: commonValidate.ISO8601Duration,
-		// },
 		"max_task_retry_count": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
@@ -156,7 +147,6 @@ func (r BatchJobResource) Create() sdk.ResourceFunc {
 func (r BatchJobResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
-
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := parse.JobID(metadata.ResourceData.Id())
 			if err != nil {
@@ -319,10 +309,7 @@ func (r BatchJobResource) flattenEnvironmentSettings(input *[]batchDataplane.Env
 
 	m := make(map[string]string)
 	for _, setting := range *input {
-		if setting.Name == nil {
-			continue
-		}
-		if setting.Value == nil {
+		if setting.Name == nil || setting.Value == nil {
 			continue
 		}
 		m[*setting.Name] = *setting.Value
