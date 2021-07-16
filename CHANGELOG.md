@@ -34,6 +34,7 @@ BUG FIXES:
 * `azurerm_function_app` - set a default value for `os_type` and allow a blank string to be specified as per documentation [GH-12482]
 * `azurerm_key_vault_access_policy` - prevent a possible panic on delete [GH-12616]
 * `azurerm_postgresql_flexible_server` - add new computed property `private_dns_zone_id` to work around a upcomming breaking change in the API [GH-12288]
+* `machine_learning_compute_cluster` - make the `subnet_resource_id` property actually optional [GH-12558]
 * `azurerm_mssql_database` - don't allow license_type to be set for serverless SQL databases [GH-12555]
 * `azurerm_subnet_network_security_group_association` - prevent potential deadlocks when using multiple association resources [GH-12267]
 
