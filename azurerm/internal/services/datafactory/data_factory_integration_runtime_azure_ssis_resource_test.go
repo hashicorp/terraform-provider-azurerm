@@ -261,7 +261,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   express_custom_setup {
     powershell_version = "6.2.0"
 
-    env = {
+    environment = {
       Env = "test"
       Foo = "Bar"
     }

@@ -218,10 +218,10 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"env": {
+						"environment": {
 							Type:         pluginsdk.TypeMap,
 							Optional:     true,
-							AtLeastOneOf: []string{"express_custom_setup.0.env", "express_custom_setup.0.powershell_version", "express_custom_setup.0.component", "express_custom_setup.0.command_key"},
+							AtLeastOneOf: []string{"express_custom_setup.0.environment", "express_custom_setup.0.powershell_version", "express_custom_setup.0.component", "express_custom_setup.0.command_key"},
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -230,14 +230,14 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 						"powershell_version": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							AtLeastOneOf: []string{"express_custom_setup.0.env", "express_custom_setup.0.powershell_version", "express_custom_setup.0.component", "express_custom_setup.0.command_key"},
+							AtLeastOneOf: []string{"express_custom_setup.0.environment", "express_custom_setup.0.powershell_version", "express_custom_setup.0.component", "express_custom_setup.0.command_key"},
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"command_key": {
 							Type:         pluginsdk.TypeList,
 							Optional:     true,
-							AtLeastOneOf: []string{"express_custom_setup.0.env", "express_custom_setup.0.powershell_version", "express_custom_setup.0.component", "express_custom_setup.0.command_key"},
+							AtLeastOneOf: []string{"express_custom_setup.0.environment", "express_custom_setup.0.powershell_version", "express_custom_setup.0.component", "express_custom_setup.0.command_key"},
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"target_name": {
@@ -265,7 +265,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 						"component": {
 							Type:         pluginsdk.TypeList,
 							Optional:     true,
-							AtLeastOneOf: []string{"express_custom_setup.0.env", "express_custom_setup.0.powershell_version", "express_custom_setup.0.component", "express_custom_setup.0.command_key"},
+							AtLeastOneOf: []string{"express_custom_setup.0.environment", "express_custom_setup.0.powershell_version", "express_custom_setup.0.component", "express_custom_setup.0.command_key"},
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
@@ -582,6 +582,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisProxy(input []interface{}) *dat
 		return nil
 	}
 	raw := input[0].(map[string]interface{})
+
 	result := &datafactory.IntegrationRuntimeDataProxyProperties{
 		ConnectVia: &datafactory.EntityReference{
 			Type:          datafactory.IntegrationRuntimeEntityReferenceTypeIntegrationRuntimeReference,
@@ -605,7 +606,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input []inte
 	raw := input[0].(map[string]interface{})
 
 	result := make([]datafactory.BasicCustomSetupBase, 0)
-	if env := raw["env"].(map[string]interface{}); len(env) > 0 {
+	if env := raw["environment"].(map[string]interface{}); len(env) > 0 {
 		for k, v := range env {
 			result = append(result, &datafactory.EnvironmentVariableSetup{
 				Type: datafactory.TypeBasicCustomSetupBaseTypeEnvironmentVariableSetup,
@@ -872,7 +873,7 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input *[]da
 
 	return []interface{}{
 		map[string]interface{}{
-			"env":                env,
+			"environment":        env,
 			"powershell_version": powershellVersion,
 			"component":          components,
 			"command_key":        cmdkeys,

@@ -100,7 +100,7 @@ An `express_custom_setup` block supports the following:
 
 * `component` - (Optional) One or more `component` blocks as defined below.
 
-* `env` - (Optional) The Environment Variables for the Azure-SSIS Integration Runtime.
+* `environment` - (Optional) The Environment Variables for the Azure-SSIS Integration Runtime.
 
 * `powershell_version` - (Optional) The version of Azure Powershell installed for the Azure-SSIS Integration Runtime.
 
