@@ -181,6 +181,24 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(7, 35),
 			},
 
+			"high_availability": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"mode": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(postgresqlflexibleservers.HighAvailabilityModeZoneRedundant),
+							}, false),
+						},
+						"standby_availability_zone": azure.SchemaZoneComputed(),
+					},
+				},
+			},
+
 			"cmk_enabled": {
 				Type:       pluginsdk.TypeString,
 				Computed:   true,
@@ -259,11 +277,12 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	parameters := postgresqlflexibleservers.Server{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		ServerProperties: &postgresqlflexibleservers.ServerProperties{
-			CreateMode: postgresqlflexibleservers.CreateMode(d.Get("create_mode").(string)),
-			Network:    expandArmServerNetwork(d),
-			Version:    postgresqlflexibleservers.ServerVersion(d.Get("version").(string)),
-			Storage:    expandArmServerStorage(d),
-			Backup:     expandArmServerBackup(d),
+			CreateMode:       postgresqlflexibleservers.CreateMode(d.Get("create_mode").(string)),
+			Network:          expandArmServerNetwork(d),
+			Version:          postgresqlflexibleservers.ServerVersion(d.Get("version").(string)),
+			Storage:          expandArmServerStorage(d),
+			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{})),
+			Backup:           expandArmServerBackup(d),
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -376,6 +395,10 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 		if backup := props.Backup; backup != nil {
 			d.Set("backup_retention_days", backup.BackupRetentionDays)
 		}
+
+		if err := d.Set("high_availability", flattenFlexibleServerHighAvailability(props.HighAvailability)); err != nil {
+			return fmt.Errorf("setting `high_availability`: %+v", err)
+		}
 	}
 
 	sku, err := flattenFlexibleServerSku(resp.Sku)
@@ -429,6 +452,10 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.HasChange("tags") {
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("high_availability") {
+		parameters.HighAvailability = expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}))
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
@@ -582,6 +609,44 @@ func flattenArmServerMaintenanceWindow(input *postgresqlflexibleservers.Maintena
 			"day_of_week":  dayOfWeek,
 			"start_hour":   startHour,
 			"start_minute": startMinute,
+		},
+	}
+}
+
+func expandFlexibleServerHighAvailability(inputs []interface{}) *postgresqlflexibleservers.HighAvailability {
+	if len(inputs) == 0 || inputs[0] == nil {
+		return &postgresqlflexibleservers.HighAvailability{
+			Mode: postgresqlflexibleservers.HighAvailabilityModeDisabled,
+		}
+	}
+
+	input := inputs[0].(map[string]interface{})
+
+	result := postgresqlflexibleservers.HighAvailability{
+		Mode: postgresqlflexibleservers.HighAvailabilityMode(input["mode"].(string)),
+	}
+
+	if v, ok := input["standby_availability_zone"]; ok && v.(string) != "" {
+		result.StandbyAvailabilityZone = utils.String(v.(string))
+	}
+
+	return &result
+}
+
+func flattenFlexibleServerHighAvailability(ha *postgresqlflexibleservers.HighAvailability) []interface{} {
+	if ha == nil || ha.Mode == postgresqlflexibleservers.HighAvailabilityModeDisabled {
+		return []interface{}{}
+	}
+
+	var zone string
+	if ha.StandbyAvailabilityZone != nil {
+		zone = *ha.StandbyAvailabilityZone
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"mode":                      string(ha.Mode),
+			"standby_availability_zone": zone,
 		},
 	}
 }
