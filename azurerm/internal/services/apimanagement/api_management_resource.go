@@ -192,7 +192,6 @@ func resourceApiManagementService() *pluginsdk.Resource {
 									"subnet_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ForceNew:     true,
 										ValidateFunc: azure.ValidateResourceID,
 									},
 								},

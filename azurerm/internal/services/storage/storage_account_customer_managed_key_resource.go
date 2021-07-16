@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
+	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	storageParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -61,6 +62,12 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"user_assigned_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: msivalidate.UserAssignedIdentityID,
 			},
 		},
 	}
@@ -139,6 +146,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 
 	keyName := d.Get("key_name").(string)
 	keyVersion := d.Get("key_version").(string)
+	userAssignedIdentity := d.Get("user_assigned_identity_id").(string)
 
 	props := storage.AccountUpdateParameters{
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
@@ -150,6 +158,9 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 					File: &storage.EncryptionService{
 						Enabled: utils.Bool(true),
 					},
+				},
+				EncryptionIdentity: &storage.EncryptionIdentity{
+					EncryptionUserAssignedIdentity: utils.String(userAssignedIdentity),
 				},
 				KeySource: storage.KeySourceMicrosoftKeyvault,
 				KeyVaultProperties: &storage.KeyVaultProperties{
@@ -217,6 +228,13 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 		}
 	}
 
+	userAssignedIdentity := ""
+	if props := encryption.EncryptionIdentity; props != nil {
+		if props.EncryptionUserAssignedIdentity != nil {
+			userAssignedIdentity = *props.EncryptionUserAssignedIdentity
+		}
+	}
+
 	if keyVaultURI == "" {
 		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties.encryption.keyVaultProperties.keyVaultURI` was nil", storageAccountID.Name, storageAccountID.ResourceGroup)
 	}
@@ -232,6 +250,7 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 	d.Set("key_vault_id", keyVaultID)
 	d.Set("key_name", keyName)
 	d.Set("key_version", keyVersion)
+	d.Set("user_assigned_identity_id", userAssignedIdentity)
 
 	return nil
 }
