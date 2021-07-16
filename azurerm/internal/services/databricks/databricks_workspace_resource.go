@@ -85,14 +85,14 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"public_network_access": {
+			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				ForceNew: true,
 				Optional: true,
 				Default:  true,
 			},
 
-			"require_nsg_rules": {
+			"require_network_security_group_rules": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
@@ -241,7 +241,17 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
 						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"private_endpoint_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -295,16 +305,13 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			_, customerEncryptionEnabled := d.GetChange("customer_managed_key_enabled")
 			_, infrastructureEncryptionEnabled := d.GetChange("infrastructure_encryption_enabled")
-			_, publicNetworkAccess := d.GetChange("public_network_access")
-			_, requireNsgRules := d.GetChange("require_nsg_rules")
+			_, publicNetworkAccess := d.GetChange("public_network_access_enabled")
+			_, requireNsgRules := d.GetChange("require_network_security_group_rules")
 
 			oldSku, newSku := d.GetChange("sku")
 
-			if !publicNetworkAccess.(bool) && requireNsgRules.(string) == "" {
-				return fmt.Errorf("'require_nsg_rules' is required if 'public_network_access' is 'false'")
-			}
-			if publicNetworkAccess.(bool) && requireNsgRules.(string) != "" {
-				return fmt.Errorf("'require_nsg_rules' must not be defined if 'public_network_access' is 'true'")
+			if !publicNetworkAccess.(bool) && requireNsgRules.(string) == string(databricks.RequiredNsgRulesAllRules) {
+				return fmt.Errorf("'require_network_security_group_rules' %q and 'public_network_access_enabled' 'false' is not an allowed combination", string(databricks.RequiredNsgRulesAllRules))
 			}
 
 			if d.HasChange("sku") {
@@ -364,12 +371,12 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	managedResourceGroupID := resourcesParse.NewResourceGroupID(subscriptionId, managedResourceGroupName).ID()
 	customerEncryptionEnabled := d.Get("customer_managed_key_enabled").(bool)
 	infrastructureEncryptionEnabled := d.Get("infrastructure_encryption_enabled").(bool)
-	publicNetowrkAccessRaw := d.Get("public_network_access").(bool)
+	publicNetowrkAccessRaw := d.Get("public_network_access_enabled").(bool)
 	publicNetworkAccess := databricks.PublicNetworkAccessDisabled
 	if publicNetowrkAccessRaw {
 		publicNetworkAccess = databricks.PublicNetworkAccessEnabled
 	}
-	requireNsgRules := d.Get("require_nsg_rules").(string)
+	requireNsgRules := d.Get("require_network_security_group_rules").(string)
 	customParamsRaw := d.Get("custom_parameters").([]interface{})
 	customParams, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(customParamsRaw, customerEncryptionEnabled, infrastructureEncryptionEnabled)
 
@@ -407,7 +414,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Tags: expandedTags,
 	}
 
-	if !publicNetowrkAccessRaw {
+	if requireNsgRules != "" {
 		workspace.WorkspaceProperties.RequiredNsgRules = databricks.RequiredNsgRules(requireNsgRules)
 	}
 
@@ -489,10 +496,10 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		d.Set("managed_resource_group_id", props.ManagedResourceGroupID)
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
-		d.Set("public_network_access", (props.PublicNetworkAccess == databricks.PublicNetworkAccessEnabled))
+		d.Set("public_network_access_enabled", (props.PublicNetworkAccess == databricks.PublicNetworkAccessEnabled))
 
 		if props.PublicNetworkAccess == databricks.PublicNetworkAccessDisabled {
-			d.Set("require_nsg_rules", string(props.RequiredNsgRules))
+			d.Set("require_network_security_group_rules", string(props.RequiredNsgRules))
 		}
 		var cmkEnabled, infraEnabled *bool
 
@@ -562,14 +569,44 @@ func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface
 }
 
 func flattenPrivateEndpointConnections(input *[]databricks.PrivateEndpointConnection) []interface{} {
+	results := make([]interface{}, 0)
 	if input == nil {
-		return nil
+		return results
 	}
 
-	// TODO: Make this real and loop retured PrivateEndpointConnection objects
-	e := make(map[string]interface{})
+	for _, v := range *input {
+		result := make(map[string]interface{})
 
-	return []interface{}{e}
+		if name := v.Name; name != nil {
+			result["name"] = *name
+		}
+
+		if id := v.ID; id != nil {
+			result["id"] = *id
+		}
+
+		if props := v.Properties; props != nil {
+			if endpoint := props.PrivateEndpoint; endpoint != nil && endpoint.ID != nil {
+				result["private_endpoint_id"] = *endpoint.ID
+			}
+
+			if connState := props.PrivateLinkServiceConnectionState; connState != nil {
+				if description := connState.Description; description != nil {
+					result["description"] = *description
+				}
+				if status := connState.Status; status != "" {
+					result["status"] = status
+				}
+				if actionReq := connState.ActionRequired; actionReq != nil {
+					result["action_required"] = *actionReq
+				}
+			}
+		}
+
+		results = append(results, result)
+	}
+
+	return results
 }
 
 func flattenWorkspaceStorageAccountIdentity(input *databricks.ManagedIdentityConfiguration) []interface{} {

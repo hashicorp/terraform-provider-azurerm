@@ -125,9 +125,13 @@ A `storage_account_identity` block exports the following:
 
 A `private_endpoint_connections` block exports the following:
 
+* `id` - The Databricks Workspace resource ID for the private link endpoint.
+
 * `name` - The name of the private endpoint connection.
 
-* `status` - The status of a private endpoint connection. Possible values are `PrivateLinkServiceConnectionStatusPending`, `PrivateLinkServiceConnectionStatusApproved`, `PrivateLinkServiceConnectionStatusRejected` or `PrivateLinkServiceConnectionStatusDisconnected`.
+* `private_endpoint_id` - The resource ID of the private link endpoint which is connected to the Databricks Workspace.
+
+* `status` - The status of a private endpoint connection. Possible values are `Pending`, `Approved`, `Rejected` or `Disconnected`.
 
 * `description` - The description for the current state of a private endpoint connection.
 
