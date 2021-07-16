@@ -304,19 +304,18 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                         = "acctest-fs-%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  administrator_login          = "adminTerraform"
-  administrator_password       = "QAZwsx123"
-  zone                         = "1"
-  version                      = "13"
-  backup_retention_days        = 7
-  storage_mb                   = 32768
-  delegated_subnet_id          = azurerm_subnet.test.id
-  private_dns_zone_id          = azurerm_private_dns_zone.test.id
-  sku_name                     = "GP_Standard_D2s_v3"
-  geo_redundant_backup_enabled = true
+  name                   = "acctest-fs-%[2]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  zone                   = "1"
+  version                = "13"
+  backup_retention_days  = 7
+  storage_mb             = 32768
+  delegated_subnet_id    = azurerm_subnet.test.id
+  private_dns_zone_id    = azurerm_private_dns_zone.test.id
+  sku_name               = "GP_Standard_D2s_v3"
 
   high_availability {
     mode                      = "ZoneRedundant"
