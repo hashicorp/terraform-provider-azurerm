@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -235,8 +235,6 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 		Location: utils.String(location),
 		Kind:     utils.String("ASEV2"),
 		AppServiceEnvironment: &web.AppServiceEnvironment{
-			Name:                      utils.String(name),
-			Location:                  utils.String(location),
 			InternalLoadBalancingMode: web.LoadBalancingMode(internalLoadBalancingMode),
 			FrontEndScaleFactor:       utils.Int32(int32(frontEndScaleFactor)),
 			MultiSize:                 utils.String(convertFromIsolatedSKU(pricingTier)),
@@ -245,10 +243,6 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 				Subnet: utils.String(subnet.Name),
 			},
 			UserWhitelistedIPRanges: utils.ExpandStringSlice(userWhitelistedIPRangesRaw),
-
-			// the SDK is coded primarily for v1, which needs a non-null entry for workerpool, so we construct an empty slice for it
-			// TODO: remove this hack once https://github.com/Azure/azure-rest-api-specs/pull/8433 has been merged
-			WorkerPools: &[]web.WorkerPool{{}},
 		},
 		Tags: tags.Expand(t),
 	}

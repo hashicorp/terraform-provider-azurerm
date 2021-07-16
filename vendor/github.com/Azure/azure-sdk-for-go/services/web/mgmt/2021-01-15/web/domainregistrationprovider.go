@@ -73,7 +73,7 @@ func (client DomainRegistrationProviderClient) ListOperations(ctx context.Contex
 
 // ListOperationsPreparer prepares the ListOperations request.
 func (client DomainRegistrationProviderClient) ListOperationsPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
