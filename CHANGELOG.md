@@ -6,6 +6,7 @@ FEATURES:
 * **New Resource** `azurerm_api_management_api_release` [GH-12562]
 * **New Resource** `azurerm_data_protection_backup_policy_disk` [GH-12361]
 * **New Resource** `azurerm_data_factory_custom_dataset` [GH-12484]
+* **New Resource** `azurerm_data_factory_dataset_binary` [GH-12369]
 * **New Resource** `azurerm_maintenance_assignment_virtual_machine_scale_set` [GH-12273]
 * **New Resource** `azurerm_postgresql_flexible_server_configuration` [GH-12294]
 * **New Resource** `azurerm_synapse_private_link_hub` [GH-12495]
