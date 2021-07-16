@@ -85,7 +85,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"public_network_access": {
+			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				ForceNew: true,
 				Optional: true,
