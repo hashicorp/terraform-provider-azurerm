@@ -46,6 +46,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_virtual_network":                           dataSourceVirtualNetwork(),
 		"azurerm_web_application_firewall_policy":           dataWebApplicationFirewallPolicy(),
 		"azurerm_virtual_wan":                               dataSourceVirtualWan(),
+		"azurerm_local_network_gateway":                     dataSourceLocalNetworkGateway(),
 	}
 }
 
@@ -55,9 +56,11 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_application_gateway":                 resourceApplicationGateway(),
 		"azurerm_application_security_group":          resourceApplicationSecurityGroup(),
 		"azurerm_bastion_host":                        resourceBastionHost(),
+		"azurerm_express_route_circuit_connection":    resourceExpressRouteCircuitConnection(),
 		"azurerm_express_route_circuit_authorization": resourceExpressRouteCircuitAuthorization(),
 		"azurerm_express_route_circuit_peering":       resourceExpressRouteCircuitPeering(),
 		"azurerm_express_route_circuit":               resourceExpressRouteCircuit(),
+		"azurerm_express_route_connection":            resourceExpressRouteConnection(),
 		"azurerm_express_route_gateway":               resourceExpressRouteGateway(),
 		"azurerm_express_route_port":                  resourceArmExpressRoutePort(),
 		"azurerm_ip_group":                            resourceIpGroup(),

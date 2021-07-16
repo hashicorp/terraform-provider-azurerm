@@ -110,19 +110,19 @@ func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
 	}
 }
 
-func ExpandApiManagementOperationRepresentation(input []interface{}) (*[]apimanagement.RepresentationContract, error) {
+func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*[]apimanagement.RepresentationContract, error) {
 	if len(input) == 0 {
 		return &[]apimanagement.RepresentationContract{}, nil
 	}
 
 	outputs := make([]apimanagement.RepresentationContract, 0)
 
-	for _, v := range input {
+	for i, v := range input {
 		vs := v.(map[string]interface{})
 
 		contentType := vs["content_type"].(string)
 		formParametersRaw := vs["form_parameter"].([]interface{})
-		formParameters := ExpandApiManagementOperationParameterContract(formParametersRaw)
+		formParameters := ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.%d.form_parameter", schemaPath, i), formParametersRaw)
 		sample := vs["sample"].(string)
 		schemaId := vs["schema_id"].(string)
 		typeName := vs["type_name"].(string)
@@ -233,20 +233,19 @@ func SchemaApiManagementOperationParameterContract() *pluginsdk.Schema {
 	}
 }
 
-func ExpandApiManagementOperationParameterContract(input []interface{}) *[]apimanagement.ParameterContract {
+func ExpandApiManagementOperationParameterContract(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) *[]apimanagement.ParameterContract {
 	if len(input) == 0 {
 		return &[]apimanagement.ParameterContract{}
 	}
 
 	outputs := make([]apimanagement.ParameterContract, 0)
 
-	for _, v := range input {
+	for i, v := range input {
 		vs := v.(map[string]interface{})
 
 		name := vs["name"].(string)
 		description := vs["description"].(string)
 		paramType := vs["type"].(string)
-		defaultValue := vs["default_value"].(string)
 		required := vs["required"].(bool)
 		valuesRaw := vs["values"].(*pluginsdk.Set).List()
 
@@ -255,8 +254,15 @@ func ExpandApiManagementOperationParameterContract(input []interface{}) *[]apima
 			Description:  utils.String(description),
 			Type:         utils.String(paramType),
 			Required:     utils.Bool(required),
-			DefaultValue: utils.String(defaultValue),
+			DefaultValue: nil,
 			Values:       utils.ExpandStringSlice(valuesRaw),
+		}
+
+		// DefaultValue must be included in Values, else it returns error
+		// when DefaultValue is unset, we need to set it nil
+		// "" is a valid DefaultValue
+		if v, ok := d.GetOk(fmt.Sprintf("%s.%d.default_value", schemaPath, i)); ok {
+			output.DefaultValue = utils.String(v.(string))
 		}
 		outputs = append(outputs, output)
 	}

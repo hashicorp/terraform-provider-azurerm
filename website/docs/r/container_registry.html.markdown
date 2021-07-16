@@ -216,6 +216,20 @@ The following attributes are exported:
 
 * `admin_password` - The Password associated with the Container Registry Admin account - if the admin account is enabled.
 
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Container Registry.
+
+---
+
+A `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Container Registry.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Container Registry.
+
+-> You can access the Principal ID via `azurerm_container_registry.example.identity.0.principal_id` and the Tenant ID via `azurerm_container_registry.example.identity.0.tenant_id`
+
+---
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

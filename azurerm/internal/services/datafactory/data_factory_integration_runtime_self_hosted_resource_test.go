@@ -185,7 +185,7 @@ resource "azurerm_resource_group" "target" {
 }
 
 resource "azurerm_role_assignment" "target" {
-  scope                = azurerm_data_factory.host.id
+  scope                = azurerm_data_factory_integration_runtime_self_hosted.host.id
   role_definition_name = "Contributor"
   principal_id         = azurerm_data_factory.target.identity[0].principal_id
 }

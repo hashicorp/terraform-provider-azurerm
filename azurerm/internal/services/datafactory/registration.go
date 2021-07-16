@@ -30,6 +30,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_data_factory":                                       resourceDataFactory(),
 		"azurerm_data_factory_dataset_azure_blob":                    resourceDataFactoryDatasetAzureBlob(),
+		"azurerm_data_factory_dataset_binary":                        resourceDataFactoryDatasetBinary(),
 		"azurerm_data_factory_dataset_cosmosdb_sqlapi":               resourceDataFactoryDatasetCosmosDbSQLAPI(),
 		"azurerm_data_factory_dataset_delimited_text":                resourceDataFactoryDatasetDelimitedText(),
 		"azurerm_data_factory_dataset_http":                          resourceDataFactoryDatasetHTTP(),
@@ -39,10 +40,12 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_factory_dataset_postgresql":                    resourceDataFactoryDatasetPostgreSQL(),
 		"azurerm_data_factory_dataset_snowflake":                     resourceDataFactoryDatasetSnowflake(),
 		"azurerm_data_factory_dataset_sql_server_table":              resourceDataFactoryDatasetSQLServerTable(),
+		"azurerm_data_factory_custom_dataset":                        resourceDataFactoryCustomDataset(),
 		"azurerm_data_factory_integration_runtime_managed":           resourceDataFactoryIntegrationRuntimeManaged(),
 		"azurerm_data_factory_integration_runtime_azure":             resourceDataFactoryIntegrationRuntimeAzure(),
 		"azurerm_data_factory_integration_runtime_azure_ssis":        resourceDataFactoryIntegrationRuntimeAzureSsis(),
 		"azurerm_data_factory_integration_runtime_self_hosted":       resourceDataFactoryIntegrationRuntimeSelfHosted(),
+		"azurerm_data_factory_linked_custom_service":                 resourceDataFactoryLinkedCustomService(),
 		"azurerm_data_factory_linked_service_azure_blob_storage":     resourceDataFactoryLinkedServiceAzureBlobStorage(),
 		"azurerm_data_factory_linked_service_azure_databricks":       resourceDataFactoryLinkedServiceAzureDatabricks(),
 		"azurerm_data_factory_linked_service_azure_file_storage":     resourceDataFactoryLinkedServiceAzureFileStorage(),
@@ -63,6 +66,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_factory_linked_service_synapse":                resourceDataFactoryLinkedServiceSynapse(),
 		"azurerm_data_factory_linked_service_web":                    resourceDataFactoryLinkedServiceWeb(),
 		"azurerm_data_factory_pipeline":                              resourceDataFactoryPipeline(),
+		"azurerm_data_factory_trigger_blob_event":                    resourceDataFactoryTriggerBlobEvent(),
 		"azurerm_data_factory_trigger_schedule":                      resourceDataFactoryTriggerSchedule(),
 	}
 }

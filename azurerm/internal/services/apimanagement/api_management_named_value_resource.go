@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -46,11 +47,33 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"value_from_key_vault": {
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				MaxItems:     1,
+				ExactlyOneOf: []string{"value", "value_from_key_vault"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"secret_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.NestedItemId,
+						},
+						"identity_client_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+					},
+				},
+			},
+
 			"value": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"value", "value_from_key_vault"},
 			},
 
 			"secret": {
@@ -96,8 +119,12 @@ func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta
 		NamedValueCreateContractProperties: &apimanagement.NamedValueCreateContractProperties{
 			DisplayName: utils.String(d.Get("display_name").(string)),
 			Secret:      utils.Bool(d.Get("secret").(bool)),
-			Value:       utils.String(d.Get("value").(string)),
+			KeyVault:    expandApiManagementNamedValueKeyVault(d.Get("value_from_key_vault").([]interface{})),
 		},
+	}
+
+	if v, ok := d.GetOk("value"); ok {
+		parameters.NamedValueCreateContractProperties.Value = utils.String(v.(string))
 	}
 
 	if tags, ok := d.GetOk("tags"); ok {
@@ -160,6 +187,9 @@ func resourceApiManagementNamedValueRead(d *pluginsdk.ResourceData, meta interfa
 		if properties.Secret != nil && !*properties.Secret {
 			d.Set("value", properties.Value)
 		}
+		if err := d.Set("value_from_key_vault", flattenApiManagementNamedValueKeyVault(properties.KeyVault)); err != nil {
+			return fmt.Errorf("setting `value_from_key_vault`: %+v", err)
+		}
 		d.Set("tags", properties.Tags)
 	}
 
@@ -186,4 +216,38 @@ func resourceApiManagementNamedValueDelete(d *pluginsdk.ResourceData, meta inter
 	}
 
 	return nil
+}
+
+func expandApiManagementNamedValueKeyVault(inputs []interface{}) *apimanagement.KeyVaultContractCreateProperties {
+	if len(inputs) == 0 {
+		return nil
+	}
+	input := inputs[0].(map[string]interface{})
+
+	return &apimanagement.KeyVaultContractCreateProperties{
+		SecretIdentifier: utils.String(input["secret_id"].(string)),
+		IdentityClientID: utils.String(input["identity_client_id"].(string)),
+	}
+}
+
+func flattenApiManagementNamedValueKeyVault(input *apimanagement.KeyVaultContractProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	var secretId, clientId string
+	if input.SecretIdentifier != nil {
+		secretId = *input.SecretIdentifier
+	}
+
+	if input.IdentityClientID != nil {
+		clientId = *input.IdentityClientID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"secret_id":          secretId,
+			"identity_client_id": clientId,
+		},
+	}
 }
