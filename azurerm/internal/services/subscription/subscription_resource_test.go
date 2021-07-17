@@ -72,7 +72,7 @@ func TestAccSubscriptionResource_update(t *testing.T) {
 				assert.Key("tags.environment").HasValue("Production"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("billing_scope_id"),
 		{
 			Config: r.basicEnrollmentAccountUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -81,7 +81,7 @@ func TestAccSubscriptionResource_update(t *testing.T) {
 				assert.Key("tags.environment").HasValue("staging"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("billing_scope_id"),
 	})
 }
 
