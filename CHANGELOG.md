@@ -3,8 +3,8 @@
 ENHANCEMENTS:
 
 * dependencies: Updgrading to `v55.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-12565]
-* `azurerm_postgresql_flexible_server` - support the `high_availability` block [GH-12587]
-
+* `azurerm_postgresql_flexible_server` - support for the `high_availability` block [GH-12587]
+* `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `public_ips`, `express_custom_setup`, `package_store`, and `proxy` blocks [GH-12545]
 ## 2.68.0 (July 16, 2021)
 
 FEATURES:
