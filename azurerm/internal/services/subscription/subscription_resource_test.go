@@ -57,22 +57,31 @@ func TestAccSubscriptionResource_update(t *testing.T) {
 	if os.Getenv("ARM_BILLING_ACCOUNT") == "" {
 		t.Skip("skipping tests - no billing account data provided")
 	}
+
 	data := acceptance.BuildTestData(t, "azurerm_subscription", "test")
 	r := SubscriptionResource{}
+	assert := check.That(data.ResourceName)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicEnrollmentAccount(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				assert.ExistsInAzure(r),
+				assert.Key("tags.%").HasValue("2"),
+				assert.Key("tags.cost_center").HasValue("MSFT"),
+				assert.Key("tags.environment").HasValue("Production"),
+			),
 		},
-		data.ImportStep("billing_scope_id"),
+		data.ImportStep(),
 		{
 			Config: r.basicEnrollmentAccountUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				assert.ExistsInAzure(r),
+				assert.Key("tags.%").HasValue("1"),
+				assert.Key("tags.environment").HasValue("staging"),
+			),
 		},
-		data.ImportStep("billing_scope_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -81,14 +90,15 @@ func TestAccResourceGroup_withTags(t *testing.T) {
 
 	r := SubscriptionResource{}
 	assert := check.That(data.ResourceName)
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicEnrollmentAccountDevTest(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				assert.ExistsInAzure(r),
-				assert.Key("tags.%").HasValue("2"),
-				assert.Key("tags.cost_center").HasValue("MSFT"),
-				assert.Key("tags.environment").HasValue("Production"),
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.cost_center").HasValue("MSFT"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
 			),
 		},
 		data.ImportStep(),
@@ -221,6 +231,7 @@ resource "azurerm_subscription" "import" {
   alias             = azurerm_subscription.test.alias
   subscription_name = azurerm_subscription.test.subscription_name
   billing_scope_id  = azurerm_subscription.test.billing_scope_id
+  tags				= azurerm_subscription.test.tags
 }
 `, r.basicEnrollmentAccount(data))
 }

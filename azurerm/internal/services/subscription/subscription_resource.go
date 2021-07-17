@@ -286,9 +286,7 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("Updating tag value %q for subscription %q: %+v", tags.Flatten(resource_tags.Tags), *subscriptionId, updateErr)
 			}
 		}
-		d.Set("tags", *updateTags.ID)
 	}
-
 	return resourceSubscriptionRead(d, meta)
 }
 
