@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `icon_url` - (Optional) The icon URL to visually identify the Bot Channels Registration.
 
-* `is_isolated_network_enabled` - (Optional) Is the Bot Channels Registration in an isolated network?
+* `isolated_network_enabled` - (Optional) Is the Bot Channels Registration in an isolated network?
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

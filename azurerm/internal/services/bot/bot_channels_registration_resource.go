@@ -145,7 +145,7 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 				ValidateFunc: validate.BotChannelRegistrationIconUrl,
 			},
 
-			"is_isolated_network_enabled": {
+			"isolated_network_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -210,7 +210,7 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 
 	d.SetId(resourceId.ID())
 
-	if v, ok := d.GetOk("is_isolated_network_enabled"); ok && v.(bool) {
+	if v, ok := d.GetOk("isolated_network_enabled"); ok && v.(bool) {
 		return resourceBotChannelsRegistrationUpdate(d, meta)
 	} else {
 		return resourceBotChannelsRegistrationRead(d, meta)
@@ -255,7 +255,7 @@ func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("developer_app_insights_key", props.DeveloperAppInsightKey)
 		d.Set("developer_app_insights_application_id", props.DeveloperAppInsightsApplicationID)
 		d.Set("icon_url", props.IconURL)
-		d.Set("is_isolated_network_enabled", props.IsIsolated)
+		d.Set("isolated_network_enabled", props.IsIsolated)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -289,7 +289,7 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 			DeveloperAppInsightsApplicationID: utils.String(d.Get("developer_app_insights_application_id").(string)),
 			IconURL:                           utils.String(d.Get("icon_url").(string)),
 			IsCmekEnabled:                     utils.Bool(false),
-			IsIsolated:                        utils.Bool(d.Get("is_isolated_network_enabled").(bool)),
+			IsIsolated:                        utils.Bool(d.Get("isolated_network_enabled").(bool)),
 		},
 		Location: utils.String(d.Get("location").(string)),
 		Sku: &botservice.Sku{
