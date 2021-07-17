@@ -283,7 +283,7 @@ func eventSubscriptionSchemaEnableAdvancedFilteringOnArrays() *pluginsdk.Schema 
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeBool,
 		Optional: true,
-		Default:  true,
+		Default:  false,
 	}
 }
 
@@ -1000,7 +1000,7 @@ func expandEventGridEventSubscriptionFilter(d *pluginsdk.ResourceData) (*eventgr
 	}
 
 	if v, ok := d.GetOk("advanced_filtering_on_arrays_enabled"); ok {
-		filter.EnableAdvancedFilteringOnArrays = utils.Bool(v.(bool))			
+		filter.EnableAdvancedFilteringOnArrays = utils.Bool(v.(bool))
 	}
 
 	return filter, nil
