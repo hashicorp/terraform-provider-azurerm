@@ -236,44 +236,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"private_endpoint_connections": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"private_endpoint_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"status": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"description": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"action_required": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"storage_account_identity": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -528,10 +490,6 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("setting `storage_account_identity`: %+v", err)
 		}
 
-		if err := d.Set("private_endpoint_connections", flattenPrivateEndpointConnections(props.PrivateEndpointConnections)); err != nil {
-			return fmt.Errorf("setting `storage_account_identity`: %+v", err)
-		}
-
 		if props.WorkspaceURL != nil {
 			d.Set("workspace_url", props.WorkspaceURL)
 		}
@@ -566,47 +524,6 @@ func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return nil
-}
-
-func flattenPrivateEndpointConnections(input *[]databricks.PrivateEndpointConnection) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, v := range *input {
-		result := make(map[string]interface{})
-
-		if name := v.Name; name != nil {
-			result["name"] = *name
-		}
-
-		if id := v.ID; id != nil {
-			result["id"] = *id
-		}
-
-		if props := v.Properties; props != nil {
-			if endpoint := props.PrivateEndpoint; endpoint != nil && endpoint.ID != nil {
-				result["private_endpoint_id"] = *endpoint.ID
-			}
-
-			if connState := props.PrivateLinkServiceConnectionState; connState != nil {
-				if description := connState.Description; description != nil {
-					result["description"] = *description
-				}
-				if status := connState.Status; status != "" {
-					result["status"] = status
-				}
-				if actionReq := connState.ActionRequired; actionReq != nil {
-					result["action_required"] = *actionReq
-				}
-			}
-		}
-
-		results = append(results, result)
-	}
-
-	return results
 }
 
 func flattenWorkspaceStorageAccountIdentity(input *databricks.ManagedIdentityConfiguration) []interface{} {

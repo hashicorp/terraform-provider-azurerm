@@ -52,9 +52,9 @@ The following arguments are supported:
 
 * `infrastructure_encryption_enabled`- (Optional) Is the Databricks File System root file system enabled with a secondary layer of encryption with platform managed keys? Possible values are `true` or `false`. Defaults to `false`. This field is only valid if the Databricks Workspace `sku` is set to `premium`. Changing this forces a new resource to be created.
 
-* `public_network_access` - (Optional) Allow public access for accessing workspace. Set value to `false` to access workspace only via private link endpoint. Possible values include `true` or `false`. Defaults to `true`. Changing this forces a new resource to be created.
+* `public_network_access_enabled` - (Optional) Allow public access for accessing workspace. Set value to `false` to access workspace only via private link endpoint. Possible values include `true` or `false`. Defaults to `true`. Changing this forces a new resource to be created.
 
-* `require_nsg_rules` - (Optional) Does the data plane (clusters) to control plane communication happen over private link endpoint only or publicly? Possible values `AllRules`, `NoAzureDatabricksRules` or `NoAzureServiceRules`. Required when `public_network_access` is set to `false`. Changing this forces a new resource to be created.
+* `require_network_security_group_rules` - (Optional) Does the data plane (clusters) to control plane communication happen over private link endpoint only or publicly? Possible values `AllRules`, `NoAzureDatabricksRules` or `NoAzureServiceRules`. Required when `public_network_access_enabled` is set to `false`. Changing this forces a new resource to be created.
 
 * `custom_parameters` - (Optional) A `custom_parameters` block as documented below.
 
@@ -109,8 +109,6 @@ The following attributes are exported:
 
 * `storage_account_identity` - A `storage_account_identity` block as documented below.
 
-* `private_endpoint_connections` - `private_endpoint_connections` block as documented below.
-
 ---
 
 A `storage_account_identity` block exports the following:
@@ -120,22 +118,6 @@ A `storage_account_identity` block exports the following:
 * `tenant_id` - The UUID of the tenant where the internal databricks storage account was created.
 
 * `type` - The type of the internal databricks storage account.
-
----
-
-A `private_endpoint_connections` block exports the following:
-
-* `id` - The Databricks Workspace resource ID for the private link endpoint.
-
-* `name` - The name of the private endpoint connection.
-
-* `private_endpoint_id` - The resource ID of the private link endpoint which is connected to the Databricks Workspace.
-
-* `status` - The status of a private endpoint connection. Possible values are `Pending`, `Approved`, `Rejected` or `Disconnected`.
-
-* `description` - The description for the current state of a private endpoint connection.
-
-* `action_required` - Actions required for a private endpoint connection.
 
 
 ## Timeouts
