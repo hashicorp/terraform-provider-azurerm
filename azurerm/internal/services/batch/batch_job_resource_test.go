@@ -135,7 +135,7 @@ resource "azurerm_batch_job" "test" {
   common_environment_properties = {
     env = "Test"
   }
-  priority             = 1
+  priority           = 1
   task_retry_maximum = 1
 }
 `, template, data.RandomInteger)
@@ -147,9 +147,9 @@ func (r BatchJobResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_batch_job" "test" {
-  name                 = "testaccbj-%d"
-  batch_pool_id        = azurerm_batch_pool.test.id
-  priority             = 2
+  name               = "testaccbj-%d"
+  batch_pool_id      = azurerm_batch_pool.test.id
+  priority           = 2
   task_retry_maximum = -1
 }
 `, template, data.RandomInteger)
