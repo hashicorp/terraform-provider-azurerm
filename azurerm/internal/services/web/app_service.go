@@ -840,7 +840,7 @@ func schemaAppServiceDataSourceSiteConfig() *pluginsdk.Schema {
 				},
 
 				"acr_user_managed_identity_id": {
-					Type:     pluginsdk.TypeString
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 			},
