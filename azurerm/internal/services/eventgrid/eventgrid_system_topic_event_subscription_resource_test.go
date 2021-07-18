@@ -150,6 +150,7 @@ func TestAccEventGridSystemTopicEventSubscription_filter(t *testing.T) {
 				check.That(data.ResourceName).Key("included_event_types.1").HasValue("Microsoft.Storage.BlobDeleted"),
 				check.That(data.ResourceName).Key("subject_filter.0.subject_ends_with").HasValue(".jpg"),
 				check.That(data.ResourceName).Key("subject_filter.0.subject_begins_with").HasValue("test/test"),
+				check.That(data.ResourceName).Key("advanced_filtering_on_arrays_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -554,6 +555,8 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
     queue_name         = azurerm_storage_queue.test.name
   }
 
+  advanced_filtering_on_arrays_enabled = true
+  
   included_event_types = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobDeleted"]
 
   subject_filter {
