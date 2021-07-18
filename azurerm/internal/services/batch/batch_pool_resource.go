@@ -294,6 +294,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
+						// TODO 3.0 - rename to task_retry_maximum to be consistent with azurerm_batch_job
 						"max_task_retry_count": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
@@ -306,6 +307,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Default:  false,
 						},
 
+						// TODO 3.0 - rename to common_environment_properties to be consistent with azurerm_batch_job
 						"environment": {
 							Type:     pluginsdk.TypeMap,
 							Optional: true,

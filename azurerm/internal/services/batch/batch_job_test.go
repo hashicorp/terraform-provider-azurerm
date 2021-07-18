@@ -132,11 +132,11 @@ resource "azurerm_batch_job" "test" {
   name          = "testaccbj-%[2]d"
   batch_pool_id = azurerm_batch_pool.test.id
   display_name  = "testaccbj-display-%[2]d"
-  common_environment_setting = {
+  common_environment_properties = {
     env = "Test"
   }
   priority             = 1
-  max_task_retry_count = 1
+  task_retry_maximum = 1
 }
 `, template, data.RandomInteger)
 }
@@ -150,7 +150,7 @@ resource "azurerm_batch_job" "test" {
   name                 = "testaccbj-%d"
   batch_pool_id        = azurerm_batch_pool.test.id
   priority             = 2
-  max_task_retry_count = -1
+  task_retry_maximum = -1
 }
 `, template, data.RandomInteger)
 }

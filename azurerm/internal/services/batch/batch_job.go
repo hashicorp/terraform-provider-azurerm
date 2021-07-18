@@ -20,12 +20,12 @@ type BatchJobResource struct{}
 var _ sdk.ResourceWithUpdate = BatchJobResource{}
 
 type BatchJobModel struct {
-	Name                     string            `tfschema:"name"`
-	BatchPoolId              string            `tfschema:"batch_pool_id"`
-	DisplayName              string            `tfschema:"display_name"`
-	Priority                 int               `tfschema:"priority"`
-	MaxTaskRetryCount        int               `tfschema:"max_task_retry_count"`
-	CommonEnvironmentSetting map[string]string `tfschema:"common_environment_setting"`
+	Name                        string            `tfschema:"name"`
+	BatchPoolId                 string            `tfschema:"batch_pool_id"`
+	DisplayName                 string            `tfschema:"display_name"`
+	Priority                    int               `tfschema:"priority"`
+	TaskRetryMaximum            int               `tfschema:"task_retry_maximum"`
+	CommonEnvironmentProperties map[string]string `tfschema:"common_environment_properties"`
 }
 
 func (r BatchJobResource) Arguments() map[string]*pluginsdk.Schema {
@@ -48,7 +48,7 @@ func (r BatchJobResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-		"common_environment_setting": {
+		"common_environment_properties": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
 			ForceNew: true,
@@ -62,7 +62,7 @@ func (r BatchJobResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:      0,
 			ValidateFunc: validation.IntBetween(-1000, 1000),
 		},
-		"max_task_retry_count": {
+		"task_retry_maximum": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntAtLeast(-1),
@@ -125,10 +125,9 @@ func (r BatchJobResource) Create() sdk.ResourceFunc {
 				DisplayName: &model.DisplayName,
 				Priority:    utils.Int32(int32(model.Priority)),
 				Constraints: &batchDataplane.JobConstraints{
-					// MaxWallClockTime:  nil,
-					MaxTaskRetryCount: utils.Int32(int32(model.MaxTaskRetryCount)),
+					MaxTaskRetryCount: utils.Int32(int32(model.TaskRetryMaximum)),
 				},
-				CommonEnvironmentSettings: r.expandEnvironmentSettings(model.CommonEnvironmentSetting),
+				CommonEnvironmentSettings: r.expandEnvironmentSettings(model.CommonEnvironmentProperties),
 				PoolInfo: &batchDataplane.PoolInformation{
 					PoolID: &poolId.Name,
 				},
@@ -167,9 +166,9 @@ func (r BatchJobResource) Read() sdk.ResourceFunc {
 			}
 
 			model := BatchJobModel{
-				Name:              id.Name,
-				BatchPoolId:       parse.NewPoolID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.PoolName).ID(),
-				MaxTaskRetryCount: 0,
+				Name:             id.Name,
+				BatchPoolId:      parse.NewPoolID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.PoolName).ID(),
+				TaskRetryMaximum: 0,
 			}
 
 			if resp.Priority != nil {
@@ -182,11 +181,11 @@ func (r BatchJobResource) Read() sdk.ResourceFunc {
 
 			if prop := resp.Constraints; prop != nil {
 				if prop.MaxTaskRetryCount != nil {
-					model.MaxTaskRetryCount = int(*prop.MaxTaskRetryCount)
+					model.TaskRetryMaximum = int(*prop.MaxTaskRetryCount)
 				}
 			}
 
-			model.CommonEnvironmentSetting = r.flattenEnvironmentSettings(resp.CommonEnvironmentSettings)
+			model.CommonEnvironmentProperties = r.flattenEnvironmentSettings(resp.CommonEnvironmentSettings)
 
 			return metadata.Encode(&model)
 		},
@@ -208,11 +207,11 @@ func (r BatchJobResource) Update() sdk.ResourceFunc {
 				patch.Priority = utils.Int32(int32(model.Priority))
 			}
 
-			if metadata.ResourceData.HasChange("max_task_retry_count") {
+			if metadata.ResourceData.HasChange("task_retry_maximum") {
 				if patch.Constraints == nil {
 					patch.Constraints = new(batchDataplane.JobConstraints)
 				}
-				patch.Constraints.MaxTaskRetryCount = utils.Int32(int32(model.MaxTaskRetryCount))
+				patch.Constraints.MaxTaskRetryCount = utils.Int32(int32(model.TaskRetryMaximum))
 			}
 
 			id, err := parse.JobID(metadata.ResourceData.Id())
