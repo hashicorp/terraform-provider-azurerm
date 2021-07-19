@@ -1,4 +1,4 @@
-package media
+package videoanalyzer
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
