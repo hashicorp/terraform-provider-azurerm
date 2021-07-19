@@ -70,25 +70,21 @@ func resourceApiManagementGatewayApiCreate(d *pluginsdk.ResourceData, meta inter
 	if err != nil {
 		if !utils.ResponseWasStatusCode(exists, http.StatusNoContent) {
 			if !utils.ResponseWasNotFound(exists) {
-				return fmt.Errorf("checking for presence of existing API %q / Gateway %q (API Management Service %q / Resource Group %q): %+v", apiID.Name, gatewayID, gatewayID.ServiceName, gatewayID.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", gatewayID, err)
 			}
 		}
 	}
 
+	id := parse.NewGatewayApiID(gatewayID.SubscriptionId, gatewayID.ResourceGroup, gatewayID.ServiceName, gatewayID.Name, apiID.Name)
 	if !utils.ResponseWasNotFound(exists) {
-		// TODO: can we pull this from somewhere?
-		subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-		resourceId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/gateways/%s/apis/%s", subscriptionId, gatewayID.ResourceGroup, gatewayID.ServiceName, gatewayID, apiID.Name)
-		return tf.ImportAsExistsError("azurerm_api_management_gateway_api", resourceId)
+		return tf.ImportAsExistsError("azurerm_api_management_gateway_api", id.ID())
 	}
-
 	params := &apimanagement.AssociationContract{}
-	resp, err := client.CreateOrUpdate(ctx, gatewayID.ResourceGroup, gatewayID.ServiceName, gatewayID.Name, apiID.Name, params)
+	_, err = client.CreateOrUpdate(ctx, gatewayID.ResourceGroup, gatewayID.ServiceName, gatewayID.Name, apiID.Name, params)
 	if err != nil {
-		return fmt.Errorf("adding API %q to Gateway %q (API Management Service %q / Resource Group %q): %+v", apiID.Name, gatewayID.Name, gatewayID.ServiceName, gatewayID.ResourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementGatewayApiRead(d, meta)
 }
@@ -102,35 +98,27 @@ func resourceApiManagementGatewayApiRead(d *pluginsdk.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	gatewayID := id.GatewayName
-	apiName := id.ApiName
 
 	apiId := parse.NewApiID(id.SubscriptionId, id.ResourceGroup, id.ServiceName, id.ApiName)
-
-	resp, err := client.GetEntityTag(ctx, resourceGroup, serviceName, gatewayID, apiName)
+	resp, err := client.GetEntityTag(ctx, id.ResourceGroup, id.ServiceName, id.GatewayName, id.ApiName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
-			log.Printf("[DEBUG] gateway %q (API Management Service %q / Resource Group %q) does not exist - removing from state!", apiName, serviceName, resourceGroup)
+			log.Printf("[DEBUG] %s does not exist - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
-
 		if utils.ResponseWasStatusCode(resp, http.StatusNoContent) {
-			log.Printf("[DEBUG] gateway %q (API Management Service %q / Resource Group %q) returning a no content status - bypassing and moving on!", apiName, serviceName, resourceGroup)
+			log.Printf("[DEBUG] %s returned with No Content status - bypassing and moving on!", id)
 		} else {
-			return fmt.Errorf("retrieving gateway %q (API Management Service %q / Resource Group %q): %+v", apiName, serviceName, resourceGroup, err)
+			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 	}
-
 	if utils.ResponseWasNotFound(resp) {
-		log.Printf("[DEBUG] API %q was not found in Gateway  %q (API Management Service %q / Resource Group %q) was not found - removing from state!", apiName, gatewayID, serviceName, resourceGroup)
+		log.Printf("[DEBUG] %s was not found - removing from state!", id)
 		d.SetId("")
 		return nil
 	}
-
-	gateway := parse.NewGatewayID(id.SubscriptionId, resourceGroup, serviceName, gatewayID)
+	gateway := parse.NewGatewayID(id.SubscriptionId, id.ResourceGroup, id.ServiceName, id.GatewayName)
 
 	d.Set("api_id", apiId.ID())
 	d.Set("gateway_id", gateway.ID())
@@ -147,14 +135,10 @@ func resourceApiManagementGatewayApiDelete(d *pluginsdk.ResourceData, meta inter
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.ServiceName
-	gatewayID := id.GatewayName
-	apiName := id.ApiName
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, gatewayID, apiName); err != nil {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.GatewayName, id.ApiName); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("removing API %q from Gateway %q (API Management Service %q / Resource Group %q): %+v", apiName, gatewayID, serviceName, resourceGroup, err)
+			return fmt.Errorf("removing %s: %+v", id, err)
 		}
 	}
 
