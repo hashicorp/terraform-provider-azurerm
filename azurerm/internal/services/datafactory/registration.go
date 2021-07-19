@@ -65,6 +65,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_factory_linked_service_sql_server":             resourceDataFactoryLinkedServiceSQLServer(),
 		"azurerm_data_factory_linked_service_synapse":                resourceDataFactoryLinkedServiceSynapse(),
 		"azurerm_data_factory_linked_service_web":                    resourceDataFactoryLinkedServiceWeb(),
+		"azurerm_data_factory_managed_private_endpoint":              resourceDataFactoryManagedPrivateEndpoint(),
 		"azurerm_data_factory_pipeline":                              resourceDataFactoryPipeline(),
 		"azurerm_data_factory_trigger_blob_event":                    resourceDataFactoryTriggerBlobEvent(),
 		"azurerm_data_factory_trigger_schedule":                      resourceDataFactoryTriggerSchedule(),
