@@ -1,4 +1,4 @@
-package media_test
+package videoanalyzer_test
 
 import (
 	"context"
@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type MediaServicesAccountResource struct {
+type VideoAnalyzerResource struct {
 }
 
-func TestAccMediaServicesAccount_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
-	r := MediaServicesAccountResource{}
+func TestAccVideoAnalyzer_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_video_analyzer", "test")
+	r := VideoAnalyzerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -34,7 +34,7 @@ func TestAccMediaServicesAccount_basic(t *testing.T) {
 
 func TestAccMediaServicesAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
-	r := MediaServicesAccountResource{}
+	r := VideoAnalyzerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,7 +49,7 @@ func TestAccMediaServicesAccount_requiresImport(t *testing.T) {
 
 func TestAccMediaServicesAccount_multipleAccounts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
-	r := MediaServicesAccountResource{}
+	r := VideoAnalyzerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -70,7 +70,7 @@ func TestAccMediaServicesAccount_multipleAccounts(t *testing.T) {
 
 func TestAccMediaServicesAccount_multiplePrimaries(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
-	r := MediaServicesAccountResource{}
+	r := VideoAnalyzerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -82,7 +82,7 @@ func TestAccMediaServicesAccount_multiplePrimaries(t *testing.T) {
 
 func TestAccMediaServicesAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
-	r := MediaServicesAccountResource{}
+	r := VideoAnalyzerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -95,7 +95,7 @@ func TestAccMediaServicesAccount_complete(t *testing.T) {
 	})
 }
 
-func (MediaServicesAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (VideoAnalyzerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VideoAnalyzerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -109,19 +109,18 @@ func (MediaServicesAccountResource) Exists(ctx context.Context, clients *clients
 	return utils.Bool(resp.ServiceProperties != nil), nil
 }
 
-func (r MediaServicesAccountResource) basic(data acceptance.TestData) string {
+func (r VideoAnalyzerResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_media_services_account" "test" {
+resource "azurerm_video_analyzer" "test" {
   name                = "acctestmsa%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   storage_account {
     id         = azurerm_storage_account.first.id
-    is_primary = true
   }
 
   tags = {
@@ -131,7 +130,7 @@ resource "azurerm_media_services_account" "test" {
 `, template, data.RandomString)
 }
 
-func (r MediaServicesAccountResource) requiresImport(data acceptance.TestData) string {
+func (r VideoAnalyzerResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -153,8 +152,8 @@ resource "azurerm_media_services_account" "import" {
 `, template)
 }
 
-func (MediaServicesAccountResource) multipleAccounts(data acceptance.TestData) string {
-	template := MediaServicesAccountResource{}.template(data)
+func (VideoAnalyzerResource) multipleAccounts(data acceptance.TestData) string {
+	template := VideoAnalyzerResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -184,8 +183,8 @@ resource "azurerm_media_services_account" "test" {
 `, template, data.RandomString, data.RandomString)
 }
 
-func (MediaServicesAccountResource) multipleAccountsUpdated(data acceptance.TestData) string {
-	template := MediaServicesAccountResource{}.template(data)
+func (VideoAnalyzerResource) multipleAccountsUpdated(data acceptance.TestData) string {
+	template := VideoAnalyzerResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -215,8 +214,8 @@ resource "azurerm_media_services_account" "test" {
 `, template, data.RandomString, data.RandomString)
 }
 
-func (MediaServicesAccountResource) multiplePrimaries(data acceptance.TestData) string {
-	template := MediaServicesAccountResource{}.template(data)
+func (VideoAnalyzerResource) multiplePrimaries(data acceptance.TestData) string {
+	template := VideoAnalyzerResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -246,7 +245,7 @@ resource "azurerm_media_services_account" "test" {
 `, template, data.RandomString, data.RandomString)
 }
 
-func (r MediaServicesAccountResource) complete(data acceptance.TestData) string {
+func (r VideoAnalyzerResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -277,7 +276,7 @@ resource "azurerm_media_services_account" "test" {
 `, template, data.RandomString)
 }
 
-func (MediaServicesAccountResource) template(data acceptance.TestData) string {
+func (VideoAnalyzerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

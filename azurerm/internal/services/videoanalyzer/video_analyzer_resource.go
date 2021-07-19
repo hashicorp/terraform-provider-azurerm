@@ -1,4 +1,4 @@
-package media
+package videoanalyzer
 
 import (
 	"fmt"
@@ -108,6 +108,36 @@ func resourceVideoAnalyzer() *pluginsdk.Resource {
 				},
 			},
 
+			// "account_encryption": {
+			// 	Type:     pluginsdk.TypeList,
+			// 	Optional: true,
+			// 	Computed: true,
+			// 	MaxItems: 1,
+			// 	Elem: &pluginsdk.Resource{
+			// 		Schema: map[string]*pluginsdk.Schema{
+			// 			"type": {
+			// 				Type:             pluginsdk.TypeString,
+			// 				Optional:         true,
+			// 				DiffSuppressFunc: suppress.CaseDifference,
+			// 				ValidateFunc: validation.StringInSlice([]string{
+			// 					string("AccountEncryptionKeyTypeSystemKey"),
+			// 					string("AccountEncryptionKeyTypeCustomerKey"),
+			// 				}, true),
+			// 			},
+			// 			"identity_ids": {
+			// 				Type:     pluginsdk.TypeList,
+			// 				Optional: true,
+			// 				MaxItems: 1,
+			// 				Elem: &pluginsdk.Schema{
+			// 					Type:         pluginsdk.TypeString,
+			// 					ValidateFunc: validate.UserAssignedIdentityID,
+			// 				},
+			// 			},
+			// 		},
+			// 	},
+			// },
+			// TODO: Add account encryption
+
 			"storage_authentication_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -139,7 +169,7 @@ func resourceVideoAnalyzerCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_media_services_account", resourceId.ID())
+			return tf.ImportAsExistsError("azurerm_video_analyzer", resourceId.ID())
 		}
 	}
 
@@ -201,8 +231,8 @@ func resourceVideoAnalyzerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	props := resp.PropertiesType
 	if props != nil {
 		accounts := flattenVideoAnalyzerStorageAccounts(props.StorageAccounts)
-		if e := d.Set("storage_account", accounts); e != nil {
-			return fmt.Errorf("flattening `storage_account`: %s", e)
+		if err := d.Set("storage_account", accounts); err != nil {
+			return fmt.Errorf("flattening `storage_account`: %s", err)
 		}
 		// d.Set("account_encryption", string(props.Encryption.Type)) // TODO: Add account encryption
 	}
