@@ -344,6 +344,13 @@ func testAccKubernetesCluster_upgradeSkuTier(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.freeSkuConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -1156,9 +1163,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) paidSkuConfig(data acceptance.TestData) string {
-	// @tombuildsstuff (2020-05-29) - this is only supported in a handful of regions
-	// 								  whilst in Preview - hard-coding for now
-	location := "westus2" // TODO: data.Locations.Primary
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1186,13 +1190,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, location, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) freeSkuConfig(data acceptance.TestData) string {
-	// @tombuildsstuff (2020-05-29) - this is only supported in a handful of regions
-	// 								  whilst in Preview - hard-coding for now
-	location := "westus2" // TODO: data.Locations.Primary
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1208,6 +1209,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+  sku_tier            = "Free"
 
   default_node_pool {
     name       = "default"
@@ -1219,7 +1221,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, location, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) tagsConfig(data acceptance.TestData) string {
