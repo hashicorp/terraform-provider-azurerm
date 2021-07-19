@@ -36,7 +36,7 @@ func (id NotificationHubId) String() string {
 }
 
 func (id NotificationHubId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.NotificationHubs/namespaces/%s/notificationHubs/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.NotificationHubs/namespaces/%s/NotificationHubs/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.Name)
 }
 
@@ -63,7 +63,7 @@ func NotificationHubID(input string) (*NotificationHubId, error) {
 	if resourceId.NamespaceName, err = id.PopSegment("namespaces"); err != nil {
 		return nil, err
 	}
-	if resourceId.Name, err = id.PopSegment("notificationHubs"); err != nil {
+	if resourceId.Name, err = id.PopSegment("NotificationHubs"); err != nil {
 		return nil, err
 	}
 

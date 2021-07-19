@@ -39,7 +39,7 @@ func (id NotificationHubAuthorizationRuleId) String() string {
 }
 
 func (id NotificationHubAuthorizationRuleId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.NotificationHubs/namespaces/%s/notificationHubs/%s/AuthorizationRules/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.NotificationHubs/namespaces/%s/NotificationHubs/%s/AuthorizationRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.NotificationHubName, id.AuthorizationRuleName)
 }
 
@@ -66,7 +66,7 @@ func NotificationHubAuthorizationRuleID(input string) (*NotificationHubAuthoriza
 	if resourceId.NamespaceName, err = id.PopSegment("namespaces"); err != nil {
 		return nil, err
 	}
-	if resourceId.NotificationHubName, err = id.PopSegment("notificationHubs"); err != nil {
+	if resourceId.NotificationHubName, err = id.PopSegment("NotificationHubs"); err != nil {
 		return nil, err
 	}
 	if resourceId.AuthorizationRuleName, err = id.PopSegment("AuthorizationRules"); err != nil {
