@@ -8,6 +8,10 @@ ENHANCEMENTS:
 * `azurerm_data_factory_integration_runtime_azure` - support for the `virtual_network_enabled` property [GH-12619]
 * `azurerm_postgresql_flexible_server` - support for the `high_availability` block [GH-12587]
 
+BUG FIXES:
+
+* `azurerm_eventhub_authorization_rule` - fixing the error "empty non-retryable error received" [GH-12642]
+
 ## 2.68.0 (July 16, 2021)
 
 FEATURES:
