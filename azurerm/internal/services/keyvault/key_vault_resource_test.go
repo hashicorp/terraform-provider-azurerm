@@ -62,14 +62,27 @@ func TestAccKeyVault_networkAcls(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		{
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
+			Check:             check.That(data.ResourceName).Key("network_acls.0.virtual_network_subnet_ids.%").HasValue("2"),
+		},
 		{
 			Config: r.networkAclsUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		{
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("network_acls.0.ip_rules.%").HasValue("2"),
+				check.That(data.ResourceName).Key("network_acls.0.virtual_network_subnet_ids.%").HasValue("1"),
+			),
+		},
 	})
 }
 

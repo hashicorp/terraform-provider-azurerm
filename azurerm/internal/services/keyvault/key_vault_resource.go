@@ -167,6 +167,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 							"ip_rules": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
+								Computed: true,
 								Elem: &pluginsdk.Schema{
 									Type: pluginsdk.TypeString,
 									ValidateFunc: validation.Any(
@@ -179,6 +180,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 							"virtual_network_subnet_ids": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
+								Computed: true,
 								Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 								Set:      set.HashStringIgnoreCase,
 							},
@@ -253,7 +255,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	// Locking this resource so we don't make modifications to it at the same time if there is a
-	// key vault access policy trying to update it as well
+	// key vault access policy or key vault network acl rule trying to update it as well
 	locks.ByName(id.Name, keyVaultResourceName)
 	defer locks.UnlockByName(id.Name, keyVaultResourceName)
 
