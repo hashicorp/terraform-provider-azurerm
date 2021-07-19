@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-12-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
 	"github.com/Azure/go-autorest/autorest/date"
 	apimValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appservice/helpers"
@@ -170,8 +170,8 @@ func siteConfigSchemaWindows() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.Classic),
-						string(web.Integrated),
+						string(web.ManagedPipelineModeClassic),
+						string(web.ManagedPipelineModeIntegrated),
 					}, true),
 				},
 
@@ -214,9 +214,9 @@ func siteConfigSchemaWindows() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.AllAllowed),
-						string(web.Disabled),
-						string(web.FtpsOnly),
+						string(web.FtpsStateAllAllowed),
+						string(web.FtpsStateDisabled),
+						string(web.FtpsStateFtpsOnly),
 					}, false),
 				},
 
@@ -237,9 +237,9 @@ func siteConfigSchemaWindows() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.OneFullStopZero),
-						string(web.OneFullStopOne),
-						string(web.OneFullStopTwo),
+						string(web.SupportedTLSVersionsOneFullStopZero),
+						string(web.SupportedTLSVersionsOneFullStopOne),
+						string(web.SupportedTLSVersionsOneFullStopTwo),
 					}, false),
 				},
 
@@ -248,9 +248,9 @@ func siteConfigSchemaWindows() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.OneFullStopZero),
-						string(web.OneFullStopOne),
-						string(web.OneFullStopTwo),
+						string(web.SupportedTLSVersionsOneFullStopZero),
+						string(web.SupportedTLSVersionsOneFullStopOne),
+						string(web.SupportedTLSVersionsOneFullStopTwo),
 					}, false),
 				},
 
@@ -370,8 +370,8 @@ func siteConfigSchemaLinux() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.Classic),
-						string(web.Integrated),
+						string(web.ManagedPipelineModeClassic),
+						string(web.ManagedPipelineModeIntegrated),
 					}, true),
 				},
 
@@ -414,9 +414,9 @@ func siteConfigSchemaLinux() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.AllAllowed),
-						string(web.Disabled),
-						string(web.FtpsOnly),
+						string(web.FtpsStateAllAllowed),
+						string(web.FtpsStateDisabled),
+						string(web.FtpsStateFtpsOnly),
 					}, false),
 				},
 
@@ -437,9 +437,9 @@ func siteConfigSchemaLinux() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.OneFullStopZero),
-						string(web.OneFullStopOne),
-						string(web.OneFullStopTwo),
+						string(web.SupportedTLSVersionsOneFullStopZero),
+						string(web.SupportedTLSVersionsOneFullStopOne),
+						string(web.SupportedTLSVersionsOneFullStopTwo),
 					}, false),
 				},
 
@@ -448,9 +448,9 @@ func siteConfigSchemaLinux() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.OneFullStopZero),
-						string(web.OneFullStopOne),
-						string(web.OneFullStopTwo),
+						string(web.SupportedTLSVersionsOneFullStopZero),
+						string(web.SupportedTLSVersionsOneFullStopOne),
+						string(web.SupportedTLSVersionsOneFullStopTwo),
 					}, false),
 				},
 
@@ -863,9 +863,9 @@ func autoHealActionSchemaWindows() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.CustomAction),
-						string(web.LogEvent),
-						string(web.Recycle),
+						string(web.AutoHealActionTypeCustomAction),
+						string(web.AutoHealActionTypeLogEvent),
+						string(web.AutoHealActionTypeRecycle),
 					}, false),
 				},
 
@@ -912,7 +912,7 @@ func autoHealActionSchemaLinux() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.Recycle),
+						string(web.AutoHealActionTypeRecycle),
 					}, false),
 				},
 
@@ -1244,8 +1244,8 @@ func storageAccountSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.AzureBlob),
-						string(web.AzureFiles),
+						string(web.AzureStorageTypeAzureBlob),
+						string(web.AzureStorageTypeAzureFiles),
 					}, false),
 				},
 
@@ -1395,17 +1395,17 @@ func connectionStringSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.APIHub),
-						string(web.Custom),
-						string(web.DocDb),
-						string(web.EventHub),
-						string(web.MySQL),
-						string(web.NotificationHub),
-						string(web.PostgreSQL),
-						string(web.RedisCache),
-						string(web.ServiceBus),
-						string(web.SQLAzure),
-						string(web.SQLServer),
+						string(web.ConnectionStringTypeAPIHub),
+						string(web.ConnectionStringTypeCustom),
+						string(web.ConnectionStringTypeDocDb),
+						string(web.ConnectionStringTypeEventHub),
+						string(web.ConnectionStringTypeMySQL),
+						string(web.ConnectionStringTypeNotificationHub),
+						string(web.ConnectionStringTypePostgreSQL),
+						string(web.ConnectionStringTypeRedisCache),
+						string(web.ConnectionStringTypeServiceBus),
+						string(web.ConnectionStringTypeSQLAzure),
+						string(web.ConnectionStringTypeSQLServer),
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
@@ -1494,11 +1494,11 @@ func applicationLogSchema() *pluginsdk.Schema {
 					Optional: true,
 					Default:  "Off",
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.Error),
-						string(web.Information),
-						string(web.Off),
-						string(web.Verbose),
-						string(web.Warning),
+						string(web.LogLevelError),
+						string(web.LogLevelInformation),
+						string(web.LogLevelOff),
+						string(web.LogLevelVerbose),
+						string(web.LogLevelWarning),
 					}, false),
 				},
 
@@ -1519,11 +1519,11 @@ func appLogBlobStorageSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.Error),
-						string(web.Information),
-						string(web.Off),
-						string(web.Verbose),
-						string(web.Warning),
+						string(web.LogLevelError),
+						string(web.LogLevelInformation),
+						string(web.LogLevelOff),
+						string(web.LogLevelVerbose),
+						string(web.LogLevelWarning),
 					}, false),
 				},
 				"sas_url": {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-12-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
 	msiParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -358,8 +358,8 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.AllowAnonymous),
-						string(web.RedirectToLoginPage),
+						string(web.UnauthenticatedClientActionAllowAnonymous),
+						string(web.UnauthenticatedClientActionRedirectToLoginPage),
 					}, false),
 				},
 
@@ -684,7 +684,7 @@ func ExpandIpRestrictions(restrictions []IpRestriction) (*[]web.IPSecurityRestri
 
 		if v.ServiceTag != "" {
 			restriction.IPAddress = utils.String(v.ServiceTag)
-			restriction.Tag = web.ServiceTag
+			restriction.Tag = web.IPFilterTagServiceTag
 		}
 
 		if v.VnetSubnetId != "" {
@@ -749,9 +749,9 @@ func ExpandIdentity(identities []Identity) *web.ManagedServiceIdentity {
 	for _, v := range identities {
 		result.Type = web.ManagedServiceIdentityType(v.Type)
 		if result.Type == web.ManagedServiceIdentityTypeUserAssigned || result.Type == web.ManagedServiceIdentityTypeSystemAssignedUserAssigned {
-			identityIds := make(map[string]*web.ManagedServiceIdentityUserAssignedIdentitiesValue)
+			identityIds := make(map[string]*web.UserAssignedIdentity)
 			for _, i := range v.IdentityIds {
-				identityIds[i] = &web.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+				identityIds[i] = &web.UserAssignedIdentity{}
 			}
 			result.UserAssignedIdentities = identityIds
 		}
@@ -1106,7 +1106,7 @@ func FlattenIpRestrictions(ipRestrictionsList *[]web.IPSecurityRestriction) []Ip
 				continue
 			}
 			ipRestriction.IpAddress = *v.IPAddress
-			if v.Tag == web.ServiceTag {
+			if v.Tag == web.IPFilterTagServiceTag {
 				ipRestriction.ServiceTag = *v.IPAddress
 			} else {
 				ipRestriction.IpAddress = *v.IPAddress

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-12-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -107,8 +107,8 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Default:  "Required",
 			ValidateFunc: validation.StringInSlice([]string{
-				string(web.Optional),
-				string(web.Required),
+				string(web.ClientCertModeOptional),
+				string(web.ClientCertModeRequired),
 			}, false),
 		},
 

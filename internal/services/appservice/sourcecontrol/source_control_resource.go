@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+<<<<<<< HEAD:internal/services/appservice/sourcecontrol/source_control_resource.go
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-12-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -13,6 +14,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+=======
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appservice/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appservice/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+>>>>>>> 7c6535352 (rebase and bump to API version 2021-01-15 now it is available):azurerm/internal/services/appservice/sourcecontrol/source_control_resource.go
 )
 
 type AppServiceSourceControlResource struct{}
