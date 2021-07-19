@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `pipeline` - (Required) One or more `pipeline` blocks as defined below.
 
-* `activated` - (Optional) Specifies if the Data Factory Blob Event Trigger is activated.
+* `activated` - (Optional) Specifies if the Data Factory Blob Event Trigger is activated. Defaults to `true`.
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Blob Event Trigger.
 

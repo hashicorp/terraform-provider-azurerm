@@ -111,6 +111,14 @@ func TestAccDataFactoryTriggerBlobEvent_startStop(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.activated(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("activated").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 

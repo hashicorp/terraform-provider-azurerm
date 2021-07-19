@@ -95,6 +95,7 @@ func resourceDataFactoryTriggerBlobEvent() *pluginsdk.Resource {
 			"activated": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"additional_properties": {
