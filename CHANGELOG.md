@@ -1,5 +1,9 @@
 ## 2.69.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource** `azurerm_batch_job` [GH-12573]
+
 ENHANCEMENTS:
 
 * dependencies: Updgrading to `v55.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-12565]
