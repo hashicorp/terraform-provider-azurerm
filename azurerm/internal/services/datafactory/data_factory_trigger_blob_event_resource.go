@@ -256,6 +256,7 @@ func resourceDataFactoryTriggerBlobEventRead(d *pluginsdk.ResourceData, meta int
 	d.Set("name", id.Name)
 	d.Set("data_factory_id", parse.NewDataFactoryID(subscriptionId, id.ResourceGroup, id.FactoryName).ID())
 
+	d.Set("activated", blobEventsTrigger.RuntimeState == datafactory.TriggerRuntimeStateStarted)
 	d.Set("additional_properties", blobEventsTrigger.AdditionalProperties)
 	d.Set("description", blobEventsTrigger.Description)
 
@@ -266,7 +267,6 @@ func resourceDataFactoryTriggerBlobEventRead(d *pluginsdk.ResourceData, meta int
 	if err := d.Set("pipeline", flattenDataFactoryTriggerPipeline(blobEventsTrigger.Pipelines)); err != nil {
 		return fmt.Errorf("setting `pipeline`: %+v", err)
 	}
-	d.Set("activated", blobEventsTrigger.RuntimeState == datafactory.TriggerRuntimeStateStarted)
 
 	if props := blobEventsTrigger.BlobEventsTriggerTypeProperties; props != nil {
 		d.Set("storage_account_id", props.Scope)
