@@ -170,7 +170,6 @@ func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, 
 		if err != nil {
 			return fmt.Errorf("stopping %s: %+v", id, err)
 		}
-
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("waiting to stop %s: %+v", id, err)
 		}
@@ -217,7 +216,6 @@ func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, 
 		if err != nil {
 			return fmt.Errorf("starting %s: %+v", id, err)
 		}
-
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("waiting on start %s: %+v", id, err)
 		}
@@ -296,7 +294,6 @@ func resourceDataFactoryTriggerBlobEventDelete(d *pluginsdk.ResourceData, meta i
 	if err != nil {
 		return fmt.Errorf("stopping %s: %+v", id, err)
 	}
-
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting to stop %s: %+v", id, err)
 	}
