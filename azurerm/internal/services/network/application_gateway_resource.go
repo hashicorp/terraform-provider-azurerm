@@ -3895,6 +3895,16 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 		return fmt.Errorf("The Application Gateway must specify either `capacity` or `autoscale_configuration` for the selected SKU tier %q", tier)
 	}
 
+	sslPolicy := d.Get("ssl_policy").([]interface{})
+	if len(sslPolicy) > 0 && sslPolicy[0] != nil {
+		v := sslPolicy[0].(map[string]interface{})
+		disabledProtocols := v["disabled_protocols"].([]interface{})
+		policyType := v["policy_type"].(string)
+		if len(disabledProtocols) > 0 && policyType != "" {
+			return fmt.Errorf("setting disabled_protocols is not allowed when policy_type is defined")
+		}
+	}
+
 	if hasCapacity {
 		if (strings.EqualFold(tier, string(network.ApplicationGatewayTierStandard)) || strings.EqualFold(tier, string(network.ApplicationGatewayTierWAF))) && (capacity.(int) < 1 || capacity.(int) > 32) {
 			return fmt.Errorf("The value '%d' exceeds the maximum capacity allowed for a %q V1 SKU, the %q SKU must have a capacity value between 1 and 32", capacity, tier, tier)
