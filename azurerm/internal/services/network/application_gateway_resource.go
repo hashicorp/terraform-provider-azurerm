@@ -2173,7 +2173,7 @@ func flattenApplicationGatewayConnectionDraining(input *network.ApplicationGatew
 
 func expandApplicationGatewaySslPolicy(d *pluginsdk.ResourceData) *network.ApplicationGatewaySslPolicy {
 	policy := network.ApplicationGatewaySslPolicy{}
-	disabledSSLPolicies := make([]network.ApplicationGatewaySslProtocol, 0)
+	disabledSSLProtocols := make([]network.ApplicationGatewaySslProtocol, 0)
 
 	vs := d.Get("ssl_policy").([]interface{})
 
@@ -2182,7 +2182,7 @@ func expandApplicationGatewaySslPolicy(d *pluginsdk.ResourceData) *network.Appli
 		policyType := network.ApplicationGatewaySslPolicyType(v["policy_type"].(string))
 
 		for _, policy := range v["disabled_protocols"].([]interface{}) {
-			disabledSSLPolicies = append(disabledSSLPolicies, network.ApplicationGatewaySslProtocol(policy.(string)))
+			disabledSSLProtocols = append(disabledSSLProtocols, network.ApplicationGatewaySslProtocol(policy.(string)))
 		}
 
 		if policyType == network.ApplicationGatewaySslPolicyTypePredefined {
@@ -2207,9 +2207,9 @@ func expandApplicationGatewaySslPolicy(d *pluginsdk.ResourceData) *network.Appli
 		}
 	}
 
-	if len(disabledSSLPolicies) > 0 {
+	if len(disabledSSLProtocols) > 0 {
 		policy = network.ApplicationGatewaySslPolicy{
-			DisabledSslProtocols: &disabledSSLPolicies,
+			DisabledSslProtocols: &disabledSSLProtocols,
 		}
 	}
 
