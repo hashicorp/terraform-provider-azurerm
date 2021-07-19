@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
@@ -50,7 +49,7 @@ func resourceBotChannelWebChat() *pluginsdk.Resource {
 
 			"sites": {
 				Type:     pluginsdk.TypeSet,
-				Optional: true,
+				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"site_name": {
@@ -91,7 +90,7 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 		Kind:     botservice.KindBot,
 	}
 
-	if _, err := client.Create(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
+	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -175,11 +174,25 @@ func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameWebChatChannel))
-	if err != nil {
-		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("deleting %s: %+v", id, err)
-		}
+	defaultSite := "Default Site"
+	channel := botservice.BotChannel{
+		Properties: botservice.WebChatChannel{
+			Properties: &botservice.WebChatChannelProperties{
+				Sites: &[]botservice.WebChatSite{
+					{
+						SiteName:  utils.String(defaultSite),
+						IsEnabled: utils.Bool(true),
+					},
+				},
+			},
+			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
+		},
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Kind:     botservice.KindBot,
+	}
+
+	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
