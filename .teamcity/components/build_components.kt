@@ -65,7 +65,7 @@ fun BuildSteps.RunAcceptanceTests(providerName : String, packageName: String) {
         step(ScriptBuildStep {
             // ./test-binary -test.list=TestAccAzureRMResourceGroup_ | teamcity-go-test -test ./test-binary -timeout 1s
             name = "Run via jen20/teamcity-go-test"
-            scriptContent = "./test-binary -test.list=\"%TEST_PREFIX%\" | teamcity-go-test -test ./test-binary -parallelism \"%PARALLELISM%\" -timeout \"%TIMEOUT%h\""
+            scriptContent = "./test-binary -test.list=\"%TEST_PREFIX%\" ./... | teamcity-go-test -test ./test-binary -parallelism \"%PARALLELISM%\" -timeout \"%TIMEOUT%h\""
             workingDir = "%SERVICE_PATH%"
         })
     }
