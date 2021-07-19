@@ -41,6 +41,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_key_vault_certificate_issuer":               resourceKeyVaultCertificateIssuer(),
 		"azurerm_key_vault_key":                              resourceKeyVaultKey(),
 		"azurerm_key_vault_managed_hardware_security_module": resourceKeyVaultManagedHardwareSecurityModule(),
+		"azurerm_key_vault_network_acl_rule":                 resourceKeyVaultNetworkAclRule(),
 		"azurerm_key_vault_secret":                           resourceKeyVaultSecret(),
 		"azurerm_key_vault":                                  resourceKeyVault(),
 	}
