@@ -160,22 +160,18 @@ func resourceVideoAnalyzerCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	storageAccounts, err := expandVideoAnalyzerStorageAccounts(d)
+	identity, err := expandAzureRmVideoAnalyzerIdentity(d)
 	if err != nil {
 		return err
 	}
 	parameters := videoanalyzer.Model{
 		PropertiesType: &videoanalyzer.PropertiesType{
-			StorageAccounts: storageAccounts,
+			StorageAccounts: expandVideoAnalyzerStorageAccounts(d),
 			// Encryption: , // TODO: Add Encryption
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Identity: identity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	parameters.Identity, err = expandAzureRmVideoAnalyzerIdentity(d)
-	if err != nil {
-		return err
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.Name, parameters); err != nil {
@@ -255,7 +251,7 @@ func resourceVideoAnalyzerDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func expandVideoAnalyzerStorageAccounts(d *pluginsdk.ResourceData) (*[]videoanalyzer.StorageAccount, error) {
+func expandVideoAnalyzerStorageAccounts(d *pluginsdk.ResourceData) *[]videoanalyzer.StorageAccount {
 	storageAccountsRaw := d.Get("storage_account").(*pluginsdk.Set).List()
 	results := make([]videoanalyzer.StorageAccount, 0)
 
@@ -272,7 +268,7 @@ func expandVideoAnalyzerStorageAccounts(d *pluginsdk.ResourceData) (*[]videoanal
 		results = append(results, storageAccount)
 	}
 
-	return &results, nil
+	return &results
 }
 
 func flattenVideoAnalyzerStorageAccounts(input *[]videoanalyzer.StorageAccount) []interface{} {
@@ -323,14 +319,12 @@ func expandAzureRmVideoAnalyzerIdentity(d *pluginsdk.ResourceData) (*videoanalyz
 			userAssignedIdentities[id.(string)] = &videoanalyzer.UserAssignedManagedIdentity{}
 		}
 		result.UserAssignedIdentities = userAssignedIdentities
-
 	} else if len(identityIdSet) > 0 {
 		// If type does _not_ contain `UserAssigned` (i.e. is set to `SystemAssigned` or defaulted to `None`), `identity_ids` is not allowed
 		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`; but `type` is currently %q", *result.Type)
 	}
 
 	return result, nil
-
 }
 
 func flattenAzureRmVideoServiceIdentity(identity *videoanalyzer.Identity) ([]interface{}, error) {
