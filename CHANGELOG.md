@@ -18,6 +18,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `data.azurerm_redis_cache` - fix a bug that caused the data source to raise an error [GH-12666]
 * `azurerm_application_gateway` - return an error when ssl policy is not properly configured  [GH-12647]
 * `azurerm_eventhub_authorization_rule` - fixing the error "empty non-retryable error received" [GH-12642]
 
