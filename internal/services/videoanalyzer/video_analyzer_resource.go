@@ -104,37 +104,6 @@ func resourceVideoAnalyzer() *pluginsdk.Resource {
 					},
 				},
 			},
-
-			// "account_encryption": {
-			// 	Type:     pluginsdk.TypeList,
-			// 	Optional: true,
-			// 	Computed: true,
-			// 	MaxItems: 1,
-			// 	Elem: &pluginsdk.Resource{
-			// 		Schema: map[string]*pluginsdk.Schema{
-			// 			"type": {
-			// 				Type:             pluginsdk.TypeString,
-			// 				Optional:         true,
-			// 				DiffSuppressFunc: suppress.CaseDifference,
-			// 				ValidateFunc: validation.StringInSlice([]string{
-			// 					string("AccountEncryptionKeyTypeSystemKey"),
-			// 					string("AccountEncryptionKeyTypeCustomerKey"),
-			// 				}, true),
-			// 			},
-			// 			"identity_ids": {
-			// 				Type:     pluginsdk.TypeList,
-			// 				Optional: true,
-			// 				MaxItems: 1,
-			// 				Elem: &pluginsdk.Schema{
-			// 					Type:         pluginsdk.TypeString,
-			// 					ValidateFunc: validate.UserAssignedIdentityID,
-			// 				},
-			// 			},
-			// 		},
-			// 	},
-			// },
-			// TODO: Add account encryption
-
 			"tags": tags.Schema(),
 		},
 	}
@@ -167,7 +136,6 @@ func resourceVideoAnalyzerCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	parameters := videoanalyzer.Model{
 		PropertiesType: &videoanalyzer.PropertiesType{
 			StorageAccounts: expandVideoAnalyzerStorageAccounts(d),
-			// Encryption: , // TODO: Add Encryption
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Identity: identity,
@@ -215,7 +183,6 @@ func resourceVideoAnalyzerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		if err := d.Set("storage_account", accounts); err != nil {
 			return fmt.Errorf("flattening `storage_account`: %s", err)
 		}
-		// d.Set("account_encryption", string(props.Encryption.Type)) // TODO: Add account encryption
 	}
 
 	flattenedIdentity, err := flattenAzureRmVideoServiceIdentity(resp.Identity)
