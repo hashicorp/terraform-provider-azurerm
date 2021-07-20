@@ -8,6 +8,7 @@ type UserFeatures struct {
 	Network                NetworkFeatures
 	TemplateDeployment     TemplateDeploymentFeatures
 	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
+	ResourceGroup          ResourceGroupFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -40,4 +41,8 @@ type TemplateDeploymentFeatures struct {
 
 type LogAnalyticsWorkspaceFeatures struct {
 	PermanentlyDeleteOnDestroy bool
+}
+
+type ResourceGroupFeatures struct {
+	DeleteNestedItemsDuringDeletion bool
 }

@@ -28,5 +28,8 @@ func Default() UserFeatures {
 			ForceDelete:               false,
 			RollInstancesWhenRequired: true,
 		},
+		ResourceGroup: ResourceGroupFeatures{
+			DeleteNestedItemsDuringDeletion: false,
+		},
 	}
 }

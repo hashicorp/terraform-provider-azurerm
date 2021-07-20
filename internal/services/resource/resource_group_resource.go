@@ -123,6 +123,23 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
+	// In case deleting a non-empty resource group is not allowed, we should ensure the current resource group is empty.
+	deleteItemsInResourceGroup := meta.(*clients.Client).Features.ResourceGroup.DeleteNestedItemsDuringDeletion
+	if !deleteItemsInResourceGroup {
+		resourceClient := meta.(*clients.Client).Resource.ResourcesClient
+		it, err := resourceClient.ListByResourceGroupComplete(ctx, id.ResourceGroup, "", "", nil)
+		if err != nil {
+			return fmt.Errorf("listing resources in %s: %v", id, err)
+		}
+		if it.NotDone() {
+			msg := ""
+			if it.Value().ID != nil && it.Value().Type != nil {
+				msg = fmt.Sprintf(", at least there is a resource with ID %q (type: %s)", *it.Value().ID, *it.Value().Type)
+			}
+			return fmt.Errorf(`%s is not empty%s. Please ensure the resource group is empty, or you can enable "delete_nested_items_during_deletion" in "resource_group" feature block to allow deleting a non-empty resource group`, id, msg)
+		}
+	}
+
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, "")
 	if err != nil {
 		if response.WasNotFound(deleteFuture.Response()) {

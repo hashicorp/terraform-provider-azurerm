@@ -175,6 +175,8 @@ The `features` block supports the following:
 
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
 
+* `resource_group` - (Optional) A `resource_group` block as defined below.
+
 * `template_deployment` - (Optional) A `template_deployment` block as defined below.
 
 * `virtual_machine` - (Optional) A `virtual_machine` block as defined below.
@@ -204,6 +206,12 @@ The `key_vault` block supports the following:
 The `log_analytics_workspace` block supports the following:
 
 * `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
+
+---
+
+The `resource_group` block supports the following:
+
+* `delete_nested_items_during_deletion` - (Optional) Should the `azurerm_resource_group` resource allow deleting when the Resource Group contains any resource? Defaults to `false`.
 
 ---
 

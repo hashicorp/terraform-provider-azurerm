@@ -43,6 +43,9 @@ func TestExpandFeatures(t *testing.T) {
 					ForceDelete:               false,
 					RollInstancesWhenRequired: true,
 				},
+				ResourceGroup: features.ResourceGroupFeatures{
+					DeleteNestedItemsDuringDeletion: false,
+				},
 			},
 		},
 		{
@@ -88,6 +91,11 @@ func TestExpandFeatures(t *testing.T) {
 							"force_delete":                 true,
 						},
 					},
+					"resource_group": []interface{}{
+						map[string]interface{}{
+							"delete_nested_items_during_deletion": true,
+						},
+					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -115,6 +123,9 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					RollInstancesWhenRequired: true,
 					ForceDelete:               true,
+				},
+				ResourceGroup: features.ResourceGroupFeatures{
+					DeleteNestedItemsDuringDeletion: true,
 				},
 			},
 		},
@@ -161,6 +172,11 @@ func TestExpandFeatures(t *testing.T) {
 							"roll_instances_when_required": false,
 						},
 					},
+					"resource_group": []interface{}{
+						map[string]interface{}{
+							"delete_nested_items_during_deletion": false,
+						},
+					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -188,6 +204,9 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
 					RollInstancesWhenRequired: false,
+				},
+				ResourceGroup: features.ResourceGroupFeatures{
+					DeleteNestedItemsDuringDeletion: false,
 				},
 			},
 		},
@@ -733,6 +752,71 @@ func TestExpandFeaturesLogAnalyticsWorkspace(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.LogAnalyticsWorkspace, testCase.Expected.LogAnalyticsWorkspace) {
 			t.Fatalf("Expected %+v but got %+v", result.LogAnalyticsWorkspace, testCase.Expected.LogAnalyticsWorkspace)
+		}
+	}
+}
+
+func TestExpandFeaturesResourceGroup(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"resource_group": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				ResourceGroup: features.ResourceGroupFeatures{
+					DeleteNestedItemsDuringDeletion: false,
+				},
+			},
+		},
+		{
+			Name: "Delete Nested Items During Deletion Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"resource_group": []interface{}{
+						map[string]interface{}{
+							"delete_nested_items_during_deletion": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				ResourceGroup: features.ResourceGroupFeatures{
+					DeleteNestedItemsDuringDeletion: true,
+				},
+			},
+		},
+		{
+			Name: "Delete Nested Items During Deletion Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"template_deployment": []interface{}{
+						map[string]interface{}{
+							"delete_nested_items_during_deletion": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				ResourceGroup: features.ResourceGroupFeatures{
+					DeleteNestedItemsDuringDeletion: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.ResourceGroup, testCase.Expected.ResourceGroup) {
+			t.Fatalf("Expected %+v but got %+v", result.ResourceGroup, testCase.Expected.ResourceGroup)
 		}
 	}
 }
