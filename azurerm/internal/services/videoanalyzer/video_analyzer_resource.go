@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2021-05-01/media"
 	"github.com/Azure/azure-sdk-for-go/services/preview/videoanalyzer/mgmt/2021-05-01-preview/videoanalyzer"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -57,10 +56,10 @@ func resourceVideoAnalyzer() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			// TODO: are storage accounts required?
 			"storage_account": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
@@ -69,10 +68,10 @@ func resourceVideoAnalyzer() *pluginsdk.Resource {
 							ValidateFunc: azure.ValidateResourceID,
 						},
 
-						"identity": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  false,
+						"identity_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.UserAssignedIdentityID,
 						},
 					},
 				},
@@ -81,23 +80,21 @@ func resourceVideoAnalyzer() *pluginsdk.Resource {
 			//lintignore:XS003
 			"identity": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
+				Required: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"type": {
 							Type:             pluginsdk.TypeString,
-							Optional:         true,
+							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string("SystemAssigned"),
 								string("UserAssigned"),
 							}, true),
 						},
 						"identity_ids": {
 							Type:     pluginsdk.TypeSet,
-							Optional: true,
+							Required: true,
 							MinItems: 1,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -138,16 +135,6 @@ func resourceVideoAnalyzer() *pluginsdk.Resource {
 			// },
 			// TODO: Add account encryption
 
-			"storage_authentication_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(media.StorageAuthenticationSystem),
-					string(media.StorageAuthenticationManagedIdentity),
-				}, true),
-			},
-
 			"tags": tags.Schema(),
 		},
 	}
@@ -186,11 +173,9 @@ func resourceVideoAnalyzerCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, ok := d.GetOk("identity"); ok {
-		parameters.Identity, err = expandAzureRmVideoAnalyzerIdentity(d)
-		if err != nil {
-			return err
-		}
+	parameters.Identity, err = expandAzureRmVideoAnalyzerIdentity(d)
+	if err != nil {
+		return err
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.Name, parameters); err != nil {
@@ -280,7 +265,7 @@ func expandVideoAnalyzerStorageAccounts(d *pluginsdk.ResourceData) (*[]videoanal
 		storageAccount := videoanalyzer.StorageAccount{
 			ID: utils.String(accountMap["id"].(string)),
 			Identity: &videoanalyzer.ResourceIdentity{
-				UserAssignedIdentity: utils.String(accountMap["identity"].(string)),
+				UserAssignedIdentity: utils.String(accountMap["identity_id"].(string)),
 			},
 		}
 
@@ -304,7 +289,7 @@ func flattenVideoAnalyzerStorageAccounts(input *[]videoanalyzer.StorageAccount) 
 		}
 
 		if storageAccount.Identity != nil {
-			output["identity"] = *storageAccount.Identity.UserAssignedIdentity
+			output["identity_id"] = *storageAccount.Identity.UserAssignedIdentity
 		}
 
 		results = append(results, output)
