@@ -163,12 +163,12 @@ func resourceVideoAnalyzerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Media Services Account %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)
+			log.Printf("[INFO] Video Analyzer %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Media Services Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Video Analyzer %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -212,7 +212,7 @@ func resourceVideoAnalyzerDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		if response.WasNotFound(resp.Response) {
 			return nil
 		}
-		return fmt.Errorf("issuing AzureRM delete request for Media Services Account '%s': %+v", id.Name, err)
+		return fmt.Errorf("issuing AzureRM delete request for Video Analyzer '%s': %+v", id.Name, err)
 	}
 
 	return nil
