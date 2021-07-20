@@ -351,7 +351,7 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Policy Set Definition %q to become available: %+v", name, err)
 	}
 
@@ -426,6 +426,10 @@ func resourceArmPolicySetDefinitionUpdate(d *pluginsdk.ResourceData, meta interf
 		} else {
 			existing.SetDefinitionProperties.Parameters = nil
 		}
+	}
+
+	if d.HasChange("policy_definition_group") {
+		existing.SetDefinitionProperties.PolicyDefinitionGroups = expandAzureRMPolicySetDefinitionPolicyGroups(d.Get("policy_definition_group").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("policy_definitions") {

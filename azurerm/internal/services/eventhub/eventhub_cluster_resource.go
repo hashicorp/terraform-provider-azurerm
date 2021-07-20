@@ -166,7 +166,7 @@ func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		return nil
-	})
+	}) //lintignore:R006
 }
 
 func expandEventHubClusterSkuName(skuName string) *eventhubsclusters.ClusterSku {

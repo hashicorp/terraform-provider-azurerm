@@ -310,7 +310,7 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 				Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
 			}
 
-			if _, err := stateConf.WaitForState(); err != nil {
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for scaling of Synapse SqlPool %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
 			}
 		}
