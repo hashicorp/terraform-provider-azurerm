@@ -565,6 +565,15 @@ func testAccKubernetesCluster_upgradeChannel(t *testing.T) {
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("patch"),
 			),
 		},
+    data.ImportStep(),
+		{
+			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "node-image"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("node-image"),
+			),
+		},
 		data.ImportStep(),
 		{
 			// unset = none

@@ -698,6 +698,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 					string(containerservice.UpgradeChannelPatch),
 					string(containerservice.UpgradeChannelRapid),
 					string(containerservice.UpgradeChannelStable),
+					string(containerservice.UpgradeChannelNodeImage),
 				}, false),
 			},
 
