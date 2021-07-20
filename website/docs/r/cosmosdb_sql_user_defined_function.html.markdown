@@ -1,12 +1,12 @@
 ---
 subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cosmosdb_sql_user_defined_function"
+page_title: "Azure Resource Manager: azurerm_cosmosdb_sql_function"
 description: |-
   Manages an SQL User Defined Function.
 ---
 
-# azurerm_cosmosdb_sql_user_defined_function
+# azurerm_cosmosdb_sql_function
 
 Manages an SQL User Defined Function.
 
@@ -33,7 +33,7 @@ resource "azurerm_cosmosdb_sql_container" "example" {
   partition_key_path  = "/id"
 }
 
-resource "azurerm_cosmosdb_sql_user_defined_function" "example" {
+resource "azurerm_cosmosdb_sql_function" "example" {
   name         = "test-function"
   container_id = azurerm_cosmosdb_sql_container.example.id
   body         = "function trigger(){}"
@@ -70,5 +70,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 SQL User Defined Functions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cosmosdb_sql_user_defined_function.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DocumentDB/databaseAccounts/account1/sqlDatabases/database1/containers/container1/userDefinedFunctions/userDefinedFunction1
+terraform import azurerm_cosmosdb_sql_function.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DocumentDB/databaseAccounts/account1/sqlDatabases/database1/containers/container1/userDefinedFunctions/userDefinedFunction1
 ```
