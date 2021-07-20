@@ -66,6 +66,28 @@ func TestAccSignalRServiceNetworkACL_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSignalRServiceNetworkACL_updateMultiplePrivateEndpoints(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service_network_acl", "test")
+	r := SignalRServiceNetworkACLResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.multiplePrivateEndpoints(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -73,7 +95,7 @@ func TestAccSignalRServiceNetworkACL_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
