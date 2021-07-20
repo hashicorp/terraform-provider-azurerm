@@ -9,13 +9,12 @@ package devices
 import (
 	"context"
 	"encoding/json"
-	"net/http"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
+	"net/http"
 )
 
 // The package's fully qualified name.
@@ -2222,7 +2221,7 @@ type RouteErrorRange struct {
 type RouteProperties struct {
 	// Name - The name of the route. The name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.
 	Name *string `json:"name,omitempty"`
-	// Source - The source that the routing rule is to be applied to, such as DeviceMessages. Possible values include: 'RoutingSourceInvalid', 'RoutingSourceDeviceMessages', 'RoutingSourceTwinChangeEvents', 'RoutingSourceDeviceLifecycleEvents', 'RoutingSourceDeviceConnectionStateEvents', 'RoutingSourceDeviceJobLifecycleEvents'
+	// Source - The source that the routing rule is to be applied to, such as DeviceMessages. Possible values include: 'RoutingSourceInvalid', 'RoutingSourceDeviceMessages', 'RoutingSourceTwinChangeEvents', 'RoutingSourceDeviceLifecycleEvents', 'RoutingSourceDeviceJobLifecycleEvents'
 	Source RoutingSource `json:"source,omitempty"`
 	// Condition - The condition that is evaluated to apply the routing rule. If no condition is provided, it evaluates to true by default. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language
 	Condition *string `json:"condition,omitempty"`
@@ -2605,7 +2604,7 @@ func (tr TagsResource) MarshalJSON() ([]byte, error) {
 
 // TestAllRoutesInput input for testing all routes
 type TestAllRoutesInput struct {
-	// RoutingSource - Routing source. Possible values include: 'RoutingSourceInvalid', 'RoutingSourceDeviceMessages', 'RoutingSourceTwinChangeEvents', 'RoutingSourceDeviceLifecycleEvents', 'RoutingSourceDeviceConnectionStateEvents', 'RoutingSourceDeviceJobLifecycleEvents'
+	// RoutingSource - Routing source. Possible values include: 'RoutingSourceInvalid', 'RoutingSourceDeviceMessages', 'RoutingSourceTwinChangeEvents', 'RoutingSourceDeviceLifecycleEvents', 'RoutingSourceDeviceJobLifecycleEvents'
 	RoutingSource RoutingSource `json:"routingSource,omitempty"`
 	// Message - Routing message
 	Message *RoutingMessage `json:"message,omitempty"`

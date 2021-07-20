@@ -57,7 +57,9 @@ func resourceIotHubRoute() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(devices.RoutingSourceDeviceConnectionStateEvents),
+					// TODO: This string should be fetched from the Azure Go SDK, when it is updated
+					// string(devices.RoutingSourceDeviceConnectionStateEvents),
+					"DeviceConnectionStateEvents",
 					string(devices.RoutingSourceDeviceJobLifecycleEvents),
 					string(devices.RoutingSourceDeviceLifecycleEvents),
 					string(devices.RoutingSourceDeviceMessages),
