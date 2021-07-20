@@ -243,7 +243,9 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("vm_size", computeCluster.Properties.VMSize)
 	d.Set("vm_priority", computeCluster.Properties.VMPriority)
 	d.Set("scale_settings", flattenScaleSettings(computeCluster.Properties.ScaleSettings))
-	d.Set("subnet_resource_id", computeCluster.Properties.Subnet.ID)
+	if computeCluster.Properties.Subnet != nil {
+		d.Set("subnet_resource_id", computeCluster.Properties.Subnet.ID)
+	}
 
 	if location := computeResource.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
