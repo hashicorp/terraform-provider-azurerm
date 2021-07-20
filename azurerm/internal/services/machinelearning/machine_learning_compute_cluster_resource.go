@@ -240,11 +240,13 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("compute resource %s is not an Aml Compute cluster", id.ComputeName)
 	}
 
-	d.Set("vm_size", computeCluster.Properties.VMSize)
-	d.Set("vm_priority", computeCluster.Properties.VMPriority)
-	d.Set("scale_settings", flattenScaleSettings(computeCluster.Properties.ScaleSettings))
-	if computeCluster.Properties.Subnet != nil {
-		d.Set("subnet_resource_id", computeCluster.Properties.Subnet.ID)
+	if props := computeCluster.Properties; props != nil {
+		d.Set("vm_size", props.VMSize)
+		d.Set("vm_priority", props.VMPriority)
+		d.Set("scale_settings", flattenScaleSettings(props.ScaleSettings))
+		if props.Subnet != nil {
+			d.Set("subnet_resource_id", props.Subnet.ID)
+		}
 	}
 
 	if location := computeResource.Location; location != nil {
