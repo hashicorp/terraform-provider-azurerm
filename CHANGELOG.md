@@ -18,6 +18,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_application_gateway` - return an error when ssl policy is not properly configured  [GH-12647]
 * `azurerm_eventhub_authorization_rule` - fixing the error "empty non-retryable error received" [GH-12642]
 
 ## 2.68.0 (July 16, 2021)
