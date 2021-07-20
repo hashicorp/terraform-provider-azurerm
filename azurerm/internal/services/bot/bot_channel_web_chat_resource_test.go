@@ -90,7 +90,7 @@ func testAccBotChannelWebChat_update(t *testing.T) {
 	})
 }
 
-func (t BotChannelWebChatResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r BotChannelWebChatResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.BotChannelID(state.ID)
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ resource "azurerm_bot_channel_web_chat" "test" {
 `, BotChannelsRegistrationResource{}.basicConfig(data))
 }
 
-func (BotChannelWebChatResource) requiresImport(data acceptance.TestData) string {
+func (r BotChannelWebChatResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -133,7 +133,7 @@ resource "azurerm_bot_channel_web_chat" "import" {
     site_name = "TestSite"
   }
 }
-`, BotChannelsRegistrationResource{}.basicConfig(data))
+`, r.basic(data))
 }
 
 func (BotChannelWebChatResource) complete(data acceptance.TestData) string {
