@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"regexp"
@@ -343,7 +344,7 @@ func resourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 					// The props.Parameters (the value of the param) is accompany with the "parameters" (the definition of the param) inside the props.Definition.
 					// We will need to make use of the definition of the parameters in order to properly flatten the value of the parameters being set (for kinds of types).
-					parameters, err := flattenLogicAppWorkflowParameters(props.Parameters, p.(map[string]interface{}))
+					parameters, err := flattenLogicAppWorkflowParameters(d, props.Parameters, p.(map[string]interface{}))
 					if err != nil {
 						return fmt.Errorf("flattening `parameters`: %v", err)
 					}
@@ -418,29 +419,36 @@ func expandLogicAppWorkflowParameters(input map[string]interface{}, paramDefs ma
 		var value interface{}
 		switch t {
 		case logic.ParameterTypeBool:
-			value = v == "true"
+			var uv bool
+			if err := json.Unmarshal([]byte(v), &uv); err != nil {
+				return nil, fmt.Errorf("unmarshalling %s to bool: %v", k, err)
+			}
+			value = uv
 		case logic.ParameterTypeFloat:
-			f, err := strconv.ParseFloat(v, 64)
-			if err != nil {
-				return nil, fmt.Errorf("converting %s to float64: %v", v, err)
+			var uv float64
+			if err := json.Unmarshal([]byte(v), &uv); err != nil {
+				return nil, fmt.Errorf("unmarshalling %s to float64: %v", k, err)
 			}
-			value = f
+			value = uv
 		case logic.ParameterTypeInt:
-			i, err := strconv.Atoi(v)
-			if err != nil {
-				return nil, fmt.Errorf("converting %s to int: %v", v, err)
+			var uv int
+			if err := json.Unmarshal([]byte(v), &uv); err != nil {
+				return nil, fmt.Errorf("unmarshalling %s to int: %v", k, err)
 			}
-			value = i
-
-		case logic.ParameterTypeArray,
-			logic.ParameterTypeObject,
+			value = uv
+		case logic.ParameterTypeArray:
+			var uv []interface{}
+			if err := json.Unmarshal([]byte(v), &uv); err != nil {
+				return nil, fmt.Errorf("unmarshalling %s to []interface{}: %v", k, err)
+			}
+			value = uv
+		case logic.ParameterTypeObject,
 			logic.ParameterTypeSecureObject:
-			obj, err := pluginsdk.ExpandJsonFromString(v)
-			if err != nil {
-				return nil, fmt.Errorf("converting %s to json: %v", v, err)
+			var uv map[string]interface{}
+			if err := json.Unmarshal([]byte(v), &uv); err != nil {
+				return nil, fmt.Errorf("unmarshalling %s to map[string]interface{}: %v", k, err)
 			}
-			value = obj
-
+			value = uv
 		case logic.ParameterTypeString,
 			logic.ParameterTypeSecureString:
 			value = v
@@ -455,8 +463,15 @@ func expandLogicAppWorkflowParameters(input map[string]interface{}, paramDefs ma
 	return output, nil
 }
 
-func flattenLogicAppWorkflowParameters(input map[string]*logic.WorkflowParameter, paramDefs map[string]interface{}) (map[string]interface{}, error) {
+func flattenLogicAppWorkflowParameters(d *pluginsdk.ResourceData, input map[string]*logic.WorkflowParameter, paramDefs map[string]interface{}) (map[string]interface{}, error) {
 	output := make(map[string]interface{})
+
+	// Read the "parameters" from state, which is used to fill in the "sensitive" properties.
+	paramInState := make(map[string]interface{})
+	paramsRaw := d.Get("parameters")
+	if params, ok := paramsRaw.(map[string]interface{}); ok {
+		paramInState = params
+	}
 
 	for k, v := range input {
 		defRaw, ok := paramDefs[k]
@@ -479,49 +494,62 @@ func flattenLogicAppWorkflowParameters(input map[string]*logic.WorkflowParameter
 		case logic.ParameterTypeBool:
 			tv, ok := v.Value.(bool)
 			if !ok {
-				log.Printf("[WARN] The value of parameter %s is expected to be bool, but got %T", k, v.Value)
+				return nil, fmt.Errorf("the value of parameter %s is expected to be bool, but got %T", k, v.Value)
 			}
 			value = "true"
 			if !tv {
 				value = "false"
 			}
 		case logic.ParameterTypeFloat:
+			// Note that the json unmarshalled response doesn't differ between float and int, as json has only type number.
 			tv, ok := v.Value.(float64)
 			if !ok {
-				log.Printf("[WARN] The value of parameter %s is expected to be float64, but got %T", k, v.Value)
+				return nil, fmt.Errorf("the value of parameter %s is expected to be float64, but got %T", k, v.Value)
 			}
 			value = strconv.FormatFloat(tv, 'f', -1, 64)
 		case logic.ParameterTypeInt:
 			// Note that the json unmarshalled response doesn't differ between float and int, as json has only type number.
 			tv, ok := v.Value.(float64)
 			if !ok {
-				log.Printf("[WARN] The value of parameter %s is expected to be float64, but got %T", k, v.Value)
+				return nil, fmt.Errorf("the value of parameter %s is expected to be float64, but got %T", k, v.Value)
 			}
 			value = strconv.Itoa(int(tv))
 
-		case logic.ParameterTypeArray,
-			logic.ParameterTypeObject:
-			tv, ok := v.Value.(map[string]interface{})
+		case logic.ParameterTypeArray:
+			tv, ok := v.Value.([]interface{})
 			if !ok {
-				log.Printf("[WARN] The value of parameter %s is expected to be map[string]interface{}, but got %T", k, v.Value)
+				return nil, fmt.Errorf("the value of parameter %s is expected to be []interface{}, but got %T", k, v.Value)
 			}
-			obj, err := pluginsdk.FlattenJsonToString(tv)
+			obj, err := json.Marshal(tv)
 			if err != nil {
 				return nil, fmt.Errorf("converting %+v from json: %v", tv, err)
 			}
-			value = obj
+			value = string(obj)
+
+		case logic.ParameterTypeObject:
+			tv, ok := v.Value.(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("the value of parameter %s is expected to be map[string]interface{}, but got %T", k, v.Value)
+			}
+			obj, err := json.Marshal(tv)
+			if err != nil {
+				return nil, fmt.Errorf("converting %+v from json: %v", tv, err)
+			}
+			value = string(obj)
 
 		case logic.ParameterTypeString:
 			tv, ok := v.Value.(string)
 			if !ok {
-				log.Printf("[WARN] The value of parameter %s is expected to be string, but got %T", k, v.Value)
+				return nil, fmt.Errorf("the value of parameter %s is expected to be string, but got %T", k, v.Value)
 			}
 			value = tv
 
 		case logic.ParameterTypeSecureString,
 			logic.ParameterTypeSecureObject:
-			// These are not expected to return from API
-			continue
+			// This is not returned from API, we will try to read them from the state instead.
+			if v, ok := paramInState[k]; ok {
+				value = v.(string) // The value in state here is guaranteed to be a string, so directly cast the type.
+			}
 		}
 
 		output[k] = value

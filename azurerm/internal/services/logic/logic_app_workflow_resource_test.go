@@ -144,7 +144,7 @@ func TestAccLogicAppWorkflow_parameters(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("parameters.secstr", "parameters.secobj"),
 	})
 }
 
@@ -330,6 +330,9 @@ resource "azurerm_logic_app_workflow" "test" {
     obj = jsonencode({
       type = "Object"
     })
+    array = jsonencode({
+      type = "Array"
+    })
     secstr = jsonencode({
       type = "SecureString"
     })
@@ -344,19 +347,19 @@ resource "azurerm_logic_app_workflow" "test" {
     int   = "123"
     float = "1.23"
     obj = jsonencode({
-      foo = "bar"
+      s     = "foo"
+      array = [1, 2, 3]
+      obj = {
+        i = 123
+      }
     })
+    array = jsonencode([
+      1, "string", {}, []
+    ])
     secstr = "value"
     secobj = jsonencode({
-      foo = "bar"
+      foo = "foo"
     })
-  }
-
-  lifecycle {
-    ignore_changes = [
-      parameters["secstr"],
-      parameters["secobj"],
-    ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
