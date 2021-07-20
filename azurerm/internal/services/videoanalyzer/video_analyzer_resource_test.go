@@ -100,24 +100,24 @@ resource "azurerm_video_analyzer" "test" {
   name                = "acctestmsa%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  
+
   storage_account {
-    id         = azurerm_storage_account.first.id
+    id          = azurerm_storage_account.first.id
     identity_id = azurerm_user_assigned_identity.test.id
   }
-  
+
   identity {
     type = "UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id
-      ]
+    ]
   }
 
-  depends_on          = [
-      azurerm_user_assigned_identity.test,
-      azurerm_role_assignment.contributor,
-      azurerm_role_assignment.reader,
-    ]
+  depends_on = [
+    azurerm_user_assigned_identity.test,
+    azurerm_role_assignment.contributor,
+    azurerm_role_assignment.reader,
+  ]
 }
 `, template, data.RandomString)
 }
@@ -133,7 +133,7 @@ resource "azurerm_video_analyzer" "import" {
   resource_group_name = azurerm_video_analyzer.test.resource_group_name
 
   storage_account {
-    id         = azurerm_storage_account.first.id
+    id          = azurerm_storage_account.first.id
     identity_id = azurerm_user_assigned_identity.test.id
   }
 
@@ -157,7 +157,7 @@ func (VideoAnalyzerResource) multipleAccounts(data acceptance.TestData) string {
 %s
 
 resource "azurerm_video_analyzer" "test" {
-  depends_on          = [
+  depends_on = [
     azurerm_user_assigned_identity.test,
     azurerm_role_assignment.contributor,
     azurerm_role_assignment.reader,
@@ -167,12 +167,12 @@ resource "azurerm_video_analyzer" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   storage_account {
-    id         = azurerm_storage_account.first.id
+    id          = azurerm_storage_account.first.id
     identity_id = azurerm_user_assigned_identity.test.id
   }
 
   storage_account {
-    id         = azurerm_storage_account.first.id
+    id          = azurerm_storage_account.first.id
     identity_id = azurerm_user_assigned_identity.test.id
   }
 
@@ -192,7 +192,7 @@ func (r VideoAnalyzerResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_video_analyzer" "test" {
-  depends_on          = [
+  depends_on = [
     azurerm_user_assigned_identity.test,
     azurerm_role_assignment.contributor,
     azurerm_role_assignment.reader,
@@ -202,7 +202,7 @@ resource "azurerm_video_analyzer" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   storage_account {
-    id         = azurerm_storage_account.first.id
+    id          = azurerm_storage_account.first.id
     identity_id = azurerm_user_assigned_identity.test.id
   }
 
