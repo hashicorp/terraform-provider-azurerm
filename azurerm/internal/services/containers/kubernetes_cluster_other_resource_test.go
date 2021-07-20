@@ -565,7 +565,7 @@ func testAccKubernetesCluster_upgradeChannel(t *testing.T) {
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("patch"),
 			),
 		},
-    data.ImportStep(),
+		data.ImportStep(),
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "node-image"),
 			Check: acceptance.ComposeTestCheckFunc(
