@@ -18,22 +18,46 @@ import (
 type AppServiceGitHubTokenResource struct{}
 
 func TestAccSourceControlGitHubToken_basic(t *testing.T) {
-	if ok := os.Getenv("ARM_GITHUB_ACCESS_TOKEN"); ok == "" {
+	token := ""
+	if token = os.Getenv("ARM_GITHUB_ACCESS_TOKEN"); token == "" {
 		t.Skip("Skipping as `ARM_GITHUB_ACCESS_TOKEN` is not specified")
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_app_service_github_token", "test")
+	data := acceptance.BuildTestData(t, "azurerm_source_control_token", "test")
 	r := AppServiceGitHubTokenResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(),
+			Config: r.basic(token),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("token").IsSet(),
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccSourceControlGitHubToken_requiresImport(t *testing.T) {
+	token := ""
+	if token = os.Getenv("ARM_GITHUB_ACCESS_TOKEN"); token == "" {
+		t.Skip("Skipping as `ARM_GITHUB_ACCESS_TOKEN` is not specified")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_source_control_token", "test")
+	r := AppServiceGitHubTokenResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(token),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(token),
+			ExpectError: acceptance.RequiresImportError(data.ResourceType),
+		},
 	})
 }
 
@@ -51,16 +75,27 @@ func (r AppServiceGitHubTokenResource) Exists(ctx context.Context, client *clien
 	return utils.Bool(true), nil
 }
 
-func (r AppServiceGitHubTokenResource) basic() string {
-	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
-
+func (r AppServiceGitHubTokenResource) basic(token string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource azurerm_app_service_github_token test {
+resource azurerm_source_control_token test {
+  type  = "GitHub"
   token = "%s"
 }
 `, token)
+}
+
+func (r AppServiceGitHubTokenResource) requiresImport(token string) string {
+	return fmt.Sprintf(`
+%s
+
+resource azurerm_source_control_token import {
+  type  = azurerm_source_control_token.test.type
+  token = azurerm_source_control_token.test.token
+}
+
+`, r.basic(token))
 }

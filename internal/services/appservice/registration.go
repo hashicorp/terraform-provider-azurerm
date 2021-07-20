@@ -27,7 +27,7 @@ func (r Registration) Name() string {
 func (r Registration) DataSources() []sdk.DataSource {
 	if features.ThreePointOh() {
 		return []sdk.DataSource{
-			sourcecontrol.AppServiceGitHubTokenDataSource{},
+			sourcecontrol.AppServiceSourceControlTokenDataSource{},
 		}
 	}
 	return []sdk.DataSource{}
@@ -37,7 +37,7 @@ func (r Registration) Resources() []sdk.Resource {
 	if features.ThreePointOh() {
 		return []sdk.Resource{
 			sourcecontrol.AppServiceSourceControlResource{},
-			sourcecontrol.AppServiceGitHubTokenResource{},
+			sourcecontrol.AppServiceSourceControlTokenResource{},
 			webapp.WindowsWebAppResource{},
 			webapp.LinuxWebAppResource{},
 			serviceplan.AppServicePlanResource{},

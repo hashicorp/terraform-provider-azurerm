@@ -80,7 +80,7 @@ func TestAccSourceControlResource_windowsGitHubAction(t *testing.T) {
 			Config: r.windowsGitHubAction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scm_type").HasValue("GitHub"),
+				check.That(data.ResourceName).Key("scm_type").HasValue("GitHubAction"), // Note this is not a user configurable nor documented value
 			),
 		},
 		data.ImportStep(),
@@ -153,7 +153,7 @@ func TestAccSourceControlResource_linuxGitHubAction(t *testing.T) {
 			Config: r.linuxGitHubAction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scm_type").HasValue("GitHubAction"),
+				check.That(data.ResourceName).Key("scm_type").HasValue("GitHubAction"), // Note this is not a user configurable nor documented value
 				check.That(data.ResourceName).Key("uses_github_action").HasValue("true"),
 			),
 		},
@@ -170,6 +170,35 @@ func TestAccSourceControlResource_linuxGitHub(t *testing.T) {
 	r := AppServiceSourceControlResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linuxGitHub(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scm_type").HasValue("GitHub"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSourceControlResource_linuxSCMTypeUpdate(t *testing.T) {
+	if ok := os.Getenv("ARM_GITHUB_ACCESS_TOKEN"); ok == "" {
+		t.Skip("Skipping as `ARM_GITHUB_ACCESS_TOKEN` is not specified")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
+	r := AppServiceSourceControlResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linuxLocalGit(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scm_type").HasValue("LocalGit"),
+				check.That(data.ResourceName).Key("repo_url").HasValue(fmt.Sprintf("https://acctestwa-%d.scm.azurewebsites.net", data.RandomInteger)),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.linuxGitHub(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -218,6 +247,7 @@ resource "azurerm_app_service_source_control" "test" {
 
 `, baseWindowsAppTemplate(data))
 }
+
 func (r AppServiceSourceControlResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -275,8 +305,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_app_service_source_control" "test" {
-  app_id   = azurerm_linux_web_app.test.id
-  scm_type = "LocalGit"
+  app_id        = azurerm_linux_web_app.test.id
+  use_local_git = true
 }
 
 `, baseLinuxAppTemplate(data))
@@ -291,14 +321,15 @@ provider "azurerm" {
 
 %s
 
-resource azurerm_app_service_github_token test {
+resource azurerm_source_control_token test {
+  type  = "GitHub"
   token = "%s"
 }
 
 resource "azurerm_app_service_source_control" "test" {
   app_id   = azurerm_windows_web_app.test.id
-  repo_url = "https://github.com/jackofallops/azure-app-service-static-site-tests.git"
-  scm_type = "GitHub"
+  repo_url = "https://github.com/jackofallops/app-service-web-dotnet-get-started.git"
+  branch   = "master"
 
   github_action_configuration {
     generate_workflow_file = true
@@ -308,7 +339,6 @@ resource "azurerm_app_service_source_control" "test" {
       runtime_version = "5.0.x"
     }
   }
-
 }
 
 `, baseWindowsAppTemplate(data), token)
@@ -323,7 +353,8 @@ provider "azurerm" {
 
 %s
 
-resource azurerm_app_service_github_token test {
+resource azurerm_source_control_token test {
+  type  = "GitHub"
   token = "%s"
 }
 
@@ -345,21 +376,22 @@ provider "azurerm" {
 
 %s
 
-resource azurerm_app_service_github_token test {
+resource azurerm_source_control_token test {
+  type  = "GitHub"
   token = "%s"
 }
 
 resource "azurerm_app_service_source_control" "test" {
   app_id   = azurerm_linux_web_app.test.id
-  repo_url = "https://github.com/jackofallops/azure-app-service-static-site-tests.git"
-  branch   = "angularjs"
+  repo_url = "https://github.com/jackofallops/app-service-web-dotnet-get-started.git"
+  branch   = "master"
 
   github_action_configuration {
     generate_workflow_file = true
 
     code_configuration {
-      runtime_stack   = "node"
-      runtime_version = "14.x"
+      runtime_stack   = "dotnetcore"
+      runtime_version = "5.0.x"
     }
   }
 }
@@ -376,15 +408,17 @@ provider "azurerm" {
 
 %s
 
-resource azurerm_app_service_github_token test {
+resource "azurerm_source_control_token" "test" {
+  type  = "GitHub"
   token = "%s"
 }
 
 resource "azurerm_app_service_source_control" "test" {
-  app_id   = azurerm_linux_web_app.test.id
-  repo_url = "https://github.com/jackofallops/azure-app-service-static-site-tests"
-  branch   = "development"
-  scm_type = "GitHub"
+  app_id             = azurerm_linux_web_app.test.id
+  repo_url           = "https://github.com/Azure-Samples/python-docs-hello-world.git"
+  branch             = "master"
+  scm_type           = azurerm_source_control_token.test.type
+  manual_integration = true
 }
 
 `, baseLinuxAppTemplate(data), token)

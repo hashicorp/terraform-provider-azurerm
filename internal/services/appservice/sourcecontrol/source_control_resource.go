@@ -32,6 +32,7 @@ type AppServiceSourceControlModel struct {
 	SCMType                   string                      `tfschema:"scm_type"`
 	RepoURL                   string                      `tfschema:"repo_url"`
 	Branch                    string                      `tfschema:"branch"`
+	LocalGitSCM               bool                        `tfschema:"use_local_git"`
 	ManualIntegration         bool                        `tfschema:"manual_integration"`
 	UseMercurial              bool                        `tfschema:"use_mercurial"`
 	RollbackEnabled           bool                        `tfschema:"rollback_enabled"`
@@ -56,26 +57,9 @@ func (r AppServiceSourceControlResource) Arguments() map[string]*pluginsdk.Schem
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"scm_type": { // Note: this is largely determined by the service based on the provided `repo_url`. It is included here as it is required to set `LocalGit` and possibly for scenarios where the service cannot decode the URL correctly.
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(web.ScmTypeBitbucketGit),
-				string(web.ScmTypeBitbucketHg),
-				string(web.ScmTypeCodePlexGit),
-				string(web.ScmTypeCodePlexHg),
-				string(web.ScmTypeDropbox),
-				string(web.ScmTypeExternalGit),
-				string(web.ScmTypeExternalHg),
-				string(web.ScmTypeGitHub),
-				string(web.ScmTypeLocalGit),
-				string(web.ScmTypeOneDrive),
-				string(web.ScmTypeTfs),
-				string(web.ScmTypeVSO),
-			}, false),
+			RequiredWith: []string{
+				"branch",
+			},
 		},
 
 		"branch": {
@@ -83,18 +67,30 @@ func (r AppServiceSourceControlResource) Arguments() map[string]*pluginsdk.Schem
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{
+				"repo_url",
+			},
+		},
+
+		"use_local_git": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+			ConflictsWith: []string{
+				"repo_url",
+				"branch",
+				"manual_integration",
+				"uses_github_action",
+				"github_action_configuration",
+				"use_mercurial",
+				"rollback_enabled",
+			},
 		},
 
 		"manual_integration": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
-		},
-
-		"uses_github_action": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
 		},
 
 		"github_action_configuration": githubActionConfigSchema(),
@@ -114,7 +110,17 @@ func (r AppServiceSourceControlResource) Arguments() map[string]*pluginsdk.Schem
 }
 
 func (r AppServiceSourceControlResource) Attributes() map[string]*pluginsdk.Schema {
-	return nil
+	return map[string]*pluginsdk.Schema{
+		"scm_type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"uses_github_action": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+	}
 }
 
 func (r AppServiceSourceControlResource) ModelObject() interface{} {
@@ -149,11 +155,6 @@ func (r AppServiceSourceControlResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			// Guard rails...
-			if appSourceControl.SCMType == string(web.ScmTypeLocalGit) && (appSourceControl.UseMercurial || appSourceControl.RollbackEnabled || appSourceControl.ManualIntegration || appSourceControl.UsesGithubAction || len(appSourceControl.GithubActionConfiguration) != 0) {
-				return fmt.Errorf("cannot set any additional configuration when `scm_type` is `LocalGit`")
-			}
-
 			if appSourceControl.UsesGithubAction && appSourceControl.ManualIntegration {
 				return fmt.Errorf("source control for %s cannot have both `uses_github_action` and `manual_integration` set to true", id)
 			}
@@ -171,56 +172,33 @@ func (r AppServiceSourceControlResource) Create() sdk.ResourceFunc {
 			sourceControl := web.SiteSourceControl{
 				SiteSourceControlProperties: &web.SiteSourceControlProperties{
 					IsManualIntegration:       utils.Bool(appSourceControl.ManualIntegration),
-					IsGitHubAction:            utils.Bool(appSourceControl.UsesGithubAction),
 					DeploymentRollbackEnabled: utils.Bool(appSourceControl.RollbackEnabled),
 					IsMercurial:               utils.Bool(appSourceControl.UseMercurial),
 				},
 			}
 
-			sitePatch := web.SitePatchResource{
-				SitePatchResourceProperties: &web.SitePatchResourceProperties{
-					SiteConfig: &web.SiteConfig{},
-				},
-			}
-
 			if appSourceControl.RepoURL != "" {
 				sourceControl.SiteSourceControlProperties.RepoURL = utils.String(appSourceControl.RepoURL)
-			} else if appSourceControl.SCMType != string(web.ScmTypeLocalGit) {
-				return fmt.Errorf("`repo_url` must be set unless `scm_type` is `LocalGit`")
 			}
 
 			if appSourceControl.Branch != "" {
 				sourceControl.SiteSourceControlProperties.Branch = utils.String(appSourceControl.Branch)
-			} else if appSourceControl.SCMType != string(web.ScmTypeLocalGit) {
-				return fmt.Errorf("`branch` must be set unless `scm_type` is `LocalGit`")
 			}
 
-			switch appSourceControl.SCMType {
-			case string(web.ScmTypeLocalGit):
-				sitePatch.SiteConfig.ScmType = web.ScmTypeLocalGit
+			if appSourceControl.LocalGitSCM {
+				sitePatch := web.SitePatchResource{
+					SitePatchResourceProperties: &web.SitePatchResourceProperties{
+						SiteConfig: &web.SiteConfig{
+							ScmType: web.ScmTypeLocalGit,
+						},
+					},
+				}
+
 				if _, err := client.Update(ctx, id.ResourceGroup, id.SiteName, sitePatch); err != nil {
 					return fmt.Errorf("setting App Source Control Type for %s: %v", id, err)
 				}
 
-			case string(web.ScmTypeGitHub):
-				sitePatch.SiteConfig.ScmType = web.ScmTypeGitHub
-				sourceControl.SiteSourceControlProperties.GitHubActionConfiguration = expandGithubActionConfig(appSourceControl.GithubActionConfiguration, usesLinux)
-				_, err := client.UpdateSourceControl(ctx, id.ResourceGroup, id.SiteName, sourceControl)
-				if err != nil {
-					return fmt.Errorf("creating Source Control configuration for %s: %v", id, err)
-				}
-				if _, err := client.Update(ctx, id.ResourceGroup, id.SiteName, sitePatch); err != nil {
-					return fmt.Errorf("setting App Source Control Type for %s: %v", id, err)
-				}
-
-			default:
-				if appSourceControl.SCMType != "" {
-					sitePatch.SiteConfig.ScmType = web.ScmType(appSourceControl.SCMType)
-					if _, err := client.Update(ctx, id.ResourceGroup, id.SiteName, sitePatch); err != nil {
-						return fmt.Errorf("setting App Source Control Type for %s: %v", id, err)
-					}
-				}
-
+			} else {
 				if ghaConfig := expandGithubActionConfig(appSourceControl.GithubActionConfiguration, usesLinux); ghaConfig != nil {
 					sourceControl.SiteSourceControlProperties.GitHubActionConfiguration = ghaConfig
 				}
@@ -273,6 +251,7 @@ func (r AppServiceSourceControlResource) Read() sdk.ResourceFunc {
 				RollbackEnabled:           *props.DeploymentRollbackEnabled,
 				UsesGithubAction:          *props.IsGitHubAction,
 				GithubActionConfiguration: flattenGitHubActionConfiguration(props.GitHubActionConfiguration),
+				LocalGitSCM:               siteConfig.ScmType == web.ScmTypeLocalGit,
 			}
 
 			return metadata.Encode(&state)
@@ -321,19 +300,6 @@ func (r AppServiceSourceControlResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			// Guard rails...
-			if appSourceControl.SCMType == string(web.ScmTypeLocalGit) && (appSourceControl.UseMercurial || appSourceControl.RollbackEnabled || appSourceControl.ManualIntegration || appSourceControl.UsesGithubAction || len(appSourceControl.GithubActionConfiguration) != 0) {
-				return fmt.Errorf("cannot set any additional configuration when `scm_type` is `LocalGit`")
-			}
-
-			if len(appSourceControl.GithubActionConfiguration) != 0 && !appSourceControl.UsesGithubAction {
-				return fmt.Errorf("cannot specify GitHub Action configuration unless `uses_github_action` is set to `true`")
-			}
-
-			if appSourceControl.UsesGithubAction && appSourceControl.ManualIntegration {
-				return fmt.Errorf("source control for %s cannot have both `uses_github_action` and `manual_integration` set to true", id)
-			}
-
 			app, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil || app.Kind == nil {
 				return fmt.Errorf("reading site to determine O/S type for %s: %+v", id, err)
@@ -347,67 +313,43 @@ func (r AppServiceSourceControlResource) Update() sdk.ResourceFunc {
 			sourceControl := web.SiteSourceControl{
 				SiteSourceControlProperties: &web.SiteSourceControlProperties{
 					IsManualIntegration:       utils.Bool(appSourceControl.ManualIntegration),
-					IsGitHubAction:            utils.Bool(appSourceControl.UsesGithubAction),
 					DeploymentRollbackEnabled: utils.Bool(appSourceControl.RollbackEnabled),
 					IsMercurial:               utils.Bool(appSourceControl.UseMercurial),
 				},
 			}
 
-			sitePatch := web.SitePatchResource{
-				SitePatchResourceProperties: &web.SitePatchResourceProperties{
-					SiteConfig: &web.SiteConfig{},
-				},
-			}
-
 			if appSourceControl.RepoURL != "" {
 				sourceControl.SiteSourceControlProperties.RepoURL = utils.String(appSourceControl.RepoURL)
-			} else if appSourceControl.SCMType != string(web.ScmTypeLocalGit) {
-				return fmt.Errorf("`repo_url` must be set unless `scm_type` is `LocalGit`")
 			}
 
 			if appSourceControl.Branch != "" {
 				sourceControl.SiteSourceControlProperties.Branch = utils.String(appSourceControl.Branch)
-			} else if appSourceControl.SCMType != string(web.ScmTypeLocalGit) {
-				return fmt.Errorf("`branch` must be set unless `scm_type` is `LocalGit`")
 			}
 
-			switch appSourceControl.SCMType {
-			case string(web.ScmTypeLocalGit):
-				sitePatch.SiteConfig.ScmType = web.ScmTypeLocalGit
-				if _, err := client.Update(ctx, id.ResourceGroup, id.SiteName, sitePatch); err != nil {
-					return fmt.Errorf("setting App Source Control Type for %s: %v", id, err)
-				}
-
-			case string(web.ScmTypeGitHub):
-				sitePatch.SiteConfig.ScmType = web.ScmTypeGitHub
-				sourceControl.SiteSourceControlProperties.GitHubActionConfiguration = expandGithubActionConfig(appSourceControl.GithubActionConfiguration, usesLinux)
-				_, err = client.UpdateSourceControl(ctx, id.ResourceGroup, id.SiteName, sourceControl)
-				if err != nil {
-					return fmt.Errorf("creating Source Control configuration for %s: %v", id, err)
+			if appSourceControl.LocalGitSCM {
+				sitePatch := web.SitePatchResource{
+					SitePatchResourceProperties: &web.SitePatchResourceProperties{
+						SiteConfig: &web.SiteConfig{
+							ScmType: web.ScmTypeLocalGit,
+						},
+					},
 				}
 				if _, err := client.Update(ctx, id.ResourceGroup, id.SiteName, sitePatch); err != nil {
 					return fmt.Errorf("setting App Source Control Type for %s: %v", id, err)
 				}
 
-			default:
-				if appSourceControl.SCMType != "" {
-					sitePatch.SiteConfig.ScmType = web.ScmType(appSourceControl.SCMType)
-					if _, err := client.Update(ctx, id.ResourceGroup, id.SiteName, sitePatch); err != nil {
-						return fmt.Errorf("setting App Source Control Type for %s: %v", id, err)
-					}
-				}
-
+			} else {
 				if ghaConfig := expandGithubActionConfig(appSourceControl.GithubActionConfiguration, usesLinux); ghaConfig != nil {
 					sourceControl.SiteSourceControlProperties.GitHubActionConfiguration = ghaConfig
 				}
 
 				_, err = client.UpdateSourceControl(ctx, id.ResourceGroup, id.SiteName, sourceControl)
 				if err != nil {
-					return fmt.Errorf("creating Source Control configuration for %s: %v", id, err)
+					return fmt.Errorf("updating Source Control configuration for %s: %v", id, err)
 				}
+
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}

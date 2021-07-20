@@ -108,7 +108,7 @@ func githubActionConfigSchema() *pluginsdk.Schema {
 }
 
 func expandGithubActionConfig(input []GithubActionConfiguration, usesLinux bool) *web.GitHubActionConfiguration {
-	if input == nil {
+	if len(input) == 0 {
 		return nil
 	}
 
