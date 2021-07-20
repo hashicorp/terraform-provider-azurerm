@@ -32,6 +32,64 @@ func testAccBotChannelWebChat_basic(t *testing.T) {
 	})
 }
 
+func testAccBotChannelWebChat_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_web_chat", "test")
+	r := BotChannelWebChatResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func testAccBotChannelWebChat_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_web_chat", "test")
+	r := BotChannelWebChatResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccBotChannelWebChat_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_web_chat", "test")
+	r := BotChannelWebChatResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t BotChannelWebChatResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.BotChannelID(state.ID)
 	if err != nil {
@@ -56,7 +114,43 @@ resource "azurerm_bot_channel_web_chat" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sites {
-    enabled_preview = true
+    site_name = "TestSite"
+  }
+}
+`, BotChannelsRegistrationResource{}.basicConfig(data))
+}
+
+func (BotChannelWebChatResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_bot_channel_web_chat" "import" {
+  bot_name            = azurerm_bot_channel_web_chat.test.bot_name
+  location            = azurerm_bot_channel_web_chat.test.location
+  resource_group_name = azurerm_bot_channel_web_chat.test.resource_group_name
+
+  sites {
+    site_name = "TestSite"
+  }
+}
+`, BotChannelsRegistrationResource{}.basicConfig(data))
+}
+
+func (BotChannelWebChatResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_bot_channel_web_chat" "test" {
+  bot_name            = azurerm_bot_channels_registration.test.name
+  location            = azurerm_bot_channels_registration.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sites {
+    site_name = "TestSite2"
+  }
+
+  sites {
+    site_name = "TestSite3"
   }
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))

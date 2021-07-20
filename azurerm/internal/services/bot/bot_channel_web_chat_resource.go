@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
@@ -76,8 +77,29 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	id := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameWebChatChannel))
 
-	// As Bot WebChat Channel would be created by default while creating Bot Registrations Channel
-	// So it has to leverage the default one
+	existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+		}
+	}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		// The Bot WebChat Channel would be created by default while creating Bot Registrations Channel.
+		// So if the channel includes `Default Site`, it means it's default channel and delete it.
+		// So if the channel includes other site, it means it's user custom channel and throws conflict error.
+		if props := existing.Properties; props != nil {
+			defaultChannel, ok := props.AsWebChatChannel()
+			if ok && defaultChannel.Properties != nil {
+				if includeDefaultWebSite(defaultChannel.Properties.Sites) {
+					if _, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameWebChatChannel)); err != nil {
+						return fmt.Errorf("deleting the default Web Chat Channel %s: %+v", id, err)
+					}
+				} else {
+					return tf.ImportAsExistsError("azurerm_bot_channel_web_chat", id.ID())
+				}
+			}
+		}
+	}
 
 	channel := botservice.BotChannel{
 		Properties: botservice.WebChatChannel{
@@ -90,7 +112,7 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 		Kind:     botservice.KindBot,
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
+	if _, err := client.Create(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -174,13 +196,12 @@ func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	defaultSite := "Default Site"
 	channel := botservice.BotChannel{
 		Properties: botservice.WebChatChannel{
 			Properties: &botservice.WebChatChannelProperties{
 				Sites: &[]botservice.WebChatSite{
 					{
-						SiteName:  utils.String(defaultSite),
+						SiteName:  utils.String("Default Site"),
 						IsEnabled: utils.Bool(true),
 					},
 				},
@@ -191,8 +212,10 @@ func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta interface{}
 		Kind:     botservice.KindBot,
 	}
 
+	// The Bot WebChat Channel would be created by default while creating Bot Registrations Channel.
+	// So it has to restore the default Web Chat Channel while deleting
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+		return fmt.Errorf("restoring the default Web Chat Channel %s: %+v", id, err)
 	}
 
 	return nil
@@ -235,4 +258,14 @@ func flattenWebChatSites(input *[]botservice.WebChatSite) []interface{} {
 		})
 	}
 	return results
+}
+
+func includeDefaultWebSite(sites *[]botservice.WebChatSite) bool {
+	includeDefaultSite := false
+	for _, site := range *sites {
+		if *site.SiteName == "Default Site" {
+			includeDefaultSite = true
+		}
+	}
+	return includeDefaultSite
 }
