@@ -489,9 +489,9 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     storage_account_id = azurerm_storage_account.test.id
     queue_name         = azurerm_storage_queue.test.name
   }
-  
+
   advanced_filtering_on_arrays_enabled = true
-  
+
   included_event_types = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobDeleted"]
 
   subject_filter {

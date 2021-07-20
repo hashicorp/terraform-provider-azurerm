@@ -556,7 +556,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   }
 
   advanced_filtering_on_arrays_enabled = true
-  
+
   included_event_types = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobDeleted"]
 
   subject_filter {
