@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource** `azurerm_batch_job` [GH-12573]
+* **New Resource** `azurerm_bot_channel_web_chat` [GH-12672]
 * **New Resource** `azurerm_data_factory_managed_private_endpoint` [GH-12618]
 * **New Resource** `azurerm_data_protection_backup_policy_blob_storage` [GH-12362]
 * **New Resource** `azurerm_signalr_service_network_acl` [GH-12434]
