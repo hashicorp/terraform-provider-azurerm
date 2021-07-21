@@ -57,7 +57,7 @@ func resourceVideoAnalyzer() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"storage_account": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -219,20 +219,15 @@ func resourceVideoAnalyzerDelete(d *pluginsdk.ResourceData, meta interface{}) er
 }
 
 func expandVideoAnalyzerStorageAccounts(d *pluginsdk.ResourceData) *[]videoanalyzer.StorageAccount {
-	storageAccountsRaw := d.Get("storage_account").(*pluginsdk.Set).List()
-	results := make([]videoanalyzer.StorageAccount, 0)
+	storageAccountRaw := d.Get("storage_account").([]interface{})[0].(map[string]interface{})
 
-	for _, accountMapRaw := range storageAccountsRaw {
-		accountMap := accountMapRaw.(map[string]interface{})
-
-		storageAccount := videoanalyzer.StorageAccount{
-			ID: utils.String(accountMap["id"].(string)),
+	results := []videoanalyzer.StorageAccount{
+		{
+			ID: utils.String(storageAccountRaw["id"].(string)),
 			Identity: &videoanalyzer.ResourceIdentity{
-				UserAssignedIdentity: utils.String(accountMap["identity_id"].(string)),
+				UserAssignedIdentity: utils.String(storageAccountRaw["identity_id"].(string)),
 			},
-		}
-
-		results = append(results, storageAccount)
+		},
 	}
 
 	return &results

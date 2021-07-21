@@ -97,7 +97,7 @@ func (r VideoAnalyzerResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_video_analyzer" "test" {
-  name                = "acctestmsa%s"
+  name                = "acctestva%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -162,7 +162,7 @@ resource "azurerm_video_analyzer" "test" {
     azurerm_role_assignment.contributor,
     azurerm_role_assignment.reader,
   ]
-  name                = "acctestmsa%s"
+  name                = "acctestva%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -192,12 +192,7 @@ func (r VideoAnalyzerResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_video_analyzer" "test" {
-  depends_on = [
-    azurerm_user_assigned_identity.test,
-    azurerm_role_assignment.contributor,
-    azurerm_role_assignment.reader,
-  ]
-  name                = "acctestmsa%s"
+  name                = "acctestva%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -212,6 +207,12 @@ resource "azurerm_video_analyzer" "test" {
       azurerm_user_assigned_identity.test.id
     ]
   }
+
+  depends_on = [
+    azurerm_user_assigned_identity.test,
+    azurerm_role_assignment.contributor,
+    azurerm_role_assignment.reader,
+  ]
 }
 `, template, data.RandomString)
 }
