@@ -57,7 +57,7 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 						"secret_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemId,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 						},
 						"identity_client_id": {
 							Type:         pluginsdk.TypeString,

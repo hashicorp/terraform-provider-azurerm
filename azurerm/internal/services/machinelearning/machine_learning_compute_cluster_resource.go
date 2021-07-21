@@ -156,13 +156,18 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", *existing.ID)
 	}
 
+	computeClusterAmlComputeProperties := machinelearningservices.AmlComputeProperties{
+		VMSize:        utils.String(d.Get("vm_size").(string)),
+		VMPriority:    machinelearningservices.VMPriority(d.Get("vm_priority").(string)),
+		ScaleSettings: expandScaleSettings(d.Get("scale_settings").([]interface{})),
+	}
+
+	if subnetId, ok := d.GetOk("subnet_resource_id"); ok && subnetId.(string) != "" {
+		computeClusterAmlComputeProperties.Subnet = &machinelearningservices.ResourceID{ID: utils.String(subnetId.(string))}
+	}
+
 	computeClusterProperties := machinelearningservices.AmlCompute{
-		Properties: &machinelearningservices.AmlComputeProperties{
-			VMSize:        utils.String(d.Get("vm_size").(string)),
-			VMPriority:    machinelearningservices.VMPriority(d.Get("vm_priority").(string)),
-			ScaleSettings: expandScaleSettings(d.Get("scale_settings").([]interface{})),
-			Subnet:        &machinelearningservices.ResourceID{ID: utils.String(d.Get("subnet_resource_id").(string))},
-		},
+		Properties:      &computeClusterAmlComputeProperties,
 		ComputeLocation: utils.String(d.Get("location").(string)),
 		Description:     utils.String(d.Get("description").(string)),
 	}

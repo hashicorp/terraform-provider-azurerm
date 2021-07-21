@@ -152,8 +152,10 @@ func resourceFunctionApp() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Default:  "",
 				ValidateFunc: validation.StringInSlice([]string{
 					"linux",
+					"",
 				}, false),
 			},
 

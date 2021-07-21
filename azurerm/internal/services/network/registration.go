@@ -46,6 +46,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_virtual_network":                           dataSourceVirtualNetwork(),
 		"azurerm_web_application_firewall_policy":           dataWebApplicationFirewallPolicy(),
 		"azurerm_virtual_wan":                               dataSourceVirtualWan(),
+		"azurerm_local_network_gateway":                     dataSourceLocalNetworkGateway(),
 	}
 }
 

@@ -86,7 +86,13 @@ A `network_acls` block supports the following:
 
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Cognitive Account.
 
-* `virtual_network_subnet_ids` - (Optional) One or more Subnet ID's which should be able to access this Cognitive Account.
+* `virtual_network_rules` - (Optional) A `virtual_network_rules` block as defined below.
+
+A `virtual_network_rules` block supports the following:
+
+* `subnet_id` - (Required) The ID of the subnet which should be able to access this Cognitive Account.
+
+* `ignore_missing_vnet_service_endpoint` - (Optional) Whether ignore missing vnet service endpoint or not. Default to `false`.
 
 ---
 
