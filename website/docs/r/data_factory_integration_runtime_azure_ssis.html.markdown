@@ -114,7 +114,9 @@ A `command_key` block supports the following:
 
 * `user_name` - (Required) The username for the target device.
 
-* `password` - (Required) The password for the target device.
+* `password` - (Optional) The password for the target device.
+
+* `key_vault_password` - (Optional) A `key_vault_secret_reference` block as defined below.
 
 ---
 
@@ -123,6 +125,20 @@ A `component` block supports the following:
 * `name` - (Required) The Component Name installed for the Azure-SSIS Integration Runtime.
 
 * `license` - (Optional) The license used for the Component.
+
+* `key_vault_license` - (Optional) A `key_vault_secret_reference` block as defined below.
+
+---
+
+A `key_vault_secret_reference` block supports the following:
+
+* `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault.
+
+* `secret_version` - (Optional) Specifies the secret version in Azure Key Vault.
+
+* `parameters` - (Optional) A map of parameters to associate with the Key Vault Data Factory Linked Service.
 
 ---
 

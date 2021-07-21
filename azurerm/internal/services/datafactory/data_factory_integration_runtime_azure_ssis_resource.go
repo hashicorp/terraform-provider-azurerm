@@ -254,9 +254,44 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 
 									"password": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"key_vault_password": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"linked_service_name": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+
+												"secret_name": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+
+												"parameters": {
+													Type:     pluginsdk.TypeMap,
+													Optional: true,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
+													},
+												},
+
+												"secret_version": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -279,6 +314,41 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 										Optional:     true,
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"key_vault_license": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"linked_service_name": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+
+												"secret_name": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+
+												"parameters": {
+													Type:     pluginsdk.TypeMap,
+													Optional: true,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
+													},
+												},
+
+												"secret_version": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -628,34 +698,46 @@ func expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input []inte
 	if components := raw["component"].([]interface{}); len(components) > 0 {
 		for _, item := range components {
 			raw := item.(map[string]interface{})
-			component := &datafactory.ComponentSetup{
+
+			var license datafactory.BasicSecretBase
+			if v := raw["license"].(string); v != "" {
+				license = &datafactory.SecureString{
+					Type:  datafactory.TypeSecureString,
+					Value: utils.String(v),
+				}
+			} else {
+				license = expandDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(raw["key_vault_license"].([]interface{}))
+			}
+
+			result = append(result, &datafactory.ComponentSetup{
 				Type: datafactory.TypeBasicCustomSetupBaseTypeComponentSetup,
 				LicensedComponentSetupTypeProperties: &datafactory.LicensedComponentSetupTypeProperties{
 					ComponentName: utils.String(raw["name"].(string)),
+					LicenseKey:    license,
 				},
-			}
-			if license := raw["license"].(string); license != "" {
-				component.LicensedComponentSetupTypeProperties.LicenseKey = &datafactory.SecureString{
-					Type:  datafactory.TypeSecureString,
-					Value: utils.String(license),
-				}
-			}
-
-			result = append(result, component)
+			})
 		}
 	}
 	if cmdKeys := raw["command_key"].([]interface{}); len(cmdKeys) > 0 {
 		for _, item := range cmdKeys {
 			raw := item.(map[string]interface{})
+
+			var password datafactory.BasicSecretBase
+			if v := raw["password"].(string); v != "" {
+				password = &datafactory.SecureString{
+					Type:  datafactory.TypeSecureString,
+					Value: utils.String(v),
+				}
+			} else {
+				password = expandDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(raw["key_vault_password"].([]interface{}))
+			}
+
 			result = append(result, &datafactory.CmdkeySetup{
 				Type: datafactory.TypeBasicCustomSetupBaseTypeCmdkeySetup,
 				CmdkeySetupTypeProperties: &datafactory.CmdkeySetupTypeProperties{
 					TargetName: utils.String(raw["target_name"].(string)),
 					UserName:   utils.String(raw["user_name"].(string)),
-					Password: &datafactory.SecureString{
-						Type:  datafactory.TypeSecureString,
-						Value: utils.String(raw["password"].(string)),
-					},
+					Password:   password,
 				},
 			})
 		}
@@ -681,6 +763,29 @@ func expandDataFactoryIntegrationRuntimeAzureSsisPackageStore(input []interface{
 		})
 	}
 	return &result
+}
+
+func expandDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	reference := &datafactory.AzureKeyVaultSecretReference{
+		SecretName: raw["secret_name"].(string),
+		Store: &datafactory.LinkedServiceReference{
+			Type:          utils.String("LinkedServiceReference"),
+			ReferenceName: utils.String(raw["linked_service_name"].(string)),
+		},
+		Type: datafactory.TypeAzureKeyVaultSecret,
+	}
+	if v := raw["secret_version"].(string); v != "" {
+		reference.SecretVersion = v
+	}
+	if v := raw["parameters"].(map[string]interface{}); len(v) > 0 {
+		reference.Store.Parameters = v
+	}
+	return reference
 }
 
 func flattenDataFactoryIntegrationRuntimeAzureSsisVnetIntegration(vnetProperties *datafactory.IntegrationRuntimeVNetProperties) []interface{} {
@@ -838,8 +943,15 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input *[]da
 			if v.ComponentName != nil {
 				name = *v.ComponentName
 			}
+			var keyVaultLicense *datafactory.AzureKeyVaultSecretReference
+			if v.LicenseKey != nil {
+				if reference, ok := v.LicenseKey.AsAzureKeyVaultSecretReference(); ok {
+					keyVaultLicense = reference
+				}
+			}
 			components = append(components, map[string]interface{}{
-				"name": name,
+				"name":              name,
+				"key_vault_license": flattenDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(keyVaultLicense),
 				"license": readBackSensitiveValue(oldComponents, "license", map[string]string{
 					"name": name,
 				}),
@@ -860,6 +972,12 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input *[]da
 					userName = v
 				}
 			}
+			var keyVaultPassword *datafactory.AzureKeyVaultSecretReference
+			if v.Password != nil {
+				if reference, ok := v.Password.AsAzureKeyVaultSecretReference(); ok {
+					keyVaultPassword = reference
+				}
+			}
 			cmdkeys = append(cmdkeys, map[string]interface{}{
 				"target_name": name,
 				"user_name":   userName,
@@ -867,6 +985,7 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input *[]da
 					"target_name": name,
 					"user_name":   userName,
 				}),
+				"key_vault_password": flattenDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(keyVaultPassword),
 			})
 		}
 	}
@@ -877,6 +996,40 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input *[]da
 			"powershell_version": powershellVersion,
 			"component":          components,
 			"command_key":        cmdkeys,
+		},
+	}
+}
+
+func flattenDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(input *datafactory.AzureKeyVaultSecretReference) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	var linkedServiceName, secretName, secretVersion string
+	var parameters map[string]interface{}
+	if input.SecretName != nil {
+		if v, ok := input.SecretName.(string); ok {
+			secretName = v
+		}
+	}
+	if input.SecretVersion != nil {
+		if v, ok := input.SecretVersion.(string); ok {
+			secretVersion = v
+		}
+	}
+	if input.Store != nil {
+		if input.Store.ReferenceName != nil {
+			linkedServiceName = *input.Store.ReferenceName
+		}
+		if input.Store.Parameters != nil {
+			parameters = input.Store.Parameters
+		}
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"linked_service_name": linkedServiceName,
+			"parameters":          parameters,
+			"secret_name":         secretName,
+			"secret_version":      secretVersion,
 		},
 	}
 }
