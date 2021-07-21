@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `bot_name` - (Required) The name of the Bot Resource this channel will be associated with. Changing this forces a new resource to be created.
 
-* `site_names` - (Required) A list of Web Chat Sites.
+* `site_names` - (Required) A list of Web Chat Site names.
 
 ## Attributes Reference
 
