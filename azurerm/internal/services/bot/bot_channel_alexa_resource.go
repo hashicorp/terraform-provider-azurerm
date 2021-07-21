@@ -1,8 +1,10 @@
 package bot
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
@@ -94,6 +96,19 @@ func resourceBotChannelAlexaCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	stateConf := &pluginsdk.StateChangeConf{
+		Delay:      1 * time.Minute,
+		Pending:    []string{"204", "404"},
+		Target:     []string{"200", "202"},
+		Refresh:    botChannelAlexaStateRefreshFunc(ctx, client, id),
+		MinTimeout: 15 * time.Second,
+		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+	}
+
 	d.SetId(id.ID())
 	return resourceBotChannelAlexaRead(d, meta)
 }
@@ -161,6 +176,19 @@ func resourceBotChannelAlexaUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
+	stateConf := &pluginsdk.StateChangeConf{
+		Delay:      1 * time.Minute,
+		Pending:    []string{"204", "404"},
+		Target:     []string{"200", "202"},
+		Refresh:    botChannelAlexaStateRefreshFunc(ctx, client, *id),
+		MinTimeout: 15 * time.Second,
+		Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
+	}
+
 	return resourceBotChannelAlexaRead(d, meta)
 }
 
@@ -182,4 +210,17 @@ func resourceBotChannelAlexaDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	return nil
+}
+
+func botChannelAlexaStateRefreshFunc(ctx context.Context, client *botservice.ChannelsClient, id parse.BotChannelId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(res.Response) {
+				return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+		}
+
+		return res, strconv.Itoa(res.StatusCode), nil
+	}
 }
