@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * dependencies: Updgrading to `v55.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-12565]
 * `azurerm_api_management_named_value` - the field `secret_id` can now be set to a versionless Key Vault Key [GH-12641]
 * `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `public_ips`, `express_custom_setup`, `package_store`, and `proxy` blocks [GH-12545]
+* `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `key_vault_password`, and `key_vault_license` blocks [GH-12659]
 * `azurerm_bot_channels_registration` - support for the `cmk_key_vault_url`, `description`, `icon_url`, and `isolated_network_enabled` [GH-12560]
 * `azurerm_data_factory_integration_runtime_azure` - support for the `virtual_network_enabled` property [GH-12619]
 * `azurerm_kubernetes_cluster` - support for downgrading `sku_tier` from `Paid` to `Free` without recreating the Cluster [GH-12651]
