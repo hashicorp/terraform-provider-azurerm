@@ -164,7 +164,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-SP-%[1]d"
+  name     = "acctestRG-appserviceplan-%[1]d"
   location = "%s"
 }
 
@@ -190,7 +190,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-SP-%[1]d"
+  name     = "acctestRG-appserviceplan-%[1]d"
   location = "%s"
 }
 
@@ -218,7 +218,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-SP-%[1]d"
+  name     = "acctestRG-appserviceplan-%[1]d"
   location = "%s"
 }
 
@@ -259,7 +259,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-SP-%[1]d"
+  name     = "acctestRG-appserviceplan-%[1]d"
   location = "%s"
 }
 
@@ -286,7 +286,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-SP-%[1]d"
+  name     = "acctestRG-appserviceplan-%[1]d"
   location = "%s"
 }
 
@@ -339,7 +339,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-SP-%[1]d"
+  name     = "acctestRG-appserviceplan-%[1]d"
   location = "%[2]s"
 }
 

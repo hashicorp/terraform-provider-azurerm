@@ -5,8 +5,10 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	msiParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+	msiValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -54,9 +56,12 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"ip_address": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.Any(
+						validate.IPv4Address,
+						validate.CIDR,
+					),
 				},
 
 				"service_tag": {
@@ -68,7 +73,7 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 				"virtual_network_subnet_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: networkValidate.SubnetID,
 				},
 
 				"name": {
@@ -176,7 +181,7 @@ func IdentitySchema() *pluginsdk.Schema {
 					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: validate.UserAssignedIdentityID,
+						ValidateFunc: msiValidate.UserAssignedIdentityID,
 					},
 				},
 
@@ -272,7 +277,7 @@ func SiteCredentialSchema() *pluginsdk.Schema {
 
 type AuthSettings struct {
 	Enabled                     bool                    `tfschema:"enabled"`
-	AdditionalLoginParameters   map[string]string       `tfschema:"additional_login_params"`
+	AdditionalLoginParameters   map[string]string       `tfschema:"additional_login_parameters"`
 	AllowedExternalRedirectUrls []string                `tfschema:"allowed_external_redirect_urls"`
 	DefaultProvider             string                  `tfschema:"default_provider"`
 	Issuer                      string                  `tfschema:"issuer"`
@@ -301,7 +306,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 					Required: true,
 				},
 
-				"additional_login_params": {
+				"additional_login_parameters": {
 					Type:     pluginsdk.TypeMap,
 					Optional: true,
 					Elem: &pluginsdk.Schema{
@@ -313,7 +318,8 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 
@@ -394,14 +400,16 @@ func AadAuthSettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"client_secret": {
-					Type:      pluginsdk.TypeString,
-					Optional:  true,
-					Sensitive: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsNotEmpty,
 					ExactlyOneOf: []string{
 						"auth_settings.0.active_directory.0.client_secret",
 						"auth_settings.0.active_directory.0.client_secret_setting_name",
@@ -409,8 +417,9 @@ func AadAuthSettingsSchema() *pluginsdk.Schema {
 				},
 
 				"client_secret_setting_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 					ExactlyOneOf: []string{
 						"auth_settings.0.active_directory.0.client_secret",
 						"auth_settings.0.active_directory.0.client_secret_setting_name",
@@ -444,14 +453,16 @@ func FacebookAuthSettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"app_id": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"app_secret": {
-					Type:      pluginsdk.TypeString,
-					Optional:  true,
-					Sensitive: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsNotEmpty,
 					ExactlyOneOf: []string{
 						"auth_settings.0.facebook.0.app_secret",
 						"auth_settings.0.facebook.0.app_secret_setting_name",
@@ -459,8 +470,9 @@ func FacebookAuthSettingsSchema() *pluginsdk.Schema {
 				},
 
 				"app_secret_setting_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 					ExactlyOneOf: []string{
 						"auth_settings.0.facebook.0.app_secret",
 						"auth_settings.0.facebook.0.app_secret_setting_name",
@@ -494,14 +506,16 @@ func GoogleAuthSettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"client_secret": {
-					Type:      pluginsdk.TypeString,
-					Optional:  true,
-					Sensitive: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsNotEmpty,
 					ExactlyOneOf: []string{
 						"auth_settings.0.google.0.client_secret",
 						"auth_settings.0.google.0.client_secret_setting_name",
@@ -509,8 +523,9 @@ func GoogleAuthSettingsSchema() *pluginsdk.Schema {
 				},
 
 				"client_secret_setting_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 					ExactlyOneOf: []string{
 						"auth_settings.0.google.0.client_secret",
 						"auth_settings.0.google.0.client_secret_setting_name",
@@ -520,7 +535,9 @@ func GoogleAuthSettingsSchema() *pluginsdk.Schema {
 				"oauth_scopes": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
 				},
 			},
 		},
@@ -542,14 +559,16 @@ func MicrosoftAuthSettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"client_secret": {
-					Type:      pluginsdk.TypeString,
-					Optional:  true,
-					Sensitive: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsNotEmpty,
 					ExactlyOneOf: []string{
 						"auth_settings.0.microsoft.0.client_secret",
 						"auth_settings.0.microsoft.0.client_secret_setting_name",
@@ -557,8 +576,9 @@ func MicrosoftAuthSettingsSchema() *pluginsdk.Schema {
 				},
 
 				"client_secret_setting_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 					ExactlyOneOf: []string{
 						"auth_settings.0.microsoft.0.client_secret",
 						"auth_settings.0.microsoft.0.client_secret_setting_name",
@@ -568,7 +588,9 @@ func MicrosoftAuthSettingsSchema() *pluginsdk.Schema {
 				"oauth_scopes": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
 				},
 			},
 		},

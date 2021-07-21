@@ -27,7 +27,6 @@ func TestAccSourceControlResource_windowsExternalGit(t *testing.T) {
 			Config: r.windowsExternalGit(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scm_type").HasValue("ExternalGit"),
 			),
 		},
 		data.ImportStep(),
@@ -43,7 +42,6 @@ func TestAccSourceControlResource_requiresImport(t *testing.T) {
 			Config: r.windowsExternalGit(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scm_type").HasValue("ExternalGit"),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -80,7 +78,6 @@ func TestAccSourceControlResource_windowsGitHubAction(t *testing.T) {
 			Config: r.windowsGitHubAction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scm_type").HasValue("GitHubAction"), // Note this is not a user configurable nor documented value
 			),
 		},
 		data.ImportStep(),
@@ -100,7 +97,6 @@ func TestAccSourceControlResource_windowsGitHub(t *testing.T) {
 			Config: r.windowsGitHub(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scm_type").HasValue("GitHub"),
 			),
 		},
 		data.ImportStep(),
@@ -116,7 +112,6 @@ func TestAccSourceControlResource_linuxExternalGit(t *testing.T) {
 			Config: r.linuxExternalGit(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scm_type").HasValue("ExternalGit"),
 			),
 		},
 		data.ImportStep(),
@@ -153,7 +148,6 @@ func TestAccSourceControlResource_linuxGitHubAction(t *testing.T) {
 			Config: r.linuxGitHubAction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scm_type").HasValue("GitHubAction"), // Note this is not a user configurable nor documented value
 				check.That(data.ResourceName).Key("uses_github_action").HasValue("true"),
 			),
 		},
@@ -174,7 +168,6 @@ func TestAccSourceControlResource_linuxGitHub(t *testing.T) {
 			Config: r.linuxGitHub(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scm_type").HasValue("GitHub"),
 			),
 		},
 		data.ImportStep(),
@@ -203,7 +196,6 @@ func TestAccSourceControlResource_linuxSCMTypeUpdate(t *testing.T) {
 			Config: r.linuxGitHub(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scm_type").HasValue("GitHub"),
 			),
 		},
 		data.ImportStep(),
@@ -239,10 +231,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_app_service_source_control" "test" {
-  app_id             = azurerm_windows_web_app.test.id
-  repo_url           = "https://github.com/Azure-Samples/app-service-web-dotnet-get-started.git"
-  branch             = "master"
-  manual_integration = true
+  app_id                 = azurerm_windows_web_app.test.id
+  repo_url               = "https://github.com/Azure-Samples/app-service-web-dotnet-get-started.git"
+  branch                 = "master"
+  use_manual_integration = true
 }
 
 `, baseWindowsAppTemplate(data))
@@ -253,10 +245,10 @@ func (r AppServiceSourceControlResource) requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_app_service_source_control" "import" {
-  app_id             = azurerm_app_service_source_control.test.app_id
-  repo_url           = azurerm_app_service_source_control.test.repo_url
-  branch             = azurerm_app_service_source_control.test.branch
-  manual_integration = azurerm_app_service_source_control.test.manual_integration
+  app_id                 = azurerm_app_service_source_control.test.app_id
+  repo_url               = azurerm_app_service_source_control.test.repo_url
+  branch                 = azurerm_app_service_source_control.test.branch
+  use_manual_integration = azurerm_app_service_source_control.test.use_manual_integration
 }
 
 `, r.windowsExternalGit(data))
@@ -271,10 +263,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_app_service_source_control" "test" {
-  app_id             = azurerm_linux_web_app.test.id
-  repo_url           = "https://github.com/Azure-Samples/python-docs-hello-world.git"
-  branch             = "master"
-  manual_integration = true
+  app_id                 = azurerm_linux_web_app.test.id
+  repo_url               = "https://github.com/Azure-Samples/python-docs-hello-world.git"
+  branch                 = "master"
+  use_manual_integration = true
 }
 
 `, baseLinuxAppTemplate(data))
@@ -289,8 +281,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_app_service_source_control" "test" {
-  app_id   = azurerm_windows_web_app.test.id
-  scm_type = "LocalGit"
+  app_id        = azurerm_windows_web_app.test.id
+  use_local_git = true
 }
 
 `, baseWindowsAppTemplate(data))
@@ -361,7 +353,10 @@ resource azurerm_source_control_token test {
 resource "azurerm_app_service_source_control" "test" {
   app_id   = azurerm_windows_web_app.test.id
   repo_url = "https://github.com/jackofallops/azure-app-service-static-site-tests.git"
-  scm_type = "GitHub"
+
+  depends_on = [
+    azurerm_source_control_token.test,
+  ]
 }
 
 `, baseWindowsAppTemplate(data), token)
@@ -414,11 +409,14 @@ resource "azurerm_source_control_token" "test" {
 }
 
 resource "azurerm_app_service_source_control" "test" {
-  app_id             = azurerm_linux_web_app.test.id
-  repo_url           = "https://github.com/Azure-Samples/python-docs-hello-world.git"
-  branch             = "master"
-  scm_type           = azurerm_source_control_token.test.type
-  manual_integration = true
+  app_id                 = azurerm_linux_web_app.test.id
+  repo_url               = "https://github.com/Azure-Samples/python-docs-hello-world.git"
+  branch                 = "master"
+  use_manual_integration = true
+
+  depends_on = [
+    azurerm_source_control_token.test,
+  ]
 }
 
 `, baseLinuxAppTemplate(data), token)
