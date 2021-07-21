@@ -3,9 +3,8 @@ package compute
 import (
 	"context"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/identity"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/identity"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"

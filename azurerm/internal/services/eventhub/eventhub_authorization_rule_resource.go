@@ -116,7 +116,11 @@ func resourceEventHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, me
 
 		d.SetId(id.ID())
 
-		return pluginsdk.NonRetryableError(resourceEventHubAuthorizationRuleRead(d, meta))
+		if err := resourceEventHubAuthorizationRuleRead(d, meta); err != nil {
+			return pluginsdk.NonRetryableError(err)
+		}
+
+		return nil
 	})
 }
 

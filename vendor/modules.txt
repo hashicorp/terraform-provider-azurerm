@@ -9,7 +9,7 @@ cloud.google.com/go/internal/version
 # cloud.google.com/go/storage v1.16.0
 ## explicit
 cloud.google.com/go/storage
-# github.com/Azure/azure-sdk-for-go v55.5.0+incompatible
+# github.com/Azure/azure-sdk-for-go v55.6.0+incompatible
 ## explicit
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
 github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad
@@ -20,6 +20,7 @@ github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2020-06-01/appc
 github.com/Azure/azure-sdk-for-go/services/attestation/mgmt/2018-09-01/attestation
 github.com/Azure/azure-sdk-for-go/services/avs/mgmt/2020-03-20/avs
 github.com/Azure/azure-sdk-for-go/services/azurestackhci/mgmt/2020-10-01/azurestackhci
+github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batch
 github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch
 github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn

@@ -1,38 +1,70 @@
-## 2.68.0 (Unreleased)
+## 2.69.0 (Unreleased)
 
 FEATURES:
 
-* **New Data Source** `azurerm_local_network_gateway` [GH-12579]
-* **New Resource** `azurerm_api_management_api_release` [GH-12562]
-* **New Resource** `azurerm_data_protection_backup_policy_disk` [GH-12361]
-* **New Resource** `azurerm_data_factory_custom_dataset` [GH-12484]
-* **New Resource** `azurerm_maintenance_assignment_virtual_machine_scale_set` [GH-12273]
-* **New Resource** `azurerm_postgresql_flexible_server_configuration` [GH-12294]
-* **New Resource** `azurerm_synapse_private_link_hub` [GH-12495]
+* **New Resource** `azurerm_batch_job` [GH-12573]
+* **New Resource** `azurerm_data_factory_managed_private_endpoint` [GH-12618]
+* **New Resource** `azurerm_data_protection_backup_policy_blob_storage` [GH-12362]
+* **New Resource** `azurerm_signalr_service_network_acl` [GH-12434]
 
 ENHANCEMENTS:
 
-* dependencies: upgrading to `v55.5.0` of `github.com/Azure/azure-sdk-for-go` [GH-12435]
-* dependencies: updating `bot` to use API Version `2021-03-01` [GH-12449]
-* dependencies: updating `maintenance` to use API Version `2021-05-01` [GH-12273]
-* `azurerm_api_management_named_value` - support for the `value_from_key_vault` block [GH-12309]
-* `azurerm_api_management_api_diagnostic` - support for the `data_masking`1 property [GH-12419]
-* `azurerm_cognitive_account` - support for the `identity`, `storage`, `disable_local_auth`, `fqdns`, `public_network_access_enabled`, and `restrict_outbound_network_access` properties [GH-12469]
-* `azurerm_cognitive_account` - the `virtual_network_subnet_ids` property has been deprecated in favour of `virtual_network_rules` block to supoport the `ignore_missing_vnet_service_endpoint` property [GH-12600]
-* `azurerm_container_registry` - now exports the `principal_id` and `tenant_id` attributes in the `identity` block [GH-12378]
-* `azurerm_linux_virtual_machine_scale_set` - Fix un-necessary VMSS instance rolling request [GH-12590]
-* `azurerm_maintenance_configuration` - support for the `window`, `visibility`, and `properties` blocks [GH-12273]
-* `azurerm_powerbi_embedded` - support for the `mode` property [GH-12394]
-* `azurerm_redis_cache` - support for the `maintenance_window` property in the `patch_schedule` block [GH-12472]
-* `azurerm_storage_account_customer_managed_key` - support for the `user_assigned_identity_id` property [GH-12516]
+* dependencies: Updgrading to `v55.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-12565]
+* `azurerm_api_management_named_value` - the field `secret_id` can now be set to a versionless Key Vault Key [GH-12641]
+* `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `public_ips`, `express_custom_setup`, `package_store`, and `proxy` blocks [GH-12545]
+* `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `key_vault_password`, and `key_vault_license` blocks [GH-12659]
+* `azurerm_bot_channels_registration` - support for the `cmk_key_vault_url`, `description`, `icon_url`, and `isolated_network_enabled` [GH-12560]
+* `azurerm_data_factory_integration_runtime_azure` - support for the `virtual_network_enabled` property [GH-12619]
+* `azurerm_kubernetes_cluster` - support for downgrading `sku_tier` from `Paid` to `Free` without recreating the Cluster [GH-12651]
+* `azurerm_postgresql_flexible_server` - support for the `high_availability` block [GH-12587]
 
 BUG FIXES:
 
-* `azurerm_api_management` - no longer forces a new resource when changing the `subnet_id` property [GH-12611]
-* `azurerm_function_app` - set a default value for `os_type` and allow a blank string to be specified as per documentation [GH-12482]
-* `azurerm_postgresql_flexible_server` - add new computed property `private_dns_zone_id` to work around a upcomming breaking change in the API [GH-12288]
-* `azurerm_mssql_database` - don't allow license_type to be set for serverless SQL databases [GH-12555]
-* `azurerm_subnet_network_security_group_association` - prevent potential deadlocks when using multiple association resources [GH-12267]
+* `data.azurerm_redis_cache` - fix a bug that caused the data source to raise an error [GH-12666]
+* `azurerm_application_gateway` - return an error when ssl policy is not properly configured  [GH-12647]
+* `azurerm_data_factory_linked_custom_service` - fix a bug causing `additional_properties` to be read incorrectly into state [GH-12664]
+* `azurerm_eventhub_authorization_rule` - fixing the error "empty non-retryable error received" [GH-12642]
+* `azurerm_machine_learning_compute_cluster` - fix a crash when creating a cluster without specifying `subnet_resource_id` [GH-12658]
+
+## 2.68.0 (July 16, 2021)
+
+FEATURES:
+
+* **New Data Source** `azurerm_local_network_gateway` ([#12579](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12579))
+* **New Resource** `azurerm_api_management_api_release` ([#12562](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12562))
+* **New Resource** `azurerm_data_protection_backup_policy_disk` ([#12361](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12361))
+* **New Resource** `azurerm_data_factory_custom_dataset` ([#12484](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12484))
+* **New Resource** `azurerm_data_factory_dataset_binary` ([#12369](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12369))
+* **New Resource** `azurerm_maintenance_assignment_virtual_machine_scale_set` ([#12273](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12273))
+* **New Resource** `azurerm_postgresql_flexible_server_configuration` ([#12294](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12294))
+* **New Resource** `azurerm_synapse_private_link_hub` ([#12495](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12495))
+
+ENHANCEMENTS:
+
+* dependencies: upgrading to `v55.5.0` of `github.com/Azure/azure-sdk-for-go` ([#12435](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12435))
+* dependencies: updating `bot` to use API Version `2021-03-01` ([#12449](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12449))
+* dependencies: updating `maintenance` to use API Version `2021-05-01` ([#12273](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12273))
+* `azurerm_api_management_named_value` - support for the `value_from_key_vault` block ([#12309](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12309))
+* `azurerm_api_management_api_diagnostic` - support for the `data_masking`1 property ([#12419](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12419))
+* `azurerm_cognitive_account` - support for the `identity`, `storage`, `disable_local_auth`, `fqdns`, `public_network_access_enabled`, and `restrict_outbound_network_access` properties ([#12469](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12469))
+* `azurerm_cognitive_account` - the `virtual_network_subnet_ids` property has been deprecated in favour of `virtual_network_rules` block to supoport the `ignore_missing_vnet_service_endpoint` property ([#12600](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12600))
+* `azurerm_container_registry` - now exports the `principal_id` and `tenant_id` attributes in the `identity` block ([#12378](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12378))
+* `azurerm_data_factory` - support for the `managed_virtual_network_enabled` property ([#12343](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12343))
+* `azurerm_linux_virtual_machine_scale_set` - Fix un-necessary VMSS instance rolling request ([#12590](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12590))
+* `azurerm_maintenance_configuration` - support for the `window`, `visibility`, and `properties` blocks ([#12273](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12273))
+* `azurerm_powerbi_embedded` - support for the `mode` property ([#12394](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12394))
+* `azurerm_redis_cache` - support for the `maintenance_window` property in the `patch_schedule` block ([#12472](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12472))
+* `azurerm_storage_account_customer_managed_key` - support for the `user_assigned_identity_id` property ([#12516](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12516))
+
+BUG FIXES:
+
+* `azurerm_api_management` - no longer forces a new resource when changing the `subnet_id` property ([#12611](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12611))
+* `azurerm_function_app` - set a default value for `os_type` and allow a blank string to be specified as per documentation ([#12482](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12482))
+* `azurerm_key_vault_access_policy` - prevent a possible panic on delete ([#12616](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12616))
+* `azurerm_postgresql_flexible_server` - add new computed property `private_dns_zone_id` to work around a upcomming breaking change in the API ([#12288](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12288))
+* `machine_learning_compute_cluster` - make the `subnet_resource_id` property actually optional ([#12558](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12558))
+* `azurerm_mssql_database` - don't allow license_type to be set for serverless SQL databases ([#12555](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12555))
+* `azurerm_subnet_network_security_group_association` - prevent potential deadlocks when using multiple association resources ([#12267](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12267))
 
 ## 2.67.0 (July 09, 2021)
 
