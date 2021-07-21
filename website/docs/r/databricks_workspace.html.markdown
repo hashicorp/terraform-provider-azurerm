@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Allow public access for accessing workspace. Set value to `false` to access workspace only via private link endpoint. Possible values include `true` or `false`. Defaults to `true`. Changing this forces a new resource to be created.
 
-* `require_network_security_group_rules` - (Optional) Does the data plane (clusters) to control plane communication happen over private link endpoint only or publicly? Possible values `AllRules`, `NoAzureDatabricksRules` or `NoAzureServiceRules`. Required when `public_network_access_enabled` is set to `false`. Changing this forces a new resource to be created.
+* `network_security_group_rules_required` - (Optional) Does the data plane (clusters) to control plane communication happen over private link endpoint only or publicly? Possible values `AllRules`, `NoAzureDatabricksRules` or `NoAzureServiceRules`. Required when `public_network_access_enabled` is set to `false`. Changing this forces a new resource to be created.
 
 * `custom_parameters` - (Optional) A `custom_parameters` block as documented below.
 
@@ -68,7 +68,7 @@ A `custom_parameters` block supports the following:
 
 * `load_balancer_backend_pool_name` - (Optional) Name of the outbound Load Balancer Backend Pool for Secure Cluster Connectivity (No Public IP). Changing this forces a new resource to be created.
 
-* `load_balancer_id` - (Optional) Resource URI of Outbound Load balancer for Secure Cluster Connectivity (No Public IP) workspace. Changing this forces a new resource to be created.
+* `load_balancer_id` - (Optional) Resource ID of the Outbound Load balancer for Secure Cluster Connectivity (No Public IP) workspace. Changing this forces a new resource to be created.
 
 * `nat_gateway_name` - (Optional) Name of the NAT gateway for Secure Cluster Connectivity (No Public IP) workspace subnets. Defaults to `nat-gateway`. Changing this forces a new resource to be created.
 

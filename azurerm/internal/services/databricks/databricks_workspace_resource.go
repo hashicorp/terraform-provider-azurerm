@@ -92,7 +92,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"require_network_security_group_rules": {
+			"network_security_group_rules_required": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
@@ -268,12 +268,12 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			_, customerEncryptionEnabled := d.GetChange("customer_managed_key_enabled")
 			_, infrastructureEncryptionEnabled := d.GetChange("infrastructure_encryption_enabled")
 			_, publicNetworkAccess := d.GetChange("public_network_access_enabled")
-			_, requireNsgRules := d.GetChange("require_network_security_group_rules")
+			_, requireNsgRules := d.GetChange("network_security_group_rules_required")
 
 			oldSku, newSku := d.GetChange("sku")
 
 			if !publicNetworkAccess.(bool) && requireNsgRules.(string) == string(databricks.RequiredNsgRulesAllRules) {
-				return fmt.Errorf("'require_network_security_group_rules' %q and 'public_network_access_enabled' 'false' is not an allowed combination", string(databricks.RequiredNsgRulesAllRules))
+				return fmt.Errorf("'network_security_group_rules_required' %q and 'public_network_access_enabled' 'false' is not an allowed combination", string(databricks.RequiredNsgRulesAllRules))
 			}
 
 			if d.HasChange("sku") {
@@ -338,7 +338,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if publicNetowrkAccessRaw {
 		publicNetworkAccess = databricks.PublicNetworkAccessEnabled
 	}
-	requireNsgRules := d.Get("require_network_security_group_rules").(string)
+	requireNsgRules := d.Get("network_security_group_rules_required").(string)
 	customParamsRaw := d.Get("custom_parameters").([]interface{})
 	customParams, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(customParamsRaw, customerEncryptionEnabled, infrastructureEncryptionEnabled)
 
@@ -461,7 +461,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("public_network_access_enabled", (props.PublicNetworkAccess == databricks.PublicNetworkAccessEnabled))
 
 		if props.PublicNetworkAccess == databricks.PublicNetworkAccessDisabled {
-			d.Set("require_network_security_group_rules", string(props.RequiredNsgRules))
+			d.Set("network_security_group_rules_required", string(props.RequiredNsgRules))
 		}
 		var cmkEnabled, infraEnabled *bool
 
