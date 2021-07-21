@@ -49,15 +49,7 @@ The following arguments are supported:
 
 * `bot_name` - (Required) The name of the Bot Resource this channel will be associated with. Changing this forces a new resource to be created.
 
-* `sites` - (Required) A `sites` block as defined below.
-
----
-
-A `sites` block supports the following:
-
-* `site_name` - (Required) The name of the site.
-
-* `enabled_preview` - (Optional) Is preview version of the Web Chat Channel enabled?
+* `site_names` - (Required) A list of Web Chat Sites.
 
 ## Attributes Reference
 

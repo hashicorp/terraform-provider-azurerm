@@ -112,10 +112,7 @@ resource "azurerm_bot_channel_web_chat" "test" {
   bot_name            = azurerm_bot_channels_registration.test.name
   location            = azurerm_bot_channels_registration.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  sites {
-    site_name = "TestSite"
-  }
+  site_names          = ["TestSite"]
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))
 }
@@ -128,10 +125,7 @@ resource "azurerm_bot_channel_web_chat" "import" {
   bot_name            = azurerm_bot_channel_web_chat.test.bot_name
   location            = azurerm_bot_channel_web_chat.test.location
   resource_group_name = azurerm_bot_channel_web_chat.test.resource_group_name
-
-  sites {
-    site_name = "TestSite"
-  }
+  site_names          = ["TestSite"]
 }
 `, r.basic(data))
 }
@@ -144,14 +138,7 @@ resource "azurerm_bot_channel_web_chat" "test" {
   bot_name            = azurerm_bot_channels_registration.test.name
   location            = azurerm_bot_channels_registration.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  sites {
-    site_name = "TestSite2"
-  }
-
-  sites {
-    site_name = "TestSite3"
-  }
+  site_names          = ["TestSite2", "TestSite3"]
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))
 }

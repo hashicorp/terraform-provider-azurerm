@@ -49,22 +49,12 @@ func resourceBotChannelWebChat() *pluginsdk.Resource {
 				ValidateFunc: validate.BotName,
 			},
 
-			"sites": {
+			"site_names": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"site_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"enabled_preview": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-					},
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 		},
@@ -92,7 +82,7 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 		if props := existing.Properties; props != nil {
 			defaultChannel, ok := props.AsWebChatChannel()
 			if ok && defaultChannel.Properties != nil {
-				if includeDefaultWebSite(defaultChannel.Properties.Sites) {
+				if includeDefaultWebChatSite(defaultChannel.Properties.Sites) {
 					if _, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameWebChatChannel)); err != nil {
 						return fmt.Errorf("deleting the default Web Chat Channel %s: %+v", id, err)
 					}
@@ -106,7 +96,7 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 	channel := botservice.BotChannel{
 		Properties: botservice.WebChatChannel{
 			Properties: &botservice.WebChatChannelProperties{
-				Sites: expandWebChatSites(d.Get("sites").(*pluginsdk.Set).List()),
+				Sites: expandSiteNames(d.Get("site_names").(*pluginsdk.Set).List()),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
@@ -150,8 +140,8 @@ func resourceBotChannelWebChatRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if props := resp.Properties; props != nil {
 		if channel, ok := props.AsWebChatChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
-				if err := d.Set("sites", flattenWebChatSites(channelProps.Sites)); err != nil {
-					return fmt.Errorf("setting `sites`: %+v", err)
+				if err := d.Set("site_names", flattenSiteNames(channelProps.Sites)); err != nil {
+					return fmt.Errorf("setting `site_names`: %+v", err)
 				}
 			}
 		}
@@ -173,7 +163,7 @@ func resourceBotChannelWebChatUpdate(d *pluginsdk.ResourceData, meta interface{}
 	channel := botservice.BotChannel{
 		Properties: botservice.WebChatChannel{
 			Properties: &botservice.WebChatChannelProperties{
-				Sites: expandWebChatSites(d.Get("sites").(*pluginsdk.Set).List()),
+				Sites: expandSiteNames(d.Get("site_names").(*pluginsdk.Set).List()),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
@@ -223,46 +213,38 @@ func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandWebChatSites(input []interface{}) *[]botservice.WebChatSite {
+func expandSiteNames(input []interface{}) *[]botservice.WebChatSite {
 	results := make([]botservice.WebChatSite, 0)
-	for _, item := range input {
-		v := item.(map[string]interface{})
 
+	for _, item := range input {
 		results = append(results, botservice.WebChatSite{
-			EnablePreview: utils.Bool(v["enabled_preview"].(bool)),
-			SiteName:      utils.String(v["site_name"].(string)),
-			IsEnabled:     utils.Bool(true),
+			SiteName:  utils.String(item.(string)),
+			IsEnabled: utils.Bool(true),
 		})
 	}
+
 	return &results
 }
 
-func flattenWebChatSites(input *[]botservice.WebChatSite) []interface{} {
+func flattenSiteNames(input *[]botservice.WebChatSite) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		var enablePreview bool
-		if item.EnablePreview != nil {
-			enablePreview = *item.EnablePreview
-		}
-
 		var siteName string
 		if item.SiteName != nil {
 			siteName = *item.SiteName
 		}
 
-		results = append(results, map[string]interface{}{
-			"enabled_preview": enablePreview,
-			"site_name":       siteName,
-		})
+		results = append(results, siteName)
 	}
+
 	return results
 }
 
-func includeDefaultWebSite(sites *[]botservice.WebChatSite) bool {
+func includeDefaultWebChatSite(sites *[]botservice.WebChatSite) bool {
 	includeDefaultSite := false
 	for _, site := range *sites {
 		if *site.SiteName == "Default Site" {
