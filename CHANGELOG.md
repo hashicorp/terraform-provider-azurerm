@@ -22,6 +22,7 @@ BUG FIXES:
 * `azurerm_application_gateway` - return an error when ssl policy is not properly configured  [GH-12647]
 * `azurerm_data_factory_linked_custom_service` - fix a bug causing `additional_properties` to be read incorrectly into state [GH-12664]
 * `azurerm_eventhub_authorization_rule` - fixing the error "empty non-retryable error received" [GH-12642]
+* `azurerm_machine_learning_compute_cluster` - fix a crash when creating a cluster without specifying `subnet_resource_id` [GH-12658]
 
 ## 2.68.0 (July 16, 2021)
 
