@@ -91,8 +91,8 @@ resource "azurerm_databricks_workspace" "example" {
   sku                         = "premium"
   managed_resource_group_name = "${var.prefix}-DBW-managed"
 
-  public_network_access_enabled        = false
-  require_network_security_group_rules = "NoAzureDatabricksRules"
+  public_network_access_enabled         = false
+  network_security_group_rules_required = "NoAzureDatabricksRules"
 
   custom_parameters {
     no_public_ip        = true
