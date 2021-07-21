@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/powerbidedicated/mgmt/2017-10-01/powerbidedicated"
+	"github.com/Azure/azure-sdk-for-go/services/powerbidedicated/mgmt/2021-01-01/powerbidedicated"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -72,6 +72,17 @@ func resourcePowerBIEmbedded() *pluginsdk.Resource {
 				},
 			},
 
+			"mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(powerbidedicated.ModeGen1),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(powerbidedicated.ModeGen1),
+					string(powerbidedicated.ModeGen2),
+				}, false),
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -98,6 +109,7 @@ func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	administrators := d.Get("administrators").(*pluginsdk.Set).List()
 	skuName := d.Get("sku_name").(string)
+	mode := d.Get("mode").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := powerbidedicated.DedicatedCapacity{
@@ -106,8 +118,9 @@ func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			Administration: &powerbidedicated.DedicatedCapacityAdministrators{
 				Members: utils.ExpandStringSlice(administrators),
 			},
+			Mode: powerbidedicated.Mode(mode),
 		},
-		Sku: &powerbidedicated.ResourceSku{
+		Sku: &powerbidedicated.CapacitySku{
 			Name: utils.String(skuName),
 		},
 		Tags: tags.Expand(t),
@@ -162,6 +175,8 @@ func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta interface{}) er
 		if err := d.Set("administrators", utils.FlattenStringSlice(props.Administration.Members)); err != nil {
 			return fmt.Errorf("Error setting `administration`: %+v", err)
 		}
+
+		d.Set("mode", props.Mode)
 	}
 
 	skuName := ""
@@ -182,6 +197,7 @@ func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	resourceGroup := d.Get("resource_group_name").(string)
 	administrators := d.Get("administrators").(*pluginsdk.Set).List()
 	skuName := d.Get("sku_name").(string)
+	mode := d.Get("mode").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := powerbidedicated.DedicatedCapacityUpdateParameters{
@@ -189,8 +205,9 @@ func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			Administration: &powerbidedicated.DedicatedCapacityAdministrators{
 				Members: utils.ExpandStringSlice(administrators),
 			},
+			Mode: powerbidedicated.Mode(mode),
 		},
-		Sku: &powerbidedicated.ResourceSku{
+		Sku: &powerbidedicated.CapacitySku{
 			Name: utils.String(skuName),
 		},
 		Tags: tags.Expand(t),
