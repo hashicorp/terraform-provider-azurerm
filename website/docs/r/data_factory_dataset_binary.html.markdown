@@ -106,9 +106,9 @@ A `azure_blob_storage_location` block supports the following:
 
 * `container` - (Required) The container on the Azure Blob Storage Account hosting the file.
 
-* `path` - (Required) The folder path to the file on the web server.
+* `path` - (Optional) The folder path to the file in the blob container.
 
-* `filename` - (Required) The filename of the file on the web server.
+* `filename` - (Optional) The filename of the file in the blob container.
 
 ---
 
@@ -121,7 +121,7 @@ A `sftp_server_location` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Factory Dataset.
 
