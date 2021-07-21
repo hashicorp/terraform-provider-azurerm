@@ -34,7 +34,7 @@ resource "azurerm_bot_channel_alexa" "example" {
   bot_name            = azurerm_bot_channels_registration.example.name
   location            = azurerm_bot_channels_registration.example.location
   resource_group_name = azurerm_resource_group.example.name
-  skill_id            = "283547168:AAHB5NETeGtYaNNN"
+  skill_id            = "amzn1.ask.skill.00000000-0000-0000-0000-000000000000"
 }
 ```
 
@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `bot_name` - (Required) The name of the Bot Resource this channel will be associated with. Changing this forces a new resource to be created.
 
-* `skill_id` - (Required) The Alexa skill Id for the Alexa Channel.
+* `skill_id` - (Required) The Alexa skill ID for the Alexa Channel.
 
 ## Attributes Reference
 

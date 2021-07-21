@@ -3,6 +3,7 @@ package bot_test
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
@@ -91,9 +92,9 @@ resource "azurerm_bot_channel_alexa" "test" {
   bot_name            = azurerm_bot_channels_registration.test.name
   location            = azurerm_bot_channels_registration.test.location
   resource_group_name = azurerm_resource_group.test.name
-  skill_id            = "TestSkillId01"
+  skill_id            = "amzn1.ask.skill.%s"
 }
-`, BotChannelsRegistrationResource{}.basicConfig(data))
+`, BotChannelsRegistrationResource{}.basicConfig(data), uuid.New().String())
 }
 
 func (r BotChannelAlexaResource) requiresImport(data acceptance.TestData) string {
@@ -117,7 +118,7 @@ resource "azurerm_bot_channel_alexa" "test" {
   bot_name            = azurerm_bot_channels_registration.test.name
   location            = azurerm_bot_channels_registration.test.location
   resource_group_name = azurerm_resource_group.test.name
-  skill_id            = "TestSkillId02"
+  skill_id            = "amzn1.ask.skill.%s"
 }
-`, BotChannelsRegistrationResource{}.basicConfig(data))
+`, BotChannelsRegistrationResource{}.basicConfig(data), uuid.New().String())
 }

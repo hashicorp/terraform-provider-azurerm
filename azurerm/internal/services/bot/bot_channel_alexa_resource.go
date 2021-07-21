@@ -119,17 +119,6 @@ func resourceBotChannelAlexaRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	resp2, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameAlexaChannel))
-	if err != nil {
-		if utils.ResponseWasNotFound(resp2.Response) {
-			log.Printf("[DEBUG] %s was not found - removing from state!", id)
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
 	d.Set("bot_name", id.BotServiceName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
@@ -167,12 +156,10 @@ func resourceBotChannelAlexaUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Kind:     botservice.KindBot,
 	}
 
-	resp2, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameAlexaChannel, channel)
+	_, err = client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameAlexaChannel, channel)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
-
-	log.Printf("[DEBUG] %s was not found - removing from state!", resp2.Properties)
 
 	return resourceBotChannelAlexaRead(d, meta)
 }
