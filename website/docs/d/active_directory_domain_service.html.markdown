@@ -10,6 +10,8 @@ description: |-
 
 Gets information about an Active Directory Domain Service.
 
+-> **Supported Modes:** At present this data source only supports **User Forest** mode and _not_ **Resource Forest** mode. [Read more](https://docs.microsoft.com/en-us/azure/active-directory-domain-services/concepts-resource-forest) about the different operation modes for this service.
+
 ## Example Usage
 
 ```hcl
