@@ -83,6 +83,8 @@ The following arguments are supported:
 
 * `start_time` - (Required) Specifies the start time of Tumbling Window, formatted as an RFC3339 string. Changing this forces a new resource.
 
+* `activated` - (Optional) Specifies if the Data Factory Tumbling Window Trigger is activated. Defaults to `true`.
+
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Tumbling Window Trigger.
 
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Tumbling Window Trigger.

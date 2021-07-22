@@ -156,6 +156,7 @@ resource "azurerm_data_factory_trigger_tumbling_window" "test" {
   interval        = 15
   delay           = "16:00:00"
 
+  activated   = false
   annotations = ["test1", "test2", "test3"]
   description = "test description"
 

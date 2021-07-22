@@ -100,6 +100,12 @@ func resourceDataFactoryTriggerTumblingWindow() *pluginsdk.Resource {
 				ValidateFunc:     validation.IsRFC3339Time,
 			},
 
+			"activated": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"additional_properties": {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
@@ -215,6 +221,14 @@ func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceD
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_data_factory_trigger_tumbling_window", id.ID())
 		}
+	} else {
+		future, err := client.Stop(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+		if err != nil {
+			return fmt.Errorf("stopping %s: %+v", id, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting to stop %s: %+v", id, err)
+		}
 	}
 
 	startTime, err := time.Parse(time.RFC3339, d.Get("start_time").(string))
@@ -265,6 +279,16 @@ func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceD
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	if d.Get("activated").(bool) {
+		future, err := client.Start(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+		if err != nil {
+			return fmt.Errorf("starting %s: %+v", id, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting on start %s: %+v", id, err)
+		}
+	}
+
 	d.SetId(id.ID())
 
 	return resourceDataFactoryTriggerTumblingWindowRead(d, meta)
@@ -298,6 +322,7 @@ func resourceDataFactoryTriggerTumblingWindowRead(d *pluginsdk.ResourceData, met
 	d.Set("name", id.Name)
 	d.Set("data_factory_id", parse.NewDataFactoryID(subscriptionId, id.ResourceGroup, id.FactoryName).ID())
 
+	d.Set("activated", trigger.RuntimeState == datafactory.TriggerRuntimeStateStarted)
 	d.Set("additional_properties", trigger.AdditionalProperties)
 	d.Set("description", trigger.Description)
 	if err := d.Set("annotations", flattenDataFactoryAnnotations(trigger.Annotations)); err != nil {
@@ -360,6 +385,14 @@ func resourceDataFactoryTriggerTumblingWindowDelete(d *pluginsdk.ResourceData, m
 	id, err := parse.TriggerID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	future, err := client.Stop(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	if err != nil {
+		return fmt.Errorf("stopping %s: %+v", id, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting to stop %s: %+v", id, err)
 	}
 
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name); err != nil {
