@@ -9,7 +9,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
@@ -22,16 +21,6 @@ func dataSourceResourceGroups() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"filter_by_subscription_id": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MinItems: 1,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-			},
-
 			"resource_groups": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -82,16 +71,8 @@ func dataSourceResourceGroupsRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("listing resource groups: %+v", err)
 	}
 
-	filterBySubscriptionId := []string(nil)
-	if v, ok := d.GetOk("filter_by_subscription_id"); ok {
-		for _, p := range v.([]interface{}) {
-			filterBySubscriptionId = append(filterBySubscriptionId, p.(string))
-		}
-	}
-
 	// iterate across each resource groups and append them to slice
 	resourceGroups := make([]map[string]interface{}, 0)
-	subTenantIdMap := make(map[string]string)
 	for results.NotDone() {
 		val := results.Value()
 
@@ -106,38 +87,31 @@ func dataSourceResourceGroupsRead(d *pluginsdk.ResourceData, meta interface{}) e
 			rg["subscription_id"] = rgStruct.SubscriptionId
 		}
 
-		if val, ok := subTenantIdMap[rg["subscription_id"].(string)]; ok {
-			rg["tenant_id"] = val
+		resp, err := subClient.Get(ctx, rg["subscription_id"].(string))
+
+		if err != nil {
+			return fmt.Errorf("reading subscription: %+v", err)
 		} else {
-			resp, err := subClient.Get(ctx, rg["subscription_id"].(string))
-
-			if err != nil {
-				return fmt.Errorf("reading subscription: %+v", err)
-			} else {
-				rg["tenant_id"] = *resp.TenantID
-				subTenantIdMap[rg["subscription_id"].(string)] = rg["tenant_id"].(string)
-			}
+			rg["tenant_id"] = *resp.TenantID
 		}
 
-		filterCondition := contains(filterBySubscriptionId, rg["subscription_id"].(string))
-		if filterBySubscriptionId == nil || filterCondition {
-			if v := val.Name; v != nil {
-				rg["name"] = *v
-			}
-			if v := val.Type; v != nil {
-				rg["type"] = *v
-			}
-			if v := val.Location; v != nil {
-				rg["location"] = *v
-			}
-			if err = results.Next(); err != nil {
-				return fmt.Errorf("going to next resource groups value: %+v", err)
-			}
-
-			rg["tags"] = tags.Flatten(val.Tags)
-
-			resourceGroups = append(resourceGroups, rg)
+		if v := val.Name; v != nil {
+			rg["name"] = *v
 		}
+		if v := val.Type; v != nil {
+			rg["type"] = *v
+		}
+		if v := val.Location; v != nil {
+			rg["location"] = *v
+		}
+		if err = results.Next(); err != nil {
+			return fmt.Errorf("going to next resource groups value: %+v", err)
+		}
+
+		rg["tags"] = tags.Flatten(val.Tags)
+
+		resourceGroups = append(resourceGroups, rg)
+
 	}
 
 	d.SetId("resource_groups-" + armClient.Account.TenantId)

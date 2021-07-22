@@ -22,12 +22,6 @@ output "id" {
 }
 ```
 
-## Arguments Reference
-
-The following arguments are supported:
-
-* `filter_by_subscription_id` - (Optional) List of IDs of the subscriptions to filter.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
