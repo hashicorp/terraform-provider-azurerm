@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"log"
 	"net/http"
 	"strings"
@@ -239,7 +240,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"allow_blob_public_access": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  getDefaultAllowBlobPublicAccess(),
 			},
 
 			"shared_access_key_enabled": {
@@ -1579,7 +1580,21 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("nfsv3_enabled", props.EnableNfsV3)
-		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
+
+		if features.ThreePointOh() {
+			// There is a certain edge case that could result in the Azure API returning a null value for AllowBLobPublicAccess.
+			// Since the field is a pointer, this gets marshalled to a nil value instead of a boolean. Here we set this
+			// to the default value, but since this is a breaking change we'll enforce this in 3.0
+
+			allowBlobPublicAccess := getDefaultAllowBlobPublicAccess()
+			if props.AllowBlobPublicAccess != nil {
+				allowBlobPublicAccess = *props.AllowBlobPublicAccess
+			}
+			d.Set("allow_blob_public_access", allowBlobPublicAccess)
+		} else {
+			d.Set("allow_blob_public_access", *props.AllowBlobPublicAccess)
+		}
+
 		// For all Clouds except Public, China, and USGovernmentCloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
 		// https://github.com/hashicorp/terraform-provider-azurerm/issues/7812
 		// https://github.com/hashicorp/terraform-provider-azurerm/issues/8083
@@ -2919,4 +2934,13 @@ func setEndpointAndHost(d *pluginsdk.ResourceData, ordinalString string, endpoin
 	// lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_host", ordinalString, typeString), host)
 	return nil
+}
+
+func getDefaultAllowBlobPublicAccess() bool {
+	// The default value for the field that controls if the blobs that belong to a storage account
+	// can allow anonymous access or not will change from false to true in 3.0.
+	if features.ThreePointOh() {
+		return true
+	}
+	return false
 }
