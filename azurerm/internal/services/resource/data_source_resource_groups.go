@@ -88,7 +88,6 @@ func dataSourceResourceGroupsRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		resp, err := subClient.Get(ctx, rg["subscription_id"].(string))
-
 		if err != nil {
 			return fmt.Errorf("reading subscription: %+v", err)
 		} else {
@@ -120,14 +119,4 @@ func dataSourceResourceGroupsRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	return nil
-}
-
-func contains(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
-			return true
-		}
-	}
-
-	return false
 }
