@@ -42,6 +42,7 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
+			// TODO: replace with `data_factory_id` in 3.0
 			"data_factory_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -182,9 +183,8 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 
 			// Delimited Text Specific Field
 			"null_value": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			"parameters": {

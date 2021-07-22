@@ -11,6 +11,7 @@ type Client struct {
 	ApiPoliciesClient          *apimanagement.APIPolicyClient
 	ApiOperationsClient        *apimanagement.APIOperationClient
 	ApiOperationPoliciesClient *apimanagement.APIOperationPolicyClient
+	ApiReleasesClient          *apimanagement.APIReleaseClient
 	ApiSchemasClient           *apimanagement.APISchemaClient
 	ApiVersionSetClient        *apimanagement.APIVersionSetClient
 	AuthorizationServersClient *apimanagement.AuthorizationServerClient
@@ -56,6 +57,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	apiOperationPoliciesClient := apimanagement.NewAPIOperationPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiOperationPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
+	apiReleasesClient := apimanagement.NewAPIReleaseClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&apiReleasesClient.Client, o.ResourceManagerAuthorizer)
 
 	apiSchemasClient := apimanagement.NewAPISchemaClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiSchemasClient.Client, o.ResourceManagerAuthorizer)
@@ -147,6 +151,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ApiPoliciesClient:          &apiPoliciesClient,
 		ApiOperationsClient:        &apiOperationsClient,
 		ApiOperationPoliciesClient: &apiOperationPoliciesClient,
+		ApiReleasesClient:          &apiReleasesClient,
 		ApiSchemasClient:           &apiSchemasClient,
 		ApiVersionSetClient:        &apiVersionSetClient,
 		AuthorizationServersClient: &authorizationServersClient,

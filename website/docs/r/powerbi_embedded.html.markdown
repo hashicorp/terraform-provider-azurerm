@@ -41,6 +41,8 @@ The following arguments are supported:
 
 * `administrators` - (Required) A set of administrator user identities, which manages the Power BI Embedded and must be a member user or a service principal in your AAD tenant.
 
+* `mode` - (Optional) Sets the PowerBI Embedded's mode. Possible values include: `Gen1`, `Gen2`. Defaults to `Gen1`. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference

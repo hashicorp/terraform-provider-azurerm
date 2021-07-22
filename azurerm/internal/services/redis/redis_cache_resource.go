@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -223,6 +224,14 @@ func resourceRedisCache() *pluginsdk.Resource {
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validation.IsDayOfTheWeek(true),
 						},
+
+						"maintenance_window": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      "PT5H",
+							ValidateFunc: azValidate.ISO8601Duration,
+						},
+
 						"start_hour_utc": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
@@ -746,11 +755,13 @@ func expandRedisPatchSchedule(d *pluginsdk.ResourceData) *redis.PatchSchedule {
 	for _, scheduleValue := range scheduleValues {
 		vals := scheduleValue.(map[string]interface{})
 		dayOfWeek := vals["day_of_week"].(string)
+		maintenanceWindow := vals["maintenance_window"].(string)
 		startHourUtc := vals["start_hour_utc"].(int)
 
 		entry := redis.ScheduleEntry{
-			DayOfWeek:    redis.DayOfWeek(dayOfWeek),
-			StartHourUtc: utils.Int32(int32(startHourUtc)),
+			DayOfWeek:         redis.DayOfWeek(dayOfWeek),
+			MaintenanceWindow: utils.String(maintenanceWindow),
+			StartHourUtc:      utils.Int32(int32(startHourUtc)),
 		}
 		entries = append(entries, entry)
 	}
@@ -875,6 +886,7 @@ func flattenRedisPatchSchedules(schedule redis.PatchSchedule) []interface{} {
 		output := make(map[string]interface{})
 
 		output["day_of_week"] = string(entry.DayOfWeek)
+		output["maintenance_window"] = *entry.MaintenanceWindow
 		output["start_hour_utc"] = int(*entry.StartHourUtc)
 
 		outputs = append(outputs, output)

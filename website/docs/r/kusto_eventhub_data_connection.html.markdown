@@ -67,7 +67,7 @@ resource "azurerm_kusto_eventhub_data_connection" "eventhub_connection" {
   cluster_name        = azurerm_kusto_cluster.cluster.name
   database_name       = azurerm_kusto_database.database.name
 
-  eventhub_id    = azurerm_eventhub.evenhub.id
+  eventhub_id    = azurerm_eventhub.eventhub.id
   consumer_group = azurerm_eventhub_consumer_group.consumer_group.name
 
   table_name        = "my-table"         #(Optional)
