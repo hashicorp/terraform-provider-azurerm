@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
@@ -69,8 +70,9 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Required:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(eventhub.Basic),
-					string(eventhub.Standard),
+					string(namespaces.SkuNameBasic),
+					string(namespaces.SkuNameStandard),
+					string(namespaces.SkuNamePremium),
 				}, true),
 			},
 
@@ -249,6 +251,22 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			oldSku, newSku := d.GetChange("sku")
+			if d.HasChange("sku") {
+				if strings.EqualFold(newSku.(string), string(namespaces.SkuNamePremium)) || strings.EqualFold(oldSku.(string), string(namespaces.SkuTierPremium)) {
+					log.Printf("[DEBUG] cannot migrate a namespace from or to Premium SKU")
+					d.ForceNew("sku")
+				}
+				if strings.EqualFold(newSku.(string), string(namespaces.SkuTierPremium)) {
+					zoneRedundant := d.Get("zone_redundant").(bool)
+					if !zoneRedundant {
+						return fmt.Errorf("zone_redundant needs to be set to true when using premium SKU")
+					}
+				}
+			}
+			return nil
+		}),
 	}
 }
 
