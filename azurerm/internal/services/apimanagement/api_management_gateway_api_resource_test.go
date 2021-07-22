@@ -52,7 +52,7 @@ func (ApiManagementGatewayAPIResource) Exists(ctx context.Context, clients *clie
 	if err != nil {
 		return nil, err
 	}
-	if resp, err := clients.ApiManagement.GatewayApisClient.GetEntityTag(ctx, id.ResourceGroup, id.ServiceName, id.ID(), id.ApiName); err != nil {
+	if resp, err := clients.ApiManagement.GatewayApisClient.GetEntityTag(ctx, id.ResourceGroup, id.ServiceName, id.GatewayName, id.ApiName); err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil, fmt.Errorf("reading ApiManagement Gateway (%s): %+v", id, err)
 		}
@@ -121,8 +121,8 @@ func (r ApiManagementGatewayAPIResource) requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_api_management_gateway_api" "import" {
-  gateway_id = azurerm_api_management_gateway_api.test.id
-  api_id     = azurerm_api_management_gateway_api.test.id
+  gateway_id = azurerm_api_management_gateway_api.test.gateway_id
+  api_id     = azurerm_api_management_gateway_api.test.api_id
 }
 `, r.basic(data))
 }
