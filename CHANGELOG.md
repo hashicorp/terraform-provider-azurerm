@@ -24,6 +24,7 @@ ENHANCEMENTS:
 * `azurerm_eventgrid_system_topic_event_subscription` - support for the `advanced_filtering_on_arrays_enabled` property [GH-12609]
 * `azurerm_eventhub_namespace` - support for Azure Event Hubs Namespace Premium tier [GH-12695]
 * `azurerm_kubernetes_cluster` - support for downgrading `sku_tier` from `Paid` to `Free` without recreating the Cluster [GH-12651]
+* `azurerm_kusto_eventgrid_data_connection` - Add supported `data_format` APACHEAVRO, ORC, PARQUET, TSVE and W3CLOGFILE to validation function. [GH-12687]
 * `azurerm_postgresql_flexible_server` - support for the `high_availability` block [GH-12587]
 
 BUG FIXES:
