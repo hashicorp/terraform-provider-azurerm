@@ -12,8 +12,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/validate"
+	loadBalancerParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
 	resourcesParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -104,6 +106,13 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"load_balancer_backend_address_pool_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"custom_parameters": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -111,21 +120,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"load_balancer_backend_pool_name": {
-							Type:         pluginsdk.TypeString,
-							ForceNew:     true,
-							Optional:     true,
-							AtLeastOneOf: workspaceCustomParametersString(),
-						},
-
-						"load_balancer_id": {
-							Type:         pluginsdk.TypeString,
-							ForceNew:     true,
-							Optional:     true,
-							ValidateFunc: azure.ValidateResourceIDOrEmpty,
-							AtLeastOneOf: workspaceCustomParametersString(),
-						},
-
 						"machine_learning_workspace_id": {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
@@ -269,11 +263,21 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			_, infrastructureEncryptionEnabled := d.GetChange("infrastructure_encryption_enabled")
 			_, publicNetworkAccess := d.GetChange("public_network_access_enabled")
 			_, requireNsgRules := d.GetChange("network_security_group_rules_required")
+			_, backendPool := d.GetChange("load_balancer_backend_address_pool_id")
 
 			oldSku, newSku := d.GetChange("sku")
 
-			if !publicNetworkAccess.(bool) && requireNsgRules.(string) == string(databricks.RequiredNsgRulesAllRules) {
-				return fmt.Errorf("'network_security_group_rules_required' %q and 'public_network_access_enabled' 'false' is not an allowed combination", string(databricks.RequiredNsgRulesAllRules))
+			// Disabling Public Network Access means that this is a Private Endpoint Workspace
+			// Having a Load Balancer Backend Address Pool means the this is a Secure Cluster Connectivity Workspace
+			// You cannot have a Private Enpoint Workspace and a Secure Cluster Connectivity Workspace definitions in
+			// the same workspace configuration...
+			if !publicNetworkAccess.(bool) {
+				if requireNsgRules.(string) == string(databricks.RequiredNsgRulesAllRules) {
+					return fmt.Errorf("having 'network_security_group_rules_required' set to %q and 'public_network_access_enabled' set to 'false' is an invalid configuration", string(databricks.RequiredNsgRulesAllRules))
+				}
+				if backendPool.(string) != "" {
+					return fmt.Errorf("having 'load_balancer_backend_address_pool_id' defined and having 'public_network_access_enabled' set to 'false' is an invalid configuration")
+				}
 			}
 
 			if d.HasChange("sku") {
@@ -299,6 +303,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
+	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -317,12 +322,41 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
+	var backendPoolName, loadBalancerId string
 	skuName := d.Get("sku").(string)
 	managedResourceGroupName := d.Get("managed_resource_group_name").(string)
-
 	location := azure.NormalizeLocation(d.Get("location").(string))
+	backendPool := d.Get("load_balancer_backend_address_pool_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
+
+	if backendPool != "" {
+		backendPoolId, err := loadBalancerParse.LoadBalancerBackendAddressPoolID(backendPool)
+		if err != nil {
+			return err
+		}
+
+		// Generate the load balancer ID from the Backend Address Pool Id...
+		lbId := loadBalancerParse.NewLoadBalancerID(backendPoolId.SubscriptionId, backendPoolId.ResourceGroup, backendPoolId.LoadBalancerName)
+
+		backendPoolName = backendPoolId.BackendAddressPoolName
+		loadBalancerId = lbId.ID()
+
+		locks.ByID(backendPoolId.ID())
+		defer locks.UnlockByID(backendPoolId.ID())
+
+		locks.ByID(lbId.ID())
+		defer locks.UnlockByID(lbId.ID())
+
+		// check to make sure the load balancer exists as referred to by the Backend Address Pool...
+		lb, err := lbClient.Get(ctx, lbId.ResourceGroup, lbId.Name, "")
+		if err != nil {
+			if utils.ResponseWasNotFound(lb.Response) {
+				return fmt.Errorf("Load Balancer %q for Backend Address Pool %q was not found", lbId, backendPoolId)
+			}
+			return fmt.Errorf("failed to retrieve Load Balancer %q for Backend Address Pool %q: %+v", lbId, backendPoolId, err)
+		}
+	}
 
 	if managedResourceGroupName == "" {
 		// no managed resource group name was provided, we use the default pattern
@@ -340,7 +374,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	requireNsgRules := d.Get("network_security_group_rules_required").(string)
 	customParamsRaw := d.Get("custom_parameters").([]interface{})
-	customParams, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(customParamsRaw, customerEncryptionEnabled, infrastructureEncryptionEnabled)
+	customParams, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(customParamsRaw, customerEncryptionEnabled, infrastructureEncryptionEnabled, backendPoolName, loadBalancerId)
 
 	if len(customParamsRaw) > 0 && customParamsRaw[0] != nil {
 		config := customParamsRaw[0].(map[string]interface{})
@@ -411,8 +445,15 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	d.SetId(id.ID())
 
 	// I have to set the custom_parameters so I can pass the public and private
-	// subnet NSG association since they are not returned in the read from Azure...
-	if err := d.Set("custom_parameters", flattenWorkspaceCustomParameters(customParams, pubSubAssoc, priSubAssoc)); err != nil {
+	// subnet NSG association along with the backend Pool Id since they are not
+	// returned in the read from Azure...
+	custom, backendPoolReadId := flattenWorkspaceCustomParameters(customParams, pubSubAssoc, priSubAssoc)
+
+	if backendPoolReadId != nil {
+		d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
+	}
+
+	if err := d.Set("custom_parameters", custom); err != nil {
 		return fmt.Errorf("setting `custom_parameters`: %+v", err)
 	}
 
@@ -479,10 +520,15 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			// The subnet associations only exist in the statefile, so we need to do a Get before we Set
 			// with what has come back from the Azure response...
 			customParamsRaw := d.Get("custom_parameters").([]interface{})
-			_, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(customParamsRaw, *cmkEnabled, *infraEnabled)
+			_, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(customParamsRaw, *cmkEnabled, *infraEnabled, "", "")
 
-			if err := d.Set("custom_parameters", flattenWorkspaceCustomParameters(props.Parameters, pubSubAssoc, priSubAssoc)); err != nil {
+			custom, backendPoolReadId := flattenWorkspaceCustomParameters(props.Parameters, pubSubAssoc, priSubAssoc)
+			if err := d.Set("custom_parameters", custom); err != nil {
 				return fmt.Errorf("setting `custom_parameters`: %+v", err)
+			}
+
+			if backendPoolReadId != nil {
+				d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
 			}
 		}
 
@@ -560,11 +606,12 @@ func flattenWorkspaceStorageAccountIdentity(input *databricks.ManagedIdentityCon
 	return []interface{}{e}
 }
 
-func flattenWorkspaceCustomParameters(input *databricks.WorkspaceCustomParameters, publicSubnetAssociation, privateSubnetAssociation *string) []interface{} {
+func flattenWorkspaceCustomParameters(input *databricks.WorkspaceCustomParameters, publicSubnetAssociation, privateSubnetAssociation *string) ([]interface{}, *string) {
 	if input == nil {
-		return nil
+		return nil, nil
 	}
 
+	var backendAddressPoolId, backendName, loadBalancerId *string
 	parameters := make(map[string]interface{})
 
 	if publicSubnetAssociation != nil && *publicSubnetAssociation != "" {
@@ -577,13 +624,13 @@ func flattenWorkspaceCustomParameters(input *databricks.WorkspaceCustomParameter
 
 	if v := input.LoadBalancerBackendPoolName; v != nil {
 		if v.Value != nil {
-			parameters["load_balancer_backend_pool_name"] = *v.Value
+			backendName = v.Value
 		}
 	}
 
 	if v := input.LoadBalancerID; v != nil {
 		if v.Value != nil {
-			parameters["load_balancer_id"] = *v.Value
+			loadBalancerId = v.Value
 		}
 	}
 
@@ -647,10 +694,19 @@ func flattenWorkspaceCustomParameters(input *databricks.WorkspaceCustomParameter
 		}
 	}
 
-	return []interface{}{parameters}
+	if backendName != nil && loadBalancerId != nil {
+		lbId, err := loadBalancerParse.LoadBalancerID(*loadBalancerId)
+
+		if err == nil {
+			backendId := loadBalancerParse.NewLoadBalancerBackendAddressPoolID(lbId.SubscriptionId, lbId.ResourceGroup, lbId.Name, *backendName)
+			backendAddressPoolId = utils.String(backendId.ID())
+		}
+	}
+
+	return []interface{}{parameters}, backendAddressPoolId
 }
 
-func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnabled, infrastructureEncryptionEnabled bool) (workspaceCustomParameters *databricks.WorkspaceCustomParameters, publicSubnetAssociation, privateSubnetAssociation *string) {
+func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnabled, infrastructureEncryptionEnabled bool, backendAddressPoolName, loadBalancerId string) (workspaceCustomParameters *databricks.WorkspaceCustomParameters, publicSubnetAssociation, privateSubnetAssociation *string) {
 	if len(input) == 0 || input[0] == nil {
 		// This will be hit when there are no custom params set but we still
 		// need to pass the customerManagedKeyEnabled and infrastructureEncryptionEnabled
@@ -680,15 +736,15 @@ func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnab
 		priSubnetAssoc = &v
 	}
 
-	if v, ok := config["load_balancer_backend_pool_name"].(string); ok && v != "" {
+	if backendAddressPoolName != "" {
 		parameters.LoadBalancerBackendPoolName = &databricks.WorkspaceCustomStringParameter{
-			Value: &v,
+			Value: utils.String(backendAddressPoolName),
 		}
 	}
 
-	if v, ok := config["load_balancer_id"].(string); ok && v != "" {
+	if loadBalancerId != "" {
 		parameters.LoadBalancerID = &databricks.WorkspaceCustomStringParameter{
-			Value: &v,
+			Value: utils.String(loadBalancerId),
 		}
 	}
 
@@ -767,8 +823,7 @@ func workspaceCustomParametersString() []string {
 	return []string{"custom_parameters.0.machine_learning_workspace_id", "custom_parameters.0.no_public_ip",
 		"custom_parameters.0.public_subnet_name", "custom_parameters.0.private_subnet_name", "custom_parameters.0.virtual_network_id",
 		"custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id",
-		"custom_parameters.0.load_balancer_backend_pool_name", "custom_parameters.0.load_balancer_id", "custom_parameters.0.nat_gateway_name",
-		"custom_parameters.0.public_ip_name", "custom_parameters.0.storage_account_name", "custom_parameters.0.storage_account_sku_name",
+		"custom_parameters.0.nat_gateway_name", "custom_parameters.0.public_ip_name", "custom_parameters.0.storage_account_name", "custom_parameters.0.storage_account_sku_name",
 		"custom_parameters.0.vnet_address_prefix",
 	}
 }

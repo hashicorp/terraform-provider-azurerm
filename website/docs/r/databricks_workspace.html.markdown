@@ -40,6 +40,8 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource has to be created. Changing this forces a new resource to be created.
 
+* `load_balancer_backend_address_pool_id` - (Optional) Resource ID of the Outbound Load balancer Backend Address Pool for Secure Cluster Connectivity (No Public IP) workspace. Changing this forces a new resource to be created.
+
 * `sku` - (Required) The `sku` to use for the Databricks Workspace. Possible values are `standard`, `premium`, or `trial`. Changing this can force a new resource to be created in some circumstances.
 
 ~> **NOTE** Downgrading to a `trial sku` from a `standard` or `premium sku` will force a new resource to be created.
@@ -66,10 +68,6 @@ A `custom_parameters` block supports the following:
 
 * `aml_workspace_id` - (Optional) The ID of a Azure Machine Learning workspace to link with Databricks workspace. Changing this forces a new resource to be created.
 
-* `load_balancer_backend_pool_name` - (Optional) Name of the outbound Load Balancer Backend Pool for Secure Cluster Connectivity (No Public IP). Changing this forces a new resource to be created.
-
-* `load_balancer_id` - (Optional) Resource ID of the Outbound Load balancer for Secure Cluster Connectivity (No Public IP) workspace. Changing this forces a new resource to be created.
-
 * `nat_gateway_name` - (Optional) Name of the NAT gateway for Secure Cluster Connectivity (No Public IP) workspace subnets. Defaults to `nat-gateway`. Changing this forces a new resource to be created.
 
 * `public_ip_name` - (Optional) Name of the Public IP for No Public IP workspace with managed vNet. Defaults to `nat-gw-public-ip`. Changing this forces a new resource to be created.
@@ -93,6 +91,13 @@ A `custom_parameters` block supports the following:
 * `vnet_address_prefix` - (Optional) Address prefix for Managed virtual network. Defaults to `10.139`. Changing this forces a new resource to be created.
 
 ~> **NOTE** Databricks requires that a network security group is associated with the `public` and `private` subnets when a `virtual_network_id` has been defined. Both `public` and `private` subnets must be delegated to `Microsoft.Databricks/workspaces`. For more information about subnet delegation see the [product documentation](https://docs.microsoft.com/azure/virtual-network/subnet-delegation-overview).
+
+
+## Example HCL Configurations
+
+* [Databricks Workspace Secure Connectivity Cluster with Load Balancer](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/databricks/secure-connectivity-cluster/with-load-balancer)
+* [Databricks Workspace Secure Connectivity Cluster without Load Balancer](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/databricks/secure-connectivity-cluster/without-load-balancer)
+* [Databricks Workspace with Private Endpoint](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/databricks)
 
 
 ## Attributes Reference
