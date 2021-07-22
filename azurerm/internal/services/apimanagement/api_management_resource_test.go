@@ -306,11 +306,7 @@ func TestAccApiManagement_purgeSoftDelete(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.consumptionPurgeSoftDelete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).DoesNotExistInAzure(r),
-			),
 		},
-		data.ImportStep(),
 		{
 			Config: r.consumptionPurgeSoftDeleteRecovery(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1452,7 +1448,14 @@ resource "azurerm_api_management" "test" {
 
 func (r ApiManagementResource) consumptionPurgeSoftDeleteRecovery(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
@@ -1462,7 +1465,7 @@ resource "azurerm_api_management" "test" {
   publisher_email     = "pub1@email.com"
   sku_name            = "Consumption_0"
 }
-`, r.consumptionPurgeSoftDelete(data), data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (ApiManagementResource) consumptionPurgeSoftDelete(data acceptance.TestData) string {
