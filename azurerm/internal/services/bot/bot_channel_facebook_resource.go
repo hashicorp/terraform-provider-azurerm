@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"log"
 	"time"
 
@@ -50,28 +51,32 @@ func resourceBotChannelFacebook() *pluginsdk.Resource {
 			},
 
 			"app_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"app_secret": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"pages": {
+			"page": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"access_token": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -102,27 +107,15 @@ func resourceBotChannelFacebookCreate(d *pluginsdk.ResourceData, meta interface{
 	channel := botservice.BotChannel{
 		Properties: botservice.FacebookChannel{
 			Properties: &botservice.FacebookChannelProperties{
+				AppID:     utils.String(d.Get("app_id").(string)),
+				AppSecret: utils.String(d.Get("app_secret").(string)),
+				Pages:     expandFacebookPage(d.Get("page").(*pluginsdk.Set).List()),
 				IsEnabled: utils.Bool(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameFacebookChannel,
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
-	}
-
-	if v, ok := d.GetOk("app_id"); ok {
-		channel, _ := channel.Properties.AsFacebookChannel()
-		channel.Properties.AppID = utils.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("app_secret"); ok {
-		channel, _ := channel.Properties.AsFacebookChannel()
-		channel.Properties.AppSecret = utils.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("pages"); ok {
-		channel, _ := channel.Properties.AsFacebookChannel()
-		channel.Properties.Pages = expandFacebookPages(v.(*pluginsdk.Set).List())
 	}
 
 	if _, err := client.Create(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameFacebookChannel, channel); err != nil {
@@ -161,8 +154,10 @@ func resourceBotChannelFacebookRead(d *pluginsdk.ResourceData, meta interface{})
 	if props := resp.Properties; props != nil {
 		if channel, ok := props.AsFacebookChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
-				if err := d.Set("pages", flattenFacebookPages(channelProps.Pages)); err != nil {
-					return fmt.Errorf("setting `pages`: %+v", err)
+				d.Set("app_id", channelProps.AppID)
+
+				if err := d.Set("page", flattenFacebookPage(channelProps.Pages)); err != nil {
+					return fmt.Errorf("setting `page`: %+v", err)
 				}
 			}
 		}
@@ -184,27 +179,15 @@ func resourceBotChannelFacebookUpdate(d *pluginsdk.ResourceData, meta interface{
 	channel := botservice.BotChannel{
 		Properties: botservice.FacebookChannel{
 			Properties: &botservice.FacebookChannelProperties{
+				AppID:     utils.String(d.Get("app_id").(string)),
+				AppSecret: utils.String(d.Get("app_secret").(string)),
+				Pages:     expandFacebookPage(d.Get("page").(*pluginsdk.Set).List()),
 				IsEnabled: utils.Bool(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameFacebookChannel,
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
-	}
-
-	if v, ok := d.GetOk("app_id"); ok {
-		channel, _ := channel.Properties.AsFacebookChannel()
-		channel.Properties.AppID = utils.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("app_secret"); ok {
-		channel, _ := channel.Properties.AsFacebookChannel()
-		channel.Properties.AppSecret = utils.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("pages"); ok {
-		channel, _ := channel.Properties.AsFacebookChannel()
-		channel.Properties.Pages = expandFacebookPages(v.(*pluginsdk.Set).List())
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameFacebookChannel, channel); err != nil {
@@ -234,44 +217,39 @@ func resourceBotChannelFacebookDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandFacebookPages(input []interface{}) *[]botservice.FacebookPage {
+func expandFacebookPage(input []interface{}) *[]botservice.FacebookPage {
 	results := make([]botservice.FacebookPage, 0)
+
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		result := botservice.FacebookPage{
-			ID: utils.String(v["id"].(string)),
-		}
 
-		if accessToken := v["access_token"].(string); accessToken != "" {
-			result.AccessToken = utils.String(accessToken)
+		result := botservice.FacebookPage{
+			AccessToken: utils.String(v["access_token"].(string)),
+			ID:          utils.String(v["id"].(string)),
 		}
 
 		results = append(results, result)
 	}
+
 	return &results
 }
 
-func flattenFacebookPages(input *[]botservice.FacebookPage) []interface{} {
+func flattenFacebookPage(input *[]botservice.FacebookPage) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		var accessToken string
-		if item.AccessToken != nil {
-			accessToken = *item.AccessToken
-		}
-
 		var id string
 		if item.ID != nil {
 			id = *item.ID
 		}
 
 		results = append(results, map[string]interface{}{
-			"access_token": accessToken,
-			"id":           id,
+			"id": id,
 		})
 	}
+
 	return results
 }
