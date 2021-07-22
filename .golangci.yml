@@ -2,7 +2,7 @@ run:
   timeout: 30m
   modules-download-mode: vendor
   skip-dirs:
-    - sdk # Excluding sdk folders as these are externally generated
+    - internal/service/*/sdk # Excluding sdk folders as these are externally generated
 
 issues:
   max-per-linter: 0
