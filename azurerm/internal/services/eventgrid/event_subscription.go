@@ -279,6 +279,14 @@ func eventSubscriptionSchemaIncludedEventTypes() *pluginsdk.Schema {
 	}
 }
 
+func eventSubscriptionSchemaEnableAdvancedFilteringOnArrays() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
+	}
+}
+
 func eventSubscriptionSchemaSubjectFilter() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -989,6 +997,10 @@ func expandEventGridEventSubscriptionFilter(d *pluginsdk.ResourceData) (*eventgr
 			}
 		}
 		filter.AdvancedFilters = &advancedFilters
+	}
+
+	if v, ok := d.GetOk("advanced_filtering_on_arrays_enabled"); ok {
+		filter.EnableAdvancedFilteringOnArrays = utils.Bool(v.(bool))
 	}
 
 	return filter, nil
