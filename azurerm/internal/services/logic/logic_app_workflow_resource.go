@@ -306,8 +306,12 @@ func resourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		if definition := props.Definition; definition != nil {
 			if v, ok := definition.(map[string]interface{}); ok {
-				d.Set("workflow_schema", v["$schema"].(string))
-				d.Set("workflow_version", v["contentVersion"].(string))
+				if v["$schema"] != nil {
+					d.Set("workflow_schema", v["$schema"].(string))
+				}
+				if v["contentVersion"] != nil {
+					d.Set("workflow_version", v["contentVersion"].(string))
+				}
 			}
 		}
 
