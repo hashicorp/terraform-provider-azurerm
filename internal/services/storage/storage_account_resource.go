@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"log"
 	"net/http"
 	"strings"
@@ -17,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
@@ -2939,8 +2939,5 @@ func setEndpointAndHost(d *pluginsdk.ResourceData, ordinalString string, endpoin
 func getDefaultAllowBlobPublicAccess() bool {
 	// The default value for the field that controls if the blobs that belong to a storage account
 	// can allow anonymous access or not will change from false to true in 3.0.
-	if features.ThreePointOh() {
-		return true
-	}
-	return false
+	return features.ThreePointOh()
 }
