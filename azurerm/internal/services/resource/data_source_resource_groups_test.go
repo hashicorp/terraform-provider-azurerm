@@ -34,12 +34,12 @@ func TestAccDataSourceResourceGroups_basic(t *testing.T) {
 func (d ResourceGroupsDataSource) template(data acceptance.TestData) string {
 	return `
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-1"
-	location = "westeurope"
-	lifecycle {
-	  ignore_changes = [tags]
-	}
+  name     = "acctestRG-1"
+  location = "westeurope"
+  lifecycle {
+    ignore_changes = [tags]
   }
+}
   `
 }
 
