@@ -91,13 +91,13 @@ func TestAccDatabricksWorkspace_secureClusterConnectivity(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspace_secureClusterConnectivityWithLB(t *testing.T) {
+func TestAccDatabricksWorkspace_loadBalancerSecureClusterConnectivity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.secureClusterConnectivityWithLB(data),
+			Config: r.loadBalancerSecureClusterConnectivity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -752,7 +752,7 @@ resource "azurerm_databricks_workspace" "test" {
 `, data.RandomInteger, "eastus2")
 }
 
-func (DatabricksWorkspaceResource) secureClusterConnectivityWithLB(data acceptance.TestData) string {
+func (DatabricksWorkspaceResource) loadBalancerSecureClusterConnectivity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
