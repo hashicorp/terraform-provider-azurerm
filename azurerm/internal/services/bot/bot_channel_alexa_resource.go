@@ -96,8 +96,12 @@ func resourceBotChannelAlexaCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/15298
+	// There is a long running issue on updating the Alexa Channel.
+	// The Bot Channel API cannot update Skill ID immediately after the Alexa Channel is created.
+	// It has to wait a while after created. Then the skill ID can be updated successfully.
 	stateConf := &pluginsdk.StateChangeConf{
-		Delay:      1 * time.Minute,
+		Delay:      5 * time.Minute,
 		Pending:    []string{"204", "404"},
 		Target:     []string{"200", "202"},
 		Refresh:    botChannelAlexaStateRefreshFunc(ctx, client, id),
@@ -176,8 +180,12 @@ func resourceBotChannelAlexaUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
+	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/15298
+	// There is a long running issue on updating the Alexa Channel.
+	// The Bot Channel API cannot update Skill ID immediately after the Alexa Channel is updated.
+	// It has to wait a while after updated. Then the skill ID can be updated successfully.
 	stateConf := &pluginsdk.StateChangeConf{
-		Delay:      1 * time.Minute,
+		Delay:      5 * time.Minute,
 		Pending:    []string{"204", "404"},
 		Target:     []string{"200", "202"},
 		Refresh:    botChannelAlexaStateRefreshFunc(ctx, client, *id),
@@ -214,13 +222,13 @@ func resourceBotChannelAlexaDelete(d *pluginsdk.ResourceData, meta interface{}) 
 
 func botChannelAlexaStateRefreshFunc(ctx context.Context, client *botservice.ChannelsClient, id parse.BotChannelId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(res.Response) {
+			if !utils.ResponseWasNotFound(resp.Response) {
 				return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 		}
 
-		return res, strconv.Itoa(res.StatusCode), nil
+		return resp, strconv.Itoa(resp.StatusCode), nil
 	}
 }
