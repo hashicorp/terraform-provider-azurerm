@@ -78,7 +78,7 @@ func (client AppServicePlansClient) CreateOrUpdatePreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -178,7 +178,7 @@ func (client AppServicePlansClient) CreateOrUpdateVnetRoutePreparer(ctx context.
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -204,7 +204,7 @@ func (client AppServicePlansClient) CreateOrUpdateVnetRouteSender(req *http.Requ
 func (client AppServicePlansClient) CreateOrUpdateVnetRouteResponder(resp *http.Response) (result VnetRoute, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusBadRequest, http.StatusNotFound),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -264,7 +264,7 @@ func (client AppServicePlansClient) DeletePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -351,7 +351,7 @@ func (client AppServicePlansClient) DeleteHybridConnectionPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -438,7 +438,7 @@ func (client AppServicePlansClient) DeleteVnetRoutePreparer(ctx context.Context,
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -462,7 +462,7 @@ func (client AppServicePlansClient) DeleteVnetRouteSender(req *http.Request) (*h
 func (client AppServicePlansClient) DeleteVnetRouteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -521,7 +521,7 @@ func (client AppServicePlansClient) GetPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -545,7 +545,7 @@ func (client AppServicePlansClient) GetSender(req *http.Request) (*http.Response
 func (client AppServicePlansClient) GetResponder(resp *http.Response) (result AppServicePlan, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -609,7 +609,7 @@ func (client AppServicePlansClient) GetHybridConnectionPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -694,7 +694,7 @@ func (client AppServicePlansClient) GetHybridConnectionPlanLimitPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -782,7 +782,7 @@ func (client AppServicePlansClient) GetRouteForVnetPreparer(ctx context.Context,
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -806,7 +806,7 @@ func (client AppServicePlansClient) GetRouteForVnetSender(req *http.Request) (*h
 func (client AppServicePlansClient) GetRouteForVnetResponder(resp *http.Response) (result ListVnetRoute, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -866,7 +866,7 @@ func (client AppServicePlansClient) GetServerFarmSkusPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -952,7 +952,7 @@ func (client AppServicePlansClient) GetVnetFromServerFarmPreparer(ctx context.Co
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -976,7 +976,7 @@ func (client AppServicePlansClient) GetVnetFromServerFarmSender(req *http.Reques
 func (client AppServicePlansClient) GetVnetFromServerFarmResponder(resp *http.Response) (result VnetInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -1040,7 +1040,7 @@ func (client AppServicePlansClient) GetVnetGatewayPreparer(ctx context.Context, 
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1120,7 +1120,7 @@ func (client AppServicePlansClient) ListPreparer(ctx context.Context, detailed *
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1247,7 +1247,7 @@ func (client AppServicePlansClient) ListByResourceGroupPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1368,7 +1368,7 @@ func (client AppServicePlansClient) ListCapabilitiesPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1456,7 +1456,7 @@ func (client AppServicePlansClient) ListHybridConnectionKeysPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1545,7 +1545,7 @@ func (client AppServicePlansClient) ListHybridConnectionsPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1668,7 +1668,7 @@ func (client AppServicePlansClient) ListRoutesForVnetPreparer(ctx context.Contex
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1759,7 +1759,7 @@ func (client AppServicePlansClient) ListUsagesPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1883,7 +1883,7 @@ func (client AppServicePlansClient) ListVnetsPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1977,7 +1977,7 @@ func (client AppServicePlansClient) ListWebAppsPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2116,7 +2116,7 @@ func (client AppServicePlansClient) ListWebAppsByHybridConnectionPreparer(ctx co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2239,7 +2239,7 @@ func (client AppServicePlansClient) RebootWorkerPreparer(ctx context.Context, re
 		"workerName":        autorest.Encode("path", workerName),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2325,7 +2325,7 @@ func (client AppServicePlansClient) RestartWebAppsPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2412,7 +2412,7 @@ func (client AppServicePlansClient) UpdatePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2506,7 +2506,7 @@ func (client AppServicePlansClient) UpdateVnetGatewayPreparer(ctx context.Contex
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2597,7 +2597,7 @@ func (client AppServicePlansClient) UpdateVnetRoutePreparer(ctx context.Context,
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2021-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2623,7 +2623,7 @@ func (client AppServicePlansClient) UpdateVnetRouteSender(req *http.Request) (*h
 func (client AppServicePlansClient) UpdateVnetRouteResponder(resp *http.Response) (result VnetRoute, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusBadRequest, http.StatusNotFound),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
