@@ -155,6 +155,7 @@ resource "azurerm_data_factory_trigger_custom_event" "test" {
   subject_begins_with = "abc"
   subject_ends_with   = "xyz"
 
+  activated   = false
   annotations = ["test1", "test2", "test3"]
   description = "test description"
 

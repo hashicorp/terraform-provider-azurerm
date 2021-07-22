@@ -75,6 +75,8 @@ The following arguments are supported:
 
 * `pipeline` - (Required) One or more `pipeline` blocks as defined below.
 
+* `activated` - (Optional) Specifies if the Data Factory Custom Event Trigger is activated. Defaults to `true`.
+
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Custom Event Trigger.
 
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Custom Event Trigger.

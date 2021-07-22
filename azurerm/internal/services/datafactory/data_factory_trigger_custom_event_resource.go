@@ -88,6 +88,12 @@ func resourceDataFactoryTriggerCustomEvent() *pluginsdk.Resource {
 				},
 			},
 
+			"activated": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"additional_properties": {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
@@ -150,6 +156,14 @@ func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_data_factory_trigger_custom_event", id.ID())
 		}
+	} else {
+		future, err := client.Stop(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+		if err != nil {
+			return fmt.Errorf("stopping %s: %+v", id, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting to stop %s: %+v", id, err)
+		}
 	}
 
 	events := d.Get("events").(*pluginsdk.Set).List()
@@ -188,6 +202,16 @@ func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	if d.Get("activated").(bool) {
+		future, err := client.Start(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+		if err != nil {
+			return fmt.Errorf("starting %s: %+v", id, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting on start %s: %+v", id, err)
+		}
+	}
+
 	d.SetId(id.ID())
 
 	return resourceDataFactoryTriggerCustomEventRead(d, meta)
@@ -213,7 +237,7 @@ func resourceDataFactoryTriggerCustomEventRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	CustomEventsTrigger, ok := resp.Properties.AsCustomEventsTrigger()
+	trigger, ok := resp.Properties.AsCustomEventsTrigger()
 	if !ok {
 		return fmt.Errorf("classifiying %s: Expected: %q", id, datafactory.TypeBasicTriggerTypeCustomEventsTrigger)
 	}
@@ -221,18 +245,19 @@ func resourceDataFactoryTriggerCustomEventRead(d *pluginsdk.ResourceData, meta i
 	d.Set("name", id.Name)
 	d.Set("data_factory_id", parse.NewDataFactoryID(subscriptionId, id.ResourceGroup, id.FactoryName).ID())
 
-	d.Set("additional_properties", CustomEventsTrigger.AdditionalProperties)
-	d.Set("description", CustomEventsTrigger.Description)
+	d.Set("activated", trigger.RuntimeState == datafactory.TriggerRuntimeStateStarted)
+	d.Set("additional_properties", trigger.AdditionalProperties)
+	d.Set("description", trigger.Description)
 
-	if err := d.Set("annotations", flattenDataFactoryAnnotations(CustomEventsTrigger.Annotations)); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(trigger.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	if err := d.Set("pipeline", flattenDataFactoryTriggerPipeline(CustomEventsTrigger.Pipelines)); err != nil {
+	if err := d.Set("pipeline", flattenDataFactoryTriggerPipeline(trigger.Pipelines)); err != nil {
 		return fmt.Errorf("setting `pipeline`: %+v", err)
 	}
 
-	if props := CustomEventsTrigger.CustomEventsTriggerTypeProperties; props != nil {
+	if props := trigger.CustomEventsTriggerTypeProperties; props != nil {
 		d.Set("eventgrid_topic_id", props.Scope)
 		d.Set("events", props.Events)
 		d.Set("subject_begins_with", props.SubjectBeginsWith)
@@ -250,6 +275,14 @@ func resourceDataFactoryTriggerCustomEventDelete(d *pluginsdk.ResourceData, meta
 	id, err := parse.TriggerID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	future, err := client.Stop(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	if err != nil {
+		return fmt.Errorf("stopping %s: %+v", id, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting to stop %s: %+v", id, err)
 	}
 
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name); err != nil {
