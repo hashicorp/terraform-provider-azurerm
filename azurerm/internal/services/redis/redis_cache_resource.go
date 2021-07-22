@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-06-01/redis"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-12-01/redis"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -81,9 +81,9 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(redis.Basic),
-					string(redis.Standard),
-					string(redis.Premium),
+					string(redis.SkuNameBasic),
+					string(redis.SkuNameStandard),
+					string(redis.SkuNamePremium),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -91,11 +91,11 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  redis.OneFullStopZero,
+				Default:  redis.TLSVersionOneFullStopZero,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(redis.OneFullStopZero),
-					string(redis.OneFullStopOne),
-					string(redis.OneFullStopTwo),
+					string(redis.TLSVersionOneFullStopZero),
+					string(redis.TLSVersionOneFullStopOne),
+					string(redis.TLSVersionOneFullStopTwo),
 				}, false),
 			},
 
@@ -333,9 +333,9 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("parsing Redis Configuration: %+v", err)
 	}
 
-	publicNetworkAccess := redis.Enabled
+	publicNetworkAccess := redis.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess = redis.Disabled
+		publicNetworkAccess = redis.PublicNetworkAccessDisabled
 	}
 
 	parameters := redis.CreateParameters{
@@ -467,9 +467,9 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("public_network_access_enabled") {
-		publicNetworkAccess := redis.Enabled
+		publicNetworkAccess := redis.PublicNetworkAccessEnabled
 		if !d.Get("public_network_access_enabled").(bool) {
-			publicNetworkAccess = redis.Disabled
+			publicNetworkAccess = redis.PublicNetworkAccessDisabled
 		}
 		parameters.PublicNetworkAccess = publicNetworkAccess
 	}
@@ -585,7 +585,7 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		d.Set("subnet_id", subnetId)
 
-		d.Set("public_network_access_enabled", props.PublicNetworkAccess == redis.Enabled)
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == redis.PublicNetworkAccessEnabled)
 		d.Set("replicas_per_master", props.ReplicasPerMaster)
 	}
 
