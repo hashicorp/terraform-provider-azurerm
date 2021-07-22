@@ -72,6 +72,10 @@ The following arguments are supported:
 
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Pipeline.
 
+* `concurrency` - (Optional) The max number of concurrent runs for the Data Factory Pipeline. Must be between `1` and `50`.
+
+* `elapsed_time_metric_duration` - (Optional) The TimeSpan value after which an Azure Monitoring Metric is fired.
+
 * `folder` - (Optional) The folder that this Pipeline is in. If not specified, the Pipeline will appear at the root level.
 
 * `parameters` - (Optional) A map of parameters to associate with the Data Factory Pipeline.
@@ -79,6 +83,20 @@ The following arguments are supported:
 * `variables` - (Optional) A map of variables to associate with the Data Factory Pipeline.
 
 * `activities_json` - (Optional) A JSON object that contains the activities that will be associated with the Data Factory Pipeline.
+
+* `run_dimension` - (Optional) One or more `run_dimension` blocks as defined below.
+
+---
+
+A `run_dimension` block exports the following:
+
+* `name` - The name of run_dimension.
+
+* `value` - The value of run_dimension.
+
+* `dynamic_value_enabled` - is dynamic expression enabled for value?
+
+~> **NOTE** The `run_dimension` is key value pair used when chaining pipeline.
 
 ## Attributes Reference
 
