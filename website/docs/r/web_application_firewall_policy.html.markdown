@@ -216,6 +216,10 @@ The following attributes are exported:
 
 * `id` - The ID of the Web Application Firewall Policy.
 
+* `http_listener_ids` - A list of HTTP Listener IDs from an `azurerm_application_gateway`.
+
+* `path_based_rule_ids` - A list of URL Path Map Path Rule IDs from an `azurerm_application_gateway`.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
