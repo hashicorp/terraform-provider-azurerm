@@ -129,6 +129,7 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 					string(kusto.SOHSV),
 					string(kusto.TSV),
 					string(kusto.TXT),
+					string(kusto.ORC),
 				}, false),
 			},
 		},
