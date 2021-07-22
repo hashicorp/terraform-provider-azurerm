@@ -157,12 +157,11 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	description := d.Get("description").(string)
 	pipeline := &datafactory.Pipeline{
 		Parameters:    expandDataFactoryParameters(d.Get("parameters").(map[string]interface{})),
 		Variables:     expandDataFactoryVariables(d.Get("variables").(map[string]interface{})),
 		RunDimensions: expandDataFactoryPipelineRunDimension(d.Get("run_dimension").(*pluginsdk.Set).List()),
-		Description:   &description,
+		Description:   utils.String(d.Get("description").(string)),
 	}
 
 	if v, ok := d.GetOk("activities_json"); ok {
