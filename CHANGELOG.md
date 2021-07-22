@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * `azurerm_data_factory_integration_runtime_azure` - support for the `virtual_network_enabled` property [GH-12619]
 * `azurerm_eventgrid_event_subscription` - support for the `advanced_filtering_on_arrays_enabled` property [GH-12609]
 * `azurerm_eventgrid_system_topic_event_subscription` - support for the `advanced_filtering_on_arrays_enabled` property [GH-12609]
+* `azurerm_eventhub_namespace` - support for Azure Event Hubs Namespace Premium tier [GH-12695]
 * `azurerm_kubernetes_cluster` - support for downgrading `sku_tier` from `Paid` to `Free` without recreating the Cluster [GH-12651]
 * `azurerm_postgresql_flexible_server` - support for the `high_availability` block [GH-12587]
 
