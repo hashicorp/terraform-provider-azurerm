@@ -126,5 +126,4 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil
-
 }
