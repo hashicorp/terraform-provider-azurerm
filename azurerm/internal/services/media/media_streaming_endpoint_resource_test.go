@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccMediaStreamingEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_endpoint", "test")
 	r := MediaStreamingEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("scale_units").HasValue("1"),
 				check.That(data.ResourceName).Key("host_name").Exists(),
 			),
@@ -37,10 +36,10 @@ func TestAccMediaStreamingEndpoint_CDN(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_endpoint", "test")
 	r := MediaStreamingEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.CDN(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("cdn_profile").HasValue("MyCDNProfile"),
 				check.That(data.ResourceName).Key("cdn_provider").HasValue("StandardVerizon"),
 			),
@@ -53,10 +52,10 @@ func TestAccMediaStreamingEndpoint_MaxCacheAge(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_endpoint", "test")
 	r := MediaStreamingEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.maxCacheAge(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("max_cache_age_seconds").HasValue("60"),
 			),
 		},
@@ -68,17 +67,17 @@ func TestAccMediaStreamingEndpoint_shouldStopWhenStarted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_endpoint", "test")
 	r := MediaStreamingEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				data.CheckWithClient(r.Start),
 			),
 		},
 	})
 }
 
-func (r MediaStreamingEndpointResource) Start(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+func (r MediaStreamingEndpointResource) Start(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	id, err := parse.StreamingEndpointID(state.ID)
 	if err != nil {
 		return err
@@ -96,7 +95,7 @@ func (r MediaStreamingEndpointResource) Start(ctx context.Context, client *clien
 	return nil
 }
 
-func (MediaStreamingEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (MediaStreamingEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.StreamingEndpointID(state.ID)
 	if err != nil {
 		return nil, err

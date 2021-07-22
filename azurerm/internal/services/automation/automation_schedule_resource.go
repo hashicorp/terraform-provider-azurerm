@@ -7,25 +7,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azvalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceAutomationSchedule() *schema.Resource {
-	return &schema.Resource{
+func resourceAutomationSchedule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAutomationScheduleCreateUpdate,
 		Read:   resourceAutomationScheduleRead,
 		Update: resourceAutomationScheduleCreateUpdate,
@@ -34,16 +32,16 @@ func resourceAutomationSchedule() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ScheduleName(),
@@ -52,14 +50,14 @@ func resourceAutomationSchedule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"automation_account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AutomationAccount(),
 			},
 
 			"frequency": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -73,14 +71,14 @@ func resourceAutomationSchedule() *schema.Resource {
 
 			// ignored when frequency is `OneTime`
 			"interval": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true, // defaults to 1 if frequency is not OneTime
 				ValidateFunc: validation.IntBetween(1, 100),
 			},
 
 			"start_time": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
@@ -89,7 +87,7 @@ func resourceAutomationSchedule() *schema.Resource {
 			},
 
 			"expiry_time": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true, // same as start time when OneTime, ridiculous value when recurring: "9999-12-31T15:59:00-08:00"
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -97,22 +95,22 @@ func resourceAutomationSchedule() *schema.Resource {
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"timezone": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "UTC",
 				ValidateFunc: azvalidate.AzureTimeZoneString(),
 			},
 
 			"week_days": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(automation.Monday),
 						string(automation.Tuesday),
@@ -128,10 +126,10 @@ func resourceAutomationSchedule() *schema.Resource {
 			},
 
 			"month_days": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeInt,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeInt,
 					ValidateFunc: validation.All(
 						validation.IntBetween(-1, 31),
 						validation.IntNotInSlice([]int{0}),
@@ -142,12 +140,12 @@ func resourceAutomationSchedule() *schema.Resource {
 			},
 
 			"monthly_occurrence": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"day": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -161,7 +159,7 @@ func resourceAutomationSchedule() *schema.Resource {
 							}, true),
 						},
 						"occurrence": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 							ValidateFunc: validation.All(
 								validation.IntBetween(-1, 5),
@@ -174,7 +172,7 @@ func resourceAutomationSchedule() *schema.Resource {
 			},
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 			frequency := strings.ToLower(diff.Get("frequency").(string))
 			interval, _ := diff.GetOk("interval")
 			if frequency == "onetime" && interval.(int) > 0 {
@@ -201,7 +199,7 @@ func resourceAutomationSchedule() *schema.Resource {
 	}
 }
 
-func resourceAutomationScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ScheduleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -288,7 +286,7 @@ func resourceAutomationScheduleCreateUpdate(d *schema.ResourceData, meta interfa
 	return resourceAutomationScheduleRead(d, meta)
 }
 
-func resourceAutomationScheduleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationScheduleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ScheduleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -347,7 +345,7 @@ func resourceAutomationScheduleRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceAutomationScheduleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationScheduleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ScheduleClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -371,13 +369,13 @@ func resourceAutomationScheduleDelete(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandArmAutomationScheduleAdvanced(d *schema.ResourceData, isUpdate bool) *automation.AdvancedSchedule {
+func expandArmAutomationScheduleAdvanced(d *pluginsdk.ResourceData, isUpdate bool) *automation.AdvancedSchedule {
 	expandedAdvancedSchedule := automation.AdvancedSchedule{}
 
 	// If frequency is set to `Month` the `week_days` array cannot be set (even empty), otherwise the API returns an error.
 	// During update it can be set and it will not return an error. Workaround for the APIs behaviour
 	if v, ok := d.GetOk("week_days"); ok {
-		weekDays := v.(*schema.Set).List()
+		weekDays := v.(*pluginsdk.Set).List()
 		expandedWeekDays := make([]string, len(weekDays))
 		for i := range weekDays {
 			expandedWeekDays[i] = weekDays[i].(string)
@@ -389,7 +387,7 @@ func expandArmAutomationScheduleAdvanced(d *schema.ResourceData, isUpdate bool) 
 
 	// Same as above with `week_days`
 	if v, ok := d.GetOk("month_days"); ok {
-		monthDays := v.(*schema.Set).List()
+		monthDays := v.(*pluginsdk.Set).List()
 		expandedMonthDays := make([]int32, len(monthDays))
 		for i := range monthDays {
 			expandedMonthDays[i] = int32(monthDays[i].(int))
@@ -415,8 +413,8 @@ func expandArmAutomationScheduleAdvanced(d *schema.ResourceData, isUpdate bool) 
 	return &expandedAdvancedSchedule
 }
 
-func flattenArmAutomationScheduleAdvancedWeekDays(s *automation.AdvancedSchedule) *schema.Set {
-	flattenedWeekDays := schema.NewSet(set.HashStringIgnoreCase, []interface{}{})
+func flattenArmAutomationScheduleAdvancedWeekDays(s *automation.AdvancedSchedule) *pluginsdk.Set {
+	flattenedWeekDays := pluginsdk.NewSet(set.HashStringIgnoreCase, []interface{}{})
 	if weekDays := s.WeekDays; weekDays != nil {
 		for _, v := range *weekDays {
 			flattenedWeekDays.Add(v)
@@ -425,8 +423,8 @@ func flattenArmAutomationScheduleAdvancedWeekDays(s *automation.AdvancedSchedule
 	return flattenedWeekDays
 }
 
-func flattenArmAutomationScheduleAdvancedMonthDays(s *automation.AdvancedSchedule) *schema.Set {
-	flattenedMonthDays := schema.NewSet(set.HashInt, []interface{}{})
+func flattenArmAutomationScheduleAdvancedMonthDays(s *automation.AdvancedSchedule) *pluginsdk.Set {
+	flattenedMonthDays := pluginsdk.NewSet(set.HashInt, []interface{}{})
 	if monthDays := s.MonthDays; monthDays != nil {
 		for _, v := range *monthDays {
 			flattenedMonthDays.Add(int(v))

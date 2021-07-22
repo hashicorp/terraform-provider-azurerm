@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccDevTestVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
 	r := DevTestVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("MicrosoftWindowsServer"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
@@ -43,10 +42,10 @@ func TestAccDevTestVirtualMachine_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
 	r := DevTestVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -61,10 +60,10 @@ func TestAccDevTestWindowsVirtualMachine_inboundNatRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
 	r := DevTestVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.inboundNatRules(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("disallow_public_ip_address").HasValue("true"),
 				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("MicrosoftWindowsServer"),
@@ -86,10 +85,10 @@ func TestAccDevTestWindowsVirtualMachine_updateStorage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
 	r := DevTestVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storage(data, "Standard"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("MicrosoftWindowsServer"),
 				check.That(data.ResourceName).Key("storage_type").HasValue("Standard"),
@@ -98,7 +97,7 @@ func TestAccDevTestWindowsVirtualMachine_updateStorage(t *testing.T) {
 		},
 		{
 			Config: r.storage(data, "Premium"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("MicrosoftWindowsServer"),
 				check.That(data.ResourceName).Key("storage_type").HasValue("Premium"),
@@ -108,7 +107,7 @@ func TestAccDevTestWindowsVirtualMachine_updateStorage(t *testing.T) {
 	})
 }
 
-func (DevTestVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (DevTestVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

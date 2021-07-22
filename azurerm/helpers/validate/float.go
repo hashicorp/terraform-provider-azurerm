@@ -2,14 +2,12 @@ package validate
 
 import (
 	"fmt"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 // FloatInSlice returns a SchemaValidateFunc which tests if the provided value
 // is of type float64 and matches the value of an element in the valid slice
 //
-func FloatInSlice(valid []float64) schema.SchemaValidateFunc {
+func FloatInSlice(valid []float64) func(interface{}, string) ([]string, []error) {
 	return func(i interface{}, k string) (warnings []string, errors []error) {
 		v, ok := i.(float64)
 		if !ok {

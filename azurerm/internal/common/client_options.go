@@ -8,7 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/sender"
-	"github.com/hashicorp/terraform-plugin-sdk/meta"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/meta"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
 )
@@ -26,6 +26,7 @@ type ClientOptions struct {
 	ResourceManagerEndpoint   string
 	StorageAuthorizer         autorest.Authorizer
 	SynapseAuthorizer         autorest.Authorizer
+	BatchManagementAuthorizer autorest.Authorizer
 
 	SkipProviderReg             bool
 	CustomCorrelationRequestID  string

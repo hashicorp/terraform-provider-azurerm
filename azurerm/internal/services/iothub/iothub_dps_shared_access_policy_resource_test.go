@@ -6,12 +6,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccIotHubDpsSharedAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_shared_access_policy", "test")
 	r := IotHubDpsSharedAccessPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctest"),
 				check.That(data.ResourceName).Key("enrollment_read").HasValue("false"),
@@ -46,7 +45,7 @@ func TestAccIotHubDpsSharedAccessPolicy_writeWithoutRead(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_shared_access_policy", "test")
 	r := IotHubDpsSharedAccessPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.writeWithoutRead(data),
 			ExpectError: regexp.MustCompile("If `registration_write` is set to true, `registration_read` must also be set to true"),
@@ -58,7 +57,7 @@ func TestAccIotHubDpsSharedAccessPolicy_enrollmentReadWithoutRegistration(t *tes
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_shared_access_policy", "test")
 	r := IotHubDpsSharedAccessPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.enrollmentReadWithoutRegistration(data),
 			ExpectError: regexp.MustCompile("If `enrollment_read` is set to true, `registration_read` must also be set to true"),
@@ -70,7 +69,7 @@ func TestAccIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_shared_access_policy", "test")
 	r := IotHubDpsSharedAccessPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.enrollmentWriteWithoutOthers(data),
 			ExpectError: regexp.MustCompile("If `enrollment_write` is set to true, `enrollment_read`, `registration_read`, and `registration_write` must also be set to true"),
@@ -202,7 +201,7 @@ resource "azurerm_iothub_dps_shared_access_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (t IotHubDpsSharedAccessPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t IotHubDpsSharedAccessPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

@@ -6,51 +6,46 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2020-04-01/machinelearningservices"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceAksInferenceCluster() *schema.Resource {
-	return &schema.Resource{
+func resourceAksInferenceCluster() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAksInferenceClusterCreate,
 		Read:   resourceAksInferenceClusterRead,
 		Delete: resourceAksInferenceClusterDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.InferenceClusterID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"kubernetes_cluster_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.KubernetesClusterID,
@@ -61,13 +56,13 @@ func resourceAksInferenceCluster() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"machine_learning_workspace_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"cluster_purpose": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  string(machinelearningservices.FastProd),
@@ -79,35 +74,52 @@ func resourceAksInferenceCluster() *schema.Resource {
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
 
 			"ssl": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"cert": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  "",
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ForceNew:      true,
+							Default:       "",
+							ConflictsWith: []string{"ssl.0.leaf_domain_label", "ssl.0.overwrite_existing_domain"},
 						},
 						"key": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  "",
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ForceNew:      true,
+							Default:       "",
+							ConflictsWith: []string{"ssl.0.leaf_domain_label", "ssl.0.overwrite_existing_domain"},
 						},
 						"cname": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  "",
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ForceNew:      true,
+							Default:       "",
+							ConflictsWith: []string{"ssl.0.leaf_domain_label", "ssl.0.overwrite_existing_domain"},
+						},
+						"leaf_domain_label": {
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ForceNew:      true,
+							Default:       "",
+							ConflictsWith: []string{"ssl.0.cert", "ssl.0.key", "ssl.0.cname"},
+						},
+						"overwrite_existing_domain": {
+							Type:          pluginsdk.TypeBool,
+							Optional:      true,
+							ForceNew:      true,
+							Default:       "",
+							ConflictsWith: []string{"ssl.0.cert", "ssl.0.key", "ssl.0.cname"},
 						},
 					},
 				},
@@ -118,7 +130,7 @@ func resourceAksInferenceCluster() *schema.Resource {
 	}
 }
 
-func resourceAksInferenceClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	mlComputeClient := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
 	aksClient := meta.(*clients.Client).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -178,7 +190,7 @@ func resourceAksInferenceClusterCreate(d *schema.ResourceData, meta interface{})
 	return resourceAksInferenceClusterRead(d, meta)
 }
 
-func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	mlComputeClient := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -229,7 +241,7 @@ func resourceAksInferenceClusterRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, computeResource.Tags)
 }
 
-func resourceAksInferenceClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAksInferenceClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	mlComputeClient := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -250,7 +262,7 @@ func resourceAksInferenceClusterDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func expandAksComputeProperties(aks *containerservice.ManagedCluster, d *schema.ResourceData) machinelearningservices.AKS {
+func expandAksComputeProperties(aks *containerservice.ManagedCluster, d *pluginsdk.ResourceData) machinelearningservices.AKS {
 	return machinelearningservices.AKS{
 		Properties: &machinelearningservices.AKSProperties{
 			ClusterFqdn:      utils.String(*aks.Fqdn),
@@ -277,10 +289,17 @@ func expandSSLConfig(input []interface{}) *machinelearningservices.SslConfigurat
 		sslStatus = "Enabled"
 	}
 
+	if !(v["leaf_domain_label"].(string) == "") {
+		sslStatus = "Auto"
+		v["cname"] = ""
+	}
+
 	return &machinelearningservices.SslConfiguration{
-		Status: machinelearningservices.Status1(sslStatus),
-		Cert:   utils.String(v["cert"].(string)),
-		Key:    utils.String(v["key"].(string)),
-		Cname:  utils.String(v["cname"].(string)),
+		Status:                  machinelearningservices.Status1(sslStatus),
+		Cert:                    utils.String(v["cert"].(string)),
+		Key:                     utils.String(v["key"].(string)),
+		Cname:                   utils.String(v["cname"].(string)),
+		LeafDomainLabel:         utils.String(v["leaf_domain_label"].(string)),
+		OverwriteExistingDomain: utils.Bool(v["overwrite_existing_domain"].(bool)),
 	}
 }

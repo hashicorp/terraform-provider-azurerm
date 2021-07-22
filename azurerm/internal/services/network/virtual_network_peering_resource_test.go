@@ -6,13 +6,11 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type VirtualNetworkPeeringResource struct {
@@ -23,14 +21,14 @@ func TestAccVirtualNetworkPeering_basic(t *testing.T) {
 	r := VirtualNetworkPeeringResource{}
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_virtual_network_access").HasValue("true"),
-				resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
+				acceptance.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
 			),
 		},
 		data.ImportStep(),
@@ -42,10 +40,10 @@ func TestAccVirtualNetworkPeering_requiresImport(t *testing.T) {
 	r := VirtualNetworkPeeringResource{}
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 			),
@@ -58,7 +56,7 @@ func TestAccVirtualNetworkPeering_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
 	r := VirtualNetworkPeeringResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -71,34 +69,34 @@ func TestAccVirtualNetworkPeering_update(t *testing.T) {
 	r := VirtualNetworkPeeringResource{}
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_virtual_network_access").HasValue("true"),
-				resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
+				acceptance.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
 				check.That(data.ResourceName).Key("allow_forwarded_traffic").HasValue("false"),
-				resource.TestCheckResourceAttr(secondResourceName, "allow_forwarded_traffic", "false"),
+				acceptance.TestCheckResourceAttr(secondResourceName, "allow_forwarded_traffic", "false"),
 			),
 		},
 
 		{
 			Config: r.basicUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_virtual_network_access").HasValue("true"),
-				resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
+				acceptance.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
 				check.That(data.ResourceName).Key("allow_forwarded_traffic").HasValue("true"),
-				resource.TestCheckResourceAttr(secondResourceName, "allow_forwarded_traffic", "true"),
+				acceptance.TestCheckResourceAttr(secondResourceName, "allow_forwarded_traffic", "true"),
 			),
 		},
 	})
 }
 
-func (t VirtualNetworkPeeringResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t VirtualNetworkPeeringResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -115,7 +113,7 @@ func (t VirtualNetworkPeeringResource) Exists(ctx context.Context, clients *clie
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (r VirtualNetworkPeeringResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r VirtualNetworkPeeringResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

@@ -3,7 +3,7 @@ package validate
 import (
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
 func SubnetServiceEndpointStoragePolicyName(i interface{}, k string) (warnings []string, errors []error) {

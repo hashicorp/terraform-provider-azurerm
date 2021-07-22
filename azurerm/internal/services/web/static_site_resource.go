@@ -5,43 +5,41 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceStaticSite() *schema.Resource {
-	return &schema.Resource{
+func resourceStaticSite() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceStaticSiteCreateOrUpdate,
 		Read:   resourceStaticSiteRead,
 		Update: resourceStaticSiteCreateOrUpdate,
 		Delete: resourceStaticSiteDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.StaticSiteID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StaticSiteName,
@@ -52,33 +50,35 @@ func resourceStaticSite() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"sku_tier": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "Free",
 				ValidateFunc: validation.StringInSlice([]string{"Free"}, false),
 			},
 
 			"sku_size": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "Free",
 				ValidateFunc: validation.StringInSlice([]string{"Free"}, false),
 			},
 
 			"default_host_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"api_key": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceStaticSiteCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.StaticSitesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -110,6 +110,7 @@ func resourceStaticSiteCreateOrUpdate(d *schema.ResourceData, meta interface{}) 
 		},
 		StaticSite: &web.StaticSite{},
 		Location:   &loc,
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err := client.CreateOrUpdateStaticSite(ctx, id.ResourceGroup, id.Name, siteEnvelope); err != nil {
@@ -121,7 +122,7 @@ func resourceStaticSiteCreateOrUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceStaticSiteRead(d, meta)
 }
 
-func resourceStaticSiteRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.StaticSitesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -178,10 +179,10 @@ func resourceStaticSiteRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	d.Set("api_key", apiKey)
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceStaticSiteDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStaticSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.StaticSitesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

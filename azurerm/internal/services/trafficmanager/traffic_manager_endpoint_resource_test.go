@@ -6,11 +6,10 @@ import (
 	"path"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
 	azureResourceName := "azurerm_traffic_manager_endpoint.testAzure"
 	r := TrafficManagerEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(azureResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(azureResourceName).Key("endpoint_status").HasValue("Enabled"),
@@ -40,10 +39,10 @@ func TestAccAzureRMTrafficManagerEndpoint_requiresImport(t *testing.T) {
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
 	r := TrafficManagerEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(externalResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("endpoint_status").HasValue("Enabled"),
@@ -58,7 +57,7 @@ func TestAccAzureRMTrafficManagerEndpoint_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testAzure")
 	r := TrafficManagerEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -71,10 +70,10 @@ func TestAccAzureRMTrafficManagerEndpoint_basicDisableExternal(t *testing.T) {
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
 	r := TrafficManagerEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(externalResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("endpoint_status").HasValue("Enabled"),
@@ -83,7 +82,7 @@ func TestAccAzureRMTrafficManagerEndpoint_basicDisableExternal(t *testing.T) {
 		},
 		{
 			Config: r.basicDisableExternal(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(externalResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("endpoint_status").HasValue("Enabled"),
@@ -99,10 +98,10 @@ func TestAccAzureRMTrafficManagerEndpoint_updateWeight(t *testing.T) {
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 	r := TrafficManagerEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.weight(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("weight").HasValue("50"),
@@ -111,7 +110,7 @@ func TestAccAzureRMTrafficManagerEndpoint_updateWeight(t *testing.T) {
 		},
 		{
 			Config: r.updateWeight(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("weight").HasValue("25"),
@@ -126,10 +125,10 @@ func TestAccAzureRMTrafficManagerEndpoint_updateSubnets(t *testing.T) {
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 	r := TrafficManagerEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.subnets(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet.#").HasValue("2"),
@@ -144,7 +143,7 @@ func TestAccAzureRMTrafficManagerEndpoint_updateSubnets(t *testing.T) {
 		},
 		{
 			Config: r.updateSubnets(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet.#").HasValue("0"),
@@ -161,10 +160,10 @@ func TestAccAzureRMTrafficManagerEndpoint_updateCustomeHeaders(t *testing.T) {
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 	r := TrafficManagerEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.headers(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("custom_header.#").HasValue("1"),
@@ -175,7 +174,7 @@ func TestAccAzureRMTrafficManagerEndpoint_updateCustomeHeaders(t *testing.T) {
 		},
 		{
 			Config: r.updateHeaders(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("custom_header.#").HasValue("0"),
@@ -193,10 +192,10 @@ func TestAccAzureRMTrafficManagerEndpoint_updatePriority(t *testing.T) {
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 	r := TrafficManagerEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.priority(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("priority").HasValue("1"),
@@ -205,7 +204,7 @@ func TestAccAzureRMTrafficManagerEndpoint_updatePriority(t *testing.T) {
 		},
 		{
 			Config: r.updatePriority(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("priority").HasValue("3"),
@@ -219,10 +218,24 @@ func TestAccAzureRMTrafficManagerEndpoint_nestedEndpoints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "nested")
 	r := TrafficManagerEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nestedEndpointsMinChildOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_traffic_manager_endpoint.nested").ExistsInAzure(r),
+				check.That("azurerm_traffic_manager_endpoint.externalChild").ExistsInAzure(r),
+			),
+		},
 		{
 			Config: r.nestedEndpoints(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_traffic_manager_endpoint.nested").ExistsInAzure(r),
+				check.That("azurerm_traffic_manager_endpoint.externalChild").ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.nestedEndpointsMinChildOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_traffic_manager_endpoint.nested").ExistsInAzure(r),
 				check.That("azurerm_traffic_manager_endpoint.externalChild").ExistsInAzure(r),
 			),
@@ -234,16 +247,16 @@ func TestAccAzureRMTrafficManagerEndpoint_location(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "test")
 	r := TrafficManagerEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.location(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.locationUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -254,10 +267,10 @@ func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "test")
 	r := TrafficManagerEndpointResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.geoMappings(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("geo_mappings.#").HasValue("2"),
 				check.That(data.ResourceName).Key("geo_mappings.0").HasValue("GB"),
@@ -266,7 +279,7 @@ func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
 		},
 		{
 			Config: r.geoMappingsUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("geo_mappings.#").HasValue("2"),
 				check.That(data.ResourceName).Key("geo_mappings.0").HasValue("FR"),
@@ -276,7 +289,7 @@ func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
 	})
 }
 
-func (r TrafficManagerEndpointResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r TrafficManagerEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	name := state.Attributes["name"]
 	endpointType := state.Attributes["type"]
 	profileName := state.Attributes["profile_name"]
@@ -292,7 +305,7 @@ func (r TrafficManagerEndpointResource) Exists(ctx context.Context, client *clie
 	return utils.Bool(true), nil
 }
 
-func (r TrafficManagerEndpointResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r TrafficManagerEndpointResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	name := state.Attributes["name"]
 	endpointType := state.Attributes["type"]
 	profileName := state.Attributes["profile_name"]
@@ -352,7 +365,7 @@ resource "azurerm_traffic_manager_endpoint" "testAzure" {
 resource "azurerm_traffic_manager_endpoint" "testExternal" {
   name                = "acctestend-external%d"
   type                = "externalEndpoints"
-  target              = "terraform.io"
+  target              = "pluginsdk.io"
   weight              = 3
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -425,7 +438,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   name                = "acctestend-external%d"
   endpoint_status     = "Disabled"
   type                = "externalEndpoints"
-  target              = "terraform.io"
+  target              = "pluginsdk.io"
   weight              = 3
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -464,7 +477,7 @@ resource "azurerm_traffic_manager_profile" "test" {
 resource "azurerm_traffic_manager_endpoint" "testExternal" {
   name                = "acctestend-external%d"
   type                = "externalEndpoints"
-  target              = "terraform.io"
+  target              = "pluginsdk.io"
   weight              = 50
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -473,7 +486,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   name                = "acctestend-external%d-2"
   type                = "externalEndpoints"
-  target              = "www.terraform.io"
+  target              = "www.pluginsdk.io"
   weight              = 50
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -512,7 +525,7 @@ resource "azurerm_traffic_manager_profile" "test" {
 resource "azurerm_traffic_manager_endpoint" "testExternal" {
   name                = "acctestend-external%d"
   type                = "externalEndpoints"
-  target              = "terraform.io"
+  target              = "pluginsdk.io"
   weight              = 25
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -521,7 +534,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   name                = "acctestend-external%d-2"
   type                = "externalEndpoints"
-  target              = "www.terraform.io"
+  target              = "www.pluginsdk.io"
   weight              = 75
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -560,7 +573,7 @@ resource "azurerm_traffic_manager_profile" "test" {
 resource "azurerm_traffic_manager_endpoint" "testExternal" {
   name                = "acctestend-external%d"
   type                = "externalEndpoints"
-  target              = "terraform.io"
+  target              = "pluginsdk.io"
   priority            = 1
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -569,7 +582,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   name                = "acctestend-external%d-2"
   type                = "externalEndpoints"
-  target              = "www.terraform.io"
+  target              = "www.pluginsdk.io"
   priority            = 2
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -608,7 +621,7 @@ resource "azurerm_traffic_manager_profile" "test" {
 resource "azurerm_traffic_manager_endpoint" "testExternal" {
   name                = "acctestend-external%d"
   type                = "externalEndpoints"
-  target              = "terraform.io"
+  target              = "pluginsdk.io"
   priority            = 3
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -617,7 +630,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   name                = "acctestend-external%d-2"
   type                = "externalEndpoints"
-  target              = "www.terraform.io"
+  target              = "www.pluginsdk.io"
   priority            = 2
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -656,7 +669,7 @@ resource "azurerm_traffic_manager_profile" "test" {
 resource "azurerm_traffic_manager_endpoint" "testExternal" {
   name                = "acctestend-external%d"
   type                = "externalEndpoints"
-  target              = "terraform.io"
+  target              = "pluginsdk.io"
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
   subnet {
@@ -672,7 +685,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   name                = "acctestend-external%d-2"
   type                = "externalEndpoints"
-  target              = "www.terraform.io"
+  target              = "www.pluginsdk.io"
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
   subnet {
@@ -714,7 +727,7 @@ resource "azurerm_traffic_manager_profile" "test" {
 resource "azurerm_traffic_manager_endpoint" "testExternal" {
   name                = "acctestend-external%d"
   type                = "externalEndpoints"
-  target              = "terraform.io"
+  target              = "pluginsdk.io"
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -722,7 +735,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   name                = "acctestend-external%d-2"
   type                = "externalEndpoints"
-  target              = "www.terraform.io"
+  target              = "www.pluginsdk.io"
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
   subnet {
@@ -764,7 +777,7 @@ resource "azurerm_traffic_manager_profile" "test" {
 resource "azurerm_traffic_manager_endpoint" "testExternal" {
   name                = "acctestend-external%d"
   type                = "externalEndpoints"
-  target              = "terraform.io"
+  target              = "pluginsdk.io"
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
   priority            = 1
@@ -777,7 +790,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   name                = "acctestend-external%d-2"
   type                = "externalEndpoints"
-  target              = "www.terraform.io"
+  target              = "www.pluginsdk.io"
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
   priority            = 2
@@ -816,7 +829,7 @@ resource "azurerm_traffic_manager_profile" "test" {
 resource "azurerm_traffic_manager_endpoint" "testExternal" {
   name                = "acctestend-external%d"
   type                = "externalEndpoints"
-  target              = "terraform.io"
+  target              = "pluginsdk.io"
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
   priority            = 1
@@ -825,7 +838,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   name                = "acctestend-external%d-2"
   type                = "externalEndpoints"
-  target              = "www.terraform.io"
+  target              = "www.pluginsdk.io"
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
   priority            = 2
@@ -837,7 +850,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r TrafficManagerEndpointResource) nestedEndpoints(data acceptance.TestData) string {
+func (r TrafficManagerEndpointResource) nestedEndpointsMinChildOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -889,13 +902,81 @@ resource "azurerm_traffic_manager_endpoint" "nested" {
   priority            = 1
   profile_name        = azurerm_traffic_manager_profile.parent.name
   resource_group_name = azurerm_resource_group.test.name
-  min_child_endpoints = 1
+  min_child_endpoints = 5
 }
 
 resource "azurerm_traffic_manager_endpoint" "externalChild" {
   name                = "acctestend-child%d"
   type                = "externalEndpoints"
-  target              = "terraform.io"
+  target              = "pluginsdk.io"
+  priority            = 1
+  profile_name        = azurerm_traffic_manager_profile.child.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r TrafficManagerEndpointResource) nestedEndpoints(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-traffic-%d"
+  location = "%s"
+}
+
+resource "azurerm_traffic_manager_profile" "parent" {
+  name                   = "acctesttmpparent%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  traffic_routing_method = "Priority"
+
+  dns_config {
+    relative_name = "acctestparent%d"
+    ttl           = 30
+  }
+
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
+}
+
+resource "azurerm_traffic_manager_profile" "child" {
+  name                   = "acctesttmpchild%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  traffic_routing_method = "Priority"
+
+  dns_config {
+    relative_name = "acctesttmpchild%d"
+    ttl           = 30
+  }
+
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
+}
+
+resource "azurerm_traffic_manager_endpoint" "nested" {
+  name                                  = "acctestend-parent%d"
+  type                                  = "nestedEndpoints"
+  target_resource_id                    = azurerm_traffic_manager_profile.child.id
+  priority                              = 1
+  profile_name                          = azurerm_traffic_manager_profile.parent.name
+  resource_group_name                   = azurerm_resource_group.test.name
+  min_child_endpoints                   = 5
+  minimum_required_child_endpoints_ipv4 = 2
+  minimum_required_child_endpoints_ipv6 = 2
+}
+
+resource "azurerm_traffic_manager_endpoint" "externalChild" {
+  name                = "acctestend-child%d"
+  type                = "externalEndpoints"
+  target              = "pluginsdk.io"
   priority            = 1
   profile_name        = azurerm_traffic_manager_profile.child.name
   resource_group_name = azurerm_resource_group.test.name
@@ -934,7 +1015,7 @@ resource "azurerm_traffic_manager_profile" "test" {
 resource "azurerm_traffic_manager_endpoint" "test" {
   name                = "acctestend-external%d"
   type                = "externalEndpoints"
-  target              = "terraform.io"
+  target              = "pluginsdk.io"
   endpoint_location   = azurerm_resource_group.test.location
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -973,7 +1054,7 @@ resource "azurerm_traffic_manager_profile" "test" {
 resource "azurerm_traffic_manager_endpoint" "test" {
   name                = "acctestend-external%d"
   type                = "externalEndpoints"
-  target              = "terraform.io"
+  target              = "pluginsdk.io"
   endpoint_location   = azurerm_resource_group.test.location
   profile_name        = azurerm_traffic_manager_profile.test.name
   resource_group_name = azurerm_resource_group.test.name

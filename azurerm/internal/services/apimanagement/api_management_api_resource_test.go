@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccApiManagementApi_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("soap_pass_through").HasValue("false"),
 				check.That(data.ResourceName).Key("is_current").HasValue("true"),
@@ -40,10 +39,10 @@ func TestAccApiManagementApi_wordRevision(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.wordRevision(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("revision").HasValue("one-point-oh"),
 			),
@@ -56,10 +55,10 @@ func TestAccApiManagementApi_blankPath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.blankPath(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("soap_pass_through").HasValue("false"),
 				check.That(data.ResourceName).Key("is_current").HasValue("true"),
@@ -75,10 +74,10 @@ func TestAccApiManagementApi_version(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.versionSet(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("version").HasValue("v1"),
 			),
@@ -91,10 +90,10 @@ func TestAccApiManagementApi_oauth2Authorization(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.oauth2Authorization(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -106,10 +105,10 @@ func TestAccApiManagementApi_openidAuthentication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.openidAuthentication(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -121,10 +120,10 @@ func TestAccApiManagementApi_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -136,10 +135,10 @@ func TestAccApiManagementApi_soapPassthrough(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.soapPassthrough(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -151,10 +150,10 @@ func TestAccApiManagementApi_subscriptionRequired(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.subscriptionRequired(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subscription_required").HasValue("false"),
 			),
@@ -167,10 +166,10 @@ func TestAccApiManagementApi_importSwagger(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.importSwagger(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -190,10 +189,10 @@ func TestAccApiManagementApi_importWsdl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.importWsdl(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -213,10 +212,10 @@ func TestAccApiManagementApi_importUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.importWsdl(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -231,7 +230,7 @@ func TestAccApiManagementApi_importUpdate(t *testing.T) {
 		},
 		{
 			Config: r.importSwagger(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -251,10 +250,10 @@ func TestAccApiManagementApi_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -262,7 +261,67 @@ func TestAccApiManagementApi_complete(t *testing.T) {
 	})
 }
 
-func (ApiManagementApiResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func TestAccApiManagementApi_cloneApi(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "clone")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cloneApi(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("source_api_id"),
+	})
+}
+
+func TestAccApiManagementApi_createNewVersionFromExisting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "version")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.createNewVersionFromExisting(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("source_api_id"),
+	})
+}
+
+func TestAccApiManagementApi_createRevisionFromExisting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "revision")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.createRevisionFromExisting(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("source_api_id"),
+	})
+}
+
+func TestAccApiManagementApi_createRevisionFromExistingRevision(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "revision")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.createRevisionFromExistingRevision(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("source_api_id"),
+	})
+}
+
+func (ApiManagementApiResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -483,9 +542,9 @@ resource "azurerm_api_management_authorization_server" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   api_management_name          = azurerm_api_management.test.name
   display_name                 = "Test Group"
-  authorization_endpoint       = "https://azacctest.hashicorptest.com/client/authorize"
+  authorization_endpoint       = "https://azacceptance.hashicorptest.com/client/authorize"
   client_id                    = "42424242-4242-4242-4242-424242424242"
-  client_registration_endpoint = "https://azacctest.hashicorptest.com/client/register"
+  client_registration_endpoint = "https://azacceptance.hashicorptest.com/client/register"
 
   grant_types = [
     "implicit",
@@ -523,7 +582,7 @@ resource "azurerm_api_management_openid_connect_provider" "test" {
   client_id           = "00001111-2222-3333-%d"
   client_secret       = "%d-cwdavsxbacsaxZX-%d"
   display_name        = "Initial Name"
-  metadata_endpoint   = "https://azacctest.hashicorptest.com/example/foo"
+  metadata_endpoint   = "https://azacceptance.hashicorptest.com/example/foo"
 }
 
 resource "azurerm_api_management_api" "test" {
@@ -545,6 +604,78 @@ resource "azurerm_api_management_api" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func (r ApiManagementApiResource) cloneApi(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "clone" {
+  name                = "acctestClone-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1_clone"
+  revision            = "1"
+  source_api_id       = azurerm_api_management_api.test.id
+  description         = "Copy of Existing Echo Api including Operations."
+}
+`, r.basic(data), data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) createNewVersionFromExisting(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_version_set" "test" {
+  name                = "acctestAMAVS-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "Butter Parser"
+  versioning_scheme   = "Segment"
+}
+
+resource "azurerm_api_management_api" "version" {
+  name                = "acctestVersion-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api_version"
+  revision            = "1"
+  source_api_id       = azurerm_api_management_api.test.id
+  version             = "v1"
+  version_set_id      = azurerm_api_management_api_version_set.test.id
+  version_description = "Create Echo API into a new Version using Existing Version Set and Copy all Operations."
+}
+`, r.basic(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) createRevisionFromExisting(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "revision" {
+  name                 = "acctestRevision-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  api_management_name  = azurerm_api_management.test.name
+  revision             = "18"
+  source_api_id        = azurerm_api_management_api.test.id
+  revision_description = "Creating a Revision of an existing API"
+}
+`, r.basic(data), data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) createRevisionFromExistingRevision(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "revision" {
+  name                 = "acctestRevision-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  api_management_name  = azurerm_api_management.test.name
+  revision             = "18"
+  source_api_id        = "${azurerm_api_management_api.test.id};rev=3"
+  revision_description = "Creating a Revision of an existing API"
+}
+`, r.complete(data), data.RandomInteger)
+}
+
 func (ApiManagementApiResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -563,7 +694,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Developer_1"
+  sku_name = "Consumption_0"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

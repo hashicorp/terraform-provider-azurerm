@@ -2,25 +2,25 @@ package web
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func SchemaWebCorsSettings() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func SchemaWebCorsSettings() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"allowed_origins": {
-					Type:     schema.TypeSet,
+					Type:     pluginsdk.TypeSet,
 					Required: true,
-					Elem:     &schema.Schema{Type: schema.TypeString},
+					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				},
 				"support_credentials": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
@@ -40,7 +40,7 @@ func ExpandWebCorsSettings(input interface{}) web.CorsSettings {
 	setting := settings[0].(map[string]interface{})
 
 	if v, ok := setting["allowed_origins"]; ok {
-		input := v.(*schema.Set).List()
+		input := v.(*pluginsdk.Set).List()
 
 		allowedOrigins := make([]string, 0)
 		for _, param := range input {
@@ -71,7 +71,7 @@ func FlattenWebCorsSettings(input *web.CorsSettings) []interface{} {
 			allowedOrigins = append(allowedOrigins, v)
 		}
 	}
-	result["allowed_origins"] = schema.NewSet(schema.HashString, allowedOrigins)
+	result["allowed_origins"] = pluginsdk.NewSet(pluginsdk.HashString, allowedOrigins)
 
 	if input.SupportCredentials != nil {
 		result["support_credentials"] = *input.SupportCredentials

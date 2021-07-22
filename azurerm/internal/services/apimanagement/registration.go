@@ -1,7 +1,7 @@
 package apimanagement
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
@@ -19,11 +19,12 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_api_management":                 dataSourceApiManagementService(),
 		"azurerm_api_management_api":             dataSourceApiManagementApi(),
 		"azurerm_api_management_api_version_set": dataSourceApiManagementApiVersionSet(),
+		"azurerm_api_management_gateway":         dataSourceApiManagementGateway(),
 		"azurerm_api_management_group":           dataSourceApiManagementGroup(),
 		"azurerm_api_management_product":         dataSourceApiManagementProduct(),
 		"azurerm_api_management_user":            dataSourceApiManagementUser(),
@@ -31,14 +32,16 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_api_management":                             resourceApiManagementService(),
 		"azurerm_api_management_api":                         resourceApiManagementApi(),
 		"azurerm_api_management_api_diagnostic":              resourceApiManagementApiDiagnostic(),
 		"azurerm_api_management_api_operation":               resourceApiManagementApiOperation(),
+		"azurerm_api_management_api_operation_tag":           resourceApiManagementApiOperationTag(),
 		"azurerm_api_management_api_operation_policy":        resourceApiManagementApiOperationPolicy(),
 		"azurerm_api_management_api_policy":                  resourceApiManagementApiPolicy(),
+		"azurerm_api_management_api_release":                 resourceApiManagementApiRelease(),
 		"azurerm_api_management_api_schema":                  resourceApiManagementApiSchema(),
 		"azurerm_api_management_api_version_set":             resourceApiManagementApiVersionSet(),
 		"azurerm_api_management_authorization_server":        resourceApiManagementAuthorizationServer(),
@@ -47,6 +50,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_api_management_custom_domain":               resourceApiManagementCustomDomain(),
 		"azurerm_api_management_diagnostic":                  resourceApiManagementDiagnostic(),
 		"azurerm_api_management_email_template":              resourceApiManagementEmailTemplate(),
+		"azurerm_api_management_gateway":                     resourceApiManagementGateway(),
 		"azurerm_api_management_group":                       resourceApiManagementGroup(),
 		"azurerm_api_management_group_user":                  resourceApiManagementGroupUser(),
 		"azurerm_api_management_identity_provider_aad":       resourceApiManagementIdentityProviderAAD(),
@@ -64,6 +68,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_api_management_product_group":               resourceApiManagementProductGroup(),
 		"azurerm_api_management_product_policy":              resourceApiManagementProductPolicy(),
 		"azurerm_api_management_property":                    resourceApiManagementProperty(),
+		"azurerm_api_management_redis_cache":                 resourceApiManagementRedisCache(),
 		"azurerm_api_management_subscription":                resourceApiManagementSubscription(),
 		"azurerm_api_management_user":                        resourceApiManagementUser(),
 	}

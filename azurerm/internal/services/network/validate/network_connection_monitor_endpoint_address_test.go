@@ -16,7 +16,7 @@ func TestNetworkConnectionMonitorEndpointAddressWithDomainName(t *testing.T) {
 			Errors: 0,
 		},
 		{
-			Value:  "terraform.io",
+			Value:  "pluginsdk.io",
 			Errors: 0,
 		},
 		{

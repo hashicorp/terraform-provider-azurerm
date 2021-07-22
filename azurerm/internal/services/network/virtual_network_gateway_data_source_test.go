@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
@@ -15,10 +14,10 @@ func TestAccAzureRMDataSourceVirtualNetworkGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway", "test")
 	r := VirtualNetworkGatewayDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check:  resource.ComposeTestCheckFunc(),
+			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 	})
 }

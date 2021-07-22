@@ -6,19 +6,18 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataFactoryIntegrationRuntimeAzure() *schema.Resource {
-	return &schema.Resource{
+func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDataFactoryIntegrationRuntimeAzureCreateUpdate,
 		Read:   resourceDataFactoryIntegrationRuntimeAzureRead,
 		Update: resourceDataFactoryIntegrationRuntimeAzureCreateUpdate,
@@ -26,16 +25,16 @@ func resourceDataFactoryIntegrationRuntimeAzure() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -45,12 +44,12 @@ func resourceDataFactoryIntegrationRuntimeAzure() *schema.Resource {
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"data_factory_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryName(),
@@ -61,7 +60,7 @@ func resourceDataFactoryIntegrationRuntimeAzure() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"compute_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(datafactory.DataFlowComputeTypeGeneral),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -72,7 +71,7 @@ func resourceDataFactoryIntegrationRuntimeAzure() *schema.Resource {
 			},
 
 			"core_count": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				Default:  8,
 				ValidateFunc: validation.IntInSlice([]int{
@@ -81,16 +80,23 @@ func resourceDataFactoryIntegrationRuntimeAzure() *schema.Resource {
 			},
 
 			"time_to_live_min": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				Default:  0,
+			},
+
+			"virtual_network_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 		},
 	}
 }
 
-func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
+	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworksClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -122,6 +128,20 @@ func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *schema.ResourceDa
 		},
 	}
 
+	if d.Get("virtual_network_enabled").(bool) {
+		virtualNetworkName, err := getManagedVirtualNetworkName(ctx, managedVirtualNetworksClient, resourceGroup, factoryName)
+		if err != nil {
+			return err
+		}
+		if virtualNetworkName == nil {
+			return fmt.Errorf("virtual network feature for azure integration runtime is only available after managed virtual network for this data factory is enabled")
+		}
+		managedIntegrationRuntime.ManagedVirtualNetwork = &datafactory.ManagedVirtualNetworkReference{
+			Type:          utils.String("ManagedVirtualNetworkReference"),
+			ReferenceName: virtualNetworkName,
+		}
+	}
+
 	basicIntegrationRuntime, _ := managedIntegrationRuntime.AsBasicIntegrationRuntime()
 
 	integrationRuntime := datafactory.IntegrationRuntimeResource{
@@ -147,7 +167,7 @@ func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *schema.ResourceDa
 	return resourceDataFactoryIntegrationRuntimeAzureRead(d, meta)
 }
 
-func resourceDataFactoryIntegrationRuntimeAzureRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -184,6 +204,12 @@ func resourceDataFactoryIntegrationRuntimeAzureRead(d *schema.ResourceData, meta
 		d.Set("description", managedIntegrationRuntime.Description)
 	}
 
+	virtualNetworkEnabled := false
+	if managedIntegrationRuntime.ManagedVirtualNetwork != nil && managedIntegrationRuntime.ManagedVirtualNetwork.ReferenceName != nil {
+		virtualNetworkEnabled = true
+	}
+	d.Set("virtual_network_enabled", virtualNetworkEnabled)
+
 	if computeProps := managedIntegrationRuntime.ComputeProperties; computeProps != nil {
 		if location := computeProps.Location; location != nil {
 			d.Set("location", location)
@@ -207,7 +233,7 @@ func resourceDataFactoryIntegrationRuntimeAzureRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceDataFactoryIntegrationRuntimeAzureDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeAzureDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -233,7 +259,7 @@ func resourceDataFactoryIntegrationRuntimeAzureDelete(d *schema.ResourceData, me
 	return nil
 }
 
-func expandDataFactoryIntegrationRuntimeAzureComputeProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeComputeProperties {
+func expandDataFactoryIntegrationRuntimeAzureComputeProperties(d *pluginsdk.ResourceData) *datafactory.IntegrationRuntimeComputeProperties {
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	coreCount := int32(d.Get("core_count").(int))
 	timeToLiveMin := int32(d.Get("time_to_live_min").(int))

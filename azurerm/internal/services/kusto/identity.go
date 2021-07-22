@@ -4,24 +4,24 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func schemaIdentity() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func schemaIdentity() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"type": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(kusto.IdentityTypeSystemAssigned),
@@ -32,21 +32,21 @@ func schemaIdentity() *schema.Schema {
 				},
 
 				"identity_ids": {
-					Type:     schema.TypeSet,
+					Type:     pluginsdk.TypeSet,
 					Optional: true,
-					Elem: &schema.Schema{
-						Type:         schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
 						ValidateFunc: msivalidate.UserAssignedIdentityID,
 					},
 				},
 
 				"principal_id": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 
 				"tenant_id": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 			},
@@ -66,7 +66,7 @@ func expandIdentity(input []interface{}) (*kusto.Identity, error) {
 		Type: kusto.IdentityType(raw["type"].(string)),
 	}
 
-	identityIdsRaw := raw["identity_ids"].(*schema.Set).List()
+	identityIdsRaw := raw["identity_ids"].(*pluginsdk.Set).List()
 	identityIds := make(map[string]*kusto.IdentityUserAssignedIdentitiesValue)
 	for _, v := range identityIdsRaw {
 		identityIds[v.(string)] = &kusto.IdentityUserAssignedIdentitiesValue{}

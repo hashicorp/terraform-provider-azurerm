@@ -6,29 +6,28 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-10-31/digitaltwins"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDigitalTwinsEndpointServiceBus() *schema.Resource {
-	return &schema.Resource{
+func resourceDigitalTwinsEndpointServiceBus() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDigitalTwinsEndpointServiceBusCreateUpdate,
 		Read:   resourceDigitalTwinsEndpointServiceBusRead,
 		Update: resourceDigitalTwinsEndpointServiceBusCreateUpdate,
 		Delete: resourceDigitalTwinsEndpointServiceBusDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -36,37 +35,37 @@ func resourceDigitalTwinsEndpointServiceBus() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DigitalTwinsInstanceName,
 			},
 
 			"digital_twins_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DigitalTwinsInstanceID,
 			},
 
 			"servicebus_primary_connection_string": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"servicebus_secondary_connection_string": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"dead_letter_storage_secret": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -74,7 +73,7 @@ func resourceDigitalTwinsEndpointServiceBus() *schema.Resource {
 		},
 	}
 }
-func resourceDigitalTwinsEndpointServiceBusCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointServiceBusCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -127,7 +126,7 @@ func resourceDigitalTwinsEndpointServiceBusCreateUpdate(d *schema.ResourceData, 
 	return resourceDigitalTwinsEndpointServiceBusRead(d, meta)
 }
 
-func resourceDigitalTwinsEndpointServiceBusRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointServiceBusRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -157,7 +156,7 @@ func resourceDigitalTwinsEndpointServiceBusRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceDigitalTwinsEndpointServiceBusDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointServiceBusDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

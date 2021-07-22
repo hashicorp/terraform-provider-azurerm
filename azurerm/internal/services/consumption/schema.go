@@ -2,17 +2,17 @@ package consumption
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/validate"
 	resourceValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func SchemaConsumptionBudgetResourceGroupResource() map[string]*schema.Schema {
-	resourceGroupNameSchema := map[string]*schema.Schema{
+func SchemaConsumptionBudgetResourceGroupResource() map[string]*pluginsdk.Schema {
+	resourceGroupNameSchema := map[string]*pluginsdk.Schema{
 		"resource_group_id": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: resourceValidate.ResourceGroupID,
@@ -22,10 +22,10 @@ func SchemaConsumptionBudgetResourceGroupResource() map[string]*schema.Schema {
 	return azure.MergeSchema(SchemaConsumptionBudgetCommonResource(), resourceGroupNameSchema)
 }
 
-func SchemaConsumptionBudgetSubscriptionResource() map[string]*schema.Schema {
-	subscriptionIDSchema := map[string]*schema.Schema{
+func SchemaConsumptionBudgetSubscriptionResource() map[string]*pluginsdk.Schema {
+	subscriptionIDSchema := map[string]*pluginsdk.Schema{
 		"subscription_id": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
@@ -35,11 +35,11 @@ func SchemaConsumptionBudgetSubscriptionResource() map[string]*schema.Schema {
 	return azure.MergeSchema(SchemaConsumptionBudgetCommonResource(), subscriptionIDSchema)
 }
 
-func SchemaConsumptionBudgetFilterDimensionElement() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
+func SchemaConsumptionBudgetFilterDimensionElement() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"ChargeType",
@@ -67,7 +67,7 @@ func SchemaConsumptionBudgetFilterDimensionElement() *schema.Resource {
 				}, false),
 			},
 			"operator": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "In",
 				ValidateFunc: validation.StringInSlice([]string{
@@ -75,11 +75,11 @@ func SchemaConsumptionBudgetFilterDimensionElement() *schema.Resource {
 				}, false),
 			},
 			"values": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				MinItems: 1,
 				Required: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
@@ -87,15 +87,15 @@ func SchemaConsumptionBudgetFilterDimensionElement() *schema.Resource {
 	}
 }
 
-func SchemaConsumptionBudgetFilterTagElement() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
+func SchemaConsumptionBudgetFilterTagElement() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 			"operator": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "In",
 				ValidateFunc: validation.StringInSlice([]string{
@@ -103,10 +103,10 @@ func SchemaConsumptionBudgetFilterTagElement() *schema.Resource {
 				}, false),
 			},
 			"values": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
@@ -114,21 +114,21 @@ func SchemaConsumptionBudgetFilterTagElement() *schema.Resource {
 	}
 }
 
-func SchemaConsumptionBudgetNotificationElement() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
+func SchemaConsumptionBudgetNotificationElement() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 			"threshold": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntBetween(0, 1000),
 			},
 			"operator": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(consumption.EqualTo),
@@ -138,28 +138,28 @@ func SchemaConsumptionBudgetNotificationElement() *schema.Resource {
 			},
 
 			"contact_emails": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
 			"contact_groups": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
 			"contact_roles": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
@@ -167,56 +167,56 @@ func SchemaConsumptionBudgetNotificationElement() *schema.Resource {
 	}
 }
 
-func SchemaConsumptionBudgetCommonResource() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func SchemaConsumptionBudgetCommonResource() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.ConsumptionBudgetName(),
 		},
 
 		"amount": {
-			Type:         schema.TypeFloat,
+			Type:         pluginsdk.TypeFloat,
 			Required:     true,
 			ValidateFunc: validation.FloatAtLeast(1.0),
 		},
 
 		"filter": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"dimension": {
-						Type:         schema.TypeSet,
+						Type:         pluginsdk.TypeSet,
 						Optional:     true,
-						Set:          schema.HashResource(SchemaConsumptionBudgetFilterDimensionElement()),
+						Set:          pluginsdk.HashResource(SchemaConsumptionBudgetFilterDimensionElement()),
 						Elem:         SchemaConsumptionBudgetFilterDimensionElement(),
 						AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag", "filter.0.not"},
 					},
 					"tag": {
-						Type:         schema.TypeSet,
+						Type:         pluginsdk.TypeSet,
 						Optional:     true,
-						Set:          schema.HashResource(SchemaConsumptionBudgetFilterTagElement()),
+						Set:          pluginsdk.HashResource(SchemaConsumptionBudgetFilterTagElement()),
 						Elem:         SchemaConsumptionBudgetFilterTagElement(),
 						AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag", "filter.0.not"},
 					},
 					"not": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"dimension": {
-									Type:         schema.TypeList,
+									Type:         pluginsdk.TypeList,
 									MaxItems:     1,
 									Optional:     true,
 									ExactlyOneOf: []string{"filter.0.not.0.tag"},
 									Elem:         SchemaConsumptionBudgetFilterDimensionElement(),
 								},
 								"tag": {
-									Type:         schema.TypeList,
+									Type:         pluginsdk.TypeList,
 									MaxItems:     1,
 									Optional:     true,
 									ExactlyOneOf: []string{"filter.0.not.0.dimension"},
@@ -231,16 +231,16 @@ func SchemaConsumptionBudgetCommonResource() map[string]*schema.Schema {
 		},
 
 		"notification": {
-			Type:     schema.TypeSet,
+			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MinItems: 1,
 			MaxItems: 5,
-			Set:      schema.HashResource(SchemaConsumptionBudgetNotificationElement()),
+			Set:      pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElement()),
 			Elem:     SchemaConsumptionBudgetNotificationElement(),
 		},
 
 		"time_grain": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Default:  string(consumption.TimeGrainTypeMonthly),
 			ForceNew: true,
@@ -255,20 +255,20 @@ func SchemaConsumptionBudgetCommonResource() map[string]*schema.Schema {
 		},
 
 		"time_period": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Required: true,
 			MinItems: 1,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"start_date": {
-						Type:         schema.TypeString,
+						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.ConsumptionBudgetTimePeriodStartDate,
 						ForceNew:     true,
 					},
 					"end_date": {
-						Type:         schema.TypeString,
+						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true,
 						ValidateFunc: validation.IsRFC3339Time,

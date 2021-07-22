@@ -1,25 +1,25 @@
 package springcloud
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func SchemaConfigServerHttpBasicAuth(conflictsWith ...string) *schema.Schema {
-	s := &schema.Schema{
-		Type:     schema.TypeList,
+func SchemaConfigServerHttpBasicAuth(conflictsWith ...string) *pluginsdk.Schema {
+	s := &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"username": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"password": {
-					Type:      schema.TypeString,
+					Type:      pluginsdk.TypeString,
 					Required:  true,
 					Sensitive: true,
 				},
@@ -32,29 +32,29 @@ func SchemaConfigServerHttpBasicAuth(conflictsWith ...string) *schema.Schema {
 	return s
 }
 
-func SchemaConfigServerSSHAuth(conflictsWith ...string) *schema.Schema {
-	s := &schema.Schema{
-		Type:     schema.TypeList,
+func SchemaConfigServerSSHAuth(conflictsWith ...string) *pluginsdk.Schema {
+	s := &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"private_key": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"host_key": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"host_key_algorithm": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"ssh-dss",
@@ -66,7 +66,7 @@ func SchemaConfigServerSSHAuth(conflictsWith ...string) *schema.Schema {
 				},
 
 				"strict_host_key_checking_enabled": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  true,
 				},
@@ -80,18 +80,18 @@ func SchemaConfigServerSSHAuth(conflictsWith ...string) *schema.Schema {
 	return s
 }
 
-func DataSourceSchemaConfigServerHttpBasicAuth() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func DataSourceSchemaConfigServerHttpBasicAuth() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"username": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 				"password": {
-					Type:      schema.TypeString,
+					Type:      pluginsdk.TypeString,
 					Computed:  true,
 					Sensitive: true,
 				},
@@ -100,28 +100,28 @@ func DataSourceSchemaConfigServerHttpBasicAuth() *schema.Schema {
 	}
 }
 
-func DataSourceSchemaConfigServerSSHAuth() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func DataSourceSchemaConfigServerSSHAuth() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"private_key": {
-					Type:      schema.TypeString,
+					Type:      pluginsdk.TypeString,
 					Computed:  true,
 					Sensitive: true,
 				},
 				"host_key": {
-					Type:      schema.TypeString,
+					Type:      pluginsdk.TypeString,
 					Computed:  true,
 					Sensitive: true,
 				},
 				"host_key_algorithm": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 				"strict_host_key_checking_enabled": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 			},

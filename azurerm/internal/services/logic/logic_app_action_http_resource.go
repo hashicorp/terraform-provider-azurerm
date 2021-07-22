@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,15 +9,14 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func resourceLogicAppActionHTTP() *schema.Resource {
-	return &schema.Resource{
+func resourceLogicAppActionHTTP() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceLogicAppActionHTTPCreateUpdate,
 		Read:   resourceLogicAppActionHTTPRead,
 		Update: resourceLogicAppActionHTTPCreateUpdate,
@@ -24,29 +24,29 @@ func resourceLogicAppActionHTTP() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"logic_app_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"method": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					http.MethodDelete,
@@ -58,34 +58,36 @@ func resourceLogicAppActionHTTP() *schema.Resource {
 			},
 
 			"uri": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"body": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"headers": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 			"run_after": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"action_name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 						"action_result": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(logic.WorkflowStatusSucceeded),
@@ -101,7 +103,10 @@ func resourceLogicAppActionHTTP() *schema.Resource {
 	}
 }
 
-func resourceLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	logicAppId := d.Get("logic_app_id").(string)
+	name := d.Get("name").(string)
+
 	headersRaw := d.Get("headers").(map[string]interface{})
 	headers, err := expandLogicAppActionHttpHeaders(headersRaw)
 	if err != nil {
@@ -114,8 +119,13 @@ func resourceLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta interfa
 		"headers": headers,
 	}
 
-	if v, ok := d.GetOk("body"); ok {
-		inputs["body"] = v.(string)
+	// storing action's body in json object to keep consistent with azure portal
+	if bodyRaw, ok := d.GetOk("body"); ok {
+		var body map[string]interface{}
+		if err := json.Unmarshal([]byte(bodyRaw.(string)), &body); err != nil {
+			return fmt.Errorf("error unmarshalling JSON for Action %q: %+v", name, err)
+		}
+		inputs["body"] = body
 	}
 
 	action := map[string]interface{}{
@@ -124,11 +134,9 @@ func resourceLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if v, ok := d.GetOk("run_after"); ok {
-		action["runAfter"] = expandLogicAppActionRunAfter(v.(*schema.Set).List())
+		action["runAfter"] = expandLogicAppActionRunAfter(v.(*pluginsdk.Set).List())
 	}
 
-	logicAppId := d.Get("logic_app_id").(string)
-	name := d.Get("name").(string)
 	err = resourceLogicAppActionUpdate(d, meta, logicAppId, name, action, "azurerm_logic_app_action_http")
 	if err != nil {
 		return err
@@ -137,7 +145,7 @@ func resourceLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta interfa
 	return resourceLogicAppActionHTTPRead(d, meta)
 }
 
-func resourceLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -187,7 +195,17 @@ func resourceLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if body := inputs["body"]; body != nil {
-		d.Set("body", body.(string))
+		// TODO: remove in 3.0, this is preserved for backward compatibility
+		if v, ok := body.(string); ok {
+			d.Set("body", v)
+		} else {
+			// if user edit workflow in portal, the body becomes json object
+			v, err := json.Marshal(body)
+			if err != nil {
+				return fmt.Errorf("error serializing `body` for Action %q: %+v", name, err)
+			}
+			d.Set("body", string(v))
+		}
 	}
 
 	if headers := inputs["headers"]; headers != nil {
@@ -211,7 +229,7 @@ func resourceLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceLogicAppActionHTTPDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppActionHTTPDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

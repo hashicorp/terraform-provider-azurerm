@@ -71,6 +71,10 @@ The following supported arguments are specific to SFTP Linked Service:
 
 * `password` - (Required) Password to logon to the SFTP Server for Basic Authentication.
 
+* `host_key_fingerprint` - (Optional) The host key fingerprint of the SFTP server.
+
+* `skip_host_key_validation` - (Optional) Whether to validate host key fingerprint while connecting. If set to `false`, `host_key_fingerprint` must also be set.
+
 ## Attributes Reference
 
 The following attributes are exported:

@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,12 +13,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/validate"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceHPCCacheBlobTarget() *schema.Resource {
-	return &schema.Resource{
+func resourceHPCCacheBlobTarget() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceHPCCacheBlobTargetCreateOrUpdate,
 		Update: resourceHPCCacheBlobTargetCreateOrUpdate,
 		Read:   resourceHPCCacheBlobTargetRead,
@@ -31,23 +30,23 @@ func resourceHPCCacheBlobTarget() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageTargetName,
 			},
 
 			"cache_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -56,20 +55,20 @@ func resourceHPCCacheBlobTarget() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"namespace_path": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.CacheNamespacePath,
 			},
 
 			"storage_container_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: storageValidate.StorageContainerResourceManagerID,
 			},
 
 			"access_policy_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "default",
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -78,7 +77,7 @@ func resourceHPCCacheBlobTarget() *schema.Resource {
 	}
 }
 
-func resourceHPCCacheBlobTargetCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheBlobTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,7 +144,7 @@ func resourceHPCCacheBlobTargetCreateOrUpdate(d *schema.ResourceData, meta inter
 	return resourceHPCCacheBlobTargetRead(d, meta)
 }
 
-func resourceHPCCacheBlobTargetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheBlobTargetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,7 +195,7 @@ func resourceHPCCacheBlobTargetRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceHPCCacheBlobTargetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheBlobTargetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

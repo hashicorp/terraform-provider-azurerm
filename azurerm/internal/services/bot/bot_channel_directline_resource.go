@@ -5,22 +5,21 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
+	"github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceBotChannelDirectline() *schema.Resource {
-	return &schema.Resource{
+func resourceBotChannelDirectline() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceBotChannelDirectlineCreate,
 		Read:   resourceBotChannelDirectlineRead,
 		Delete: resourceBotChannelDirectlineDelete,
@@ -31,83 +30,83 @@ func resourceBotChannelDirectline() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
 
 			"bot_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"site": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
 						"v1_allowed": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
 						"v3_allowed": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
 						"enhanced_authentication_enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Default:  false,
 							Optional: true,
 						},
 
 						"trusted_origins": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
 						"key": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 
 						"key2": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -117,13 +116,13 @@ func resourceBotChannelDirectline() *schema.Resource {
 	}
 }
 
-func resourceBotChannelDirectlineCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceId := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameDirectLineChannel1))
+	resourceId := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameBasicChannelChannelNameDirectLineChannel))
 	existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ChannelName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -146,9 +145,9 @@ func resourceBotChannelDirectlineCreate(d *schema.ResourceData, meta interface{}
 	channel := botservice.BotChannel{
 		Properties: botservice.DirectLineChannel{
 			Properties: &botservice.DirectLineChannelProperties{
-				Sites: expandDirectlineSites(d.Get("site").(*schema.Set).List()),
+				Sites: expandDirectlineSites(d.Get("site").(*pluginsdk.Set).List()),
 			},
-			ChannelName: botservice.ChannelNameDirectLineChannel1,
+			ChannelName: botservice.ChannelNameBasicChannelChannelNameDirectLineChannel,
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
@@ -167,7 +166,7 @@ func resourceBotChannelDirectlineCreate(d *schema.ResourceData, meta interface{}
 	return resourceBotChannelDirectlineRead(d, meta)
 }
 
-func resourceBotChannelDirectlineRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -177,7 +176,7 @@ func resourceBotChannelDirectlineRead(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameDirectLineChannel1))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameDirectLineChannel))
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Directline Channel for Bot %q (Resource Group %q) was not found - removing from state!", id.ResourceGroup, id.BotServiceName)
@@ -208,7 +207,7 @@ func resourceBotChannelDirectlineRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceBotChannelDirectlineUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -221,9 +220,9 @@ func resourceBotChannelDirectlineUpdate(d *schema.ResourceData, meta interface{}
 	channel := botservice.BotChannel{
 		Properties: botservice.DirectLineChannel{
 			Properties: &botservice.DirectLineChannelProperties{
-				Sites: expandDirectlineSites(d.Get("site").(*schema.Set).List()),
+				Sites: expandDirectlineSites(d.Get("site").(*pluginsdk.Set).List()),
 			},
-			ChannelName: botservice.ChannelNameDirectLineChannel1,
+			ChannelName: botservice.ChannelNameBasicChannelChannelNameDirectLineChannel,
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
@@ -236,7 +235,7 @@ func resourceBotChannelDirectlineUpdate(d *schema.ResourceData, meta interface{}
 	return resourceBotChannelDirectlineRead(d, meta)
 }
 
-func resourceBotChannelDirectlineDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,7 +245,7 @@ func resourceBotChannelDirectlineDelete(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameDirectLineChannel1))
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameDirectLineChannel))
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting Directline Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
@@ -282,7 +281,7 @@ func expandDirectlineSites(input []interface{}) *[]botservice.DirectLineSite {
 		if v, ok := site["enhanced_authentication_enabled"].(bool); ok {
 			expanded.IsSecureSiteEnabled = &v
 		}
-		if v, ok := site["trusted_origins"].(*schema.Set); ok {
+		if v, ok := site["trusted_origins"].(*pluginsdk.Set); ok {
 			origins := v.List()
 			items := make([]string, len(origins))
 			for i, raw := range origins {

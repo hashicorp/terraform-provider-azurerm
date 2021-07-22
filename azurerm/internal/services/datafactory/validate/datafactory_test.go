@@ -55,3 +55,49 @@ func TestValidateDataFactoryName(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateDataFactoryManagedPrivateEndpointName(t *testing.T) {
+	cases := []struct {
+		Input string
+		Valid bool
+	}{
+		{
+			// empty
+			Input: "",
+			Valid: false,
+		},
+		{
+			// invalid character
+			Input: "/",
+			Valid: false,
+		},
+		{
+			// invalid character
+			Input: "ab-",
+			Valid: false,
+		},
+		{
+			// invalid character
+			Input: "ab*",
+			Valid: false,
+		},
+		{
+			// valid
+			Input: "Aa1",
+			Valid: true,
+		},
+		{
+			// valid
+			Input: "a_",
+			Valid: true,
+		},
+	}
+	for _, tc := range cases {
+		_, errors := DataFactoryManagedPrivateEndpointName()(tc.Input, "name")
+		valid := len(errors) == 0
+
+		if tc.Valid != valid {
+			t.Fatalf("Expected %t but got %t", tc.Valid, valid)
+		}
+	}
+}

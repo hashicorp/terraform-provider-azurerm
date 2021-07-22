@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -19,10 +18,10 @@ func TestAccClientConfigDataSource_basic(t *testing.T) {
 	subscriptionId := os.Getenv("ARM_SUBSCRIPTION_ID")
 	objectIdRegex := regexp.MustCompile("^[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}$")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: ClientConfigDataSource{}.basic(),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("client_id").HasValue(clientId),
 				check.That(data.ResourceName).Key("tenant_id").HasValue(tenantId),
 				check.That(data.ResourceName).Key("subscription_id").HasValue(subscriptionId),

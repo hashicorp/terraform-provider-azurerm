@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccManagedApplicationDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application_definition", "test")
 	r := ManagedApplicationDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccManagedApplicationDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application_definition", "test")
 	r := ManagedApplicationDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +50,10 @@ func TestAccManagedApplicationDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application_definition", "test")
 	r := ManagedApplicationDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -66,10 +65,10 @@ func TestAccManagedApplicationDefinition_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application_definition", "test")
 	r := ManagedApplicationDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("display_name").HasValue("TestManagedApplicationDefinition"),
 				check.That(data.ResourceName).Key("description").HasValue("Test Managed Application Definition"),
@@ -81,7 +80,7 @@ func TestAccManagedApplicationDefinition_update(t *testing.T) {
 		data.ImportStep("package_file_uri"),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("display_name").HasValue("UpdatedTestManagedApplicationDefinition"),
 				check.That(data.ResourceName).Key("description").HasValue("Updated Test Managed Application Definition"),
@@ -95,7 +94,7 @@ func TestAccManagedApplicationDefinition_update(t *testing.T) {
 		data.ImportStep("create_ui_definition", "main_template", "package_file_uri"),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("display_name").HasValue("TestManagedApplicationDefinition"),
 				check.That(data.ResourceName).Key("description").HasValue("Test Managed Application Definition"),
@@ -108,7 +107,7 @@ func TestAccManagedApplicationDefinition_update(t *testing.T) {
 	})
 }
 
-func (ManagedApplicationDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ManagedApplicationDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ApplicationDefinitionID(state.ID)
 	if err != nil {
 		return nil, err

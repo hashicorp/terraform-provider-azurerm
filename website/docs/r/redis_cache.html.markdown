@@ -160,6 +160,8 @@ A `patch_schedule` block supports the following:
 
 ~> **Note:** The Patch Window lasts for `5` hours from the `start_hour_utc`.
 
+* `maintenance_window` - (Optional) The ISO 8601 timespan which specifies the amount of time the Redis Cache can be updated. Defaults to `PT5H`.
+
 ## Attributes Reference
 
 The following attributes are exported:

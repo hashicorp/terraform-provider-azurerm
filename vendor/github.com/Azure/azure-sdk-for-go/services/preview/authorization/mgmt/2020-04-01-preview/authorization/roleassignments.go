@@ -211,7 +211,8 @@ func (client RoleAssignmentsClient) CreateByIDResponder(resp *http.Response) (re
 // Parameters:
 // scope - the scope of the role assignment to delete.
 // roleAssignmentName - the name of the role assignment to delete.
-func (client RoleAssignmentsClient) Delete(ctx context.Context, scope string, roleAssignmentName string) (result RoleAssignment, err error) {
+// tenantID - tenant ID for cross-tenant request
+func (client RoleAssignmentsClient) Delete(ctx context.Context, scope string, roleAssignmentName string, tenantID string) (result RoleAssignment, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RoleAssignmentsClient.Delete")
 		defer func() {
@@ -222,7 +223,7 @@ func (client RoleAssignmentsClient) Delete(ctx context.Context, scope string, ro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.DeletePreparer(ctx, scope, roleAssignmentName)
+	req, err := client.DeletePreparer(ctx, scope, roleAssignmentName, tenantID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleAssignmentsClient", "Delete", nil, "Failure preparing request")
 		return
@@ -245,7 +246,7 @@ func (client RoleAssignmentsClient) Delete(ctx context.Context, scope string, ro
 }
 
 // DeletePreparer prepares the Delete request.
-func (client RoleAssignmentsClient) DeletePreparer(ctx context.Context, scope string, roleAssignmentName string) (*http.Request, error) {
+func (client RoleAssignmentsClient) DeletePreparer(ctx context.Context, scope string, roleAssignmentName string, tenantID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"roleAssignmentName": autorest.Encode("path", roleAssignmentName),
 		"scope":              scope,
@@ -254,6 +255,9 @@ func (client RoleAssignmentsClient) DeletePreparer(ctx context.Context, scope st
 	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(tenantID) > 0 {
+		queryParameters["tenantId"] = autorest.Encode("query", tenantID)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -285,7 +289,8 @@ func (client RoleAssignmentsClient) DeleteResponder(resp *http.Response) (result
 // DeleteByID delete a role assignment.
 // Parameters:
 // roleID - the ID of the role assignment to delete.
-func (client RoleAssignmentsClient) DeleteByID(ctx context.Context, roleID string) (result RoleAssignment, err error) {
+// tenantID - tenant ID for cross-tenant request
+func (client RoleAssignmentsClient) DeleteByID(ctx context.Context, roleID string, tenantID string) (result RoleAssignment, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RoleAssignmentsClient.DeleteByID")
 		defer func() {
@@ -296,7 +301,7 @@ func (client RoleAssignmentsClient) DeleteByID(ctx context.Context, roleID strin
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.DeleteByIDPreparer(ctx, roleID)
+	req, err := client.DeleteByIDPreparer(ctx, roleID, tenantID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleAssignmentsClient", "DeleteByID", nil, "Failure preparing request")
 		return
@@ -319,7 +324,7 @@ func (client RoleAssignmentsClient) DeleteByID(ctx context.Context, roleID strin
 }
 
 // DeleteByIDPreparer prepares the DeleteByID request.
-func (client RoleAssignmentsClient) DeleteByIDPreparer(ctx context.Context, roleID string) (*http.Request, error) {
+func (client RoleAssignmentsClient) DeleteByIDPreparer(ctx context.Context, roleID string, tenantID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"roleId": roleID,
 	}
@@ -327,6 +332,9 @@ func (client RoleAssignmentsClient) DeleteByIDPreparer(ctx context.Context, role
 	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(tenantID) > 0 {
+		queryParameters["tenantId"] = autorest.Encode("query", tenantID)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -359,7 +367,8 @@ func (client RoleAssignmentsClient) DeleteByIDResponder(resp *http.Response) (re
 // Parameters:
 // scope - the scope of the role assignment.
 // roleAssignmentName - the name of the role assignment to get.
-func (client RoleAssignmentsClient) Get(ctx context.Context, scope string, roleAssignmentName string) (result RoleAssignment, err error) {
+// tenantID - tenant ID for cross-tenant request
+func (client RoleAssignmentsClient) Get(ctx context.Context, scope string, roleAssignmentName string, tenantID string) (result RoleAssignment, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RoleAssignmentsClient.Get")
 		defer func() {
@@ -370,7 +379,7 @@ func (client RoleAssignmentsClient) Get(ctx context.Context, scope string, roleA
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetPreparer(ctx, scope, roleAssignmentName)
+	req, err := client.GetPreparer(ctx, scope, roleAssignmentName, tenantID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleAssignmentsClient", "Get", nil, "Failure preparing request")
 		return
@@ -393,7 +402,7 @@ func (client RoleAssignmentsClient) Get(ctx context.Context, scope string, roleA
 }
 
 // GetPreparer prepares the Get request.
-func (client RoleAssignmentsClient) GetPreparer(ctx context.Context, scope string, roleAssignmentName string) (*http.Request, error) {
+func (client RoleAssignmentsClient) GetPreparer(ctx context.Context, scope string, roleAssignmentName string, tenantID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"roleAssignmentName": autorest.Encode("path", roleAssignmentName),
 		"scope":              scope,
@@ -402,6 +411,9 @@ func (client RoleAssignmentsClient) GetPreparer(ctx context.Context, scope strin
 	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(tenantID) > 0 {
+		queryParameters["tenantId"] = autorest.Encode("query", tenantID)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -433,7 +445,8 @@ func (client RoleAssignmentsClient) GetResponder(resp *http.Response) (result Ro
 // GetByID gets a role assignment by ID.
 // Parameters:
 // roleID - the ID of the role assignment to get.
-func (client RoleAssignmentsClient) GetByID(ctx context.Context, roleID string) (result RoleAssignment, err error) {
+// tenantID - tenant ID for cross-tenant request
+func (client RoleAssignmentsClient) GetByID(ctx context.Context, roleID string, tenantID string) (result RoleAssignment, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RoleAssignmentsClient.GetByID")
 		defer func() {
@@ -444,7 +457,7 @@ func (client RoleAssignmentsClient) GetByID(ctx context.Context, roleID string) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetByIDPreparer(ctx, roleID)
+	req, err := client.GetByIDPreparer(ctx, roleID, tenantID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleAssignmentsClient", "GetByID", nil, "Failure preparing request")
 		return
@@ -467,7 +480,7 @@ func (client RoleAssignmentsClient) GetByID(ctx context.Context, roleID string) 
 }
 
 // GetByIDPreparer prepares the GetByID request.
-func (client RoleAssignmentsClient) GetByIDPreparer(ctx context.Context, roleID string) (*http.Request, error) {
+func (client RoleAssignmentsClient) GetByIDPreparer(ctx context.Context, roleID string, tenantID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"roleId": roleID,
 	}
@@ -475,6 +488,9 @@ func (client RoleAssignmentsClient) GetByIDPreparer(ctx context.Context, roleID 
 	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(tenantID) > 0 {
+		queryParameters["tenantId"] = autorest.Encode("query", tenantID)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -508,7 +524,8 @@ func (client RoleAssignmentsClient) GetByIDResponder(resp *http.Response) (resul
 // filter - the filter to apply on the operation. Use $filter=atScope() to return all role assignments at or
 // above the scope. Use $filter=principalId eq {id} to return all role assignments at, above or below the scope
 // for the specified principal.
-func (client RoleAssignmentsClient) List(ctx context.Context, filter string) (result RoleAssignmentListResultPage, err error) {
+// tenantID - tenant ID for cross-tenant request
+func (client RoleAssignmentsClient) List(ctx context.Context, filter string, tenantID string) (result RoleAssignmentListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RoleAssignmentsClient.List")
 		defer func() {
@@ -526,7 +543,7 @@ func (client RoleAssignmentsClient) List(ctx context.Context, filter string) (re
 	}
 
 	result.fn = client.listNextResults
-	req, err := client.ListPreparer(ctx, filter)
+	req, err := client.ListPreparer(ctx, filter, tenantID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleAssignmentsClient", "List", nil, "Failure preparing request")
 		return
@@ -553,7 +570,7 @@ func (client RoleAssignmentsClient) List(ctx context.Context, filter string) (re
 }
 
 // ListPreparer prepares the List request.
-func (client RoleAssignmentsClient) ListPreparer(ctx context.Context, filter string) (*http.Request, error) {
+func (client RoleAssignmentsClient) ListPreparer(ctx context.Context, filter string, tenantID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
@@ -564,6 +581,9 @@ func (client RoleAssignmentsClient) ListPreparer(ctx context.Context, filter str
 	}
 	if len(filter) > 0 {
 		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if len(tenantID) > 0 {
+		queryParameters["tenantId"] = autorest.Encode("query", tenantID)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -614,7 +634,7 @@ func (client RoleAssignmentsClient) listNextResults(ctx context.Context, lastRes
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client RoleAssignmentsClient) ListComplete(ctx context.Context, filter string) (result RoleAssignmentListResultIterator, err error) {
+func (client RoleAssignmentsClient) ListComplete(ctx context.Context, filter string, tenantID string) (result RoleAssignmentListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RoleAssignmentsClient.List")
 		defer func() {
@@ -625,7 +645,7 @@ func (client RoleAssignmentsClient) ListComplete(ctx context.Context, filter str
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.List(ctx, filter)
+	result.page, err = client.List(ctx, filter, tenantID)
 	return
 }
 
@@ -639,7 +659,8 @@ func (client RoleAssignmentsClient) ListComplete(ctx context.Context, filter str
 // filter - the filter to apply on the operation. Use $filter=atScope() to return all role assignments at or
 // above the scope. Use $filter=principalId eq {id} to return all role assignments at, above or below the scope
 // for the specified principal.
-func (client RoleAssignmentsClient) ListForResource(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, filter string) (result RoleAssignmentListResultPage, err error) {
+// tenantID - tenant ID for cross-tenant request
+func (client RoleAssignmentsClient) ListForResource(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, filter string, tenantID string) (result RoleAssignmentListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RoleAssignmentsClient.ListForResource")
 		defer func() {
@@ -661,7 +682,7 @@ func (client RoleAssignmentsClient) ListForResource(ctx context.Context, resourc
 	}
 
 	result.fn = client.listForResourceNextResults
-	req, err := client.ListForResourcePreparer(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, filter)
+	req, err := client.ListForResourcePreparer(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, filter, tenantID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleAssignmentsClient", "ListForResource", nil, "Failure preparing request")
 		return
@@ -688,7 +709,7 @@ func (client RoleAssignmentsClient) ListForResource(ctx context.Context, resourc
 }
 
 // ListForResourcePreparer prepares the ListForResource request.
-func (client RoleAssignmentsClient) ListForResourcePreparer(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, filter string) (*http.Request, error) {
+func (client RoleAssignmentsClient) ListForResourcePreparer(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, filter string, tenantID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"parentResourcePath":        parentResourcePath,
 		"resourceGroupName":         autorest.Encode("path", resourceGroupName),
@@ -704,6 +725,9 @@ func (client RoleAssignmentsClient) ListForResourcePreparer(ctx context.Context,
 	}
 	if len(filter) > 0 {
 		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if len(tenantID) > 0 {
+		queryParameters["tenantId"] = autorest.Encode("query", tenantID)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -754,7 +778,7 @@ func (client RoleAssignmentsClient) listForResourceNextResults(ctx context.Conte
 }
 
 // ListForResourceComplete enumerates all values, automatically crossing page boundaries as required.
-func (client RoleAssignmentsClient) ListForResourceComplete(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, filter string) (result RoleAssignmentListResultIterator, err error) {
+func (client RoleAssignmentsClient) ListForResourceComplete(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, filter string, tenantID string) (result RoleAssignmentListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RoleAssignmentsClient.ListForResource")
 		defer func() {
@@ -765,7 +789,7 @@ func (client RoleAssignmentsClient) ListForResourceComplete(ctx context.Context,
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListForResource(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, filter)
+	result.page, err = client.ListForResource(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, filter, tenantID)
 	return
 }
 
@@ -775,7 +799,8 @@ func (client RoleAssignmentsClient) ListForResourceComplete(ctx context.Context,
 // filter - the filter to apply on the operation. Use $filter=atScope() to return all role assignments at or
 // above the scope. Use $filter=principalId eq {id} to return all role assignments at, above or below the scope
 // for the specified principal.
-func (client RoleAssignmentsClient) ListForResourceGroup(ctx context.Context, resourceGroupName string, filter string) (result RoleAssignmentListResultPage, err error) {
+// tenantID - tenant ID for cross-tenant request
+func (client RoleAssignmentsClient) ListForResourceGroup(ctx context.Context, resourceGroupName string, filter string, tenantID string) (result RoleAssignmentListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RoleAssignmentsClient.ListForResourceGroup")
 		defer func() {
@@ -797,7 +822,7 @@ func (client RoleAssignmentsClient) ListForResourceGroup(ctx context.Context, re
 	}
 
 	result.fn = client.listForResourceGroupNextResults
-	req, err := client.ListForResourceGroupPreparer(ctx, resourceGroupName, filter)
+	req, err := client.ListForResourceGroupPreparer(ctx, resourceGroupName, filter, tenantID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleAssignmentsClient", "ListForResourceGroup", nil, "Failure preparing request")
 		return
@@ -824,7 +849,7 @@ func (client RoleAssignmentsClient) ListForResourceGroup(ctx context.Context, re
 }
 
 // ListForResourceGroupPreparer prepares the ListForResourceGroup request.
-func (client RoleAssignmentsClient) ListForResourceGroupPreparer(ctx context.Context, resourceGroupName string, filter string) (*http.Request, error) {
+func (client RoleAssignmentsClient) ListForResourceGroupPreparer(ctx context.Context, resourceGroupName string, filter string, tenantID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
@@ -836,6 +861,9 @@ func (client RoleAssignmentsClient) ListForResourceGroupPreparer(ctx context.Con
 	}
 	if len(filter) > 0 {
 		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if len(tenantID) > 0 {
+		queryParameters["tenantId"] = autorest.Encode("query", tenantID)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -886,7 +914,7 @@ func (client RoleAssignmentsClient) listForResourceGroupNextResults(ctx context.
 }
 
 // ListForResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
-func (client RoleAssignmentsClient) ListForResourceGroupComplete(ctx context.Context, resourceGroupName string, filter string) (result RoleAssignmentListResultIterator, err error) {
+func (client RoleAssignmentsClient) ListForResourceGroupComplete(ctx context.Context, resourceGroupName string, filter string, tenantID string) (result RoleAssignmentListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RoleAssignmentsClient.ListForResourceGroup")
 		defer func() {
@@ -897,7 +925,7 @@ func (client RoleAssignmentsClient) ListForResourceGroupComplete(ctx context.Con
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListForResourceGroup(ctx, resourceGroupName, filter)
+	result.page, err = client.ListForResourceGroup(ctx, resourceGroupName, filter, tenantID)
 	return
 }
 
@@ -907,7 +935,8 @@ func (client RoleAssignmentsClient) ListForResourceGroupComplete(ctx context.Con
 // filter - the filter to apply on the operation. Use $filter=atScope() to return all role assignments at or
 // above the scope. Use $filter=principalId eq {id} to return all role assignments at, above or below the scope
 // for the specified principal.
-func (client RoleAssignmentsClient) ListForScope(ctx context.Context, scope string, filter string) (result RoleAssignmentListResultPage, err error) {
+// tenantID - tenant ID for cross-tenant request
+func (client RoleAssignmentsClient) ListForScope(ctx context.Context, scope string, filter string, tenantID string) (result RoleAssignmentListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RoleAssignmentsClient.ListForScope")
 		defer func() {
@@ -919,7 +948,7 @@ func (client RoleAssignmentsClient) ListForScope(ctx context.Context, scope stri
 		}()
 	}
 	result.fn = client.listForScopeNextResults
-	req, err := client.ListForScopePreparer(ctx, scope, filter)
+	req, err := client.ListForScopePreparer(ctx, scope, filter, tenantID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleAssignmentsClient", "ListForScope", nil, "Failure preparing request")
 		return
@@ -946,7 +975,7 @@ func (client RoleAssignmentsClient) ListForScope(ctx context.Context, scope stri
 }
 
 // ListForScopePreparer prepares the ListForScope request.
-func (client RoleAssignmentsClient) ListForScopePreparer(ctx context.Context, scope string, filter string) (*http.Request, error) {
+func (client RoleAssignmentsClient) ListForScopePreparer(ctx context.Context, scope string, filter string, tenantID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"scope": scope,
 	}
@@ -957,6 +986,9 @@ func (client RoleAssignmentsClient) ListForScopePreparer(ctx context.Context, sc
 	}
 	if len(filter) > 0 {
 		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if len(tenantID) > 0 {
+		queryParameters["tenantId"] = autorest.Encode("query", tenantID)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -1007,7 +1039,7 @@ func (client RoleAssignmentsClient) listForScopeNextResults(ctx context.Context,
 }
 
 // ListForScopeComplete enumerates all values, automatically crossing page boundaries as required.
-func (client RoleAssignmentsClient) ListForScopeComplete(ctx context.Context, scope string, filter string) (result RoleAssignmentListResultIterator, err error) {
+func (client RoleAssignmentsClient) ListForScopeComplete(ctx context.Context, scope string, filter string, tenantID string) (result RoleAssignmentListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RoleAssignmentsClient.ListForScope")
 		defer func() {
@@ -1018,6 +1050,6 @@ func (client RoleAssignmentsClient) ListForScopeComplete(ctx context.Context, sc
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListForScope(ctx, scope, filter)
+	result.page, err = client.ListForScope(ctx, scope, filter, tenantID)
 	return
 }

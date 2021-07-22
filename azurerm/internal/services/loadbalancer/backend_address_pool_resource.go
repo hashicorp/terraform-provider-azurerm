@@ -5,9 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,14 +14,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/validate"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var backendAddressPoolResourceName = "azurerm_lb_backend_address_pool"
 
-func resourceArmLoadBalancerBackendAddressPool() *schema.Resource {
-	return &schema.Resource{
+func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerBackendAddressPoolCreateUpdate,
 		Update: resourceArmLoadBalancerBackendAddressPoolCreateUpdate, // TODO: remove in 3.0 since all fields are ForceNew
 		Read:   resourceArmLoadBalancerBackendAddressPoolRead,
@@ -39,17 +39,17 @@ func resourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 			return &lbId, nil
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: func() map[string]*schema.Schema {
-			s := map[string]*schema.Schema{
+		Schema: func() map[string]*pluginsdk.Schema {
+			s := map[string]*pluginsdk.Schema{
 				"name": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -59,59 +59,59 @@ func resourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 				"resource_group_name": azure.SchemaResourceGroupNameDeprecatedComputed(),
 
 				"loadbalancer_id": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: validate.LoadBalancerID,
 				},
 
 				"backend_ip_configurations": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Computed: true,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
 					},
 				},
 
 				"load_balancing_rules": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Computed: true,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
 					},
 				},
 
 				"outbound_rules": {
-					Type:     schema.TypeList,
+					Type:     pluginsdk.TypeList,
 					Computed: true,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
 					},
 				},
 			}
 
 			if !features.ThreePointOh() {
-				s["backend_address"] = &schema.Schema{
-					Type:       schema.TypeSet,
+				s["backend_address"] = &pluginsdk.Schema{
+					Type:       pluginsdk.TypeSet,
 					Optional:   true,
 					Deprecated: "This field is non-functional and will be removed in version 3.0 of the Azure Provider - use the separate `azurerm_lb_backend_address_pool_address` resource instead.",
 					MinItems:   1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
 							"name": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 
 							"virtual_network_id": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: networkValidate.VirtualNetworkID,
 							},
 
 							"ip_address": {
-								Type:         schema.TypeString,
+								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.IsIPAddress,
 							},
@@ -125,7 +125,7 @@ func resourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 	}
 }
 
-func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancerBackendAddressPoolsClient
 	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -184,7 +184,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *schema.ResourceDat
 	if sku.Name == network.LoadBalancerSkuNameBasic {
 		// Load balancer backend pool can be configured by either NIC or IP (belongs to a vnet).
 		// In case of IP, it can only work for Standard sku LB.
-		if len(d.Get("backend_address").(*schema.Set).List()) != 0 {
+		if len(d.Get("backend_address").(*pluginsdk.Set).List()) != 0 {
 			return fmt.Errorf("only for Standard (sku) Load Balancer allows IP based Backend Address Pool configuration,"+
 				"whilst %q for Backend Address Pool %q is of sku %s", loadBalancerId, id, sku.Name)
 		}
@@ -226,7 +226,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *schema.ResourceDat
 	return resourceArmLoadBalancerBackendAddressPoolRead(d, meta)
 }
 
-func resourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancerBackendAddressPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -304,7 +304,7 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceArmLoadBalancerBackendAddressPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerBackendAddressPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancerBackendAddressPoolsClient
 	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

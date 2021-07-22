@@ -4,27 +4,27 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceMaintenanceConfiguration() *schema.Resource {
-	return &schema.Resource{
+func dataSourceMaintenanceConfiguration() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceArmMaintenanceConfigurationRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -34,8 +34,50 @@ func dataSourceMaintenanceConfiguration() *schema.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"scope": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"visibility": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"window": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"start_date_time": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"expiration_date_time": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"duration": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"time_zone": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"recur_every": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"properties": {
+				Type:     pluginsdk.TypeMap,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
 			},
 
 			"tags": tags.SchemaDataSource(),
@@ -43,7 +85,7 @@ func dataSourceMaintenanceConfiguration() *schema.Resource {
 	}
 }
 
-func dataSourceArmMaintenanceConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -54,7 +96,7 @@ func dataSourceArmMaintenanceConfigurationRead(d *schema.ResourceData, meta inte
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Maintenance Configuration %q was not found in Resource Group %q", name, resGroup)
+			return fmt.Errorf("maintenance Configuration %q was not found in Resource Group %q", name, resGroup)
 		}
 		return fmt.Errorf("retrieving Maintenance Configuration %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -68,6 +110,13 @@ func dataSourceArmMaintenanceConfigurationRead(d *schema.ResourceData, meta inte
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.ConfigurationProperties; props != nil {
 		d.Set("scope", props.MaintenanceScope)
+		d.Set("visibility", props.Visibility)
+		d.Set("properties", props.ExtensionProperties)
+
+		window := flattenMaintenanceConfigurationWindow(props.Window)
+		if err := d.Set("window", window); err != nil {
+			return fmt.Errorf("error setting `window`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

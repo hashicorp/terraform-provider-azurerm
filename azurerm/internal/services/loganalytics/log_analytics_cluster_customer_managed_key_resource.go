@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
@@ -19,33 +18,33 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceLogAnalyticsClusterCustomerManagedKey() *schema.Resource {
-	return &schema.Resource{
+func resourceLogAnalyticsClusterCustomerManagedKey() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceLogAnalyticsClusterCustomerManagedKeyCreate,
 		Read:   resourceLogAnalyticsClusterCustomerManagedKeyRead,
 		Update: resourceLogAnalyticsClusterCustomerManagedKeyUpdate,
 		Delete: resourceLogAnalyticsClusterCustomerManagedKeyDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(6 * time.Hour),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(6 * time.Hour),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(6 * time.Hour),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(6 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"log_analytics_cluster_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.LogAnalyticsClusterID,
 			},
 
 			"key_vault_key_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 			},
@@ -53,7 +52,7 @@ func resourceLogAnalyticsClusterCustomerManagedKey() *schema.Resource {
 	}
 }
 
-func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -82,7 +81,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *schema.ResourceData,
 	return resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d, meta)
 }
 
-func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -111,16 +110,16 @@ func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *schema.ResourceData,
 		return fmt.Errorf("updating Log Analytics Cluster %q (Resource Group %q): %+v", clusterId.ClusterName, clusterId.ResourceGroup, err)
 	}
 
-	updateWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(schema.TimeoutUpdate), clusterId.ResourceGroup, clusterId.ClusterName)
+	updateWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(pluginsdk.TimeoutUpdate), clusterId.ResourceGroup, clusterId.ClusterName)
 
-	if _, err := updateWait.WaitForState(); err != nil {
+	if _, err := updateWait.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", clusterId.ClusterName, clusterId.ResourceGroup, err)
 	}
 
 	return resourceLogAnalyticsClusterCustomerManagedKeyRead(d, meta)
 }
 
-func resourceLogAnalyticsClusterCustomerManagedKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,7 +170,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceLogAnalyticsClusterCustomerManagedKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,9 +194,9 @@ func resourceLogAnalyticsClusterCustomerManagedKeyDelete(d *schema.ResourceData,
 		return fmt.Errorf("removing Log Analytics Cluster Customer Managed Key from cluster %q (resource group %q)", clusterId.ClusterName, clusterId.ResourceGroup)
 	}
 
-	deleteWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(schema.TimeoutDelete), clusterId.ResourceGroup, clusterId.ClusterName)
+	deleteWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(pluginsdk.TimeoutDelete), clusterId.ResourceGroup, clusterId.ClusterName)
 
-	if _, err := deleteWait.WaitForState(); err != nil {
+	if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", clusterId.ClusterName, clusterId.ResourceGroup, err)
 	}
 

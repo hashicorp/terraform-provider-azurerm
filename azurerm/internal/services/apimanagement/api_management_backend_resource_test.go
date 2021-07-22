@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccApiManagementBackend_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
 	r := ApiManagementAuthorizationBackendResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "basic"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("protocol").HasValue("http"),
 				check.That(data.ResourceName).Key("url").HasValue("https://acctest"),
@@ -38,10 +37,10 @@ func TestAccApiManagementBackend_allProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
 	r := ApiManagementAuthorizationBackendResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.allProperties(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("protocol").HasValue("http"),
 				check.That(data.ResourceName).Key("url").HasValue("https://acctest"),
@@ -73,10 +72,10 @@ func TestAccApiManagementBackend_credentialsNoCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
 	r := ApiManagementAuthorizationBackendResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.credentialsNoCertificate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -88,10 +87,10 @@ func TestAccApiManagementBackend_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
 	r := ApiManagementAuthorizationBackendResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "update"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("protocol").HasValue("http"),
 				check.That(data.ResourceName).Key("url").HasValue("https://acctest"),
@@ -99,7 +98,7 @@ func TestAccApiManagementBackend_update(t *testing.T) {
 		},
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("protocol").HasValue("soap"),
 				check.That(data.ResourceName).Key("url").HasValue("https://updatedacctest"),
@@ -116,7 +115,7 @@ func TestAccApiManagementBackend_update(t *testing.T) {
 		},
 		{
 			Config: r.basic(data, "update"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("protocol").HasValue("http"),
 				check.That(data.ResourceName).Key("url").HasValue("https://acctest"),
@@ -133,12 +132,27 @@ func TestAccApiManagementBackend_serviceFabric(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
 	r := ApiManagementAuthorizationBackendResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.serviceFabric(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_fabric_cluster.0.client_certificate_thumbprint").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementBackend_serviceFabricClientCertificateId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+	r := ApiManagementAuthorizationBackendResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serviceFabricClientCertificateId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -149,7 +163,7 @@ func TestAccApiManagementBackend_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
 	r := ApiManagementAuthorizationBackendResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config: func(d acceptance.TestData) string {
 				return r.basic(d, "disappears")
@@ -163,10 +177,10 @@ func TestAccApiManagementBackend_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
 	r := ApiManagementAuthorizationBackendResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "import"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -174,7 +188,7 @@ func TestAccApiManagementBackend_requiresImport(t *testing.T) {
 	})
 }
 
-func (ApiManagementAuthorizationBackendResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementAuthorizationBackendResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -191,7 +205,7 @@ func (ApiManagementAuthorizationBackendResource) Exists(ctx context.Context, cli
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (r ApiManagementAuthorizationBackendResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r ApiManagementAuthorizationBackendResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -334,6 +348,39 @@ resource "azurerm_api_management_backend" "test" {
 `, r.template(data, "sf"), data.RandomInteger)
 }
 
+func (r ApiManagementAuthorizationBackendResource) serviceFabricClientCertificateId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_certificate" "test" {
+  name                = "example-cert"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  data                = filebase64("testdata/keyvaultcert.pfx")
+  password            = ""
+}
+
+resource "azurerm_api_management_backend" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  protocol            = "http"
+  url                 = "fabric:/mytestapp/acctest"
+  service_fabric_cluster {
+    client_certificate_id = azurerm_api_management_certificate.test.id
+    management_endpoints = [
+      "https://acctestsf.com",
+    ]
+    max_partition_resolution_retries = 5
+    server_certificate_thumbprints = [
+      azurerm_api_management_certificate.test.thumbprint,
+      azurerm_api_management_certificate.test.thumbprint,
+    ]
+  }
+}
+`, r.template(data, "sf"), data.RandomInteger)
+}
+
 func (r ApiManagementAuthorizationBackendResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -365,7 +412,7 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
+  sku_name            = "Consumption_0"
 }
 `, data.RandomInteger, testName, data.Locations.Primary, data.RandomInteger, testName)
 }

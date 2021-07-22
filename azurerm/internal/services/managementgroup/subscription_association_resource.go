@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/parse"
@@ -18,16 +17,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceManagementGroupSubscriptionAssociation() *schema.Resource {
-	return &schema.Resource{
+func resourceManagementGroupSubscriptionAssociation() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceManagementGroupSubscriptionAssociationCreate,
 		Read:   resourceManagementGroupSubscriptionAssociationRead,
 		Delete: resourceManagementGroupSubscriptionAssociationDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(5 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(5 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -35,16 +34,16 @@ func resourceManagementGroupSubscriptionAssociation() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"management_group_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ManagementGroupID,
 			},
 
 			"subscription_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: subscriptionValidate.SubscriptionID,
@@ -53,7 +52,7 @@ func resourceManagementGroupSubscriptionAssociation() *schema.Resource {
 	}
 }
 
-func resourceManagementGroupSubscriptionAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceManagementGroupSubscriptionAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagementGroups.SubscriptionClient
 	groupsClient := meta.(*clients.Client).ManagementGroups.GroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -100,7 +99,7 @@ func resourceManagementGroupSubscriptionAssociationCreate(d *schema.ResourceData
 	return resourceManagementGroupSubscriptionAssociationRead(d, meta)
 }
 
-func resourceManagementGroupSubscriptionAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceManagementGroupSubscriptionAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	// There is no "read" function on the appropriate client so we need to check if the Subscription is in the Management Group subscription list
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -144,7 +143,7 @@ func resourceManagementGroupSubscriptionAssociationRead(d *schema.ResourceData, 
 	return nil
 }
 
-func resourceManagementGroupSubscriptionAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceManagementGroupSubscriptionAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagementGroups.SubscriptionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

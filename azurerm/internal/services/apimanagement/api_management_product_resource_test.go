@@ -6,12 +6,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccApiManagementProduct_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
 	r := ApiManagementProductResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("approval_required").HasValue("false"),
 				check.That(data.ResourceName).Key("description").HasValue(""),
@@ -44,10 +43,10 @@ func TestAccApiManagementProduct_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
 	r := ApiManagementProductResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -59,10 +58,10 @@ func TestAccApiManagementProduct_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
 	r := ApiManagementProductResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("approval_required").HasValue("false"),
 				check.That(data.ResourceName).Key("description").HasValue(""),
@@ -76,7 +75,7 @@ func TestAccApiManagementProduct_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("approval_required").HasValue("true"),
 				check.That(data.ResourceName).Key("description").HasValue(""),
@@ -90,7 +89,7 @@ func TestAccApiManagementProduct_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("description").HasValue(""),
 				check.That(data.ResourceName).Key("display_name").HasValue("Test Product"),
@@ -107,10 +106,10 @@ func TestAccApiManagementProduct_subscriptionsLimit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
 	r := ApiManagementProductResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.subscriptionLimits(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("approval_required").HasValue("true"),
 				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
@@ -125,10 +124,10 @@ func TestAccApiManagementProduct_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
 	r := ApiManagementProductResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("approval_required").HasValue("true"),
 				check.That(data.ResourceName).Key("description").HasValue("This is an example description"),
@@ -148,7 +147,7 @@ func TestAccApiManagementProduct_approvalRequiredError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
 	r := ApiManagementProductResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.approvalRequiredError(data),
 			ExpectError: regexp.MustCompile("`subscription_required` must be true and `subscriptions_limit` must be greater than 0 to use `approval_required`"),
@@ -156,7 +155,7 @@ func TestAccApiManagementProduct_approvalRequiredError(t *testing.T) {
 	})
 }
 
-func (ApiManagementProductResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementProductResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -191,7 +190,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Developer_1"
+  sku_name = "Consumption_0"
 }
 
 resource "azurerm_api_management_product" "test" {
@@ -239,7 +238,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Developer_1"
+  sku_name = "Consumption_0"
 }
 
 resource "azurerm_api_management_product" "test" {
@@ -273,7 +272,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Developer_1"
+  sku_name = "Consumption_0"
 }
 
 resource "azurerm_api_management_product" "test" {
@@ -307,7 +306,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Developer_1"
+  sku_name = "Consumption_0"
 }
 
 resource "azurerm_api_management_product" "test" {
@@ -342,7 +341,7 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
+  sku_name            = "Consumption_0"
 }
 
 resource "azurerm_api_management_product" "test" {

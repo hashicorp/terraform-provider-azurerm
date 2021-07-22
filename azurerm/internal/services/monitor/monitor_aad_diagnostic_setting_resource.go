@@ -7,28 +7,25 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/parse"
-
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	eventhubParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
 	eventhubValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	logAnalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	logAnalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/validate"
 	storageParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMonitorAADDiagnosticSetting() *schema.Resource {
-	return &schema.Resource{
+func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMonitorAADDiagnosticSettingCreateUpdate,
 		Read:   resourceMonitorAADDiagnosticSettingRead,
 		Update: resourceMonitorAADDiagnosticSettingCreateUpdate,
@@ -38,16 +35,16 @@ func resourceMonitorAADDiagnosticSetting() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(5 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(5 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(5 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.MonitorDiagnosticSettingName,
@@ -55,14 +52,14 @@ func resourceMonitorAADDiagnosticSetting() *schema.Resource {
 
 			// When absent, will use the default eventhub, whilst the Diagnostic Setting API will return this property as an empty string. Therefore, it is useless to make this property as Computed.
 			"eventhub_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: eventhubValidate.ValidateEventHubName(),
 			},
 
 			"eventhub_authorization_rule_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: eventhubValidate.NamespaceAuthorizationRuleID,
@@ -70,14 +67,14 @@ func resourceMonitorAADDiagnosticSetting() *schema.Resource {
 			},
 
 			"log_analytics_workspace_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
 				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id"},
 			},
 
 			"storage_account_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: storageValidate.StorageAccountID,
@@ -85,12 +82,12 @@ func resourceMonitorAADDiagnosticSetting() *schema.Resource {
 			},
 
 			"log": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"category": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(aad.AuditLogs),
@@ -104,25 +101,25 @@ func resourceMonitorAADDiagnosticSetting() *schema.Resource {
 						},
 
 						"enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 
 						"retention_policy": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"enabled": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Optional: true,
 										Default:  false,
 									},
 
 									"days": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Optional:     true,
 										ValidateFunc: validation.IntAtLeast(0),
 										Default:      0,
@@ -137,7 +134,7 @@ func resourceMonitorAADDiagnosticSetting() *schema.Resource {
 	}
 }
 
-func resourceMonitorAADDiagnosticSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAADDiagnosticSettingCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AADDiagnosticSettingsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -159,7 +156,7 @@ func resourceMonitorAADDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 		}
 	}
 
-	logs := expandMonitorAADDiagnosticsSettingsLogs(d.Get("log").(*schema.Set).List())
+	logs := expandMonitorAADDiagnosticsSettingsLogs(d.Get("log").(*pluginsdk.Set).List())
 
 	// If there is no `enabled` log entry, the PUT will succeed while the next GET will return a 404.
 	// Therefore, ensure users has at least one enabled log entry.
@@ -206,7 +203,7 @@ func resourceMonitorAADDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 	return resourceMonitorAADDiagnosticSettingRead(d, meta)
 }
 
-func resourceMonitorAADDiagnosticSettingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAADDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AADDiagnosticSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -270,7 +267,7 @@ func resourceMonitorAADDiagnosticSettingRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceMonitorAADDiagnosticSettingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorAADDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.AADDiagnosticSettingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -290,7 +287,7 @@ func resourceMonitorAADDiagnosticSettingDelete(d *schema.ResourceData, meta inte
 	// API appears to be eventually consistent (identified during tainting this resource)
 	log.Printf("[DEBUG] Waiting for %s to disappear", id)
 	timeout, _ := ctx.Deadline()
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
 		Refresh:                   monitorAADDiagnosticSettingDeletedRefreshFunc(ctx, client, id.Name),
@@ -299,14 +296,14 @@ func resourceMonitorAADDiagnosticSettingDelete(d *schema.ResourceData, meta inte
 		Timeout:                   time.Until(timeout),
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become available: %s", id, err)
 	}
 
 	return nil
 }
 
-func monitorAADDiagnosticSettingDeletedRefreshFunc(ctx context.Context, client *aad.DiagnosticSettingsClient, name string) resource.StateRefreshFunc {
+func monitorAADDiagnosticSettingDeletedRefreshFunc(ctx context.Context, client *aad.DiagnosticSettingsClient, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, name)
 		if err != nil {

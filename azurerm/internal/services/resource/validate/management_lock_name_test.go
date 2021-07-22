@@ -1,13 +1,12 @@
 package validate
 
 import (
+	"strings"
 	"testing"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
 func TestManagementLockName(t *testing.T) {
-	str := acctest.RandString(259)
+	str := strings.Repeat("a", 259)
 	testCases := []struct {
 		input       string
 		shouldError bool

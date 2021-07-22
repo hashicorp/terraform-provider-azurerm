@@ -6,12 +6,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -59,10 +58,10 @@ func testAccAppServiceCustomHostnameBinding_basic(t *testing.T, appServiceEnv, d
 	data := acceptance.BuildTestData(t, "azurerm_app_service_custom_hostname_binding", "test")
 	r := ServiceCustomHostnameBindingResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data, appServiceEnv, domainEnv),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -74,10 +73,10 @@ func testAccAppServiceCustomHostnameBinding_requiresImport(t *testing.T, appServ
 	data := acceptance.BuildTestData(t, "azurerm_app_service_custom_hostname_binding", "test")
 	r := ServiceCustomHostnameBindingResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data, appServiceEnv, domainEnv),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -97,10 +96,10 @@ func testAccAppServiceCustomHostnameBinding_multiple(t *testing.T, appServiceEnv
 	data := acceptance.BuildTestData(t, "azurerm_app_service_custom_hostname_binding", "test")
 	r := ServiceCustomHostnameBindingResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleConfig(data, appServiceEnv, domainEnv, altDomainEnv),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -111,10 +110,10 @@ func testAccAppServiceCustomHostnameBinding_ssl(t *testing.T, appServiceEnv, dom
 	data := acceptance.BuildTestData(t, "azurerm_app_service_custom_hostname_binding", "test")
 	r := ServiceCustomHostnameBindingResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sslConfig(data, appServiceEnv, domainEnv),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -122,7 +121,7 @@ func testAccAppServiceCustomHostnameBinding_ssl(t *testing.T, appServiceEnv, dom
 	})
 }
 
-func (r ServiceCustomHostnameBindingResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r ServiceCustomHostnameBindingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AppServiceCustomHostnameBindingID(state.ID)
 	if err != nil {
 		return nil, err

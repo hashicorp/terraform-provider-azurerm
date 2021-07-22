@@ -67,9 +67,9 @@ A `permissions` block as the following properties:
 
 The following attributes are exported:
 
-* `id` - The Role Definition ID.
+* `id` - This ID is specific to Terraform - and is of the format `{roleDefinitionId}|{scope}`.
 
-* `role_definition_id` - This ID is specific to Terraform - and is of the format `{roleDefinitionId}|{scope}`.
+* `role_definition_id` - The Role Definition ID.
 
 * `role_definition_resource_id` - The Azure Resource Manager ID for the resource.
 

@@ -6,11 +6,11 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-func customizeHttpsConfigurationCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
+func customizeHttpsConfigurationCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 	if v, ok := d.GetOk("frontend_endpoint_id"); ok && v.(string) != "" {
 		id, err := parse.FrontendEndpointID(v.(string))
 		if err != nil {
@@ -25,7 +25,7 @@ func customizeHttpsConfigurationCustomizeDiff(ctx context.Context, d *schema.Res
 	return nil
 }
 
-func customHttpsSettings(d *schema.ResourceDiff) error {
+func customHttpsSettings(d *pluginsdk.ResourceDiff) error {
 	frontendEndpointCustomHttpsConfig := d.Get("custom_https_configuration").([]interface{})
 	customHttpsEnabled := d.Get("custom_https_provisioning_enabled").(bool)
 
@@ -103,7 +103,7 @@ func azureKeyVaultCertificateHasValues(customHttpsConfiguration map[string]inter
 	return false
 }
 
-func frontDoorCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
+func frontDoorCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 	if err := frontDoorSettings(d); err != nil {
 		return fmt.Errorf("validating Front Door %q (Resource Group %q): %+v", d.Get("name").(string), d.Get("resource_group_name").(string), err)
 	}
@@ -111,7 +111,7 @@ func frontDoorCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, v inter
 	return nil
 }
 
-func frontDoorSettings(d *schema.ResourceDiff) error {
+func frontDoorSettings(d *pluginsdk.ResourceDiff) error {
 	routingRules := d.Get("routing_rule").([]interface{})
 	configFrontendEndpoints := d.Get("frontend_endpoint").([]interface{})
 	backendPools := d.Get("backend_pool").([]interface{})

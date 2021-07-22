@@ -7,9 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -19,12 +16,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/state"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceLogAnalyticsDataSourceWindowsEvent() *schema.Resource {
-	return &schema.Resource{
+func resourceLogAnalyticsDataSourceWindowsEvent() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceLogAnalyticsDataSourceWindowsEventCreateUpdate,
 		Read:   resourceLogAnalyticsDataSourceWindowsEventRead,
 		Update: resourceLogAnalyticsDataSourceWindowsEventCreateUpdate,
@@ -35,16 +33,16 @@ func resourceLogAnalyticsDataSourceWindowsEvent() *schema.Resource {
 			return err
 		}, importLogAnalyticsDataSource(operationalinsights.WindowsEvent)),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -53,7 +51,7 @@ func resourceLogAnalyticsDataSourceWindowsEvent() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"workspace_name": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -61,18 +59,18 @@ func resourceLogAnalyticsDataSourceWindowsEvent() *schema.Resource {
 			},
 
 			"event_log_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"event_types": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MinItems: 1,
 				Set:      set.HashStringIgnoreCase,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					// API backend accepts event_types case-insensitively
 					ValidateFunc:     validation.StringInSlice([]string{"error", "warning", "information"}, true),
 					StateFunc:        state.IgnoreCase,
@@ -94,7 +92,7 @@ type dataSourceWindowsEventEventType struct {
 	EventType string `json:"eventType"`
 }
 
-func resourceLogAnalyticsDataSourceWindowsEventCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsEventCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -120,7 +118,7 @@ func resourceLogAnalyticsDataSourceWindowsEventCreateUpdate(d *schema.ResourceDa
 		Kind: operationalinsights.WindowsEvent,
 		Properties: &dataSourceWindowsEvent{
 			EventLogName: d.Get("event_log_name").(string),
-			EventTypes:   expandLogAnalyticsDataSourceWindowsEventEventType(d.Get("event_types").(*schema.Set).List()),
+			EventTypes:   expandLogAnalyticsDataSourceWindowsEventEventType(d.Get("event_types").(*pluginsdk.Set).List()),
 		},
 	}
 
@@ -140,7 +138,7 @@ func resourceLogAnalyticsDataSourceWindowsEventCreateUpdate(d *schema.ResourceDa
 	return resourceLogAnalyticsDataSourceWindowsEventRead(d, meta)
 }
 
-func resourceLogAnalyticsDataSourceWindowsEventRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsEventRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,7 +163,7 @@ func resourceLogAnalyticsDataSourceWindowsEventRead(d *schema.ResourceData, meta
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("workspace_name", id.Workspace)
 	if props := resp.Properties; props != nil {
-		propStr, err := structure.FlattenJsonToString(props.(map[string]interface{}))
+		propStr, err := pluginsdk.FlattenJsonToString(props.(map[string]interface{}))
 		if err != nil {
 			return fmt.Errorf("failed to flatten properties map to json for Log Analytics DataSource Windows Event %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
 		}
@@ -182,7 +180,7 @@ func resourceLogAnalyticsDataSourceWindowsEventRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceLogAnalyticsDataSourceWindowsEventDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsEventDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

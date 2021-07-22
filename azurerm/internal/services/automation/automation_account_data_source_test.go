@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
@@ -14,10 +13,10 @@ type AutomationAccountDataSource struct {
 func TestAccDataSourceAutomationAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_automation_account", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: AutomationAccountDataSource{}.complete(data),
-			Check:  resource.ComposeTestCheckFunc(),
+			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 	})
 }

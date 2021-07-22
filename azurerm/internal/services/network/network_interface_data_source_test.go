@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,13 +15,13 @@ func TestAccDataSourceArmNetworkInterface_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_interface", "test")
 	r := NetworkInterfaceDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: NetworkInterfaceResource{}.static(data),
 		},
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("private_ip_address").HasValue("10.0.2.15"),
 			),
 		},

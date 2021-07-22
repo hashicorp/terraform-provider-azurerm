@@ -7,12 +7,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -31,30 +30,32 @@ func PossibleEventSubscriptionEndpointTypes() []string {
 	}
 }
 
-func resourceEventGridEventSubscription() *schema.Resource {
-	return &schema.Resource{
+func resourceEventGridEventSubscription() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceEventGridEventSubscriptionCreateUpdate,
 		Read:   resourceEventGridEventSubscriptionRead,
 		Update: resourceEventGridEventSubscriptionCreateUpdate,
 		Delete: resourceEventGridEventSubscriptionDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(eventSubscriptionCustomizeDiffAdvancedFilter),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.EventSubscriptionID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": eventSubscriptionSchemaEventSubscriptionName(),
 
 			"scope": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -65,7 +66,7 @@ func resourceEventGridEventSubscription() *schema.Resource {
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
 
 			"topic_name": {
-				Type:       schema.TypeString,
+				Type:       pluginsdk.TypeString,
 				Optional:   true,
 				Computed:   true,
 				Deprecated: "This field has been updated to readonly field since Apr 25, 2019 so no longer has any affect and will be removed in version 3.0 of the provider.",
@@ -145,11 +146,13 @@ func resourceEventGridEventSubscription() *schema.Resource {
 			"retry_policy": eventSubscriptionSchemaRetryPolicy(),
 
 			"labels": eventSubscriptionSchemaLabels(),
+
+			"advanced_filtering_on_arrays_enabled": eventSubscriptionSchemaEnableAdvancedFilteringOnArrays(),
 		},
 	}
 }
 
-func resourceEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.EventSubscriptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -223,7 +226,7 @@ func resourceEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, meta
 	return resourceEventGridEventSubscriptionRead(d, meta)
 }
 
-func resourceEventGridEventSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.EventSubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -304,6 +307,7 @@ func resourceEventGridEventSubscriptionRead(d *schema.ResourceData, meta interfa
 
 		if filter := props.Filter; filter != nil {
 			d.Set("included_event_types", filter.IncludedEventTypes)
+			d.Set("advanced_filtering_on_arrays_enabled", filter.EnableAdvancedFilteringOnArrays)
 			if err := d.Set("subject_filter", flattenEventGridEventSubscriptionSubjectFilter(filter)); err != nil {
 				return fmt.Errorf("Error setting `subject_filter` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
 			}
@@ -334,7 +338,7 @@ func resourceEventGridEventSubscriptionRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceEventGridEventSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridEventSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.EventSubscriptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

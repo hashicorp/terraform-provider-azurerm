@@ -6,28 +6,25 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
 
-func resourceExpressRouteCircuit() *schema.Resource {
-	return &schema.Resource{
+func resourceExpressRouteCircuit() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceExpressRouteCircuitCreateUpdate,
 		Read:   resourceExpressRouteCircuitRead,
 		Update: resourceExpressRouteCircuitCreateUpdate,
@@ -42,16 +39,16 @@ func resourceExpressRouteCircuit() *schema.Resource {
 			}),
 		),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -60,33 +57,14 @@ func resourceExpressRouteCircuit() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"service_provider_name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-			},
-
-			"peering_location": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-			},
-
-			"bandwidth_in_mbps": {
-				Type:     schema.TypeInt,
-				Required: true,
-			},
-
 			"sku": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"tier": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ExpressRouteCircuitSkuTierBasic),
@@ -98,11 +76,11 @@ func resourceExpressRouteCircuit() *schema.Resource {
 						},
 
 						"family": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.MeteredData),
-								string(network.UnlimitedData),
+								string(network.ExpressRouteCircuitSkuFamilyMeteredData),
+								string(network.ExpressRouteCircuitSkuFamilyUnlimitedData),
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
@@ -111,18 +89,59 @@ func resourceExpressRouteCircuit() *schema.Resource {
 			},
 
 			"allow_classic_operations": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
+			"service_provider_name": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				RequiredWith:     []string{"bandwidth_in_mbps", "peering_location"},
+				ConflictsWith:    []string{"bandwidth_in_gbps", "express_route_port_id"},
+			},
+
+			"peering_location": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				RequiredWith:     []string{"bandwidth_in_mbps", "service_provider_name"},
+				ConflictsWith:    []string{"bandwidth_in_gbps", "express_route_port_id"},
+			},
+
+			"bandwidth_in_mbps": {
+				Type:          pluginsdk.TypeInt,
+				Optional:      true,
+				RequiredWith:  []string{"peering_location", "service_provider_name"},
+				ConflictsWith: []string{"bandwidth_in_gbps", "express_route_port_id"},
+			},
+
+			"bandwidth_in_gbps": {
+				Type:          pluginsdk.TypeFloat,
+				Optional:      true,
+				RequiredWith:  []string{"express_route_port_id"},
+				ConflictsWith: []string{"bandwidth_in_mbps", "peering_location", "service_provider_name"},
+			},
+
+			"express_route_port_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				RequiredWith:  []string{"bandwidth_in_gbps"},
+				ConflictsWith: []string{"bandwidth_in_mbps", "peering_location", "service_provider_name"},
+				ValidateFunc:  validate.ExpressRoutePortID,
+			},
+
 			"service_provider_provisioning_state": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"service_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
@@ -132,7 +151,7 @@ func resourceExpressRouteCircuit() *schema.Resource {
 	}
 }
 
-func resourceExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -159,12 +178,9 @@ func resourceExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	serviceProviderName := d.Get("service_provider_name").(string)
-	peeringLocation := d.Get("peering_location").(string)
-	bandwidthInMbps := int32(d.Get("bandwidth_in_mbps").(int))
 	sku := expandExpressRouteCircuitSku(d)
-	allowRdfeOps := d.Get("allow_classic_operations").(bool)
 	t := d.Get("tags").(map[string]interface{})
+	allowRdfeOps := d.Get("allow_classic_operations").(bool)
 	expandedTags := tags.Expand(t)
 
 	// There is the potential for the express route circuit to become out of sync when the service provider updates
@@ -196,22 +212,26 @@ func resourceExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta interf
 	erc.Sku = sku
 	erc.Tags = expandedTags
 
-	if erc.ExpressRouteCircuitPropertiesFormat != nil {
+	if !d.IsNewResource() {
 		erc.ExpressRouteCircuitPropertiesFormat.AllowClassicOperations = &allowRdfeOps
-		if erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties != nil {
-			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.ServiceProviderName = &serviceProviderName
-			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.PeeringLocation = &peeringLocation
-			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.BandwidthInMbps = &bandwidthInMbps
-		}
 	} else {
-		erc.ExpressRouteCircuitPropertiesFormat = &network.ExpressRouteCircuitPropertiesFormat{
-			AllowClassicOperations: &allowRdfeOps,
-			ServiceProviderProperties: &network.ExpressRouteCircuitServiceProviderProperties{
-				ServiceProviderName: &serviceProviderName,
-				PeeringLocation:     &peeringLocation,
-				BandwidthInMbps:     &bandwidthInMbps,
-			},
+		erc.ExpressRouteCircuitPropertiesFormat = &network.ExpressRouteCircuitPropertiesFormat{}
+
+		// ServiceProviderProperties and expressRoutePorts/bandwidthInGbps properties are mutually exclusive
+		if _, ok := d.GetOk("express_route_port_id"); ok {
+			erc.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort = &network.SubResource{}
+		} else {
+			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties = &network.ExpressRouteCircuitServiceProviderProperties{}
 		}
+	}
+
+	if erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties != nil {
+		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.ServiceProviderName = utils.String(d.Get("service_provider_name").(string))
+		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.PeeringLocation = utils.String(d.Get("peering_location").(string))
+		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.BandwidthInMbps = utils.Int32(int32(d.Get("bandwidth_in_mbps").(int)))
+	} else {
+		erc.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort.ID = utils.String(d.Get("express_route_port_id").(string))
+		erc.ExpressRouteCircuitPropertiesFormat.BandwidthInGbps = utils.Float(d.Get("bandwidth_in_gbps").(float64))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, erc)
@@ -225,16 +245,16 @@ func resourceExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta interf
 
 	// API has bug, which appears to be eventually consistent on creation. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10148
 	log.Printf("[DEBUG] Waiting for Express Route Circuit %q (Resource Group %q) to be able to be queried", name, resGroup)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"NotFound"},
 		Target:                    []string{"Exists"},
 		Refresh:                   expressRouteCircuitCreationRefreshFunc(ctx, client, resGroup, name),
 		PollInterval:              3 * time.Second,
 		ContinuousTargetOccurence: 3,
-		Timeout:                   d.Timeout(schema.TimeoutCreate),
+		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error for Express Route Circuit %q (Resource Group %q) to be able to be queried: %+v", name, resGroup, err)
 	}
 
@@ -251,7 +271,7 @@ func resourceExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta interf
 	return resourceExpressRouteCircuitRead(d, meta)
 }
 
-func resourceExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ercClient := meta.(*clients.Client).Network.ExpressRouteCircuitsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -288,6 +308,18 @@ func resourceExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	if resp.ExpressRoutePort != nil {
+		d.Set("bandwidth_in_gbps", resp.BandwidthInGbps)
+
+		if resp.ExpressRoutePort.ID != nil {
+			portID, err := parse.ExpressRoutePortID(*resp.ExpressRoutePort.ID)
+			if err != nil {
+				return err
+			}
+			d.Set("express_route_port_id", portID.ID())
+		}
+	}
+
 	if props := resp.ServiceProviderProperties; props != nil {
 		d.Set("service_provider_name", props.ServiceProviderName)
 		d.Set("peering_location", props.PeeringLocation)
@@ -301,7 +333,7 @@ func resourceExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceExpressRouteCircuitDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -325,9 +357,9 @@ func resourceExpressRouteCircuitDelete(d *schema.ResourceData, meta interface{})
 	return future.WaitForCompletionRef(ctx, client.Client)
 }
 
-func expandExpressRouteCircuitSku(d *schema.ResourceData) *network.ExpressRouteCircuitSku {
+func expandExpressRouteCircuitSku(d *pluginsdk.ResourceData) *network.ExpressRouteCircuitSku {
 	skuSettings := d.Get("sku").([]interface{})
-	v := skuSettings[0].(map[string]interface{}) // [0] is guarded by MinItems in schema.
+	v := skuSettings[0].(map[string]interface{}) // [0] is guarded by MinItems in pluginsdk.
 	tier := v["tier"].(string)
 	family := v["family"].(string)
 	name := fmt.Sprintf("%s_%s", tier, family)
@@ -348,7 +380,7 @@ func flattenExpressRouteCircuitSku(sku *network.ExpressRouteCircuitSku) []interf
 	}
 }
 
-func expressRouteCircuitCreationRefreshFunc(ctx context.Context, client *network.ExpressRouteCircuitsClient, resGroup, name string) resource.StateRefreshFunc {
+func expressRouteCircuitCreationRefreshFunc(ctx context.Context, client *network.ExpressRouteCircuitsClient, resGroup, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resGroup, name)
 		if err != nil {

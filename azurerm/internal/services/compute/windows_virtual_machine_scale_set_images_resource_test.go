@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -13,10 +12,10 @@ func TestAccWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.imagesAutomaticUpdate(data, "2016-Datacenter"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -26,7 +25,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
 		),
 		{
 			Config: r.imagesAutomaticUpdate(data, "2019-Datacenter"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -41,10 +40,10 @@ func TestAccWindowsVirtualMachineScaleSet_imagesDisableAutomaticUpdate(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.imagesDisableAutomaticUpdate(data, "2016-Datacenter"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -54,7 +53,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesDisableAutomaticUpdate(t *testin
 		),
 		{
 			Config: r.imagesDisableAutomaticUpdate(data, "2019-Datacenter"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -69,7 +68,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// provision a standard Virtual Machine with an Unmanaged Disk
 			Config: r.imagesFromVirtualMachinePrerequisitesWithVM(data),
@@ -85,7 +84,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(
 		{
 			// then provision a Virtual Machine Scale Set using this image
 			Config: r.imagesFromVirtualMachine(data, "first"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -95,7 +94,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(
 		{
 			// then update the image on this Virtual Machine Scale Set
 			Config: r.imagesFromVirtualMachine(data, "second"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				// Ensure the storage account and disk size has not changed
 				check.That(data.ResourceName).Key("os_disk.0.storage_account_type").HasValue("Standard_LRS"),
@@ -112,10 +111,10 @@ func TestAccWindowsVirtualMachineScaleSet_imagesManualUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.imagesManualUpdate(data, "2016-Datacenter"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -124,7 +123,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesManualUpdate(t *testing.T) {
 		),
 		{
 			Config: r.imagesManualUpdate(data, "2019-Datacenter"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -138,10 +137,10 @@ func TestAccWindowsVirtualMachineScaleSet_imagesManualUpdateExternalRoll(t *test
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.imagesManualUpdateExternalRoll(data, "2016-Datacenter"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -150,7 +149,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesManualUpdateExternalRoll(t *test
 		),
 		{
 			Config: r.imagesManualUpdateExternalRoll(data, "2019-Datacenter"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -164,10 +163,10 @@ func TestAccWindowsVirtualMachineScaleSet_imagesRollingUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.imagesRollingUpdate(data, "2019-Datacenter"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -176,7 +175,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesRollingUpdate(t *testing.T) {
 		),
 		{
 			Config: r.imagesRollingUpdate(data, "2019-Datacenter"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -190,10 +189,10 @@ func TestAccWindowsVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.imagesPlan(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},

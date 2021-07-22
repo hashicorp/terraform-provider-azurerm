@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,12 +13,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceApiManagementApiVersionSet() *schema.Resource {
-	return &schema.Resource{
+func resourceApiManagementApiVersionSet() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceApiManagementApiVersionSetCreateUpdate,
 		Read:   resourceApiManagementApiVersionSetRead,
 		Update: resourceApiManagementApiVersionSetCreateUpdate,
@@ -28,11 +27,11 @@ func resourceApiManagementApiVersionSet() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		SchemaVersion: 1,
@@ -40,7 +39,7 @@ func resourceApiManagementApiVersionSet() *schema.Resource {
 			0: migration.ApiVersionSetV0ToV1{},
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": schemaz.SchemaApiManagementChildName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -48,13 +47,13 @@ func resourceApiManagementApiVersionSet() *schema.Resource {
 			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"display_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"versioning_scheme": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(apimanagement.VersioningSchemeHeader),
@@ -64,20 +63,20 @@ func resourceApiManagementApiVersionSet() *schema.Resource {
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"version_header_name": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ValidateFunc:  validation.StringIsNotEmpty,
 				ConflictsWith: []string{"version_query_name"},
 			},
 
 			"version_query_name": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ValidateFunc:  validation.StringIsNotEmpty,
 				ConflictsWith: []string{"version_header_name"},
@@ -86,7 +85,7 @@ func resourceApiManagementApiVersionSet() *schema.Resource {
 	}
 }
 
-func resourceApiManagementApiVersionSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiVersionSetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiVersionSetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -169,7 +168,7 @@ func resourceApiManagementApiVersionSetCreateUpdate(d *schema.ResourceData, meta
 	return resourceApiManagementApiVersionSetRead(d, meta)
 }
 
-func resourceApiManagementApiVersionSetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiVersionSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiVersionSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -205,7 +204,7 @@ func resourceApiManagementApiVersionSetRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceApiManagementApiVersionSetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiVersionSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiVersionSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

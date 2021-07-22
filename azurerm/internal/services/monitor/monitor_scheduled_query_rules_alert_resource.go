@@ -7,23 +7,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceMonitorScheduledQueryRulesAlert() *schema.Resource {
-	return &schema.Resource{
+func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceMonitorScheduledQueryRulesAlertCreateUpdate,
 		Read:   resourceMonitorScheduledQueryRulesAlertRead,
 		Update: resourceMonitorScheduledQueryRulesAlertCreateUpdate,
@@ -31,16 +29,16 @@ func resourceMonitorScheduledQueryRulesAlert() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringDoesNotContainAny("<>*%&:\\?+/"),
@@ -51,30 +49,30 @@ func resourceMonitorScheduledQueryRulesAlert() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"authorized_resource_ids": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MaxItems: 100,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
 			},
 			"action": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"action_group": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: azure.ValidateResourceID,
 							},
 						},
 						"custom_webhook_payload": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							// TODO remove `Computed: true` in 3.0. This is a breaking change where the Default used to be "{}"
 							// We'll keep Computed: true for users who expect the same functionality but will remove it in 3.0
@@ -82,7 +80,7 @@ func resourceMonitorScheduledQueryRulesAlert() *schema.Resource {
 							ValidateFunc: validation.StringIsJSON,
 						},
 						"email_subject": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -90,32 +88,32 @@ func resourceMonitorScheduledQueryRulesAlert() *schema.Resource {
 				},
 			},
 			"data_source_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 4096),
 			},
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 			"frequency": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntBetween(5, 1440),
 			},
 			"query": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"query_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "ResultCount",
 				ValidateFunc: validation.StringInSlice([]string{
@@ -123,39 +121,39 @@ func resourceMonitorScheduledQueryRulesAlert() *schema.Resource {
 				}, false),
 			},
 			"severity": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 4),
 			},
 			"throttling": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 10000),
 			},
 			"time_window": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntBetween(5, 2880),
 			},
 			"trigger": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"metric_trigger": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"metric_column": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"metric_trigger_type": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"Consecutive",
@@ -163,7 +161,7 @@ func resourceMonitorScheduledQueryRulesAlert() *schema.Resource {
 										}, false),
 									},
 									"operator": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"GreaterThan",
@@ -172,7 +170,7 @@ func resourceMonitorScheduledQueryRulesAlert() *schema.Resource {
 										}, false),
 									},
 									"threshold": {
-										Type:         schema.TypeFloat,
+										Type:         pluginsdk.TypeFloat,
 										Required:     true,
 										ValidateFunc: validate.ScheduledQueryRulesAlertThreshold,
 									},
@@ -180,7 +178,7 @@ func resourceMonitorScheduledQueryRulesAlert() *schema.Resource {
 							},
 						},
 						"operator": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"GreaterThan",
@@ -189,7 +187,7 @@ func resourceMonitorScheduledQueryRulesAlert() *schema.Resource {
 							}, false),
 						},
 						"threshold": {
-							Type:         schema.TypeFloat,
+							Type:         pluginsdk.TypeFloat,
 							Required:     true,
 							ValidateFunc: validate.ScheduledQueryRulesAlertThreshold,
 						},
@@ -202,7 +200,7 @@ func resourceMonitorScheduledQueryRulesAlert() *schema.Resource {
 	}
 }
 
-func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	action := expandMonitorScheduledQueryRulesAlertingAction(d)
 	schedule := expandMonitorScheduledQueryRulesAlertSchedule(d)
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
@@ -284,7 +282,7 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *schema.ResourceData,
 	return resourceMonitorScheduledQueryRulesAlertRead(d, meta)
 }
 
-func resourceMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -361,7 +359,7 @@ func resourceMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, meta in
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceMonitorScheduledQueryRulesAlertDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesAlertDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -382,7 +380,7 @@ func resourceMonitorScheduledQueryRulesAlertDelete(d *schema.ResourceData, meta 
 	return nil
 }
 
-func expandMonitorScheduledQueryRulesAlertingAction(d *schema.ResourceData) *insights.AlertingAction {
+func expandMonitorScheduledQueryRulesAlertingAction(d *pluginsdk.ResourceData) *insights.AlertingAction {
 	alertActionRaw := d.Get("action").([]interface{})
 	alertAction := expandMonitorScheduledQueryRulesAlertAction(alertActionRaw)
 	severityRaw := d.Get("severity").(int)
@@ -418,7 +416,7 @@ func expandMonitorScheduledQueryRulesAlertAction(input []interface{}) *insights.
 		if !ok {
 			continue
 		}
-		actionGroups := v["action_group"].(*schema.Set).List()
+		actionGroups := v["action_group"].(*pluginsdk.Set).List()
 		result.ActionGroup = utils.ExpandStringSlice(actionGroups)
 		result.EmailSubject = utils.String(v["email_subject"].(string))
 		if v := v["custom_webhook_payload"].(string); v != "" {
@@ -452,7 +450,7 @@ func expandMonitorScheduledQueryRulesAlertMetricTrigger(input []interface{}) *in
 	return &result
 }
 
-func expandMonitorScheduledQueryRulesAlertSchedule(d *schema.ResourceData) *insights.Schedule {
+func expandMonitorScheduledQueryRulesAlertSchedule(d *pluginsdk.ResourceData) *insights.Schedule {
 	frequency := d.Get("frequency").(int)
 	timeWindow := d.Get("time_window").(int)
 

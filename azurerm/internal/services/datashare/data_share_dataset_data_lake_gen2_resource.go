@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/helper"
@@ -16,20 +14,21 @@ import (
 	storageParsers "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataShareDataSetDataLakeGen2() *schema.Resource {
-	return &schema.Resource{
+func resourceDataShareDataSetDataLakeGen2() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDataShareDataSetDataLakeGen2Create,
 		Read:   resourceDataShareDataSetDataLakeGen2Read,
 		Delete: resourceDataShareDataSetDataLakeGen2Delete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -37,37 +36,37 @@ func resourceDataShareDataSetDataLakeGen2() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataSetName(),
 			},
 
 			"share_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ShareID,
 			},
 
 			"storage_account_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: storageValidate.StorageAccountID,
 			},
 
 			"file_system_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"file_path": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ForceNew:      true,
 				ValidateFunc:  validation.StringIsNotEmpty,
@@ -75,7 +74,7 @@ func resourceDataShareDataSetDataLakeGen2() *schema.Resource {
 			},
 
 			"folder_path": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ForceNew:      true,
 				ValidateFunc:  validation.StringIsNotEmpty,
@@ -83,14 +82,14 @@ func resourceDataShareDataSetDataLakeGen2() *schema.Resource {
 			},
 
 			"display_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceDataShareDataSetDataLakeGen2Create(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,7 +170,7 @@ func resourceDataShareDataSetDataLakeGen2Create(d *schema.ResourceData, meta int
 	return resourceDataShareDataSetDataLakeGen2Read(d, meta)
 }
 
-func resourceDataShareDataSetDataLakeGen2Read(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetDataLakeGen2Read(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	shareClient := meta.(*clients.Client).DataShare.SharesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -232,7 +231,7 @@ func resourceDataShareDataSetDataLakeGen2Read(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceDataShareDataSetDataLakeGen2Delete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetDataLakeGen2Delete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

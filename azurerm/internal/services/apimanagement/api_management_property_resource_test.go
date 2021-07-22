@@ -6,12 +6,10 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +20,10 @@ func TestAccApiManagementProperty_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_property", "test")
 	r := ApiManagementPropertyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("TestProperty%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("value").HasValue("Test Value"),
@@ -41,10 +39,10 @@ func TestAccApiManagementProperty_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_property", "test")
 	r := ApiManagementPropertyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("TestProperty%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("value").HasValue("Test Value"),
@@ -55,7 +53,7 @@ func TestAccApiManagementProperty_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("TestProperty2%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("secret").HasValue("true"),
@@ -67,7 +65,7 @@ func TestAccApiManagementProperty_update(t *testing.T) {
 	})
 }
 
-func (ApiManagementPropertyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementPropertyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -102,7 +100,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Developer_1"
+  sku_name = "Consumption_0"
 }
 
 resource "azurerm_api_management_property" "test" {
@@ -134,7 +132,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Developer_1"
+  sku_name = "Consumption_0"
 }
 
 resource "azurerm_api_management_property" "test" {

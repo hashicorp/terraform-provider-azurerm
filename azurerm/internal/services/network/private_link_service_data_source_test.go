@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -18,10 +17,10 @@ func TestAccDataSourcePrivateLinkService_complete(t *testing.T) {
 	r := PrivateLinkServiceDataSource{}
 	subscriptionId := os.Getenv("ARM_SUBSCRIPTION_ID")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("2"),
 				check.That(data.ResourceName).Key("nat_ip_configuration.0.private_ip_address").HasValue("10.5.1.40"),
 				check.That(data.ResourceName).Key("nat_ip_configuration.0.private_ip_address_version").HasValue("IPv4"),

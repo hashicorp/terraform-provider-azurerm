@@ -8,15 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
-
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -26,12 +19,14 @@ import (
 	networkParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceIntegrationServiceEnvironment() *schema.Resource {
-	return &schema.Resource{
+func resourceIntegrationServiceEnvironment() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceIntegrationServiceEnvironmentCreateUpdate,
 		Read:   resourceIntegrationServiceEnvironmentRead,
 		Update: resourceIntegrationServiceEnvironmentCreateUpdate,
@@ -39,16 +34,16 @@ func resourceIntegrationServiceEnvironment() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(5 * time.Hour),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(5 * time.Hour),
-			Delete: schema.DefaultTimeout(5 * time.Hour),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(5 * time.Hour),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(5 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(5 * time.Hour),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.IntegrationServiceEnvironmentName(),
@@ -61,7 +56,7 @@ func resourceIntegrationServiceEnvironment() *schema.Resource {
 			// Maximum scale units that you can add	10 - https://docs.microsoft.com/en-US/azure/logic-apps/logic-apps-limits-and-config#integration-service-environment-ise
 			// Developer Always 0 capacity
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "Developer_0",
 				ValidateFunc: validation.StringInSlice([]string{
@@ -81,7 +76,7 @@ func resourceIntegrationServiceEnvironment() *schema.Resource {
 			},
 
 			"access_endpoint_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true, // The access end point type cannot be changed once the integration service environment is provisioned.
 				ValidateFunc: validation.StringInSlice([]string{
@@ -91,11 +86,11 @@ func resourceIntegrationServiceEnvironment() *schema.Resource {
 			},
 
 			"virtual_network_subnet_ids": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				ForceNew: true, // The network configuration subnets cannot be updated after integration service environment is created.
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: networkValidate.SubnetID,
 				},
 				MinItems: 4,
@@ -103,27 +98,27 @@ func resourceIntegrationServiceEnvironment() *schema.Resource {
 			},
 
 			"connector_endpoint_ip_addresses": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"connector_outbound_ip_addresses": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"workflow_endpoint_ip_addresses": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"workflow_outbound_ip_addresses": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
 			"tags": tags.Schema(),
@@ -140,7 +135,7 @@ func resourceIntegrationServiceEnvironment() *schema.Resource {
 	}
 }
 
-func resourceIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIntegrationServiceEnvironmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,7 +160,7 @@ func resourceIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData, m
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	accessEndpointType := d.Get("access_endpoint_type").(string)
-	virtualNetworkSubnetIds := d.Get("virtual_network_subnet_ids").(*schema.Set).List()
+	virtualNetworkSubnetIds := d.Get("virtual_network_subnet_ids").(*pluginsdk.Set).List()
 	t := d.Get("tags").(map[string]interface{})
 
 	sku, err := expandIntegrationServiceEnvironmentSkuName(d.Get("sku_name").(string))
@@ -211,7 +206,7 @@ func resourceIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData, m
 	return resourceIntegrationServiceEnvironmentRead(d, meta)
 }
 
-func resourceIntegrationServiceEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIntegrationServiceEnvironmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -270,7 +265,7 @@ func resourceIntegrationServiceEnvironmentRead(d *schema.ResourceData, meta inte
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceIntegrationServiceEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIntegrationServiceEnvironmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -309,17 +304,17 @@ func resourceIntegrationServiceEnvironmentDelete(d *schema.ResourceData, meta in
 		return fmt.Errorf("deleting Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{string(logic.WorkflowProvisioningStateDeleting)},
 		Target:                    []string{string(logic.WorkflowProvisioningStateDeleted)},
 		MinTimeout:                5 * time.Minute,
 		Refresh:                   integrationServiceEnvironmentDeleteStateRefreshFunc(ctx, meta.(*clients.Client), d.Id(), subnetIDs),
-		Timeout:                   d.Timeout(schema.TimeoutDelete),
+		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 		ContinuousTargetOccurence: 1,
 		NotFoundChecks:            1,
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for deletion of Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -407,7 +402,7 @@ func getSubnetIDs(input *logic.IntegrationServiceEnvironment) []interface{} {
 	return results
 }
 
-func integrationServiceEnvironmentDeleteStateRefreshFunc(ctx context.Context, client *clients.Client, iseID string, subnetIDs []interface{}) resource.StateRefreshFunc {
+func integrationServiceEnvironmentDeleteStateRefreshFunc(ctx context.Context, client *clients.Client, iseID string, subnetIDs []interface{}) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		linkExists, err := linkExists(ctx, client, iseID, subnetIDs)
 		if err != nil {

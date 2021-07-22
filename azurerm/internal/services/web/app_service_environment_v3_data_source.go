@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,10 +19,10 @@ type AppServiceEnvironmentV3DataSource struct{}
 
 var _ sdk.DataSource = AppServiceEnvironmentV3DataSource{}
 
-func (r AppServiceEnvironmentV3DataSource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func (r AppServiceEnvironmentV3DataSource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.AppServiceEnvironmentName,
 		},
@@ -31,29 +31,39 @@ func (r AppServiceEnvironmentV3DataSource) Arguments() map[string]*schema.Schema
 	}
 }
 
-func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"subnet_id": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
 		"cluster_setting": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Computed: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 
 					"value": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 				},
 			},
+		},
+
+		"pricing_tier": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"location": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
 		"tags": tags.SchemaDataSource(),
@@ -74,10 +84,14 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Web.AppServiceEnvironmentsClient
-			id, err := parse.AppServiceEnvironmentID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			var appServiceEnvironmentV3 AppServiceEnvironmentV3Model
+			if err := metadata.Decode(&appServiceEnvironmentV3); err != nil {
+				return fmt.Errorf("decoding %+v", err)
 			}
+
+			id := parse.NewAppServiceEnvironmentID(subscriptionId, appServiceEnvironmentV3.ResourceGroup, appServiceEnvironmentV3.Name)
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
 			if err != nil {
@@ -105,6 +119,7 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 
 			model.Tags = tags.Flatten(existing.Tags)
 
+			metadata.SetID(id)
 			return metadata.Encode(&model)
 		},
 	}

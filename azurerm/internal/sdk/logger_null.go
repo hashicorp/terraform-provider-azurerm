@@ -3,8 +3,7 @@ package sdk
 // NullLogger disregards the log output - and is intended to be used
 // when the contents of the debug logger aren't interesting
 // to reduce console output
-type NullLogger struct {
-}
+type NullLogger struct{}
 
 // Info prints out a message prefixed with `[INFO]` verbatim
 func (NullLogger) Info(_ string) {

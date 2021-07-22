@@ -5,22 +5,20 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceIoTTimeSeriesInsightsAccessPolicy() *schema.Resource {
-	return &schema.Resource{
+func resourceIoTTimeSeriesInsightsAccessPolicy() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceIoTTimeSeriesInsightsAccessPolicyCreateUpdate,
 		Read:   resourceIoTTimeSeriesInsightsAccessPolicyRead,
 		Update: resourceIoTTimeSeriesInsightsAccessPolicyCreateUpdate,
@@ -30,11 +28,11 @@ func resourceIoTTimeSeriesInsightsAccessPolicy() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		SchemaVersion: 1,
@@ -42,9 +40,9 @@ func resourceIoTTimeSeriesInsightsAccessPolicy() *schema.Resource {
 			0: migration.StandardEnvironmentAccessPolicyV0ToV1{},
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -54,30 +52,30 @@ func resourceIoTTimeSeriesInsightsAccessPolicy() *schema.Resource {
 			},
 
 			"time_series_insights_environment_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.TimeSeriesInsightsEnvironmentID,
 			},
 
 			"principal_object_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"roles": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(timeseriesinsights.Contributor),
 						string(timeseriesinsights.Reader),
@@ -88,7 +86,7 @@ func resourceIoTTimeSeriesInsightsAccessPolicy() *schema.Resource {
 	}
 }
 
-func resourceIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.AccessPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -118,7 +116,7 @@ func resourceIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *schema.ResourceDat
 		AccessPolicyResourceProperties: &timeseriesinsights.AccessPolicyResourceProperties{
 			Description:       utils.String(d.Get("description").(string)),
 			PrincipalObjectID: utils.String(d.Get("principal_object_id").(string)),
-			Roles:             expandIoTTimeSeriesInsightsAccessPolicyRoles(d.Get("roles").(*schema.Set).List()),
+			Roles:             expandIoTTimeSeriesInsightsAccessPolicyRoles(d.Get("roles").(*pluginsdk.Set).List()),
 		},
 	}
 
@@ -130,7 +128,7 @@ func resourceIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *schema.ResourceDat
 	return resourceIoTTimeSeriesInsightsAccessPolicyRead(d, meta)
 }
 
-func resourceIoTTimeSeriesInsightsAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.AccessPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,7 +162,7 @@ func resourceIoTTimeSeriesInsightsAccessPolicyRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceIoTTimeSeriesInsightsAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsAccessPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.AccessPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

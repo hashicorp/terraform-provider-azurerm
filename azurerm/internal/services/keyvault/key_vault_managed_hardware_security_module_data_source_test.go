@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func testAccDataSourceKeyVaultManagedHardwareSecurityModule_basic(t *testing.T) 
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_managed_hardware_security_module", "test")
 	r := KeyVaultManagedHardwareSecurityModuleDataSource{}
 
-	data.DataSourceTestInSequence(t, []resource.TestStep{
+	data.DataSourceTestInSequence(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_B1"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -18,8 +17,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceKustoDatabase() *schema.Resource {
-	return &schema.Resource{
+func resourceKustoDatabase() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceKustoDatabaseCreateUpdate,
 		Read:   resourceKustoDatabaseRead,
 		Update: resourceKustoDatabaseCreateUpdate,
@@ -28,16 +27,16 @@ func resourceKustoDatabase() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: kustoValidate.DatabaseName,
@@ -48,33 +47,33 @@ func resourceKustoDatabase() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"cluster_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: kustoValidate.ClusterName,
 			},
 
 			"soft_delete_period": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.ISO8601Duration,
 			},
 
 			"hot_cache_period": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.ISO8601Duration,
 			},
 
 			"size": {
-				Type:     schema.TypeFloat,
+				Type:     pluginsdk.TypeFloat,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,7 +144,7 @@ func resourceKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface{})
 	return resourceKustoDatabaseRead(d, meta)
 }
 
-func resourceKustoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,7 +192,7 @@ func resourceKustoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceKustoDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,7 +214,7 @@ func resourceKustoDatabaseDelete(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func expandKustoDatabaseProperties(d *schema.ResourceData) *kusto.ReadWriteDatabaseProperties {
+func expandKustoDatabaseProperties(d *pluginsdk.ResourceData) *kusto.ReadWriteDatabaseProperties {
 	databaseProperties := &kusto.ReadWriteDatabaseProperties{}
 
 	if softDeletePeriod, ok := d.GetOk("soft_delete_period"); ok {

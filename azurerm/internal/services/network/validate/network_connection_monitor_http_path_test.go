@@ -24,7 +24,7 @@ func TestNetworkConnectionMonitorHttpPath(t *testing.T) {
 			Errors: 0,
 		},
 		{
-			Value:  "http://www.terraform.io",
+			Value:  "http://www.pluginsdk.io",
 			Errors: 1,
 		},
 		{

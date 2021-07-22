@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,10 +15,10 @@ func TestAccDataSourceKeyVaultCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_certificate", "test")
 	r := KeyVaultCertificateDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
 				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("certificate_policy.0.key_properties.0.key_size").HasValue("2048"),
@@ -33,10 +32,10 @@ func TestAccDataSourceKeyVaultCertificate_generated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_certificate", "test")
 	r := KeyVaultCertificateDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.generated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
 				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("certificate_policy.0.issuer_parameters.0.name").HasValue("Self"),
@@ -58,10 +57,10 @@ func TestAccDataSourceKeyVaultCertificate_generatedEllipticCurve(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_certificate", "test")
 	r := KeyVaultCertificateDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.generatedEllipticCurve(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
 				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("certificate_policy.0.issuer_parameters.0.name").HasValue("Self"),

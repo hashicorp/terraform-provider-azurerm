@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,10 +18,10 @@ func TestAccAzureRMPolicyAssignment_basicCustom(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicCustom(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -34,10 +33,10 @@ func TestAccAzureRMPolicyAssignment_basicBuiltin(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicBuiltin(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -49,10 +48,10 @@ func TestAccAzureRMPolicyAssignment_basicBuiltInSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicBuiltInSet(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -64,10 +63,10 @@ func TestAccAzureRMPolicyAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicCustom(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -79,10 +78,10 @@ func TestAccAzureRMPolicyAssignment_deployIfNotExists_policy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.deployIfNotExistsPolicy(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -94,10 +93,10 @@ func TestAccAzureRMPolicyAssignment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -105,14 +104,14 @@ func TestAccAzureRMPolicyAssignment_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyAssignment_not_scopes(t *testing.T) {
+func TestAccAzureRMPolicyAssignment_notScopes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.notScopes(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -120,14 +119,14 @@ func TestAccAzureRMPolicyAssignment_not_scopes(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyAssignment_enforcement_mode(t *testing.T) {
+func TestAccAzureRMPolicyAssignment_enforcementMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	r := PolicyAssignmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.enforcementMode(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -135,7 +134,7 @@ func TestAccAzureRMPolicyAssignment_enforcement_mode(t *testing.T) {
 	})
 }
 
-func (r PolicyAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r PolicyAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	assignmentsClient := client.Policy.AssignmentsClient
 	resp, err := assignmentsClient.GetByID(ctx, state.ID)
 	if err != nil {

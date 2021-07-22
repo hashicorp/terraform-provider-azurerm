@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/customproviders/mgmt/2018-09-01-preview/customproviders"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -14,12 +12,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/customproviders/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceCustomProvider() *schema.Resource {
-	return &schema.Resource{
+func resourceCustomProvider() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceCustomProviderCreateUpdate,
 		Read:   resourceCustomProviderRead,
 		Update: resourceCustomProviderCreateUpdate,
@@ -29,16 +28,16 @@ func resourceCustomProvider() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CustomProviderName,
@@ -49,23 +48,23 @@ func resourceCustomProvider() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"resource_type": {
-				Type:         schema.TypeSet,
+				Type:         pluginsdk.TypeSet,
 				Optional:     true,
 				AtLeastOneOf: []string{"resource_type", "action"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.NoZeroValues,
 						},
 						"endpoint": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsURLWithHTTPS,
 						},
 						"routing_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  string(customproviders.ResourceTypeRoutingProxy),
 							ValidateFunc: validation.StringInSlice([]string{
@@ -78,18 +77,18 @@ func resourceCustomProvider() *schema.Resource {
 			},
 
 			"action": {
-				Type:         schema.TypeSet,
+				Type:         pluginsdk.TypeSet,
 				Optional:     true,
 				AtLeastOneOf: []string{"resource_type", "action"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.NoZeroValues,
 						},
 						"endpoint": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsURLWithHTTPS,
 						},
@@ -98,12 +97,12 @@ func resourceCustomProvider() *schema.Resource {
 			},
 
 			"validation": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"specification": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsURLWithHTTPS,
 						},
@@ -116,7 +115,7 @@ func resourceCustomProvider() *schema.Resource {
 	}
 }
 
-func resourceCustomProviderCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCustomProviderCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CustomProviders.CustomProviderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -140,9 +139,9 @@ func resourceCustomProviderCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	provider := customproviders.CustomRPManifest{
 		CustomRPManifestProperties: &customproviders.CustomRPManifestProperties{
-			ResourceTypes: expandCustomProviderResourceType(d.Get("resource_type").(*schema.Set).List()),
-			Actions:       expandCustomProviderAction(d.Get("action").(*schema.Set).List()),
-			Validations:   expandCustomProviderValidation(d.Get("validation").(*schema.Set).List()),
+			ResourceTypes: expandCustomProviderResourceType(d.Get("resource_type").(*pluginsdk.Set).List()),
+			Actions:       expandCustomProviderAction(d.Get("action").(*pluginsdk.Set).List()),
+			Validations:   expandCustomProviderValidation(d.Get("validation").(*pluginsdk.Set).List()),
 		},
 		Location: &location,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -170,7 +169,7 @@ func resourceCustomProviderCreateUpdate(d *schema.ResourceData, meta interface{}
 	return resourceCustomProviderRead(d, meta)
 }
 
-func resourceCustomProviderRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCustomProviderRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CustomProviders.CustomProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -211,7 +210,7 @@ func resourceCustomProviderRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceCustomProviderDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCustomProviderDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CustomProviders.CustomProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
