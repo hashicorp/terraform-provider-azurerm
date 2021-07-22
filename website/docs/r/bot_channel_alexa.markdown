@@ -3,12 +3,12 @@ subcategory: "Bot"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_bot_channel_alexa"
 description: |-
-Manages an Alexa integration for a Bot Channel
+  Manages an Alexa integration for a Bot Channel
 ---
 
 # azurerm_bot_channel_alexa
 
-Manages a Alexa integration for a Bot Channel
+Manages an Alexa integration for a Bot Channel
 
 ~> **Note** A bot can only have a single Alexa Channel associated with it.
 
