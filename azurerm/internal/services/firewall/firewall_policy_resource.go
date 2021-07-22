@@ -166,6 +166,19 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 				},
 			},
 
+			"private_ip_ranges": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+					ValidateFunc: validation.Any(
+						validation.IsCIDR,
+						validation.IsIPv4Address,
+					),
+				},
+			},
+
 			"tags": tags.SchemaEnforceLowerCaseKeys(),
 		},
 	}
@@ -208,6 +221,13 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	if v, ok := d.GetOk("sku"); ok {
 		props.FirewallPolicyPropertiesFormat.Sku = &network.FirewallPolicySku{
 			Tier: network.FirewallPolicySkuTier(v.(string)),
+		}
+	}
+
+	if v, ok := d.GetOk("private_ip_ranges"); ok {
+		privateIpRanges := utils.ExpandStringSlice(v.([]interface{}))
+		if len(*privateIpRanges) != 0 {
+			props.FirewallPolicyPropertiesFormat.Snat = &network.FirewallPolicySNAT{PrivateRanges: privateIpRanges}
 		}
 	}
 
@@ -286,6 +306,12 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		if err := d.Set("rule_collection_groups", flattenNetworkSubResourceID(prop.RuleCollectionGroups)); err != nil {
 			return fmt.Errorf(`setting "rule_collection_groups": %+v`, err)
+		}
+
+		if prop.Snat != nil {
+			if err := d.Set("private_ip_ranges", utils.FlattenStringSlice(prop.Snat.PrivateRanges)); err != nil {
+				return fmt.Errorf("Error setting `private_ip_ranges`: %+v", err)
+			}
 		}
 	}
 
