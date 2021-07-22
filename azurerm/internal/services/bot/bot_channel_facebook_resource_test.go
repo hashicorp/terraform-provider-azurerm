@@ -33,8 +33,7 @@ func testAccBotChannelFacebook_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// API doesn't return `app_secret` and `access_token`
-		data.ImportStep("app_secret", "page"),
+		data.ImportStep(),
 	})
 }
 
@@ -72,21 +71,14 @@ func testAccBotChannelFacebook_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("app_secret", "page"),
+		data.ImportStep(),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("app_secret", "page"),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("app_secret", "page"),
+		data.ImportStep(),
 	})
 }
 
