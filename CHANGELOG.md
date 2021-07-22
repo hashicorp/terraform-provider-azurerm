@@ -3,14 +3,17 @@
 FEATURES:
 
 * **New Resource** `azurerm_batch_job` [GH-12573]
+* **New Resource** `azurerm_bot_channel_web_chat` [GH-12672]
 * **New Resource** `azurerm_data_factory_managed_private_endpoint` [GH-12618]
 * **New Resource** `azurerm_data_protection_backup_policy_blob_storage` [GH-12362]
+* **New Resource** `azurerm_signalr_service_network_acl` [GH-12434]
 
 ENHANCEMENTS:
 
 * dependencies: Updgrading to `v55.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-12565]
 * `azurerm_api_management_named_value` - the field `secret_id` can now be set to a versionless Key Vault Key [GH-12641]
 * `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `public_ips`, `express_custom_setup`, `package_store`, and `proxy` blocks [GH-12545]
+* `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `key_vault_password`, and `key_vault_license` blocks [GH-12659]
 * `azurerm_bot_channels_registration` - support for the `cmk_key_vault_url`, `description`, `icon_url`, and `isolated_network_enabled` [GH-12560]
 * `azurerm_data_factory_integration_runtime_azure` - support for the `virtual_network_enabled` property [GH-12619]
 * `azurerm_kubernetes_cluster` - support for downgrading `sku_tier` from `Paid` to `Free` without recreating the Cluster [GH-12651]
@@ -18,7 +21,11 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `data.azurerm_redis_cache` - fix a bug that caused the data source to raise an error [GH-12666]
+* `azurerm_application_gateway` - return an error when ssl policy is not properly configured  [GH-12647]
+* `azurerm_data_factory_linked_custom_service` - fix a bug causing `additional_properties` to be read incorrectly into state [GH-12664]
 * `azurerm_eventhub_authorization_rule` - fixing the error "empty non-retryable error received" [GH-12642]
+* `azurerm_machine_learning_compute_cluster` - fix a crash when creating a cluster without specifying `subnet_resource_id` [GH-12658]
 
 ## 2.68.0 (July 16, 2021)
 
