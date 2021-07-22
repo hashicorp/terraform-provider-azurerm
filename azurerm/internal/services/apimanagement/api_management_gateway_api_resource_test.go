@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -48,16 +48,11 @@ func TestAccApiManagementGatewayApi_requiresImport(t *testing.T) {
 }
 
 func (ApiManagementGatewayAPIResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.GatewayApiID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	gatewayId := id.Path["gateways"]
-	apiName := id.Path["apis"]
-
-	if resp, err := clients.ApiManagement.GatewayApisClient.GetEntityTag(ctx, resourceGroup, serviceName, gatewayId, apiName); err != nil {
+	if resp, err := clients.ApiManagement.GatewayApisClient.GetEntityTag(ctx, id.ResourceGroup, id.ServiceName, id.ID(), id.ApiName); err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil, fmt.Errorf("reading ApiManagement Gateway (%s): %+v", id, err)
 		}
@@ -126,8 +121,8 @@ func (r ApiManagementGatewayAPIResource) requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_api_management_gateway_api" "import" {
-  gateway_id = azurerm_api_management_gateway.test.id
-  api_id     = azurerm_api_management_api.test.id
+  gateway_id = azurerm_api_management_gateway_api.test.id
+  api_id     = azurerm_api_management_gateway_api.test.id
 }
 `, r.basic(data))
 }

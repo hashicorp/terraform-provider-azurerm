@@ -32,10 +32,8 @@ data "azurerm_api_management_gateway" "example" {
 }
 
 resource "azurerm_api_management_gateway_api" "example" {
-  resource_group_name = data.azurerm_api_management.example.resource_group_name
-  api_name            = data.azurerm_api_management_api.example.name
-  gateway_id          = data.azurerm_api_management_product.example.gateway_id
-  api_management_name = data.azurerm_api_management.example.name
+  gateway_id = data.azurerm_api_management_gateway.example.id
+  api_id     = data.azurerm_api_management_api.example.id
 }
 ```
 
@@ -43,13 +41,9 @@ resource "azurerm_api_management_gateway_api" "example" {
 
 The following arguments are supported:
 
-* `api_management_name` - (Required) The Name of the API Management Service in which this Gateway exists. Changing this forces a new API Management Gateway API to be created.
-
-* `api_name` - (Required) The Name of the API Management API within the API Management Service. Changing this forces a new API Management Gateway API to be created.
-
 * `gateway_id` - (Required) The Identifier for the API Management Gateway. Changing this forces a new API Management Gateway API to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the API Management Gateway API should exist. Changing this forces a new API Management Gateway API to be created.
+* `api_id` - (Required) The Identifier of the API Management API within the API Management Service. Changing this forces a new API Management Gateway API to be created.
 
 ## Attributes Reference
 
@@ -61,10 +55,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 15 minutes) Used when creating the API Management Gateway API.
-* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Gateway API.
-* `update` - (Defaults to 15 minutes) Used when updating the API Management Gateway API.
-* `delete` - (Defaults to 15 minutes) Used when deleting the API Management Gateway API.
+* `create` - (Defaults to 30 minutes) Used when creating the API Management Gateway API.
+* `read`   - (Defaults to 5 minutes) Used when retrieving the API Management Gateway API.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Gateway API.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management Gateway API.
 
 ## Import
 
