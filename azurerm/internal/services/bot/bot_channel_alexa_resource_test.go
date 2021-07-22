@@ -3,10 +3,10 @@ package bot_test
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
+	"github.com/google/uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
