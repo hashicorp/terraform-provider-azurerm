@@ -82,51 +82,41 @@ func resourceMapsAccount() *pluginsdk.Resource {
 
 func resourceMapsAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maps.AccountsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Maps Account creation.")
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	t := d.Get("tags").(map[string]interface{})
-	sku := d.Get("sku_name").(string)
-
+	id := parse.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Maps Account %q (Resource Group %q): %+v", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_maps_account", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_maps_account", id.ID())
 		}
 	}
 
 	parameters := maps.Account{
 		Location: utils.String("global"),
 		Sku: &maps.Sku{
-			Name: maps.Name(sku),
+			Name: maps.Name(d.Get("sku_name").(string)),
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, name, parameters); err != nil {
-		return fmt.Errorf("Error creating/updating Maps Account %q (Resource Group %q) %+v", name, resGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Maps Account %q (Resource Group %q) %+v", name, resGroup, err)
+	if d.IsNewResource() {
+		d.SetId(id.ID())
 	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Maps Account %q (Resource Group %q) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
 
 	return resourceMapsAccountRead(d, meta)
 }
@@ -148,7 +138,7 @@ func resourceMapsAccountRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Maps Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -162,7 +152,7 @@ func resourceMapsAccountRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error making Read Access Keys request on Maps Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Access Keys for %s: %+v", *id, err)
 	}
 	d.Set("primary_access_key", keysResp.PrimaryKey)
 	d.Set("secondary_access_key", keysResp.SecondaryKey)
@@ -181,7 +171,7 @@ func resourceMapsAccountDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("Error deleting Maps Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

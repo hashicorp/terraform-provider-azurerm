@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/parse"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/validate"
@@ -59,25 +61,25 @@ func dataSourceMapsAccount() *pluginsdk.Resource {
 
 func dataSourceMapsAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maps.AccountsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Maps Account %q was not found in Resource Group %q", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("Error making Read request on Maps Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
 	}
@@ -85,9 +87,9 @@ func dataSourceMapsAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("x_ms_client_id", props.UniqueID)
 	}
 
-	keysResp, err := client.ListKeys(ctx, resourceGroup, name)
+	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error reading Access Keys request for Maps Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Access Keys for %s: %+v", id, err)
 	}
 
 	d.Set("primary_access_key", keysResp.PrimaryKey)
