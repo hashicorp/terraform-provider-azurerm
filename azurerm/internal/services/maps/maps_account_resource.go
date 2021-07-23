@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/response"
+
 	"github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2021-02-01/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -15,7 +17,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceMapsAccount() *pluginsdk.Resource {
@@ -90,27 +91,27 @@ func resourceMapsAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	id := accounts.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_maps_account", id.ID())
 		}
 	}
 
-	parameters := maps.Account{
-		Location: utils.String("global"),
-		Sku: &maps.Sku{
-			Name: maps.Name(d.Get("sku_name").(string)),
+	parameters := accounts.MapsAccount{
+		Location: "global",
+		Sku: accounts.Sku{
+			Name: accounts.Name(d.Get("sku_name").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -131,9 +132,9 @@ func resourceMapsAccountRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -143,21 +144,28 @@ func resourceMapsAccountRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", sku.Name)
-	}
-	if props := resp.Properties; props != nil {
-		d.Set("x_ms_client_id", props.UniqueID)
+
+	if model := resp.Model; model != nil {
+		d.Set("sku_name", model.Sku.Name)
+		if props := model.Properties; props != nil {
+			d.Set("x_ms_client_id", props.UniqueId)
+		}
+
+		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			return err
+		}
 	}
 
-	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
+	keysResp, err := client.ListKeys(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving Access Keys for %s: %+v", *id, err)
 	}
-	d.Set("primary_access_key", keysResp.PrimaryKey)
-	d.Set("secondary_access_key", keysResp.SecondaryKey)
+	if model := keysResp.Model; model != nil {
+		d.Set("primary_access_key", model.PrimaryKey)
+		d.Set("secondary_access_key", model.SecondaryKey)
+	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceMapsAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -170,7 +178,7 @@ func resourceMapsAccountDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

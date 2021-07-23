@@ -104,12 +104,12 @@ func (MapsAccountResource) Exists(ctx context.Context, clients *clients.Client, 
 		return nil, err
 	}
 
-	resp, err := clients.Maps.AccountsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Maps.AccountsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Maps Account %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (MapsAccountResource) basic(data acceptance.TestData) string {
