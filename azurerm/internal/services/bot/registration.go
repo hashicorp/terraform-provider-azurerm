@@ -31,6 +31,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_bot_channel_ms_teams":      resourceBotChannelMsTeams(),
 		"azurerm_bot_channel_slack":         resourceBotChannelSlack(),
 		"azurerm_bot_channel_sms":           resourceBotChannelSMS(),
+		"azurerm_bot_channel_web_chat":      resourceBotChannelWebChat(),
 		"azurerm_bot_channels_registration": resourceBotChannelsRegistration(),
 		"azurerm_bot_connection":            resourceArmBotConnection(),
 		"azurerm_healthbot":                 resourceHealthbotService(),

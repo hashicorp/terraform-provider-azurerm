@@ -41,10 +41,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		}),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
-			// Downgrade from Paid to Free is not supported and requires rebuild to apply
-			pluginsdk.ForceNewIfChange("sku_tier", func(ctx context.Context, old, new, meta interface{}) bool {
-				return new == "Free"
-			}),
 			// Migration of `identity` to `service_principal` is not allowed, the other way around is
 			pluginsdk.ForceNewIfChange("service_principal.0.client_id", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old == "msi" || old == ""
@@ -657,12 +653,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"sku_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				// @tombuildsstuff (2020-05-29) - Preview limitations:
-				//  * Currently, there is no way to remove Uptime SLA from an AKS cluster after creation with it enabled.
-				//  * Private clusters aren't currently supported.
-				// @jackofallops (2020-07-21) - Update:
-				//  * sku_tier can now be upgraded in place, downgrade requires rebuild
-				Default: string(containerservice.ManagedClusterSKUTierFree),
+				Default:  string(containerservice.ManagedClusterSKUTierFree),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerservice.ManagedClusterSKUTierFree),
 					string(containerservice.ManagedClusterSKUTierPaid),

@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
@@ -69,13 +70,10 @@ func resourceLogAnalyticsStorageInsights() *pluginsdk.Resource {
 			},
 
 			"storage_account_key": {
-				Type:      pluginsdk.TypeString,
-				Required:  true,
-				Sensitive: true,
-				ValidateFunc: validation.All(
-					validation.StringIsNotEmpty,
-					validate.IsBase64Encoded,
-				),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				Sensitive:    true,
+				ValidateFunc: azValidate.Base64EncodedString,
 			},
 
 			"blob_container_names": {

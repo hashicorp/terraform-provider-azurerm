@@ -7,10 +7,29 @@ if [ $# != 1 ] ; then
   exit 1
 fi
 
-sed -i '' -e '
+# remove empty lines inside import block via sed
+sed_expression='
   /^import/,/)/ {
     /^$/d
   }
-' $1
+'
+
+case "$OSTYPE" in
+    "linux-gnu"*)
+        sed -i -e "$sed_expression" $1
+        ;;
+    "darwin"*)
+        sed_version="$(sed --version)"
+
+        if [[ $sed_version == *GNU* ]]; then
+            # For MacOS users who aliases the `sed` from `gsed`
+            sed -i -e "$sed_expression" $1
+        else
+            # The Posix sed
+            sed -i '' -e "$sed_expression" $1
+        fi
+
+        ;;
+esac 
 
 goimports -w $1
