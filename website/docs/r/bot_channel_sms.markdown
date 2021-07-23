@@ -3,7 +3,7 @@ subcategory: "Bot"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_bot_channel_sms"
 description: |-
-Manages a SMS integration for a Bot Channel
+  Manages a SMS integration for a Bot Channel
 ---
 
 # azurerm_bot_channel_sms
@@ -34,9 +34,9 @@ resource "azurerm_bot_channel_sms" "example" {
   bot_name            = azurerm_bot_channels_registration.example.name
   location            = azurerm_bot_channels_registration.example.location
   resource_group_name = azurerm_resource_group.example.name
-  account_sid         = "BG61f7cf5157f439b084e98256409c1813"
-  auth_token          = "jh8980432610052ed4e29565c5e222e"
-  phone_number        = "+12313803155"
+  account_sid         = "BG61f7cf5157f439b084e98256409c2815"
+  auth_token          = "jh8980432610052ed4e29565c5e232f"
+  phone_number        = "+12313803556"
 }
 ```
 
