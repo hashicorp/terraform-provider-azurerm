@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/sdk/accounts"
@@ -11,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceMapsAccount() *pluginsdk.Resource {
@@ -65,9 +65,9 @@ func dataSourceMapsAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	defer cancel()
 
 	id := accounts.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -79,20 +79,25 @@ func dataSourceMapsAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", sku.Name)
-	}
-	if props := resp.Properties; props != nil {
-		d.Set("x_ms_client_id", props.UniqueID)
+	if model := resp.Model; model != nil {
+		d.Set("sku_name", model.Sku.Name)
+		if props := model.Properties; props != nil {
+			d.Set("x_ms_client_id", props.UniqueId)
+		}
+
+		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			return err
+		}
 	}
 
-	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
+	keysResp, err := client.ListKeys(ctx, id)
 	if err != nil {
 		return fmt.Errorf("retrieving Access Keys for %s: %+v", id, err)
 	}
+	if model := keysResp.Model; model != nil {
+		d.Set("primary_access_key", model.PrimaryKey)
+		d.Set("secondary_access_key", model.SecondaryKey)
+	}
 
-	d.Set("primary_access_key", keysResp.PrimaryKey)
-	d.Set("secondary_access_key", keysResp.SecondaryKey)
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
