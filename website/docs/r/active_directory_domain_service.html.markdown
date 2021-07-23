@@ -129,7 +129,6 @@ resource "azurerm_active_directory_domain_service" "example" {
   filtered_sync_enabled = false
 
   initial_replica_set {
-    location  = azurerm_virtual_network.deploy.location
     subnet_id = azurerm_subnet.deploy.id
   }
 
