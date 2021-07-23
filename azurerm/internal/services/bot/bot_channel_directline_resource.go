@@ -176,9 +176,9 @@ func resourceBotChannelDirectlineRead(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameDirectLineChannel))
+	resp3, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameDirectLineChannel))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp3.Response) {
 			log.Printf("[INFO] Directline Channel for Bot %q (Resource Group %q) was not found - removing from state!", id.ResourceGroup, id.BotServiceName)
 			d.SetId("")
 			return nil
@@ -194,7 +194,7 @@ func resourceBotChannelDirectlineRead(d *pluginsdk.ResourceData, meta interface{
 
 	d.Set("bot_name", id.BotServiceName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("location", location.NormalizeNilable(resp3.Location))
 
 	if props := channelsResp.Properties; props != nil {
 		if channel, ok := props.AsDirectLineChannel(); ok {

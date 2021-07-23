@@ -19,9 +19,7 @@ type BotChannelFacebookResource struct {
 }
 
 func testAccBotChannelFacebook_basic(t *testing.T) {
-	if ok := skipFacebookChannel(); ok {
-		t.Skip("Skipping as one of `ARM_TEST_APP_ID`, `ARM_TEST_APP_SECRET`, `ARM_TEST_PAGE_ID`, `ARM_TEST_PAGE_ACCESS_TOKEN`, `ARM_TEST_APP_ID2`, `ARM_TEST_APP_SECRET2`, `ARM_TEST_PAGE_ID2` and `ARM_TEST_PAGE_ACCESS_TOKEN2` was not specified")
-	}
+	skipFacebookChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_facebook", "test")
 	r := BotChannelFacebookResource{}
@@ -38,9 +36,7 @@ func testAccBotChannelFacebook_basic(t *testing.T) {
 }
 
 func testAccBotChannelFacebook_requiresImport(t *testing.T) {
-	if ok := skipFacebookChannel(); ok {
-		t.Skip("Skipping as one of `ARM_TEST_APP_ID`, `ARM_TEST_APP_SECRET`, `ARM_TEST_PAGE_ID`, `ARM_TEST_PAGE_ACCESS_TOKEN`, `ARM_TEST_APP_ID2`, `ARM_TEST_APP_SECRET2`, `ARM_TEST_PAGE_ID2` and `ARM_TEST_PAGE_ACCESS_TOKEN2` was not specified")
-	}
+	skipFacebookChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_facebook", "test")
 	r := BotChannelFacebookResource{}
@@ -57,9 +53,7 @@ func testAccBotChannelFacebook_requiresImport(t *testing.T) {
 }
 
 func testAccBotChannelFacebook_update(t *testing.T) {
-	if ok := skipFacebookChannel(); ok {
-		t.Skip("Skipping as one of `ARM_TEST_APP_ID`, `ARM_TEST_APP_SECRET`, `ARM_TEST_PAGE_ID`, `ARM_TEST_PAGE_ACCESS_TOKEN`, `ARM_TEST_APP_ID2`, `ARM_TEST_APP_SECRET2`, `ARM_TEST_PAGE_ID2` and `ARM_TEST_PAGE_ACCESS_TOKEN2` was not specified")
-	}
+	skipFacebookChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_facebook", "test")
 	r := BotChannelFacebookResource{}
@@ -153,10 +147,8 @@ resource "azurerm_bot_channel_facebook" "test" {
 `, BotChannelsRegistrationResource{}.basicConfig(data), os.Getenv("ARM_TEST_APP_ID2"), os.Getenv("ARM_TEST_APP_SECRET2"), os.Getenv("ARM_TEST_PAGE_ID2"), os.Getenv("ARM_TEST_PAGE_ACCESS_TOKEN2"))
 }
 
-func skipFacebookChannel() bool {
+func skipFacebookChannel(t *testing.T) {
 	if os.Getenv("ARM_TEST_APP_ID") == "" || os.Getenv("ARM_TEST_APP_SECRET") == "" || os.Getenv("ARM_TEST_PAGE_ID") == "" || os.Getenv("ARM_TEST_PAGE_ACCESS_TOKEN") == "" || os.Getenv("ARM_TEST_APP_ID2") == "" || os.Getenv("ARM_TEST_APP_SECRET2") == "" || os.Getenv("ARM_TEST_PAGE_ID2") == "" || os.Getenv("ARM_TEST_PAGE_ACCESS_TOKEN2") == "" {
-		return true
+		t.Skip("Skipping as one of `ARM_TEST_APP_ID`, `ARM_TEST_APP_SECRET`, `ARM_TEST_PAGE_ID`, `ARM_TEST_PAGE_ACCESS_TOKEN`, `ARM_TEST_APP_ID2`, `ARM_TEST_APP_SECRET2`, `ARM_TEST_PAGE_ID2` and `ARM_TEST_PAGE_ACCESS_TOKEN2` was not specified")
 	}
-
-	return false
 }

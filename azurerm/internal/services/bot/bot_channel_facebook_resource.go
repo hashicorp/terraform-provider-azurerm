@@ -59,6 +59,7 @@ func resourceBotChannelFacebook() *pluginsdk.Resource {
 			"app_secret": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -76,6 +77,7 @@ func resourceBotChannelFacebook() *pluginsdk.Resource {
 						"access_token": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
@@ -147,14 +149,20 @@ func resourceBotChannelFacebookRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	channelsResp, err := client.ListWithKeys(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameFacebookChannel)
+	if err != nil {
+		return fmt.Errorf("listing keys for %s: %+v", *id, err)
+	}
+
 	d.Set("bot_name", id.BotServiceName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if props := resp.Properties; props != nil {
+	if props := channelsResp.Properties; props != nil {
 		if channel, ok := props.AsFacebookChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
 				d.Set("app_id", channelProps.AppID)
+				d.Set("app_secret", channelProps.AppSecret)
 
 				if err := d.Set("page", flattenFacebookPage(channelProps.Pages)); err != nil {
 					return fmt.Errorf("setting `page`: %+v", err)
@@ -246,8 +254,14 @@ func flattenFacebookPage(input *[]botservice.FacebookPage) []interface{} {
 			id = *item.ID
 		}
 
+		var accessToken string
+		if item.AccessToken != nil {
+			accessToken = *item.AccessToken
+		}
+
 		results = append(results, map[string]interface{}{
-			"id": id,
+			"id":           id,
+			"access_token": accessToken,
 		})
 	}
 
