@@ -1,3 +1,9 @@
+## 2.70.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* msi: refactoring to use an Embedded SDK [GH-12715]
+
 ## 2.69.0 (July 23, 2021)
 
 FEATURES:
