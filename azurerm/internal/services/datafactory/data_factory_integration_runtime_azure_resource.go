@@ -84,12 +84,19 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 				Optional: true,
 				Default:  0,
 			},
+
+			"virtual_network_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
 		},
 	}
 }
 
 func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
+	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworksClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -119,6 +126,20 @@ func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.Resourc
 		ManagedIntegrationRuntimeTypeProperties: &datafactory.ManagedIntegrationRuntimeTypeProperties{
 			ComputeProperties: expandDataFactoryIntegrationRuntimeAzureComputeProperties(d),
 		},
+	}
+
+	if d.Get("virtual_network_enabled").(bool) {
+		virtualNetworkName, err := getManagedVirtualNetworkName(ctx, managedVirtualNetworksClient, resourceGroup, factoryName)
+		if err != nil {
+			return err
+		}
+		if virtualNetworkName == nil {
+			return fmt.Errorf("virtual network feature for azure integration runtime is only available after managed virtual network for this data factory is enabled")
+		}
+		managedIntegrationRuntime.ManagedVirtualNetwork = &datafactory.ManagedVirtualNetworkReference{
+			Type:          utils.String("ManagedVirtualNetworkReference"),
+			ReferenceName: virtualNetworkName,
+		}
 	}
 
 	basicIntegrationRuntime, _ := managedIntegrationRuntime.AsBasicIntegrationRuntime()
@@ -182,6 +203,12 @@ func resourceDataFactoryIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, m
 	if managedIntegrationRuntime.Description != nil {
 		d.Set("description", managedIntegrationRuntime.Description)
 	}
+
+	virtualNetworkEnabled := false
+	if managedIntegrationRuntime.ManagedVirtualNetwork != nil && managedIntegrationRuntime.ManagedVirtualNetwork.ReferenceName != nil {
+		virtualNetworkEnabled = true
+	}
+	d.Set("virtual_network_enabled", virtualNetworkEnabled)
 
 	if computeProps := managedIntegrationRuntime.ComputeProperties; computeProps != nil {
 		if location := computeProps.Location; location != nil {
