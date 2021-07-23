@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/sdk/accounts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -33,7 +33,7 @@ func resourceMapsAccount() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AccountID(id)
+			_, err := accounts.ParseAccountID(id)
 			return err
 		}),
 
@@ -88,7 +88,7 @@ func resourceMapsAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	log.Printf("[INFO] preparing arguments for AzureRM Maps Account creation.")
 
-	id := parse.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := accounts.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
@@ -126,7 +126,7 @@ func resourceMapsAccountRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AccountID(d.Id())
+	id, err := accounts.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -165,7 +165,7 @@ func resourceMapsAccountDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AccountID(d.Id())
+	id, err := accounts.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
