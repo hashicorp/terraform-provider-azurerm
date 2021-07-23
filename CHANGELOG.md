@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* maps: refactoring to use an Embedded SDK [GH-12716]
 * msi: refactoring to use an Embedded SDK [GH-12715]
 
 ## 2.69.0 (July 23, 2021)
