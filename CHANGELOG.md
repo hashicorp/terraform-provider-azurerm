@@ -1,41 +1,41 @@
-## 2.69.0 (Unreleased)
+## 2.69.0 (July 23, 2021)
 
 FEATURES:
 
-* **New Data Source** `azurerm_active_directory_domain_service` [GH-10782]
-* **New Resource** `azurerm_active_directory_domain_service` [GH-10782]
-* **New Resource** `azurerm_active_directory_domain_service_replica_set` [GH-10782]
-* **New Resource** `azurerm_api_management_gateway_api` [GH-12398]
-* **New Resource** `azurerm_batch_job` [GH-12573]
-* **New Resource** `azurerm_bot_channel_web_chat` [GH-12672]
-* **New Resource** `azurerm_data_factory_managed_private_endpoint` [GH-12618]
-* **New Resource** `azurerm_data_protection_backup_policy_blob_storage` [GH-12362]
-* **New Resource** `azurerm_signalr_service_network_acl` [GH-12434]
-* **New Resource** `azurerm_virtual_network_dns_servers` [GH-10782]
+* **New Data Source** `azurerm_active_directory_domain_service` ([#10782](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10782))
+* **New Resource** `azurerm_active_directory_domain_service` ([#10782](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10782))
+* **New Resource** `azurerm_active_directory_domain_service_replica_set` ([#10782](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10782))
+* **New Resource** `azurerm_api_management_gateway_api` ([#12398](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12398))
+* **New Resource** `azurerm_batch_job` ([#12573](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12573))
+* **New Resource** `azurerm_bot_channel_web_chat` ([#12672](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12672))
+* **New Resource** `azurerm_data_factory_managed_private_endpoint` ([#12618](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12618))
+* **New Resource** `azurerm_data_protection_backup_policy_blob_storage` ([#12362](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12362))
+* **New Resource** `azurerm_signalr_service_network_acl` ([#12434](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12434))
+* **New Resource** `azurerm_virtual_network_dns_servers` ([#10782](https://github.com/terraform-providers/terraform-provider-azurerm/issues/10782))
 
 ENHANCEMENTS:
 
-* dependencies: Updgrading to `v55.6.0` of `github.com/Azure/azure-sdk-for-go` [GH-12565]
-* `azurerm_api_management_named_value` - the field `secret_id` can now be set to a versionless Key Vault Key [GH-12641]
-* `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `public_ips`, `express_custom_setup`, `package_store`, and `proxy` blocks [GH-12545]
-* `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `key_vault_password`, and `key_vault_license` blocks [GH-12659]
-* `azurerm_bot_channels_registration` - support for the `cmk_key_vault_url`, `description`, `icon_url`, and `isolated_network_enabled` [GH-12560]
-* `azurerm_data_factory_integration_runtime_azure` - support for the `virtual_network_enabled` property [GH-12619]
-* `azurerm_eventgrid_event_subscription` - support for the `advanced_filtering_on_arrays_enabled` property [GH-12609]
-* `azurerm_eventgrid_system_topic_event_subscription` - support for the `advanced_filtering_on_arrays_enabled` property [GH-12609]
-* `azurerm_eventhub_namespace` - support for Azure Event Hubs Namespace Premium tier [GH-12695]
-* `azurerm_kubernetes_cluster` - support for downgrading `sku_tier` from `Paid` to `Free` without recreating the Cluster [GH-12651]
-* `azurerm_kusto_eventgrid_data_connection` - Add supported `data_format` APACHEAVRO, ORC, PARQUET, TSVE and W3CLOGFILE to validation function. [GH-12687]
-* `azurerm_postgresql_flexible_server` - support for the `high_availability` block [GH-12587]
+* dependencies: Updgrading to `v55.6.0` of `github.com/Azure/azure-sdk-for-go` ([#12565](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12565))
+* `azurerm_api_management_named_value` - the field `secret_id` can now be set to a versionless Key Vault Key ([#12641](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12641))
+* `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `public_ips`, `express_custom_setup`, `package_store`, and `proxy` blocks ([#12545](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12545))
+* `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `key_vault_password`, and `key_vault_license` blocks ([#12659](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12659))
+* `azurerm_bot_channels_registration` - support for the `cmk_key_vault_url`, `description`, `icon_url`, and `isolated_network_enabled` ([#12560](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12560))
+* `azurerm_data_factory_integration_runtime_azure` - support for the `virtual_network_enabled` property ([#12619](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12619))
+* `azurerm_eventgrid_event_subscription` - support for the `advanced_filtering_on_arrays_enabled` property ([#12609](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12609))
+* `azurerm_eventgrid_system_topic_event_subscription` - support for the `advanced_filtering_on_arrays_enabled` property ([#12609](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12609))
+* `azurerm_eventhub_namespace` - support for Azure Event Hubs Namespace Premium tier ([#12695](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12695))
+* `azurerm_kubernetes_cluster` - support for downgrading `sku_tier` from `Paid` to `Free` without recreating the Cluster ([#12651](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12651))
+* `azurerm_kusto_eventgrid_data_connection` - Add supported `data_format` APACHEAVRO, ORC, PARQUET, TSVE and W3CLOGFILE to validation function. ([#12687](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12687))
+* `azurerm_postgresql_flexible_server` - support for the `high_availability` block ([#12587](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12587))
 
 BUG FIXES:
 
-* `data.azurerm_redis_cache` - fix a bug that caused the data source to raise an error [GH-12666]
-* `azurerm_application_gateway` - return an error when ssl policy is not properly configured  [GH-12647]
-* `azurerm_data_factory_linked_custom_service` - fix a bug causing `additional_properties` to be read incorrectly into state [GH-12664]
-* `azurerm_eventhub_authorization_rule` - fixing the error "empty non-retryable error received" [GH-12642]
-* `azurerm_machine_learning_compute_cluster` - fix a crash when creating a cluster without specifying `subnet_resource_id` [GH-12658]
-* `azurerm_storage_account` - fixed account_replication_type validation [GH-12645]
+* `data.azurerm_redis_cache` - fix a bug that caused the data source to raise an error ([#12666](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12666))
+* `azurerm_application_gateway` - return an error when ssl policy is not properly configured  ([#12647](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12647))
+* `azurerm_data_factory_linked_custom_service` - fix a bug causing `additional_properties` to be read incorrectly into state ([#12664](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12664))
+* `azurerm_eventhub_authorization_rule` - fixing the error "empty non-retryable error received" ([#12642](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12642))
+* `azurerm_machine_learning_compute_cluster` - fix a crash when creating a cluster without specifying `subnet_resource_id` ([#12658](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12658))
+* `azurerm_storage_account` - fixed account_replication_type validation ([#12645](https://github.com/terraform-providers/terraform-provider-azurerm/issues/12645))
 
 ## 2.68.0 (July 16, 2021)
 
