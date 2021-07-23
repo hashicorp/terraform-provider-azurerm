@@ -5,6 +5,7 @@ FEATURES:
 * **New Data Source** `azurerm_active_directory_domain_service` [GH-10782]
 * **New Resource** `azurerm_active_directory_domain_service` [GH-10782]
 * **New Resource** `azurerm_active_directory_domain_service_replica_set` [GH-10782]
+* **New Resource** `azurerm_api_management_gateway_api` [GH-12398]
 * **New Resource** `azurerm_batch_job` [GH-12573]
 * **New Resource** `azurerm_bot_channel_web_chat` [GH-12672]
 * **New Resource** `azurerm_data_factory_managed_private_endpoint` [GH-12618]
