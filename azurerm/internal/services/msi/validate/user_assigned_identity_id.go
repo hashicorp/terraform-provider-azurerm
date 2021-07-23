@@ -1,11 +1,9 @@
 package validate
 
-// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
-
 import (
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/sdk/managedidentity"
 )
 
 func UserAssignedIdentityID(input interface{}, key string) (warnings []string, errors []error) {
@@ -15,7 +13,7 @@ func UserAssignedIdentityID(input interface{}, key string) (warnings []string, e
 		return
 	}
 
-	if _, err := parse.UserAssignedIdentityID(v); err != nil {
+	if _, err := managedidentity.ParseUserAssignedIdentitiesID(v); err != nil {
 		errors = append(errors, err)
 	}
 
