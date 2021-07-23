@@ -325,6 +325,7 @@ func resourceDataFactoryTriggerTumblingWindowRead(d *pluginsdk.ResourceData, met
 	d.Set("activated", trigger.RuntimeState == datafactory.TriggerRuntimeStateStarted)
 	d.Set("additional_properties", trigger.AdditionalProperties)
 	d.Set("description", trigger.Description)
+
 	if err := d.Set("annotations", flattenDataFactoryAnnotations(trigger.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
