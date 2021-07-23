@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -50,23 +51,21 @@ func resourceBotChannelSMS() *pluginsdk.Resource {
 			},
 
 			"account_sid": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"auth_token": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"phone": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
-			"is_validated": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
+			"phone_number": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
@@ -96,9 +95,9 @@ func resourceBotChannelSMSCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			Properties: &botservice.SmsChannelProperties{
 				AccountSID:  utils.String(d.Get("account_sid").(string)),
 				AuthToken:   utils.String(d.Get("auth_token").(string)),
-				IsValidated: utils.Bool(d.Get("is_validated").(bool)),
+				IsValidated: utils.Bool(true),
 				IsEnabled:   utils.Bool(true),
-				Phone:       utils.String(d.Get("phone").(string)),
+				Phone:       utils.String(d.Get("phone_number").(string)),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameSmsChannel,
 		},
@@ -139,13 +138,17 @@ func resourceBotChannelSMSRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if props := resp.Properties; props != nil {
+	channelsResp, err := client.ListWithKeys(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineChannel)
+	if err != nil {
+		return fmt.Errorf("listing keys for %s: %+v", *id, err)
+	}
+
+	if props := channelsResp.Properties; props != nil {
 		if channel, ok := props.AsSmsChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
 				d.Set("account_sid", channelProps.AccountSID)
 				d.Set("auth_token", channelProps.AuthToken)
-				d.Set("phone", channelProps.Phone)
-				d.Set("is_validated", channelProps.IsValidated)
+				d.Set("phone_number", channelProps.Phone)
 			}
 		}
 	}
@@ -168,9 +171,9 @@ func resourceBotChannelSMSUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			Properties: &botservice.SmsChannelProperties{
 				AccountSID:  utils.String(d.Get("account_sid").(string)),
 				AuthToken:   utils.String(d.Get("auth_token").(string)),
-				IsValidated: utils.Bool(d.Get("is_validated").(bool)),
+				IsValidated: utils.Bool(true),
 				IsEnabled:   utils.Bool(true),
-				Phone:       utils.String(d.Get("phone").(string)),
+				Phone:       utils.String(d.Get("phone_number").(string)),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameSmsChannel,
 		},
