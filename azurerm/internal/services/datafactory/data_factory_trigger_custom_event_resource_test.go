@@ -197,7 +197,7 @@ resource "azurerm_data_factory_pipeline" "test" {
   data_factory_name   = azurerm_data_factory.test.name
 
   parameters = {
-    test = "testparameter"
+    foo = "bar"
   }
 }
 
