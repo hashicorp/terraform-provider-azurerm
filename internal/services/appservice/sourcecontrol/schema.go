@@ -30,6 +30,7 @@ func githubActionConfigSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
+		ForceNew: true,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -42,23 +43,27 @@ func githubActionConfigSchema() *pluginsdk.Schema {
 							"registry_url": {
 								Type:     pluginsdk.TypeString,
 								Required: true,
+								ForceNew: true,
 								//ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 							},
 
 							"image_name": {
 								Type:     pluginsdk.TypeString,
 								Required: true,
+								ForceNew: true,
 								//ValidateFunc: validate.NoEmptyStrings,
 							},
 
 							"registry_username": {
 								Type:     pluginsdk.TypeString,
 								Optional: true,
+								ForceNew: true,
 							},
 
 							"registry_password": {
 								Type:      pluginsdk.TypeString,
 								Optional:  true,
+								ForceNew:  true,
 								Sensitive: true,
 							},
 						},
@@ -69,11 +74,13 @@ func githubActionConfigSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
+					ForceNew: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"runtime_stack": {
 								Type:     pluginsdk.TypeString,
 								Required: true,
+								ForceNew: true,
 								ValidateFunc: validation.StringInSlice([]string{
 									"dotnetcore", // For all .Net builds on all O/S
 									"spring",     // Java on Java, JBOSSEAP
@@ -85,22 +92,24 @@ func githubActionConfigSchema() *pluginsdk.Schema {
 
 							"runtime_version": {
 								Type:         pluginsdk.TypeString,
-								Required:     true, // Should this be required?
+								Required:     true,
+								ForceNew:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
 				},
 
-				"linux_action": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-
 				"generate_workflow_file": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					ForceNew: true,
 					Default:  true,
+				},
+
+				"linux_action": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
 				},
 			},
 		},

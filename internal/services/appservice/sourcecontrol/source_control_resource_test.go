@@ -174,34 +174,6 @@ func TestAccSourceControlResource_linuxGitHub(t *testing.T) {
 	})
 }
 
-func TestAccSourceControlResource_linuxSCMTypeUpdate(t *testing.T) {
-	if ok := os.Getenv("ARM_GITHUB_ACCESS_TOKEN"); ok == "" {
-		t.Skip("Skipping as `ARM_GITHUB_ACCESS_TOKEN` is not specified")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
-	r := AppServiceSourceControlResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.linuxLocalGit(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scm_type").HasValue("LocalGit"),
-				check.That(data.ResourceName).Key("repo_url").HasValue(fmt.Sprintf("https://acctestwa-%d.scm.azurewebsites.net", data.RandomInteger)),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.linuxGitHub(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r AppServiceSourceControlResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.WebAppID(state.ID)
 	if err != nil {
