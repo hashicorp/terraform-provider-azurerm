@@ -78,7 +78,7 @@ resource "azurerm_bot_channel_sms" "test" {
   auth_token          = "%s"
   phone_number        = "%s"
 }
-`, BotChannelsRegistrationResource{}.basicConfig(data), os.Getenv("account_sid"), os.Getenv("auth_token"), os.Getenv("phone_number"))
+`, BotChannelsRegistrationResource{}.basicConfig(data), os.Getenv("ARM_TEST_ACCOUNT_SID"), os.Getenv("ARM_TEST_AUTH_TOKEN"), os.Getenv("ARM_TEST_PHONE_NUMBER"))
 }
 
 func (r BotChannelSMSResource) requiresImport(data acceptance.TestData) string {

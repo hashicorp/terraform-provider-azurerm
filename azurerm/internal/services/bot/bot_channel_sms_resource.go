@@ -59,6 +59,7 @@ func resourceBotChannelSMS() *pluginsdk.Resource {
 			"auth_token": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -138,7 +139,7 @@ func resourceBotChannelSMSRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	channelsResp, err := client.ListWithKeys(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineChannel)
+	channelsResp, err := client.ListWithKeys(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameSmsChannel)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
 	}
