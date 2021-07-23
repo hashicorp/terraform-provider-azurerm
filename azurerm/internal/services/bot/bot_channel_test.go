@@ -30,6 +30,10 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 			"facebookBasic":          testAccBotChannelFacebook_basic,
 			"facebookUpdate":         testAccBotChannelFacebook_update,
 			"facebookRequiresImport": testAccBotChannelFacebook_requiresImport,
+			"webchatBasic":           testAccBotChannelWebChat_basic,
+			"webchatComplete":        testAccBotChannelWebChat_complete,
+			"webchatUpdate":          testAccBotChannelWebChat_update,
+			"webchatRequiresImport":  testAccBotChannelWebChat_requiresImport,
 		},
 		"web_app": {
 			"basic":    testAccBotWebApp_basic,

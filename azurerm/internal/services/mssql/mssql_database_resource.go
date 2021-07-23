@@ -393,6 +393,10 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	log.Printf("[INFO] preparing arguments for MsSql Database creation.")
 
+	if strings.HasPrefix(d.Get("sku_name").(string), "GP_S_") && d.Get("license_type").(string) != "" {
+		return fmt.Errorf("serverless databases do not support license type")
+	}
+
 	name := d.Get("name").(string)
 	sqlServerId := d.Get("server_id").(string)
 	serverId, _ := parse.ServerID(sqlServerId)

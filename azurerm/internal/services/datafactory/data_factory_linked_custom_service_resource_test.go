@@ -186,9 +186,9 @@ JSON
     }
   }
 
-  parameters = {
-    "foo" : "bar"
-    "Env" : "Test"
+  additional_properties = {
+    foo = "test1"
+    bar = "test2"
   }
 
   annotations = [
@@ -196,6 +196,11 @@ JSON
     "test2",
     "test3"
   ]
+
+  parameters = {
+    "foo" : "bar"
+    "Env" : "Test"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

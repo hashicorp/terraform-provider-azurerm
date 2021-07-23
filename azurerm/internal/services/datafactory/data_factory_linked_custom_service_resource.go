@@ -277,9 +277,14 @@ func resourceDataFactoryLinkedCustomServiceRead(d *pluginsdk.ResourceData, meta 
 
 	delete(m, "typeProperties")
 
+	// set "additional_properties"
 	additionalProperties := make(map[string]interface{})
-	for k, v := range m {
-		additionalProperties[k] = v
+	bytes, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(bytes, &additionalProperties); err != nil {
+		return err
 	}
 	d.Set("additional_properties", additionalProperties)
 
