@@ -66,10 +66,10 @@ func TestAccSubscriptionResource_update(t *testing.T) {
 		{
 			Config: r.basicEnrollmentAccount(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				assert.ExistsInAzure(r),
-				assert.Key("tags.%").HasValue("2"),
-				assert.Key("tags.cost_center").HasValue("MSFT"),
-				assert.Key("tags.environment").HasValue("Production"),
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.cost_center").HasValue("MSFT"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
 			),
 		},
 		data.ImportStep("billing_scope_id"),
@@ -231,7 +231,7 @@ resource "azurerm_subscription" "import" {
   alias             = azurerm_subscription.test.alias
   subscription_name = azurerm_subscription.test.subscription_name
   billing_scope_id  = azurerm_subscription.test.billing_scope_id
-  tags				= azurerm_subscription.test.tags
+  tags              = azurerm_subscription.test.tags
 }
 `, r.basicEnrollmentAccount(data))
 }
