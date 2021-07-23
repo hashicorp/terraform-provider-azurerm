@@ -12,7 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/base64"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -68,6 +70,104 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
+			// Start New
+			"sku_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			// If multiple network_interface blocks are specified, one must be set to primary.
+			"network_interface": OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema(),
+
+			"os_disk": OrchestratedVirtualMachineScaleSetOSDiskSchema(),
+
+			// Optional
+			"boot_diagnostics": bootDiagnosticsSchema(),
+
+			// If unspecified this defaults to the value for the name field. If the value of
+			// the name field is not a valid computer_name_prefix, then you must specify
+			// computer_name_prefix.
+			"computer_name_prefix": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Computed since we reuse the VM name if one's not specified
+				Computed: true,
+				ForceNew: true,
+
+				ValidateFunc: computeValidate.WindowsComputerNamePrefix,
+			},
+
+			"custom_data": base64.OptionalSchema(false),
+
+			"data_disk": OrchestratedVirtualMachineScaleSetDataDiskSchema(),
+
+			// This block is only available in the Opt-In beta and requires that the Environment
+			// Variable ARM_PROVIDER_VMSS_EXTENSIONS_BETA is set to true to be used.
+			"extension": OrchestratedVirtualMachineScaleSetExtensionsSchema(),
+
+			"eviction_policy": {
+				// only applicable when `priority` is set to `Spot`
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.Deallocate),
+					string(compute.Delete),
+				}, false),
+			},
+
+			"identity": OrchestratedVirtualMachineScaleSetIdentitySchema(),
+
+			"license_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"None",
+					"Windows_Client",
+					"Windows_Server",
+				}, false),
+				DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
+					if old == "None" && new == "" || old == "" && new == "None" {
+						return true
+					}
+
+					return false
+				},
+			},
+
+			"max_bid_price": {
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				Default:      -1,
+				ValidateFunc: computeValidate.SpotMaxPrice,
+			},
+
+			"plan": planSchema(),
+
+			"priority": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(compute.Regular),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.Regular),
+					string(compute.Spot),
+				}, false),
+			},
+
+			"secret": windowsSecretSchema(),
+
+			"source_image_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
+			"terminate_notification": OrchestratedVirtualMachineScaleSetTerminateNotificationSchema(),
+
+			// End New
+
 			"single_placement_group": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -75,8 +175,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			// the VMO mode can only be deployed into one zone for now, and its zone will also be assigned to all its VM instances
-			"zones": azure.SchemaSingleZone(),
+			"zones": azure.SchemaZones(),
 
 			"unique_id": {
 				Type:     pluginsdk.TypeString,
