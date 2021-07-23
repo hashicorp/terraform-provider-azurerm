@@ -388,6 +388,14 @@ func TestAccEventHubNamespace_BasicWithSkuUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("capacity").HasValue("2"),
 			),
 		},
+		{
+			Config: r.premium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Premium"),
+				check.That(data.ResourceName).Key("capacity").HasValue("1"),
+			),
+		},
 	})
 }
 
@@ -584,6 +592,28 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
   capacity            = "2"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (EventHubNamespaceResource) premium(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eh-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Premium"
+  capacity            = "1"
+  zone_redundant      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
