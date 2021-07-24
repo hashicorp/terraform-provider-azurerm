@@ -242,7 +242,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"allow_shared_key_access": {
+			"shared_key_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
