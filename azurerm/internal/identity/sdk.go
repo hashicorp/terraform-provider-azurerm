@@ -43,8 +43,6 @@ func (s *SystemAssignedIdentity) CastFromExpandedConfig(config ExpandedConfig) {
 		TenantID:    config.TenantId,
 		PrincipalID: config.PrincipalId,
 	}
-
-	return
 }
 
 var _ ExpandedConfigCaster = &UserAssignedIdentityList{}
@@ -97,8 +95,6 @@ func (u *UserAssignedIdentityList) CastFromExpandedConfig(config ExpandedConfig)
 		})
 	}
 	u.UserAssignedIdentities = &identities
-
-	return
 }
 
 var _ ExpandedConfigCaster = &UserAssignedIdentityMap{}
@@ -146,8 +142,6 @@ func (u *UserAssignedIdentityMap) CastFromExpandedConfig(config ExpandedConfig) 
 		// The user assigned identity information is not used by the provider. So simply assign the value to nil.
 		u.UserAssignedIdentities[id] = nil
 	}
-
-	return
 }
 
 var _ ExpandedConfigCaster = &SystemUserAssignedIdentityList{}
@@ -208,8 +202,6 @@ func (s *SystemUserAssignedIdentityList) CastFromExpandedConfig(config ExpandedC
 		})
 	}
 	s.UserAssignedIdentities = &identities
-
-	return
 }
 
 var _ ExpandedConfigCaster = &SystemUserAssignedIdentityMap{}
@@ -263,6 +255,4 @@ func (s *SystemUserAssignedIdentityMap) CastFromExpandedConfig(config ExpandedCo
 		// The user assigned identity information is not used by the provider. So simply assign the value to nil.
 		s.UserAssignedIdentities[id] = nil
 	}
-
-	return
 }
