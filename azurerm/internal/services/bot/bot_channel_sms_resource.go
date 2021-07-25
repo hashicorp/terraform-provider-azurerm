@@ -50,22 +50,22 @@ func resourceBotChannelSMS() *pluginsdk.Resource {
 				ValidateFunc: validate.BotName,
 			},
 
-			"account_sid": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"auth_token": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"phone_number": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"sms_channel_account_security_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"sms_channel_auth_token": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
@@ -94,8 +94,8 @@ func resourceBotChannelSMSCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	channel := botservice.BotChannel{
 		Properties: botservice.SmsChannel{
 			Properties: &botservice.SmsChannelProperties{
-				AccountSID:  utils.String(d.Get("account_sid").(string)),
-				AuthToken:   utils.String(d.Get("auth_token").(string)),
+				AccountSID:  utils.String(d.Get("sms_channel_account_security_id").(string)),
+				AuthToken:   utils.String(d.Get("sms_channel_auth_token").(string)),
 				IsValidated: utils.Bool(true),
 				IsEnabled:   utils.Bool(true),
 				Phone:       utils.String(d.Get("phone_number").(string)),
@@ -147,8 +147,8 @@ func resourceBotChannelSMSRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if props := channelsResp.Properties; props != nil {
 		if channel, ok := props.AsSmsChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
-				d.Set("account_sid", channelProps.AccountSID)
-				d.Set("auth_token", channelProps.AuthToken)
+				d.Set("sms_channel_account_security_id", channelProps.AccountSID)
+				d.Set("sms_channel_auth_token", channelProps.AuthToken)
 				d.Set("phone_number", channelProps.Phone)
 			}
 		}
@@ -170,8 +170,8 @@ func resourceBotChannelSMSUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	channel := botservice.BotChannel{
 		Properties: botservice.SmsChannel{
 			Properties: &botservice.SmsChannelProperties{
-				AccountSID:  utils.String(d.Get("account_sid").(string)),
-				AuthToken:   utils.String(d.Get("auth_token").(string)),
+				AccountSID:  utils.String(d.Get("sms_channel_account_security_id").(string)),
+				AuthToken:   utils.String(d.Get("sms_channel_auth_token").(string)),
 				IsValidated: utils.Bool(true),
 				IsEnabled:   utils.Bool(true),
 				Phone:       utils.String(d.Get("phone_number").(string)),

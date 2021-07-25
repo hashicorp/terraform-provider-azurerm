@@ -71,14 +71,14 @@ func (BotChannelSMSResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_bot_channel_sms" "test" {
-  bot_name            = azurerm_bot_channels_registration.test.name
-  location            = azurerm_bot_channels_registration.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  account_sid         = "%s"
-  auth_token          = "%s"
-  phone_number        = "%s"
+  bot_name                        = azurerm_bot_channels_registration.test.name
+  location                        = azurerm_bot_channels_registration.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  sms_channel_account_security_id = "%s"
+  sms_channel_auth_token          = "%s"
+  phone_number                    = "%s"
 }
-`, BotChannelsRegistrationResource{}.basicConfig(data), os.Getenv("ARM_TEST_ACCOUNT_SID"), os.Getenv("ARM_TEST_AUTH_TOKEN"), os.Getenv("ARM_TEST_PHONE_NUMBER"))
+`, BotChannelsRegistrationResource{}.basicConfig(data), os.Getenv("ARM_TEST_SMS_CHANNEL_ACCOUNT_SECURITY_ID"), os.Getenv("ARM_TEST_SMS_CHANNEL_AUTH_TOKEN"), os.Getenv("ARM_TEST_PHONE_NUMBER"))
 }
 
 func (r BotChannelSMSResource) requiresImport(data acceptance.TestData) string {
@@ -86,18 +86,18 @@ func (r BotChannelSMSResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_bot_channel_sms" "import" {
-  bot_name            = azurerm_bot_channel_sms.test.bot_name
-  location            = azurerm_bot_channel_sms.test.location
-  resource_group_name = azurerm_bot_channel_sms.test.resource_group_name
-  account_sid         = azurerm_bot_channel_sms.test.account_sid
-  auth_token          = azurerm_bot_channel_sms.test.auth_token
-  phone_number        = azurerm_bot_channel_sms.test.phone_number
+  bot_name                        = azurerm_bot_channel_sms.test.bot_name
+  location                        = azurerm_bot_channel_sms.test.location
+  resource_group_name             = azurerm_bot_channel_sms.test.resource_group_name
+  sms_channel_account_security_id = azurerm_bot_channel_sms.test.sms_channel_account_security_id
+  sms_channel_auth_token          = azurerm_bot_channel_sms.test.sms_channel_auth_token
+  phone_number                    = azurerm_bot_channel_sms.test.phone_number
 }
 `, r.basic(data))
 }
 
 func skipSMSChannel(t *testing.T) {
-	if os.Getenv("ARM_TEST_ACCOUNT_SID") == "" || os.Getenv("ARM_TEST_AUTH_TOKEN") == "" || os.Getenv("ARM_TEST_PHONE_NUMBER") == "" {
-		t.Skip("Skipping as one of `ARM_TEST_ACCOUNT_SID`, `ARM_TEST_AUTH_TOKEN`, `ARM_TEST_PHONE_NUMBER` was not specified")
+	if os.Getenv("ARM_TEST_SMS_CHANNEL_ACCOUNT_SECURITY_ID") == "" || os.Getenv("ARM_TEST_SMS_CHANNEL_AUTH_TOKEN") == "" || os.Getenv("ARM_TEST_PHONE_NUMBER") == "" {
+		t.Skip("Skipping as one of `ARM_TEST_SMS_CHANNEL_ACCOUNT_SECURITY_ID`, `ARM_TEST_SMS_CHANNEL_AUTH_TOKEN`, `ARM_TEST_PHONE_NUMBER` was not specified")
 	}
 }

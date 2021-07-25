@@ -31,12 +31,12 @@ resource "azurerm_bot_channels_registration" "example" {
 }
 
 resource "azurerm_bot_channel_sms" "example" {
-  bot_name            = azurerm_bot_channels_registration.example.name
-  location            = azurerm_bot_channels_registration.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  account_sid         = "BG61f7cf5157f439b084e98256409c2815"
-  auth_token          = "jh8980432610052ed4e29565c5e232f"
-  phone_number        = "+12313803556"
+  bot_name                        = azurerm_bot_channels_registration.example.name
+  location                        = azurerm_bot_channels_registration.example.location
+  resource_group_name             = azurerm_resource_group.example.name
+  sms_channel_account_security_id = "BG61f7cf5157f439b084e98256409c2815"
+  sms_channel_auth_token          = "jh8980432610052ed4e29565c5e232f"
+  phone_number                    = "+12313803556"
 }
 ```
 
@@ -50,11 +50,11 @@ The following arguments are supported:
 
 * `bot_name` - (Required) The name of the Bot Resource this channel will be associated with. Changing this forces a new resource to be created.
 
-* `account_sid` - (Required) The account security identifier (SID) for the SMS Channel.
-
-* `auth_token` - (Required) The authorization token for the SMS Channel.
-
 * `phone_number` - (Required) The phone number for the SMS Channel.
+
+* `sms_channel_account_security_id` - (Required) The account security identifier (SID) for the SMS Channel.
+
+* `sms_channel_auth_token` - (Required) The authorization token for the SMS Channel.
 
 ## Attributes Reference
 
