@@ -95,18 +95,18 @@ func (BotChannelFacebookResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_bot_channel_facebook" "test" {
-  bot_name            = azurerm_bot_channels_registration.test.name
-  location            = azurerm_bot_channels_registration.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_id              = "%s"
-  app_secret          = "%s"
+  bot_name                    = azurerm_bot_channels_registration.test.name
+  location                    = azurerm_bot_channels_registration.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  facebook_application_id     = "%s"
+  facebook_application_secret = "%s"
 
   page {
     id           = "%s"
     access_token = "%s"
   }
 }
-`, BotChannelsRegistrationResource{}.basicConfig(data), os.Getenv("ARM_TEST_APP_ID"), os.Getenv("ARM_TEST_APP_SECRET"), os.Getenv("ARM_TEST_PAGE_ID"), os.Getenv("ARM_TEST_PAGE_ACCESS_TOKEN"))
+`, BotChannelsRegistrationResource{}.basicConfig(data), os.Getenv("ARM_TEST_FACEBOOK_APPLICATION_ID"), os.Getenv("ARM_TEST_FACEBOOK_APPLICATION_SECRET"), os.Getenv("ARM_TEST_PAGE_ID"), os.Getenv("ARM_TEST_PAGE_ACCESS_TOKEN"))
 }
 
 func (r BotChannelFacebookResource) requiresImport(data acceptance.TestData) string {
@@ -114,11 +114,11 @@ func (r BotChannelFacebookResource) requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_bot_channel_facebook" "import" {
-  bot_name            = azurerm_bot_channel_facebook.test.bot_name
-  location            = azurerm_bot_channel_facebook.test.location
-  resource_group_name = azurerm_bot_channel_facebook.test.resource_group_name
-  app_id              = azurerm_bot_channel_facebook.test.app_id
-  app_secret          = azurerm_bot_channel_facebook.test.app_secret
+  bot_name                    = azurerm_bot_channel_facebook.test.bot_name
+  location                    = azurerm_bot_channel_facebook.test.location
+  resource_group_name         = azurerm_bot_channel_facebook.test.resource_group_name
+  facebook_application_id     = azurerm_bot_channel_facebook.test.facebook_application_id
+  facebook_application_secret = azurerm_bot_channel_facebook.test.facebook_application_secret
 
   page {
     id           = "%s"
@@ -133,22 +133,22 @@ func (BotChannelFacebookResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_bot_channel_facebook" "test" {
-  bot_name            = azurerm_bot_channels_registration.test.name
-  location            = azurerm_bot_channels_registration.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_id              = "%s"
-  app_secret          = "%s"
+  bot_name                    = azurerm_bot_channels_registration.test.name
+  location                    = azurerm_bot_channels_registration.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  facebook_application_id     = "%s"
+  facebook_application_secret = "%s"
 
   page {
     id           = "%s"
     access_token = "%s"
   }
 }
-`, BotChannelsRegistrationResource{}.basicConfig(data), os.Getenv("ARM_TEST_APP_ID2"), os.Getenv("ARM_TEST_APP_SECRET2"), os.Getenv("ARM_TEST_PAGE_ID2"), os.Getenv("ARM_TEST_PAGE_ACCESS_TOKEN2"))
+`, BotChannelsRegistrationResource{}.basicConfig(data), os.Getenv("ARM_TEST_FACEBOOK_APPLICATION_ID2"), os.Getenv("ARM_TEST_FACEBOOK_APPLICATION_SECRET2"), os.Getenv("ARM_TEST_PAGE_ID2"), os.Getenv("ARM_TEST_PAGE_ACCESS_TOKEN2"))
 }
 
 func skipFacebookChannel(t *testing.T) {
-	if os.Getenv("ARM_TEST_APP_ID") == "" || os.Getenv("ARM_TEST_APP_SECRET") == "" || os.Getenv("ARM_TEST_PAGE_ID") == "" || os.Getenv("ARM_TEST_PAGE_ACCESS_TOKEN") == "" || os.Getenv("ARM_TEST_APP_ID2") == "" || os.Getenv("ARM_TEST_APP_SECRET2") == "" || os.Getenv("ARM_TEST_PAGE_ID2") == "" || os.Getenv("ARM_TEST_PAGE_ACCESS_TOKEN2") == "" {
-		t.Skip("Skipping as one of `ARM_TEST_APP_ID`, `ARM_TEST_APP_SECRET`, `ARM_TEST_PAGE_ID`, `ARM_TEST_PAGE_ACCESS_TOKEN`, `ARM_TEST_APP_ID2`, `ARM_TEST_APP_SECRET2`, `ARM_TEST_PAGE_ID2` and `ARM_TEST_PAGE_ACCESS_TOKEN2` was not specified")
+	if os.Getenv("ARM_TEST_FACEBOOK_APPLICATION_ID") == "" || os.Getenv("ARM_TEST_FACEBOOK_APPLICATION_SECRET") == "" || os.Getenv("ARM_TEST_PAGE_ID") == "" || os.Getenv("ARM_TEST_PAGE_ACCESS_TOKEN") == "" || os.Getenv("ARM_TEST_FACEBOOK_APPLICATION_ID2") == "" || os.Getenv("ARM_TEST_FACEBOOK_APPLICATION_SECRET2") == "" || os.Getenv("ARM_TEST_PAGE_ID2") == "" || os.Getenv("ARM_TEST_PAGE_ACCESS_TOKEN2") == "" {
+		t.Skip("Skipping as one of `ARM_TEST_FACEBOOK_APPLICATION_ID`, `ARM_TEST_FACEBOOK_APPLICATION_SECRET`, `ARM_TEST_PAGE_ID`, `ARM_TEST_PAGE_ACCESS_TOKEN`, `ARM_TEST_FACEBOOK_APPLICATION_ID2`, `ARM_TEST_FACEBOOK_APPLICATION_SECRET2`, `ARM_TEST_PAGE_ID2` and `ARM_TEST_PAGE_ACCESS_TOKEN2` was not specified")
 	}
 }

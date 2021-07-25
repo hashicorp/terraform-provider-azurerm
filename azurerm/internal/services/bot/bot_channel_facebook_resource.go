@@ -50,13 +50,13 @@ func resourceBotChannelFacebook() *pluginsdk.Resource {
 				ValidateFunc: validate.BotName,
 			},
 
-			"app_id": {
+			"facebook_application_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"app_secret": {
+			"facebook_application_secret": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				Sensitive:    true,
@@ -109,8 +109,8 @@ func resourceBotChannelFacebookCreate(d *pluginsdk.ResourceData, meta interface{
 	channel := botservice.BotChannel{
 		Properties: botservice.FacebookChannel{
 			Properties: &botservice.FacebookChannelProperties{
-				AppID:     utils.String(d.Get("app_id").(string)),
-				AppSecret: utils.String(d.Get("app_secret").(string)),
+				AppID:     utils.String(d.Get("facebook_application_id").(string)),
+				AppSecret: utils.String(d.Get("facebook_application_secret").(string)),
 				Pages:     expandFacebookPage(d.Get("page").(*pluginsdk.Set).List()),
 				IsEnabled: utils.Bool(true),
 			},
@@ -161,8 +161,8 @@ func resourceBotChannelFacebookRead(d *pluginsdk.ResourceData, meta interface{})
 	if props := channelsResp.Properties; props != nil {
 		if channel, ok := props.AsFacebookChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
-				d.Set("app_id", channelProps.AppID)
-				d.Set("app_secret", channelProps.AppSecret)
+				d.Set("facebook_application_id", channelProps.AppID)
+				d.Set("facebook_application_secret", channelProps.AppSecret)
 
 				if err := d.Set("page", flattenFacebookPage(channelProps.Pages)); err != nil {
 					return fmt.Errorf("setting `page`: %+v", err)
@@ -187,8 +187,8 @@ func resourceBotChannelFacebookUpdate(d *pluginsdk.ResourceData, meta interface{
 	channel := botservice.BotChannel{
 		Properties: botservice.FacebookChannel{
 			Properties: &botservice.FacebookChannelProperties{
-				AppID:     utils.String(d.Get("app_id").(string)),
-				AppSecret: utils.String(d.Get("app_secret").(string)),
+				AppID:     utils.String(d.Get("facebook_application_id").(string)),
+				AppSecret: utils.String(d.Get("facebook_application_secret").(string)),
 				Pages:     expandFacebookPage(d.Get("page").(*pluginsdk.Set).List()),
 				IsEnabled: utils.Bool(true),
 			},
