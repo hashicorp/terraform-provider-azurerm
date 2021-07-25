@@ -31,11 +31,11 @@ resource "azurerm_bot_channels_registration" "example" {
 }
 
 resource "azurerm_bot_channel_facebook" "example" {
-  bot_name                = azurerm_bot_channels_registration.example.name
-  location                = azurerm_bot_channels_registration.example.location
-  resource_group_name     = azurerm_resource_group.example.name
-  facebook_application_id = "563490254873576"
-  app_secret              = "8976d2536445ad5b976dee8437b9beb0"
+  bot_name                    = azurerm_bot_channels_registration.example.name
+  location                    = azurerm_bot_channels_registration.example.location
+  resource_group_name         = azurerm_resource_group.example.name
+  facebook_application_id     = "563490254873576"
+  facebook_application_secret = "8976d2536445ad5b976dee8437b9beb0"
 
   page {
     id           = "876248795081953"
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `facebook_application_id` - (Required) The Facebook Application ID for the Facebook Channel.
 
-* `app_secret` - (Required) The Facebook Application Secret for the Facebook Channel.
+* `facebook_application_secret` - (Required) The Facebook Application Secret for the Facebook Channel.
 
 * `page` - (Required) One or more `page` blocks as defined below.
 
