@@ -52,6 +52,8 @@ The following arguments are supported:
 
 * `time_to_live_min` - (Optional) Time to live (in minutes) setting of the cluster which will execute data flow job. Defaults to `0`.
 
+* `virtual_network_enabled` - (Optional) Is Integration Runtime compute provisioned within Managed Virtual Network? Changing this forces a new resource to be created.
+
 ---
 
 ## Import
