@@ -2,12 +2,12 @@ package bot
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -52,22 +53,25 @@ func resourceBotChannelDirectLineSpeech() *pluginsdk.Resource {
 
 			"cognitive_service_region": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Required: true,
 			},
 
 			"cognitive_service_subscription_key": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"custom_speech_model_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"custom_voice_deployment_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"is_default_bot_for_cog_svc_account": {
@@ -100,6 +104,8 @@ func resourceBotChannelDirectLineSpeechCreate(d *pluginsdk.ResourceData, meta in
 	channel := botservice.BotChannel{
 		Properties: botservice.DirectLineSpeechChannel{
 			Properties: &botservice.DirectLineSpeechChannelProperties{
+				CognitiveServiceRegion: utils.String(d.Get("cognitive_service_region").(string)),
+				CognitiveServiceSubscriptionKey: utils.String(d.Get("cognitive_service_subscription_key").(string)),
 				IsDefaultBotForCogSvcAccount: utils.Bool(d.Get("is_default_bot_for_cog_svc_account").(bool)),
 				IsEnabled:                    utils.Bool(true),
 			},
@@ -107,16 +113,6 @@ func resourceBotChannelDirectLineSpeechCreate(d *pluginsdk.ResourceData, meta in
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
-	}
-
-	if v, ok := d.GetOk("cognitive_service_region"); ok {
-		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
-		channel.Properties.CognitiveServiceRegion = utils.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("cognitive_service_subscription_key"); ok {
-		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
-		channel.Properties.CognitiveServiceSubscriptionKey = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("custom_speech_model_id"); ok {
@@ -162,7 +158,12 @@ func resourceBotChannelDirectLineSpeechRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if props := resp.Properties; props != nil {
+	channelsResp, err := client.ListWithKeys(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineSpeechChannel)
+	if err != nil {
+		return fmt.Errorf("listing keys for %s: %+v", id, err)
+	}
+
+	if props := channelsResp.Properties; props != nil {
 		if channel, ok := props.AsDirectLineSpeechChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
 				d.Set("cognitive_service_region", channelProps.CognitiveServiceRegion)
@@ -190,6 +191,8 @@ func resourceBotChannelDirectLineSpeechUpdate(d *pluginsdk.ResourceData, meta in
 	channel := botservice.BotChannel{
 		Properties: botservice.DirectLineSpeechChannel{
 			Properties: &botservice.DirectLineSpeechChannelProperties{
+				CognitiveServiceRegion: utils.String(d.Get("cognitive_service_region").(string)),
+				CognitiveServiceSubscriptionKey: utils.String(d.Get("cognitive_service_subscription_key").(string)),
 				IsDefaultBotForCogSvcAccount: utils.Bool(d.Get("is_default_bot_for_cog_svc_account").(bool)),
 				IsEnabled:                    utils.Bool(true),
 			},
@@ -197,16 +200,6 @@ func resourceBotChannelDirectLineSpeechUpdate(d *pluginsdk.ResourceData, meta in
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
-	}
-
-	if v, ok := d.GetOk("cognitive_service_region"); ok {
-		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
-		channel.Properties.CognitiveServiceRegion = utils.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("cognitive_service_subscription_key"); ok {
-		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
-		channel.Properties.CognitiveServiceSubscriptionKey = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("custom_speech_model_id"); ok {
