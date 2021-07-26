@@ -209,7 +209,7 @@ resource "azurerm_automation_certificate" "test" {
   automation_account_name = azurerm_automation_account.test.name
   base64                  = "%s"
   description             = "This is a test certificate for terraform acceptance test"
-  exportable              = false	
+  exportable              = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, testCertBase64)
 }
