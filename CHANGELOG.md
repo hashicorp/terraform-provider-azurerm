@@ -5,7 +5,9 @@ FEATURES:
 * **New Resource** `azurerm_bot_channel_facebook` [GH-12709]
 * **New Resource** `azurerm_bot_channel_sms` [GH-12713]
 * **New Resource** `azurerm_data_factory_trigger_custom_event` [GH-12448]
+* **New Resource** `azurerm_data_factory_trigger_tumbling_window` [GH-12437]
 * **New Resource** `azurerm_data_protection_backup_instance_disk` [GH-12617]
+
 
 ENHANCEMENTS:
 
