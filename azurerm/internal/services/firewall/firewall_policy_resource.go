@@ -226,9 +226,8 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if v, ok := d.GetOk("private_ip_ranges"); ok {
 		privateIpRanges := utils.ExpandStringSlice(v.([]interface{}))
-		if len(*privateIpRanges) != 0 {
-			props.FirewallPolicyPropertiesFormat.Snat = &network.FirewallPolicySNAT{PrivateRanges: privateIpRanges}
-		}
+		props.FirewallPolicyPropertiesFormat.Snat = &network.FirewallPolicySNAT{
+			PrivateRanges: privateIpRanges}
 	}
 
 	locks.ByName(name, azureFirewallPolicyResourceName)
@@ -308,10 +307,12 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf(`setting "rule_collection_groups": %+v`, err)
 		}
 
+		var privateIpRanges []interface{}
 		if prop.Snat != nil {
-			if err := d.Set("private_ip_ranges", utils.FlattenStringSlice(prop.Snat.PrivateRanges)); err != nil {
-				return fmt.Errorf("Error setting `private_ip_ranges`: %+v", err)
-			}
+			privateIpRanges = utils.FlattenStringSlice(prop.Snat.PrivateRanges)
+		}
+		if err := d.Set("private_ip_ranges", privateIpRanges); err != nil {
+			return fmt.Errorf("Error setting `private_ip_ranges`: %+v", err)
 		}
 	}
 
