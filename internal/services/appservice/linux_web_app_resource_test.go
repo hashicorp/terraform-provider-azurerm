@@ -1,4 +1,4 @@
-package webapp_test
+package appservice_test
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package sourcecontrol
+package appservice
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"

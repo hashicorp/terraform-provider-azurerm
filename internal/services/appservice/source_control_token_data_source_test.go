@@ -1,4 +1,4 @@
-package sourcecontrol_test
+package appservice_test
 
 import (
 	"fmt"

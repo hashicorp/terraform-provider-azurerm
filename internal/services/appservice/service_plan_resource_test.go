@@ -1,4 +1,4 @@
-package serviceplan_test
+package appservice_test
 
 import (
 	"context"

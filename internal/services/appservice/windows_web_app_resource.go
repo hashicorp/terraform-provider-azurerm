@@ -1,4 +1,4 @@
-package webapp
+package appservice
 
 import (
 	"context"
@@ -19,9 +19,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinuxWebAppResource struct{}
+type WindowsWebAppResource struct{}
 
-type LinuxWebAppModel struct {
+type WindowsWebAppModel struct {
 	Name                          string                   `tfschema:"name"`
 	ResourceGroup                 string                   `tfschema:"resource_group_name"`
 	Location                      string                   `tfschema:"location"`
@@ -36,11 +36,9 @@ type LinuxWebAppModel struct {
 	HttpsOnly                     bool                     `tfschema:"https_only"`
 	Identity                      []helpers.Identity       `tfschema:"identity"`
 	LogsConfig                    []LogsConfig             `tfschema:"logs"`
-	MetaData                      map[string]string        `tfschema:"app_metadata"`
-	SiteConfig                    []SiteConfigLinux        `tfschema:"site_config"`
+	SiteConfig                    []SiteConfigWindows      `tfschema:"site_config"`
 	StorageAccounts               []StorageAccount         `tfschema:"storage_account"`
 	ConnectionStrings             []ConnectionString       `tfschema:"connection_string"`
-	Tags                          map[string]string        `tfschema:"tags"`
 	CustomDomainVerificationId    string                   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string                   `tfschema:"default_hostname"`
 	Kind                          string                   `tfschema:"kind"`
@@ -49,15 +47,16 @@ type LinuxWebAppModel struct {
 	PossibleOutboundIPAddresses   string                   `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                 `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential `tfschema:"site_credential"`
+	Tags                          map[string]string        `tfschema:"tags"`
 }
 
-var _ sdk.Resource = LinuxWebAppResource{}
-var _ sdk.ResourceWithUpdate = LinuxWebAppResource{}
+var _ sdk.Resource = WindowsWebAppResource{}
+var _ sdk.ResourceWithUpdate = WindowsWebAppResource{}
 
 // TODO - Feature: Deployments (Preview)?
-// TODO - Feature: App Insights? - Part of site_settings map
+// TODO - Feature: App Insights?
 
-func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
+func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -131,7 +130,7 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"logs": logsConfigSchema(),
 
-		"site_config": siteConfigSchemaLinux(),
+		"site_config": siteConfigSchemaWindows(),
 
 		"storage_account": storageAccountSchema(),
 
@@ -139,7 +138,7 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
+func (r WindowsWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"custom_domain_verification_id": {
 			Type:      pluginsdk.TypeString,
@@ -155,14 +154,6 @@ func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 		"kind": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-		},
-
-		"app_metadata": {
-			Type:     pluginsdk.TypeMap,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
 		},
 
 		"outbound_ip_addresses": {
@@ -195,18 +186,18 @@ func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LinuxWebAppResource) ModelObject() interface{} {
-	return LinuxWebAppModel{}
+func (r WindowsWebAppResource) ModelObject() interface{} {
+	return WindowsWebAppModel{}
 }
 
-func (r LinuxWebAppResource) ResourceType() string {
-	return "azurerm_linux_web_app"
+func (r WindowsWebAppResource) ResourceType() string {
+	return "azurerm_windows_web_app"
 }
 
-func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
+func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var webApp LinuxWebAppModel
+			var webApp WindowsWebAppModel
 			if err := metadata.Decode(&webApp); err != nil {
 				return err
 			}
@@ -219,7 +210,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Linux Web App with %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing Windows Web App with %s: %+v", id, err)
 			}
 
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -255,7 +246,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *checkName.Message)
 			}
 
-			siteConfig, err := expandSiteConfigLinux(webApp.SiteConfig)
+			siteConfig, currentStack, err := expandSiteConfigWindows(webApp.SiteConfig)
 			if err != nil {
 				return err
 			}
@@ -280,11 +271,19 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 			if err != nil {
-				return fmt.Errorf("creating Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("creating Windows Web App %s: %+v", id, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("waiting for creation of Windows Web App %s: %+v", id, err)
+			}
+
+			if currentStack != nil && *currentStack != "" {
+				siteMetadata := web.StringDictionary{Properties: map[string]*string{}}
+				siteMetadata.Properties["CURRENT_STACK"] = currentStack
+				if _, err := client.UpdateMetadata(ctx, id.ResourceGroup, id.SiteName, siteMetadata); err != nil {
+					return fmt.Errorf("setting Site Metadata for Current Stack on Windows Web App %s: %+v", id, err)
+				}
 			}
 
 			metadata.SetID(id)
@@ -292,7 +291,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			appSettings := expandAppSettings(webApp.AppSettings)
 			if appSettings != nil {
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettings); err != nil {
-					return fmt.Errorf("setting App Settings for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("setting App Settings for Windows Web App %s: %+v", id, err)
 				}
 			}
 
@@ -306,14 +305,14 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			logsConfig := expandLogsConfig(webApp.LogsConfig)
 			if logsConfig != nil {
 				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, *logsConfig); err != nil {
-					return fmt.Errorf("setting Diagnostic Logs Configuration for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("setting Diagnostic Logs Configuration for Windows Web App %s: %+v", id, err)
 				}
 			}
 
 			backupConfig := expandBackupConfig(webApp.Backup)
 			if backupConfig != nil {
 				if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupConfig); err != nil {
-					return fmt.Errorf("adding Backup Settings for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("adding Backup Settings for Windows Web App %s: %+v", id, err)
 				}
 			}
 
@@ -321,7 +320,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			if storageConfig != nil {
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageConfig); err != nil {
 					if err != nil {
-						return fmt.Errorf("setting Storage Accounts for Linux Web App %s: %+v", id, err)
+						return fmt.Errorf("setting Storage Accounts for Windows Web App %s: %+v", id, err)
 					}
 				}
 			}
@@ -329,7 +328,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			connectionStrings := expandConnectionStrings(webApp.ConnectionStrings)
 			if connectionStrings != nil {
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStrings); err != nil {
-					return fmt.Errorf("setting Connection Strings for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("setting Connection Strings for Windows Web App %s: %+v", id, err)
 				}
 			}
 
@@ -340,7 +339,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
+func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -354,65 +353,70 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				if utils.ResponseWasNotFound(webApp.Response) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Windows Web App %s: %+v", id, err)
 			}
 
 			if webApp.SiteProperties == nil {
-				return fmt.Errorf("reading properties of Linux Web App %s", id)
+				return fmt.Errorf("reading properties of Windows Web App %s", id)
 			}
 
 			// Despite being part of the defined `Get` response model, site_config is always nil so we get it explicitly
 			webAppSiteConfig, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Site Config for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Site Config for Windows Web App %s: %+v", id, err)
 			}
 
 			auth, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Auth Settings for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Auth Settings for Windows Web App %s: %+v", id, err)
 			}
 
 			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(backup.Response) {
-					return fmt.Errorf("reading Backup Settings for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("reading Backup Settings for Windows Web App %s: %+v", id, err)
 				}
 			}
 
 			logsConfig, err := client.GetDiagnosticLogsConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Diagnostic Logs information for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Diagnostic Logs information for Windows Web App %s: %+v", id, err)
 			}
 
 			appSettings, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading App Settings for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("reading App Settings for Windows Web App %s: %+v", id, err)
 			}
 
 			storageAccounts, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Storage Account information for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Storage Account information for Windows Web App %s: %+v", id, err)
 			}
 
 			connectionStrings, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Connection String information for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Connection String information for Windows Web App %s: %+v", id, err)
 			}
 
 			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("listing Site Publishing Credential information for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("listing Site Publishing Credential information for Windows Web App %s: %+v", id, err)
 			}
 
 			if err := siteCredentialsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for Site Publishing Credential information for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("waiting for Site Publishing Credential information for Windows Web App %s: %+v", id, err)
 			}
 			siteCredentials, err := siteCredentialsFuture.Result(*client)
 			if err != nil {
-				return fmt.Errorf("reading Site Publishing Credential information for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Site Publishing Credential information for Windows Web App %s: %+v", id, err)
 			}
 
-			state := LinuxWebAppModel{
+			siteMetadata, err := client.ListMetadata(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading Site Metadata for Windows Web App %s: %+v", id, err)
+			}
+
+			state := WindowsWebAppModel{
 				Name:          id.SiteName,
 				ResourceGroup: id.ResourceGroup,
 				Location:      location.NormalizeNilable(webApp.Location),
@@ -483,7 +487,11 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				state.LogsConfig = logs
 			}
 
-			if siteConfig := flattenSiteConfigLinux(webAppSiteConfig.SiteConfig); siteConfig != nil {
+			if siteConfig := flattenSiteConfigWindows(webAppSiteConfig.SiteConfig); siteConfig != nil {
+				currentStack, ok := siteMetadata.Properties["CURRENT_STACK"]
+				if ok {
+					siteConfig[0].ApplicationStack[0].CurrentStack = *currentStack // YUK!!!
+				}
 				state.SiteConfig = siteConfig
 			}
 
@@ -505,12 +513,13 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				}
 				state.SiteCredentials = []helpers.SiteCredential{siteCredential}
 			}
+
 			return metadata.Encode(&state)
 		},
 	}
 }
 
-func (r LinuxWebAppResource) Delete() sdk.ResourceFunc {
+func (r WindowsWebAppResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -522,11 +531,11 @@ func (r LinuxWebAppResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", id)
 
-			deleteMetrics := true
+			deleteMetrics := true // TODO - Look at making this a feature flag?
 			deleteEmptyServerFarm := false
 			if resp, err := client.Delete(ctx, id.ResourceGroup, id.SiteName, &deleteMetrics, &deleteEmptyServerFarm); err != nil {
 				if !utils.ResponseWasNotFound(resp) {
-					return fmt.Errorf("deleting Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("deleting Windows Web App %s: %+v", id, err)
 				}
 			}
 			return nil
@@ -534,11 +543,11 @@ func (r LinuxWebAppResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r LinuxWebAppResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r WindowsWebAppResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.WebAppID
 }
 
-func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
+func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -551,7 +560,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 
 			// TODO - Need locking here when the source control meta resource is added
 
-			var state LinuxWebAppModel
+			var state WindowsWebAppModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -570,54 +579,62 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				Identity: helpers.ExpandIdentity(state.Identity),
 			}
 
-			siteConfig, err := expandSiteConfigLinux(state.SiteConfig)
+			siteConfig, currentStack, err := expandSiteConfigWindows(state.SiteConfig)
 			if err != nil {
-				return fmt.Errorf("expanding Site Config for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("expanding Site Config for Windows Web App %s: %+v", id, err)
 			}
 
 			site.SiteConfig = siteConfig
 			updateFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, site)
 			if err != nil {
-				return fmt.Errorf("updating Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("updating Windows Web App %s: %+v", id, err)
 			}
 			if err := updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting to update %s: %+v", id, err)
+				return fmt.Errorf("wating to update %s: %+v", id, err)
+			}
+
+			if currentStack != nil && *currentStack != "" {
+				siteMetadata := web.StringDictionary{Properties: map[string]*string{}}
+				siteMetadata.Properties["CURRENT_STACK"] = currentStack
+				if _, err := client.UpdateMetadata(ctx, id.ResourceGroup, id.SiteName, siteMetadata); err != nil {
+					return fmt.Errorf("setting Site Metadata for Current Stack on Windows Web App %s: %+v", id, err)
+				}
 			}
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
 			if appSettingsUpdate := expandAppSettings(state.AppSettings); appSettingsUpdate != nil {
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {
-					return fmt.Errorf("updating App Settings for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("updating App Settings for Windows Web App %s: %+v", id, err)
 				}
 			}
 
 			if connectionStringUpdate := expandConnectionStrings(state.ConnectionStrings); connectionStringUpdate != nil {
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStringUpdate); err != nil {
-					return fmt.Errorf("updating Connection Strings for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("updating Connection Strings for Windows Web App %s: %+v", id, err)
 				}
 			}
 
 			if authUpdate := helpers.ExpandAuthSettings(state.AuthSettings); authUpdate != nil {
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *authUpdate); err != nil {
-					return fmt.Errorf("updating Auth Settings for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("updating Auth Settings for Windows Web App %s: %+v", id, err)
 				}
 			}
 
 			if backupUpdate := expandBackupConfig(state.Backup); backupUpdate != nil {
 				if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupUpdate); err != nil {
-					return fmt.Errorf("updating Backup Settings for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("updating Backup Settings for Windows Web App %s: %+v", id, err)
 				}
 			}
 
 			if logsUpdate := expandLogsConfig(state.LogsConfig); logsUpdate != nil {
 				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, *logsUpdate); err != nil {
-					return fmt.Errorf("updating Logs Config for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("updating Logs Config for Windows Web App %s: %+v", id, err)
 				}
 			}
 
 			if storageAccountUpdate := expandStorageConfig(state.StorageAccounts); storageAccountUpdate != nil {
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate); err != nil {
-					return fmt.Errorf("updating Storage Accounts for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("updating Storage Accounts for Windows Web App %s: %+v", id, err)
 				}
 			}
 

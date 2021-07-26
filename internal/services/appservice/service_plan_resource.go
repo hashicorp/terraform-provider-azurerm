@@ -1,4 +1,4 @@
-package serviceplan
+package appservice
 
 import (
 	"context"

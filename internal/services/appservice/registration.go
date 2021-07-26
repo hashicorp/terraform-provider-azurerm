@@ -3,9 +3,6 @@ package appservice
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/serviceplan"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/sourcecontrol"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/webapp"
 )
 
 var _ sdk.TypedServiceRegistration = Registration{}
@@ -27,7 +24,7 @@ func (r Registration) Name() string {
 func (r Registration) DataSources() []sdk.DataSource {
 	if features.ThreePointOh() {
 		return []sdk.DataSource{
-			sourcecontrol.AppServiceSourceControlTokenDataSource{},
+			AppServiceSourceControlTokenDataSource{},
 		}
 	}
 	return []sdk.DataSource{}
@@ -36,11 +33,11 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	if features.ThreePointOh() {
 		return []sdk.Resource{
-			sourcecontrol.AppServiceSourceControlResource{},
-			sourcecontrol.AppServiceSourceControlTokenResource{},
-			webapp.WindowsWebAppResource{},
-			webapp.LinuxWebAppResource{},
-			serviceplan.AppServicePlanResource{},
+			AppServiceSourceControlResource{},
+			AppServiceSourceControlTokenResource{},
+			WindowsWebAppResource{},
+			LinuxWebAppResource{},
+			AppServicePlanResource{},
 		}
 	}
 	return []sdk.Resource{}
