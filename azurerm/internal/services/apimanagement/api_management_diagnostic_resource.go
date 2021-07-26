@@ -269,7 +269,6 @@ func resourceApiManagementDiagnosticRead(d *pluginsdk.ResourceData, meta interfa
 			d.Set("backend_request", nil)
 			d.Set("backend_response", nil)
 		}
-
 		d.Set("operation_name_format", props.OperationNameFormat)
 	}
 
