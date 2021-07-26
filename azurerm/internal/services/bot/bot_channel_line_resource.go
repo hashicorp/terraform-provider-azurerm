@@ -2,8 +2,6 @@ package bot
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"log"
 	"time"
 
@@ -16,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -97,17 +96,13 @@ func resourceBotChannelLineCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	channel := botservice.BotChannel{
 		Properties: botservice.LineChannel{
+			Properties: &botservice.LineChannelProperties{
+				LineRegistrations: expandLineRegistration(d.Get("line_registration").(*pluginsdk.Set).List()),
+			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameLineChannel,
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
-	}
-
-	if v, ok := d.GetOk("line_registration"); ok {
-		channel, _ := channel.Properties.AsLineChannel()
-		channel.Properties = &botservice.LineChannelProperties{
-			LineRegistrations: expandLineRegistration(v.(*pluginsdk.Set).List()),
-		}
 	}
 
 	if _, err := client.Create(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameLineChannel, channel); err != nil {
@@ -173,17 +168,13 @@ func resourceBotChannelLineUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	channel := botservice.BotChannel{
 		Properties: botservice.LineChannel{
+			Properties: &botservice.LineChannelProperties{
+				LineRegistrations: expandLineRegistration(d.Get("line_registration").(*pluginsdk.Set).List()),
+			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameLineChannel,
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
-	}
-
-	if v, ok := d.GetOk("line_registration"); ok {
-		channel, _ := channel.Properties.AsLineChannel()
-		channel.Properties = &botservice.LineChannelProperties{
-			LineRegistrations: expandLineRegistration(v.(*pluginsdk.Set).List()),
-		}
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameLineChannel, channel); err != nil {
@@ -215,14 +206,16 @@ func resourceBotChannelLineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 func expandLineRegistration(input []interface{}) *[]botservice.LineRegistration {
 	results := make([]botservice.LineRegistration, 0)
+
 	for _, item := range input {
 		v := item.(map[string]interface{})
+
 		results = append(results, botservice.LineRegistration{
-			GeneratedID:        utils.String(uuid.New().String()),
 			ChannelSecret:      utils.String(v["channel_secret"].(string)),
 			ChannelAccessToken: utils.String(v["channel_access_token"].(string)),
 		})
 	}
+
 	return &results
 }
 
@@ -237,19 +230,17 @@ func flattenLineRegistration(input *[]botservice.LineRegistration) []interface{}
 		if item.ChannelAccessToken != nil {
 			channelAccessToken = *item.ChannelAccessToken
 		}
+
 		var channelSecret string
 		if item.ChannelSecret != nil {
 			channelSecret = *item.ChannelSecret
 		}
-		var generatedId string
-		if item.GeneratedID != nil {
-			generatedId = *item.GeneratedID
-		}
+
 		results = append(results, map[string]interface{}{
 			"channel_access_token": channelAccessToken,
 			"channel_secret":       channelSecret,
-			"generated_id":         generatedId,
 		})
 	}
+
 	return results
 }
