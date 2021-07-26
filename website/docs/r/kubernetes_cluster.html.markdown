@@ -70,6 +70,8 @@ The following arguments are supported:
 
 * `dns_prefix_private_cluster` - (Optional) Specifies the DNS prefix to use with private clusters. Changing this forces a new resource to be created.
 
+-> **Note:** One of `dns_prefix` or `dns_prefix_private_cluster` must be specified.
+
 -> **NOTE:** The `dns_prefix` must contain between 3 and 45 characters, and can contain only letters, numbers, and hyphens. It must start with a letter and must end with a letter or a number.
 
 In addition, one of either `identity` or `service_principal` blocks must be specified.

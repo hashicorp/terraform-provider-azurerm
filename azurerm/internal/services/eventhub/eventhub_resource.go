@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -91,8 +90,8 @@ func resourceEventHub() *pluginsdk.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(eventhub.Avro),
-								string(eventhub.AvroDeflate),
+								string(eventhubs.EncodingCaptureDescriptionAvro),
+								string(eventhubs.EncodingCaptureDescriptionAvroDeflate),
 							}, true),
 						},
 						"interval_in_seconds": {
