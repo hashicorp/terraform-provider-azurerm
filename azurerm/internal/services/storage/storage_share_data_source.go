@@ -116,7 +116,9 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("name", shareName)
 	d.Set("storage_account_name", accountName)
 	d.Set("quota", props.QuotaGB)
-	d.Set("acl", flattenStorageShareACLs(props.ACLs))
+	if err := d.Set("acl", flattenStorageShareACLs(props.ACLs)); err != nil {
+		return fmt.Errorf("setting `acl`: %+v", err)
+	}
 
 	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("error setting `metadata`: %+v", err)
