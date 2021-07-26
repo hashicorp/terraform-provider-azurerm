@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	msiValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
 	"github.com/Azure/go-autorest/autorest/date"
 	apimValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
@@ -22,6 +24,7 @@ type SiteConfigWindows struct {
 	AppCommandLine          string                    `tfschema:"app_command_line"`
 	AutoHeal                bool                      `tfschema:"auto_heal"`
 	AutoHealSettings        []AutoHealSettingWindows  `tfschema:"auto_heal_setting"`
+	ContainerRegistryMSI    string                    `tfschema:"container_registry_managed_identity_id"`
 	DefaultDocuments        []string                  `tfschema:"default_documents"`
 	Http2Enabled            bool                      `tfschema:"http2_enabled"`
 	IpRestriction           []helpers.IpRestriction   `tfschema:"ip_restriction"`
@@ -57,6 +60,7 @@ type SiteConfigLinux struct {
 	AppCommandLine          string                  `tfschema:"app_command_line"`
 	AutoHeal                bool                    `tfschema:"auto_heal"`
 	AutoHealSettings        []AutoHealSettingLinux  `tfschema:"auto_heal_setting"`
+	ContainerRegistryMSI    string                  `tfschema:"container_registry_managed_identity_id"`
 	DefaultDocuments        []string                `tfschema:"default_documents"`
 	Http2Enabled            bool                    `tfschema:"http2_enabled"`
 	IpRestriction           []helpers.IpRestriction `tfschema:"ip_restriction"`
@@ -119,6 +123,12 @@ func siteConfigSchemaWindows() *pluginsdk.Schema {
 				},
 
 				"auto_heal_setting": autoHealSettingSchemaWindows(),
+
+				"container_registry_managed_identity_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: msiValidate.UserAssignedIdentityID,
+				},
 
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
@@ -319,6 +329,12 @@ func siteConfigSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"auto_heal_setting": autoHealSettingSchemaLinux(),
+
+				"container_registry_managed_identity_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: msiValidate.UserAssignedIdentityID,
+				},
 
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
@@ -1661,6 +1677,13 @@ func expandSiteConfigWindows(siteConfig []SiteConfigWindows) (*web.SiteConfig, *
 		expanded.VirtualApplications = expandVirtualApplications(winSiteConfig.VirtualApplications)
 	}
 
+	if winSiteConfig.ContainerRegistryMSI != "" {
+		expanded.AcrUseManagedIdentityCreds = utils.Bool(true)
+		expanded.AcrUserManagedIdentityID = utils.String(winSiteConfig.ContainerRegistryMSI)
+	} else {
+		expanded.AcrUseManagedIdentityCreds = utils.Bool(false)
+	}
+
 	if len(winSiteConfig.DefaultDocuments) != 0 {
 		expanded.DefaultDocuments = &winSiteConfig.DefaultDocuments
 	}
@@ -1797,6 +1820,13 @@ func expandSiteConfigLinux(siteConfig []SiteConfigLinux) (*web.SiteConfig, error
 		if linuxAppStack.DockerImage != "" {
 			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
 		}
+	}
+
+	if linuxSiteConfig.ContainerRegistryMSI != "" {
+		expanded.AcrUseManagedIdentityCreds = utils.Bool(true)
+		expanded.AcrUserManagedIdentityID = utils.String(linuxSiteConfig.ContainerRegistryMSI)
+	} else {
+		expanded.AcrUseManagedIdentityCreds = utils.Bool(false)
 	}
 
 	if len(linuxSiteConfig.DefaultDocuments) != 0 {
@@ -2188,6 +2218,10 @@ func flattenSiteConfigWindows(appSiteConfig *web.SiteConfig) []SiteConfigWindows
 		siteConfig.DefaultDocuments = *appSiteConfig.DefaultDocuments
 	}
 
+	if appSiteConfig.AcrUseManagedIdentityCreds != nil && *appSiteConfig.AcrUseManagedIdentityCreds && appSiteConfig.AcrUserManagedIdentityID != nil {
+		siteConfig.ContainerRegistryMSI = *appSiteConfig.AcrUserManagedIdentityID
+	}
+
 	siteConfig.DetailedErrorLogging = *appSiteConfig.DetailedErrorLoggingEnabled
 
 	siteConfig.Http2Enabled = *appSiteConfig.HTTP20Enabled
@@ -2318,6 +2352,10 @@ func flattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 
 	if appSiteConfig.AppCommandLine != nil {
 		siteConfig.AppCommandLine = *appSiteConfig.AppCommandLine
+	}
+
+	if appSiteConfig.AcrUseManagedIdentityCreds != nil && *appSiteConfig.AcrUseManagedIdentityCreds && appSiteConfig.AcrUserManagedIdentityID != nil {
+		siteConfig.ContainerRegistryMSI = *appSiteConfig.AcrUserManagedIdentityID
 	}
 
 	if appSiteConfig.DefaultDocuments != nil {

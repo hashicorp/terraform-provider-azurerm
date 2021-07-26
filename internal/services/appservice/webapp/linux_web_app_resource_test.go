@@ -929,6 +929,8 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
+// TODO - Test for new acr creds?
+
 // Templates
 
 func (LinuxWebAppResource) baseTemplate(data acceptance.TestData) string {

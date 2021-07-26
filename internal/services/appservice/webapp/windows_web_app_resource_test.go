@@ -456,7 +456,10 @@ func TestAccWindowsWebApp_withMultiStack(t *testing.T) {
 	})
 }
 
+// TODO - Test(s) for new acr creds properties?
+
 // TODO - Needs more property tests for autoheal
+
 func TestAccWindowsWebApp_withAutoHealRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
