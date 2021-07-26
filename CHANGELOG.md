@@ -9,6 +9,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: Upgrade `web` (App Service) API to `2021-01-15` [GH-12635]
 * maps: refactoring to use an Embedded SDK [GH-12716]
 * msi: refactoring to use an Embedded SDK [GH-12715]
 
