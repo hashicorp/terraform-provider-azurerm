@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -13,10 +12,10 @@ func TestAccWindowsVirtualMachineScaleSet_identityNone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authPassword(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
 			),
@@ -31,10 +30,10 @@ func TestAccWindowsVirtualMachineScaleSet_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identitySystemAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 			),
@@ -45,7 +44,7 @@ func TestAccWindowsVirtualMachineScaleSet_identitySystemAssigned(t *testing.T) {
 		{
 			// disable it
 			Config: r.authPassword(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
 			),
@@ -55,7 +54,7 @@ func TestAccWindowsVirtualMachineScaleSet_identitySystemAssigned(t *testing.T) {
 		),
 		{
 			Config: r.identitySystemAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 			),
@@ -70,10 +69,10 @@ func TestAccWindowsVirtualMachineScaleSet_identityUserAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identityUserAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -83,7 +82,7 @@ func TestAccWindowsVirtualMachineScaleSet_identityUserAssigned(t *testing.T) {
 		{
 			// disable it
 			Config: r.authPassword(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
 			),
@@ -93,7 +92,7 @@ func TestAccWindowsVirtualMachineScaleSet_identityUserAssigned(t *testing.T) {
 		),
 		{
 			Config: r.identityUserAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -103,7 +102,7 @@ func TestAccWindowsVirtualMachineScaleSet_identityUserAssigned(t *testing.T) {
 		{
 			// second
 			Config: r.identityUserAssignedUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -117,10 +116,10 @@ func TestAccWindowsVirtualMachineScaleSet_identitySystemAssignedUserAssigned(t *
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identitySystemAssignedUserAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 			),
@@ -131,7 +130,7 @@ func TestAccWindowsVirtualMachineScaleSet_identitySystemAssignedUserAssigned(t *
 		{
 			// disable it
 			Config: r.authPassword(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.%").HasValue("0"),
 			),
@@ -141,7 +140,7 @@ func TestAccWindowsVirtualMachineScaleSet_identitySystemAssignedUserAssigned(t *
 		),
 		{
 			Config: r.identitySystemAssignedUserAssigned(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 			),

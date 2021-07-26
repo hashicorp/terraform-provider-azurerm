@@ -1,8 +1,8 @@
 run:
-  deadline: 12m10s
+  timeout: 30m
   modules-download-mode: vendor
   skip-dirs:
-    - vendor
+    - internal/services/*/sdk # Excluding sdk folders as these are externally generated
 
 issues:
   max-per-linter: 0
@@ -32,12 +32,14 @@ linters:
     - varcheck
     - vet
     - vetshadow
-    - whitespace
+#    - whitespace # Disabled for performance reasons
 
 linters-settings:
   errcheck:
-    ignore: github.com/hashicorp/terraform-plugin-sdk/helper/schema:ForceNew|Set,fmt:.*,io:Close
+    ignore: github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema:ForceNew|Set,fmt:.*,io:Close
   misspell:
     ignore-words:
       - hdinsight
       - exportfs
+  nakedret:
+    max-func-lines: 40

@@ -81,7 +81,7 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  "https://pluginsdk.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+				Default:  "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
 			},
 
 			"workflow_version": {
@@ -306,8 +306,12 @@ func resourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		if definition := props.Definition; definition != nil {
 			if v, ok := definition.(map[string]interface{}); ok {
-				d.Set("workflow_schema", v["$schema"].(string))
-				d.Set("workflow_version", v["contentVersion"].(string))
+				if v["$schema"] != nil {
+					d.Set("workflow_schema", v["$schema"].(string))
+				}
+				if v["contentVersion"] != nil {
+					d.Set("workflow_version", v["contentVersion"].(string))
+				}
 			}
 		}
 

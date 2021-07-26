@@ -8,14 +8,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -295,6 +294,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
+						// TODO 3.0 - rename to task_retry_maximum to be consistent with azurerm_batch_job
 						"max_task_retry_count": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
@@ -307,6 +307,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Default:  false,
 						},
 
+						// TODO 3.0 - rename to common_environment_properties to be consistent with azurerm_batch_job
 						"environment": {
 							Type:     pluginsdk.TypeMap,
 							Optional: true,

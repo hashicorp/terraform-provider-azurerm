@@ -550,6 +550,7 @@ resource "azurerm_key_vault" "test" {
     secret_permissions = [
       "Get",
       "Delete",
+      "List",
       "Purge",
       "Recover",
       "Set",

@@ -6,10 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -55,20 +56,38 @@ func resourcePublicIp() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.Static),
-					string(network.Dynamic),
+					string(network.IPAllocationMethodStatic),
+					string(network.IPAllocationMethodDynamic),
+				}, false),
+			},
+
+			"availability_zone": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				//Default:  "Zone-Redundant",
+				Computed: true,
+				ForceNew: true,
+				ConflictsWith: []string{
+					"zones",
+				},
+				ValidateFunc: validation.StringInSlice([]string{
+					"No-Zone",
+					"1",
+					"2",
+					"3",
+					"Zone-Redundant",
 				}, false),
 			},
 
 			"ip_version": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Default:          string(network.IPv4),
+				Default:          string(network.IPVersionIPv4),
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.IPv4),
-					string(network.IPv6),
+					string(network.IPVersionIPv4),
+					string(network.IPVersionIPv6),
 				}, true),
 			},
 
@@ -128,7 +147,22 @@ func resourcePublicIp() *pluginsdk.Resource {
 				},
 			},
 
-			"zones": azure.SchemaSingleZone(),
+			// TODO - 3.0 make Computed only
+			"zones": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ConflictsWith: []string{
+					"availability_zone",
+				},
+				Deprecated: "This property has been deprecated in favour of `availability_zone` due to a breaking behavioural change in Azure: https://azure.microsoft.com/en-us/updates/zone-behavior-change/",
+				MaxItems:   1,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
 
 			"tags": tags.Schema(),
 		},
@@ -143,26 +177,6 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	log.Printf("[INFO] preparing arguments for AzureRM Public IP creation.")
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	sku := d.Get("sku").(string)
-	t := d.Get("tags").(map[string]interface{})
-	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
-	idleTimeout := d.Get("idle_timeout_in_minutes").(int)
-	ipVersion := network.IPVersion(d.Get("ip_version").(string))
-	ipAllocationMethod := d.Get("allocation_method").(string)
-
-	if strings.EqualFold(sku, "basic") {
-		if zones != nil {
-			return fmt.Errorf("Basic SKU does not support Availability Zone scenarios. You need to use Standard SKU public IP for Availability Zone scenarios.")
-		}
-	}
-
-	if strings.EqualFold(sku, "standard") {
-		if !strings.EqualFold(ipAllocationMethod, "static") {
-			return fmt.Errorf("Static IP allocation must be used when creating Standard SKU public IP addresses.")
-		}
-	}
-
 	id := parse.NewPublicIpAddressID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
@@ -174,6 +188,50 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_public_ip", id.ID())
+		}
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	sku := d.Get("sku").(string)
+	t := d.Get("tags").(map[string]interface{})
+	// Default to Zone-Redundant - Legacy behaviour TODO - Switch to `No-Zone` in 3.0 to match service?
+	zones := &[]string{"1", "2"}
+	zonesSet := false
+	// TODO - Remove in 3.0
+	if deprecatedZonesRaw, ok := d.GetOk("zones"); ok {
+		zonesSet = true
+		deprecatedZones := azure.ExpandZones(deprecatedZonesRaw.([]interface{}))
+		if deprecatedZones != nil {
+			zones = deprecatedZones
+		}
+	}
+
+	if availabilityZones, ok := d.GetOk("availability_zone"); ok {
+		zonesSet = true
+		switch availabilityZones.(string) {
+		case "1", "2", "3":
+			zones = &[]string{availabilityZones.(string)}
+		case "Zone-Redundant":
+			zones = &[]string{"1", "2"}
+		case "No-Zone":
+			zones = &[]string{}
+		}
+	}
+
+	if strings.EqualFold(sku, "Basic") {
+		if zonesSet && len(*zones) > 0 {
+			return fmt.Errorf("Availability Zones are not available on the `Basic` SKU")
+		}
+		zones = &[]string{}
+	}
+
+	idleTimeout := d.Get("idle_timeout_in_minutes").(int)
+	ipVersion := network.IPVersion(d.Get("ip_version").(string))
+	ipAllocationMethod := d.Get("allocation_method").(string)
+
+	if strings.EqualFold(sku, "standard") {
+		if !strings.EqualFold(ipAllocationMethod, "static") {
+			return fmt.Errorf("Static IP allocation must be used when creating Standard SKU public IP addresses.")
 		}
 	}
 
@@ -267,10 +325,23 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zones", resp.Zones)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+
+	availabilityZones := "No-Zone"
+	zonesDeprecated := make([]string, 0)
+	if resp.Zones != nil {
+		if len(*resp.Zones) > 1 {
+			availabilityZones = "Zone-Redundant"
+		}
+		if len(*resp.Zones) == 1 {
+			zones := *resp.Zones
+			availabilityZones = zones[0]
+			zonesDeprecated = zones
+		}
 	}
+
+	d.Set("availability_zone", availabilityZones)
+	d.Set("zones", zonesDeprecated)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))

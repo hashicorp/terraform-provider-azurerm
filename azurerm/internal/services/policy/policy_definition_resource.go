@@ -2,16 +2,13 @@ package policy
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
-	"reflect"
 	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
@@ -78,6 +75,7 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 				),
 			},
 
+			// TODO: deprecate Name in favour of this
 			"management_group_id": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
@@ -109,48 +107,19 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"parameters": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
-			"metadata": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: policyDefinitionsMetadataDiffSuppressFunc,
-			},
+			"metadata": metadataSchema(),
 		},
 	}
-}
-
-func policyDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	var oldPolicyDefinitionsMetadata map[string]interface{}
-	errOld := json.Unmarshal([]byte(old), &oldPolicyDefinitionsMetadata)
-	if errOld != nil {
-		return false
-	}
-
-	var newPolicyDefinitionsMetadata map[string]interface{}
-	errNew := json.Unmarshal([]byte(new), &newPolicyDefinitionsMetadata)
-	if errNew != nil {
-		return false
-	}
-
-	// Ignore the following keys if they're found in the metadata JSON
-	ignoreKeys := [4]string{"createdBy", "createdOn", "updatedBy", "updatedOn"}
-	for _, key := range ignoreKeys {
-		delete(oldPolicyDefinitionsMetadata, key)
-		delete(newPolicyDefinitionsMetadata, key)
-	}
-
-	return reflect.DeepEqual(oldPolicyDefinitionsMetadata, newPolicyDefinitionsMetadata)
 }
 
 func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -192,7 +161,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if policyRuleString := d.Get("policy_rule").(string); policyRuleString != "" {
-		policyRule, err := structure.ExpandJsonFromString(policyRuleString)
+		policyRule, err := pluginsdk.ExpandJsonFromString(policyRuleString)
 		if err != nil {
 			return fmt.Errorf("expanding JSON for `policy_rule`: %+v", err)
 		}
@@ -200,7 +169,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if metaDataString := d.Get("metadata").(string); metaDataString != "" {
-		metaData, err := structure.ExpandJsonFromString(metaDataString)
+		metaData, err := pluginsdk.ExpandJsonFromString(metaDataString)
 		if err != nil {
 			return fmt.Errorf("expanding JSON for `metadata`: %+v", err)
 		}
@@ -248,7 +217,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Policy Definition %q to become available: %+v", name, err)
 	}
 
@@ -368,7 +337,7 @@ func policyDefinitionRefreshFunc(ctx context.Context, client *policy.Definitions
 func flattenJSON(stringMap interface{}) string {
 	if stringMap != nil {
 		value := stringMap.(map[string]interface{})
-		jsonString, err := structure.FlattenJsonToString(value)
+		jsonString, err := pluginsdk.FlattenJsonToString(value)
 		if err == nil {
 			return jsonString
 		}

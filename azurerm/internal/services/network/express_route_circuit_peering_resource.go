@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -41,9 +41,9 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.AzurePrivatePeering),
-					string(network.AzurePublicPeering),
-					string(network.MicrosoftPeering),
+					string(network.ExpressRoutePeeringTypeAzurePrivatePeering),
+					string(network.ExpressRoutePeeringTypeAzurePublicPeering),
+					string(network.ExpressRoutePeeringTypeMicrosoftPeering),
 				}, false),
 			},
 
@@ -238,7 +238,7 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 		},
 	}
 
-	if strings.EqualFold(peeringType, string(network.MicrosoftPeering)) {
+	if strings.EqualFold(peeringType, string(network.ExpressRoutePeeringTypeMicrosoftPeering)) {
 		peerings := d.Get("microsoft_peering_config").([]interface{})
 		if len(peerings) == 0 {
 			return fmt.Errorf("`microsoft_peering_config` must be specified when `peering_type` is set to `MicrosoftPeering`")

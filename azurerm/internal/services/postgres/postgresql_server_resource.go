@@ -11,7 +11,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -60,36 +59,35 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 		Update: resourcePostgreSQLServerUpdate,
 		Delete: resourcePostgreSQLServerDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: func(d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-				client := meta.(*clients.Client).Postgres.ServersClient
-				ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-				defer cancel()
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := parse.ServerID(id)
+			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			client := meta.(*clients.Client).Postgres.ServersClient
 
-				id, err := parse.ServerID(d.Id())
+			id, err := parse.ServerID(d.Id())
+			if err != nil {
+				return []*pluginsdk.ResourceData{d}, err
+			}
+
+			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("reading PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
+
+			d.Set("create_mode", "Default")
+			if resp.ReplicationRole != nil && *resp.ReplicationRole != "Master" && *resp.ReplicationRole != "None" {
+				d.Set("create_mode", resp.ReplicationRole)
+
+				masterServerId, err := parse.ServerID(*resp.MasterServerID)
 				if err != nil {
-					return []*pluginsdk.ResourceData{d}, err
+					return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing Postgres Master Server ID : %v", err)
 				}
+				d.Set("creation_source_server_id", masterServerId.ID())
+			}
 
-				resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-				if err != nil {
-					return []*pluginsdk.ResourceData{d}, fmt.Errorf("reading PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-				}
-
-				d.Set("create_mode", "Default")
-				if resp.ReplicationRole != nil && *resp.ReplicationRole != "Master" && *resp.ReplicationRole != "None" {
-					d.Set("create_mode", resp.ReplicationRole)
-
-					masterServerId, err := parse.ServerID(*resp.MasterServerID)
-					if err != nil {
-						return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing Postgres Master Server ID : %v", err)
-					}
-					d.Set("creation_source_server_id", masterServerId.ID())
-				}
-
-				return []*pluginsdk.ResourceData{d}, nil
-			},
-		},
+			return []*pluginsdk.ResourceData{d}, nil
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -594,7 +592,7 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for PostgreSQL Server %q (Resource Group %q)to become available: %+v", name, resourceGroup, err)
 	}
 
@@ -677,7 +675,7 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 		}
 
-		if _, err = stateConf.WaitForState(); err != nil {
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("waiting for PostgreSQL Server %q (Resource Group %q)to become available: %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
@@ -735,16 +733,20 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	properties := postgresql.ServerUpdateParameters{
 		Identity: expandServerIdentity(d.Get("identity").([]interface{})),
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
-			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
-			PublicNetworkAccess:        publicAccess,
-			SslEnforcement:             ssl,
-			MinimalTLSVersion:          tlsMin,
-			StorageProfile:             expandPostgreSQLStorageProfile(d),
-			Version:                    postgresql.ServerVersion(d.Get("version").(string)),
+			PublicNetworkAccess: publicAccess,
+			SslEnforcement:      ssl,
+			MinimalTLSVersion:   tlsMin,
+			StorageProfile:      expandPostgreSQLStorageProfile(d),
+			Version:             postgresql.ServerVersion(d.Get("version").(string)),
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	if d.HasChange("administrator_login_password") {
+		properties.ServerUpdateParametersProperties.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
+	}
+
 	if old, new := d.GetChange("create_mode"); postgresql.CreateMode(old.(string)) == postgresql.CreateModeReplica && postgresql.CreateMode(new.(string)) == postgresql.CreateModeDefault {
 		properties.ServerUpdateParametersProperties.ReplicationRole = utils.String("None")
 	}

@@ -1,12 +1,13 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-12-10-preview/desktopvirtualization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2020-11-02-preview/desktopvirtualization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
 type Client struct {
 	ApplicationGroupsClient *desktopvirtualization.ApplicationGroupsClient
+	ApplicationsClient      *desktopvirtualization.ApplicationsClient
 	DesktopsClient          *desktopvirtualization.DesktopsClient
 	HostPoolsClient         *desktopvirtualization.HostPoolsClient
 	OperationsClient        *desktopvirtualization.OperationsClient
@@ -18,6 +19,9 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	ApplicationGroupsClient := desktopvirtualization.NewApplicationGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ApplicationGroupsClient.Client, o.ResourceManagerAuthorizer)
+
+	ApplicationsClient := desktopvirtualization.NewApplicationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ApplicationsClient.Client, o.ResourceManagerAuthorizer)
 
 	DesktopsClient := desktopvirtualization.NewDesktopsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DesktopsClient.Client, o.ResourceManagerAuthorizer)
@@ -36,6 +40,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		ApplicationGroupsClient: &ApplicationGroupsClient,
+		ApplicationsClient:      &ApplicationsClient,
 		DesktopsClient:          &DesktopsClient,
 		HostPoolsClient:         &HostPoolsClient,
 		OperationsClient:        &OperationsClient,

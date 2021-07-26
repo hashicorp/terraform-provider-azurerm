@@ -41,7 +41,7 @@ type AadExternalSecuritySolution struct {
 	// Location - READ-ONLY; Location where the resource is stored
 	Location *string `json:"location,omitempty"`
 	// Kind - Possible values include: 'KindExternalSecuritySolution', 'KindCEF', 'KindATA', 'KindAAD'
-	Kind KindEnum1 `json:"kind,omitempty"`
+	Kind KindEnum `json:"kind,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AadExternalSecuritySolution.
@@ -105,7 +105,7 @@ type ActiveConnectionsNotInAllowedRange struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -178,6 +178,11 @@ func (acniar ActiveConnectionsNotInAllowedRange) AsBasicListCustomAlertRule() (B
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for ActiveConnectionsNotInAllowedRange.
 func (acniar ActiveConnectionsNotInAllowedRange) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for ActiveConnectionsNotInAllowedRange.
+func (acniar ActiveConnectionsNotInAllowedRange) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -367,7 +372,7 @@ func (aacg *AdaptiveApplicationControlGroup) UnmarshalJSON(body []byte) error {
 // AdaptiveApplicationControlGroupData represents a machines group and set of rules to be allowed running
 // on a machine
 type AdaptiveApplicationControlGroupData struct {
-	// EnforcementMode - Possible values include: 'Audit', 'Enforce', 'None'
+	// EnforcementMode - Possible values include: 'EnforcementModeAudit', 'EnforcementModeEnforce', 'EnforcementModeNone'
 	EnforcementMode EnforcementMode `json:"enforcementMode,omitempty"`
 	ProtectionMode  *ProtectionMode `json:"protectionMode,omitempty"`
 	// ConfigurationStatus - READ-ONLY; Possible values include: 'ConfigurationStatus2Configured', 'ConfigurationStatus2NotConfigured', 'ConfigurationStatus2InProgress', 'ConfigurationStatus2Failed', 'ConfigurationStatus2NoStatus'
@@ -796,6 +801,16 @@ func (ad AdditionalData) AsAdditionalData() (*AdditionalData, bool) {
 // AsBasicAdditionalData is the BasicAdditionalData implementation for AdditionalData.
 func (ad AdditionalData) AsBasicAdditionalData() (BasicAdditionalData, bool) {
 	return &ad, true
+}
+
+// AdditionalWorkspacesProperties properties of the additional workspaces.
+type AdditionalWorkspacesProperties struct {
+	// Workspace - Workspace resource id
+	Workspace *string `json:"workspace,omitempty"`
+	// Type - Workspace type. Possible values include: 'Sentinel'
+	Type AdditionalWorkspaceType `json:"type,omitempty"`
+	// DataTypes - List of data types sent to workspace
+	DataTypes *[]AdditionalWorkspaceDataType `json:"dataTypes,omitempty"`
 }
 
 // AdvancedThreatProtectionProperties the Advanced Threat Protection settings.
@@ -1450,6 +1465,273 @@ func (ap *AlertProperties) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// AlertSimulatorBundlesRequestProperties simulate alerts according to this bundles.
+type AlertSimulatorBundlesRequestProperties struct {
+	// Bundles - Bundles list.
+	Bundles *[]BundleType `json:"bundles,omitempty"`
+	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
+	AdditionalProperties map[string]interface{} `json:""`
+	// Kind - Possible values include: 'KindAlertSimulatorRequestProperties', 'KindBundles'
+	Kind KindEnum1 `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AlertSimulatorBundlesRequestProperties.
+func (asbrp AlertSimulatorBundlesRequestProperties) MarshalJSON() ([]byte, error) {
+	asbrp.Kind = KindBundles
+	objectMap := make(map[string]interface{})
+	if asbrp.Bundles != nil {
+		objectMap["bundles"] = asbrp.Bundles
+	}
+	if asbrp.Kind != "" {
+		objectMap["kind"] = asbrp.Kind
+	}
+	for k, v := range asbrp.AdditionalProperties {
+		objectMap[k] = v
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAlertSimulatorBundlesRequestProperties is the BasicAlertSimulatorRequestProperties implementation for AlertSimulatorBundlesRequestProperties.
+func (asbrp AlertSimulatorBundlesRequestProperties) AsAlertSimulatorBundlesRequestProperties() (*AlertSimulatorBundlesRequestProperties, bool) {
+	return &asbrp, true
+}
+
+// AsAlertSimulatorRequestProperties is the BasicAlertSimulatorRequestProperties implementation for AlertSimulatorBundlesRequestProperties.
+func (asbrp AlertSimulatorBundlesRequestProperties) AsAlertSimulatorRequestProperties() (*AlertSimulatorRequestProperties, bool) {
+	return nil, false
+}
+
+// AsBasicAlertSimulatorRequestProperties is the BasicAlertSimulatorRequestProperties implementation for AlertSimulatorBundlesRequestProperties.
+func (asbrp AlertSimulatorBundlesRequestProperties) AsBasicAlertSimulatorRequestProperties() (BasicAlertSimulatorRequestProperties, bool) {
+	return &asbrp, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for AlertSimulatorBundlesRequestProperties struct.
+func (asbrp *AlertSimulatorBundlesRequestProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "bundles":
+			if v != nil {
+				var bundles []BundleType
+				err = json.Unmarshal(*v, &bundles)
+				if err != nil {
+					return err
+				}
+				asbrp.Bundles = &bundles
+			}
+		default:
+			if v != nil {
+				var additionalProperties interface{}
+				err = json.Unmarshal(*v, &additionalProperties)
+				if err != nil {
+					return err
+				}
+				if asbrp.AdditionalProperties == nil {
+					asbrp.AdditionalProperties = make(map[string]interface{})
+				}
+				asbrp.AdditionalProperties[k] = additionalProperties
+			}
+		case "kind":
+			if v != nil {
+				var kind KindEnum1
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				asbrp.Kind = kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// AlertSimulatorRequestBody alert Simulator request body.
+type AlertSimulatorRequestBody struct {
+	// Properties - Alert Simulator request body data.
+	Properties BasicAlertSimulatorRequestProperties `json:"properties,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for AlertSimulatorRequestBody struct.
+func (asrb *AlertSimulatorRequestBody) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				properties, err := unmarshalBasicAlertSimulatorRequestProperties(*v)
+				if err != nil {
+					return err
+				}
+				asrb.Properties = properties
+			}
+		}
+	}
+
+	return nil
+}
+
+// BasicAlertSimulatorRequestProperties describes properties of an alert simulation request
+type BasicAlertSimulatorRequestProperties interface {
+	AsAlertSimulatorBundlesRequestProperties() (*AlertSimulatorBundlesRequestProperties, bool)
+	AsAlertSimulatorRequestProperties() (*AlertSimulatorRequestProperties, bool)
+}
+
+// AlertSimulatorRequestProperties describes properties of an alert simulation request
+type AlertSimulatorRequestProperties struct {
+	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
+	AdditionalProperties map[string]interface{} `json:""`
+	// Kind - Possible values include: 'KindAlertSimulatorRequestProperties', 'KindBundles'
+	Kind KindEnum1 `json:"kind,omitempty"`
+}
+
+func unmarshalBasicAlertSimulatorRequestProperties(body []byte) (BasicAlertSimulatorRequestProperties, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["kind"] {
+	case string(KindBundles):
+		var asbrp AlertSimulatorBundlesRequestProperties
+		err := json.Unmarshal(body, &asbrp)
+		return asbrp, err
+	default:
+		var asrp AlertSimulatorRequestProperties
+		err := json.Unmarshal(body, &asrp)
+		return asrp, err
+	}
+}
+func unmarshalBasicAlertSimulatorRequestPropertiesArray(body []byte) ([]BasicAlertSimulatorRequestProperties, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	asrpArray := make([]BasicAlertSimulatorRequestProperties, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		asrp, err := unmarshalBasicAlertSimulatorRequestProperties(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		asrpArray[index] = asrp
+	}
+	return asrpArray, nil
+}
+
+// MarshalJSON is the custom marshaler for AlertSimulatorRequestProperties.
+func (asrp AlertSimulatorRequestProperties) MarshalJSON() ([]byte, error) {
+	asrp.Kind = KindAlertSimulatorRequestProperties
+	objectMap := make(map[string]interface{})
+	if asrp.Kind != "" {
+		objectMap["kind"] = asrp.Kind
+	}
+	for k, v := range asrp.AdditionalProperties {
+		objectMap[k] = v
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAlertSimulatorBundlesRequestProperties is the BasicAlertSimulatorRequestProperties implementation for AlertSimulatorRequestProperties.
+func (asrp AlertSimulatorRequestProperties) AsAlertSimulatorBundlesRequestProperties() (*AlertSimulatorBundlesRequestProperties, bool) {
+	return nil, false
+}
+
+// AsAlertSimulatorRequestProperties is the BasicAlertSimulatorRequestProperties implementation for AlertSimulatorRequestProperties.
+func (asrp AlertSimulatorRequestProperties) AsAlertSimulatorRequestProperties() (*AlertSimulatorRequestProperties, bool) {
+	return &asrp, true
+}
+
+// AsBasicAlertSimulatorRequestProperties is the BasicAlertSimulatorRequestProperties implementation for AlertSimulatorRequestProperties.
+func (asrp AlertSimulatorRequestProperties) AsBasicAlertSimulatorRequestProperties() (BasicAlertSimulatorRequestProperties, bool) {
+	return &asrp, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for AlertSimulatorRequestProperties struct.
+func (asrp *AlertSimulatorRequestProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		default:
+			if v != nil {
+				var additionalProperties interface{}
+				err = json.Unmarshal(*v, &additionalProperties)
+				if err != nil {
+					return err
+				}
+				if asrp.AdditionalProperties == nil {
+					asrp.AdditionalProperties = make(map[string]interface{})
+				}
+				asrp.AdditionalProperties[k] = additionalProperties
+			}
+		case "kind":
+			if v != nil {
+				var kind KindEnum1
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				asrp.Kind = kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// AlertsSimulateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type AlertsSimulateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(AlertsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *AlertsSimulateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for AlertsSimulateFuture.Result.
+func (future *AlertsSimulateFuture) result(client AlertsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.AlertsSimulateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("security.AlertsSimulateFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // AlertsSuppressionRule describes the suppression rule
 type AlertsSuppressionRule struct {
 	autorest.Response                `json:"-"`
@@ -1732,6 +2014,119 @@ func NewAlertsSuppressionRulesListPage(cur AlertsSuppressionRulesList, getNextPa
 	}
 }
 
+// AlertSyncSettingProperties the alert sync setting properties
+type AlertSyncSettingProperties struct {
+	// Enabled - Is the alert sync setting enabled
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+// AlertSyncSettings represents an alert sync setting
+type AlertSyncSettings struct {
+	// AlertSyncSettingProperties - Alert sync setting data
+	*AlertSyncSettingProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+	// Kind - Possible values include: 'KindSetting', 'KindDataExportSettings', 'KindAlertSyncSettings'
+	Kind KindEnum2 `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AlertSyncSettings.
+func (ass AlertSyncSettings) MarshalJSON() ([]byte, error) {
+	ass.Kind = KindAlertSyncSettings
+	objectMap := make(map[string]interface{})
+	if ass.AlertSyncSettingProperties != nil {
+		objectMap["properties"] = ass.AlertSyncSettingProperties
+	}
+	if ass.Kind != "" {
+		objectMap["kind"] = ass.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsDataExportSettings is the BasicSetting implementation for AlertSyncSettings.
+func (ass AlertSyncSettings) AsDataExportSettings() (*DataExportSettings, bool) {
+	return nil, false
+}
+
+// AsAlertSyncSettings is the BasicSetting implementation for AlertSyncSettings.
+func (ass AlertSyncSettings) AsAlertSyncSettings() (*AlertSyncSettings, bool) {
+	return &ass, true
+}
+
+// AsSetting is the BasicSetting implementation for AlertSyncSettings.
+func (ass AlertSyncSettings) AsSetting() (*Setting, bool) {
+	return nil, false
+}
+
+// AsBasicSetting is the BasicSetting implementation for AlertSyncSettings.
+func (ass AlertSyncSettings) AsBasicSetting() (BasicSetting, bool) {
+	return &ass, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for AlertSyncSettings struct.
+func (ass *AlertSyncSettings) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var alertSyncSettingProperties AlertSyncSettingProperties
+				err = json.Unmarshal(*v, &alertSyncSettingProperties)
+				if err != nil {
+					return err
+				}
+				ass.AlertSyncSettingProperties = &alertSyncSettingProperties
+			}
+		case "kind":
+			if v != nil {
+				var kind KindEnum2
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				ass.Kind = kind
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ass.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ass.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ass.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
 // AllowedConnectionsList list of all possible traffic between Azure resources
 type AllowedConnectionsList struct {
 	autorest.Response `json:"-"`
@@ -1739,6 +2134,12 @@ type AllowedConnectionsList struct {
 	Value *[]AllowedConnectionsResource `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AllowedConnectionsList.
+func (ACL AllowedConnectionsList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // AllowedConnectionsListIterator provides access to a complete listing of AllowedConnectionsResource
@@ -1982,10 +2383,17 @@ type AllowedConnectionsResourceProperties struct {
 	ConnectableResources *[]ConnectableResource `json:"connectableResources,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AllowedConnectionsResourceProperties.
+func (acrp AllowedConnectionsResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // BasicAllowlistCustomAlertRule a custom alert rule that checks if a value (depends on the custom alert type) is
 // allowed.
 type BasicAllowlistCustomAlertRule interface {
 	AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool)
+	AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool)
 	AsLocalUserNotAllowed() (*LocalUserNotAllowed, bool)
 	AsProcessNotAllowed() (*ProcessNotAllowed, bool)
 	AsAllowlistCustomAlertRule() (*AllowlistCustomAlertRule, bool)
@@ -2004,7 +2412,7 @@ type AllowlistCustomAlertRule struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -2020,6 +2428,10 @@ func unmarshalBasicAllowlistCustomAlertRule(body []byte) (BasicAllowlistCustomAl
 		var ctina ConnectionToIPNotAllowed
 		err := json.Unmarshal(body, &ctina)
 		return ctina, err
+	case string(RuleTypeConnectionFromIPNotAllowed):
+		var cfina ConnectionFromIPNotAllowed
+		err := json.Unmarshal(body, &cfina)
+		return cfina, err
 	case string(RuleTypeLocalUserNotAllowed):
 		var luna LocalUserNotAllowed
 		err := json.Unmarshal(body, &luna)
@@ -2116,6 +2528,11 @@ func (acar AllowlistCustomAlertRule) AsBasicListCustomAlertRule() (BasicListCust
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for AllowlistCustomAlertRule.
 func (acar AllowlistCustomAlertRule) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for AllowlistCustomAlertRule.
+func (acar AllowlistCustomAlertRule) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -2234,7 +2651,7 @@ type AmqpC2DMessagesNotInAllowedRange struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -2307,6 +2724,11 @@ func (acmniar AmqpC2DMessagesNotInAllowedRange) AsBasicListCustomAlertRule() (Ba
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for AmqpC2DMessagesNotInAllowedRange.
 func (acmniar AmqpC2DMessagesNotInAllowedRange) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for AmqpC2DMessagesNotInAllowedRange.
+func (acmniar AmqpC2DMessagesNotInAllowedRange) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -2425,7 +2847,7 @@ type AmqpC2DRejectedMessagesNotInAllowedRange struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -2498,6 +2920,11 @@ func (acrmniar AmqpC2DRejectedMessagesNotInAllowedRange) AsBasicListCustomAlertR
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for AmqpC2DRejectedMessagesNotInAllowedRange.
 func (acrmniar AmqpC2DRejectedMessagesNotInAllowedRange) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for AmqpC2DRejectedMessagesNotInAllowedRange.
+func (acrmniar AmqpC2DRejectedMessagesNotInAllowedRange) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -2616,7 +3043,7 @@ type AmqpD2CMessagesNotInAllowedRange struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -2689,6 +3116,11 @@ func (admniar AmqpD2CMessagesNotInAllowedRange) AsBasicListCustomAlertRule() (Ba
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for AmqpD2CMessagesNotInAllowedRange.
 func (admniar AmqpD2CMessagesNotInAllowedRange) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for AmqpD2CMessagesNotInAllowedRange.
+func (admniar AmqpD2CMessagesNotInAllowedRange) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -2820,6 +3252,12 @@ type AscLocationList struct {
 	Value *[]AscLocation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AscLocationList.
+func (all AscLocationList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // AscLocationListIterator provides access to a complete listing of AscLocation values.
@@ -3050,6 +3488,12 @@ type AssessmentLinks struct {
 	AzurePortalURI *string `json:"azurePortalUri,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AssessmentLinks.
+func (al AssessmentLinks) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AssessmentList page of a security assessments list
 type AssessmentList struct {
 	autorest.Response `json:"-"`
@@ -3057,6 +3501,12 @@ type AssessmentList struct {
 	Value *[]Assessment `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AssessmentList.
+func (al AssessmentList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // AssessmentListIterator provides access to a complete listing of Assessment values.
@@ -3290,6 +3740,12 @@ type AssessmentMetadataList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AssessmentMetadataList.
+func (aml AssessmentMetadataList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AssessmentMetadataListIterator provides access to a complete listing of AssessmentMetadata values.
 type AssessmentMetadataListIterator struct {
 	i    int
@@ -3459,8 +3915,8 @@ type AssessmentMetadataProperties struct {
 	// Description - Human readable description of the assessment
 	Description *string `json:"description,omitempty"`
 	// RemediationDescription - Human readable description of what you should do to mitigate this security issue
-	RemediationDescription *string     `json:"remediationDescription,omitempty"`
-	Category               *[]Category `json:"category,omitempty"`
+	RemediationDescription *string       `json:"remediationDescription,omitempty"`
+	Categories             *[]Categories `json:"categories,omitempty"`
 	// Severity - The severity level of the assessment. Possible values include: 'SeverityLow', 'SeverityMedium', 'SeverityHigh'
 	Severity Severity `json:"severity,omitempty"`
 	// UserImpact - The user impact of the assessment. Possible values include: 'UserImpactLow', 'UserImpactModerate', 'UserImpactHigh'
@@ -3487,8 +3943,8 @@ func (amp AssessmentMetadataProperties) MarshalJSON() ([]byte, error) {
 	if amp.RemediationDescription != nil {
 		objectMap["remediationDescription"] = amp.RemediationDescription
 	}
-	if amp.Category != nil {
-		objectMap["category"] = amp.Category
+	if amp.Categories != nil {
+		objectMap["categories"] = amp.Categories
 	}
 	if amp.Severity != "" {
 		objectMap["severity"] = amp.Severity
@@ -3656,7 +4112,7 @@ type AtaExternalSecuritySolution struct {
 	// Location - READ-ONLY; Location where the resource is stored
 	Location *string `json:"location,omitempty"`
 	// Kind - Possible values include: 'KindExternalSecuritySolution', 'KindCEF', 'KindATA', 'KindAAD'
-	Kind KindEnum1 `json:"kind,omitempty"`
+	Kind KindEnum `json:"kind,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AtaExternalSecuritySolution.
@@ -4530,7 +4986,7 @@ type AutomationScope struct {
 // - security alerts and security assessments. To learn more about the supported security events data
 // models schemas - please visit https://aka.ms/ASCAutomationSchemas.
 type AutomationSource struct {
-	// EventSource - A valid event source type. Possible values include: 'Assessments', 'SubAssessments', 'Alerts', 'SecureScores', 'SecureScoreControls'
+	// EventSource - A valid event source type. Possible values include: 'EventSourceAssessments', 'EventSourceSubAssessments', 'EventSourceAlerts', 'EventSourceSecureScores', 'EventSourceSecureScoresSnapshot', 'EventSourceSecureScoreControls', 'EventSourceSecureScoreControlsSnapshot', 'EventSourceRegulatoryComplianceAssessment', 'EventSourceRegulatoryComplianceAssessmentSnapshot'
 	EventSource EventSource `json:"eventSource,omitempty"`
 	// RuleSets - A set of rules which evaluate upon event interception. A logical disjunction is applied between defined rule sets (logical 'or').
 	RuleSets *[]AutomationRuleSet `json:"ruleSets,omitempty"`
@@ -5020,6 +5476,12 @@ type AzureResourceLink struct {
 	ID *string `json:"id,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AzureResourceLink.
+func (arl AzureResourceLink) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AzureTrackedResourceLocation describes an Azure resource with location
 type AzureTrackedResourceLocation struct {
 	// Location - Location where the resource is stored
@@ -5065,7 +5527,7 @@ type CefExternalSecuritySolution struct {
 	// Location - READ-ONLY; Location where the resource is stored
 	Location *string `json:"location,omitempty"`
 	// Kind - Possible values include: 'KindExternalSecuritySolution', 'KindCEF', 'KindATA', 'KindAAD'
-	Kind KindEnum1 `json:"kind,omitempty"`
+	Kind KindEnum `json:"kind,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CefExternalSecuritySolution.
@@ -5226,9 +5688,10 @@ func (csp *CefSolutionProperties) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// CloudError error response structure.
+// CloudError common error response for all Azure Resource Manager APIs to return error details for failed
+// operations. (This also follows the OData error response format.).
 type CloudError struct {
-	// CloudErrorBody - Error data
+	// CloudErrorBody - The error object.
 	*CloudErrorBody `json:"error,omitempty"`
 }
 
@@ -5265,12 +5728,24 @@ func (ce *CloudError) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// CloudErrorBody error details.
+// CloudErrorBody the error detail.
 type CloudErrorBody struct {
-	// Code - READ-ONLY; An identifier for the error. Codes are invariant and are intended to be consumed programmatically.
+	// Code - READ-ONLY; The error code.
 	Code *string `json:"code,omitempty"`
-	// Message - READ-ONLY; A message describing the error, intended to be suitable for display in a user interface.
+	// Message - READ-ONLY; The error message.
 	Message *string `json:"message,omitempty"`
+	// Target - READ-ONLY; The error target.
+	Target *string `json:"target,omitempty"`
+	// Details - READ-ONLY; The error details.
+	Details *[]CloudErrorBody `json:"details,omitempty"`
+	// AdditionalInfo - READ-ONLY; The error additional info.
+	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CloudErrorBody.
+func (ceb CloudErrorBody) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Compliance compliance of a scope
@@ -5526,6 +6001,12 @@ type ComplianceProperties struct {
 	AssessmentResult *[]ComplianceSegment `json:"assessmentResult,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ComplianceProperties.
+func (cp ComplianceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ComplianceResult a compliance result
 type ComplianceResult struct {
 	autorest.Response `json:"-"`
@@ -5773,12 +6254,24 @@ type ComplianceResultProperties struct {
 	ResourceStatus ResourceStatus `json:"resourceStatus,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ComplianceResultProperties.
+func (crp ComplianceResultProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ComplianceSegment a segment of a compliance assessment.
 type ComplianceSegment struct {
 	// SegmentType - READ-ONLY; The segment type, e.g. compliant, non-compliance, insufficient coverage, N/A, etc.
 	SegmentType *string `json:"segmentType,omitempty"`
 	// Percentage - READ-ONLY; The size (%) of the segment.
 	Percentage *float64 `json:"percentage,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ComplianceSegment.
+func (cs ComplianceSegment) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ConnectableResource describes the allowed inbound and outbound traffic of an Azure resource
@@ -5791,6 +6284,12 @@ type ConnectableResource struct {
 	OutboundConnectedResources *[]ConnectedResource `json:"outboundConnectedResources,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ConnectableResource.
+func (cr ConnectableResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ConnectedResource describes properties of a connected resource
 type ConnectedResource struct {
 	// ConnectedResourceID - READ-ONLY; The Azure resource id of the connected resource
@@ -5801,10 +6300,211 @@ type ConnectedResource struct {
 	UDPPorts *string `json:"udpPorts,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ConnectedResource.
+func (cr ConnectedResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ConnectedWorkspace ...
 type ConnectedWorkspace struct {
 	// ID - Azure resource ID of the connected OMS workspace
 	ID *string `json:"id,omitempty"`
+}
+
+// ConnectionFromIPNotAllowed inbound connection from an ip that isn't allowed. Allow list consists of ipv4
+// or ipv6 range in CIDR notation.
+type ConnectionFromIPNotAllowed struct {
+	// AllowlistValues - The values to allow. The format of the values depends on the rule type.
+	AllowlistValues *[]string `json:"allowlistValues,omitempty"`
+	// ValueType - READ-ONLY; The value type of the items in the list. Possible values include: 'ValueTypeIPCidr', 'ValueTypeString'
+	ValueType ValueType `json:"valueType,omitempty"`
+	// DisplayName - READ-ONLY; The display name of the custom alert.
+	DisplayName *string `json:"displayName,omitempty"`
+	// Description - READ-ONLY; The description of the custom alert.
+	Description *string `json:"description,omitempty"`
+	// IsEnabled - Status of the custom alert.
+	IsEnabled *bool `json:"isEnabled,omitempty"`
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) MarshalJSON() ([]byte, error) {
+	cfina.RuleType = RuleTypeConnectionFromIPNotAllowed
+	objectMap := make(map[string]interface{})
+	if cfina.AllowlistValues != nil {
+		objectMap["allowlistValues"] = cfina.AllowlistValues
+	}
+	if cfina.IsEnabled != nil {
+		objectMap["isEnabled"] = cfina.IsEnabled
+	}
+	if cfina.RuleType != "" {
+		objectMap["ruleType"] = cfina.RuleType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsThresholdCustomAlertRule is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsThresholdCustomAlertRule() (*ThresholdCustomAlertRule, bool) {
+	return nil, false
+}
+
+// AsBasicThresholdCustomAlertRule is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsBasicThresholdCustomAlertRule() (BasicThresholdCustomAlertRule, bool) {
+	return nil, false
+}
+
+// AsTimeWindowCustomAlertRule is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsTimeWindowCustomAlertRule() (*TimeWindowCustomAlertRule, bool) {
+	return nil, false
+}
+
+// AsBasicTimeWindowCustomAlertRule is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsBasicTimeWindowCustomAlertRule() (BasicTimeWindowCustomAlertRule, bool) {
+	return nil, false
+}
+
+// AsAllowlistCustomAlertRule is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsAllowlistCustomAlertRule() (*AllowlistCustomAlertRule, bool) {
+	return nil, false
+}
+
+// AsBasicAllowlistCustomAlertRule is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsBasicAllowlistCustomAlertRule() (BasicAllowlistCustomAlertRule, bool) {
+	return &cfina, true
+}
+
+// AsDenylistCustomAlertRule is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsDenylistCustomAlertRule() (*DenylistCustomAlertRule, bool) {
+	return nil, false
+}
+
+// AsListCustomAlertRule is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsListCustomAlertRule() (*ListCustomAlertRule, bool) {
+	return nil, false
+}
+
+// AsBasicListCustomAlertRule is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsBasicListCustomAlertRule() (BasicListCustomAlertRule, bool) {
+	return &cfina, true
+}
+
+// AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
+	return &cfina, true
+}
+
+// AsLocalUserNotAllowed is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsLocalUserNotAllowed() (*LocalUserNotAllowed, bool) {
+	return nil, false
+}
+
+// AsProcessNotAllowed is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsProcessNotAllowed() (*ProcessNotAllowed, bool) {
+	return nil, false
+}
+
+// AsActiveConnectionsNotInAllowedRange is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsActiveConnectionsNotInAllowedRange() (*ActiveConnectionsNotInAllowedRange, bool) {
+	return nil, false
+}
+
+// AsAmqpC2DMessagesNotInAllowedRange is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsAmqpC2DMessagesNotInAllowedRange() (*AmqpC2DMessagesNotInAllowedRange, bool) {
+	return nil, false
+}
+
+// AsMqttC2DMessagesNotInAllowedRange is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsMqttC2DMessagesNotInAllowedRange() (*MqttC2DMessagesNotInAllowedRange, bool) {
+	return nil, false
+}
+
+// AsHTTPC2DMessagesNotInAllowedRange is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsHTTPC2DMessagesNotInAllowedRange() (*HTTPC2DMessagesNotInAllowedRange, bool) {
+	return nil, false
+}
+
+// AsAmqpC2DRejectedMessagesNotInAllowedRange is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsAmqpC2DRejectedMessagesNotInAllowedRange() (*AmqpC2DRejectedMessagesNotInAllowedRange, bool) {
+	return nil, false
+}
+
+// AsMqttC2DRejectedMessagesNotInAllowedRange is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsMqttC2DRejectedMessagesNotInAllowedRange() (*MqttC2DRejectedMessagesNotInAllowedRange, bool) {
+	return nil, false
+}
+
+// AsHTTPC2DRejectedMessagesNotInAllowedRange is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsHTTPC2DRejectedMessagesNotInAllowedRange() (*HTTPC2DRejectedMessagesNotInAllowedRange, bool) {
+	return nil, false
+}
+
+// AsAmqpD2CMessagesNotInAllowedRange is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsAmqpD2CMessagesNotInAllowedRange() (*AmqpD2CMessagesNotInAllowedRange, bool) {
+	return nil, false
+}
+
+// AsMqttD2CMessagesNotInAllowedRange is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsMqttD2CMessagesNotInAllowedRange() (*MqttD2CMessagesNotInAllowedRange, bool) {
+	return nil, false
+}
+
+// AsHTTPD2CMessagesNotInAllowedRange is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsHTTPD2CMessagesNotInAllowedRange() (*HTTPD2CMessagesNotInAllowedRange, bool) {
+	return nil, false
+}
+
+// AsDirectMethodInvokesNotInAllowedRange is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsDirectMethodInvokesNotInAllowedRange() (*DirectMethodInvokesNotInAllowedRange, bool) {
+	return nil, false
+}
+
+// AsFailedLocalLoginsNotInAllowedRange is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsFailedLocalLoginsNotInAllowedRange() (*FailedLocalLoginsNotInAllowedRange, bool) {
+	return nil, false
+}
+
+// AsFileUploadsNotInAllowedRange is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsFileUploadsNotInAllowedRange() (*FileUploadsNotInAllowedRange, bool) {
+	return nil, false
+}
+
+// AsQueuePurgesNotInAllowedRange is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsQueuePurgesNotInAllowedRange() (*QueuePurgesNotInAllowedRange, bool) {
+	return nil, false
+}
+
+// AsTwinUpdatesNotInAllowedRange is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsTwinUpdatesNotInAllowedRange() (*TwinUpdatesNotInAllowedRange, bool) {
+	return nil, false
+}
+
+// AsUnauthorizedOperationsNotInAllowedRange is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsUnauthorizedOperationsNotInAllowedRange() (*UnauthorizedOperationsNotInAllowedRange, bool) {
+	return nil, false
+}
+
+// AsCustomAlertRule is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsCustomAlertRule() (*CustomAlertRule, bool) {
+	return nil, false
+}
+
+// AsBasicCustomAlertRule is the BasicCustomAlertRule implementation for ConnectionFromIPNotAllowed.
+func (cfina ConnectionFromIPNotAllowed) AsBasicCustomAlertRule() (BasicCustomAlertRule, bool) {
+	return &cfina, true
+}
+
+// ConnectionStrings connection string for ingesting security data and logs
+type ConnectionStrings struct {
+	autorest.Response `json:"-"`
+	// Value - Connection strings
+	Value *[]IngestionConnectionString `json:"value,omitempty"`
 }
 
 // ConnectionToIPNotAllowed outbound connection to an ip that isn't allowed. Allow list consists of ipv4 or
@@ -5820,7 +6520,7 @@ type ConnectionToIPNotAllowed struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -5888,6 +6588,11 @@ func (ctina ConnectionToIPNotAllowed) AsBasicListCustomAlertRule() (BasicListCus
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for ConnectionToIPNotAllowed.
 func (ctina ConnectionToIPNotAllowed) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
 	return &ctina, true
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for ConnectionToIPNotAllowed.
+func (ctina ConnectionToIPNotAllowed) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
+	return nil, false
 }
 
 // AsLocalUserNotAllowed is the BasicCustomAlertRule implementation for ConnectionToIPNotAllowed.
@@ -6353,6 +7058,12 @@ type ContactList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ContactList.
+func (cl ContactList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ContactListIterator provides access to a complete listing of Contact values.
 type ContactListIterator struct {
 	i    int
@@ -6585,6 +7296,7 @@ type BasicCustomAlertRule interface {
 	AsListCustomAlertRule() (*ListCustomAlertRule, bool)
 	AsBasicListCustomAlertRule() (BasicListCustomAlertRule, bool)
 	AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool)
+	AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool)
 	AsLocalUserNotAllowed() (*LocalUserNotAllowed, bool)
 	AsProcessNotAllowed() (*ProcessNotAllowed, bool)
 	AsActiveConnectionsNotInAllowedRange() (*ActiveConnectionsNotInAllowedRange, bool)
@@ -6614,7 +7326,7 @@ type CustomAlertRule struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -6650,6 +7362,10 @@ func unmarshalBasicCustomAlertRule(body []byte) (BasicCustomAlertRule, error) {
 		var ctina ConnectionToIPNotAllowed
 		err := json.Unmarshal(body, &ctina)
 		return ctina, err
+	case string(RuleTypeConnectionFromIPNotAllowed):
+		var cfina ConnectionFromIPNotAllowed
+		err := json.Unmarshal(body, &cfina)
+		return cfina, err
 	case string(RuleTypeLocalUserNotAllowed):
 		var luna LocalUserNotAllowed
 		err := json.Unmarshal(body, &luna)
@@ -6810,6 +7526,11 @@ func (car CustomAlertRule) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllow
 	return nil, false
 }
 
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for CustomAlertRule.
+func (car CustomAlertRule) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
+	return nil, false
+}
+
 // AsLocalUserNotAllowed is the BasicCustomAlertRule implementation for CustomAlertRule.
 func (car CustomAlertRule) AsLocalUserNotAllowed() (*LocalUserNotAllowed, bool) {
 	return nil, false
@@ -6918,15 +7639,27 @@ type CVE struct {
 	Link *string `json:"link,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CVE.
+func (c CVE) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // CVSS CVSS details
 type CVSS struct {
 	// Base - READ-ONLY; CVSS base
 	Base *float64 `json:"base,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CVSS.
+func (c CVSS) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DataExportSettingProperties the data export setting properties
 type DataExportSettingProperties struct {
-	// Enabled - Is the data export setting is enabled
+	// Enabled - Is the data export setting enabled
 	Enabled *bool `json:"enabled,omitempty"`
 }
 
@@ -6934,14 +7667,14 @@ type DataExportSettingProperties struct {
 type DataExportSettings struct {
 	// DataExportSettingProperties - Data export setting data
 	*DataExportSettingProperties `json:"properties,omitempty"`
+	// Kind - Possible values include: 'KindSetting', 'KindDataExportSettings', 'KindAlertSyncSettings'
+	Kind KindEnum2 `json:"kind,omitempty"`
 	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindSetting', 'KindDataExportSettings'
-	Kind KindEnum `json:"kind,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DataExportSettings.
@@ -6960,6 +7693,11 @@ func (desVar DataExportSettings) MarshalJSON() ([]byte, error) {
 // AsDataExportSettings is the BasicSetting implementation for DataExportSettings.
 func (desVar DataExportSettings) AsDataExportSettings() (*DataExportSettings, bool) {
 	return &desVar, true
+}
+
+// AsAlertSyncSettings is the BasicSetting implementation for DataExportSettings.
+func (desVar DataExportSettings) AsAlertSyncSettings() (*AlertSyncSettings, bool) {
+	return nil, false
 }
 
 // AsSetting is the BasicSetting implementation for DataExportSettings.
@@ -6992,7 +7730,7 @@ func (desVar *DataExportSettings) UnmarshalJSON(body []byte) error {
 			}
 		case "kind":
 			if v != nil {
-				var kind KindEnum
+				var kind KindEnum2
 				err = json.Unmarshal(*v, &kind)
 				if err != nil {
 					return err
@@ -7045,7 +7783,7 @@ type DenylistCustomAlertRule struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -7112,6 +7850,11 @@ func (dcar DenylistCustomAlertRule) AsBasicListCustomAlertRule() (BasicListCusto
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for DenylistCustomAlertRule.
 func (dcar DenylistCustomAlertRule) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for DenylistCustomAlertRule.
+func (dcar DenylistCustomAlertRule) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -7850,7 +8593,7 @@ type DirectMethodInvokesNotInAllowedRange struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -7923,6 +8666,11 @@ func (dminiar DirectMethodInvokesNotInAllowedRange) AsBasicListCustomAlertRule()
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for DirectMethodInvokesNotInAllowedRange.
 func (dminiar DirectMethodInvokesNotInAllowedRange) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for DirectMethodInvokesNotInAllowedRange.
+func (dminiar DirectMethodInvokesNotInAllowedRange) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -8297,6 +9045,20 @@ type EffectiveNetworkSecurityGroups struct {
 	NetworkSecurityGroups *[]string `json:"networkSecurityGroups,omitempty"`
 }
 
+// ErrorAdditionalInfo the resource management error additional info.
+type ErrorAdditionalInfo struct {
+	// Type - READ-ONLY; The additional info type.
+	Type *string `json:"type,omitempty"`
+	// Info - READ-ONLY; The additional info.
+	Info interface{} `json:"info,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorAdditionalInfo.
+func (eai ErrorAdditionalInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ETag entity tag is used for comparing two or more entities from the same requested resource.
 type ETag struct {
 	// Etag - Entity tag is used for comparing two or more entities from the same requested resource.
@@ -8325,7 +9087,7 @@ type ExternalSecuritySolution struct {
 	// Location - READ-ONLY; Location where the resource is stored
 	Location *string `json:"location,omitempty"`
 	// Kind - Possible values include: 'KindExternalSecuritySolution', 'KindCEF', 'KindATA', 'KindAAD'
-	Kind KindEnum1 `json:"kind,omitempty"`
+	Kind KindEnum `json:"kind,omitempty"`
 }
 
 func unmarshalBasicExternalSecuritySolution(body []byte) (BasicExternalSecuritySolution, error) {
@@ -8726,7 +9488,7 @@ type FailedLocalLoginsNotInAllowedRange struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -8799,6 +9561,11 @@ func (fllniar FailedLocalLoginsNotInAllowedRange) AsBasicListCustomAlertRule() (
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for FailedLocalLoginsNotInAllowedRange.
 func (fllniar FailedLocalLoginsNotInAllowedRange) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for FailedLocalLoginsNotInAllowedRange.
+func (fllniar FailedLocalLoginsNotInAllowedRange) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -8916,7 +9683,7 @@ type FileUploadsNotInAllowedRange struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -8989,6 +9756,11 @@ func (funiar FileUploadsNotInAllowedRange) AsBasicListCustomAlertRule() (BasicLi
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for FileUploadsNotInAllowedRange.
 func (funiar FileUploadsNotInAllowedRange) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for FileUploadsNotInAllowedRange.
+func (funiar FileUploadsNotInAllowedRange) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -9110,6 +9882,12 @@ type Firmware struct {
 	AdditionalData interface{} `json:"additionalData,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Firmware.
+func (f Firmware) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // GcpCredentialsDetailsProperties GCP cloud account connector based service to service credentials, the
 // credentials are composed of the organization ID and a JSON API key (write only)
 type GcpCredentialsDetailsProperties struct {
@@ -9226,7 +10004,7 @@ type HTTPC2DMessagesNotInAllowedRange struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -9299,6 +10077,11 @@ func (hcmniar HTTPC2DMessagesNotInAllowedRange) AsBasicListCustomAlertRule() (Ba
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for HTTPC2DMessagesNotInAllowedRange.
 func (hcmniar HTTPC2DMessagesNotInAllowedRange) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for HTTPC2DMessagesNotInAllowedRange.
+func (hcmniar HTTPC2DMessagesNotInAllowedRange) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -9417,7 +10200,7 @@ type HTTPC2DRejectedMessagesNotInAllowedRange struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -9490,6 +10273,11 @@ func (hcrmniar HTTPC2DRejectedMessagesNotInAllowedRange) AsBasicListCustomAlertR
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for HTTPC2DRejectedMessagesNotInAllowedRange.
 func (hcrmniar HTTPC2DRejectedMessagesNotInAllowedRange) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for HTTPC2DRejectedMessagesNotInAllowedRange.
+func (hcrmniar HTTPC2DRejectedMessagesNotInAllowedRange) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -9608,7 +10396,7 @@ type HTTPD2CMessagesNotInAllowedRange struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -9681,6 +10469,11 @@ func (hdmniar HTTPD2CMessagesNotInAllowedRange) AsBasicListCustomAlertRule() (Ba
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for HTTPD2CMessagesNotInAllowedRange.
 func (hdmniar HTTPD2CMessagesNotInAllowedRange) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for HTTPD2CMessagesNotInAllowedRange.
+func (hdmniar HTTPD2CMessagesNotInAllowedRange) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -10117,68 +10910,69 @@ type InformationType struct {
 	Keywords *[]InformationProtectionKeyword `json:"keywords,omitempty"`
 }
 
-// IotAlert ioT alert
-type IotAlert struct {
-	autorest.Response `json:"-"`
-	// IotAlertProperties - Alert properties
-	*IotAlertProperties `json:"properties,omitempty"`
+// IngestionConnectionString connection string for ingesting security data and logs
+type IngestionConnectionString struct {
+	// Location - READ-ONLY; The region where ingested logs and data resides
+	Location *string `json:"location,omitempty"`
+	// Value - READ-ONLY; Connection string value
+	Value *string `json:"value,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for IotAlert.
-func (ia IotAlert) MarshalJSON() ([]byte, error) {
+// MarshalJSON is the custom marshaler for IngestionConnectionString.
+func (ics IngestionConnectionString) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if ia.IotAlertProperties != nil {
-		objectMap["properties"] = ia.IotAlertProperties
+	return json.Marshal(objectMap)
+}
+
+// IngestionSetting configures how to correlate scan data and logs with resources associated with the
+// subscription.
+type IngestionSetting struct {
+	autorest.Response `json:"-"`
+	// Properties - Ingestion setting data
+	Properties interface{} `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IngestionSetting.
+func (is IngestionSetting) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if is.Properties != nil {
+		objectMap["properties"] = is.Properties
 	}
 	return json.Marshal(objectMap)
 }
 
-// UnmarshalJSON is the custom unmarshaler for IotAlert struct.
-func (ia *IotAlert) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var iotAlertProperties IotAlertProperties
-				err = json.Unmarshal(*v, &iotAlertProperties)
-				if err != nil {
-					return err
-				}
-				ia.IotAlertProperties = &iotAlertProperties
-			}
-		}
-	}
-
-	return nil
-}
-
-// IotAlertList list of IoT alerts
-type IotAlertList struct {
+// IngestionSettingList list of ingestion settings
+type IngestionSettingList struct {
 	autorest.Response `json:"-"`
-	// Value - READ-ONLY; List data
-	Value *[]IotAlert `json:"value,omitempty"`
-	// NextLink - READ-ONLY; When available, follow the URI to get the next page of data
+	// Value - READ-ONLY; List of ingestion settings
+	Value *[]IngestionSetting `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
-	// TotalCount - READ-ONLY; Total count of alerts that conforms with the given filter options (not affected by page size)
-	TotalCount *int32 `json:"totalCount,omitempty"`
 }
 
-// IotAlertListIterator provides access to a complete listing of IotAlert values.
-type IotAlertListIterator struct {
+// MarshalJSON is the custom marshaler for IngestionSettingList.
+func (isl IngestionSettingList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// IngestionSettingListIterator provides access to a complete listing of IngestionSetting values.
+type IngestionSettingListIterator struct {
 	i    int
-	page IotAlertListPage
+	page IngestionSettingListPage
 }
 
 // NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *IotAlertListIterator) NextWithContext(ctx context.Context) (err error) {
+func (iter *IngestionSettingListIterator) NextWithContext(ctx context.Context) (err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/IotAlertListIterator.NextWithContext")
+		ctx = tracing.StartSpan(ctx, fqdn+"/IngestionSettingListIterator.NextWithContext")
 		defer func() {
 			sc := -1
 			if iter.Response().Response.Response != nil {
@@ -10203,32 +10997,133 @@ func (iter *IotAlertListIterator) NextWithContext(ctx context.Context) (err erro
 // Next advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
 // Deprecated: Use NextWithContext() instead.
-func (iter *IotAlertListIterator) Next() error {
+func (iter *IngestionSettingListIterator) Next() error {
 	return iter.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter IotAlertListIterator) NotDone() bool {
+func (iter IngestionSettingListIterator) NotDone() bool {
 	return iter.page.NotDone() && iter.i < len(iter.page.Values())
 }
 
 // Response returns the raw server response from the last page request.
-func (iter IotAlertListIterator) Response() IotAlertList {
+func (iter IngestionSettingListIterator) Response() IngestionSettingList {
 	return iter.page.Response()
 }
 
 // Value returns the current value or a zero-initialized value if the
 // iterator has advanced beyond the end of the collection.
-func (iter IotAlertListIterator) Value() IotAlert {
+func (iter IngestionSettingListIterator) Value() IngestionSetting {
 	if !iter.page.NotDone() {
-		return IotAlert{}
+		return IngestionSetting{}
 	}
 	return iter.page.Values()[iter.i]
 }
 
-// Creates a new instance of the IotAlertListIterator type.
-func NewIotAlertListIterator(page IotAlertListPage) IotAlertListIterator {
-	return IotAlertListIterator{page: page}
+// Creates a new instance of the IngestionSettingListIterator type.
+func NewIngestionSettingListIterator(page IngestionSettingListPage) IngestionSettingListIterator {
+	return IngestionSettingListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (isl IngestionSettingList) IsEmpty() bool {
+	return isl.Value == nil || len(*isl.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (isl IngestionSettingList) hasNextLink() bool {
+	return isl.NextLink != nil && len(*isl.NextLink) != 0
+}
+
+// ingestionSettingListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (isl IngestionSettingList) ingestionSettingListPreparer(ctx context.Context) (*http.Request, error) {
+	if !isl.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(isl.NextLink)))
+}
+
+// IngestionSettingListPage contains a page of IngestionSetting values.
+type IngestionSettingListPage struct {
+	fn  func(context.Context, IngestionSettingList) (IngestionSettingList, error)
+	isl IngestionSettingList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *IngestionSettingListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IngestionSettingListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.isl)
+		if err != nil {
+			return err
+		}
+		page.isl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *IngestionSettingListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page IngestionSettingListPage) NotDone() bool {
+	return !page.isl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page IngestionSettingListPage) Response() IngestionSettingList {
+	return page.isl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page IngestionSettingListPage) Values() []IngestionSetting {
+	if page.isl.IsEmpty() {
+		return nil
+	}
+	return *page.isl.Value
+}
+
+// Creates a new instance of the IngestionSettingListPage type.
+func NewIngestionSettingListPage(cur IngestionSettingList, getNextPage func(context.Context, IngestionSettingList) (IngestionSettingList, error)) IngestionSettingListPage {
+	return IngestionSettingListPage{
+		fn:  getNextPage,
+		isl: cur,
+	}
+}
+
+// IngestionSettingToken configures how to correlate scan data and logs with resources associated with the
+// subscription.
+type IngestionSettingToken struct {
+	autorest.Response `json:"-"`
+	// Token - READ-ONLY; The token is used for correlating security data and logs with the resources in the subscription.
+	Token *string `json:"token,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IngestionSettingToken.
+func (ist IngestionSettingToken) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // IotAlertListModel list of IoT alerts
@@ -10238,6 +11133,12 @@ type IotAlertListModel struct {
 	Value *[]IotAlertModel `json:"value,omitempty"`
 	// NextLink - READ-ONLY; When available, follow the URI to get the next page of data
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IotAlertListModel.
+func (ialm IotAlertListModel) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // IotAlertListModelIterator provides access to a complete listing of IotAlertModel values.
@@ -10390,98 +11291,17 @@ func NewIotAlertListModelPage(cur IotAlertListModel, getNextPage func(context.Co
 	}
 }
 
-// IsEmpty returns true if the ListResult contains no values.
-func (ial IotAlertList) IsEmpty() bool {
-	return ial.Value == nil || len(*ial.Value) == 0
-}
-
-// hasNextLink returns true if the NextLink is not empty.
-func (ial IotAlertList) hasNextLink() bool {
-	return ial.NextLink != nil && len(*ial.NextLink) != 0
-}
-
-// iotAlertListPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (ial IotAlertList) iotAlertListPreparer(ctx context.Context) (*http.Request, error) {
-	if !ial.hasNextLink() {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(ial.NextLink)))
-}
-
-// IotAlertListPage contains a page of IotAlert values.
-type IotAlertListPage struct {
-	fn  func(context.Context, IotAlertList) (IotAlertList, error)
-	ial IotAlertList
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *IotAlertListPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/IotAlertListPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	for {
-		next, err := page.fn(ctx, page.ial)
-		if err != nil {
-			return err
-		}
-		page.ial = next
-		if !next.hasNextLink() || !next.IsEmpty() {
-			break
-		}
-	}
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *IotAlertListPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page IotAlertListPage) NotDone() bool {
-	return !page.ial.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page IotAlertListPage) Response() IotAlertList {
-	return page.ial
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page IotAlertListPage) Values() []IotAlert {
-	if page.ial.IsEmpty() {
-		return nil
-	}
-	return *page.ial.Value
-}
-
-// Creates a new instance of the IotAlertListPage type.
-func NewIotAlertListPage(cur IotAlertList, getNextPage func(context.Context, IotAlertList) (IotAlertList, error)) IotAlertListPage {
-	return IotAlertListPage{
-		fn:  getNextPage,
-		ial: cur,
-	}
-}
-
 // IotAlertModel ioT alert
 type IotAlertModel struct {
 	autorest.Response `json:"-"`
 	// IotAlertPropertiesModel - Alert properties
 	*IotAlertPropertiesModel `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for IotAlertModel.
@@ -10511,40 +11331,37 @@ func (iam *IotAlertModel) UnmarshalJSON(body []byte) error {
 				}
 				iam.IotAlertPropertiesModel = &iotAlertPropertiesModel
 			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				iam.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				iam.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				iam.Type = &typeVar
+			}
 		}
 	}
 
 	return nil
-}
-
-// IotAlertProperties ioT alert properties
-type IotAlertProperties struct {
-	// SystemAlertID - READ-ONLY; Holds the product canonical identifier of the alert within the scope of a product
-	SystemAlertID *string `json:"systemAlertId,omitempty"`
-	// CompromisedEntity - READ-ONLY; Display name of the main entity being reported on
-	CompromisedEntity *string `json:"compromisedEntity,omitempty"`
-	// AlertType - READ-ONLY; The type name of the alert
-	AlertType *string `json:"alertType,omitempty"`
-	// StartTimeUtc - READ-ONLY; The impact start time of the alert (the time of the first event or activity included in the alert)
-	StartTimeUtc *string `json:"startTimeUtc,omitempty"`
-	// EndTimeUtc - READ-ONLY; The impact end time of the alert (the time of the last event or activity included in the alert)
-	EndTimeUtc *string `json:"endTimeUtc,omitempty"`
-	// Entities - A list of entities related to the alert
-	Entities *[]interface{} `json:"entities,omitempty"`
-	// ExtendedProperties - A bag of fields which extends the alert information
-	ExtendedProperties interface{} `json:"extendedProperties,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for IotAlertProperties.
-func (iap IotAlertProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if iap.Entities != nil {
-		objectMap["entities"] = iap.Entities
-	}
-	if iap.ExtendedProperties != nil {
-		objectMap["extendedProperties"] = iap.ExtendedProperties
-	}
-	return json.Marshal(objectMap)
 }
 
 // IotAlertPropertiesModel ioT alert properties
@@ -10679,11 +11496,23 @@ type IotAlertTypeProperties struct {
 	RemediationSteps *[]string `json:"remediationSteps,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for IotAlertTypeProperties.
+func (iatp IotAlertTypeProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // IotDefenderSettingsList list of IoT Defender settings
 type IotDefenderSettingsList struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List data
 	Value *[]IotDefenderSettingsModel `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IotDefenderSettingsList.
+func (idsl IotDefenderSettingsList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // IotDefenderSettingsModel ioT Defender settings
@@ -10765,153 +11594,25 @@ type IotDefenderSettingsProperties struct {
 	DeviceQuota *int32 `json:"deviceQuota,omitempty"`
 	// SentinelWorkspaceResourceIds - Sentinel Workspace Resource Ids
 	SentinelWorkspaceResourceIds *[]string `json:"sentinelWorkspaceResourceIds,omitempty"`
+	// OnboardingKind - The kind of onboarding for the subscription. Possible values include: 'Default', 'MigratedToAzure', 'Evaluation', 'Purchased'
+	OnboardingKind OnboardingKind `json:"onboardingKind,omitempty"`
+	// EvaluationEndTime - READ-ONLY; End time of the evaluation period, if such exist
+	EvaluationEndTime *date.Time `json:"evaluationEndTime,omitempty"`
 }
 
-// IotRecommendation ioT recommendation
-type IotRecommendation struct {
-	autorest.Response `json:"-"`
-	// IotRecommendationProperties - Recommendation properties
-	*IotRecommendationProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for IotRecommendation.
-func (ir IotRecommendation) MarshalJSON() ([]byte, error) {
+// MarshalJSON is the custom marshaler for IotDefenderSettingsProperties.
+func (idsp IotDefenderSettingsProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if ir.IotRecommendationProperties != nil {
-		objectMap["properties"] = ir.IotRecommendationProperties
+	if idsp.DeviceQuota != nil {
+		objectMap["deviceQuota"] = idsp.DeviceQuota
+	}
+	if idsp.SentinelWorkspaceResourceIds != nil {
+		objectMap["sentinelWorkspaceResourceIds"] = idsp.SentinelWorkspaceResourceIds
+	}
+	if idsp.OnboardingKind != "" {
+		objectMap["onboardingKind"] = idsp.OnboardingKind
 	}
 	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for IotRecommendation struct.
-func (ir *IotRecommendation) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var iotRecommendationProperties IotRecommendationProperties
-				err = json.Unmarshal(*v, &iotRecommendationProperties)
-				if err != nil {
-					return err
-				}
-				ir.IotRecommendationProperties = &iotRecommendationProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				ir.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				ir.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				ir.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// IotRecommendationList list of IoT recommendations
-type IotRecommendationList struct {
-	autorest.Response `json:"-"`
-	// Value - READ-ONLY; List data
-	Value *[]IotRecommendation `json:"value,omitempty"`
-	// NextLink - READ-ONLY; When available, follow the URI to get the next page of data
-	NextLink *string `json:"nextLink,omitempty"`
-	// TotalCount - READ-ONLY; Total count of recommendations that conforms with the given filter options (not affected by page size)
-	TotalCount *int32 `json:"totalCount,omitempty"`
-}
-
-// IotRecommendationListIterator provides access to a complete listing of IotRecommendation values.
-type IotRecommendationListIterator struct {
-	i    int
-	page IotRecommendationListPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *IotRecommendationListIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/IotRecommendationListIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *IotRecommendationListIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter IotRecommendationListIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter IotRecommendationListIterator) Response() IotRecommendationList {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter IotRecommendationListIterator) Value() IotRecommendation {
-	if !iter.page.NotDone() {
-		return IotRecommendation{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the IotRecommendationListIterator type.
-func NewIotRecommendationListIterator(page IotRecommendationListPage) IotRecommendationListIterator {
-	return IotRecommendationListIterator{page: page}
 }
 
 // IotRecommendationListModel list of IoT recommendations
@@ -10921,6 +11622,12 @@ type IotRecommendationListModel struct {
 	Value *[]IotRecommendationModel `json:"value,omitempty"`
 	// NextLink - READ-ONLY; When available, follow the URI to get the next page of data
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IotRecommendationListModel.
+func (irlm IotRecommendationListModel) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // IotRecommendationListModelIterator provides access to a complete listing of IotRecommendationModel
@@ -11074,93 +11781,6 @@ func NewIotRecommendationListModelPage(cur IotRecommendationListModel, getNextPa
 	}
 }
 
-// IsEmpty returns true if the ListResult contains no values.
-func (irl IotRecommendationList) IsEmpty() bool {
-	return irl.Value == nil || len(*irl.Value) == 0
-}
-
-// hasNextLink returns true if the NextLink is not empty.
-func (irl IotRecommendationList) hasNextLink() bool {
-	return irl.NextLink != nil && len(*irl.NextLink) != 0
-}
-
-// iotRecommendationListPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (irl IotRecommendationList) iotRecommendationListPreparer(ctx context.Context) (*http.Request, error) {
-	if !irl.hasNextLink() {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(irl.NextLink)))
-}
-
-// IotRecommendationListPage contains a page of IotRecommendation values.
-type IotRecommendationListPage struct {
-	fn  func(context.Context, IotRecommendationList) (IotRecommendationList, error)
-	irl IotRecommendationList
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *IotRecommendationListPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/IotRecommendationListPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	for {
-		next, err := page.fn(ctx, page.irl)
-		if err != nil {
-			return err
-		}
-		page.irl = next
-		if !next.hasNextLink() || !next.IsEmpty() {
-			break
-		}
-	}
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *IotRecommendationListPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page IotRecommendationListPage) NotDone() bool {
-	return !page.irl.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page IotRecommendationListPage) Response() IotRecommendationList {
-	return page.irl
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page IotRecommendationListPage) Values() []IotRecommendation {
-	if page.irl.IsEmpty() {
-		return nil
-	}
-	return *page.irl.Value
-}
-
-// Creates a new instance of the IotRecommendationListPage type.
-func NewIotRecommendationListPage(cur IotRecommendationList, getNextPage func(context.Context, IotRecommendationList) (IotRecommendationList, error)) IotRecommendationListPage {
-	return IotRecommendationListPage{
-		fn:  getNextPage,
-		irl: cur,
-	}
-}
-
 // IotRecommendationModel ioT recommendation
 type IotRecommendationModel struct {
 	autorest.Response `json:"-"`
@@ -11232,27 +11852,6 @@ func (irm *IotRecommendationModel) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
-}
-
-// IotRecommendationProperties ioT recommendation properties
-type IotRecommendationProperties struct {
-	// DeviceID - READ-ONLY; Identifier of the device being reported on
-	DeviceID *string `json:"deviceId,omitempty"`
-	// RecommendationType - READ-ONLY; The type name of the recommendation
-	RecommendationType *string `json:"recommendationType,omitempty"`
-	// DiscoveredTimeUtc - READ-ONLY; The discovery time of the recommendation
-	DiscoveredTimeUtc *string `json:"discoveredTimeUtc,omitempty"`
-	// RecommendationAdditionalData - A bag of fields which extends the recommendation information
-	RecommendationAdditionalData interface{} `json:"recommendationAdditionalData,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for IotRecommendationProperties.
-func (irp IotRecommendationProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if irp.RecommendationAdditionalData != nil {
-		objectMap["recommendationAdditionalData"] = irp.RecommendationAdditionalData
-	}
-	return json.Marshal(objectMap)
 }
 
 // IotRecommendationPropertiesModel ioT recommendation properties
@@ -11376,6 +11975,12 @@ type IotRecommendationTypeProperties struct {
 	RemediationSteps *[]string `json:"remediationSteps,omitempty"`
 	// DataSource - READ-ONLY; The alert's data source
 	DataSource *string `json:"dataSource,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IotRecommendationTypeProperties.
+func (irtp IotRecommendationTypeProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // IoTSecurityAggregatedAlert security Solution Aggregated Alert information
@@ -11651,7 +12256,7 @@ type IoTSecurityAggregatedAlertProperties struct {
 	// Description - READ-ONLY; Description of the suspected vulnerability and meaning.
 	Description *string `json:"description,omitempty"`
 	// Count - READ-ONLY; Number of alerts occurrences within the aggregated time window.
-	Count *int32 `json:"count,omitempty"`
+	Count *int64 `json:"count,omitempty"`
 	// EffectedResourceType - READ-ONLY; Azure resource ID of the resource that received the alerts.
 	EffectedResourceType *string `json:"effectedResourceType,omitempty"`
 	// SystemSource - READ-ONLY; The type of the alerted resource (Azure, Non-Azure).
@@ -11664,14 +12269,26 @@ type IoTSecurityAggregatedAlertProperties struct {
 	TopDevicesList *[]IoTSecurityAggregatedAlertPropertiesTopDevicesListItem `json:"topDevicesList,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for IoTSecurityAggregatedAlertProperties.
+func (itsaap IoTSecurityAggregatedAlertProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // IoTSecurityAggregatedAlertPropertiesTopDevicesListItem ...
 type IoTSecurityAggregatedAlertPropertiesTopDevicesListItem struct {
 	// DeviceID - READ-ONLY; Name of the device.
 	DeviceID *string `json:"deviceId,omitempty"`
 	// AlertsCount - READ-ONLY; Number of alerts raised for this device.
-	AlertsCount *int32 `json:"alertsCount,omitempty"`
+	AlertsCount *int64 `json:"alertsCount,omitempty"`
 	// LastOccurrence - READ-ONLY; Most recent time this alert was raised for this device, on this day.
 	LastOccurrence *string `json:"lastOccurrence,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IoTSecurityAggregatedAlertPropertiesTopDevicesListItem.
+func (itsaapDli IoTSecurityAggregatedAlertPropertiesTopDevicesListItem) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // IoTSecurityAggregatedRecommendation ioT Security solution recommendation information.
@@ -11949,9 +12566,9 @@ type IoTSecurityAggregatedRecommendationProperties struct {
 	// ReportedSeverity - READ-ONLY; Assessed recommendation severity. Possible values include: 'ReportedSeverityInformational', 'ReportedSeverityLow', 'ReportedSeverityMedium', 'ReportedSeverityHigh'
 	ReportedSeverity ReportedSeverity `json:"reportedSeverity,omitempty"`
 	// HealthyDevices - READ-ONLY; Number of healthy devices within the IoT Security solution.
-	HealthyDevices *int32 `json:"healthyDevices,omitempty"`
+	HealthyDevices *int64 `json:"healthyDevices,omitempty"`
 	// UnhealthyDeviceCount - READ-ONLY; Number of unhealthy devices within the IoT Security solution.
-	UnhealthyDeviceCount *int32 `json:"unhealthyDeviceCount,omitempty"`
+	UnhealthyDeviceCount *int64 `json:"unhealthyDeviceCount,omitempty"`
 	// LogAnalyticsQuery - READ-ONLY; Log analytics query for getting the list of affected devices/alerts.
 	LogAnalyticsQuery *string `json:"logAnalyticsQuery,omitempty"`
 }
@@ -11971,7 +12588,13 @@ type IoTSecurityAlertedDevice struct {
 	// DeviceID - READ-ONLY; Device identifier.
 	DeviceID *string `json:"deviceId,omitempty"`
 	// AlertsCount - READ-ONLY; Number of alerts raised for this device.
-	AlertsCount *int32 `json:"alertsCount,omitempty"`
+	AlertsCount *int64 `json:"alertsCount,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IoTSecurityAlertedDevice.
+func (itsad IoTSecurityAlertedDevice) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // IoTSecurityDeviceAlert statistical information about the number of alerts per alert type during last set
@@ -11982,7 +12605,13 @@ type IoTSecurityDeviceAlert struct {
 	// ReportedSeverity - READ-ONLY; Assessed Alert severity. Possible values include: 'ReportedSeverityInformational', 'ReportedSeverityLow', 'ReportedSeverityMedium', 'ReportedSeverityHigh'
 	ReportedSeverity ReportedSeverity `json:"reportedSeverity,omitempty"`
 	// AlertsCount - READ-ONLY; Number of alerts raised for this alert type.
-	AlertsCount *int32 `json:"alertsCount,omitempty"`
+	AlertsCount *int64 `json:"alertsCount,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IoTSecurityDeviceAlert.
+func (itsda IoTSecurityDeviceAlert) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // IoTSecurityDeviceRecommendation statistical information about the number of recommendations per device,
@@ -11993,7 +12622,13 @@ type IoTSecurityDeviceRecommendation struct {
 	// ReportedSeverity - READ-ONLY; Assessed recommendation severity. Possible values include: 'ReportedSeverityInformational', 'ReportedSeverityLow', 'ReportedSeverityMedium', 'ReportedSeverityHigh'
 	ReportedSeverity ReportedSeverity `json:"reportedSeverity,omitempty"`
 	// DevicesCount - READ-ONLY; Number of devices with this recommendation.
-	DevicesCount *int32 `json:"devicesCount,omitempty"`
+	DevicesCount *int64 `json:"devicesCount,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IoTSecurityDeviceRecommendation.
+func (itsdr IoTSecurityDeviceRecommendation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // IoTSecuritySolutionAnalyticsModel security analytics of your IoT Security solution
@@ -12092,7 +12727,7 @@ type IoTSecuritySolutionAnalyticsModelProperties struct {
 	// Metrics - READ-ONLY; Security analytics of your IoT Security solution.
 	Metrics *IoTSeverityMetrics `json:"metrics,omitempty"`
 	// UnhealthyDeviceCount - READ-ONLY; Number of unhealthy devices within your IoT Security solution.
-	UnhealthyDeviceCount *int32 `json:"unhealthyDeviceCount,omitempty"`
+	UnhealthyDeviceCount *int64 `json:"unhealthyDeviceCount,omitempty"`
 	// DevicesMetrics - READ-ONLY; List of device metrics by the aggregation date.
 	DevicesMetrics *[]IoTSecuritySolutionAnalyticsModelPropertiesDevicesMetricsItem `json:"devicesMetrics,omitempty"`
 	// TopAlertedDevices - List of the 3 devices with the most alerts.
@@ -12141,6 +12776,8 @@ type IoTSecuritySolutionModel struct {
 	Location *string `json:"location,omitempty"`
 	// IoTSecuritySolutionProperties - Security Solution data
 	*IoTSecuritySolutionProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for IoTSecuritySolutionModel.
@@ -12221,6 +12858,15 @@ func (itssm *IoTSecuritySolutionModel) UnmarshalJSON(body []byte) error {
 				}
 				itssm.IoTSecuritySolutionProperties = &ioTSecuritySolutionProperties
 			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				itssm.SystemData = &systemData
+			}
 		}
 	}
 
@@ -12247,6 +12893,8 @@ type IoTSecuritySolutionProperties struct {
 	RecommendationsConfiguration *[]RecommendationConfigurationProperties `json:"recommendationsConfiguration,omitempty"`
 	// UnmaskedIPLoggingStatus - Unmasked IP address logging status. Possible values include: 'UnmaskedIPLoggingStatusDisabled', 'UnmaskedIPLoggingStatusEnabled'
 	UnmaskedIPLoggingStatus UnmaskedIPLoggingStatus `json:"unmaskedIpLoggingStatus,omitempty"`
+	// AdditionalWorkspaces - List of additional workspaces
+	AdditionalWorkspaces *[]AdditionalWorkspacesProperties `json:"additionalWorkspaces,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for IoTSecuritySolutionProperties.
@@ -12278,6 +12926,9 @@ func (itssp IoTSecuritySolutionProperties) MarshalJSON() ([]byte, error) {
 	}
 	if itssp.UnmaskedIPLoggingStatus != "" {
 		objectMap["unmaskedIpLoggingStatus"] = itssp.UnmaskedIPLoggingStatus
+	}
+	if itssp.AdditionalWorkspaces != nil {
+		objectMap["additionalWorkspaces"] = itssp.AdditionalWorkspaces
 	}
 	return json.Marshal(objectMap)
 }
@@ -12473,6 +13124,8 @@ type IotSensorProperties struct {
 	TiVersion *string `json:"tiVersion,omitempty"`
 	// Zone - Zone of the IoT sensor
 	Zone *string `json:"zone,omitempty"`
+	// SensorType - Type of sensor. Possible values include: 'SensorTypeOt', 'SensorTypeEnterprise'
+	SensorType SensorType `json:"sensorType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for IotSensorProperties.
@@ -12484,6 +13137,9 @@ func (isp IotSensorProperties) MarshalJSON() ([]byte, error) {
 	if isp.Zone != nil {
 		objectMap["zone"] = isp.Zone
 	}
+	if isp.SensorType != "" {
+		objectMap["sensorType"] = isp.SensorType
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -12492,6 +13148,12 @@ type IotSensorsList struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List data
 	Value *[]IotSensorsModel `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IotSensorsList.
+func (isl IotSensorsList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // IotSensorsModel ioT sensor model
@@ -12570,11 +13232,11 @@ func (ism *IotSensorsModel) UnmarshalJSON(body []byte) error {
 // IoTSeverityMetrics ioT Security solution analytics severity metrics.
 type IoTSeverityMetrics struct {
 	// High - Count of high severity alerts/recommendations.
-	High *int32 `json:"high,omitempty"`
+	High *int64 `json:"high,omitempty"`
 	// Medium - Count of medium severity alerts/recommendations.
-	Medium *int32 `json:"medium,omitempty"`
+	Medium *int64 `json:"medium,omitempty"`
 	// Low - Count of low severity alerts/recommendations.
-	Low *int32 `json:"low,omitempty"`
+	Low *int64 `json:"low,omitempty"`
 }
 
 // IotSiteProperties ioT site properties
@@ -12602,6 +13264,12 @@ type IotSitesList struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List data
 	Value *[]IotSitesModel `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IotSitesList.
+func (isl IotSitesList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // IotSitesModel ioT site model
@@ -12689,6 +13357,12 @@ type IPAddress struct {
 	Fqdn *string `json:"fqdn,omitempty"`
 	// FqdnLastLookupTime - READ-ONLY; FQDN last lookup time.
 	FqdnLastLookupTime *date.Time `json:"fqdnLastLookupTime,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IPAddress.
+func (ia IPAddress) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // JitNetworkAccessPoliciesList ...
@@ -13074,6 +13748,7 @@ type BasicListCustomAlertRule interface {
 	AsBasicAllowlistCustomAlertRule() (BasicAllowlistCustomAlertRule, bool)
 	AsDenylistCustomAlertRule() (*DenylistCustomAlertRule, bool)
 	AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool)
+	AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool)
 	AsLocalUserNotAllowed() (*LocalUserNotAllowed, bool)
 	AsProcessNotAllowed() (*ProcessNotAllowed, bool)
 	AsListCustomAlertRule() (*ListCustomAlertRule, bool)
@@ -13089,7 +13764,7 @@ type ListCustomAlertRule struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -13113,6 +13788,10 @@ func unmarshalBasicListCustomAlertRule(body []byte) (BasicListCustomAlertRule, e
 		var ctina ConnectionToIPNotAllowed
 		err := json.Unmarshal(body, &ctina)
 		return ctina, err
+	case string(RuleTypeConnectionFromIPNotAllowed):
+		var cfina ConnectionFromIPNotAllowed
+		err := json.Unmarshal(body, &cfina)
+		return cfina, err
 	case string(RuleTypeLocalUserNotAllowed):
 		var luna LocalUserNotAllowed
 		err := json.Unmarshal(body, &luna)
@@ -13206,6 +13885,11 @@ func (lcar ListCustomAlertRule) AsBasicListCustomAlertRule() (BasicListCustomAle
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for ListCustomAlertRule.
 func (lcar ListCustomAlertRule) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for ListCustomAlertRule.
+func (lcar ListCustomAlertRule) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -13322,7 +14006,7 @@ type LocalUserNotAllowed struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -13389,6 +14073,11 @@ func (luna LocalUserNotAllowed) AsBasicListCustomAlertRule() (BasicListCustomAle
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for LocalUserNotAllowed.
 func (luna LocalUserNotAllowed) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for LocalUserNotAllowed.
+func (luna LocalUserNotAllowed) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -13498,6 +14187,12 @@ type Location struct {
 	Location *string `json:"location,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Location.
+func (l Location) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // LogAnalyticsIdentifier represents a Log Analytics workspace scope identifier.
 type LogAnalyticsIdentifier struct {
 	// WorkspaceID - READ-ONLY; The LogAnalytics workspace id that stores this alert.
@@ -13554,6 +14249,12 @@ type MacAddress struct {
 	RelationToIPStatus RelationToIPStatus `json:"relationToIpStatus,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for MacAddress.
+func (ma MacAddress) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // MqttC2DMessagesNotInAllowedRange number of cloud to device messages (MQTT protocol) is not in allowed
 // range.
 type MqttC2DMessagesNotInAllowedRange struct {
@@ -13569,7 +14270,7 @@ type MqttC2DMessagesNotInAllowedRange struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -13642,6 +14343,11 @@ func (mcmniar MqttC2DMessagesNotInAllowedRange) AsBasicListCustomAlertRule() (Ba
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for MqttC2DMessagesNotInAllowedRange.
 func (mcmniar MqttC2DMessagesNotInAllowedRange) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for MqttC2DMessagesNotInAllowedRange.
+func (mcmniar MqttC2DMessagesNotInAllowedRange) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -13760,7 +14466,7 @@ type MqttC2DRejectedMessagesNotInAllowedRange struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -13833,6 +14539,11 @@ func (mcrmniar MqttC2DRejectedMessagesNotInAllowedRange) AsBasicListCustomAlertR
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for MqttC2DRejectedMessagesNotInAllowedRange.
 func (mcrmniar MqttC2DRejectedMessagesNotInAllowedRange) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for MqttC2DRejectedMessagesNotInAllowedRange.
+func (mcrmniar MqttC2DRejectedMessagesNotInAllowedRange) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -13951,7 +14662,7 @@ type MqttD2CMessagesNotInAllowedRange struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -14024,6 +14735,11 @@ func (mdmniar MqttD2CMessagesNotInAllowedRange) AsBasicListCustomAlertRule() (Ba
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for MqttD2CMessagesNotInAllowedRange.
 func (mdmniar MqttD2CMessagesNotInAllowedRange) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for MqttD2CMessagesNotInAllowedRange.
+func (mdmniar MqttD2CMessagesNotInAllowedRange) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -14174,6 +14890,12 @@ type OnPremiseIotSensorsList struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List data
 	Value *[]OnPremiseIotSensor `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OnPremiseIotSensorsList.
+func (opisl OnPremiseIotSensorsList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // BasicOnPremiseResourceDetails details of the On Premise resource that was assessed
@@ -14391,6 +15113,12 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationDisplay.
+func (od OperationDisplay) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationList list of possible operations for Microsoft.Security resource provider
 type OperationList struct {
 	autorest.Response `json:"-"`
@@ -14597,6 +15325,12 @@ type PackageDownloads struct {
 	DeviceInformationUpdateImportTemplate *[]PackageDownloadInfo `json:"deviceInformationUpdateImportTemplate,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PackageDownloads.
+func (pd PackageDownloads) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PackageDownloadsCentralManager all downloads for Central Manager
 type PackageDownloadsCentralManager struct {
 	// Full - READ-ONLY; Contains full package downloads
@@ -14605,12 +15339,24 @@ type PackageDownloadsCentralManager struct {
 	Upgrade *[]UpgradePackageDownloadInfo `json:"upgrade,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PackageDownloadsCentralManager.
+func (pdM PackageDownloadsCentralManager) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PackageDownloadsCentralManagerFull contains full package downloads
 type PackageDownloadsCentralManagerFull struct {
 	// Iso - READ-ONLY; Contains all ISO full versions of the Central Manager
 	Iso *[]PackageDownloadInfo `json:"iso,omitempty"`
 	// Ovf - READ-ONLY; Contains all OVF (virtual machine) full versions of the Central Manager
 	Ovf *PackageDownloadsCentralManagerFullOvf `json:"ovf,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PackageDownloadsCentralManagerFull.
+func (pdM PackageDownloadsCentralManagerFull) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PackageDownloadsCentralManagerFullOvf contains all OVF (virtual machine) full versions of the Central
@@ -14624,6 +15370,12 @@ type PackageDownloadsCentralManagerFullOvf struct {
 	Medium *[]PackageDownloadInfo `json:"medium,omitempty"`
 	// MediumHighAvailability - READ-ONLY; The MediumHighAvailability package type
 	MediumHighAvailability *[]PackageDownloadInfo `json:"mediumHighAvailability,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PackageDownloadsCentralManagerFullOvf.
+func (pdM PackageDownloadsCentralManagerFullOvf) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PackageDownloadsSensor contains all Sensor binary downloads
@@ -14668,6 +15420,12 @@ type PackageDownloadsSensorFullOvf struct {
 	Medium *[]PackageDownloadInfo `json:"medium,omitempty"`
 	// Line - READ-ONLY; Line package type
 	Line *[]PackageDownloadInfo `json:"line,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PackageDownloadsSensorFullOvf.
+func (pd PackageDownloadsSensorFullOvf) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PathRecommendation represents a path that is recommended to be allowed and its properties
@@ -14801,7 +15559,7 @@ type ProcessNotAllowed struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -14868,6 +15626,11 @@ func (pna ProcessNotAllowed) AsBasicListCustomAlertRule() (BasicListCustomAlertR
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for ProcessNotAllowed.
 func (pna ProcessNotAllowed) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for ProcessNotAllowed.
+func (pna ProcessNotAllowed) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -15046,7 +15809,7 @@ type QueuePurgesNotInAllowedRange struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -15119,6 +15882,11 @@ func (qpniar QueuePurgesNotInAllowedRange) AsBasicListCustomAlertRule() (BasicLi
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for QueuePurgesNotInAllowedRange.
 func (qpniar QueuePurgesNotInAllowedRange) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for QueuePurgesNotInAllowedRange.
+func (qpniar QueuePurgesNotInAllowedRange) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -16077,6 +16845,12 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // BasicResourceDetails details of the resource that was assessed
 type BasicResourceDetails interface {
 	AsOnPremiseSQLResourceDetails() (*OnPremiseSQLResourceDetails, bool)
@@ -16511,6 +17285,12 @@ type ScoreDetails struct {
 	Percentage *float64 `json:"percentage,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ScoreDetails.
+func (sd ScoreDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SecureScoreControlDefinitionItem information about the security control.
 type SecureScoreControlDefinitionItem struct {
 	*SecureScoreControlDefinitionItemProperties `json:"properties,omitempty"`
@@ -16596,6 +17376,12 @@ type SecureScoreControlDefinitionItemProperties struct {
 	AssessmentDefinitions *[]AzureResourceLink `json:"assessmentDefinitions,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SecureScoreControlDefinitionItemProperties.
+func (sscdip SecureScoreControlDefinitionItemProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SecureScoreControlDefinitionList list of security controls definition
 type SecureScoreControlDefinitionList struct {
 	autorest.Response `json:"-"`
@@ -16603,6 +17389,12 @@ type SecureScoreControlDefinitionList struct {
 	Value *[]SecureScoreControlDefinitionItem `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SecureScoreControlDefinitionList.
+func (sscdl SecureScoreControlDefinitionList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SecureScoreControlDefinitionListIterator provides access to a complete listing of
@@ -16843,6 +17635,12 @@ type SecureScoreControlList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SecureScoreControlList.
+func (sscl SecureScoreControlList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SecureScoreControlListIterator provides access to a complete listing of SecureScoreControlDetails
 // values.
 type SecureScoreControlListIterator struct {
@@ -17002,6 +17800,12 @@ type SecureScoreControlScore struct {
 	Current *float64 `json:"current,omitempty"`
 	// Percentage - READ-ONLY; Ratio of the current score divided by the maximum. Rounded to 4 digits after the decimal point
 	Percentage *float64 `json:"percentage,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SecureScoreControlScore.
+func (sscs SecureScoreControlScore) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SecureScoreControlScoreDetails calculation result data in control level
@@ -17248,6 +18052,12 @@ type SecureScoresList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SecureScoresList.
+func (ssl SecureScoresList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SecureScoresListIterator provides access to a complete listing of SecureScoreItem values.
 type SecureScoresListIterator struct {
 	i    int
@@ -17420,6 +18230,12 @@ type Sensor struct {
 	Zone *string `json:"zone,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Sensor.
+func (s Sensor) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ServerVulnerabilityAssessment describes the server vulnerability assessment details on a resource
 type ServerVulnerabilityAssessment struct {
 	autorest.Response                        `json:"-"`
@@ -17492,10 +18308,53 @@ func (sva *ServerVulnerabilityAssessment) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// ServerVulnerabilityAssessmentDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type ServerVulnerabilityAssessmentDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ServerVulnerabilityAssessmentClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ServerVulnerabilityAssessmentDeleteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ServerVulnerabilityAssessmentDeleteFuture.Result.
+func (future *ServerVulnerabilityAssessmentDeleteFuture) result(client ServerVulnerabilityAssessmentClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.ServerVulnerabilityAssessmentDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("security.ServerVulnerabilityAssessmentDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // ServerVulnerabilityAssessmentProperties describes ServerVulnerabilityAssessment properties.
 type ServerVulnerabilityAssessmentProperties struct {
 	// ProvisioningState - READ-ONLY; The provisioningState of the vulnerability assessment capability on the VM. Possible values include: 'ProvisioningState1Succeeded', 'ProvisioningState1Failed', 'ProvisioningState1Canceled', 'ProvisioningState1Provisioning', 'ProvisioningState1Deprovisioning'
 	ProvisioningState ProvisioningState1 `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerVulnerabilityAssessmentProperties.
+func (svap ServerVulnerabilityAssessmentProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ServerVulnerabilityAssessmentsList list of server vulnerability assessments
@@ -17570,14 +18429,15 @@ type ServicePrincipalProperties struct {
 // BasicSetting the kind of the security setting
 type BasicSetting interface {
 	AsDataExportSettings() (*DataExportSettings, bool)
+	AsAlertSyncSettings() (*AlertSyncSettings, bool)
 	AsSetting() (*Setting, bool)
 }
 
 // Setting the kind of the security setting
 type Setting struct {
 	autorest.Response `json:"-"`
-	// Kind - Possible values include: 'KindSetting', 'KindDataExportSettings'
-	Kind KindEnum `json:"kind,omitempty"`
+	// Kind - Possible values include: 'KindSetting', 'KindDataExportSettings', 'KindAlertSyncSettings'
+	Kind KindEnum2 `json:"kind,omitempty"`
 	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name
@@ -17598,6 +18458,10 @@ func unmarshalBasicSetting(body []byte) (BasicSetting, error) {
 		var desVar DataExportSettings
 		err := json.Unmarshal(body, &desVar)
 		return desVar, err
+	case string(KindAlertSyncSettings):
+		var ass AlertSyncSettings
+		err := json.Unmarshal(body, &ass)
+		return ass, err
 	default:
 		var s Setting
 		err := json.Unmarshal(body, &s)
@@ -17635,6 +18499,11 @@ func (s Setting) MarshalJSON() ([]byte, error) {
 
 // AsDataExportSettings is the BasicSetting implementation for Setting.
 func (s Setting) AsDataExportSettings() (*DataExportSettings, bool) {
+	return nil, false
+}
+
+// AsAlertSyncSettings is the BasicSetting implementation for Setting.
+func (s Setting) AsAlertSyncSettings() (*AlertSyncSettings, bool) {
 	return nil, false
 }
 
@@ -17869,6 +18738,274 @@ func NewSettingsListPage(cur SettingsList, getNextPage func(context.Context, Set
 type Site struct {
 	// DisplayName - READ-ONLY; Site display name
 	DisplayName *string `json:"displayName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Site.
+func (s Site) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// Software represents a software data
+type Software struct {
+	autorest.Response `json:"-"`
+	// SoftwareProperties - Properties of the Software Inventory resource
+	*SoftwareProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Software.
+func (s Software) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if s.SoftwareProperties != nil {
+		objectMap["properties"] = s.SoftwareProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for Software struct.
+func (s *Software) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var softwareProperties SoftwareProperties
+				err = json.Unmarshal(*v, &softwareProperties)
+				if err != nil {
+					return err
+				}
+				s.SoftwareProperties = &softwareProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				s.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				s.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				s.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// SoftwareProperties software Inventory resource properties
+type SoftwareProperties struct {
+	// DeviceID - Unique identifier for the virtual machine in the service.
+	DeviceID *string `json:"deviceId,omitempty"`
+	// OsPlatform - Platform of the operating system running on the device.
+	OsPlatform *string `json:"osPlatform,omitempty"`
+	// Vendor - Name of the software vendor.
+	Vendor *string `json:"vendor,omitempty"`
+	// SoftwareName - Name of the software product.
+	SoftwareName *string `json:"softwareName,omitempty"`
+	// Version - Version number of the software product.
+	Version *string `json:"version,omitempty"`
+	// EndOfSupportStatus - End of support status. Possible values include: 'None', 'NoLongerSupported', 'VersionNoLongerSupported', 'UpcomingNoLongerSupported', 'UpcomingVersionNoLongerSupported'
+	EndOfSupportStatus EndOfSupportStatus `json:"endOfSupportStatus,omitempty"`
+	// EndOfSupportDate - The end of support date in case the product is upcoming end of support.
+	EndOfSupportDate *string `json:"endOfSupportDate,omitempty"`
+	// NumberOfKnownVulnerabilities - Number of weaknesses.
+	NumberOfKnownVulnerabilities *int32 `json:"numberOfKnownVulnerabilities,omitempty"`
+	// FirstSeenAt - First time that the software was seen in the device.
+	FirstSeenAt *string `json:"firstSeenAt,omitempty"`
+}
+
+// SoftwaresList represents the software inventory of the virtual machine.
+type SoftwaresList struct {
+	autorest.Response `json:"-"`
+	Value             *[]Software `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URI to fetch the next page.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SoftwaresList.
+func (sl SoftwaresList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sl.Value != nil {
+		objectMap["value"] = sl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// SoftwaresListIterator provides access to a complete listing of Software values.
+type SoftwaresListIterator struct {
+	i    int
+	page SoftwaresListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *SoftwaresListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SoftwaresListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *SoftwaresListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter SoftwaresListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter SoftwaresListIterator) Response() SoftwaresList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter SoftwaresListIterator) Value() Software {
+	if !iter.page.NotDone() {
+		return Software{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the SoftwaresListIterator type.
+func NewSoftwaresListIterator(page SoftwaresListPage) SoftwaresListIterator {
+	return SoftwaresListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (sl SoftwaresList) IsEmpty() bool {
+	return sl.Value == nil || len(*sl.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (sl SoftwaresList) hasNextLink() bool {
+	return sl.NextLink != nil && len(*sl.NextLink) != 0
+}
+
+// softwaresListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (sl SoftwaresList) softwaresListPreparer(ctx context.Context) (*http.Request, error) {
+	if !sl.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(sl.NextLink)))
+}
+
+// SoftwaresListPage contains a page of Software values.
+type SoftwaresListPage struct {
+	fn func(context.Context, SoftwaresList) (SoftwaresList, error)
+	sl SoftwaresList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *SoftwaresListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SoftwaresListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.sl)
+		if err != nil {
+			return err
+		}
+		page.sl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *SoftwaresListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page SoftwaresListPage) NotDone() bool {
+	return !page.sl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page SoftwaresListPage) Response() SoftwaresList {
+	return page.sl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page SoftwaresListPage) Values() []Software {
+	if page.sl.IsEmpty() {
+		return nil
+	}
+	return *page.sl.Value
+}
+
+// Creates a new instance of the SoftwaresListPage type.
+func NewSoftwaresListPage(cur SoftwaresList, getNextPage func(context.Context, SoftwaresList) (SoftwaresList, error)) SoftwaresListPage {
+	return SoftwaresListPage{
+		fn: getNextPage,
+		sl: cur,
+	}
 }
 
 // Solution ...
@@ -18365,6 +19502,12 @@ type SubAssessmentList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SubAssessmentList.
+func (sal SubAssessmentList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SubAssessmentListIterator provides access to a complete listing of SubAssessment values.
 type SubAssessmentListIterator struct {
 	i    int
@@ -18662,10 +19805,32 @@ type SubAssessmentStatus struct {
 	Severity Severity `json:"severity,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SubAssessmentStatus.
+func (sas SubAssessmentStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // SuppressionAlertsScope ...
 type SuppressionAlertsScope struct {
 	// AllOf - All the conditions inside need to be true in order to suppress the alert
 	AllOf *[]ScopeElement `json:"allOf,omitempty"`
+}
+
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - The identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - The identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The timestamp of resource last modification (UTC)
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
 }
 
 // Tags a list of key value pairs that describe the resource.
@@ -18777,6 +19942,12 @@ type TaskList struct {
 	Value *[]Task `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TaskList.
+func (tl TaskList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // TaskListIterator provides access to a complete listing of Task values.
@@ -19042,7 +20213,7 @@ type ThresholdCustomAlertRule struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -19216,6 +20387,11 @@ func (tcar ThresholdCustomAlertRule) AsConnectionToIPNotAllowed() (*ConnectionTo
 	return nil, false
 }
 
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for ThresholdCustomAlertRule.
+func (tcar ThresholdCustomAlertRule) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
+	return nil, false
+}
+
 // AsLocalUserNotAllowed is the BasicCustomAlertRule implementation for ThresholdCustomAlertRule.
 func (tcar ThresholdCustomAlertRule) AsLocalUserNotAllowed() (*LocalUserNotAllowed, bool) {
 	return nil, false
@@ -19353,7 +20529,7 @@ type TimeWindowCustomAlertRule struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -19526,6 +20702,11 @@ func (twcar TimeWindowCustomAlertRule) AsConnectionToIPNotAllowed() (*Connection
 	return nil, false
 }
 
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for TimeWindowCustomAlertRule.
+func (twcar TimeWindowCustomAlertRule) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
+	return nil, false
+}
+
 // AsLocalUserNotAllowed is the BasicCustomAlertRule implementation for TimeWindowCustomAlertRule.
 func (twcar TimeWindowCustomAlertRule) AsLocalUserNotAllowed() (*LocalUserNotAllowed, bool) {
 	return nil, false
@@ -19633,6 +20814,12 @@ type TopologyList struct {
 	Value *[]TopologyResource `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TopologyList.
+func (tl TopologyList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // TopologyListIterator provides access to a complete listing of TopologyResource values.
@@ -19874,6 +21061,12 @@ type TopologyResourceProperties struct {
 	TopologyResources *[]TopologySingleResource `json:"topologyResources,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for TopologyResourceProperties.
+func (trp TopologyResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // TopologySingleResource ...
 type TopologySingleResource struct {
 	// ResourceID - READ-ONLY; Azure resource id
@@ -19894,16 +21087,34 @@ type TopologySingleResource struct {
 	Children *[]TopologySingleResourceChild `json:"children,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for TopologySingleResource.
+func (tsr TopologySingleResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // TopologySingleResourceChild ...
 type TopologySingleResourceChild struct {
 	// ResourceID - READ-ONLY; Azure resource id which serves as child resource in topology view
 	ResourceID *string `json:"resourceId,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for TopologySingleResourceChild.
+func (tsrc TopologySingleResourceChild) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // TopologySingleResourceParent ...
 type TopologySingleResourceParent struct {
 	// ResourceID - READ-ONLY; Azure resource id which serves as parent resource in topology view
 	ResourceID *string `json:"resourceId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TopologySingleResourceParent.
+func (tsrp TopologySingleResourceParent) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // TrackedResource describes an Azure tracked resource.
@@ -19956,7 +21167,7 @@ type TwinUpdatesNotInAllowedRange struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -20029,6 +21240,11 @@ func (tuniar TwinUpdatesNotInAllowedRange) AsBasicListCustomAlertRule() (BasicLi
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for TwinUpdatesNotInAllowedRange.
 func (tuniar TwinUpdatesNotInAllowedRange) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for TwinUpdatesNotInAllowedRange.
+func (tuniar TwinUpdatesNotInAllowedRange) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -20146,7 +21362,7 @@ type UnauthorizedOperationsNotInAllowedRange struct {
 	Description *string `json:"description,omitempty"`
 	// IsEnabled - Status of the custom alert.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
+	// RuleType - Possible values include: 'RuleTypeCustomAlertRule', 'RuleTypeThresholdCustomAlertRule', 'RuleTypeTimeWindowCustomAlertRule', 'RuleTypeAllowlistCustomAlertRule', 'RuleTypeDenylistCustomAlertRule', 'RuleTypeListCustomAlertRule', 'RuleTypeConnectionToIPNotAllowed', 'RuleTypeConnectionFromIPNotAllowed', 'RuleTypeLocalUserNotAllowed', 'RuleTypeProcessNotAllowed', 'RuleTypeActiveConnectionsNotInAllowedRange', 'RuleTypeAmqpC2DMessagesNotInAllowedRange', 'RuleTypeMqttC2DMessagesNotInAllowedRange', 'RuleTypeHTTPC2DMessagesNotInAllowedRange', 'RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange', 'RuleTypeMqttC2DRejectedMessagesNotInAllowedRange', 'RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange', 'RuleTypeAmqpD2CMessagesNotInAllowedRange', 'RuleTypeMqttD2CMessagesNotInAllowedRange', 'RuleTypeHTTPD2CMessagesNotInAllowedRange', 'RuleTypeDirectMethodInvokesNotInAllowedRange', 'RuleTypeFailedLocalLoginsNotInAllowedRange', 'RuleTypeFileUploadsNotInAllowedRange', 'RuleTypeQueuePurgesNotInAllowedRange', 'RuleTypeTwinUpdatesNotInAllowedRange', 'RuleTypeUnauthorizedOperationsNotInAllowedRange'
 	RuleType RuleTypeBasicCustomAlertRule `json:"ruleType,omitempty"`
 }
 
@@ -20219,6 +21435,11 @@ func (uoniar UnauthorizedOperationsNotInAllowedRange) AsBasicListCustomAlertRule
 
 // AsConnectionToIPNotAllowed is the BasicCustomAlertRule implementation for UnauthorizedOperationsNotInAllowedRange.
 func (uoniar UnauthorizedOperationsNotInAllowedRange) AsConnectionToIPNotAllowed() (*ConnectionToIPNotAllowed, bool) {
+	return nil, false
+}
+
+// AsConnectionFromIPNotAllowed is the BasicCustomAlertRule implementation for UnauthorizedOperationsNotInAllowedRange.
+func (uoniar UnauthorizedOperationsNotInAllowedRange) AsConnectionFromIPNotAllowed() (*ConnectionFromIPNotAllowed, bool) {
 	return nil, false
 }
 
@@ -20445,6 +21666,12 @@ type VendorReference struct {
 	Title *string `json:"title,omitempty"`
 	// Link - READ-ONLY; Link url
 	Link *string `json:"link,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VendorReference.
+func (vr VendorReference) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VMRecommendation represents a machine that is part of a machine group

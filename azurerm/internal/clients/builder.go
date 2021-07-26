@@ -112,6 +112,12 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	// Key Vault Endpoints
 	keyVaultAuth := builder.AuthConfig.BearerAuthorizerCallback(sender, oauthConfig)
 
+	// Batch Management Endpoints
+	batchManagementAuth, err := builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, env.BatchManagementEndpoint)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get authorization token for batch management endpoint: %+v", err)
+	}
+
 	o := &common.ClientOptions{
 		SubscriptionId:              builder.AuthConfig.SubscriptionID,
 		TenantID:                    builder.AuthConfig.TenantID,
@@ -124,6 +130,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		ResourceManagerEndpoint:     endpoint,
 		StorageAuthorizer:           storageAuth,
 		SynapseAuthorizer:           synapseAuth,
+		BatchManagementAuthorizer:   batchManagementAuth,
 		SkipProviderReg:             builder.SkipProviderRegistration,
 		DisableCorrelationRequestID: builder.DisableCorrelationRequestID,
 		CustomCorrelationRequestID:  builder.CustomCorrelationRequestID,

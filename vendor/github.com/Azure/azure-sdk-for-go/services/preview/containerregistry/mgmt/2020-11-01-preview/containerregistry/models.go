@@ -26,6 +26,12 @@ type ActivationProperties struct {
 	Status ActivationStatus `json:"status,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ActivationProperties.
+func (ap ActivationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ActiveDirectoryObject the Active Directory Object that will be used for authenticating the token of a
 // container registry.
 type ActiveDirectoryObject struct {
@@ -3168,6 +3174,12 @@ type LoginServerProperties struct {
 	TLS *TLSProperties `json:"tls,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for LoginServerProperties.
+func (lsp LoginServerProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // NetworkRuleSet the network rule set for a container registry.
 type NetworkRuleSet struct {
 	// DefaultAction - The default action of allow or deny when no other rules match. Possible values include: 'DefaultActionAllow', 'DefaultActionDeny'
@@ -4571,6 +4583,12 @@ type ProxyResource struct {
 	Type *string `json:"type,omitempty"`
 	// SystemData - READ-ONLY; Metadata pertaining to creation and last modification of the resource.
 	SystemData *SystemData `json:"systemData,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // QuarantinePolicy the quarantine policy for a container registry.
@@ -7069,6 +7087,12 @@ type Status struct {
 	Timestamp *date.Time `json:"timestamp,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Status.
+func (s Status) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // StatusDetailProperties the status detail properties of the connected registry.
 type StatusDetailProperties struct {
 	// Type - READ-ONLY; The component of the connected registry corresponding to the status.
@@ -7081,6 +7105,12 @@ type StatusDetailProperties struct {
 	Timestamp *date.Time `json:"timestamp,omitempty"`
 	// CorrelationID - READ-ONLY; The correlation ID of the status.
 	CorrelationID *string `json:"correlationId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StatusDetailProperties.
+func (sdp StatusDetailProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // StorageAccountProperties the properties of a storage account for a container registry. Only applicable
@@ -8852,12 +8882,24 @@ type TLSCertificateProperties struct {
 	Location *string `json:"location,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for TLSCertificateProperties.
+func (TCP TLSCertificateProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // TLSProperties the TLS properties of the connected registry login server.
 type TLSProperties struct {
 	// Status - READ-ONLY; Indicates whether HTTPS is enabled for the login server. Possible values include: 'TLSStatusEnabled', 'TLSStatusDisabled'
 	Status TLSStatus `json:"status,omitempty"`
 	// Certificate - READ-ONLY; The certificate used to configure HTTPS for the login server.
 	Certificate *TLSCertificateProperties `json:"certificate,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TLSProperties.
+func (tp TLSProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // Token an object that represents a token for a container registry.
