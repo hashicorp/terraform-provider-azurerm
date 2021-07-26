@@ -104,7 +104,6 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	id := parse.NewStorageShareDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, shareName).ID()
-	d.SetId(id)
 	props, err := client.Get(ctx, account.ResourceGroup, accountName, shareName)
 	if err != nil {
 		return fmt.Errorf("retrieving Share %q (Account %q / Resource Group %q): %s", shareName, accountName, account.ResourceGroup, err)
@@ -112,6 +111,7 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if props == nil {
 		return fmt.Errorf("share %q was not found in Account %q / Resource Group %q", shareName, accountName, account.ResourceGroup)
 	}
+	d.SetId(id)
 
 	d.Set("name", shareName)
 	d.Set("storage_account_name", accountName)
