@@ -11,10 +11,11 @@ package appconfiguration
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // BaseClient is the base client for Appconfiguration.
@@ -80,7 +81,7 @@ func (client BaseClient) CheckKeys(ctx context.Context, name string, after strin
 // CheckKeysPreparer prepares the CheckKeys request.
 func (client BaseClient) CheckKeysPreparer(ctx context.Context, name string, after string, acceptDatetime string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"":         autorest.Encode("path"),
+
 		"endpoint": client.Endpoint,
 	}
 
@@ -173,7 +174,6 @@ func (client BaseClient) CheckKeyValue(ctx context.Context, key string, label st
 // CheckKeyValuePreparer prepares the CheckKeyValue request.
 func (client BaseClient) CheckKeyValuePreparer(ctx context.Context, key string, label string, acceptDatetime string, ifMatch string, ifNoneMatch string, selectParameter []string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"":         autorest.Encode("path"),
 		"endpoint": client.Endpoint,
 	}
 
@@ -277,7 +277,7 @@ func (client BaseClient) CheckKeyValues(ctx context.Context, key string, label s
 // CheckKeyValuesPreparer prepares the CheckKeyValues request.
 func (client BaseClient) CheckKeyValuesPreparer(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"":         autorest.Encode("path"),
+
 		"endpoint": client.Endpoint,
 	}
 
@@ -374,7 +374,7 @@ func (client BaseClient) CheckLabels(ctx context.Context, name string, after str
 // CheckLabelsPreparer prepares the CheckLabels request.
 func (client BaseClient) CheckLabelsPreparer(ctx context.Context, name string, after string, acceptDatetime string, selectParameter []string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"":         autorest.Encode("path"),
+
 		"endpoint": client.Endpoint,
 	}
 
@@ -469,7 +469,7 @@ func (client BaseClient) CheckRevisions(ctx context.Context, key string, label s
 // CheckRevisionsPreparer prepares the CheckRevisions request.
 func (client BaseClient) CheckRevisionsPreparer(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"":         autorest.Encode("path"),
+
 		"endpoint": client.Endpoint,
 	}
 
@@ -564,7 +564,7 @@ func (client BaseClient) DeleteKeyValue(ctx context.Context, key string, label s
 // DeleteKeyValuePreparer prepares the DeleteKeyValue request.
 func (client BaseClient) DeleteKeyValuePreparer(ctx context.Context, key string, label string, ifMatch string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"":         autorest.Encode("path"),
+
 		"endpoint": client.Endpoint,
 	}
 
@@ -657,7 +657,7 @@ func (client BaseClient) DeleteLock(ctx context.Context, key string, label strin
 // DeleteLockPreparer prepares the DeleteLock request.
 func (client BaseClient) DeleteLockPreparer(ctx context.Context, key string, label string, ifMatch string, ifNoneMatch string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"":         autorest.Encode("path"),
+
 		"endpoint": client.Endpoint,
 	}
 
@@ -758,7 +758,7 @@ func (client BaseClient) GetKeys(ctx context.Context, name string, after string,
 // GetKeysPreparer prepares the GetKeys request.
 func (client BaseClient) GetKeysPreparer(ctx context.Context, name string, after string, acceptDatetime string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"":         autorest.Encode("path"),
+
 		"endpoint": client.Endpoint,
 	}
 
@@ -889,7 +889,7 @@ func (client BaseClient) GetKeyValue(ctx context.Context, key string, label stri
 // GetKeyValuePreparer prepares the GetKeyValue request.
 func (client BaseClient) GetKeyValuePreparer(ctx context.Context, key string, label string, acceptDatetime string, ifMatch string, ifNoneMatch string, selectParameter []string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"":         autorest.Encode("path"),
+
 		"endpoint": client.Endpoint,
 	}
 
@@ -999,7 +999,7 @@ func (client BaseClient) GetKeyValues(ctx context.Context, key string, label str
 // GetKeyValuesPreparer prepares the GetKeyValues request.
 func (client BaseClient) GetKeyValuesPreparer(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"":         autorest.Encode("path"),
+
 		"endpoint": client.Endpoint,
 	}
 
@@ -1139,7 +1139,7 @@ func (client BaseClient) GetLabels(ctx context.Context, name string, after strin
 // GetLabelsPreparer prepares the GetLabels request.
 func (client BaseClient) GetLabelsPreparer(ctx context.Context, name string, after string, acceptDatetime string, selectParameter []string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"":         autorest.Encode("path"),
+
 		"endpoint": client.Endpoint,
 	}
 
@@ -1277,7 +1277,7 @@ func (client BaseClient) GetRevisions(ctx context.Context, key string, label str
 // GetRevisionsPreparer prepares the GetRevisions request.
 func (client BaseClient) GetRevisionsPreparer(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"":         autorest.Encode("path"),
+
 		"endpoint": client.Endpoint,
 	}
 
@@ -1413,7 +1413,7 @@ func (client BaseClient) PutKeyValue(ctx context.Context, key string, label stri
 // PutKeyValuePreparer prepares the PutKeyValue request.
 func (client BaseClient) PutKeyValuePreparer(ctx context.Context, key string, label string, entity *KeyValue, ifMatch string, ifNoneMatch string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"":         autorest.Encode("path"),
+
 		"endpoint": client.Endpoint,
 	}
 
@@ -1515,7 +1515,7 @@ func (client BaseClient) PutLock(ctx context.Context, key string, label string, 
 // PutLockPreparer prepares the PutLock request.
 func (client BaseClient) PutLockPreparer(ctx context.Context, key string, label string, ifMatch string, ifNoneMatch string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"":         autorest.Encode("path"),
+
 		"endpoint": client.Endpoint,
 	}
 
