@@ -42,8 +42,6 @@ resource "azurerm_bot_channel_direct_line_speech" "example" {
   resource_group_name          = azurerm_resource_group.example.name
   cognitive_service_location   = azurerm_cognitive_account.example.location
   cognitive_service_access_key = azurerm_cognitive_account.example.primary_access_key
-  custom_speech_model_id       = "0830f48d-f592-4709-b408-d723c0973fb1"
-  custom_voice_deployment_id   = "4fc2752c-7e8e-4852-85a9-0f28fffa3edd"
 }
 ```
 
@@ -57,9 +55,9 @@ The following arguments are supported:
 
 * `bot_name` - (Required) The name of the Bot Resource this channel will be associated with. Changing this forces a new resource to be created.
 
-* `cognitive_service_location` - (Required) Specifies the supported Azure location where the Cognitive Service resource exists.
-
 * `cognitive_service_access_key` - (Required) The access key to access the Cognitive Service.
+
+* `cognitive_service_location` - (Required) Specifies the supported Azure location where the Cognitive Service resource exists.
 
 * `custom_speech_model_id` - (Optional) The custom speech model id for the Direct Line Speech Channel.
 
