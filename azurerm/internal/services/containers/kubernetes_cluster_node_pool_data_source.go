@@ -5,33 +5,33 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func dataSourceKubernetesClusterNodePool() *schema.Resource {
+	return &schema.Resource{
 		Read: dataSourceKubernetesClusterNodePoolRead,
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.KubernetesAgentPoolName,
 			},
 
 			"kubernetes_cluster_name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -40,106 +40,101 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 
 			// Computed
 			"availability_zones": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
 			"enable_auto_scaling": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
 			"enable_node_public_ip": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
 			"eviction_policy": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"max_count": {
-				Type:     pluginsdk.TypeInt,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
 			"max_pods": {
-				Type:     pluginsdk.TypeInt,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"min_count": {
-				Type:     pluginsdk.TypeInt,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
 			"node_count": {
-				Type:     pluginsdk.TypeInt,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
 			"node_labels": {
-				Type:     pluginsdk.TypeMap,
+				Type:     schema.TypeMap,
 				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
-			"node_public_ip_prefix_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
 			"node_taints": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
 			"orchestrator_version": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"os_disk_size_gb": {
-				Type:     pluginsdk.TypeInt,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
 			"os_disk_type": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"os_type": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"priority": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"proximity_placement_group_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"spot_max_price": {
-				Type:     pluginsdk.TypeFloat,
+				Type:     schema.TypeFloat,
 				Computed: true,
 			},
 
@@ -148,19 +143,19 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			"upgrade_settings": upgradeSettingsForDataSourceSchema(),
 
 			"vm_size": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"vnet_subnet_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).Containers.KubernetesClustersClient
 	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -245,8 +240,6 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		if err := d.Set("node_labels", props.NodeLabels); err != nil {
 			return fmt.Errorf("setting `node_labels`: %+v", err)
 		}
-
-		d.Set("node_public_ip_prefix_id", props.NodePublicIPPrefixID)
 
 		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("setting `node_taints`: %+v", err)

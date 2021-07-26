@@ -4,27 +4,27 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceStorageSync() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func dataSourceStorageSync() *schema.Resource {
+	return &schema.Resource{
 		Read: dataSourceStorageSyncRead,
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.StorageSyncName,
 			},
@@ -34,7 +34,7 @@ func dataSourceStorageSync() *pluginsdk.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"incoming_traffic_policy": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
@@ -43,7 +43,7 @@ func dataSourceStorageSync() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageSyncRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageSyncRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

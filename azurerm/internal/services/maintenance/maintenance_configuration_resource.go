@@ -3,10 +3,9 @@ package maintenance
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/maintenance/mgmt/2021-05-01/maintenance"
+	"github.com/Azure/azure-sdk-for-go/services/preview/maintenance/mgmt/2018-06-01-preview/maintenance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -63,75 +62,26 @@ func resourceArmMaintenanceConfiguration() *pluginsdk.Resource {
 			"scope": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "All",
+				Default:  string(maintenance.ScopeAll),
 				ValidateFunc: validation.StringInSlice([]string{
-					"All", // All is still accepted by the API
-					string(maintenance.ScopeExtension),
+					string(maintenance.ScopeAll),
 					string(maintenance.ScopeHost),
-					string(maintenance.ScopeInGuestPatch),
-					string(maintenance.ScopeOSImage),
-					string(maintenance.ScopeSQLDB),
-					string(maintenance.ScopeSQLManagedInstance),
+					string(maintenance.ScopeInResource),
+					string(maintenance.ScopeResource),
 				}, false),
 			},
 
-			"visibility": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(maintenance.VisibilityCustom),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(maintenance.VisibilityCustom),
-					// Creating public configurations doesn't appear to be supported, API returns `Public Maintenance Configuration must set correct properties`
-					// string(maintenance.VisibilityPublic),
-				}, false),
-			},
-
-			"window": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"start_date_time": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-						"expiration_date_time": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-						"duration": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile("^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$"),
-								"duration must match the format HH:mm",
-							),
-						},
-						"time_zone": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validate.MaintenanceTimeZone(),
-						},
-						"recur_every": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
-
-			"properties": {
-				Type:     pluginsdk.TypeMap,
-				Optional: true,
+			// There's a bug in the Azure API where the the key of tags is returned in lower-case
+			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/9075
+			// use custom tags defition here to prevent inputting upper case key
+			"tags": {
+				Type:         pluginsdk.TypeMap,
+				Optional:     true,
+				ValidateFunc: validate.TagsWithLowerCaseKey,
 				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type: pluginsdk.TypeString,
 				},
 			},
-
-			"tags": tags.Schema(),
 		},
 	}
 }
@@ -155,22 +105,12 @@ func resourceArmMaintenanceConfigurationCreateUpdate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	scope := d.Get("scope").(string)
-	visibility := d.Get("visibility").(string)
-	windowRaw := d.Get("window").([]interface{})
-	window := expandMaintenanceConfigurationWindow(windowRaw)
-
-	extensionProperties := utils.ExpandMapStringPtrString(d.Get("properties").(map[string]interface{}))
-
 	configuration := maintenance.Configuration{
 		Name:     utils.String(id.Name),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		ConfigurationProperties: &maintenance.ConfigurationProperties{
-			MaintenanceScope:    maintenance.Scope(scope),
-			Visibility:          maintenance.Visibility(visibility),
-			Namespace:           utils.String("Microsoft.Maintenance"),
-			Window:              window,
-			ExtensionProperties: extensionProperties,
+			MaintenanceScope: maintenance.Scope(d.Get("scope").(string)),
+			Namespace:        utils.String("Microsoft.Maintenance"),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -208,13 +148,6 @@ func resourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta int
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.ConfigurationProperties; props != nil {
 		d.Set("scope", props.MaintenanceScope)
-		d.Set("visibility", props.Visibility)
-		d.Set("properties", props.ExtensionProperties)
-
-		window := flattenMaintenanceConfigurationWindow(props.Window)
-		if err := d.Set("window", window); err != nil {
-			return fmt.Errorf("error setting `window`: %+v", err)
-		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -233,57 +166,4 @@ func resourceArmMaintenanceConfigurationDelete(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 	return nil
-}
-
-func expandMaintenanceConfigurationWindow(input []interface{}) *maintenance.Window {
-	if len(input) == 0 {
-		return nil
-	}
-
-	v := input[0].(map[string]interface{})
-	startDateTime := v["start_date_time"].(string)
-	expirationDateTime := v["expiration_date_time"].(string)
-	duration := v["duration"].(string)
-	timeZone := v["time_zone"].(string)
-	recurEvery := v["recur_every"].(string)
-	window := maintenance.Window{
-		StartDateTime:      utils.String(startDateTime),
-		ExpirationDateTime: utils.String(expirationDateTime),
-		Duration:           utils.String(duration),
-		TimeZone:           utils.String(timeZone),
-		RecurEvery:         utils.String(recurEvery),
-	}
-	return &window
-}
-
-func flattenMaintenanceConfigurationWindow(input *maintenance.Window) []interface{} {
-	results := make([]interface{}, 0)
-
-	if v := input; v != nil {
-		output := make(map[string]interface{})
-
-		if startDateTime := v.StartDateTime; startDateTime != nil {
-			output["start_date_time"] = *startDateTime
-		}
-
-		if expirationDateTime := v.ExpirationDateTime; expirationDateTime != nil {
-			output["expiration_date_time"] = *expirationDateTime
-		}
-
-		if duration := v.Duration; duration != nil {
-			output["duration"] = *duration
-		}
-
-		if timeZone := v.TimeZone; timeZone != nil {
-			output["time_zone"] = *timeZone
-		}
-
-		if recurEvery := v.RecurEvery; recurEvery != nil {
-			output["recur_every"] = *recurEvery
-		}
-
-		results = append(results, output)
-	}
-
-	return results
 }

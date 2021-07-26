@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,10 +20,10 @@ func TestAccContainerRegistryToken_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token", "test")
 	r := ContainerRegistryTokenResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -34,10 +35,10 @@ func TestAccContainerRegistryToken_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token", "test")
 	r := ContainerRegistryTokenResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -52,10 +53,10 @@ func TestAccContainerRegistryToken_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token", "test")
 	r := ContainerRegistryTokenResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.complete(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 			),
@@ -68,10 +69,10 @@ func TestAccContainerRegistryToken_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token", "test")
 	r := ContainerRegistryTokenResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.complete(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 			),
@@ -79,7 +80,7 @@ func TestAccContainerRegistryToken_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.complete(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("false"),
 			),
@@ -88,7 +89,7 @@ func TestAccContainerRegistryToken_update(t *testing.T) {
 	})
 }
 
-func (t ContainerRegistryTokenResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t ContainerRegistryTokenResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ContainerRegistryTokenID(state.ID)
 
 	if err != nil {

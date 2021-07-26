@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -169,7 +170,7 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *pluginsdk.Re
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("workspace_name", id.Workspace)
 	if props := resp.Properties; props != nil {
-		propStr, err := pluginsdk.FlattenJsonToString(props.(map[string]interface{}))
+		propStr, err := structure.FlattenJsonToString(props.(map[string]interface{}))
 		if err != nil {
 			return fmt.Errorf("failed to flatten properties map to json for Log Analytics DataSource Windows Performance Counter %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
 		}

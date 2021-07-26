@@ -4,26 +4,27 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceContainerRegistry() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func dataSourceContainerRegistry() *schema.Resource {
+	return &schema.Resource{
 		Read: dataSourceContainerRegistryRead,
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ContainerRegistryName,
 			},
@@ -33,32 +34,32 @@ func dataSourceContainerRegistry() *pluginsdk.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"admin_enabled": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
 			"admin_password": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"admin_username": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"login_server": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"storage_account_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
@@ -67,7 +68,7 @@ func dataSourceContainerRegistry() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

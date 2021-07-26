@@ -1,7 +1,7 @@
 package firewall
 
 import (
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 type Registration struct{}
@@ -19,16 +19,16 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
+func (r Registration) SupportedDataSources() map[string]*schema.Resource {
+	return map[string]*schema.Resource{
 		"azurerm_firewall":        FirewallDataSource(),
 		"azurerm_firewall_policy": FirewallDataSourcePolicy(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
+func (r Registration) SupportedResources() map[string]*schema.Resource {
+	return map[string]*schema.Resource{
 		"azurerm_firewall_application_rule_collection":  resourceFirewallApplicationRuleCollection(),
 		"azurerm_firewall_policy":                       resourceFirewallPolicy(),
 		"azurerm_firewall_policy_rule_collection_group": resourceFirewallPolicyRuleCollectionGroup(),

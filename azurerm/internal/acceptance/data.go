@@ -3,18 +3,13 @@ package acceptance
 import (
 	"fmt"
 	"math"
-	"math/rand"
 	"os"
 	"strconv"
 	"testing"
 
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-)
-
-const (
-	// charSetAlphaNum is the alphanumeric character set for use with randStringFromCharSet
-	charSetAlphaNum = "abcdefghijklmnopqrstuvwxyz012346789"
 )
 
 func init() {
@@ -22,6 +17,8 @@ func init() {
 	if os.Getenv("TF_ACC") == "" {
 		return
 	}
+
+	EnsureProvidersAreInitialised()
 }
 
 type TestData struct {
@@ -58,6 +55,8 @@ type TestData struct {
 
 // BuildTestData generates some test data for the given resource
 func BuildTestData(t *testing.T, resourceType string, resourceLabel string) TestData {
+	EnsureProvidersAreInitialised()
+
 	env, err := Environment()
 	if err != nil {
 		t.Fatalf("Error retrieving Environment: %+v", err)
@@ -65,7 +64,7 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 
 	testData := TestData{
 		RandomInteger:   RandTimeInt(),
-		RandomString:    randString(5),
+		RandomString:    acctest.RandString(5),
 		ResourceName:    fmt.Sprintf("%s.%s", resourceType, resourceLabel),
 		Environment:     *env,
 		EnvironmentName: EnvironmentName(),
@@ -123,20 +122,5 @@ func (td *TestData) RandomStringOfLength(len int) string {
 		panic("Invalid Test: RandomStringOfLength: length argument must be between 1 and 1024 characters")
 	}
 
-	return randString(len)
-}
-
-// randString generates a random alphanumeric string of the length specified
-func randString(strlen int) string {
-	return randStringFromCharSet(strlen, charSetAlphaNum)
-}
-
-// randStringFromCharSet generates a random string by selecting characters from
-// the charset provided
-func randStringFromCharSet(strlen int, charSet string) string {
-	result := make([]byte, strlen)
-	for i := 0; i < strlen; i++ {
-		result[i] = charSet[rand.Intn(len(charSet))]
-	}
-	return string(result)
+	return acctest.RandString(len)
 }

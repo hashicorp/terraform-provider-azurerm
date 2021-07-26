@@ -43,10 +43,6 @@ func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId parse.VaultI
 	lock[cacheKey].Lock()
 	defer lock[cacheKey].Unlock()
 
-	if keyVaultId.SubscriptionId != c.VaultsClient.SubscriptionID {
-		c.VaultsClient = c.KeyVaultClientForSubscription(keyVaultId.SubscriptionId)
-	}
-
 	resp, err := c.VaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -174,16 +170,10 @@ func (c *Client) parseNameFromBaseUrl(input string) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// https://the-keyvault.vault.azure.net
-	// https://the-keyvault.vault.microsoftazure.de
-	// https://the-keyvault.vault.usgovcloudapi.net
-	// https://the-keyvault.vault.cloudapi.microsoft
-	// https://the-keyvault.vault.azure.cn
-
+	// https://tharvey-keyvault.vault.azure.net/
 	segments := strings.Split(uri.Host, ".")
-	if len(segments) < 3 || segments[1] != "vault" {
-		return nil, fmt.Errorf("expected a URI in the format `the-keyvault-name.vault.**` but got %q", uri.Host)
+	if len(segments) != 4 {
+		return nil, fmt.Errorf("expected a URI in the format `vaultname.vault.azure.net` but got %q", uri.Host)
 	}
 	return &segments[0], nil
 }

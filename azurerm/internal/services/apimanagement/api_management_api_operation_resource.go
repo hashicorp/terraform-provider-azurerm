@@ -5,12 +5,13 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -138,19 +139,19 @@ func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, me
 	urlTemplate := d.Get("url_template").(string)
 
 	requestContractRaw := d.Get("request").([]interface{})
-	requestContract, err := expandApiManagementOperationRequestContract(d, "request", requestContractRaw)
+	requestContract, err := expandApiManagementOperationRequestContract(requestContractRaw)
 	if err != nil {
 		return err
 	}
 
 	responseContractsRaw := d.Get("response").([]interface{})
-	responseContracts, err := expandApiManagementOperationResponseContract(d, "response", responseContractsRaw)
+	responseContracts, err := expandApiManagementOperationResponseContract(responseContractsRaw)
 	if err != nil {
 		return err
 	}
 
 	templateParametersRaw := d.Get("template_parameter").([]interface{})
-	templateParameters := schemaz.ExpandApiManagementOperationParameterContract(d, "template_parameter", templateParametersRaw)
+	templateParameters := schemaz.ExpandApiManagementOperationParameterContract(templateParametersRaw)
 
 	parameters := apimanagement.OperationContract{
 		OperationContractProperties: &apimanagement.OperationContractProperties{
@@ -259,7 +260,7 @@ func resourceApiManagementApiOperationDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func expandApiManagementOperationRequestContract(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*apimanagement.RequestContract, error) {
+func expandApiManagementOperationRequestContract(input []interface{}) (*apimanagement.RequestContract, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
@@ -274,19 +275,19 @@ func expandApiManagementOperationRequestContract(d *pluginsdk.ResourceData, sche
 	if headersRaw == nil {
 		headersRaw = []interface{}{}
 	}
-	headers := schemaz.ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.0.header", schemaPath), headersRaw)
+	headers := schemaz.ExpandApiManagementOperationParameterContract(headersRaw)
 
 	queryParametersRaw := vs["query_parameter"].([]interface{})
 	if queryParametersRaw == nil {
 		queryParametersRaw = []interface{}{}
 	}
-	queryParameters := schemaz.ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.0.query_parameter", schemaPath), queryParametersRaw)
+	queryParameters := schemaz.ExpandApiManagementOperationParameterContract(queryParametersRaw)
 
 	representationsRaw := vs["representation"].([]interface{})
 	if representationsRaw == nil {
 		representationsRaw = []interface{}{}
 	}
-	representations, err := schemaz.ExpandApiManagementOperationRepresentation(d, fmt.Sprintf("%s.0.representation", schemaPath), representationsRaw)
+	representations, err := schemaz.ExpandApiManagementOperationRepresentation(representationsRaw)
 	if err != nil {
 		return nil, err
 	}
@@ -317,24 +318,24 @@ func flattenApiManagementOperationRequestContract(input *apimanagement.RequestCo
 	return []interface{}{output}
 }
 
-func expandApiManagementOperationResponseContract(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*[]apimanagement.ResponseContract, error) {
+func expandApiManagementOperationResponseContract(input []interface{}) (*[]apimanagement.ResponseContract, error) {
 	if len(input) == 0 {
 		return &[]apimanagement.ResponseContract{}, nil
 	}
 
 	outputs := make([]apimanagement.ResponseContract, 0)
 
-	for i, v := range input {
+	for _, v := range input {
 		vs := v.(map[string]interface{})
 
 		description := vs["description"].(string)
 		statusCode := vs["status_code"].(int)
 
 		headersRaw := vs["header"].([]interface{})
-		headers := schemaz.ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.%d.header", schemaPath, i), headersRaw)
+		headers := schemaz.ExpandApiManagementOperationParameterContract(headersRaw)
 
 		representationsRaw := vs["representation"].([]interface{})
-		representations, err := schemaz.ExpandApiManagementOperationRepresentation(d, fmt.Sprintf("%s.%d.representation", schemaPath, i), representationsRaw)
+		representations, err := schemaz.ExpandApiManagementOperationRepresentation(representationsRaw)
 		if err != nil {
 			return nil, err
 		}

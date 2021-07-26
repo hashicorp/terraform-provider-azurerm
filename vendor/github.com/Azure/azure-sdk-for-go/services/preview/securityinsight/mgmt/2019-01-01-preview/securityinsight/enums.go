@@ -10,17 +10,17 @@ package securityinsight
 type ActionType string
 
 const (
-	// ActionTypeAutomationRuleAction ...
-	ActionTypeAutomationRuleAction ActionType = "AutomationRuleAction"
-	// ActionTypeModifyProperties ...
-	ActionTypeModifyProperties ActionType = "ModifyProperties"
-	// ActionTypeRunPlaybook ...
-	ActionTypeRunPlaybook ActionType = "RunPlaybook"
+	// ActionTypeActionTypeAutomationRuleAction ...
+	ActionTypeActionTypeAutomationRuleAction ActionType = "AutomationRuleAction"
+	// ActionTypeActionTypeModifyProperties ...
+	ActionTypeActionTypeModifyProperties ActionType = "ModifyProperties"
+	// ActionTypeActionTypeRunPlaybook ...
+	ActionTypeActionTypeRunPlaybook ActionType = "RunPlaybook"
 )
 
 // PossibleActionTypeValues returns an array of possible values for the ActionType const type.
 func PossibleActionTypeValues() []ActionType {
-	return []ActionType{ActionTypeAutomationRuleAction, ActionTypeModifyProperties, ActionTypeRunPlaybook}
+	return []ActionType{ActionTypeActionTypeAutomationRuleAction, ActionTypeActionTypeModifyProperties, ActionTypeActionTypeRunPlaybook}
 }
 
 // AlertRuleKind enumerates the values for alert rule kind.
@@ -365,15 +365,15 @@ func PossibleCloseReasonValues() []CloseReason {
 type ConditionType string
 
 const (
-	// ConditionTypeAutomationRuleCondition ...
-	ConditionTypeAutomationRuleCondition ConditionType = "AutomationRuleCondition"
-	// ConditionTypeProperty ...
-	ConditionTypeProperty ConditionType = "Property"
+	// ConditionTypeConditionTypeAutomationRuleCondition ...
+	ConditionTypeConditionTypeAutomationRuleCondition ConditionType = "AutomationRuleCondition"
+	// ConditionTypeConditionTypeProperty ...
+	ConditionTypeConditionTypeProperty ConditionType = "Property"
 )
 
 // PossibleConditionTypeValues returns an array of possible values for the ConditionType const type.
 func PossibleConditionTypeValues() []ConditionType {
-	return []ConditionType{ConditionTypeAutomationRuleCondition, ConditionTypeProperty}
+	return []ConditionType{ConditionTypeConditionTypeAutomationRuleCondition, ConditionTypeConditionTypeProperty}
 }
 
 // ConfidenceLevel enumerates the values for confidence level.
@@ -949,15 +949,15 @@ func PossibleKillChainIntentValues() []KillChainIntent {
 type Kind string
 
 const (
-	// KindAggregations ...
-	KindAggregations Kind = "Aggregations"
-	// KindCasesAggregation ...
-	KindCasesAggregation Kind = "CasesAggregation"
+	// KindKindAggregations ...
+	KindKindAggregations Kind = "Aggregations"
+	// KindKindCasesAggregation ...
+	KindKindCasesAggregation Kind = "CasesAggregation"
 )
 
 // PossibleKindValues returns an array of possible values for the Kind const type.
 func PossibleKindValues() []Kind {
-	return []Kind{KindAggregations, KindCasesAggregation}
+	return []Kind{KindKindAggregations, KindKindCasesAggregation}
 }
 
 // KindBasicAlertRule enumerates the values for kind basic alert rule.

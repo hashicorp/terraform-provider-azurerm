@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -13,10 +14,10 @@ type StorageSyncDataSource struct{}
 func TestAccDataSourceStorageSync_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_sync", "test")
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: StorageSyncDataSource{}.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("incoming_traffic_policy").Exists(),
 				check.That(data.ResourceName).Key("tags.%").Exists(),
 			),

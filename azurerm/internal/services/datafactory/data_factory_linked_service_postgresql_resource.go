@@ -123,7 +123,7 @@ func resourceDataFactoryLinkedServicePostgreSQLCreateUpdate(d *pluginsdk.Resourc
 	connectionString := d.Get("connection_string").(string)
 	secureString := datafactory.SecureString{
 		Value: &connectionString,
-		Type:  datafactory.TypeSecureString,
+		Type:  datafactory.TypeTypeSecureString,
 	}
 
 	postgresqlProperties := &datafactory.PostgreSQLLinkedServiceTypeProperties{

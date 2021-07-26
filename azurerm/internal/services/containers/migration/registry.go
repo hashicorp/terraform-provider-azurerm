@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
@@ -39,7 +40,7 @@ func (RegistryV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		storageAccountId := ""
 		if v, ok := rawState["storage_account"]; ok {
-			raw := v.(*pluginsdk.Set).List()
+			raw := v.(*schema.Set).List()
 			rawVals := raw[0].(map[string]interface{})
 			storageAccountName := rawVals["name"].(string)
 
@@ -74,45 +75,45 @@ func (RegistryV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 }
 
 func registrySchemaForV0AndV1() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	return map[string]*schema.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"resource_group_name": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"location": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"admin_enabled": {
-			Type:     pluginsdk.TypeBool,
+			Type:     schema.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
 
 		// lintignore:S018
 		"storage_account": {
-			Type:     pluginsdk.TypeSet,
+			Type:     schema.TypeSet,
 			Required: true,
 			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
+						Type:     schema.TypeString,
 						Required: true,
 					},
 
 					"access_key": {
-						Type:      pluginsdk.TypeString,
+						Type:      schema.TypeString,
 						Required:  true,
 						Sensitive: true,
 					},
@@ -121,25 +122,25 @@ func registrySchemaForV0AndV1() map[string]*pluginsdk.Schema {
 		},
 
 		"login_server": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
 		"admin_username": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
 		"admin_password": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
 		"tags": {
-			Type:     pluginsdk.TypeMap,
+			Type:     schema.TypeMap,
 			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
 			},
 		},
 	}

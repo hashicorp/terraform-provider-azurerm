@@ -8,16 +8,13 @@ import (
 )
 
 type RoleAssignmentId struct {
-	SubscriptionID   string
-	ResourceGroup    string
-	ManagementGroup  string
-	ResourceScope    string
-	ResourceProvider string
-	Name             string
-	TenantId         string
+	SubscriptionID  string
+	ResourceGroup   string
+	ManagementGroup string
+	Name            string
 }
 
-func NewRoleAssignmentID(subscriptionId, resourceGroup, resourceProvider, resourceScope, managementGroup, name, tenantId string) (*RoleAssignmentId, error) {
+func NewRoleAssignmentID(subscriptionId, resourceGroup, managementGroup, name string) (*RoleAssignmentId, error) {
 	if subscriptionId == "" && resourceGroup == "" && managementGroup == "" {
 		return nil, fmt.Errorf("one of subscriptionId, resourceGroup, or managementGroup must be provided")
 	}
@@ -35,24 +32,14 @@ func NewRoleAssignmentID(subscriptionId, resourceGroup, resourceProvider, resour
 	}
 
 	return &RoleAssignmentId{
-		SubscriptionID:   subscriptionId,
-		ResourceGroup:    resourceGroup,
-		ResourceProvider: resourceProvider,
-		ResourceScope:    resourceScope,
-		ManagementGroup:  managementGroup,
-		Name:             name,
-		TenantId:         tenantId,
+		SubscriptionID:  subscriptionId,
+		ResourceGroup:   resourceGroup,
+		ManagementGroup: managementGroup,
+		Name:            name,
 	}, nil
 }
 
-// in general case, the id format does not change
-// for cross tenant scenario, add the tenantId info
-func (id RoleAssignmentId) AzureResourceID() string {
-	if id.ResourceScope != "" {
-		fmtString := "/subscriptions/%s/resourceGroups/%s/providers/%s/%s/providers/Microsoft.Authorization/roleAssignments/%s"
-		return fmt.Sprintf(fmtString, id.SubscriptionID, id.ResourceGroup, id.ResourceProvider, id.ResourceScope, id.Name)
-	}
-
+func (id RoleAssignmentId) ID() string {
 	if id.ManagementGroup != "" {
 		fmtString := "/providers/Microsoft.Management/managementGroups/%s/providers/Microsoft.Authorization/roleAssignments/%s"
 		return fmt.Sprintf(fmtString, id.ManagementGroup, id.Name)
@@ -67,29 +54,12 @@ func (id RoleAssignmentId) AzureResourceID() string {
 	return fmt.Sprintf(fmtString, id.SubscriptionID, id.Name)
 }
 
-func (id RoleAssignmentId) ID() string {
-	return ConstructRoleAssignmentId(id.AzureResourceID(), id.TenantId)
-}
-
-func ConstructRoleAssignmentId(azureResourceId, tenantId string) string {
-	if tenantId == "" {
-		return azureResourceId
-	}
-	return fmt.Sprintf("%s|%s", azureResourceId, tenantId)
-}
-
 func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 	if len(input) == 0 {
 		return nil, fmt.Errorf("Role Assignment ID is empty string")
 	}
 
 	roleAssignmentId := RoleAssignmentId{}
-
-	parts := strings.Split(input, "|")
-	if len(parts) == 2 {
-		roleAssignmentId.TenantId = parts[1]
-		input = parts[0]
-	}
 
 	switch {
 	case strings.HasPrefix(input, "/subscriptions/"):
@@ -99,15 +69,6 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 		}
 		roleAssignmentId.SubscriptionID = id.SubscriptionID
 		roleAssignmentId.ResourceGroup = id.ResourceGroup
-		if id.Provider != "Microsoft.Authorization" && id.Provider != "" {
-			roleAssignmentId.ResourceProvider = id.Provider
-			// logic to save resource scope
-			result := strings.Split(input, "/providers/")
-			if len(result) == 3 {
-				roleAssignmentId.ResourceScope = strings.TrimPrefix(result[1], fmt.Sprintf("%s/", id.Provider))
-			}
-		}
-
 		if roleAssignmentId.Name, err = id.PopSegment("roleAssignments"); err != nil {
 			return nil, err
 		}

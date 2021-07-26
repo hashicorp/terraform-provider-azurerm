@@ -127,12 +127,6 @@ type ErrorResponseError struct {
 	Message *string `json:"message,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for ErrorResponseError.
-func (er ErrorResponseError) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // ListAgreementTerms ...
 type ListAgreementTerms struct {
 	autorest.Response `json:"-"`
@@ -334,10 +328,4 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Resource.
-func (r Resource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }

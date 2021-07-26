@@ -2,6 +2,7 @@ package datafactory
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -40,7 +41,6 @@ func resourceDataFactoryDatasetAzureBlob() *pluginsdk.Resource {
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
-			// TODO: replace with `data_factory_id` in 3.0
 			"data_factory_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -70,18 +70,6 @@ func resourceDataFactoryDatasetAzureBlob() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"dynamic_path_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"dynamic_filename_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
 			},
 
 			"parameters": {
@@ -192,13 +180,15 @@ func resourceDataFactoryDatasetAzureBlobCreateUpdate(d *pluginsdk.ResourceData, 
 		Type:          &linkedServiceType,
 	}
 
+	description := d.Get("description").(string)
+
 	azureBlobTableset := datafactory.AzureBlobDataset{
 		AzureBlobDatasetTypeProperties: &datafactory.AzureBlobDatasetTypeProperties{
-			FolderPath: expandDataFactoryExpressionResultType(d.Get("path").(string), d.Get("dynamic_path_enabled").(bool)),
-			FileName:   expandDataFactoryExpressionResultType(d.Get("filename").(string), d.Get("dynamic_filename_enabled").(bool)),
+			FolderPath: d.Get("path").(string),
+			FileName:   d.Get("filename").(string),
 		},
 		LinkedServiceName: linkedService,
-		Description:       utils.String(d.Get("description").(string)),
+		Description:       &description,
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
@@ -304,12 +294,18 @@ func resourceDataFactoryDatasetAzureBlobRead(d *pluginsdk.ResourceData, meta int
 	}
 
 	if properties := azureBlobTable.AzureBlobDatasetTypeProperties; properties != nil {
-		filename, dynamicFilenameEnabled := flattenDataFactoryExpressionResultType(properties.FileName)
-		path, dynamicPathEnabled := flattenDataFactoryExpressionResultType(properties.FolderPath)
-		d.Set("filename", filename)
-		d.Set("path", path)
-		d.Set("dynamic_filename_enabled", dynamicFilenameEnabled)
-		d.Set("dynamic_path_enabled", dynamicPathEnabled)
+		filename, ok := properties.FileName.(string)
+		if !ok {
+			log.Printf("[DEBUG] Skipping `filename` since it's not a string")
+		} else {
+			d.Set("filename", filename)
+		}
+		path, ok := properties.FolderPath.(string)
+		if !ok {
+			log.Printf("[DEBUG] Skipping `path` since it's not a string")
+		} else {
+			d.Set("path", path)
+		}
 	}
 
 	if folder := azureBlobTable.Folder; folder != nil {

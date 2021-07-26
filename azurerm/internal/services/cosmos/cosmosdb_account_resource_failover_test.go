@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -12,10 +13,10 @@ func TestAccCosmosDBAccount_failover_boundedStaleness(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.failover_boundedStaleness(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("GlobalDocumentDB"),
 			),
@@ -27,10 +28,10 @@ func TestAccCosmosDBAccount_failover_boundedStalenessComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.failover_boundedStalenessComplete(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -41,10 +42,10 @@ func TestAccCosmosDBAccount_failover_eventualConsistency(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.failover_eventualConsistency(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -55,10 +56,10 @@ func TestAccCosmosDBAccount_failover_mongoDB(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.failover_mongoDB(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("MongoDB"),
 			),
@@ -70,10 +71,10 @@ func TestAccCosmosDBAccount_failover_session(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.failover_session(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -84,10 +85,10 @@ func TestAccCosmosDBAccount_failover_strong(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.failover_strong(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -98,10 +99,10 @@ func TestAccCosmosDBAccount_failover_geoReplicated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.failover_geoReplicated(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},

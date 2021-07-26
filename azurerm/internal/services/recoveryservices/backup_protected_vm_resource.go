@@ -220,7 +220,7 @@ func resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx conte
 		state.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	resp, err := state.WaitForStateContext(ctx)
+	resp, err := state.WaitForState()
 	if err != nil {
 		i, _ := resp.(backup.ProtectedItemResource)
 		return i, fmt.Errorf("Error waiting for the Azure Backup Protected VM %q to be true (Resource Group %q) to provision: %+v", protectedItemName, resourceGroup, err)
@@ -239,7 +239,7 @@ func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Contex
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	resp, err := state.WaitForStateContext(ctx)
+	resp, err := state.WaitForState()
 	if err != nil {
 		i, _ := resp.(backup.ProtectedItemResource)
 		return i, fmt.Errorf("Error waiting for the Azure Backup Protected VM %q to be false (Resource Group %q) to provision: %+v", protectedItemName, resourceGroup, err)

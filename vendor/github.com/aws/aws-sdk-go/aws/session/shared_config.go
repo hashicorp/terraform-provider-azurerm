@@ -70,8 +70,6 @@ const (
 
 // sharedConfig represents the configuration fields of the SDK config files.
 type sharedConfig struct {
-	Profile string
-
 	// Credentials values from the config file. Both aws_access_key_id and
 	// aws_secret_access_key must be provided together in the same file to be
 	// considered valid. The values will be ignored if not a complete group.
@@ -203,8 +201,6 @@ func loadSharedConfigIniFiles(filenames []string) ([]sharedConfigFile, error) {
 }
 
 func (cfg *sharedConfig) setFromIniFiles(profiles map[string]struct{}, profile string, files []sharedConfigFile, exOpts bool) error {
-	cfg.Profile = profile
-
 	// Trim files from the list that don't exist.
 	var skippedFiles int
 	var profileNotFoundErr error
@@ -369,6 +365,10 @@ func (cfg *sharedConfig) validateCredentialsConfig(profile string) error {
 		return err
 	}
 
+	if err := cfg.validateSSOConfiguration(profile); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -401,6 +401,7 @@ func (cfg *sharedConfig) validateCredentialType() error {
 		len(cfg.CredentialSource) != 0,
 		len(cfg.CredentialProcess) != 0,
 		len(cfg.WebIdentityTokenFile) != 0,
+		cfg.hasSSOConfiguration(),
 	) {
 		return ErrSharedConfigSourceCollision
 	}
@@ -408,7 +409,7 @@ func (cfg *sharedConfig) validateCredentialType() error {
 	return nil
 }
 
-func (cfg *sharedConfig) validateSSOConfiguration() error {
+func (cfg *sharedConfig) validateSSOConfiguration(profile string) error {
 	if !cfg.hasSSOConfiguration() {
 		return nil
 	}
@@ -432,7 +433,7 @@ func (cfg *sharedConfig) validateSSOConfiguration() error {
 
 	if len(missing) > 0 {
 		return fmt.Errorf("profile %q is configured to use SSO but is missing required configuration: %s",
-			cfg.Profile, strings.Join(missing, ", "))
+			profile, strings.Join(missing, ", "))
 	}
 
 	return nil
@@ -458,10 +459,6 @@ func (cfg *sharedConfig) clearCredentialOptions() {
 	cfg.CredentialProcess = ""
 	cfg.WebIdentityTokenFile = ""
 	cfg.Creds = credentials.Value{}
-	cfg.SSOAccountID = ""
-	cfg.SSORegion = ""
-	cfg.SSORoleName = ""
-	cfg.SSOStartURL = ""
 }
 
 func (cfg *sharedConfig) clearAssumeRoleOptions() {

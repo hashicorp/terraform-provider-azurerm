@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/eventhubsclusters"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,10 +21,10 @@ func TestAccEventHubCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_cluster", "test")
 	r := EventHubClusterResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -35,24 +36,24 @@ func TestAccEventHubCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_cluster", "test")
 	r := EventHubClusterResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.update(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -60,18 +61,18 @@ func TestAccEventHubCluster_update(t *testing.T) {
 	})
 }
 
-func (EventHubClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := eventhubsclusters.ClusterID(state.ID)
+func (EventHubClusterResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Eventhub.ClusterClient.ClustersGet(ctx, *id)
+	resp, err := clients.Eventhub.ClusterClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return utils.Bool(resp.ClusterProperties != nil), nil
 }
 
 func (EventHubClusterResource) basic(data acceptance.TestData) string {

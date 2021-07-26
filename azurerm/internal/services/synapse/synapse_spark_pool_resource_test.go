@@ -52,7 +52,7 @@ func TestAccSynapseSparkPool_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "2.4"),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -75,52 +75,7 @@ func TestAccSynapseSparkPool_update(t *testing.T) {
 		},
 		data.ImportStep("spark_events_folder", "spark_log_folder"),
 		{
-			Config: r.complete(data, "2.4"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("spark_events_folder", "spark_log_folder"),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("spark_events_folder", "spark_log_folder"),
-	})
-}
-
-func TestAccSynapseSpark3Pool_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
-	r := SynapseSparkPoolResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data, "3.0"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		// not returned by service
-		data.ImportStep("spark_events_folder", "spark_log_folder"),
-	})
-}
-
-func TestAccSynapseSpark3Pool_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
-	r := SynapseSparkPoolResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("spark_events_folder", "spark_log_folder"),
-		{
-			Config: r.complete(data, "3.0"),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -183,7 +138,7 @@ resource "azurerm_synapse_spark_pool" "import" {
 `, config)
 }
 
-func (r SynapseSparkPoolResource) complete(data acceptance.TestData, sparkVersion string) string {
+func (r SynapseSparkPoolResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -213,13 +168,13 @@ EOF
 
   spark_log_folder    = "/logs"
   spark_events_folder = "/events"
-  spark_version       = "%s"
+  spark_version       = "2.4"
 
   tags = {
     ENV = "Test"
   }
 }
-`, template, data.RandomString, sparkVersion)
+`, template, data.RandomString)
 }
 
 func (r SynapseSparkPoolResource) template(data acceptance.TestData) string {

@@ -154,7 +154,7 @@ func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *pluginsdk.ResourceD
 	if isAccountDetailUsed {
 		accountKeySecureString := datafactory.SecureString{
 			Value: &accountKey,
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 		cosmosdbProperties.AccountEndpoint = endpoint
 		cosmosdbProperties.AccountKey = accountKeySecureString
@@ -163,7 +163,7 @@ func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *pluginsdk.ResourceD
 		connectionString := d.Get("connection_string").(string)
 		connectionStringSecureString := datafactory.SecureString{
 			Value: &connectionString,
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 		cosmosdbProperties.ConnectionString = connectionStringSecureString
 		cosmosdbProperties.Database = databaseName

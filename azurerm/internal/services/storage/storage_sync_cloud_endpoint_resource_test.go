@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,10 +20,10 @@ func TestAccAzureRMStorageSyncCloudEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_sync_cloud_endpoint", "test")
 	r := StorageSyncCloudEndpointResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -34,10 +35,10 @@ func TestAccAzureRMStorageSyncCloudEndpoint_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_sync_cloud_endpoint", "test")
 	r := StorageSyncCloudEndpointResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -49,10 +50,10 @@ func TestAccAzureRMStorageSyncCloudEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_sync_cloud_endpoint", "test")
 	r := StorageSyncCloudEndpointResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -60,7 +61,7 @@ func TestAccAzureRMStorageSyncCloudEndpoint_requiresImport(t *testing.T) {
 	})
 }
 
-func (r StorageSyncCloudEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageSyncCloudEndpointResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.StorageSyncCloudEndpointID(state.Attributes["id"])
 	if err != nil {
 		return nil, err

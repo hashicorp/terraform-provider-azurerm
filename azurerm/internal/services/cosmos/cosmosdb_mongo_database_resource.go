@@ -5,8 +5,11 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -14,13 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceCosmosDbMongoDatabase() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceCosmosDbMongoDatabase() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceCosmosDbMongoDatabaseCreate,
 		Update: resourceCosmosDbMongoDatabaseUpdate,
 		Read:   resourceCosmosDbMongoDatabaseRead,
@@ -34,16 +36,16 @@ func resourceCosmosDbMongoDatabase() *pluginsdk.Resource {
 			0: migration.MongoDatabaseV0ToV1{},
 		}),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosEntityName,
@@ -52,14 +54,14 @@ func resourceCosmosDbMongoDatabase() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"account_name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosAccountName,
 			},
 
 			"throughput": {
-				Type:         pluginsdk.TypeInt,
+				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
@@ -70,7 +72,7 @@ func resourceCosmosDbMongoDatabase() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbMongoDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,7 +136,7 @@ func resourceCosmosDbMongoDatabaseCreate(d *pluginsdk.ResourceData, meta interfa
 	return resourceCosmosDbMongoDatabaseRead(d, meta)
 }
 
-func resourceCosmosDbMongoDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoDatabaseUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,7 +191,7 @@ func resourceCosmosDbMongoDatabaseUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceCosmosDbMongoDatabaseRead(d, meta)
 }
 
-func resourceCosmosDbMongoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	accountClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -246,7 +248,7 @@ func resourceCosmosDbMongoDatabaseRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceCosmosDbMongoDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

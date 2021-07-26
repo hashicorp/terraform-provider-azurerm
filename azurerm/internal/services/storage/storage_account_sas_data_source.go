@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/storage"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 const (
@@ -18,51 +18,51 @@ const (
 
 // This is an ACCOUNT SAS : https://docs.microsoft.com/en-us/rest/api/storageservices/Constructing-an-Account-SAS
 // not Service SAS
-func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func dataSourceStorageAccountSharedAccessSignature() *schema.Resource {
+	return &schema.Resource{
 		Read: dataSourceStorageAccountSasRead,
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"connection_string": {
-				Type:      pluginsdk.TypeString,
+				Type:      schema.TypeString,
 				Required:  true,
 				Sensitive: true,
 			},
 
 			"https_only": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"signed_version": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				Default:  sasSignedVersion,
 			},
 
 			"resource_types": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"service": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 
 						"container": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 
 						"object": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 					},
@@ -70,28 +70,28 @@ func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
 			},
 
 			"services": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"blob": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 
 						"queue": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 
 						"table": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 
 						"file": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 					},
@@ -100,61 +100,61 @@ func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
 
 			// Always in UTC and must be ISO-8601 format
 			"start": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ISO8601DateTime,
 			},
 
 			// Always in UTC and must be ISO-8601 format
 			"expiry": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ISO8601DateTime,
 			},
 
 			"permissions": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"read": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 
 						"write": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 
 						"delete": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 
 						"list": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 
 						"add": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 
 						"create": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 
 						"update": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 
 						"process": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 					},
@@ -162,7 +162,7 @@ func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
 			},
 
 			"sas": {
-				Type:      pluginsdk.TypeString,
+				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
@@ -170,7 +170,7 @@ func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageAccountSasRead(d *pluginsdk.ResourceData, _ interface{}) error {
+func dataSourceStorageAccountSasRead(d *schema.ResourceData, _ interface{}) error {
 	connString := d.Get("connection_string").(string)
 	httpsOnly := d.Get("https_only").(bool)
 	signedVersion := d.Get("signed_version").(string)

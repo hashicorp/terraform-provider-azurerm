@@ -1,51 +1,51 @@
 package containers
 
 import (
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
-func SchemaContainerGroupProbe() *pluginsdk.Schema {
+func SchemaContainerGroupProbe() *schema.Schema {
 	//lintignore:XS003
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+	return &schema.Schema{
+		Type:     schema.TypeList,
 		Optional: true,
 		ForceNew: true,
 		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				"exec": {
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					Optional: true,
 					ForceNew: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
 						ValidateFunc: validation.NoZeroValues,
 					},
 				},
 
 				//lintignore:XS003
 				"http_get": {
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					Optional: true,
 					ForceNew: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
 							"path": {
-								Type:         pluginsdk.TypeString,
+								Type:         schema.TypeString,
 								Optional:     true,
 								ForceNew:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"port": {
-								Type:         pluginsdk.TypeInt,
+								Type:         schema.TypeInt,
 								Optional:     true,
 								ForceNew:     true,
 								ValidateFunc: validate.PortNumber,
 							},
 							"scheme": {
-								Type:     pluginsdk.TypeString,
+								Type:     schema.TypeString,
 								Optional: true,
 								ForceNew: true,
 								ValidateFunc: validation.StringInSlice([]string{
@@ -58,31 +58,31 @@ func SchemaContainerGroupProbe() *pluginsdk.Schema {
 				},
 
 				"initial_delay_seconds": {
-					Type:     pluginsdk.TypeInt,
+					Type:     schema.TypeInt,
 					Optional: true,
 					ForceNew: true,
 				},
 
 				"period_seconds": {
-					Type:     pluginsdk.TypeInt,
+					Type:     schema.TypeInt,
 					Optional: true,
 					ForceNew: true,
 				},
 
 				"failure_threshold": {
-					Type:     pluginsdk.TypeInt,
+					Type:     schema.TypeInt,
 					Optional: true,
 					ForceNew: true,
 				},
 
 				"success_threshold": {
-					Type:     pluginsdk.TypeInt,
+					Type:     schema.TypeInt,
 					Optional: true,
 					ForceNew: true,
 				},
 
 				"timeout_seconds": {
-					Type:     pluginsdk.TypeInt,
+					Type:     schema.TypeInt,
 					Optional: true,
 					ForceNew: true,
 				},

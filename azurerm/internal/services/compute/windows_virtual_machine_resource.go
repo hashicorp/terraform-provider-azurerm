@@ -9,6 +9,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -21,15 +24,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/base64"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // TODO: confirm locking as appropriate
 
-func resourceWindowsVirtualMachine() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceWindowsVirtualMachine() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceWindowsVirtualMachineCreate,
 		Read:   resourceWindowsVirtualMachineRead,
 		Update: resourceWindowsVirtualMachineUpdate,
@@ -40,16 +42,16 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			return err
 		}, importVirtualMachine(compute.Windows, "azurerm_windows_virtual_machine")),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(45 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(45 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(45 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(45 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(45 * time.Minute),
+			Delete: schema.DefaultTimeout(45 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: computeValidate.VirtualMachineName,
@@ -61,7 +63,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			// Required
 			"admin_password": {
-				Type:             pluginsdk.TypeString,
+				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				Sensitive:        true,
@@ -69,18 +71,18 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"admin_username": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"network_interface_ids": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Required: true,
 				MinItems: 1,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
 					ValidateFunc: networkValidate.NetworkInterfaceID,
 				},
 			},
@@ -88,7 +90,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"os_disk": virtualMachineOSDiskSchema(),
 
 			"size": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -99,13 +101,13 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"additional_unattend_content": additionalUnattendContentSchema(),
 
 			"allow_extension_operations": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"availability_set_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: computeValidate.AvailabilitySetID,
@@ -122,7 +124,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"boot_diagnostics": bootDiagnosticsSchema(),
 
 			"computer_name": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 
 				// Computed since we reuse the VM name if one's not specified
@@ -135,7 +137,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"custom_data": base64.OptionalSchema(true),
 
 			"dedicated_host_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: computeValidate.DedicatedHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
@@ -145,20 +147,20 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"enable_automatic_updates": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				ForceNew: true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
 				Default:  true,
 			},
 
 			"encryption_at_host_enabled": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 			},
 
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -168,23 +170,23 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"extensions_time_budget": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "PT1H30M",
 				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
-			"identity": virtualMachineIdentity{}.Schema(),
+			"identity": virtualMachineIdentitySchema(),
 
 			"license_type": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"None",
 					"Windows_Client",
 					"Windows_Server",
 				}, false),
-				DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
+				DiffSuppressFunc: func(_, old, new string, _ *schema.ResourceData) bool {
 					if old == "None" && new == "" || old == "" && new == "None" {
 						return true
 					}
@@ -194,7 +196,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"max_bid_price": {
-				Type:         pluginsdk.TypeFloat,
+				Type:         schema.TypeFloat,
 				Optional:     true,
 				Default:      -1,
 				ValidateFunc: validation.FloatAtLeast(-1.0),
@@ -202,7 +204,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			// This is a preview feature: `az feature register -n InGuestAutoPatchVMPreview --namespace Microsoft.Compute`
 			"patch_mode": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				Default:  string(compute.WindowsVMGuestPatchModeAutomaticByOS),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -215,7 +217,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"plan": planSchema(),
 
 			"priority": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  string(compute.Regular),
@@ -226,15 +228,16 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"provision_vm_agent": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 				ForceNew: true,
 			},
 
 			"proximity_placement_group_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: computeValidate.ProximityPlacementGroupID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -243,7 +246,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"secret": windowsSecretSchema(),
 
 			"source_image_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.Any(
@@ -258,13 +261,13 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 
 			"timezone": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: computeValidate.VirtualMachineTimeZone(),
 			},
 
 			"virtual_machine_scale_set_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ConflictsWith: []string{
@@ -274,7 +277,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"platform_fault_domain": {
-				Type:         pluginsdk.TypeInt,
+				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      -1,
 				ForceNew:     true,
@@ -285,7 +288,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"winrm_listener": winRmListenerSchema(),
 
 			"zone": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				// this has to be computed because when you are trying to assign this VM to a VMSS in VMO mode with zones,
@@ -299,36 +302,36 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			// Computed
 			"private_ip_address": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"private_ip_addresses": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 			"public_ip_address": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"public_ip_addresses": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 			"virtual_machine_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -403,7 +406,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	winRmListenersRaw := d.Get("winrm_listener").(*pluginsdk.Set).List()
+	winRmListenersRaw := d.Get("winrm_listener").(*schema.Set).List()
 	winRmListeners := expandWinRMListener(winRmListenersRaw)
 
 	params := compute.VirtualMachine{
@@ -558,7 +561,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	return resourceWindowsVirtualMachineRead(d, meta)
 }
 
-func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	disksClient := meta.(*clients.Client).Compute.DisksClient
 	networkInterfacesClient := meta.(*clients.Client).Network.InterfacesClient
@@ -751,7 +754,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -925,22 +928,6 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.Windows)
 		update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{
 			OsDisk: osDisk,
-		}
-	}
-
-	if d.HasChange("proximity_placement_group_id") {
-		shouldUpdate = true
-
-		// Code="OperationNotAllowed" Message="Updating proximity placement group of VM is not allowed while the VM is running. Please stop/deallocate the VM and retry the operation."
-		shouldShutDown = true
-		shouldDeallocate = true
-
-		if ppgIDRaw, ok := d.GetOk("proximity_placement_group_id"); ok {
-			update.VirtualMachineProperties.ProximityPlacementGroup = &compute.SubResource{
-				ID: utils.String(ppgIDRaw.(string)),
-			}
-		} else {
-			update.VirtualMachineProperties.ProximityPlacementGroup = &compute.SubResource{}
 		}
 	}
 
@@ -1183,7 +1170,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceWindowsVirtualMachineRead(d, meta)
 }
 
-func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1206,37 +1193,31 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	if !meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
-		// If the VM was in a Failed state we can skip powering off, since that'll fail
-		if strings.EqualFold(*existing.ProvisioningState, "failed") {
-			log.Printf("[DEBUG] Powering Off Windows Virtual Machine was skipped because the VM was in %q state %q (Resource Group %q).", *existing.ProvisioningState, id.Name, id.ResourceGroup)
-		} else {
-			//ISSUE: 4920
-			// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
-			// thus this can be a large cost-saving when deleting larger instances
-			// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle
-			log.Printf("[DEBUG] Powering Off Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-			skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
-			powerOffFuture, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(skipShutdown))
-			if err != nil {
-				return fmt.Errorf("powering off Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
-			if err := powerOffFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for power off of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
-			log.Printf("[DEBUG] Powered Off Windows Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
+	// If the VM was in a Failed state we can skip powering off, since that'll fail
+	if strings.EqualFold(*existing.ProvisioningState, "failed") {
+		log.Printf("[DEBUG] Powering Off Windows Virtual Machine was skipped because the VM was in %q state %q (Resource Group %q).", *existing.ProvisioningState, id.Name, id.ResourceGroup)
+	} else {
+		//ISSUE: 4920
+		// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
+		// thus this can be a large cost-saving when deleting larger instances
+		// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle
+		log.Printf("[DEBUG] Powering Off Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+		skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
+		powerOffFuture, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(skipShutdown))
+		if err != nil {
+			return fmt.Errorf("powering off Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
+		if err := powerOffFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for power off of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+		log.Printf("[DEBUG] Powered Off Windows Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
 	}
 
 	log.Printf("[DEBUG] Deleting Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-
-	// Force Delete is in an opt-in Preview and can only be specified (true/false) if the feature is enabled
-	// as such we default this to `nil` which matches the previous behaviour (where this isn't sent) and
-	// conditionally set this if required
+	// @tombuildsstuff: sending `nil` here omits this value from being sent - which matches
+	// the previous behaviour - we're only splitting this out so it's clear why
+	// TODO: support force deletion once it's out of Preview, if applicable
 	var forceDeletion *bool = nil
-	if meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
-		forceDeletion = utils.Bool(true)
-	}
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
 	if err != nil {
 		return fmt.Errorf("deleting Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -1296,11 +1277,11 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 	if !utils.ResponseWasNotFound(virtualMachine.Response) {
 		log.Printf("[INFO] Windows Virtual Machine still exists, waiting on Windows Virtual Machine %q to be deleted", id.Name)
 
-		deleteWait := &pluginsdk.StateChangeConf{
+		deleteWait := &resource.StateChangeConf{
 			Pending:    []string{"200"},
 			Target:     []string{"404"},
 			MinTimeout: 30 * time.Second,
-			Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+			Timeout:    d.Timeout(schema.TimeoutDelete),
 			Refresh: func() (interface{}, string, error) {
 				log.Printf("[INFO] checking on state of Windows Virtual Machine %q", id.Name)
 				resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
@@ -1314,7 +1295,7 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 			},
 		}
 
-		if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
+		if _, err := deleteWait.WaitForState(); err != nil {
 			return fmt.Errorf("waiting for the deletion of Windows Virtual Machine %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 		}
 	}

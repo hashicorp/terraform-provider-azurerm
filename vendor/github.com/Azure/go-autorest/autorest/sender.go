@@ -26,7 +26,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Azure/go-autorest/logger"
 	"github.com/Azure/go-autorest/tracing"
 )
 
@@ -439,7 +438,6 @@ func DelayForBackoffWithCap(backoff, cap time.Duration, attempt int, cancel <-ch
 	if cap > 0 && d > cap {
 		d = cap
 	}
-	logger.Instance.Writef(logger.LogInfo, "DelayForBackoffWithCap: sleeping for %s\n", d)
 	select {
 	case <-time.After(d):
 		return true

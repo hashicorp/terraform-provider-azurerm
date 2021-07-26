@@ -49,6 +49,11 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	}
 }
 
+// PackagePath is the relative path to this package
+func (r Registration) PackagePath() string {
+	return "TODO: do we need this?"
+}
+
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{

@@ -222,12 +222,6 @@ type AdlsError struct {
 	RemoteException BasicAdlsRemoteException `json:"remoteException,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for AdlsError.
-func (ae AdlsError) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // UnmarshalJSON is the custom unmarshaler for AdlsError struct.
 func (ae *AdlsError) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -1081,23 +1075,11 @@ type ContentSummary struct {
 	SpaceConsumed *int64 `json:"spaceConsumed,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for ContentSummary.
-func (cs ContentSummary) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // ContentSummaryResult data Lake Store filesystem content summary information response.
 type ContentSummaryResult struct {
 	autorest.Response `json:"-"`
 	// ContentSummary - READ-ONLY; the content summary for the specified path
 	ContentSummary *ContentSummary `json:"contentSummary,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ContentSummaryResult.
-func (csr ContentSummaryResult) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // FileOperationResult the result of the request or operation.
@@ -1107,22 +1089,10 @@ type FileOperationResult struct {
 	OperationResult *bool `json:"boolean,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for FileOperationResult.
-func (forVar FileOperationResult) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // FileStatuses data Lake Store file status list information.
 type FileStatuses struct {
 	// FileStatus - READ-ONLY; the object containing the list of properties of the files.
 	FileStatus *[]FileStatusProperties `json:"fileStatus,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for FileStatuses.
-func (fs FileStatuses) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // FileStatusesResult data Lake Store filesystem file status list information response.
@@ -1130,12 +1100,6 @@ type FileStatusesResult struct {
 	autorest.Response `json:"-"`
 	// FileStatuses - READ-ONLY; the object representing the list of file statuses.
 	FileStatuses *FileStatuses `json:"fileStatuses,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for FileStatusesResult.
-func (fsr FileStatusesResult) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // FileStatusProperties data Lake Store file or directory information.
@@ -1164,23 +1128,11 @@ type FileStatusProperties struct {
 	ACLBit *bool `json:"aclBit,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for FileStatusProperties.
-func (fsp FileStatusProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // FileStatusResult data Lake Store filesystem file status information response.
 type FileStatusResult struct {
 	autorest.Response `json:"-"`
 	// FileStatus - READ-ONLY; the file status object associated with the specified path.
 	FileStatus *FileStatusProperties `json:"fileStatus,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for FileStatusResult.
-func (fsr FileStatusResult) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // ReadCloser ...

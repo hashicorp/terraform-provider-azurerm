@@ -20,7 +20,7 @@ func testAccNetworkPacketCapture_localDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 	r := NetworkPacketCaptureResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.localDiskConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -35,7 +35,7 @@ func testAccNetworkPacketCapture_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 	r := NetworkPacketCaptureResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.localDiskConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -53,7 +53,7 @@ func testAccNetworkPacketCapture_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 	r := NetworkPacketCaptureResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storageAccountConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -68,7 +68,7 @@ func testAccNetworkPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 	r := NetworkPacketCaptureResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storageAccountAndLocalDiskConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -83,7 +83,7 @@ func testAccNetworkPacketCapture_withFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 	r := NetworkPacketCaptureResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.localDiskConfigWithFilters(data),
 			Check: acceptance.ComposeTestCheckFunc(

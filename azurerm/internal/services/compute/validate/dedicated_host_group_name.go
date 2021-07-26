@@ -3,7 +3,7 @@ package validate
 import (
 	"regexp"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func DedicatedHostGroupName() func(i interface{}, k string) (warnings []string, errors []error) {

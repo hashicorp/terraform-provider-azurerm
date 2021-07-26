@@ -6,58 +6,59 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceCosmosDbSQLFunction() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceCosmosDbSQLFunction() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceCosmosDbSQLFunctionCreateUpdate,
 		Read:   resourceCosmosDbSQLFunctionRead,
 		Update: resourceCosmosDbSQLFunctionCreateUpdate,
 		Delete: resourceCosmosDbSQLFunctionDelete,
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SqlFunctionID(id)
 			return err
 		}),
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"container_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SqlContainerID,
 			},
 
 			"body": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
 }
-func resourceCosmosDbSQLFunctionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLFunctionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Cosmos.SqlResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -103,7 +104,7 @@ func resourceCosmosDbSQLFunctionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceCosmosDbSQLFunctionRead(d, meta)
 }
 
-func resourceCosmosDbSQLFunctionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLFunctionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.SqlResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,7 +134,7 @@ func resourceCosmosDbSQLFunctionRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceCosmosDbSQLFunctionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLFunctionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.SqlResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

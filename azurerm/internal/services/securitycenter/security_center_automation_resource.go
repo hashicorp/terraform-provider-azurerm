@@ -127,11 +127,11 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(security.EventSourceAlerts),
-								string(security.EventSourceAssessments),
-								string(security.EventSourceSecureScoreControls),
-								string(security.EventSourceSecureScores),
-								string(security.EventSourceSubAssessments),
+								string(security.Alerts),
+								string(security.Assessments),
+								string(security.SecureScoreControls),
+								string(security.SecureScores),
+								string(security.SubAssessments),
 							}, false),
 						},
 

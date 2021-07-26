@@ -56,16 +56,6 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 			},
 		},
 
-		"pricing_tier": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"location": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"tags": tags.SchemaDataSource(),
 	}
 }
@@ -84,14 +74,10 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Web.AppServiceEnvironmentsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
-
-			var appServiceEnvironmentV3 AppServiceEnvironmentV3Model
-			if err := metadata.Decode(&appServiceEnvironmentV3); err != nil {
-				return fmt.Errorf("decoding %+v", err)
+			id, err := parse.AppServiceEnvironmentID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
 			}
-
-			id := parse.NewAppServiceEnvironmentID(subscriptionId, appServiceEnvironmentV3.ResourceGroup, appServiceEnvironmentV3.Name)
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
 			if err != nil {
@@ -119,7 +105,6 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 
 			model.Tags = tags.Flatten(existing.Tags)
 
-			metadata.SetID(id)
 			return metadata.Encode(&model)
 		},
 	}

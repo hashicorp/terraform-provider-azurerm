@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,10 +19,10 @@ type StorageBlobInventoryPolicyResource struct{}
 func TestAccStorageBlobInventoryPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob_inventory_policy", "test")
 	r := StorageBlobInventoryPolicyResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -32,10 +33,10 @@ func TestAccStorageBlobInventoryPolicy_basic(t *testing.T) {
 func TestAccStorageBlobInventoryPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob_inventory_policy", "test")
 	r := StorageBlobInventoryPolicyResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -46,10 +47,10 @@ func TestAccStorageBlobInventoryPolicy_requiresImport(t *testing.T) {
 func TestAccStorageBlobInventoryPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob_inventory_policy", "test")
 	r := StorageBlobInventoryPolicyResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -60,31 +61,31 @@ func TestAccStorageBlobInventoryPolicy_complete(t *testing.T) {
 func TestAccStorageBlobInventoryPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob_inventory_policy", "test")
 	r := StorageBlobInventoryPolicyResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.multipleRules(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -92,7 +93,7 @@ func TestAccStorageBlobInventoryPolicy_update(t *testing.T) {
 	})
 }
 
-func (r StorageBlobInventoryPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageBlobInventoryPolicyResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.BlobInventoryPolicyID(state.ID)
 	if err != nil {
 		return nil, err

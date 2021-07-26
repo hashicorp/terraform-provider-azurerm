@@ -364,12 +364,6 @@ type PrivateZoneProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for PrivateZoneProperties.
-func (pzp PrivateZoneProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // PrivateZonesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type PrivateZonesCreateOrUpdateFuture struct {
@@ -501,12 +495,6 @@ type ProxyResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. Example - 'Microsoft.Network/privateDnsZones'.
 	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ProxyResource.
-func (pr ProxyResource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // PtrRecord a PTR record.
@@ -843,12 +831,6 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. Example - 'Microsoft.Network/privateDnsZones'.
 	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Resource.
-func (r Resource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // SoaRecord an SOA record.

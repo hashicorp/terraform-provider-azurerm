@@ -857,12 +857,6 @@ type NamespaceProperties struct {
 	MetricID *string `json:"metricId,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for NamespaceProperties.
-func (np NamespaceProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // NamespacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type NamespacesCreateOrUpdateFuture struct {
@@ -970,12 +964,6 @@ type OperationDisplay struct {
 	Operation *string `json:"operation,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for OperationDisplay.
-func (o OperationDisplay) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // OperationListResult result of the request to list Relay operations. It contains a list of operations and
 // a URL link to get the next set of results.
 type OperationListResult struct {
@@ -984,12 +972,6 @@ type OperationListResult struct {
 	Value *[]Operation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; URL to get the next set of operation list results if there are any.
 	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for OperationListResult.
-func (olr OperationListResult) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // OperationListResultIterator provides access to a complete listing of Operation values.
@@ -1159,12 +1141,6 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Resource.
-func (r Resource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // ResourceNamespacePatch definition of resource.

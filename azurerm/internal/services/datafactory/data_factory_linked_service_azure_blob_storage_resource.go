@@ -175,14 +175,14 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 	if v, ok := d.GetOk("connection_string"); ok {
 		blobStorageProperties.ConnectionString = &datafactory.SecureString{
 			Value: utils.String(v.(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 	}
 
 	if v, ok := d.GetOk("sas_uri"); ok {
 		blobStorageProperties.SasURI = &datafactory.SecureString{
 			Value: utils.String(v.(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 	}
 
@@ -193,7 +193,7 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 	} else {
 		secureString := datafactory.SecureString{
 			Value: utils.String(d.Get("service_principal_key").(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 
 		blobStorageProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))

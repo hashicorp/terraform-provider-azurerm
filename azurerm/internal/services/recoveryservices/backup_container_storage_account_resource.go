@@ -219,7 +219,7 @@ func resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx context
 	}
 
 	log.Printf("[DEBUG] Waiting for backup container operation %q (Vault %q) to complete", operationID, vaultName)
-	resp, err := state.WaitForStateContext(ctx)
+	resp, err := state.WaitForState()
 	if err != nil {
 		return resp.(backup.OperationStatus), err
 	}

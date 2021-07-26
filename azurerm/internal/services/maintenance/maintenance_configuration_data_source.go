@@ -38,48 +38,6 @@ func dataSourceMaintenanceConfiguration() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"visibility": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"window": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"start_date_time": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"expiration_date_time": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"duration": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"time_zone": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"recur_every": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"properties": {
-				Type:     pluginsdk.TypeMap,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -96,7 +54,7 @@ func dataSourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta i
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("maintenance Configuration %q was not found in Resource Group %q", name, resGroup)
+			return fmt.Errorf("Maintenance Configuration %q was not found in Resource Group %q", name, resGroup)
 		}
 		return fmt.Errorf("retrieving Maintenance Configuration %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -110,13 +68,6 @@ func dataSourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta i
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.ConfigurationProperties; props != nil {
 		d.Set("scope", props.MaintenanceScope)
-		d.Set("visibility", props.Visibility)
-		d.Set("properties", props.ExtensionProperties)
-
-		window := flattenMaintenanceConfigurationWindow(props.Window)
-		if err := d.Set("window", window); err != nil {
-			return fmt.Errorf("error setting `window`: %+v", err)
-		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

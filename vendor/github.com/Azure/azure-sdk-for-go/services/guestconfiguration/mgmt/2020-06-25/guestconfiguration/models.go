@@ -239,12 +239,6 @@ type AssignmentReportResourceComplianceReason struct {
 	Code *string `json:"code,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for AssignmentReportResourceComplianceReason.
-func (arrcr AssignmentReportResourceComplianceReason) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // AssignmentReportType report for the guest configuration assignment. Report contains information such as
 // compliance status, reason, and more.
 type AssignmentReportType struct {
@@ -272,12 +266,6 @@ type ConfigurationInfo struct {
 	Name *string `json:"name,omitempty"`
 	// Version - READ-ONLY; Version of the configuration.
 	Version *string `json:"version,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ConfigurationInfo.
-func (ci ConfigurationInfo) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // ConfigurationParameter represents a configuration parameter.
@@ -533,10 +521,4 @@ type VMInfo struct {
 	ID *string `json:"id,omitempty"`
 	// UUID - READ-ONLY; UUID(Universally Unique Identifier) of the VM.
 	UUID *string `json:"uuid,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for VMInfo.
-func (vi VMInfo) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }

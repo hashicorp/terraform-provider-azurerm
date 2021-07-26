@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -120,10 +120,10 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.VirtualNetworkGatewayConnectionProtocolIKEv1),
-								string(network.VirtualNetworkGatewayConnectionProtocolIKEv2),
+								string(network.IKEv1),
+								string(network.IKEv2),
 							}, false),
-							Default: string(network.VirtualNetworkGatewayConnectionProtocolIKEv2),
+							Default: string(network.IKEv2),
 						},
 
 						"bandwidth_mbps": {
@@ -194,13 +194,13 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(network.IkeEncryptionDES),
-											string(network.IkeEncryptionDES3),
-											string(network.IkeEncryptionAES128),
-											string(network.IkeEncryptionAES192),
-											string(network.IkeEncryptionAES256),
-											string(network.IkeEncryptionGCMAES128),
-											string(network.IkeEncryptionGCMAES256),
+											string(network.DES),
+											string(network.DES3),
+											string(network.AES128),
+											string(network.AES192),
+											string(network.AES256),
+											string(network.GCMAES128),
+											string(network.GCMAES256),
 										}, false),
 									},
 

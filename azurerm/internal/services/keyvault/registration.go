@@ -28,7 +28,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_key_vault_key":                              dataSourceKeyVaultKey(),
 		"azurerm_key_vault_managed_hardware_security_module": dataSourceKeyVaultManagedHardwareSecurityModule(),
 		"azurerm_key_vault_secret":                           dataSourceKeyVaultSecret(),
-		"azurerm_key_vault_secrets":                          dataSourceKeyVaultSecrets(),
 		"azurerm_key_vault":                                  dataSourceKeyVault(),
 	}
 }

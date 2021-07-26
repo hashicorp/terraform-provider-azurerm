@@ -1,9 +1,9 @@
 package compute
 
-import "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+import "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 // nolint: deadcode unused
-func adminPasswordDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
+func adminPasswordDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
 	// this is not the greatest hack in the world, this is just a tribute.
 	if old == "ignored-as-imported" || new == "ignored-as-imported" {
 		return true

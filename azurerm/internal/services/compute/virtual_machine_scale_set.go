@@ -4,27 +4,28 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func VirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+func VirtualMachineScaleSetAdditionalCapabilitiesSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				// NOTE: requires registration to use:
 				// $ az feature show --namespace Microsoft.Compute --name UltraSSDWithVMSS
 				// $ az provider register -n Microsoft.Compute
 				"ultra_ssd_enabled": {
-					Type:     pluginsdk.TypeBool,
+					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  false,
 					ForceNew: true,
@@ -64,15 +65,15 @@ func FlattenVirtualMachineScaleSetAdditionalCapabilities(input *compute.Addition
 	}
 }
 
-func VirtualMachineScaleSetIdentitySchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+func VirtualMachineScaleSetIdentitySchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				"type": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.ResourceIdentityTypeSystemAssigned),
@@ -82,15 +83,15 @@ func VirtualMachineScaleSetIdentitySchema() *pluginsdk.Schema {
 				},
 
 				"identity_ids": {
-					Type:     pluginsdk.TypeSet,
+					Type:     schema.TypeSet,
 					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
 					},
 				},
 
 				"principal_id": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Computed: true,
 				},
 			},
@@ -112,7 +113,7 @@ func ExpandVirtualMachineScaleSetIdentity(input []interface{}) (*compute.Virtual
 		Type: compute.ResourceIdentityType(raw["type"].(string)),
 	}
 
-	identityIdsRaw := raw["identity_ids"].(*pluginsdk.Set).List()
+	identityIdsRaw := raw["identity_ids"].(*schema.Set).List()
 	identityIds := make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue)
 	for _, v := range identityIdsRaw {
 		identityIds[v.(string)] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{}
@@ -159,14 +160,14 @@ func FlattenVirtualMachineScaleSetIdentity(input *compute.VirtualMachineScaleSet
 	}, nil
 }
 
-func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+func VirtualMachineScaleSetNetworkInterfaceSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
 		Required: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				"name": {
-					Type:         pluginsdk.TypeString,
+					Type:         schema.TypeString,
 					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -174,30 +175,30 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 				"ip_configuration": virtualMachineScaleSetIPConfigurationSchema(),
 
 				"dns_servers": {
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 				"enable_accelerated_networking": {
-					Type:     pluginsdk.TypeBool,
+					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
 				"enable_ip_forwarding": {
-					Type:     pluginsdk.TypeBool,
+					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
 				"network_security_group_id": {
-					Type:         pluginsdk.TypeString,
+					Type:         schema.TypeString,
 					Optional:     true,
 					ValidateFunc: azure.ValidateResourceIDOrEmpty,
 				},
 				"primary": {
-					Type:     pluginsdk.TypeBool,
+					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
@@ -206,40 +207,40 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 	}
 }
 
-func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
 		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Computed: true,
 				},
 
 				"ip_configuration": virtualMachineScaleSetIPConfigurationSchemaForDataSource(),
 
 				"dns_servers": {
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
 					},
 				},
 				"enable_accelerated_networking": {
-					Type:     pluginsdk.TypeBool,
+					Type:     schema.TypeBool,
 					Computed: true,
 				},
 				"enable_ip_forwarding": {
-					Type:     pluginsdk.TypeBool,
+					Type:     schema.TypeBool,
 					Computed: true,
 				},
 				"network_security_group_id": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Computed: true,
 				},
 				"primary": {
-					Type:     pluginsdk.TypeBool,
+					Type:     schema.TypeBool,
 					Computed: true,
 				},
 			},
@@ -247,53 +248,53 @@ func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Sche
 	}
 }
 
-func virtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+func virtualMachineScaleSetIPConfigurationSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
 		Required: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				"name": {
-					Type:         pluginsdk.TypeString,
+					Type:         schema.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				// Optional
 				"application_gateway_backend_address_pool_ids": {
-					Type:     pluginsdk.TypeSet,
+					Type:     schema.TypeSet,
 					Optional: true,
-					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-					Set:      pluginsdk.HashString,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+					Set:      schema.HashString,
 				},
 
 				"application_security_group_ids": {
-					Type:     pluginsdk.TypeSet,
+					Type:     schema.TypeSet,
 					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
 						ValidateFunc: azure.ValidateResourceID,
 					},
-					Set:      pluginsdk.HashString,
+					Set:      schema.HashString,
 					MaxItems: 20,
 				},
 
 				"load_balancer_backend_address_pool_ids": {
-					Type:     pluginsdk.TypeSet,
+					Type:     schema.TypeSet,
 					Optional: true,
-					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-					Set:      pluginsdk.HashString,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+					Set:      schema.HashString,
 				},
 
 				"load_balancer_inbound_nat_rules_ids": {
-					Type:     pluginsdk.TypeSet,
+					Type:     schema.TypeSet,
 					Optional: true,
-					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-					Set:      pluginsdk.HashString,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+					Set:      schema.HashString,
 				},
 
 				"primary": {
-					Type:     pluginsdk.TypeBool,
+					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
@@ -301,13 +302,13 @@ func virtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 				"public_ip_address": virtualMachineScaleSetPublicIPAddressSchema(),
 
 				"subnet_id": {
-					Type:         pluginsdk.TypeString,
+					Type:         schema.TypeString,
 					Optional:     true,
 					ValidateFunc: azure.ValidateResourceID,
 				},
 
 				"version": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Optional: true,
 					Default:  string(compute.IPv4),
 					ValidateFunc: validation.StringInSlice([]string{
@@ -320,63 +321,63 @@ func virtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 	}
 }
 
-func virtualMachineScaleSetIPConfigurationSchemaForDataSource() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+func virtualMachineScaleSetIPConfigurationSchemaForDataSource() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
 		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Computed: true,
 				},
 
 				"application_gateway_backend_address_pool_ids": {
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
 					},
 				},
 
 				"application_security_group_ids": {
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
 					},
 				},
 
 				"load_balancer_backend_address_pool_ids": {
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
 					},
 				},
 
 				"load_balancer_inbound_nat_rules_ids": {
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
 					},
 				},
 
 				"primary": {
-					Type:     pluginsdk.TypeBool,
+					Type:     schema.TypeBool,
 					Computed: true,
 				},
 
 				"public_ip_address": virtualMachineScaleSetPublicIPAddressSchemaForDataSource(),
 
 				"subnet_id": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Computed: true,
 				},
 
 				"version": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Computed: true,
 				},
 			},
@@ -384,45 +385,45 @@ func virtualMachineScaleSetIPConfigurationSchemaForDataSource() *pluginsdk.Schem
 	}
 }
 
-func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+func virtualMachineScaleSetPublicIPAddressSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
 		Optional: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				"name": {
-					Type:         pluginsdk.TypeString,
+					Type:         schema.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				// Optional
 				"domain_name_label": {
-					Type:         pluginsdk.TypeString,
+					Type:         schema.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"idle_timeout_in_minutes": {
-					Type:         pluginsdk.TypeInt,
+					Type:         schema.TypeInt,
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(4, 32),
 				},
 				"ip_tag": {
 					// TODO: does this want to be a Set?
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					Optional: true,
 					ForceNew: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
 							"tag": {
-								Type:         pluginsdk.TypeString,
+								Type:         schema.TypeString,
 								Required:     true,
 								ForceNew:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"type": {
-								Type:         pluginsdk.TypeString,
+								Type:         schema.TypeString,
 								Required:     true,
 								ForceNew:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
@@ -434,7 +435,7 @@ func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 				// $ az feature register --namespace Microsoft.Network --name AllowBringYourOwnPublicIpAddress
 				// $ az provider register -n Microsoft.Network
 				"public_ip_prefix_id": {
-					Type:         pluginsdk.TypeString,
+					Type:         schema.TypeString,
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: azure.ValidateResourceIDOrEmpty,
@@ -444,38 +445,38 @@ func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 	}
 }
 
-func virtualMachineScaleSetPublicIPAddressSchemaForDataSource() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+func virtualMachineScaleSetPublicIPAddressSchemaForDataSource() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
 		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Computed: true,
 				},
 
 				"domain_name_label": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Computed: true,
 				},
 
 				"idle_timeout_in_minutes": {
-					Type:     pluginsdk.TypeInt,
+					Type:     schema.TypeInt,
 					Computed: true,
 				},
 
 				"ip_tag": {
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					Computed: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
 							"tag": {
-								Type:     pluginsdk.TypeString,
+								Type:     schema.TypeString,
 								Computed: true,
 							},
 							"type": {
-								Type:     pluginsdk.TypeString,
+								Type:     schema.TypeString,
 								Computed: true,
 							},
 						},
@@ -483,7 +484,7 @@ func virtualMachineScaleSetPublicIPAddressSchemaForDataSource() *pluginsdk.Schem
 				},
 
 				"public_ip_prefix_id": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Computed: true,
 				},
 			},
@@ -537,16 +538,16 @@ func ExpandVirtualMachineScaleSetNetworkInterface(input []interface{}) (*[]compu
 }
 
 func expandVirtualMachineScaleSetIPConfiguration(raw map[string]interface{}) (*compute.VirtualMachineScaleSetIPConfiguration, error) {
-	applicationGatewayBackendAddressPoolIdsRaw := raw["application_gateway_backend_address_pool_ids"].(*pluginsdk.Set).List()
+	applicationGatewayBackendAddressPoolIdsRaw := raw["application_gateway_backend_address_pool_ids"].(*schema.Set).List()
 	applicationGatewayBackendAddressPoolIds := expandIDsToSubResources(applicationGatewayBackendAddressPoolIdsRaw)
 
-	applicationSecurityGroupIdsRaw := raw["application_security_group_ids"].(*pluginsdk.Set).List()
+	applicationSecurityGroupIdsRaw := raw["application_security_group_ids"].(*schema.Set).List()
 	applicationSecurityGroupIds := expandIDsToSubResources(applicationSecurityGroupIdsRaw)
 
-	loadBalancerBackendAddressPoolIdsRaw := raw["load_balancer_backend_address_pool_ids"].(*pluginsdk.Set).List()
+	loadBalancerBackendAddressPoolIdsRaw := raw["load_balancer_backend_address_pool_ids"].(*schema.Set).List()
 	loadBalancerBackendAddressPoolIds := expandIDsToSubResources(loadBalancerBackendAddressPoolIdsRaw)
 
-	loadBalancerInboundNatPoolIdsRaw := raw["load_balancer_inbound_nat_rules_ids"].(*pluginsdk.Set).List()
+	loadBalancerInboundNatPoolIdsRaw := raw["load_balancer_inbound_nat_rules_ids"].(*schema.Set).List()
 	loadBalancerInboundNatPoolIds := expandIDsToSubResources(loadBalancerInboundNatPoolIdsRaw)
 
 	primary := raw["primary"].(bool)
@@ -667,16 +668,16 @@ func ExpandVirtualMachineScaleSetNetworkInterfaceUpdate(input []interface{}) (*[
 }
 
 func expandVirtualMachineScaleSetIPConfigurationUpdate(raw map[string]interface{}) (*compute.VirtualMachineScaleSetUpdateIPConfiguration, error) {
-	applicationGatewayBackendAddressPoolIdsRaw := raw["application_gateway_backend_address_pool_ids"].(*pluginsdk.Set).List()
+	applicationGatewayBackendAddressPoolIdsRaw := raw["application_gateway_backend_address_pool_ids"].(*schema.Set).List()
 	applicationGatewayBackendAddressPoolIds := expandIDsToSubResources(applicationGatewayBackendAddressPoolIdsRaw)
 
-	applicationSecurityGroupIdsRaw := raw["application_security_group_ids"].(*pluginsdk.Set).List()
+	applicationSecurityGroupIdsRaw := raw["application_security_group_ids"].(*schema.Set).List()
 	applicationSecurityGroupIds := expandIDsToSubResources(applicationSecurityGroupIdsRaw)
 
-	loadBalancerBackendAddressPoolIdsRaw := raw["load_balancer_backend_address_pool_ids"].(*pluginsdk.Set).List()
+	loadBalancerBackendAddressPoolIdsRaw := raw["load_balancer_backend_address_pool_ids"].(*schema.Set).List()
 	loadBalancerBackendAddressPoolIds := expandIDsToSubResources(loadBalancerBackendAddressPoolIdsRaw)
 
-	loadBalancerInboundNatPoolIdsRaw := raw["load_balancer_inbound_nat_rules_ids"].(*pluginsdk.Set).List()
+	loadBalancerInboundNatPoolIdsRaw := raw["load_balancer_inbound_nat_rules_ids"].(*schema.Set).List()
 	loadBalancerInboundNatPoolIds := expandIDsToSubResources(loadBalancerInboundNatPoolIdsRaw)
 
 	primary := raw["primary"].(bool)
@@ -870,15 +871,15 @@ func flattenVirtualMachineScaleSetPublicIPAddress(input compute.VirtualMachineSc
 	}
 }
 
-func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+func VirtualMachineScaleSetDataDiskSchema() *schema.Schema {
+	return &schema.Schema{
 		// TODO: does this want to be a Set?
-		Type:     pluginsdk.TypeList,
+		Type:     schema.TypeList,
 		Optional: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				"caching": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.CachingTypesNone),
@@ -888,7 +889,7 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 				},
 
 				"create_option": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.DiskCreateOptionTypesEmpty),
@@ -898,7 +899,7 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 				},
 
 				"disk_encryption_set_id": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Optional: true,
 					// whilst the API allows updating this value, it's never actually set at Azure's end
 					// presumably this'll take effect once key rotation is supported a few months post-GA?
@@ -908,19 +909,19 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 				},
 
 				"disk_size_gb": {
-					Type:         pluginsdk.TypeInt,
+					Type:         schema.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 32767),
 				},
 
 				"lun": {
-					Type:         pluginsdk.TypeInt,
+					Type:         schema.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(0, 2000), // TODO: confirm upper bounds
 				},
 
 				"storage_account_type": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.StorageAccountTypesPremiumLRS),
@@ -931,21 +932,21 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 				},
 
 				"write_accelerator_enabled": {
-					Type:     pluginsdk.TypeBool,
+					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
 
 				// TODO 3.0 - change this to ultra_ssd_disk_iops_read_write
 				"disk_iops_read_write": {
-					Type:     pluginsdk.TypeInt,
+					Type:     schema.TypeInt,
 					Optional: true,
 					Computed: true,
 				},
 
 				// TODO 3.0 - change this to ultra_ssd_disk_iops_read_write
 				"disk_mbps_read_write": {
-					Type:     pluginsdk.TypeInt,
+					Type:     schema.TypeInt,
 					Optional: true,
 					Computed: true,
 				},
@@ -1055,15 +1056,15 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 	return output
 }
 
-func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+func VirtualMachineScaleSetOSDiskSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
 		Required: true,
 		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				"caching": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.CachingTypesNone),
@@ -1072,7 +1073,7 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					}, false),
 				},
 				"storage_account_type": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Required: true,
 					// whilst this appears in the Update block the API returns this when changing:
 					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
@@ -1086,14 +1087,14 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 				},
 
 				"diff_disk_settings": {
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					Optional: true,
 					ForceNew: true,
 					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
 							"option": {
-								Type:     pluginsdk.TypeString,
+								Type:     schema.TypeString,
 								Required: true,
 								ForceNew: true,
 								ValidateFunc: validation.StringInSlice([]string{
@@ -1105,7 +1106,7 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 				},
 
 				"disk_encryption_set_id": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Optional: true,
 					// whilst the API allows updating this value, it's never actually set at Azure's end
 					// presumably this'll take effect once key rotation is supported a few months post-GA?
@@ -1115,14 +1116,14 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 				},
 
 				"disk_size_gb": {
-					Type:         pluginsdk.TypeInt,
+					Type:         schema.TypeInt,
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 4095),
 				},
 
 				"write_accelerator_enabled": {
-					Type:     pluginsdk.TypeBool,
+					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
@@ -1231,20 +1232,20 @@ func FlattenVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOS
 	}
 }
 
-func VirtualMachineScaleSetAutomatedOSUpgradePolicySchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+func VirtualMachineScaleSetAutomatedOSUpgradePolicySchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				// TODO: should these be optional + defaulted?
 				"disable_automatic_rollback": {
-					Type:     pluginsdk.TypeBool,
+					Type:     schema.TypeBool,
 					Required: true,
 				},
 				"enable_automatic_os_upgrade": {
-					Type:     pluginsdk.TypeBool,
+					Type:     schema.TypeBool,
 					Required: true,
 				},
 			},
@@ -1287,28 +1288,28 @@ func FlattenVirtualMachineScaleSetAutomaticOSUpgradePolicy(input *compute.Automa
 	}
 }
 
-func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+func VirtualMachineScaleSetRollingUpgradePolicySchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
 		Optional: true,
 		ForceNew: true,
 		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				"max_batch_instance_percent": {
-					Type:     pluginsdk.TypeInt,
+					Type:     schema.TypeInt,
 					Required: true,
 				},
 				"max_unhealthy_instance_percent": {
-					Type:     pluginsdk.TypeInt,
+					Type:     schema.TypeInt,
 					Required: true,
 				},
 				"max_unhealthy_upgraded_instance_percent": {
-					Type:     pluginsdk.TypeInt,
+					Type:     schema.TypeInt,
 					Required: true,
 				},
 				"pause_time_between_batches": {
-					Type:         pluginsdk.TypeString,
+					Type:         schema.TypeString,
 					Required:     true,
 					ValidateFunc: azValidate.ISO8601Duration,
 				},
@@ -1367,20 +1368,20 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *compute.RollingUpg
 	}
 }
 
-func VirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+func VirtualMachineScaleSetTerminateNotificationSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
 		Optional: true,
 		Computed: true,
 		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				"enabled": {
-					Type:     pluginsdk.TypeBool,
+					Type:     schema.TypeBool,
 					Required: true,
 				},
 				"timeout": {
-					Type:         pluginsdk.TypeString,
+					Type:         schema.TypeString,
 					Optional:     true,
 					ValidateFunc: azValidate.ISO8601Duration,
 					Default:      "PT5M",
@@ -1429,20 +1430,20 @@ func FlattenVirtualMachineScaleSetScheduledEventsProfile(input *compute.Schedule
 	}
 }
 
-func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
 		Optional: true,
 		Computed: true,
 		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				"enabled": {
-					Type:     pluginsdk.TypeBool,
+					Type:     schema.TypeBool,
 					Required: true,
 				},
 				"grace_period": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Optional: true,
 					Default:  "PT30M",
 					// this field actually has a range from 30m to 90m, is there a function that can do this validation?
@@ -1488,68 +1489,68 @@ func FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(input *compute.Automati
 	}
 }
 
-func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
+func VirtualMachineScaleSetExtensionsSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
 		Optional: true,
 		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				"name": {
-					Type:         pluginsdk.TypeString,
+					Type:         schema.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"publisher": {
-					Type:         pluginsdk.TypeString,
+					Type:         schema.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"type": {
-					Type:         pluginsdk.TypeString,
+					Type:         schema.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"type_handler_version": {
-					Type:         pluginsdk.TypeString,
+					Type:         schema.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"auto_upgrade_minor_version": {
-					Type:     pluginsdk.TypeBool,
+					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  true,
 				},
 
 				"force_update_tag": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Optional: true,
 				},
 
 				"protected_settings": {
-					Type:         pluginsdk.TypeString,
+					Type:         schema.TypeString,
 					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsJSON,
 				},
 
 				"provision_after_extensions": {
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
 					},
 				},
 
 				"settings": {
-					Type:             pluginsdk.TypeString,
+					Type:             schema.TypeString,
 					Optional:         true,
 					ValidateFunc:     validation.StringIsJSON,
-					DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+					DiffSuppressFunc: structure.SuppressJsonDiff,
 				},
 			},
 		},
@@ -1587,7 +1588,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 		}
 
 		if val, ok := extensionRaw["settings"]; ok && val.(string) != "" {
-			settings, err := pluginsdk.ExpandJsonFromString(val.(string))
+			settings, err := structure.ExpandJsonFromString(val.(string))
 			if err != nil {
 				return nil, false, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
 			}
@@ -1595,7 +1596,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 		}
 
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
-			protectedSettings, err := pluginsdk.ExpandJsonFromString(val.(string))
+			protectedSettings, err := structure.ExpandJsonFromString(val.(string))
 			if err != nil {
 				return nil, false, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
 			}
@@ -1610,7 +1611,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 	return extensionProfile, hasHealthExtension, nil
 }
 
-func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *pluginsdk.ResourceData) ([]map[string]interface{}, error) {
+func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *schema.ResourceData) ([]map[string]interface{}, error) {
 	result := make([]map[string]interface{}, 0)
 	if input == nil || input.Extensions == nil {
 		return result, nil
@@ -1657,7 +1658,7 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 			}
 
 			if props.Settings != nil {
-				extSettingsRaw, err := pluginsdk.FlattenJsonToString(props.Settings.(map[string]interface{}))
+				extSettingsRaw, err := structure.FlattenJsonToString(props.Settings.(map[string]interface{}))
 				if err != nil {
 					return nil, err
 				}

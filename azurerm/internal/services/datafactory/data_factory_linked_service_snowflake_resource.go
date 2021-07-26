@@ -151,7 +151,7 @@ func resourceDataFactoryLinkedServiceSnowflakeCreateUpdate(d *pluginsdk.Resource
 		Description: utils.String(d.Get("description").(string)),
 		SnowflakeLinkedServiceTypeProperties: &datafactory.SnowflakeLinkedServiceTypeProperties{
 			ConnectionString: d.Get("connection_string").(string),
-			Password:         expandAzureKeyVaultSecretReference(password),
+			Password:         expandAzureKeyVaultPassword(password),
 		},
 		Type: datafactory.TypeBasicLinkedServiceTypeSnowflake,
 	}
@@ -255,7 +255,7 @@ func resourceDataFactoryLinkedServiceSnowflakeRead(d *pluginsdk.ResourceData, me
 
 		if password := properties.Password; password != nil {
 			if keyVaultPassword, ok := password.AsAzureKeyVaultSecretReference(); ok {
-				if err := d.Set("key_vault_password", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
+				if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(keyVaultPassword)); err != nil {
 					return fmt.Errorf("setting `key_vault_password`: %+v", err)
 				}
 			}

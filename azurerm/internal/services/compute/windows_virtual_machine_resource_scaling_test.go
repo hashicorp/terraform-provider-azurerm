@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -12,11 +13,11 @@ func TestAccWindowsVirtualMachine_scalingAdditionalCapabilitiesUltraSSD(t *testi
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			// NOTE: this requires a large-ish machine to provision
 			Config: r.scalingAdditionalCapabilitiesUltraSSD(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -30,10 +31,10 @@ func TestAccWindowsVirtualMachine_scalingAvailabilitySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.scalingAvailabilitySet(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -47,10 +48,10 @@ func TestAccWindowsVirtualMachine_scalingDedicatedHost(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.scalingDedicatedHost(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -64,10 +65,10 @@ func TestAccWindowsVirtualMachine_scalingDedicatedHostUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.scalingDedicatedHostInitial(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -76,7 +77,7 @@ func TestAccWindowsVirtualMachine_scalingDedicatedHostUpdate(t *testing.T) {
 		),
 		{
 			Config: r.scalingDedicatedHost(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -85,7 +86,7 @@ func TestAccWindowsVirtualMachine_scalingDedicatedHostUpdate(t *testing.T) {
 		),
 		{
 			Config: r.scalingDedicatedHostUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -94,7 +95,7 @@ func TestAccWindowsVirtualMachine_scalingDedicatedHostUpdate(t *testing.T) {
 		),
 		{
 			Config: r.scalingDedicatedHostRemoved(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -108,62 +109,10 @@ func TestAccWindowsVirtualMachine_scalingProximityPlacementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.scalingProximityPlacementGroup(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"admin_password",
-		),
-	})
-}
-
-func TestAccWindowsVirtualMachine_scalingProximityPlacementGroupUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
-	r := WindowsVirtualMachineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.scalingProximityPlacementGroup(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"admin_password",
-		),
-		{
-			Config: r.scalingProximityPlacementGroupUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"admin_password",
-		),
-	})
-}
-
-func TestAccWindowsVirtualMachine_scalingProximityPlacementGroupRemoved(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
-	r := WindowsVirtualMachineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.scalingProximityPlacementGroup(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"admin_password",
-		),
-		{
-			Config: r.scalingProximityPlacementGroupRemoved(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -177,10 +126,10 @@ func TestAccWindowsVirtualMachine_scalingMachineSizeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.scalingMachineSize(data, "Standard_F2"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -189,7 +138,7 @@ func TestAccWindowsVirtualMachine_scalingMachineSizeUpdate(t *testing.T) {
 		),
 		{
 			Config: r.scalingMachineSize(data, "Standard_F4"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -198,7 +147,7 @@ func TestAccWindowsVirtualMachine_scalingMachineSizeUpdate(t *testing.T) {
 		),
 		{
 			Config: r.scalingMachineSize(data, "Standard_F4s_v2"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -212,10 +161,10 @@ func TestAccWindowsVirtualMachine_scalingZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.scalingZone(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -499,85 +448,6 @@ resource "azurerm_windows_virtual_machine" "test" {
   admin_username               = "adminuser"
   admin_password               = "P@$$w0rd1234!"
   proximity_placement_group_id = azurerm_proximity_placement_group.test.id
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
-    version   = "latest"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r WindowsVirtualMachineResource) scalingProximityPlacementGroupUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_proximity_placement_group" "test" {
-  name                = "acctestPPG-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_proximity_placement_group" "second" {
-  name                = "acctestPPG2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_windows_virtual_machine" "test" {
-  name                         = local.vm_name
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  size                         = "Standard_F2"
-  admin_username               = "adminuser"
-  admin_password               = "P@$$w0rd1234!"
-  proximity_placement_group_id = azurerm_proximity_placement_group.second.id
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
-    version   = "latest"
-  }
-}
-`, r.template(data), data.RandomInteger, data.RandomInteger)
-}
-
-func (r WindowsVirtualMachineResource) scalingProximityPlacementGroupRemoved(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_proximity_placement_group" "test" {
-  name                = "acctestPPG-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]

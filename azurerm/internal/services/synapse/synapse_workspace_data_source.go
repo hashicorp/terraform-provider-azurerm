@@ -41,29 +41,6 @@ func dataSourceSynapseWorkspace() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -94,9 +71,6 @@ func dataSourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{})
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.WorkspaceProperties; props != nil {
 		d.Set("connectivity_endpoints", utils.FlattenMapStringPtrString(props.ConnectivityEndpoints))
-	}
-	if err := d.Set("identity", flattenArmWorkspaceManagedIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -12,10 +13,10 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.disksDataDiskBasic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -29,10 +30,10 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskCaching(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.disksDataDiskCaching(data, "None"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -41,7 +42,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskCaching(t *testing.T) {
 		),
 		{
 			Config: r.disksDataDiskCaching(data, "ReadOnly"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -50,7 +51,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskCaching(t *testing.T) {
 		),
 		{
 			Config: r.disksDataDiskCaching(data, "ReadWrite"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -64,10 +65,10 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskDiskEncryptionSet(t *test
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.disksDataDisk_diskEncryptionSet(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -81,11 +82,11 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskResizing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			// 30GB
 			Config: r.disksDataDiskResize(data, 30),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -95,7 +96,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskResizing(t *testing.T) {
 		{
 			// 60GB
 			Config: r.disksDataDiskResize(data, 60),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -109,10 +110,10 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.disksDataDiskMultiple(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -126,10 +127,10 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskRemove(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.disksDataDiskBasic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -138,7 +139,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskRemove(t *testing.T) {
 		),
 		{
 			Config: r.authPassword(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -152,11 +153,11 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			// no disks
 			Config: r.authPassword(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -166,7 +167,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T) {
 		{
 			// one disk
 			Config: r.disksDataDiskBasic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -176,7 +177,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T) {
 		{
 			// two disks
 			Config: r.disksDataDiskMultiple(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -186,7 +187,7 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T) {
 		{
 			// no disks
 			Config: r.authPassword(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -200,10 +201,10 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeStandar
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.disksDataDiskStorageAccountType(data, "Standard_LRS"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -217,10 +218,10 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeStandar
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.disksDataDiskStorageAccountType(data, "StandardSSD_LRS"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -234,10 +235,10 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremium
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.disksDataDiskStorageAccountType(data, "Premium_LRS"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -252,10 +253,10 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSS
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	// Are supported in East US 2, SouthEast Asia, and North Europe, in two availability zones per region
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.disksDataDiskStorageAccountTypeUltraSSDLRS(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -270,10 +271,10 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSS
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	// Are supported in East US 2, SouthEast Asia, and North Europe, in two availability zones per region
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPS(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -288,10 +289,10 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSS
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	// Are supported in East US 2, SouthEast Asia, and North Europe, in two availability zones per region
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.disksDataDiskStorageAccountTypeUltraSSDLRSWithMBPS(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -306,10 +307,10 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUltraSS
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	// Are supported in East US 2, SouthEast Asia, and North Europe, in two availability zones per region
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPSAndMBPS(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -323,10 +324,10 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskWriteAcceleratorEnabled(t
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.disksDataDiskWriteAcceleratorEnabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},

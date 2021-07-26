@@ -5,13 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/Azure/azure-sdk-for-go/services/msi/mgmt/2018-11-30/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/migration"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/sdk/managedidentity"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -26,7 +26,7 @@ func resourceArmUserAssignedIdentity() *pluginsdk.Resource {
 		Update: resourceArmUserAssignedIdentityCreateUpdate,
 		Delete: resourceArmUserAssignedIdentityDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := managedidentity.ParseUserAssignedIdentitiesID(id)
+			_, err := parse.UserAssignedIdentityID(id)
 			return err
 		}),
 
@@ -85,28 +85,28 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *pluginsdk.ResourceData, meta
 	location := d.Get("location").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	resourceId := managedidentity.NewUserAssignedIdentitiesID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resourceId := parse.NewUserAssignedIdentityID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.UserAssignedIdentitiesGet(ctx, resourceId)
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing User Assigned Identity %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
+		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_user_assigned_identity", resourceId.ID())
 		}
 	}
 
-	identity := managedidentity.Identity{
-		Name:     utils.String(resourceId.UserAssignedIdentityName),
-		Location: location,
-		Tags:     expandTags(t),
+	identity := msi.Identity{
+		Name:     utils.String(resourceId.Name),
+		Location: utils.String(location),
+		Tags:     tags.Expand(t),
 	}
 
-	if _, err := client.UserAssignedIdentitiesCreateOrUpdate(ctx, resourceId, identity); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.Name, identity); err != nil {
+		return fmt.Errorf("creating/updating User Assigned Identity %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -118,38 +118,39 @@ func resourceArmUserAssignedIdentityRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := managedidentity.ParseUserAssignedIdentitiesID(d.Id())
+	id, err := parse.UserAssignedIdentityID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.UserAssignedIdentitiesGet(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving User Assigned Identity %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.UserAssignedIdentityName)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
-
-		if props := model.Properties; props != nil {
-			d.Set("client_id", props.ClientId)
-			d.Set("principal_id", props.PrincipalId)
-			d.Set("tenant_id", props.TenantId)
+	if props := resp.UserAssignedIdentityProperties; props != nil {
+		if principalId := props.PrincipalID; principalId != nil {
+			d.Set("principal_id", principalId.String())
 		}
 
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
-			return err
+		if clientId := props.ClientID; clientId != nil {
+			d.Set("client_id", clientId.String())
+		}
+
+		if tenantId := props.TenantID; tenantId != nil {
+			d.Set("tenant_id", tenantId.String())
 		}
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmUserAssignedIdentityDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -157,13 +158,13 @@ func resourceArmUserAssignedIdentityDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := managedidentity.ParseUserAssignedIdentitiesID(d.Id())
+	id, err := parse.UserAssignedIdentityID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err = client.UserAssignedIdentitiesDelete(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+		return fmt.Errorf("deleting User Assigned Identity %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

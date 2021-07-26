@@ -27,22 +27,7 @@ func TestAccDataFactoryLinkedServiceDataLakeStorageGen2_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("service_principal_key", "use_managed_identity"),
-	})
-}
-
-func TestAccDataFactoryLinkedServiceDataLakeStorageGen2_accountKeyAuth(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_data_lake_storage_gen2", "test")
-	r := LinkedServiceDataLakeStorageGen2Resource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.accountKeyAuth(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("storage_account_key", "use_managed_identity"),
+		data.ImportStep("service_principal_key"),
 	})
 }
 
@@ -57,7 +42,7 @@ func TestAccDataFactoryLinkedServiceDataLakeStorageGen2_managed_id(t *testing.T)
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("use_managed_identity"),
+		data.ImportStep(),
 	})
 }
 
@@ -86,7 +71,7 @@ func TestAccDataFactoryLinkedServiceDataLakeStorageGen2_update(t *testing.T) {
 				check.That(data.ResourceName).Key("description").HasValue("test description 2"),
 			),
 		},
-		data.ImportStep("service_principal_key", "use_managed_identity"),
+		data.ImportStep("service_principal_key"),
 	})
 }
 
@@ -133,46 +118,10 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
   data_factory_name     = azurerm_data_factory.test.name
   service_principal_id  = data.azurerm_client_config.current.client_id
   service_principal_key = "testkey"
+  tenant                = "11111111-1111-1111-1111-111111111111"
   url                   = "https://test.azure.com"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (LinkedServiceDataLakeStorageGen2Resource) accountKeyAuth(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "testaccsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  is_hns_enabled           = true
-  allow_blob_public_access = true
-}
-
-resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
-  name                = "acctestDataLake%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  url                 = azurerm_storage_account.test.primary_dfs_endpoint
-  storage_account_key = azurerm_storage_account.test.primary_access_key
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
 
 func (LinkedServiceDataLakeStorageGen2Resource) managed_id(data acceptance.TestData) string {

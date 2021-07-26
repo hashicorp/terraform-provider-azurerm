@@ -4,27 +4,27 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func FirewallDataSource() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func FirewallDataSource() *schema.Resource {
+	return &schema.Resource{
 		Read: FirewallDataSourceRead,
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.FirewallName,
 			},
@@ -34,39 +34,39 @@ func FirewallDataSource() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"sku_tier": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"firewall_policy_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"ip_configuration": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"subnet_id": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"public_ip_address_id": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"private_ip_address": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
@@ -74,24 +74,24 @@ func FirewallDataSource() *pluginsdk.Resource {
 			},
 
 			"management_ip_configuration": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"subnet_id": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"public_ip_address_id": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"private_ip_address": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
@@ -99,36 +99,36 @@ func FirewallDataSource() *pluginsdk.Resource {
 			},
 
 			"threat_intel_mode": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"dns_servers": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
 			"virtual_hub": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"virtual_hub_id": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"public_ip_count": {
-							Type:     pluginsdk.TypeInt,
+							Type:     schema.TypeInt,
 							Computed: true,
 						},
 						"public_ip_addresses": {
-							Type:     pluginsdk.TypeList,
+							Type:     schema.TypeList,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"private_ip_address": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
@@ -142,7 +142,7 @@ func FirewallDataSource() *pluginsdk.Resource {
 	}
 }
 
-func FirewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func FirewallDataSourceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

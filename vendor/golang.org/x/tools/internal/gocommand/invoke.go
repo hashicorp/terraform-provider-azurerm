@@ -9,11 +9,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	exec "golang.org/x/sys/execabs"
 	"io"
 	"os"
+	"os/exec"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -134,9 +133,6 @@ type Invocation struct {
 	ModFlag    string
 	ModFile    string
 	Overlay    string
-	// If CleanEnv is set, the invocation will run only with the environment
-	// in Env, not starting with os.Environ.
-	CleanEnv   bool
 	Env        []string
 	WorkingDir string
 	Logf       func(format string, args ...interface{})
@@ -211,10 +207,7 @@ func (i *Invocation) run(ctx context.Context, stdout, stderr io.Writer) error {
 	// The Go stdlib has a special feature where if the cwd and the PWD are the
 	// same node then it trusts the PWD, so by setting it in the env for the child
 	// process we fix up all the paths returned by the go command.
-	if !i.CleanEnv {
-		cmd.Env = os.Environ()
-	}
-	cmd.Env = append(cmd.Env, i.Env...)
+	cmd.Env = append(os.Environ(), i.Env...)
 	if i.WorkingDir != "" {
 		cmd.Env = append(cmd.Env, "PWD="+i.WorkingDir)
 		cmd.Dir = i.WorkingDir
@@ -255,19 +248,10 @@ func runCmdContext(ctx context.Context, cmd *exec.Cmd) error {
 func cmdDebugStr(cmd *exec.Cmd) string {
 	env := make(map[string]string)
 	for _, kv := range cmd.Env {
-		split := strings.SplitN(kv, "=", 2)
+		split := strings.Split(kv, "=")
 		k, v := split[0], split[1]
 		env[k] = v
 	}
 
-	var args []string
-	for _, arg := range cmd.Args {
-		quoted := strconv.Quote(arg)
-		if quoted[1:len(quoted)-1] != arg || strings.Contains(arg, " ") {
-			args = append(args, quoted)
-		} else {
-			args = append(args, arg)
-		}
-	}
-	return fmt.Sprintf("GOROOT=%v GOPATH=%v GO111MODULE=%v GOPROXY=%v PWD=%v %v", env["GOROOT"], env["GOPATH"], env["GO111MODULE"], env["GOPROXY"], env["PWD"], strings.Join(args, " "))
+	return fmt.Sprintf("GOROOT=%v GOPATH=%v GO111MODULE=%v GOPROXY=%v PWD=%v go %v", env["GOROOT"], env["GOPATH"], env["GO111MODULE"], env["GOPROXY"], env["PWD"], cmd.Args)
 }

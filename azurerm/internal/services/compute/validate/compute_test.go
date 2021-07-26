@@ -1,8 +1,9 @@
 package validate
 
 import (
-	"strings"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
 func TestSharedImageGalleryName(t *testing.T) {
@@ -39,11 +40,11 @@ func TestSharedImageGalleryName(t *testing.T) {
 			ShouldError: true,
 		},
 		{
-			Input:       strings.Repeat("a", 79),
+			Input:       acctest.RandString(79),
 			ShouldError: false,
 		},
 		{
-			Input:       strings.Repeat("a", 80),
+			Input:       acctest.RandString(80),
 			ShouldError: true,
 		},
 	}
@@ -98,11 +99,11 @@ func TestSharedImageName(t *testing.T) {
 			ShouldError: false,
 		},
 		{
-			Input:       strings.Repeat("a", 79),
+			Input:       acctest.RandString(79),
 			ShouldError: false,
 		},
 		{
-			Input:       strings.Repeat("a", 80),
+			Input:       acctest.RandString(80),
 			ShouldError: true,
 		},
 	}

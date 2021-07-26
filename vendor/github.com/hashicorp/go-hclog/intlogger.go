@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"regexp"
 	"runtime"
 	"sort"
 	"strconv"
@@ -21,13 +22,9 @@ import (
 	"github.com/fatih/color"
 )
 
-// TimeFormat is the time format to use for plain (non-JSON) output.
-// This is a version of RFC3339 that contains millisecond precision.
+// TimeFormat to use for logging. This is a version of RFC3339 that contains
+// contains millisecond precision
 const TimeFormat = "2006-01-02T15:04:05.000Z0700"
-
-// TimeFormatJSON is the time format to use for JSON output.
-// This is a version of RFC3339 that contains microsecond precision.
-const TimeFormatJSON = "2006-01-02T15:04:05.000000Z07:00"
 
 // errJsonUnsupportedTypeMsg is included in log json entries, if an arg cannot be serialized to json
 const errJsonUnsupportedTypeMsg = "logging contained values that don't serialize to json"
@@ -56,11 +53,10 @@ var _ Logger = &intLogger{}
 // intLogger is an internal logger implementation. Internal in that it is
 // defined entirely by this package.
 type intLogger struct {
-	json         bool
-	callerOffset int
-	name         string
-	timeFormat   string
-	disableTime  bool
+	json       bool
+	caller     bool
+	name       string
+	timeFormat string
 
 	// This is an interface so that it's shared by any derived loggers, since
 	// those derived loggers share the bufio.Writer as well.
@@ -71,9 +67,6 @@ type intLogger struct {
 	implied []interface{}
 
 	exclude func(level Level, msg string, args ...interface{}) bool
-
-	// create subloggers with their own level setting
-	independentLevels bool
 }
 
 // New returns a configured logger.
@@ -84,12 +77,7 @@ func New(opts *LoggerOptions) Logger {
 // NewSinkAdapter returns a SinkAdapter with configured settings
 // defined by LoggerOptions
 func NewSinkAdapter(opts *LoggerOptions) SinkAdapter {
-	l := newLogger(opts)
-	if l.callerOffset > 0 {
-		// extra frames for interceptLogger.{Warn,Info,Log,etc...}, and SinkAdapter.Accept
-		l.callerOffset += 2
-	}
-	return l
+	return newLogger(opts)
 }
 
 func newLogger(opts *LoggerOptions) *intLogger {
@@ -113,37 +101,28 @@ func newLogger(opts *LoggerOptions) *intLogger {
 	}
 
 	l := &intLogger{
-		json:              opts.JSONFormat,
-		name:              opts.Name,
-		timeFormat:        TimeFormat,
-		disableTime:       opts.DisableTime,
-		mutex:             mutex,
-		writer:            newWriter(output, opts.Color),
-		level:             new(int32),
-		exclude:           opts.Exclude,
-		independentLevels: opts.IndependentLevels,
-	}
-	if opts.IncludeLocation {
-		l.callerOffset = offsetIntLogger + opts.AdditionalLocationOffset
-	}
-
-	if l.json {
-		l.timeFormat = TimeFormatJSON
-	}
-	if opts.TimeFormat != "" {
-		l.timeFormat = opts.TimeFormat
+		json:       opts.JSONFormat,
+		caller:     opts.IncludeLocation,
+		name:       opts.Name,
+		timeFormat: TimeFormat,
+		mutex:      mutex,
+		writer:     newWriter(output, opts.Color),
+		level:      new(int32),
+		exclude:    opts.Exclude,
 	}
 
 	l.setColorization(opts)
+
+	if opts.DisableTime {
+		l.timeFormat = ""
+	} else if opts.TimeFormat != "" {
+		l.timeFormat = opts.TimeFormat
+	}
 
 	atomic.StoreInt32(l.level, int32(level))
 
 	return l
 }
-
-// offsetIntLogger is the stack frame offset in the call stack for the caller to
-// one of the Warn,Info,Log,etc methods.
-const offsetIntLogger = 3
 
 // Log a message and a set of key/value pairs if the given level is at
 // or more severe that the threshold configured in the Logger.
@@ -199,10 +178,11 @@ func trimCallerPath(path string) string {
 	return path[idx+1:]
 }
 
+var logImplFile = regexp.MustCompile(`.+intlogger.go|.+interceptlogger.go$`)
+
 // Non-JSON logging format function
 func (l *intLogger) logPlain(t time.Time, name string, level Level, msg string, args ...interface{}) {
-
-	if !l.disableTime {
+	if len(l.timeFormat) > 0 {
 		l.writer.WriteString(t.Format(l.timeFormat))
 		l.writer.WriteByte(' ')
 	}
@@ -214,8 +194,18 @@ func (l *intLogger) logPlain(t time.Time, name string, level Level, msg string, 
 		l.writer.WriteString("[?????]")
 	}
 
-	if l.callerOffset > 0 {
-		if _, file, line, ok := runtime.Caller(l.callerOffset); ok {
+	offset := 3
+	if l.caller {
+		// Check if the caller is inside our package and inside
+		// a logger implementation file
+		if _, file, _, ok := runtime.Caller(3); ok {
+			match := logImplFile.MatchString(file)
+			if match {
+				offset = 4
+			}
+		}
+
+		if _, file, line, ok := runtime.Caller(offset); ok {
 			l.writer.WriteByte(' ')
 			l.writer.WriteString(trimCallerPath(file))
 			l.writer.WriteByte(':')
@@ -261,9 +251,6 @@ func (l *intLogger) logPlain(t time.Time, name string, level Level, msg string, 
 			switch st := args[i+1].(type) {
 			case string:
 				val = st
-				if st == "" {
-					val = `""`
-				}
 			case int:
 				val = strconv.FormatInt(int64(st), 10)
 			case int64:
@@ -305,32 +292,20 @@ func (l *intLogger) logPlain(t time.Time, name string, level Level, msg string, 
 				}
 			}
 
-			var key string
-
+			l.writer.WriteByte(' ')
 			switch st := args[i].(type) {
 			case string:
-				key = st
+				l.writer.WriteString(st)
 			default:
-				key = fmt.Sprintf("%s", st)
+				l.writer.WriteString(fmt.Sprintf("%s", st))
 			}
+			l.writer.WriteByte('=')
 
-			if strings.Contains(val, "\n") {
-				l.writer.WriteString("\n  ")
-				l.writer.WriteString(key)
-				l.writer.WriteString("=\n")
-				writeIndent(l.writer, val, "  | ")
-				l.writer.WriteString("  ")
-			} else if !raw && strings.ContainsAny(val, " \t") {
-				l.writer.WriteByte(' ')
-				l.writer.WriteString(key)
-				l.writer.WriteByte('=')
+			if !raw && strings.ContainsAny(val, " \t\n\r") {
 				l.writer.WriteByte('"')
 				l.writer.WriteString(val)
 				l.writer.WriteByte('"')
 			} else {
-				l.writer.WriteByte(' ')
-				l.writer.WriteString(key)
-				l.writer.WriteByte('=')
 				l.writer.WriteString(val)
 			}
 		}
@@ -340,26 +315,6 @@ func (l *intLogger) logPlain(t time.Time, name string, level Level, msg string, 
 
 	if stacktrace != "" {
 		l.writer.WriteString(string(stacktrace))
-		l.writer.WriteString("\n")
-	}
-}
-
-func writeIndent(w *writer, str string, indent string) {
-	for {
-		nl := strings.IndexByte(str, "\n"[0])
-		if nl == -1 {
-			if str != "" {
-				w.WriteString(indent)
-				w.WriteString(str)
-				w.WriteString("\n")
-			}
-			return
-		}
-
-		w.WriteString(indent)
-		w.WriteString(str[:nl])
-		w.WriteString("\n")
-		str = str[nl+1:]
 	}
 }
 
@@ -379,19 +334,22 @@ func (l *intLogger) renderSlice(v reflect.Value) string {
 
 		switch sv.Kind() {
 		case reflect.String:
-			val = strconv.Quote(sv.String())
+			val = sv.String()
 		case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64:
 			val = strconv.FormatInt(sv.Int(), 10)
 		case reflect.Uint, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 			val = strconv.FormatUint(sv.Uint(), 10)
 		default:
 			val = fmt.Sprintf("%v", sv.Interface())
-			if strings.ContainsAny(val, " \t\n\r") {
-				val = strconv.Quote(val)
-			}
 		}
 
-		buf.WriteString(val)
+		if strings.ContainsAny(val, " \t\n\r") {
+			buf.WriteByte('"')
+			buf.WriteString(val)
+			buf.WriteByte('"')
+		} else {
+			buf.WriteString(val)
+		}
 	}
 
 	buf.WriteRune(']')
@@ -457,10 +415,8 @@ func (l *intLogger) logJSON(t time.Time, name string, level Level, msg string, a
 
 func (l intLogger) jsonMapEntry(t time.Time, name string, level Level, msg string) map[string]interface{} {
 	vals := map[string]interface{}{
-		"@message": msg,
-	}
-	if !l.disableTime {
-		vals["@timestamp"] = t.Format(l.timeFormat)
+		"@message":   msg,
+		"@timestamp": t.Format("2006-01-02T15:04:05.000000Z07:00"),
 	}
 
 	var levelStr string
@@ -485,8 +441,8 @@ func (l intLogger) jsonMapEntry(t time.Time, name string, level Level, msg strin
 		vals["@module"] = name
 	}
 
-	if l.callerOffset > 0 {
-		if _, file, line, ok := runtime.Caller(l.callerOffset + 1); ok {
+	if l.caller {
+		if _, file, line, ok := runtime.Caller(4); ok {
 			vals["@caller"] = fmt.Sprintf("%s:%d", file, line)
 		}
 	}
@@ -561,7 +517,7 @@ func (l *intLogger) With(args ...interface{}) Logger {
 		args = args[:len(args)-1]
 	}
 
-	sl := l.copy()
+	sl := *l
 
 	result := make(map[string]interface{}, len(l.implied)+len(args))
 	keys := make([]string, 0, len(l.implied)+len(args))
@@ -595,13 +551,13 @@ func (l *intLogger) With(args ...interface{}) Logger {
 		sl.implied = append(sl.implied, MissingKey, extra)
 	}
 
-	return sl
+	return &sl
 }
 
 // Create a new sub-Logger that a name decending from the current name.
 // This is used to create a subsystem specific Logger.
 func (l *intLogger) Named(name string) Logger {
-	sl := l.copy()
+	sl := *l
 
 	if sl.name != "" {
 		sl.name = sl.name + "." + name
@@ -609,18 +565,18 @@ func (l *intLogger) Named(name string) Logger {
 		sl.name = name
 	}
 
-	return sl
+	return &sl
 }
 
 // Create a new sub-Logger with an explicit name. This ignores the current
 // name. This is used to create a standalone logger that doesn't fall
 // within the normal hierarchy.
 func (l *intLogger) ResetNamed(name string) Logger {
-	sl := l.copy()
+	sl := *l
 
 	sl.name = name
 
-	return sl
+	return &sl
 }
 
 func (l *intLogger) ResetOutput(opts *LoggerOptions) error {
@@ -676,15 +632,8 @@ func (l *intLogger) StandardLogger(opts *StandardLoggerOptions) *log.Logger {
 }
 
 func (l *intLogger) StandardWriter(opts *StandardLoggerOptions) io.Writer {
-	newLog := *l
-	if l.callerOffset > 0 {
-		// the stack is
-		// logger.printf() -> l.Output() ->l.out.writer(hclog:stdlogAdaptor.write) -> hclog:stdlogAdaptor.dispatch()
-		// So plus 4.
-		newLog.callerOffset = l.callerOffset + 4
-	}
 	return &stdlogAdapter{
-		log:         &newLog,
+		log:         l,
 		inferLevels: opts.InferLevels,
 		forceLevel:  opts.ForceLevel,
 	}
@@ -713,17 +662,4 @@ func (i *intLogger) ImpliedArgs() []interface{} {
 // Name returns the loggers name
 func (i *intLogger) Name() string {
 	return i.name
-}
-
-// copy returns a shallow copy of the intLogger, replacing the level pointer
-// when necessary
-func (l *intLogger) copy() *intLogger {
-	sl := *l
-
-	if l.independentLevels {
-		sl.level = new(int32)
-		*sl.level = *l.level
-	}
-
-	return &sl
 }

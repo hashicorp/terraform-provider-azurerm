@@ -58,12 +58,6 @@ type Operation struct {
 	Display *OperationDisplay `json:"display,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for Operation.
-func (o Operation) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // OperationDisplay the object that represents the operation.
 type OperationDisplay struct {
 	// Provider - Service provider: Microsoft.ManagedServices
@@ -81,12 +75,6 @@ type OperationList struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of Microsoft.ManagedServices operations.
 	Value *[]Operation `json:"value,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for OperationList.
-func (ol OperationList) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // Plan plan details for the managed services.
@@ -130,12 +118,6 @@ type RegistrationAssignmentList struct {
 	Value *[]RegistrationAssignment `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to next page of registration assignments.
 	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for RegistrationAssignmentList.
-func (ral RegistrationAssignmentList) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // RegistrationAssignmentListIterator provides access to a complete listing of RegistrationAssignment
@@ -470,12 +452,6 @@ type RegistrationDefinitionList struct {
 	Value *[]RegistrationDefinition `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to next page of registration definitions.
 	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for RegistrationDefinitionList.
-func (rdl RegistrationDefinitionList) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // RegistrationDefinitionListIterator provides access to a complete listing of RegistrationDefinition

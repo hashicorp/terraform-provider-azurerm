@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -18,10 +19,10 @@ func TestAccDataSourceDiskAccess_basic(t *testing.T) {
 	name := fmt.Sprintf("acctestdiskaccess-%d", data.RandomInteger)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: r.basic(data, name, resourceGroupName),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(name),
 				check.That(data.ResourceName).Key("resource_group_name").HasValue(resourceGroupName),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),

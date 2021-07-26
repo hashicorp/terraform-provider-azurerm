@@ -112,7 +112,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 
 	updateWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(pluginsdk.TimeoutUpdate), clusterId.ResourceGroup, clusterId.ClusterName)
 
-	if _, err := updateWait.WaitForStateContext(ctx); err != nil {
+	if _, err := updateWait.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", clusterId.ClusterName, clusterId.ResourceGroup, err)
 	}
 
@@ -196,7 +196,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceDa
 
 	deleteWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(pluginsdk.TimeoutDelete), clusterId.ResourceGroup, clusterId.ClusterName)
 
-	if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
+	if _, err := deleteWait.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", clusterId.ClusterName, clusterId.ResourceGroup, err)
 	}
 

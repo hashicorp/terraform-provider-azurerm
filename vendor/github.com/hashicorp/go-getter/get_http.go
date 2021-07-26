@@ -2,7 +2,6 @@ package getter
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -12,7 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hashicorp/go-cleanhttp"
 	safetemp "github.com/hashicorp/go-safetemp"
 )
 
@@ -76,11 +74,6 @@ func (g *HttpGetter) Get(dst string, u *url.URL) error {
 
 	if g.Client == nil {
 		g.Client = httpClient
-		if g.client != nil && g.client.Insecure {
-			insecureTransport := cleanhttp.DefaultTransport()
-			insecureTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-			g.Client.Transport = insecureTransport
-		}
 	}
 
 	// Add terraform-get to the parameter.
@@ -89,7 +82,7 @@ func (g *HttpGetter) Get(dst string, u *url.URL) error {
 	u.RawQuery = q.Encode()
 
 	// Get the URL
-	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return err
 	}
@@ -164,11 +157,6 @@ func (g *HttpGetter) GetFile(dst string, src *url.URL) error {
 
 	if g.Client == nil {
 		g.Client = httpClient
-		if g.client != nil && g.client.Insecure {
-			insecureTransport := cleanhttp.DefaultTransport()
-			insecureTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-			g.Client.Transport = insecureTransport
-		}
 	}
 
 	var currentFileSize int64
@@ -176,7 +164,7 @@ func (g *HttpGetter) GetFile(dst string, src *url.URL) error {
 	// We first make a HEAD request so we can check
 	// if the server supports range queries. If the server/URL doesn't
 	// support HEAD requests, we just fall back to GET.
-	req, err := http.NewRequestWithContext(ctx, "HEAD", src.String(), nil)
+	req, err := http.NewRequest("HEAD", src.String(), nil)
 	if err != nil {
 		return err
 	}
@@ -203,7 +191,7 @@ func (g *HttpGetter) GetFile(dst string, src *url.URL) error {
 		}
 	}
 
-	req, err = http.NewRequestWithContext(ctx, "GET", src.String(), nil)
+	req, err = http.NewRequest("GET", src.String(), nil)
 	if err != nil {
 		return err
 	}

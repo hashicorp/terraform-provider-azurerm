@@ -5,100 +5,103 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 // schema
-func expandEventHubAuthorizationRuleRights(d *pluginsdk.ResourceData) []string {
-	rights := make([]string, 0)
+func expandEventHubAuthorizationRuleRights(d *schema.ResourceData) *[]eventhub.AccessRights {
+	rights := make([]eventhub.AccessRights, 0)
 
 	if d.Get("listen").(bool) {
-		rights = append(rights, "Listen")
+		rights = append(rights, eventhub.Listen)
 	}
 
 	if d.Get("send").(bool) {
-		rights = append(rights, "Send")
+		rights = append(rights, eventhub.SendEnumValue)
 	}
 
 	if d.Get("manage").(bool) {
-		rights = append(rights, "Manage")
+		rights = append(rights, eventhub.Manage)
 	}
 
-	return rights
+	return &rights
 }
 
-func flattenEventHubAuthorizationRuleRights(rights []string) (listen, send, manage bool) {
+func flattenEventHubAuthorizationRuleRights(rights *[]eventhub.AccessRights) (listen, send, manage bool) {
 	// zero (initial) value for a bool in go is false
 
-	for _, right := range rights {
-		switch right {
-		case "Listen":
-			listen = true
-		case "Send":
-			send = true
-		case "Manage":
-			manage = true
-		default:
-			log.Printf("[DEBUG] Unknown Authorization Rule Right '%s'", right)
+	if rights != nil {
+		for _, right := range *rights {
+			switch right {
+			case eventhub.Listen:
+				listen = true
+			case eventhub.SendEnumValue:
+				send = true
+			case eventhub.Manage:
+				manage = true
+			default:
+				log.Printf("[DEBUG] Unknown Authorization Rule Right '%s'", right)
+			}
 		}
 	}
 
 	return listen, send, manage
 }
 
-func eventHubAuthorizationRuleSchemaFrom(s map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
-	authSchema := map[string]*pluginsdk.Schema{
+func eventHubAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string]*schema.Schema {
+	authSchema := map[string]*schema.Schema{
 		"listen": {
-			Type:     pluginsdk.TypeBool,
+			Type:     schema.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
 
 		"manage": {
-			Type:     pluginsdk.TypeBool,
+			Type:     schema.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
 
 		"primary_connection_string": {
-			Type:      pluginsdk.TypeString,
+			Type:      schema.TypeString,
 			Computed:  true,
 			Sensitive: true,
 		},
 
 		"primary_connection_string_alias": {
-			Type:      pluginsdk.TypeString,
+			Type:      schema.TypeString,
 			Computed:  true,
 			Sensitive: true,
 		},
 
 		"primary_key": {
-			Type:      pluginsdk.TypeString,
+			Type:      schema.TypeString,
 			Computed:  true,
 			Sensitive: true,
 		},
 
 		"secondary_connection_string": {
-			Type:      pluginsdk.TypeString,
+			Type:      schema.TypeString,
 			Computed:  true,
 			Sensitive: true,
 		},
 
 		"secondary_connection_string_alias": {
-			Type:      pluginsdk.TypeString,
+			Type:      schema.TypeString,
 			Computed:  true,
 			Sensitive: true,
 		},
 
 		"secondary_key": {
-			Type:      pluginsdk.TypeString,
+			Type:      schema.TypeString,
 			Computed:  true,
 			Sensitive: true,
 		},
 
 		"send": {
-			Type:     pluginsdk.TypeBool,
+			Type:     schema.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
@@ -106,7 +109,7 @@ func eventHubAuthorizationRuleSchemaFrom(s map[string]*pluginsdk.Schema) map[str
 	return azure.MergeSchema(s, authSchema)
 }
 
-func eventHubAuthorizationRuleCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+func eventHubAuthorizationRuleCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	listen, hasListen := d.GetOk("listen")
 	send, hasSend := d.GetOk("send")
 	manage, hasManage := d.GetOk("manage")

@@ -6,7 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,15 +18,14 @@ import (
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var azureFirewallResourceName = "azurerm_firewall"
 
-func resourceFirewall() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceFirewall() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceFirewallCreateUpdate,
 		Read:   resourceFirewallRead,
 		Update: resourceFirewallCreateUpdate,
@@ -32,16 +33,16 @@ func resourceFirewall() *pluginsdk.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(90 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(90 * time.Minute),
+			Delete: schema.DefaultTimeout(90 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.FirewallName,
@@ -53,57 +54,57 @@ func resourceFirewall() *pluginsdk.Resource {
 
 			// TODO 3.0: change this to required
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.AzureFirewallSkuNameAZFWHub),
-					string(network.AzureFirewallSkuNameAZFWVNet),
+					string(network.AZFWHub),
+					string(network.AZFWVNet),
 				}, false),
 			},
 
 			// TODO 3.0: change this to required
 			"sku_tier": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.AzureFirewallSkuTierPremium),
-					string(network.AzureFirewallSkuTierStandard),
+					string(network.Premium),
+					string(network.Standard),
 				}, false),
 			},
 
 			"firewall_policy_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.FirewallPolicyID,
 			},
 
 			"ip_configuration": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"subnet_id": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validate.FirewallSubnetName,
 						},
 						"public_ip_address_id": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: networkValidate.PublicIpAddressID,
 						},
 						"private_ip_address": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
@@ -111,30 +112,30 @@ func resourceFirewall() *pluginsdk.Resource {
 			},
 
 			"management_ip_configuration": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"subnet_id": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: validate.FirewallManagementSubnetName,
 						},
 						"public_ip_address_id": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: networkValidate.PublicIpAddressID,
 						},
 						"private_ip_address": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
@@ -142,7 +143,7 @@ func resourceFirewall() *pluginsdk.Resource {
 			},
 
 			"threat_intel_mode": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				Default:  string(network.AzureFirewallThreatIntelModeAlert),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -156,21 +157,21 @@ func resourceFirewall() *pluginsdk.Resource {
 			},
 
 			"dns_servers": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
 				MinItems: 1,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
 					ValidateFunc: validation.IsIPAddress,
 				},
 			},
 
 			"private_ip_ranges": {
-				Type:     pluginsdk.TypeSet,
+				Type:     schema.TypeSet,
 				Optional: true,
 				MinItems: 1,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 					ValidateFunc: validation.Any(
 						validation.IsCIDR,
 						validation.StringInSlice([]string{"IANAPrivateRanges"}, false),
@@ -179,29 +180,29 @@ func resourceFirewall() *pluginsdk.Resource {
 			},
 
 			"virtual_hub": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"virtual_hub_id": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: networkValidate.VirtualHubID,
 						},
 						"public_ip_count": {
-							Type:         pluginsdk.TypeInt,
+							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 							Default:      1,
 						},
 						"public_ip_addresses": {
-							Type:     pluginsdk.TypeList,
+							Type:     schema.TypeList,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"private_ip_address": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
@@ -215,7 +216,7 @@ func resourceFirewall() *pluginsdk.Resource {
 	}
 }
 
-func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -317,7 +318,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if privateIpRangeSetting := expandFirewallPrivateIpRange(d.Get("private_ip_ranges").(*pluginsdk.Set).List()); privateIpRangeSetting != nil {
+	if privateIpRangeSetting := expandFirewallPrivateIpRange(d.Get("private_ip_ranges").(*schema.Set).List()); privateIpRangeSetting != nil {
 		for k, v := range privateIpRangeSetting {
 			parameters.AdditionalProperties[k] = v
 		}
@@ -372,7 +373,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceFirewallRead(d, meta)
 }
 
-func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -446,7 +447,7 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, read.Tags)
 }
 
-func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

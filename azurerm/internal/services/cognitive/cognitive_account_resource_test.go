@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -48,23 +47,6 @@ func TestAccCognitiveAccount_speechServices(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("SpeechServices"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-				check.That(data.ResourceName).Key("primary_access_key").Exists(),
-				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccCognitiveAccount_speechServicesWithStorage(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
-	r := CognitiveAccountResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.speechServicesWithStorage(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
 			),
@@ -214,28 +196,6 @@ func TestAccCognitiveAccount_withMultipleCognitiveAccounts(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAccount_networkAclsVirtualNetworkRules(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
-	r := CognitiveAccountResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.networkAclsVirtualNetworkRules(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.networkAclsVirtualNetworkRulesUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccCognitiveAccount_networkAcls(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
@@ -258,68 +218,13 @@ func TestAccCognitiveAccount_networkAcls(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAccount_identity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
-	r := CognitiveAccountResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.identitySystemAssignedUserAssigned(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").MatchesRegex(validate.UUIDRegExp),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.identityUserAssigned(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.identitySystemAssigned(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").MatchesRegex(validate.UUIDRegExp),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccCognitiveAccount_metricsAdvisor(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
-	r := CognitiveAccountResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.metricsAdvisor(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (t CognitiveAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cognitive.AccountsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Cognitive.AccountsClient.GetProperties(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Cognitive Services Account %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
 	}
@@ -348,96 +253,6 @@ resource "azurerm_cognitive_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (CognitiveAccountResource) identitySystemAssigned(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cognitive-%d"
-  location = "%s"
-}
-
-resource "azurerm_cognitive_account" "test" {
-  name                = "acctestcogacc-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "Face"
-  sku_name            = "S0"
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (CognitiveAccountResource) identityUserAssigned(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cognitive-%d"
-  location = "%s"
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_cognitive_account" "test" {
-  name                = "acctestcogacc-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "Face"
-  sku_name            = "S0"
-  identity {
-    type = "UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id,
-    ]
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (CognitiveAccountResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cognitive-%d"
-  location = "%s"
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_cognitive_account" "test" {
-  name                = "acctestcogacc-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "Face"
-  sku_name            = "S0"
-  identity {
-    type = "SystemAssigned, UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id,
-    ]
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
 func (CognitiveAccountResource) speechServices(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -456,52 +271,7 @@ resource "azurerm_cognitive_account" "test" {
   kind                = "SpeechServices"
   sku_name            = "S0"
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
-}
-
-func (CognitiveAccountResource) speechServicesWithStorage(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cognitive-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "acctestrg%d"
-  resource_group_name = azurerm_resource_group.test.name
-
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest-identity-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_cognitive_account" "test" {
-  name                = "acctestcogacc-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "SpeechServices"
-  sku_name            = "S0"
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  storage {
-    storage_account_id = azurerm_storage_account.test.id
-    identity_client_id = azurerm_user_assigned_identity.test.client_id
-  }
-}
-`, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (CognitiveAccountResource) requiresImport(data acceptance.TestData) string {
@@ -537,11 +307,6 @@ resource "azurerm_cognitive_account" "test" {
   kind                = "Face"
   sku_name            = "S0"
 
-  fqdns                             = ["foo.com", "bar.com"]
-  public_network_access_enabled     = false
-  outbound_network_access_restrited = true
-  local_auth_enabled                = false
-
   tags = {
     Acceptance = "Test"
   }
@@ -568,7 +333,7 @@ resource "azurerm_cognitive_account" "test" {
   qna_runtime_endpoint = "%s"
   sku_name             = "S0"
 }
-`, data.RandomInteger, "West US", data.RandomInteger, url) // QnAMaker only available in West US
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, url)
 }
 
 func (CognitiveAccountResource) qnaRuntimeEndpointUnspecified(data acceptance.TestData) string {
@@ -589,7 +354,7 @@ resource "azurerm_cognitive_account" "test" {
   kind                = "QnAMaker"
   sku_name            = "S0"
 }
-`, data.RandomInteger, "West US", data.RandomInteger) // QnAMaker only available in West US
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (CognitiveAccountResource) cognitiveServices(data acceptance.TestData) string {
@@ -611,30 +376,6 @@ resource "azurerm_cognitive_account" "test" {
   sku_name            = "S0"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (CognitiveAccountResource) metricsAdvisor(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cognitive-%d"
-  location = "%s"
-}
-resource "azurerm_cognitive_account" "test" {
-  name                            = "acctestcogacc-%d"
-  location                        = azurerm_resource_group.test.location
-  resource_group_name             = azurerm_resource_group.test.name
-  kind                            = "MetricsAdvisor"
-  sku_name                        = "S0"
-  custom_subdomain_name           = "acctestcogacc-%d"
-  metrics_advisor_aad_client_id   = "310d7b2e-d1d1-4b87-9807-5b885b290c00"
-  metrics_advisor_aad_tenant_id   = "72f988bf-86f1-41af-91ab-2d7cd011db47"
-  metrics_advisor_super_user_name = "mock_user1"
-  metrics_advisor_website_name    = "mock_name2"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (CognitiveAccountResource) withMultipleCognitiveAccounts(data acceptance.TestData) string {
@@ -701,56 +442,6 @@ resource "azurerm_cognitive_account" "test" {
     default_action             = "Allow"
     ip_rules                   = ["123.0.0.101"]
     virtual_network_subnet_ids = [azurerm_subnet.test_a.id]
-  }
-}
-`, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)
-}
-
-func (r CognitiveAccountResource) networkAclsVirtualNetworkRules(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_cognitive_account" "test" {
-  name                  = "acctestcogacc-%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  kind                  = "Face"
-  sku_name              = "S0"
-  custom_subdomain_name = "acctestcogacc-%d"
-
-  network_acls {
-    default_action = "Deny"
-    virtual_network_rules {
-      subnet_id = azurerm_subnet.test_a.id
-    }
-    virtual_network_rules {
-      subnet_id                            = azurerm_subnet.test_b.id
-      ignore_missing_vnet_service_endpoint = true
-    }
-
-  }
-}
-`, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)
-}
-
-func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesUpdated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-resource "azurerm_cognitive_account" "test" {
-  name                  = "acctestcogacc-%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  kind                  = "Face"
-  sku_name              = "S0"
-  custom_subdomain_name = "acctestcogacc-%d"
-
-  network_acls {
-    default_action = "Allow"
-    ip_rules       = ["123.0.0.101"]
-    virtual_network_rules {
-      subnet_id                            = azurerm_subnet.test_a.id
-      ignore_missing_vnet_service_endpoint = true
-    }
   }
 }
 `, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)

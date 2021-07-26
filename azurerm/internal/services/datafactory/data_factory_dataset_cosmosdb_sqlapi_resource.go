@@ -41,7 +41,6 @@ func resourceDataFactoryDatasetCosmosDbSQLAPI() *pluginsdk.Resource {
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
-			// TODO: replace with `data_factory_id` in 3.0
 			"data_factory_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,

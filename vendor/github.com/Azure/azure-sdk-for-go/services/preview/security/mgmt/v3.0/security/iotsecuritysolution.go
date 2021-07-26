@@ -106,7 +106,6 @@ func (client IotSecuritySolutionClient) CreateOrUpdatePreparer(ctx context.Conte
 	iotSecuritySolutionData.ID = nil
 	iotSecuritySolutionData.Name = nil
 	iotSecuritySolutionData.Type = nil
-	iotSecuritySolutionData.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),

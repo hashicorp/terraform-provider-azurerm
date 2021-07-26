@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -135,21 +134,24 @@ func dataSourceDataFactory() *pluginsdk.Resource {
 
 func dataSourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.FactoriesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDataFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, "")
+	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("%s was not found", id)
+			return fmt.Errorf("Error Data Factory %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
 
-	d.SetId(id.ID())
+		return fmt.Errorf("Error retrieving Data Factory %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("API returns a nil/empty id on Data Factory %q (resource group %q): %+v", name, resourceGroup, err)
+	}
+	d.SetId(*resp.ID)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))

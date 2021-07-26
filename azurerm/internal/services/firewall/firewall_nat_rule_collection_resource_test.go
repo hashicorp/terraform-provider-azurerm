@@ -6,12 +6,13 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +23,10 @@ func TestAccFirewallNatRuleCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
 	r := FirewallNatRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,10 +38,10 @@ func TestAccFirewallNatRuleCollection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
 	r := FirewallNatRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -55,17 +56,17 @@ func TestAccFirewallNatRuleCollection_updatedName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
 	r := FirewallNatRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.updatedName(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -78,17 +79,17 @@ func TestAccFirewallNatRuleCollection_multipleRuleCollections(t *testing.T) {
 	data2 := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test_add")
 	r := FirewallNatRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.multiple(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).ExistsInAzure(r),
 			),
@@ -96,7 +97,7 @@ func TestAccFirewallNatRuleCollection_multipleRuleCollections(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -109,10 +110,10 @@ func TestAccFirewallNatRuleCollection_update(t *testing.T) {
 	r := FirewallNatRuleCollectionResource{}
 	secondResourceName := "azurerm_firewall_nat_rule_collection.test_add"
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.multiple(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 			),
@@ -120,7 +121,7 @@ func TestAccFirewallNatRuleCollection_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.multipleUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 			),
@@ -133,10 +134,10 @@ func TestAccFirewallNatRuleCollection_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
 	r := FirewallNatRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.disappears),
 			),
@@ -149,24 +150,24 @@ func TestAccFirewallNatRuleCollection_multipleRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
 	r := FirewallNatRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.multipleRules(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -178,17 +179,17 @@ func TestAccFirewallNatRuleCollection_updateFirewallTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
 	r := FirewallNatRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.updateFirewallTags(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -200,10 +201,10 @@ func TestAccFirewallNatRuleCollection_ipGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
 	r := FirewallNatRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.ipGroup(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -215,7 +216,7 @@ func TestAccFirewallNatRuleCollection_noSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
 	r := FirewallNatRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config:      r.noSource(data),
 			ExpectError: regexp.MustCompile(fmt.Sprintf("at least one of %q and %q must be specified", "source_addresses", "source_ip_groups")),
@@ -223,7 +224,7 @@ func TestAccFirewallNatRuleCollection_noSource(t *testing.T) {
 	})
 }
 
-func (FirewallNatRuleCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (FirewallNatRuleCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	var id, err = azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -253,7 +254,7 @@ func (FirewallNatRuleCollectionResource) Exists(ctx context.Context, clients *cl
 	return utils.Bool(false), nil
 }
 
-func (t FirewallNatRuleCollectionResource) doesNotExist(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+func (t FirewallNatRuleCollectionResource) doesNotExist(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 	var id, err = azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return err
@@ -274,7 +275,7 @@ func (t FirewallNatRuleCollectionResource) doesNotExist(ctx context.Context, cli
 	return nil
 }
 
-func (t FirewallNatRuleCollectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+func (t FirewallNatRuleCollectionResource) disappears(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 	client := clients.Firewall.AzureFirewallsClient
 	var id, err = azure.ParseAzureResourceID(state.ID)
 	if err != nil {

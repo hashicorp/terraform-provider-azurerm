@@ -7,42 +7,44 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/eventhubsclusters"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceEventHubCluster() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceEventHubCluster() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceEventHubClusterCreateUpdate,
 		Read:   resourceEventHubClusterRead,
 		Update: resourceEventHubClusterCreateUpdate,
 		Delete: resourceEventHubClusterDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := eventhubsclusters.ClusterID(id)
+			_, err := parse.ClusterID(id)
 			return err
 		}),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
 			// You can't delete a cluster until at least 4 hours have passed from the initial creation.
-			Delete: pluginsdk.DefaultTimeout(300 * time.Minute),
+			Delete: schema.DefaultTimeout(300 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubName(),
@@ -53,7 +55,7 @@ func resourceEventHubCluster() *pluginsdk.Resource {
 			"location": azure.SchemaLocation(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -67,109 +69,119 @@ func resourceEventHubCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventHubClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.ClusterClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub Cluster creation.")
 
-	id := eventhubsclusters.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
 	if d.IsNewResource() {
-		existing, err := client.ClustersGet(ctx, id)
+		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing EventHub Cluster %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_eventhub_cluster", id.ID())
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_eventhub_cluster", *existing.ID)
 		}
 	}
 
-	cluster := eventhubsclusters.Cluster{
+	cluster := eventhub.Cluster{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku:      expandEventHubClusterSkuName(d.Get("sku_name").(string)),
 	}
 
-	if err := client.ClustersCreateOrUpdateThenPoll(ctx, id, cluster); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, cluster)
+	if err != nil {
+		return fmt.Errorf("creating EventHub Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if d.IsNewResource() {
-		d.SetId(id.ID())
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation of EventHub Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
+	read, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("making Read request on Azure EventHub Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if read.ID == nil || *read.ID == "" {
+		return fmt.Errorf("cannot read EventHub Cluster %s (Resource Group %s) ID", name, resourceGroup)
+	}
+
+	d.SetId(*read.ID)
 
 	return resourceEventHubClusterRead(d, meta)
 }
 
-func resourceEventHubClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.ClusterClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := eventhubsclusters.ClusterID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
-	resp, err := client.ClustersGet(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("making Read request on Azure EventHub Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
-	if model := resp.Model; model != nil {
-		d.Set("sku_name", flattenEventHubClusterSkuName(model.Sku))
-		d.Set("location", location.NormalizeNilable(model.Location))
-
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+	d.Set("sku_name", flattenEventHubClusterSkuName(resp.Sku))
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := eventhubsclusters.ClusterID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// The EventHub Cluster can't be deleted until four hours after creation so we'll keep retrying until it can be deleted.
-	return pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutDelete), func() *pluginsdk.RetryError {
-		future, err := client.ClustersDelete(ctx, *id)
+	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+		future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			if response.WasNotFound(future.HttpResponse) {
+			if response.WasNotFound(future.Response()) {
 				return nil
 			}
-			if strings.Contains(err.Error(), "Cluster cannot be deleted until four hours after its creation time") || future.HttpResponse.StatusCode == 429 {
-				return pluginsdk.RetryableError(fmt.Errorf("expected eventhub cluster to be deleted but was in pending creation state, retrying"))
+			if strings.Contains(err.Error(), "Cluster cannot be deleted until four hours after its creation time") || future.Response().StatusCode == 429 {
+				return resource.RetryableError(fmt.Errorf("expected eventhub cluster to be deleted but was in pending creation state, retrying"))
 			}
-			return pluginsdk.NonRetryableError(fmt.Errorf("deleting %s: %+v", *id, err))
+			return resource.NonRetryableError(fmt.Errorf("issuing delete request for EventHub Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err))
 		}
 
-		if err := future.Poller.PollUntilDone(); err != nil {
-			if response.WasNotFound(future.Poller.HttpResponse) {
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			if future.Response().StatusCode == 404 {
 				return nil
 			}
-			return pluginsdk.NonRetryableError(fmt.Errorf("deleting %s: %+v", *id, err))
+			return resource.NonRetryableError(fmt.Errorf("deleting EventHub Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err))
 		}
 
 		return nil
-	}) //lintignore:R006
+	})
 }
 
-func expandEventHubClusterSkuName(skuName string) *eventhubsclusters.ClusterSku {
+func expandEventHubClusterSkuName(skuName string) *eventhub.ClusterSku {
 	if len(skuName) == 0 {
 		return nil
 	}
@@ -179,16 +191,16 @@ func expandEventHubClusterSkuName(skuName string) *eventhubsclusters.ClusterSku 
 		return nil
 	}
 
-	return &eventhubsclusters.ClusterSku{
-		Name:     eventhubsclusters.ClusterSkuName(name),
-		Capacity: utils.Int64(int64(capacity)),
+	return &eventhub.ClusterSku{
+		Name:     utils.String(name),
+		Capacity: utils.Int32(capacity),
 	}
 }
 
-func flattenEventHubClusterSkuName(input *eventhubsclusters.ClusterSku) string {
-	if input == nil || input.Capacity == nil {
+func flattenEventHubClusterSkuName(input *eventhub.ClusterSku) string {
+	if input == nil || input.Name == nil {
 		return ""
 	}
 
-	return fmt.Sprintf("%s_%d", string(input.Name), *input.Capacity)
+	return fmt.Sprintf("%s_%d", *input.Name, *input.Capacity)
 }

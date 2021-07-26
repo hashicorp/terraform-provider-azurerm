@@ -205,7 +205,7 @@ func resourceNetAppPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error
 		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for NetApp Pool %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
 	}
 

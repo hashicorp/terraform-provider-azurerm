@@ -135,17 +135,6 @@ func resourceApiManagementApiDiagnosticAdditionalContentSchema() *pluginsdk.Sche
 					},
 					Set: pluginsdk.HashString,
 				},
-				"data_masking": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"query_params": schemaApiManagementDataMaskingEntityList(),
-							"headers":      schemaApiManagementDataMaskingEntityList(),
-						},
-					},
-				},
 			},
 		},
 	}
@@ -340,8 +329,6 @@ func expandApiManagementApiDiagnosticHTTPMessageDiagnostic(input []interface{}) 
 		result.Headers = &headers
 	}
 
-	result.DataMasking = expandApiManagementDataMasking(v["data_masking"].([]interface{}))
-
 	return result
 }
 
@@ -361,105 +348,7 @@ func flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(input *apimanagement
 	if input.Headers != nil {
 		diagnostic["headers_to_log"] = set.FromStringSlice(*input.Headers)
 	}
-
-	diagnostic["data_masking"] = flattenApiManagementDataMasking(input.DataMasking)
-
 	result = append(result, diagnostic)
-
-	return result
-}
-
-func schemaApiManagementDataMaskingEntityList() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"mode": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(apimanagement.Hide),
-						string(apimanagement.Mask),
-					}, false),
-				},
-
-				"value": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-			},
-		},
-	}
-}
-
-func expandApiManagementDataMasking(input []interface{}) *apimanagement.DataMasking {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	inputRaw := input[0].(map[string]interface{})
-	return &apimanagement.DataMasking{
-		QueryParams: expandApiManagementDataMaskingEntityList(inputRaw["query_params"].([]interface{})),
-		Headers:     expandApiManagementDataMaskingEntityList(inputRaw["headers"].([]interface{})),
-	}
-}
-
-func expandApiManagementDataMaskingEntityList(input []interface{}) *[]apimanagement.DataMaskingEntity {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	result := make([]apimanagement.DataMaskingEntity, 0)
-	for _, v := range input {
-		entity := v.(map[string]interface{})
-		result = append(result, apimanagement.DataMaskingEntity{
-			Mode:  apimanagement.DataMaskingMode(entity["mode"].(string)),
-			Value: utils.String(entity["value"].(string)),
-		})
-	}
-	return &result
-}
-
-func flattenApiManagementDataMasking(dataMasking *apimanagement.DataMasking) []interface{} {
-	if dataMasking == nil {
-		return []interface{}{}
-	}
-
-	var queryParams, headers []interface{}
-	if dataMasking.QueryParams != nil {
-		queryParams = flattenApiManagementDataMaskingEntityList(dataMasking.QueryParams)
-	}
-	if dataMasking.Headers != nil {
-		headers = flattenApiManagementDataMaskingEntityList(dataMasking.Headers)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"query_params": queryParams,
-			"headers":      headers,
-		},
-	}
-}
-
-func flattenApiManagementDataMaskingEntityList(dataMaskingList *[]apimanagement.DataMaskingEntity) []interface{} {
-	if dataMaskingList == nil || len(*dataMaskingList) == 0 {
-		return []interface{}{}
-	}
-
-	result := []interface{}{}
-
-	for _, entity := range *dataMaskingList {
-		var value string
-		if entity.Value != nil {
-			value = *entity.Value
-		}
-		result = append(result, map[string]interface{}{
-			"mode":  string(entity.Mode),
-			"value": value,
-		})
-	}
 
 	return result
 }

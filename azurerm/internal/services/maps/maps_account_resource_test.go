@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/sdk/accounts"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -99,17 +99,17 @@ func TestAccMapsAccount_tags(t *testing.T) {
 }
 
 func (MapsAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := accounts.ParseAccountID(state.ID)
+	id, err := parse.AccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Maps.AccountsClient.Get(ctx, *id)
+	resp, err := clients.Maps.AccountsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving Maps Account %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return utils.Bool(resp.Properties != nil), nil
 }
 
 func (MapsAccountResource) basic(data acceptance.TestData) string {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -15,10 +16,10 @@ func TestAccEventHubAuthorizationRuleDataSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_authorization_rule", "test")
 	r := EventHubAuthorizationRuleDataSource{}
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: r.base(data, true, true, true),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("namespace_name").Exists(),
 				check.That(data.ResourceName).Key("eventhub_name").Exists(),
@@ -35,10 +36,10 @@ func TestAccEventHubAuthorizationRuleDataSource_withAliasConnectionString(t *tes
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_authorization_rule", "test")
 	r := EventHubAuthorizationRuleDataSource{}
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: r.withAliasConnectionString(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("primary_connection_string_alias").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string_alias").Exists(),
 			),

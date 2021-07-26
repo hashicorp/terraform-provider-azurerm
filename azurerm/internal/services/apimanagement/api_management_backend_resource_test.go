@@ -144,21 +144,6 @@ func TestAccApiManagementBackend_serviceFabric(t *testing.T) {
 	})
 }
 
-func TestAccApiManagementBackend_serviceFabricClientCertificateId(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.serviceFabricClientCertificateId(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccApiManagementBackend_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
 	r := ApiManagementAuthorizationBackendResource{}
@@ -348,39 +333,6 @@ resource "azurerm_api_management_backend" "test" {
 `, r.template(data, "sf"), data.RandomInteger)
 }
 
-func (r ApiManagementAuthorizationBackendResource) serviceFabricClientCertificateId(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_api_management_certificate" "test" {
-  name                = "example-cert"
-  api_management_name = azurerm_api_management.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  data                = filebase64("testdata/keyvaultcert.pfx")
-  password            = ""
-}
-
-resource "azurerm_api_management_backend" "test" {
-  name                = "acctestapi-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  api_management_name = azurerm_api_management.test.name
-  protocol            = "http"
-  url                 = "fabric:/mytestapp/acctest"
-  service_fabric_cluster {
-    client_certificate_id = azurerm_api_management_certificate.test.id
-    management_endpoints = [
-      "https://acctestsf.com",
-    ]
-    max_partition_resolution_retries = 5
-    server_certificate_thumbprints = [
-      azurerm_api_management_certificate.test.thumbprint,
-      azurerm_api_management_certificate.test.thumbprint,
-    ]
-  }
-}
-`, r.template(data, "sf"), data.RandomInteger)
-}
-
 func (r ApiManagementAuthorizationBackendResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -412,7 +364,7 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Consumption_0"
+  sku_name            = "Developer_1"
 }
 `, data.RandomInteger, testName, data.Locations.Primary, data.RandomInteger, testName)
 }

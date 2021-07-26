@@ -6,13 +6,15 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 type FirewallApplicationRuleCollectionResource struct {
@@ -22,10 +24,10 @@ func TestAccFirewallApplicationRuleCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
 	r := FirewallApplicationRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
@@ -47,10 +49,10 @@ func TestAccFirewallApplicationRuleCollection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
 	r := FirewallApplicationRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -65,10 +67,10 @@ func TestAccFirewallApplicationRuleCollection_updatedName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
 	r := FirewallApplicationRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
@@ -79,7 +81,7 @@ func TestAccFirewallApplicationRuleCollection_updatedName(t *testing.T) {
 		},
 		{
 			Config: r.updatedName(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
@@ -97,10 +99,10 @@ func TestAccFirewallApplicationRuleCollection_multipleRuleCollections(t *testing
 
 	secondRule := "azurerm_firewall_application_rule_collection.test_add"
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
@@ -110,22 +112,22 @@ func TestAccFirewallApplicationRuleCollection_multipleRuleCollections(t *testing
 		},
 		{
 			Config: r.multiple(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
 				check.That(data.ResourceName).Key("action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
 				check.That(secondRule).ExistsInAzure(r),
-				acceptance.TestCheckResourceAttr(secondRule, "name", "acctestarc_add"),
-				acceptance.TestCheckResourceAttr(secondRule, "priority", "200"),
-				acceptance.TestCheckResourceAttr(secondRule, "action", "Deny"),
-				acceptance.TestCheckResourceAttr(secondRule, "rule.#", "1"),
+				resource.TestCheckResourceAttr(secondRule, "name", "acctestarc_add"),
+				resource.TestCheckResourceAttr(secondRule, "priority", "200"),
+				resource.TestCheckResourceAttr(secondRule, "action", "Deny"),
+				resource.TestCheckResourceAttr(secondRule, "rule.#", "1"),
 			),
 		},
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
@@ -141,10 +143,10 @@ func TestAccFirewallApplicationRuleCollection_update(t *testing.T) {
 	r := FirewallApplicationRuleCollectionResource{}
 	secondResourceName := "azurerm_firewall_application_rule_collection.test_add"
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.multiple(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
@@ -159,7 +161,7 @@ func TestAccFirewallApplicationRuleCollection_update(t *testing.T) {
 		},
 		{
 			Config: r.multipleUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("300"),
@@ -179,10 +181,10 @@ func TestAccFirewallApplicationRuleCollection_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
 	r := FirewallApplicationRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
@@ -199,10 +201,10 @@ func TestAccFirewallApplicationRuleCollection_multipleRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
 	r := FirewallApplicationRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
@@ -212,7 +214,7 @@ func TestAccFirewallApplicationRuleCollection_multipleRules(t *testing.T) {
 		},
 		{
 			Config: r.multipleRules(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
@@ -222,7 +224,7 @@ func TestAccFirewallApplicationRuleCollection_multipleRules(t *testing.T) {
 		},
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
@@ -237,10 +239,10 @@ func TestAccFirewallApplicationRuleCollection_multipleProtocols(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
 	r := FirewallApplicationRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.multipleProtocols(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
@@ -261,10 +263,10 @@ func TestAccFirewallApplicationRuleCollection_updateProtocols(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
 	r := FirewallApplicationRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.multipleProtocols(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
@@ -279,7 +281,7 @@ func TestAccFirewallApplicationRuleCollection_updateProtocols(t *testing.T) {
 		},
 		{
 			Config: r.multipleProtocolsUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
@@ -294,7 +296,7 @@ func TestAccFirewallApplicationRuleCollection_updateProtocols(t *testing.T) {
 		},
 		{
 			Config: r.multipleProtocols(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
@@ -314,10 +316,10 @@ func TestAccFirewallApplicationRuleCollection_updateFirewallTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
 	r := FirewallApplicationRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
@@ -328,7 +330,7 @@ func TestAccFirewallApplicationRuleCollection_updateFirewallTags(t *testing.T) {
 		},
 		{
 			Config: r.updateFirewallTags(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("acctestarc"),
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
@@ -344,10 +346,10 @@ func TestAccFirewallApplicationRuleCollection_ipGroups(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
 	r := FirewallApplicationRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.ipGroups(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
 			),
@@ -360,7 +362,7 @@ func TestAccFirewallApplicationRuleCollection_noSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
 	r := FirewallApplicationRuleCollectionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config:      r.noSource(data),
 			ExpectError: regexp.MustCompile(fmt.Sprintf("at least one of %q and %q must be specified", "source_addresses", "source_ip_groups")),
@@ -368,7 +370,7 @@ func TestAccFirewallApplicationRuleCollection_noSource(t *testing.T) {
 	})
 }
 
-func (FirewallApplicationRuleCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (FirewallApplicationRuleCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	var id, err = azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -398,7 +400,7 @@ func (FirewallApplicationRuleCollectionResource) Exists(ctx context.Context, cli
 	return utils.Bool(false), nil
 }
 
-func (t FirewallApplicationRuleCollectionResource) doesNotExist(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+func (t FirewallApplicationRuleCollectionResource) doesNotExist(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 	var id, err = azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return err
@@ -419,7 +421,7 @@ func (t FirewallApplicationRuleCollectionResource) doesNotExist(ctx context.Cont
 	return nil
 }
 
-func (t FirewallApplicationRuleCollectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+func (t FirewallApplicationRuleCollectionResource) disappears(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 	client := clients.Firewall.AzureFirewallsClient
 	var id, err = azure.ParseAzureResourceID(state.ID)
 	if err != nil {

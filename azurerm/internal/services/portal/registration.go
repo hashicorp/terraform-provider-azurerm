@@ -26,7 +26,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_dashboard":                   resourceDashboard(), // TODO 3.0 rename to azurerm_portal_dashboard
-		"azurerm_portal_tenant_configuration": resourcePortalTenantConfiguration(),
+		"azurerm_dashboard": resourceDashboard(),
 	}
 }

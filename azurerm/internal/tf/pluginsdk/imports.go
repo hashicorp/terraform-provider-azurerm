@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 type IDValidationFunc func(id string) error
@@ -19,7 +19,7 @@ func DefaultImporter() *schema.ResourceImporter {
 	// NOTE: we should do a secondary sweep and move things _off_ of this, since all resources
 	// should be validating the Resource ID at import time at this point forwards
 	return &schema.ResourceImporter{
-		StateContext: schema.ImportStatePassthroughContext,
+		State: schema.ImportStatePassthrough,
 	}
 }
 
@@ -36,13 +36,14 @@ func ImporterValidatingResourceId(validateFunc IDValidationFunc) *schema.Resourc
 // using the validateFunc then runs the 'thenFunc', allowing the import to be customised.
 func ImporterValidatingResourceIdThen(validateFunc IDValidationFunc, thenFunc ImporterFunc) *schema.ResourceImporter {
 	return &schema.ResourceImporter{
-		StateContext: func(ctx context.Context, d *ResourceData, meta interface{}) ([]*ResourceData, error) {
+		State: func(d *ResourceData, meta interface{}) ([]*ResourceData, error) {
 			log.Printf("[DEBUG] Importing Resource - parsing %q", d.Id())
 
 			if err := validateFunc(d.Id()); err != nil {
 				return []*ResourceData{d}, fmt.Errorf("parsing Resource ID %q: %+v", d.Id(), err)
 			}
 
+			ctx := context.TODO()
 			return thenFunc(ctx, d, meta)
 		},
 	}

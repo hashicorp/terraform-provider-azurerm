@@ -73,11 +73,7 @@ The following supported arguments are specific to Data Lake Storage Gen2 Linked 
 
 ~> **NOTE** If `service_principal_id` is used, `service_principal_key` is also required.
 
-* `storage_account_key` - (Optional) The Storage Account Key in which to authenticate against the Azure Data Lake Storage Gen2 account.
-
 * `tenant` - (Required) The tenant id or name in which to authenticate against the Azure Data Lake Storage Gen2 account.
-
-~> **NOTE** Users should specify one of the three authentication way: storage account key, service principal, managed identity.
 
 ## Attributes Reference
 

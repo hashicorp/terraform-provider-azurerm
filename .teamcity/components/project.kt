@@ -23,12 +23,12 @@ fun buildConfigurationsForServices(services: Map<String, String>, providerName :
 
     services.forEach { (serviceName, displayName) ->
         // TODO: overriding locations
-        var defaultTestConfig = testConfiguration()
+        var defaultTestConfig = testConfiguration(defaultParallelism, defaultStartHour)
         var testConfig = serviceTestConfigurationOverrides.getOrDefault(serviceName, defaultTestConfig)
         var runNightly = runNightly.getOrDefault(environment, false)
 
         var service = serviceDetails(serviceName, displayName, environment)
-        var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.daysOfWeek, testConfig.daysOfMonth)
+        var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism)
 
         buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsForEnv)
 
@@ -46,9 +46,7 @@ fun pullRequestBuildConfiguration(environment: String, configuration: ClientConf
     return buildConfiguration
 }
 
-class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = defaultStartHour, daysOfWeek: String = defaultDaysOfWeek, daysOfMonth: String = defaultDaysOfMonth) {
+class testConfiguration(parallelism: Int, startHour: Int) {
     var parallelism = parallelism
     var startHour = startHour
-    var daysOfWeek = daysOfWeek
-    var daysOfMonth = daysOfMonth
 }

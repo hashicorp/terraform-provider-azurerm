@@ -168,7 +168,7 @@ func TestAccMsSqlVirtualMachine_storageConfiguration(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.storageConfigurationRevert(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -660,33 +660,6 @@ resource "azurerm_mssql_virtual_machine" "test" {
       default_file_path = "F:\\SQLTemp"
     }
   }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r MsSqlVirtualMachineResource) storageConfigurationRevert(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_managed_disk" "test" {
-  name                 = "accmd-sqlvm-%[2]d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_type = "Standard_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = 10
-}
-
-resource "azurerm_virtual_machine_data_disk_attachment" "test" {
-  managed_disk_id    = azurerm_managed_disk.test.id
-  virtual_machine_id = azurerm_virtual_machine.test.id
-  lun                = "0"
-  caching            = "None"
-}
-
-resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
-  sql_license_type   = "PAYG"
 }
 `, r.template(data), data.RandomInteger)
 }

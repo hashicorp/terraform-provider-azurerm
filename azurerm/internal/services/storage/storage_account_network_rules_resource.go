@@ -6,19 +6,21 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceStorageAccountNetworkRules() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceStorageAccountNetworkRulesCreateUpdate,
 		Read:   resourceStorageAccountNetworkRulesRead,
 		Update: resourceStorageAccountNetworkRulesCreateUpdate,
@@ -26,30 +28,30 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"storage_account_name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageAccountName,
 			},
 
 			"bypass": {
-				Type:       pluginsdk.TypeSet,
+				Type:       schema.TypeSet,
 				Optional:   true,
 				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(storage.AzureServices),
 						string(storage.Logging),
@@ -57,34 +59,34 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 						string(storage.None),
 					}, false),
 				},
-				Set: pluginsdk.HashString,
+				Set: schema.HashString,
 			},
 
 			"ip_rules": {
-				Type:       pluginsdk.TypeSet,
+				Type:       schema.TypeSet,
 				Optional:   true,
 				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
-				Set: pluginsdk.HashString,
+				Set: schema.HashString,
 			},
 
 			"virtual_network_subnet_ids": {
-				Type:       pluginsdk.TypeSet,
+				Type:       schema.TypeSet,
 				Optional:   true,
 				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
-				Set: pluginsdk.HashString,
+				Set: schema.HashString,
 			},
 
 			"default_action": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.DefaultActionAllow),
@@ -93,18 +95,18 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 			},
 
 			"private_link_access": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"endpoint_resource_id": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: networkValidate.PrivateEndpointID,
 						},
 
 						"endpoint_tenant_id": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validation.IsUUID,
@@ -116,7 +118,7 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountNetworkRulesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -153,9 +155,9 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	rules.DefaultAction = storage.DefaultAction(d.Get("default_action").(string))
-	rules.Bypass = expandStorageAccountNetworkRuleBypass(d.Get("bypass").(*pluginsdk.Set).List())
-	rules.IPRules = expandStorageAccountNetworkRuleIpRules(d.Get("ip_rules").(*pluginsdk.Set).List())
-	rules.VirtualNetworkRules = expandStorageAccountNetworkRuleVirtualRules(d.Get("virtual_network_subnet_ids").(*pluginsdk.Set).List())
+	rules.Bypass = expandStorageAccountNetworkRuleBypass(d.Get("bypass").(*schema.Set).List())
+	rules.IPRules = expandStorageAccountNetworkRuleIpRules(d.Get("ip_rules").(*schema.Set).List())
+	rules.VirtualNetworkRules = expandStorageAccountNetworkRuleVirtualRules(d.Get("virtual_network_subnet_ids").(*schema.Set).List())
 	rules.ResourceAccessRules = expandStorageAccountPrivateLinkAccess(d.Get("private_link_access").([]interface{}), tenantId)
 
 	opts := storage.AccountUpdateParameters{
@@ -173,7 +175,7 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, m
 	return resourceStorageAccountNetworkRulesRead(d, meta)
 }
 
-func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountNetworkRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,13 +197,13 @@ func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("resource_group_name", resourceGroup)
 
 	if rules := storageAccount.NetworkRuleSet; rules != nil {
-		if err := d.Set("ip_rules", pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountIPRules(rules.IPRules))); err != nil {
+		if err := d.Set("ip_rules", schema.NewSet(schema.HashString, flattenStorageAccountIPRules(rules.IPRules))); err != nil {
 			return fmt.Errorf("Error setting `ip_rules`: %+v", err)
 		}
-		if err := d.Set("virtual_network_subnet_ids", pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountVirtualNetworks(rules.VirtualNetworkRules))); err != nil {
+		if err := d.Set("virtual_network_subnet_ids", schema.NewSet(schema.HashString, flattenStorageAccountVirtualNetworks(rules.VirtualNetworkRules))); err != nil {
 			return fmt.Errorf("Error setting `virtual_network_subnet_ids`: %+v", err)
 		}
-		if err := d.Set("bypass", pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountBypass(rules.Bypass))); err != nil {
+		if err := d.Set("bypass", schema.NewSet(schema.HashString, flattenStorageAccountBypass(rules.Bypass))); err != nil {
 			return fmt.Errorf("Error setting `bypass`: %+v", err)
 		}
 		d.Set("default_action", string(rules.DefaultAction))
@@ -213,7 +215,7 @@ func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountNetworkRulesDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

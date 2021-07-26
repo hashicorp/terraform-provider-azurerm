@@ -18,15 +18,9 @@ func TestExpandFeatures(t *testing.T) {
 			Name:  "Empty Block",
 			Input: []interface{}{},
 			Expected: features.UserFeatures{
-				CognitiveAccount: features.CognitiveAccountFeatures{
-					PurgeSoftDeleteOnDestroy: true,
-				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeleteOnDestroy:    true,
 					RecoverSoftDeletedKeyVaults: true,
-				},
-				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
-					PermanentlyDeleteOnDestroy: false,
 				},
 				Network: features.NetworkFeatures{
 					RelaxedLocking: false,
@@ -35,13 +29,13 @@ func TestExpandFeatures(t *testing.T) {
 					DeleteNestedItemsDuringDeletion: true,
 				},
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion:     true,
-					GracefulShutdown:           false,
-					SkipShutdownAndForceDelete: false,
+					DeleteOSDiskOnDeletion: true,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
-					ForceDelete:               false,
 					RollInstancesWhenRequired: true,
+				},
+				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
+					PermanentlyDeleteOnDestroy: false,
 				},
 			},
 		},
@@ -49,11 +43,6 @@ func TestExpandFeatures(t *testing.T) {
 			Name: "Complete Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
-					"cognitive_account": []interface{}{
-						map[string]interface{}{
-							"purge_soft_delete_on_destroy": true,
-						},
-					},
 					"key_vault": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy":    true,
@@ -77,23 +66,18 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
-							"delete_os_disk_on_deletion":     true,
-							"graceful_shutdown":              true,
-							"skip_shutdown_and_force_delete": true,
+							"delete_os_disk_on_deletion": true,
+							"graceful_shutdown":          true,
 						},
 					},
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
 							"roll_instances_when_required": true,
-							"force_delete":                 true,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
-				CognitiveAccount: features.CognitiveAccountFeatures{
-					PurgeSoftDeleteOnDestroy: true,
-				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeleteOnDestroy:    true,
 					RecoverSoftDeletedKeyVaults: true,
@@ -108,13 +92,11 @@ func TestExpandFeatures(t *testing.T) {
 					DeleteNestedItemsDuringDeletion: true,
 				},
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion:     true,
-					GracefulShutdown:           true,
-					SkipShutdownAndForceDelete: true,
+					DeleteOSDiskOnDeletion: true,
+					GracefulShutdown:       true,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					RollInstancesWhenRequired: true,
-					ForceDelete:               true,
 				},
 			},
 		},
@@ -122,9 +104,25 @@ func TestExpandFeatures(t *testing.T) {
 			Name: "Complete Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
-					"cognitive_account": []interface{}{
+					"virtual_machine": []interface{}{
 						map[string]interface{}{
-							"purge_soft_delete_on_destroy": false,
+							"delete_os_disk_on_deletion": false,
+							"graceful_shutdown":          false,
+						},
+					},
+					"network_locking": []interface{}{
+						map[string]interface{}{
+							"relaxed_locking": false,
+						},
+					},
+					"template_deployment": []interface{}{
+						map[string]interface{}{
+							"delete_nested_items_during_deletion": false,
+						},
+					},
+					"virtual_machine_scale_set": []interface{}{
+						map[string]interface{}{
+							"roll_instances_when_required": false,
 						},
 					},
 					"key_vault": []interface{}{
@@ -138,35 +136,9 @@ func TestExpandFeatures(t *testing.T) {
 							"permanently_delete_on_destroy": false,
 						},
 					},
-					"network_locking": []interface{}{
-						map[string]interface{}{
-							"relaxed_locking": false,
-						},
-					},
-					"template_deployment": []interface{}{
-						map[string]interface{}{
-							"delete_nested_items_during_deletion": false,
-						},
-					},
-					"virtual_machine": []interface{}{
-						map[string]interface{}{
-							"delete_os_disk_on_deletion":     false,
-							"graceful_shutdown":              false,
-							"skip_shutdown_and_force_delete": false,
-						},
-					},
-					"virtual_machine_scale_set": []interface{}{
-						map[string]interface{}{
-							"force_delete":                 false,
-							"roll_instances_when_required": false,
-						},
-					},
 				},
 			},
 			Expected: features.UserFeatures{
-				CognitiveAccount: features.CognitiveAccountFeatures{
-					PurgeSoftDeleteOnDestroy: false,
-				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeleteOnDestroy:    false,
 					RecoverSoftDeletedKeyVaults: false,
@@ -181,12 +153,10 @@ func TestExpandFeatures(t *testing.T) {
 					DeleteNestedItemsDuringDeletion: false,
 				},
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion:     false,
-					GracefulShutdown:           false,
-					SkipShutdownAndForceDelete: false,
+					DeleteOSDiskOnDeletion: false,
+					GracefulShutdown:       false,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
-					ForceDelete:               false,
 					RollInstancesWhenRequired: false,
 				},
 			},
@@ -198,71 +168,6 @@ func TestExpandFeatures(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result, testCase.Expected) {
 			t.Fatalf("Expected %+v but got %+v", result, testCase.Expected)
-		}
-	}
-}
-
-func TestExpandFeaturesCognitiveServices(t *testing.T) {
-	testData := []struct {
-		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
-		Expected features.UserFeatures
-	}{
-		{
-			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"cognitive_account": []interface{}{},
-				},
-			},
-			Expected: features.UserFeatures{
-				CognitiveAccount: features.CognitiveAccountFeatures{
-					PurgeSoftDeleteOnDestroy: true,
-				},
-			},
-		},
-		{
-			Name: "Purge on Destroy Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"cognitive_account": []interface{}{
-						map[string]interface{}{
-							"purge_soft_delete_on_destroy": true,
-						},
-					},
-				},
-			},
-			Expected: features.UserFeatures{
-				CognitiveAccount: features.CognitiveAccountFeatures{
-					PurgeSoftDeleteOnDestroy: true,
-				},
-			},
-		},
-		{
-			Name: "Purge on Destroy Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"cognitive_account": []interface{}{
-						map[string]interface{}{
-							"purge_soft_delete_on_destroy": false,
-						},
-					},
-				},
-			},
-			Expected: features.UserFeatures{
-				CognitiveAccount: features.CognitiveAccountFeatures{
-					PurgeSoftDeleteOnDestroy: false,
-				},
-			},
-		},
-	}
-
-	for _, testCase := range testData {
-		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
-		result := expandFeatures(testCase.Input)
-		if !reflect.DeepEqual(result.CognitiveAccount, testCase.Expected.CognitiveAccount) {
-			t.Fatalf("Expected %+v but got %+v", result.CognitiveAccount, testCase.Expected.CognitiveAccount)
 		}
 	}
 }
@@ -483,94 +388,46 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion:     true,
-					GracefulShutdown:           false,
-					SkipShutdownAndForceDelete: false,
+					DeleteOSDiskOnDeletion: true,
+					GracefulShutdown:       false,
 				},
 			},
 		},
 		{
-			Name: "Delete OS Disk Enabled",
+			Name: "Delete OS Disk and Graceful Shutdown Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
 							"delete_os_disk_on_deletion": true,
-							"graceful_shutdown":          false,
-							"force_delete":               false,
-							"shutdown_before_deletion":   false,
+							"graceful_shutdown":          true,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion:     true,
-					GracefulShutdown:           false,
-					SkipShutdownAndForceDelete: false,
+					DeleteOSDiskOnDeletion: true,
+					GracefulShutdown:       true,
 				},
 			},
 		},
 		{
-			Name: "Graceful Shutdown Enabled",
+			Name: "Delete OS Disk and Graceful Shutdown Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
 							"delete_os_disk_on_deletion": false,
-							"graceful_shutdown":          true,
-							"force_delete":               false,
+							"graceful_shutdown":          false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion:     false,
-					GracefulShutdown:           true,
-					SkipShutdownAndForceDelete: false,
-				},
-			},
-		},
-		{
-			Name: "Skip Shutdown and Force Delete Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"virtual_machine": []interface{}{
-						map[string]interface{}{
-							"delete_os_disk_on_deletion":     false,
-							"graceful_shutdown":              false,
-							"skip_shutdown_and_force_delete": true,
-						},
-					},
-				},
-			},
-			Expected: features.UserFeatures{
-				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion:     false,
-					GracefulShutdown:           false,
-					SkipShutdownAndForceDelete: true,
-				},
-			},
-		},
-		{
-			Name: "All Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"virtual_machine": []interface{}{
-						map[string]interface{}{
-							"delete_os_disk_on_deletion":     false,
-							"graceful_shutdown":              false,
-							"skip_shutdown_and_force_delete": false,
-						},
-					},
-				},
-			},
-			Expected: features.UserFeatures{
-				VirtualMachine: features.VirtualMachineFeatures{
-					DeleteOSDiskOnDeletion:     false,
-					GracefulShutdown:           false,
-					SkipShutdownAndForceDelete: false,
+					DeleteOSDiskOnDeletion: false,
+					GracefulShutdown:       false,
 				},
 			},
 		},
@@ -606,31 +463,11 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			},
 		},
 		{
-			Name: "Force Delete Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"virtual_machine_scale_set": []interface{}{
-						map[string]interface{}{
-							"force_delete":                 true,
-							"roll_instances_when_required": false,
-						},
-					},
-				},
-			},
-			Expected: features.UserFeatures{
-				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
-					ForceDelete:               true,
-					RollInstancesWhenRequired: false,
-				},
-			},
-		},
-		{
 			Name: "Roll Instances Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
-							"force_delete":                 false,
 							"roll_instances_when_required": true,
 						},
 					},
@@ -638,18 +475,16 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
-					ForceDelete:               false,
 					RollInstancesWhenRequired: true,
 				},
 			},
 		},
 		{
-			Name: "All Fields Disabled",
+			Name: "Roll Instances Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
-							"force_delete":                 false,
 							"roll_instances_when_required": false,
 						},
 					},
@@ -657,7 +492,6 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
-					ForceDelete:               false,
 					RollInstancesWhenRequired: false,
 				},
 			},

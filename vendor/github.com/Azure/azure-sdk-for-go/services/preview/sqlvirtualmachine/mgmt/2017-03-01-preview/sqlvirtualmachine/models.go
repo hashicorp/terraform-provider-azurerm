@@ -148,12 +148,6 @@ type AvailabilityGroupListenerListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for AvailabilityGroupListenerListResult.
-func (agllr AvailabilityGroupListenerListResult) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // AvailabilityGroupListenerListResultIterator provides access to a complete listing of
 // AvailabilityGroupListener values.
 type AvailabilityGroupListenerListResultIterator struct {
@@ -527,12 +521,6 @@ type GroupListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for GroupListResult.
-func (glr GroupListResult) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // GroupListResultIterator provides access to a complete listing of Group values.
 type GroupListResultIterator struct {
 	i    int
@@ -876,12 +864,6 @@ type ListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for ListResult.
-func (lr ListResult) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // ListResultIterator provides access to a complete listing of SQLVirtualMachine values.
 type ListResultIterator struct {
 	i    int
@@ -1076,12 +1058,6 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for OperationDisplay.
-func (od OperationDisplay) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // OperationListResult result of the request to list SQL operations.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
@@ -1089,12 +1065,6 @@ type OperationListResult struct {
 	Value *[]Operation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for OperationListResult.
-func (olr OperationListResult) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // OperationListResultIterator provides access to a complete listing of Operation values.
@@ -1337,12 +1307,6 @@ type ProxyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for ProxyResource.
-func (pr ProxyResource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // Resource ARM resource.
 type Resource struct {
 	// ID - READ-ONLY; Resource ID.
@@ -1351,12 +1315,6 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Resource.
-func (r Resource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // ResourceIdentity azure Active Directory identity configuration for a resource.

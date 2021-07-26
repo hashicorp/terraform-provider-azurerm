@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -93,7 +93,7 @@ func resourceBotChannelMsTeamsCreate(d *pluginsdk.ResourceData, meta interface{}
 				EnableCalling: utils.Bool(d.Get("enable_calling").(bool)),
 				IsEnabled:     utils.Bool(true),
 			},
-			ChannelName: botservice.ChannelNameBasicChannelChannelNameMsTeamsChannel,
+			ChannelName: botservice.ChannelNameMsTeamsChannel1,
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
@@ -166,7 +166,7 @@ func resourceBotChannelMsTeamsUpdate(d *pluginsdk.ResourceData, meta interface{}
 				CallingWebHook: utils.String(d.Get("calling_web_hook").(string)),
 				IsEnabled:      utils.Bool(true),
 			},
-			ChannelName: botservice.ChannelNameBasicChannelChannelNameMsTeamsChannel,
+			ChannelName: botservice.ChannelNameMsTeamsChannel1,
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,

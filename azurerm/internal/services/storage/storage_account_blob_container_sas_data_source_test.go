@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
@@ -18,10 +19,10 @@ func TestAccDataSourceStorageAccountBlobContainerSas_basic(t *testing.T) {
 	startDate := utcNow.Format(time.RFC3339)
 	endDate := utcNow.Add(time.Hour * 24).Format(time.RFC3339)
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: StorageAccountBlobContainerSASDataSource{}.basic(data, startDate, endDate),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("https_only").HasValue("true"),
 				check.That(data.ResourceName).Key("start").HasValue(startDate),
 				check.That(data.ResourceName).Key("expiry").HasValue(endDate),

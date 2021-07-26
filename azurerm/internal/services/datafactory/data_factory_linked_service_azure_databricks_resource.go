@@ -293,14 +293,14 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 		databricksProperties = &datafactory.AzureDatabricksLinkedServiceTypeProperties{
 			AccessToken: &datafactory.SecureString{
 				Value: utils.String(accessTokenAuth),
-				Type:  datafactory.TypeSecureString,
+				Type:  datafactory.TypeTypeSecureString,
 			},
 		}
 	}
 
 	if len(accessTokenKeyVaultAuth) > 0 && accessTokenKeyVaultAuth[0] != nil {
 		databricksProperties = &datafactory.AzureDatabricksLinkedServiceTypeProperties{
-			AccessToken: expandAzureKeyVaultSecretReference(accessTokenKeyVaultAuth),
+			AccessToken: expandAzureKeyVaultPassword(accessTokenKeyVaultAuth),
 		}
 	}
 
@@ -466,7 +466,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 			// We only process AzureKeyVaultSecreReference because a string based access token is masked with asterisks in the GET response
 			// so we can't set it
 			if keyVaultPassword, ok := accessToken.AsAzureKeyVaultSecretReference(); ok {
-				if err := d.Set("key_vault_password", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
+				if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(keyVaultPassword)); err != nil {
 					return fmt.Errorf("setting `key_vault_password`: %+v", err)
 				}
 			}

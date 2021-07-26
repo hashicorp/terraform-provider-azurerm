@@ -7,12 +7,13 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -87,10 +88,10 @@ func testAccCosmosDBAccount_public_network_access_enabled(t *testing.T, kind doc
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.network_access_enabled(data, kind, consistency),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, consistency, 1),
 			),
 		},
@@ -102,10 +103,10 @@ func TestAccCosmosDBAccount_keyVaultUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.key_vault_uri(data, documentdb.MongoDB, documentdb.Strong),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
 			),
 		},
@@ -117,17 +118,17 @@ func TestAccCosmosDBAccount_keyVaultUriUpdateConsistancy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.key_vault_uri(data, documentdb.MongoDB, documentdb.Strong),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.key_vault_uri(data, documentdb.MongoDB, documentdb.Session),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Session, 1),
 			),
 		},
@@ -139,10 +140,10 @@ func testAccCosmosDBAccount_basicWith(t *testing.T, kind documentdb.DatabaseAcco
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data, kind, consistency),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, consistency, 1),
 			),
 		},
@@ -154,10 +155,10 @@ func testAccCosmosDBAccount_basicMongoDBWith(t *testing.T, consistency documentd
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicMongoDB(data, consistency),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, consistency, 1),
 			),
 		},
@@ -169,10 +170,10 @@ func TestAccCosmosDBAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data, "GlobalDocumentDB", documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
 			),
 		},
@@ -191,7 +192,7 @@ func TestAccCosmosDBAccount_updateConsistency_mongo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicMongoDB(data, documentdb.Strong),
 			Check:  checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
@@ -229,7 +230,7 @@ func testAccCosmosDBAccount_updateConsistency(t *testing.T, kind documentdb.Data
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data, kind, documentdb.Strong),
 			Check:  checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
@@ -267,10 +268,10 @@ func TestAccCosmosDBAccount_complete_mongo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.completeMongoDB(data, documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 3),
 			),
 		},
@@ -290,10 +291,10 @@ func testAccCosmosDBAccount_completeWith(t *testing.T, kind documentdb.DatabaseA
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.complete(data, kind, documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 3),
 			),
 		},
@@ -305,10 +306,10 @@ func TestAccCosmosDBAccount_completeZoneRedundant_mongo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.zoneRedundantMongoDB(data),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -328,10 +329,10 @@ func testAccCosmosDBAccount_zoneRedundantWith(t *testing.T, kind documentdb.Data
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.zoneRedundant(data, kind),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -343,17 +344,17 @@ func TestAccCosmosDBAccount_zoneRedundant_update_mongo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicMongoDB(data, documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.zoneRedundantMongoDBUpdate(data, documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 2),
 			),
 		},
@@ -365,31 +366,31 @@ func TestAccCosmosDBAccount_update_mongo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicMongoDB(data, documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.completeMongoDB(data, documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 3),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.completeUpdatedMongoDB(data, documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 3),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basicWithResourcesMongoDB(data, documentdb.Eventual),
-			Check:  acceptance.ComposeAggregateTestCheckFunc(
+			Check:  resource.ComposeAggregateTestCheckFunc(
 			// checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
 			),
 		},
@@ -409,31 +410,31 @@ func testAccCosmosDBAccount_updateWith(t *testing.T, kind documentdb.DatabaseAcc
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data, kind, documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data, kind, documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 3),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.completeUpdated(data, kind, documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 3),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basicWithResources(data, kind, documentdb.Eventual),
-			Check:  acceptance.ComposeAggregateTestCheckFunc(
+			Check:  resource.ComposeAggregateTestCheckFunc(
 			// checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
 			),
 		},
@@ -485,10 +486,10 @@ func testAccCosmosDBAccount_capabilitiesWith(t *testing.T, kind documentdb.Datab
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.capabilities(data, kind, capabilities),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
 			),
 		},
@@ -500,17 +501,17 @@ func TestAccCosmosDBAccount_capabilitiesAdd(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableCassandra"}),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableCassandra", "EnableAggregationPipeline"}),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
 			),
 		},
@@ -522,17 +523,17 @@ func TestAccCosmosDBAccount_capabilitiesUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableCassandra"}),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableTable", "EnableAggregationPipeline"}),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Strong, 1),
 			),
 		},
@@ -544,24 +545,24 @@ func TestAccCosmosDBAccount_geoLocationsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data, "GlobalDocumentDB", documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.geoLocationUpdate(data, "GlobalDocumentDB", documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 2),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data, "GlobalDocumentDB", documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
 			),
 		},
@@ -573,10 +574,10 @@ func TestAccCosmosDBAccount_freeTier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.freeTier(data, "GlobalDocumentDB", documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
 				check.That(data.ResourceName).Key("enable_free_tier").HasValue("true"),
 			),
@@ -589,10 +590,10 @@ func TestAccCosmosDBAccount_analyticalStorage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.analyticalStorage(data, "GlobalDocumentDB", documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.Eventual, 1),
 				check.That(data.ResourceName).Key("analytical_storage_enabled").HasValue("true"),
 			),
@@ -605,10 +606,10 @@ func TestAccCosmosDBAccount_vNetFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.vNetFilters(data),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("is_virtual_network_filter_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("virtual_network_rule.#").HasValue("2"),
@@ -622,17 +623,17 @@ func TestAccCosmosDBAccount_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicMongoDB(data, documentdb.Session),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.systemAssignedIdentity(data, documentdb.Session),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
@@ -641,7 +642,7 @@ func TestAccCosmosDBAccount_identity(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basicMongoDB(data, documentdb.Session),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -653,10 +654,10 @@ func TestAccCosmosDBAccount_backup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
 				check.That(data.ResourceName).Key("backup.0.interval_in_minutes").HasValue("240"),
@@ -666,14 +667,14 @@ func TestAccCosmosDBAccount_backup(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basicWithBackupPeriodic(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basicWithBackupPeriodicUpdate(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
 			),
@@ -686,10 +687,10 @@ func TestAccCosmosDBAccount_backupContinuous(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicWithBackupContinuous(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -701,24 +702,24 @@ func TestAccCosmosDBAccount_networkBypass(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basicWithNetworkBypass(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basicWithoutNetworkBypass(data, documentdb.GlobalDocumentDB, documentdb.Eventual),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -730,10 +731,10 @@ func TestAccCosmosDBAccount_mongoVersion32(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicMongoDBVersion32(data, documentdb.Session),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -745,10 +746,10 @@ func TestAccCosmosDBAccount_mongoVersion40(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicMongoDBVersion40(data, documentdb.Session),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -756,7 +757,7 @@ func TestAccCosmosDBAccount_mongoVersion40(t *testing.T) {
 	})
 }
 
-func (t CosmosDBAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t CosmosDBAccountResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.DatabaseAccountID(state.ID)
 	if err != nil {
 		return nil, err
@@ -1638,8 +1639,8 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
 }
 
-func checkAccCosmosDBAccount_basic(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel, locationCount int) acceptance.TestCheckFunc {
-	return acceptance.ComposeTestCheckFunc(
+func checkAccCosmosDBAccount_basic(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel, locationCount int) resource.TestCheckFunc {
+	return resource.ComposeTestCheckFunc(
 		check.That(data.ResourceName).Key("name").Exists(),
 		check.That(data.ResourceName).Key("resource_group_name").Exists(),
 		check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),

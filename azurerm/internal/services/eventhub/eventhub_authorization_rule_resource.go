@@ -5,20 +5,22 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/authorizationruleseventhubs"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/eventhubs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceEventHubAuthorizationRule() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceEventHubAuthorizationRule() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceEventHubAuthorizationRuleCreateUpdate,
 		Read:   resourceEventHubAuthorizationRuleRead,
 		Update: resourceEventHubAuthorizationRuleCreateUpdate,
@@ -27,30 +29,30 @@ func resourceEventHubAuthorizationRule() *pluginsdk.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: eventHubAuthorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
+		Schema: eventHubAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubAuthorizationRuleName(),
 			},
 
 			"namespace_name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
 			"eventhub_name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubName(),
@@ -63,138 +65,142 @@ func resourceEventHubAuthorizationRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	eventhubsClient := meta.(*clients.Client).Eventhub.EventHubsClient
-	authorizationRulesClient := meta.(*clients.Client).Eventhub.EventHubAuthorizationRulesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+func resourceEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Authorization Rule creation.")
 
-	id := eventhubs.NewAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("eventhub_name").(string), d.Get("name").(string))
+	name := d.Get("name").(string)
+	namespaceName := d.Get("namespace_name").(string)
+	eventHubName := d.Get("eventhub_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
 	if d.IsNewResource() {
-		existing, err := eventhubsClient.GetAuthorizationRule(ctx, id)
+		existing, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing EventHub Authorization Rule %q (EventHub %q / Namespace %q / Resource Group %q): %s", name, eventHubName, namespaceName, resourceGroup, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_eventhub_authorization_rule", id.ID())
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_eventhub_authorization_rule", *existing.ID)
 		}
 	}
 
-	locks.ByName(id.EventhubName, eventHubResourceName)
-	defer locks.UnlockByName(id.EventhubName, eventHubResourceName)
+	locks.ByName(eventHubName, eventHubResourceName)
+	defer locks.UnlockByName(eventHubName, eventHubResourceName)
 
-	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
-	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
+	locks.ByName(namespaceName, eventHubNamespaceResourceName)
+	defer locks.UnlockByName(namespaceName, eventHubNamespaceResourceName)
 
-	parameters := authorizationruleseventhubs.AuthorizationRule{
-		Name: &id.Name,
-		Properties: &authorizationruleseventhubs.AuthorizationRuleProperties{
+	parameters := eventhub.AuthorizationRule{
+		Name: &name,
+		AuthorizationRuleProperties: &eventhub.AuthorizationRuleProperties{
 			Rights: expandEventHubAuthorizationRuleRights(d),
 		},
 	}
 
-	//lintignore:R006
-	return pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		localId := authorizationruleseventhubs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.Name)
-		if _, err := authorizationRulesClient.EventHubsCreateOrUpdateAuthorizationRule(ctx, localId, parameters); err != nil {
-			return pluginsdk.NonRetryableError(fmt.Errorf("creating %s: %+v", id, err))
+	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		if _, err := client.CreateOrUpdateAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name, parameters); err != nil {
+			return resource.NonRetryableError(fmt.Errorf("Error creating Authorization Rule %q (event Hub %q / Namespace %q / Resource Group %q): %+v", name, eventHubName, namespaceName, resourceGroup, err))
 		}
 
-		read, err := eventhubsClient.GetAuthorizationRule(ctx, id)
+		read, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name)
 		if err != nil {
-			if response.WasNotFound(read.HttpResponse) {
-				return pluginsdk.RetryableError(fmt.Errorf("expected %s to be created but was in non existent state, retrying", id))
+			if utils.ResponseWasNotFound(read.Response) {
+				return resource.RetryableError(fmt.Errorf("Expected instance of the Authorization Rule %q (event Hub %q / Namespace %q / Resource Group %q) to be created but was in non existent state, retrying", name, eventHubName, namespaceName, resourceGroup))
 			}
-			return pluginsdk.NonRetryableError(fmt.Errorf("Expected %s was not be found", id))
+			return resource.NonRetryableError(fmt.Errorf("Expected instance of Authorization Rule %q (event Hub %q / Namespace %q / Resource Group %q) could not be found", name, eventHubName, namespaceName, resourceGroup))
 		}
 
-		d.SetId(id.ID())
-
-		if err := resourceEventHubAuthorizationRuleRead(d, meta); err != nil {
-			return pluginsdk.NonRetryableError(err)
+		if read.ID == nil {
+			return resource.NonRetryableError(fmt.Errorf("Cannot read Authorization Rule %q (event Hub %q / Namespace %q / Resource Group %q) ID", name, eventHubName, namespaceName, resourceGroup))
 		}
 
-		return nil
+		d.SetId(*read.ID)
+
+		return resource.NonRetryableError(resourceEventHubAuthorizationRuleRead(d, meta))
 	})
 }
 
-func resourceEventHubAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	eventHubsClient := meta.(*clients.Client).Eventhub.EventHubsClient
-	authorizationRulesClient := meta.(*clients.Client).Eventhub.EventHubAuthorizationRulesClient
+func resourceEventHubAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := eventhubs.AuthorizationRuleID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := eventHubsClient.GetAuthorizationRule(ctx, *id)
+	name := id.Path["authorizationRules"]
+	resourceGroup := id.ResourceGroup
+	namespaceName := id.Path["namespaces"]
+	eventHubName := id.Path["eventhubs"]
+
+	resp, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("Error making Read request on Azure EventHub Authorization Rule %s: %+v", name, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("eventhub_name", id.EventhubName)
-	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", name)
+	d.Set("eventhub_name", eventHubName)
+	d.Set("namespace_name", namespaceName)
+	d.Set("resource_group_name", resourceGroup)
 
-	if model := resp.Model; model != nil {
-		if properties := model.Properties; properties != nil {
-			listen, send, manage := flattenEventHubAuthorizationRuleRights(properties.Rights)
-			d.Set("manage", manage)
-			d.Set("listen", listen)
-			d.Set("send", send)
-		}
+	if properties := resp.AuthorizationRuleProperties; properties != nil {
+		listen, send, manage := flattenEventHubAuthorizationRuleRights(properties.Rights)
+		d.Set("manage", manage)
+		d.Set("listen", listen)
+		d.Set("send", send)
 	}
 
-	localId := authorizationruleseventhubs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.Name)
-	keysResp, err := authorizationRulesClient.EventHubsListKeys(ctx, localId)
+	keysResp, err := client.ListKeys(ctx, resourceGroup, namespaceName, eventHubName, name)
 	if err != nil {
-		return fmt.Errorf("listing keys for %s: %+v", *id, err)
+		return fmt.Errorf("Error making Read request on Azure EventHub Authorization Rule List Keys %s: %+v", name, err)
 	}
 
-	if model := keysResp.Model; model != nil {
-		d.Set("primary_key", model.PrimaryKey)
-		d.Set("secondary_key", model.SecondaryKey)
-		d.Set("primary_connection_string", model.PrimaryConnectionString)
-		d.Set("secondary_connection_string", model.SecondaryConnectionString)
-		d.Set("primary_connection_string_alias", model.AliasPrimaryConnectionString)
-		d.Set("secondary_connection_string_alias", model.AliasSecondaryConnectionString)
-	}
+	d.Set("primary_key", keysResp.PrimaryKey)
+	d.Set("secondary_key", keysResp.SecondaryKey)
+	d.Set("primary_connection_string", keysResp.PrimaryConnectionString)
+	d.Set("secondary_connection_string", keysResp.SecondaryConnectionString)
+	d.Set("primary_connection_string_alias", keysResp.AliasPrimaryConnectionString)
+	d.Set("secondary_connection_string_alias", keysResp.AliasSecondaryConnectionString)
 
 	return nil
 }
 
-func resourceEventHubAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	eventhubClient := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := eventhubs.AuthorizationRuleID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.EventhubName, eventHubResourceName)
-	defer locks.UnlockByName(id.EventhubName, eventHubResourceName)
+	name := id.Path["authorizationRules"]
+	resourceGroup := id.ResourceGroup
+	namespaceName := id.Path["namespaces"]
+	eventHubName := id.Path["eventhubs"]
 
-	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
-	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
+	locks.ByName(eventHubName, eventHubResourceName)
+	defer locks.UnlockByName(eventHubName, eventHubResourceName)
 
-	if resp, err := eventhubClient.DeleteAuthorizationRule(ctx, *id); err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("deleting %s: %+v", *id, err)
+	locks.ByName(namespaceName, eventHubNamespaceResourceName)
+	defer locks.UnlockByName(namespaceName, eventHubNamespaceResourceName)
+
+	if resp, err := eventhubClient.DeleteAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name); err != nil {
+		if !utils.ResponseWasNotFound(resp) {
+			return fmt.Errorf("Error issuing Azure ARM delete request of EventHub Authorization Rule '%s': %+v", name, err)
 		}
 	}
 

@@ -91,7 +91,7 @@ resource "azurerm_automation_dsc_configuration" "test" {
 }
 
 resource "azurerm_automation_dsc_nodeconfiguration" "test" {
-  name                    = "acctest.localhost"
+  name                    = "acceptance.localhost"
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
   depends_on              = [azurerm_automation_dsc_configuration.test]

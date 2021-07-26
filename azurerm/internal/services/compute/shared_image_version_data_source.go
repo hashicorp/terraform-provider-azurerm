@@ -6,38 +6,38 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceSharedImageVersion() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func dataSourceSharedImageVersion() *schema.Resource {
+	return &schema.Resource{
 		Read: dataSourceSharedImageVersionRead,
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.SharedImageVersionName,
 			},
 
 			"gallery_name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.SharedImageGalleryName,
 			},
 
 			"image_name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.SharedImageName,
 			},
@@ -47,37 +47,37 @@ func dataSourceSharedImageVersion() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"managed_image_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"os_disk_snapshot_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"os_disk_image_size_gb": {
-				Type:     pluginsdk.TypeInt,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
 			"target_region": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 
 						"regional_replica_count": {
-							Type:     pluginsdk.TypeInt,
+							Type:     schema.TypeInt,
 							Computed: true,
 						},
 
 						"storage_account_type": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
@@ -85,7 +85,7 @@ func dataSourceSharedImageVersion() *pluginsdk.Resource {
 			},
 
 			"exclude_from_latest": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
@@ -94,7 +94,7 @@ func dataSourceSharedImageVersion() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSharedImageVersionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

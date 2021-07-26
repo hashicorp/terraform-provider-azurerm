@@ -76,7 +76,6 @@ func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface
 	}
 	d.SetId(*functionSettings.ID)
 
-	//lintignore:R006
 	return pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		res, err := client.ListHostKeys(ctx, resourceGroup, name)
 		if err != nil {

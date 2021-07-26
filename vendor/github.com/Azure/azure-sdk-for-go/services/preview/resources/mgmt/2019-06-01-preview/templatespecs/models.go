@@ -110,12 +110,6 @@ type AzureResourceBase struct {
 	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for AzureResourceBase.
-func (arb AzureResourceBase) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // Error template Specs error response.
 type Error struct {
 	Error *ErrorResponse `json:"error,omitempty"`
@@ -127,12 +121,6 @@ type ErrorAdditionalInfo struct {
 	Type *string `json:"type,omitempty"`
 	// Info - READ-ONLY; The additional info.
 	Info interface{} `json:"info,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ErrorAdditionalInfo.
-func (eai ErrorAdditionalInfo) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // ErrorResponse common error response for all Azure Resource Manager APIs to return error details for
@@ -148,12 +136,6 @@ type ErrorResponse struct {
 	Details *[]ErrorResponse `json:"details,omitempty"`
 	// AdditionalInfo - READ-ONLY; The error additional info.
 	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ErrorResponse.
-func (er ErrorResponse) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // ListResult list of Template Specs.
@@ -547,12 +529,6 @@ type VersionInfo struct {
 	TimeCreated *date.Time `json:"timeCreated,omitempty"`
 	// TimeModified - READ-ONLY; The timestamp of when the version was last modified.
 	TimeModified *date.Time `json:"timeModified,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for VersionInfo.
-func (vi VersionInfo) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // VersionProperties template Spec Version properties.

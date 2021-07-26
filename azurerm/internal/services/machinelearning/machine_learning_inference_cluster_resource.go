@@ -6,15 +6,19 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2020-04-01/machinelearningservices"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -87,39 +91,22 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"cert": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							ForceNew:      true,
-							Default:       "",
-							ConflictsWith: []string{"ssl.0.leaf_domain_label", "ssl.0.overwrite_existing_domain"},
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+							Default:  "",
 						},
 						"key": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							ForceNew:      true,
-							Default:       "",
-							ConflictsWith: []string{"ssl.0.leaf_domain_label", "ssl.0.overwrite_existing_domain"},
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+							Default:  "",
 						},
 						"cname": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							ForceNew:      true,
-							Default:       "",
-							ConflictsWith: []string{"ssl.0.leaf_domain_label", "ssl.0.overwrite_existing_domain"},
-						},
-						"leaf_domain_label": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							ForceNew:      true,
-							Default:       "",
-							ConflictsWith: []string{"ssl.0.cert", "ssl.0.key", "ssl.0.cname"},
-						},
-						"overwrite_existing_domain": {
-							Type:          pluginsdk.TypeBool,
-							Optional:      true,
-							ForceNew:      true,
-							Default:       "",
-							ConflictsWith: []string{"ssl.0.cert", "ssl.0.key", "ssl.0.cname"},
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+							Default:  "",
 						},
 					},
 				},
@@ -289,17 +276,10 @@ func expandSSLConfig(input []interface{}) *machinelearningservices.SslConfigurat
 		sslStatus = "Enabled"
 	}
 
-	if !(v["leaf_domain_label"].(string) == "") {
-		sslStatus = "Auto"
-		v["cname"] = ""
-	}
-
 	return &machinelearningservices.SslConfiguration{
-		Status:                  machinelearningservices.Status1(sslStatus),
-		Cert:                    utils.String(v["cert"].(string)),
-		Key:                     utils.String(v["key"].(string)),
-		Cname:                   utils.String(v["cname"].(string)),
-		LeafDomainLabel:         utils.String(v["leaf_domain_label"].(string)),
-		OverwriteExistingDomain: utils.Bool(v["overwrite_existing_domain"].(bool)),
+		Status: machinelearningservices.Status1(sslStatus),
+		Cert:   utils.String(v["cert"].(string)),
+		Key:    utils.String(v["key"].(string)),
+		Cname:  utils.String(v["cname"].(string)),
 	}
 }

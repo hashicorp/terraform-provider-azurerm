@@ -4,27 +4,27 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func FirewallDataSourcePolicy() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func FirewallDataSourcePolicy() *schema.Resource {
+	return &schema.Resource{
 		Read: FirewallDataSourcePolicyRead,
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.FirewallPolicyName(),
 			},
@@ -34,36 +34,36 @@ func FirewallDataSourcePolicy() *pluginsdk.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"base_policy_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"child_policies": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
 			"dns": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"servers": {
-							Type:     pluginsdk.TypeList,
+							Type:     schema.TypeList,
 							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
 							},
 						},
 						"proxy_enabled": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Computed: true,
 						},
 						"network_rule_fqdn_enabled": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Computed: true,
 						},
 					},
@@ -71,43 +71,43 @@ func FirewallDataSourcePolicy() *pluginsdk.Resource {
 			},
 
 			"firewalls": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
 			"rule_collection_groups": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
 			"threat_intelligence_mode": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"threat_intelligence_allowlist": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"ip_addresses": {
-							Type:     pluginsdk.TypeList,
+							Type:     schema.TypeList,
 							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
 							},
 						},
 						"fqdns": {
-							Type:     pluginsdk.TypeList,
+							Type:     schema.TypeList,
 							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
 							},
 						},
 					},
@@ -119,7 +119,7 @@ func FirewallDataSourcePolicy() *pluginsdk.Resource {
 	}
 }
 
-func FirewallDataSourcePolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func FirewallDataSourcePolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.FirewallPolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

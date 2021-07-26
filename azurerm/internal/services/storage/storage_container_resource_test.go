@@ -6,12 +6,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +22,10 @@ func TestAccStorageContainer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +37,10 @@ func TestAccStorageContainer_deleteAndRecreate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -49,7 +50,7 @@ func TestAccStorageContainer_deleteAndRecreate(t *testing.T) {
 		},
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -61,10 +62,10 @@ func TestAccStorageContainer_basicAzureADAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicAzureADAuth(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -76,10 +77,10 @@ func TestAccStorageContainer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -91,17 +92,17 @@ func TestAccStorageContainer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.update(data, "private"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("container_access_type").HasValue("private"),
 			),
 		},
 		{
 			Config: r.update(data, "container"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("container_access_type").HasValue("container"),
 			),
@@ -114,24 +115,24 @@ func TestAccStorageContainer_metaData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.metaData(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.metaDataUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.metaDataEmpty(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -143,7 +144,7 @@ func TestAccStorageContainer_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -155,10 +156,10 @@ func TestAccStorageContainer_root(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.root(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("$root"),
 			),
@@ -171,10 +172,10 @@ func TestAccStorageContainer_web(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.web(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue("$web"),
 			),
@@ -183,7 +184,7 @@ func TestAccStorageContainer_web(t *testing.T) {
 	})
 }
 
-func (r StorageContainerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageContainerResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.StorageContainerDataPlaneID(state.ID)
 	if err != nil {
 		return nil, err
@@ -207,7 +208,7 @@ func (r StorageContainerResource) Exists(ctx context.Context, client *clients.Cl
 	return utils.Bool(prop != nil), nil
 }
 
-func (r StorageContainerResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageContainerResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.StorageContainerDataPlaneID(state.ID)
 	if err != nil {
 		return nil, err

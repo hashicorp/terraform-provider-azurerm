@@ -93,11 +93,7 @@ const (
 )
 
 // Address represents a server the client connects to.
-//
-// Experimental
-//
-// Notice: This type is EXPERIMENTAL and may be changed or removed in a
-// later release.
+// This is the EXPERIMENTAL API and may be changed or extended in the future.
 type Address struct {
 	// Addr is the server address on which a connection will be established.
 	Addr string
@@ -181,7 +177,7 @@ type State struct {
 // gRPC to add new methods to this interface.
 type ClientConn interface {
 	// UpdateState updates the state of the ClientConn appropriately.
-	UpdateState(State) error
+	UpdateState(State)
 	// ReportError notifies the ClientConn that the Resolver encountered an
 	// error.  The ClientConn will notify the load balancer and begin calling
 	// ResolveNow on the Resolver with exponential backoff.

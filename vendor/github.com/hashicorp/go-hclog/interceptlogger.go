@@ -18,13 +18,8 @@ type interceptLogger struct {
 }
 
 func NewInterceptLogger(opts *LoggerOptions) InterceptLogger {
-	l := newLogger(opts)
-	if l.callerOffset > 0 {
-		// extra frames for interceptLogger.{Warn,Info,Log,etc...}, and interceptLogger.log
-		l.callerOffset += 2
-	}
 	intercept := &interceptLogger{
-		Logger:    l,
+		Logger:    New(opts),
 		mu:        new(sync.Mutex),
 		sinkCount: new(int32),
 		Sinks:     make(map[SinkAdapter]struct{}),
@@ -36,14 +31,6 @@ func NewInterceptLogger(opts *LoggerOptions) InterceptLogger {
 }
 
 func (i *interceptLogger) Log(level Level, msg string, args ...interface{}) {
-	i.log(level, msg, args...)
-}
-
-// log is used to make the caller stack frame lookup consistent. If Warn,Info,etc
-// all called Log then direct calls to Log would have a different stack frame
-// depth. By having all the methods call the same helper we ensure the stack
-// frame depth is the same.
-func (i *interceptLogger) log(level Level, msg string, args ...interface{}) {
 	i.Logger.Log(level, msg, args...)
 	if atomic.LoadInt32(i.sinkCount) == 0 {
 		return
@@ -58,27 +45,72 @@ func (i *interceptLogger) log(level Level, msg string, args ...interface{}) {
 
 // Emit the message and args at TRACE level to log and sinks
 func (i *interceptLogger) Trace(msg string, args ...interface{}) {
-	i.log(Trace, msg, args...)
+	i.Logger.Trace(msg, args...)
+	if atomic.LoadInt32(i.sinkCount) == 0 {
+		return
+	}
+
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	for s := range i.Sinks {
+		s.Accept(i.Name(), Trace, msg, i.retrieveImplied(args...)...)
+	}
 }
 
 // Emit the message and args at DEBUG level to log and sinks
 func (i *interceptLogger) Debug(msg string, args ...interface{}) {
-	i.log(Debug, msg, args...)
+	i.Logger.Debug(msg, args...)
+	if atomic.LoadInt32(i.sinkCount) == 0 {
+		return
+	}
+
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	for s := range i.Sinks {
+		s.Accept(i.Name(), Debug, msg, i.retrieveImplied(args...)...)
+	}
 }
 
 // Emit the message and args at INFO level to log and sinks
 func (i *interceptLogger) Info(msg string, args ...interface{}) {
-	i.log(Info, msg, args...)
+	i.Logger.Info(msg, args...)
+	if atomic.LoadInt32(i.sinkCount) == 0 {
+		return
+	}
+
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	for s := range i.Sinks {
+		s.Accept(i.Name(), Info, msg, i.retrieveImplied(args...)...)
+	}
 }
 
 // Emit the message and args at WARN level to log and sinks
 func (i *interceptLogger) Warn(msg string, args ...interface{}) {
-	i.log(Warn, msg, args...)
+	i.Logger.Warn(msg, args...)
+	if atomic.LoadInt32(i.sinkCount) == 0 {
+		return
+	}
+
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	for s := range i.Sinks {
+		s.Accept(i.Name(), Warn, msg, i.retrieveImplied(args...)...)
+	}
 }
 
 // Emit the message and args at ERROR level to log and sinks
 func (i *interceptLogger) Error(msg string, args ...interface{}) {
-	i.log(Error, msg, args...)
+	i.Logger.Error(msg, args...)
+	if atomic.LoadInt32(i.sinkCount) == 0 {
+		return
+	}
+
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	for s := range i.Sinks {
+		s.Accept(i.Name(), Error, msg, i.retrieveImplied(args...)...)
+	}
 }
 
 func (i *interceptLogger) retrieveImplied(args ...interface{}) []interface{} {
@@ -91,11 +123,17 @@ func (i *interceptLogger) retrieveImplied(args ...interface{}) []interface{} {
 	return cp
 }
 
-// Create a new sub-Logger that a name descending from the current name.
+// Create a new sub-Logger that a name decending from the current name.
 // This is used to create a subsystem specific Logger.
 // Registered sinks will subscribe to these messages as well.
 func (i *interceptLogger) Named(name string) Logger {
-	return i.NamedIntercept(name)
+	var sub interceptLogger
+
+	sub = *i
+
+	sub.Logger = i.Logger.Named(name)
+
+	return &sub
 }
 
 // Create a new sub-Logger with an explicit name. This ignores the current
@@ -103,7 +141,13 @@ func (i *interceptLogger) Named(name string) Logger {
 // within the normal hierarchy. Registered sinks will subscribe
 // to these messages as well.
 func (i *interceptLogger) ResetNamed(name string) Logger {
-	return i.ResetNamedIntercept(name)
+	var sub interceptLogger
+
+	sub = *i
+
+	sub.Logger = i.Logger.ResetNamed(name)
+
+	return &sub
 }
 
 // Create a new sub-Logger that a name decending from the current name.
@@ -113,7 +157,9 @@ func (i *interceptLogger) NamedIntercept(name string) InterceptLogger {
 	var sub interceptLogger
 
 	sub = *i
+
 	sub.Logger = i.Logger.Named(name)
+
 	return &sub
 }
 
@@ -125,7 +171,9 @@ func (i *interceptLogger) ResetNamedIntercept(name string) InterceptLogger {
 	var sub interceptLogger
 
 	sub = *i
+
 	sub.Logger = i.Logger.ResetNamed(name)
+
 	return &sub
 }
 
@@ -162,23 +210,18 @@ func (i *interceptLogger) DeregisterSink(sink SinkAdapter) {
 	atomic.AddInt32(i.sinkCount, -1)
 }
 
+// Create a *log.Logger that will send it's data through this Logger. This
+// allows packages that expect to be using the standard library to log to
+// actually use this logger, which will also send to any registered sinks.
 func (i *interceptLogger) StandardLoggerIntercept(opts *StandardLoggerOptions) *log.Logger {
-	return i.StandardLogger(opts)
-}
-
-func (i *interceptLogger) StandardLogger(opts *StandardLoggerOptions) *log.Logger {
 	if opts == nil {
 		opts = &StandardLoggerOptions{}
 	}
 
-	return log.New(i.StandardWriter(opts), "", 0)
+	return log.New(i.StandardWriterIntercept(opts), "", 0)
 }
 
 func (i *interceptLogger) StandardWriterIntercept(opts *StandardLoggerOptions) io.Writer {
-	return i.StandardWriter(opts)
-}
-
-func (i *interceptLogger) StandardWriter(opts *StandardLoggerOptions) io.Writer {
 	return &stdlogAdapter{
 		log:         i,
 		inferLevels: opts.InferLevels,

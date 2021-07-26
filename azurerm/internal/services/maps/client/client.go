@@ -1,16 +1,16 @@
 package client
 
 import (
+	"github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2021-02-01/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/sdk/accounts"
 )
 
 type Client struct {
-	AccountsClient *accounts.AccountsClient
+	AccountsClient *maps.AccountsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	accountsClient := accounts.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint)
+	accountsClient := maps.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&accountsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

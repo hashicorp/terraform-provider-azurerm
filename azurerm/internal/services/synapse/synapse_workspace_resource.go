@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2019-06-01-preview/synapse"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -77,12 +77,6 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Required:  true,
 				Sensitive: true,
-			},
-
-			"data_exfiltration_protection_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
 			},
 
 			"managed_virtual_network_enabled": {
@@ -290,14 +284,6 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	dataExfiltrationProtectionEnabled := d.Get("data_exfiltration_protection_enabled").(bool)
-
-	if dataExfiltrationProtectionEnabled {
-		workspaceInfo.ManagedVirtualNetworkSettings = &synapse.ManagedVirtualNetworkSettings{
-			PreventDataExfiltration: utils.Bool(dataExfiltrationProtectionEnabled),
-		}
-	}
-
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, workspaceInfo)
 	if err != nil {
 		return fmt.Errorf("creating Synapse Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -375,9 +361,6 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		managedVirtualNetworkEnabled := false
 		if props.ManagedVirtualNetwork != nil && strings.EqualFold(*props.ManagedVirtualNetwork, "default") {
 			managedVirtualNetworkEnabled = true
-			if props.ManagedVirtualNetworkSettings != nil {
-				d.Set("data_exfiltration_protection_enabled", props.ManagedVirtualNetworkSettings.PreventDataExfiltration)
-			}
 		}
 		d.Set("managed_virtual_network_enabled", managedVirtualNetworkEnabled)
 		d.Set("storage_data_lake_gen2_filesystem_id", flattenArmWorkspaceDataLakeStorageAccountDetails(props.DefaultDataLakeStorage))

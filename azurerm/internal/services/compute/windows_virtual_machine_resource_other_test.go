@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -13,10 +14,10 @@ func TestAccWindowsVirtualMachine_otherPatchModeManual(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherPatchModeManual(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -30,10 +31,10 @@ func TestAccWindowsVirtualMachine_otherPatchModeAutomaticByOS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherPatchModeAutomaticByOS(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -47,10 +48,10 @@ func TestAccWindowsVirtualMachine_otherPatchModeAutomaticByPlatform(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherPatchModeAutomaticByPlatform(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -64,10 +65,10 @@ func TestAccWindowsVirtualMachine_otherPatchModeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherPatchModeAutomaticByOS(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -76,7 +77,7 @@ func TestAccWindowsVirtualMachine_otherPatchModeUpdate(t *testing.T) {
 		),
 		{
 			Config: r.otherPatchModeAutomaticByPlatform(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -85,7 +86,7 @@ func TestAccWindowsVirtualMachine_otherPatchModeUpdate(t *testing.T) {
 		),
 		{
 			Config: r.otherPatchModeManual(data), // this update requires force replacement actually
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -99,10 +100,10 @@ func TestAccWindowsVirtualMachine_otherAdditionalUnattendContent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherAdditionalUnattendContent(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -117,10 +118,10 @@ func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsDefault(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherAllowExtensionOperationsDefault(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_extension_operations").HasValue("true"),
 			),
@@ -135,10 +136,10 @@ func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsDisabled(t *testi
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherAllowExtensionOperationsDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_extension_operations").HasValue("false"),
 			),
@@ -153,10 +154,10 @@ func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsUpdated(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherAllowExtensionOperationsDefault(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_extension_operations").HasValue("true"),
 			),
@@ -166,7 +167,7 @@ func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsUpdated(t *testin
 		),
 		{
 			Config: r.otherAllowExtensionOperationsDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_extension_operations").HasValue("false"),
 			),
@@ -181,10 +182,10 @@ func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsUpdatedWithoutVmA
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherAllowExtensionOperationsDisabledWithoutVmAgent(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_extension_operations").HasValue("false"),
 			),
@@ -194,7 +195,7 @@ func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsUpdatedWithoutVmA
 		),
 		{
 			Config: r.otherAllowExtensionOperationsEnabledWithoutVmAgent(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_extension_operations").HasValue("true"),
 			),
@@ -209,10 +210,10 @@ func TestAccWindowsVirtualMachine_otherExtensionsTimeBudget(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherExtensionsTimeBudget(data, "PT30M"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("extensions_time_budget").HasValue("PT30M"),
 			),
@@ -227,10 +228,10 @@ func TestAccWindowsVirtualMachine_otherExtensionsTimeBudgetUpdate(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherExtensionsTimeBudget(data, "PT30M"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("extensions_time_budget").HasValue("PT30M"),
 			),
@@ -240,7 +241,7 @@ func TestAccWindowsVirtualMachine_otherExtensionsTimeBudgetUpdate(t *testing.T) 
 		),
 		{
 			Config: r.otherExtensionsTimeBudget(data, "PT50M"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("extensions_time_budget").HasValue("PT50M"),
 			),
@@ -250,7 +251,7 @@ func TestAccWindowsVirtualMachine_otherExtensionsTimeBudgetUpdate(t *testing.T) 
 		),
 		{
 			Config: r.otherExtensionsTimeBudget(data, "PT30M"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("extensions_time_budget").HasValue("PT30M"),
 			),
@@ -265,11 +266,11 @@ func TestAccWindowsVirtualMachine_otherBootDiagnostics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			// Enabled
 			Config: r.otherBootDiagnostics(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -279,7 +280,7 @@ func TestAccWindowsVirtualMachine_otherBootDiagnostics(t *testing.T) {
 		{
 			// Disabled
 			Config: r.otherBootDiagnosticsDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -289,7 +290,7 @@ func TestAccWindowsVirtualMachine_otherBootDiagnostics(t *testing.T) {
 		{
 			// Enabled
 			Config: r.otherBootDiagnostics(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -303,11 +304,11 @@ func TestAccWindowsVirtualMachine_otherBootDiagnosticsManaged(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			// Enabled
 			Config: r.otherBootDiagnosticsManaged(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -317,7 +318,7 @@ func TestAccWindowsVirtualMachine_otherBootDiagnosticsManaged(t *testing.T) {
 		{
 			// Disabled
 			Config: r.otherBootDiagnosticsDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -327,7 +328,7 @@ func TestAccWindowsVirtualMachine_otherBootDiagnosticsManaged(t *testing.T) {
 		{
 			// Enabled
 			Config: r.otherBootDiagnosticsManaged(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -341,10 +342,10 @@ func TestAccWindowsVirtualMachine_otherComputerNameDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherComputerNameDefault(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("computer_name").Exists(),
 			),
@@ -359,7 +360,7 @@ func TestAccWindowsVirtualMachine_otherComputerNameDefaultInvalid(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config:      r.otherComputerNameDefaultInvalid(data),
 			ExpectError: regexp.MustCompile("unable to assume default computer name"),
@@ -371,10 +372,10 @@ func TestAccWindowsVirtualMachine_otherComputerNameCustom(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherComputerNameCustom(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("computer_name").HasValue("custom123"),
 			),
@@ -389,10 +390,10 @@ func TestAccWindowsVirtualMachine_otherCustomData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherCustomData(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -404,10 +405,10 @@ func TestAccWindowsVirtualMachine_otherEnableAutomaticUpdatesDefault(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherEnableAutomaticUpdatesDefault(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_automatic_updates").HasValue("true"),
 			),
@@ -422,29 +423,12 @@ func TestAccWindowsVirtualMachine_otherEnableAutomaticUpdatesDisabled(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherEnableAutomaticUpdatesDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_automatic_updates").HasValue("false"),
-			),
-		},
-		data.ImportStep(
-			"admin_password",
-		),
-	})
-}
-
-func TestAccWindowsVirtualMachine_otherSkipShutdownAndForceDelete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
-	r := WindowsVirtualMachineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.otherSkipShutdownAndForceDelete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(
@@ -457,10 +441,10 @@ func TestAccWindowsVirtualMachine_otherLicenseTypeNone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherLicenseType(data, "None"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -474,10 +458,10 @@ func TestAccWindowsVirtualMachine_otherLicenseTypeWindowsClient(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherLicenseTypeWindowsClient(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -491,10 +475,10 @@ func TestAccWindowsVirtualMachine_otherLicenseTypeWindowsServer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherLicenseType(data, "Windows_Server"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -508,10 +492,10 @@ func TestAccWindowsVirtualMachine_otherLicenseTypeUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherLicenseTypeDefault(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -520,7 +504,7 @@ func TestAccWindowsVirtualMachine_otherLicenseTypeUpdated(t *testing.T) {
 		),
 		{
 			Config: r.otherLicenseTypeWindowsClient(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("license_type").HasValue("Windows_Client"),
 			),
@@ -530,7 +514,7 @@ func TestAccWindowsVirtualMachine_otherLicenseTypeUpdated(t *testing.T) {
 		),
 		{
 			Config: r.otherLicenseTypeDefault(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -544,10 +528,10 @@ func TestAccWindowsVirtualMachine_otherPrioritySpot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherPrioritySpot(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -561,11 +545,11 @@ func TestAccWindowsVirtualMachine_otherPrioritySpotMaxBidPrice(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			// expensive, but guarantees this test will pass
 			Config: r.otherPrioritySpotMaxBidPrice(data, "0.5000"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -575,7 +559,7 @@ func TestAccWindowsVirtualMachine_otherPrioritySpotMaxBidPrice(t *testing.T) {
 		{
 			// no limit
 			Config: r.otherPrioritySpotMaxBidPrice(data, "-1"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -589,10 +573,10 @@ func TestAccWindowsVirtualMachine_otherProvisionVMAgentDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherProvisionVMAgentDefault(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("provision_vm_agent").HasValue("true"),
 			),
@@ -607,10 +591,10 @@ func TestAccWindowsVirtualMachine_otherProvisionVMAgentDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherProvisionVMAgentDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("provision_vm_agent").HasValue("false"),
 			),
@@ -625,10 +609,10 @@ func TestAccWindowsVirtualMachine_otherRequiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.authPassword(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -640,10 +624,10 @@ func TestAccWindowsVirtualMachine_otherSecret(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherSecret(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -652,7 +636,7 @@ func TestAccWindowsVirtualMachine_otherSecret(t *testing.T) {
 		),
 		{
 			Config: r.otherSecretUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -661,7 +645,7 @@ func TestAccWindowsVirtualMachine_otherSecret(t *testing.T) {
 		),
 		{
 			Config: r.otherSecretRemoved(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("secret.#").HasValue("0"),
 			),
@@ -676,10 +660,10 @@ func TestAccWindowsVirtualMachine_otherTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherTags(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -688,7 +672,7 @@ func TestAccWindowsVirtualMachine_otherTags(t *testing.T) {
 		),
 		{
 			Config: r.otherTagsUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -702,10 +686,10 @@ func TestAccWindowsVirtualMachine_otherTimeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherTimeZone(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -719,10 +703,10 @@ func TestAccWindowsVirtualMachine_otherUltraSsdDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherUltraSsd(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("additional_capabilities.0.ultra_ssd_enabled").HasValue("false"),
 			),
@@ -737,10 +721,10 @@ func TestAccWindowsVirtualMachine_otherUltraSsdEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherUltraSsd(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("additional_capabilities.0.ultra_ssd_enabled").HasValue("true"),
 			),
@@ -755,10 +739,10 @@ func TestAccWindowsVirtualMachine_otherUltraSsdUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherUltraSsd(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("additional_capabilities.0.ultra_ssd_enabled").HasValue("false"),
 			),
@@ -768,7 +752,7 @@ func TestAccWindowsVirtualMachine_otherUltraSsdUpdated(t *testing.T) {
 		),
 		{
 			Config: r.otherUltraSsd(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("additional_capabilities.0.ultra_ssd_enabled").HasValue("true"),
 			),
@@ -783,10 +767,10 @@ func TestAccWindowsVirtualMachine_otherWinRMHTTP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherWinRMHTTP(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -800,10 +784,10 @@ func TestAccWindowsVirtualMachine_otherWinRMHTTPS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherWinRMHTTPS(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -817,10 +801,10 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherEncryptionAtHostEnabled(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -834,10 +818,10 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabledUpdate(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherEncryptionAtHostEnabled(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -846,7 +830,7 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabledUpdate(t *testing.
 		),
 		{
 			Config: r.otherEncryptionAtHostEnabled(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -855,7 +839,7 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabledUpdate(t *testing.
 		),
 		{
 			Config: r.otherEncryptionAtHostEnabled(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -869,10 +853,10 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabledWithCMK(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherEncryptionAtHostEnabledWithCMK(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -986,10 +970,10 @@ func TestAccWindowsVirtualMachine_otherGracefulShutdownDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherGracefulShutdown(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -1003,10 +987,10 @@ func TestAccWindowsVirtualMachine_otherGracefulShutdownEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.otherGracefulShutdown(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -1482,44 +1466,6 @@ resource "azurerm_windows_virtual_machine" "test" {
   admin_username           = "adminuser"
   admin_password           = "P@$$w0rd1234!"
   enable_automatic_updates = false
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
-    version   = "latest"
-  }
-}
-`, r.template(data))
-}
-
-func (r WindowsVirtualMachineResource) otherSkipShutdownAndForceDelete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    virtual_machine {
-      skip_shutdown_and_force_delete = true
-    }
-  }
-}
-
-%s
-
-resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]

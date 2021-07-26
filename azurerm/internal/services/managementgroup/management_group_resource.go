@@ -167,7 +167,7 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		ContinuousTargetOccurence: 5,
 	}
 
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("failed waiting for read on Managementgroup %q", groupName)
 	}
 

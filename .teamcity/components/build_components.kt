@@ -127,17 +127,14 @@ fun ParametrizedWithType.hiddenPasswordVariable(name: String, value: String, des
     password(name, value, "", description, ParameterDisplay.HIDDEN)
 }
 
-fun Triggers.RunNightly(nightlyTestsEnabled: Boolean, startHour: Int, daysOfWeek: String, daysOfMonth: String) {
+fun Triggers.RunNightly(nightlyTestsEnabled: Boolean, startHour: Int) {
     schedule{
         enabled = nightlyTestsEnabled
         branchFilter = "+:refs/heads/master"
 
-        schedulingPolicy = cron {
-            hours = startHour.toString()
+        schedulingPolicy = daily {
+            hour = startHour
             timezone = "SERVER"
-
-            dayOfWeek = daysOfWeek
-            dayOfMonth = daysOfMonth
         }
     }
 }

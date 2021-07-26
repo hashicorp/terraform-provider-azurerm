@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,13 +20,13 @@ func TestAccStorageManagementPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
 	r := StorageManagementPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
-				check.That(data.ResourceName).Key("rule.0.name").HasValue("rule-1"),
+				check.That(data.ResourceName).Key("rule.0.name").HasValue("rule1"),
 				check.That(data.ResourceName).Key("rule.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("rule.0.filters.#").HasValue("1"),
 				check.That(data.ResourceName).Key("rule.0.filters.0.prefix_match.#").HasValue("1"),
@@ -47,10 +48,10 @@ func TestAccStorageManagementPolicy_singleAction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
 	r := StorageManagementPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.singleAction(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("rule.0.name").HasValue("singleActionRule"),
@@ -73,10 +74,10 @@ func TestAccStorageManagementPolicy_singleActionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
 	r := StorageManagementPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.singleAction(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("rule.0.name").HasValue("singleActionRule"),
@@ -94,7 +95,7 @@ func TestAccStorageManagementPolicy_singleActionUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.singleActionUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("rule.0.name").HasValue("singleActionRule"),
@@ -117,10 +118,10 @@ func TestAccStorageManagementPolicy_multipleRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
 	r := StorageManagementPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.multipleRule(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("rule.#").HasValue("2"),
 
@@ -161,10 +162,10 @@ func TestAccStorageManagementPolicy_updateMultipleRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
 	r := StorageManagementPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.multipleRule(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("rule.#").HasValue("2"),
 
@@ -200,7 +201,7 @@ func TestAccStorageManagementPolicy_updateMultipleRule(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.multipleRuleUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("rule.#").HasValue("2"),
 
@@ -241,10 +242,10 @@ func TestAccStorageManagementPolicy_blobTypes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
 	r := StorageManagementPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.blobTypes(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("rule.0.name").HasValue("rule1"),
@@ -267,24 +268,24 @@ func TestAccStorageManagementPolicy_blobIndexMatch(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
 	r := StorageManagementPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.blobIndexMatchDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.blobIndexMatch(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.blobIndexMatchDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -296,10 +297,10 @@ func TestAccStorageManagementPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
 	r := StorageManagementPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -311,10 +312,10 @@ func TestAccStorageManagementPolicy_zero(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
 	r := StorageManagementPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.zero(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -326,31 +327,31 @@ func TestAccStorageManagementPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
 	r := StorageManagementPolicyResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.completeUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -358,7 +359,7 @@ func TestAccStorageManagementPolicy_update(t *testing.T) {
 	})
 }
 
-func (r StorageManagementPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageManagementPolicyResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	storageAccountId := state.Attributes["storage_account_id"]
 	id, err := parse.StorageAccountID(storageAccountId)
 	if err != nil {

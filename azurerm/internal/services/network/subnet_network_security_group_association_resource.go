@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -76,11 +76,11 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 	resourceGroup := parsedSubnetId.ResourceGroup
 
-	locks.ByName(virtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, VirtualNetworkResourceName)
-
 	locks.ByName(subnetName, SubnetResourceName)
 	defer locks.UnlockByName(subnetName, SubnetResourceName)
+
+	locks.ByName(virtualNetworkName, VirtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, VirtualNetworkResourceName)
 
 	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -20,7 +21,7 @@ func testAccExpressRouteCircuitAuthorization_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_authorization", "test")
 	r := ExpressRouteCircuitAuthorizationResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -36,7 +37,7 @@ func testAccExpressRouteCircuitAuthorization_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_authorization", "test")
 	r := ExpressRouteCircuitAuthorizationResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -56,7 +57,7 @@ func testAccExpressRouteCircuitAuthorization_multiple(t *testing.T) {
 	r := ExpressRouteCircuitAuthorizationResource{}
 	secondResourceName := "azurerm_express_route_circuit_authorization.test2"
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(

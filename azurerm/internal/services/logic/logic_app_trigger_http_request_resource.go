@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -60,7 +61,7 @@ func resourceLogicAppTriggerHttpRequest() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 
 			"method": {

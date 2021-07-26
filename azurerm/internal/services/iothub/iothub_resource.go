@@ -614,7 +614,7 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		Timeout: d.Timeout(timeout),
 	}
 
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -750,7 +750,7 @@ func resourceIotHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for ProvisioningState of IotHub %q (Resource Group %q) to become `Succeeded`: %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -775,7 +775,7 @@ func waitForIotHubToBeDeleted(ctx context.Context, client *devices.IotHubResourc
 		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for IotHub (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
 	}
 

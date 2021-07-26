@@ -9,6 +9,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -21,15 +24,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/base64"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // TODO: confirm locking as appropriate
 
-func resourceLinuxVirtualMachine() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceLinuxVirtualMachine() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceLinuxVirtualMachineCreate,
 		Read:   resourceLinuxVirtualMachineRead,
 		Update: resourceLinuxVirtualMachineUpdate,
@@ -39,16 +41,16 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			return err
 		}, importVirtualMachine(compute.Linux, "azurerm_linux_virtual_machine")),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(45 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(45 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(45 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(45 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(45 * time.Minute),
+			Delete: schema.DefaultTimeout(45 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: computeValidate.VirtualMachineName,
@@ -60,18 +62,18 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 
 			// Required
 			"admin_username": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"network_interface_ids": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Required: true,
 				MinItems: 1,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
 					ValidateFunc: networkValidate.NetworkInterfaceID,
 				},
 			},
@@ -79,7 +81,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"os_disk": virtualMachineOSDiskSchema(),
 
 			"size": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -88,7 +90,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"additional_capabilities": virtualMachineAdditionalCapabilitiesSchema(),
 
 			"admin_password": {
-				Type:             pluginsdk.TypeString,
+				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
 				Sensitive:        true,
@@ -98,13 +100,13 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"admin_ssh_key": SSHKeysSchema(true),
 
 			"allow_extension_operations": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"availability_set_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: computeValidate.AvailabilitySetID,
@@ -121,7 +123,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"boot_diagnostics": bootDiagnosticsSchema(),
 
 			"computer_name": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 
 				// Computed since we reuse the VM name if one's not specified
@@ -134,7 +136,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"custom_data": base64.OptionalSchema(true),
 
 			"dedicated_host_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: computeValidate.DedicatedHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
@@ -144,20 +146,20 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"disable_password_authentication": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				ForceNew: true,
 				Default:  true,
 			},
 
 			"encryption_at_host_enabled": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 			},
 
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -167,16 +169,16 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"extensions_time_budget": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "PT1H30M",
 				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
-			"identity": virtualMachineIdentity{}.Schema(),
+			"identity": virtualMachineIdentitySchema(),
 
 			"license_type": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"RHEL_BYOS",
@@ -185,7 +187,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"max_bid_price": {
-				Type:         pluginsdk.TypeFloat,
+				Type:         schema.TypeFloat,
 				Optional:     true,
 				Default:      -1,
 				ValidateFunc: validation.FloatAtLeast(-1.0),
@@ -194,7 +196,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"plan": planSchema(),
 
 			"priority": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  string(compute.Regular),
@@ -205,15 +207,16 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"provision_vm_agent": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 				ForceNew: true,
 			},
 
 			"proximity_placement_group_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: computeValidate.ProximityPlacementGroupID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -222,7 +225,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"secret": linuxSecretSchema(),
 
 			"source_image_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.Any(
@@ -235,7 +238,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"source_image_reference": sourceImageReferenceSchema(true),
 
 			"virtual_machine_scale_set_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ConflictsWith: []string{
@@ -245,7 +248,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"platform_fault_domain": {
-				Type:         pluginsdk.TypeInt,
+				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      -1,
 				ForceNew:     true,
@@ -256,7 +259,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 
 			"zone": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				// this has to be computed because when you are trying to assign this VM to a VMSS in VMO mode with zones,
@@ -270,36 +273,36 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 
 			// Computed
 			"private_ip_address": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"private_ip_addresses": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 			"public_ip_address": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"public_ip_addresses": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 			"virtual_machine_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -370,7 +373,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	sshKeysRaw := d.Get("admin_ssh_key").(*pluginsdk.Set).List()
+	sshKeysRaw := d.Get("admin_ssh_key").(*schema.Set).List()
 	sshKeys := ExpandSSHKeys(sshKeysRaw)
 
 	params := compute.VirtualMachine{
@@ -523,7 +526,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceLinuxVirtualMachineRead(d, meta)
 }
 
-func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	disksClient := meta.(*clients.Client).Compute.DisksClient
 	networkInterfacesClient := meta.(*clients.Client).Network.InterfacesClient
@@ -644,7 +647,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			if err != nil {
 				return fmt.Errorf("flattening `admin_ssh_key`: %+v", err)
 			}
-			if err := d.Set("admin_ssh_key", pluginsdk.NewSet(SSHKeySchemaHash, *flattenedSSHKeys)); err != nil {
+			if err := d.Set("admin_ssh_key", schema.NewSet(SSHKeySchemaHash, *flattenedSSHKeys)); err != nil {
 				return fmt.Errorf("setting `admin_ssh_key`: %+v", err)
 			}
 		}
@@ -714,7 +717,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -868,22 +871,6 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.Linux)
 		update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{
 			OsDisk: osDisk,
-		}
-	}
-
-	if d.HasChange("proximity_placement_group_id") {
-		shouldUpdate = true
-
-		// Code="OperationNotAllowed" Message="Updating proximity placement group of VM is not allowed while the VM is running. Please stop/deallocate the VM and retry the operation."
-		shouldShutDown = true
-		shouldDeallocate = true
-
-		if ppgIDRaw, ok := d.GetOk("proximity_placement_group_id"); ok {
-			update.VirtualMachineProperties.ProximityPlacementGroup = &compute.SubResource{
-				ID: utils.String(ppgIDRaw.(string)),
-			}
-		} else {
-			update.VirtualMachineProperties.ProximityPlacementGroup = &compute.SubResource{}
 		}
 	}
 
@@ -1125,7 +1112,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceLinuxVirtualMachineRead(d, meta)
 }
 
-func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1148,37 +1135,31 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	if !meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
-		// If the VM was in a Failed state we can skip powering off, since that'll fail
-		if strings.EqualFold(*existing.ProvisioningState, "failed") {
-			log.Printf("[DEBUG] Powering Off Linux Virtual Machine was skipped because the VM was in %q state %q (Resource Group %q).", *existing.ProvisioningState, id.Name, id.ResourceGroup)
-		} else {
-			//ISSUE: 4920
-			// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
-			// thus this can be a large cost-saving when deleting larger instances
-			// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle
-			log.Printf("[DEBUG] Powering Off Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-			skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
-			powerOffFuture, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(skipShutdown))
-			if err != nil {
-				return fmt.Errorf("powering off Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
-			if err := powerOffFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for power off of Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
-			log.Printf("[DEBUG] Powered Off Linux Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
+	// If the VM was in a Failed state we can skip powering off, since that'll fail
+	if strings.EqualFold(*existing.ProvisioningState, "failed") {
+		log.Printf("[DEBUG] Powering Off Linux Virtual Machine was skipped because the VM was in %q state %q (Resource Group %q).", *existing.ProvisioningState, id.Name, id.ResourceGroup)
+	} else {
+		//ISSUE: 4920
+		// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
+		// thus this can be a large cost-saving when deleting larger instances
+		// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle
+		log.Printf("[DEBUG] Powering Off Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+		skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
+		powerOffFuture, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(skipShutdown))
+		if err != nil {
+			return fmt.Errorf("powering off Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
+		if err := powerOffFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for power off of Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+		log.Printf("[DEBUG] Powered Off Linux Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
 	}
 
 	log.Printf("[DEBUG] Deleting Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-
-	// Force Delete is in an opt-in Preview and can only be specified (true/false) if the feature is enabled
-	// as such we default this to `nil` which matches the previous behaviour (where this isn't sent) and
-	// conditionally set this if required
+	// @tombuildsstuff: sending `nil` here omits this value from being sent - which matches
+	// the previous behaviour - we're only splitting this out so it's clear why
+	// TODO: support force deletion once it's out of Preview, if applicable
 	var forceDeletion *bool = nil
-	if meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
-		forceDeletion = utils.Bool(true)
-	}
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
 	if err != nil {
 		return fmt.Errorf("deleting Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -1238,11 +1219,11 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 	if !utils.ResponseWasNotFound(virtualMachine.Response) {
 		log.Printf("[INFO] Linux Virtual Machine still exists, waiting on Linux Virtual Machine %q to be deleted", id.Name)
 
-		deleteWait := &pluginsdk.StateChangeConf{
+		deleteWait := &resource.StateChangeConf{
 			Pending:    []string{"200"},
 			Target:     []string{"404"},
 			MinTimeout: 30 * time.Second,
-			Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+			Timeout:    d.Timeout(schema.TimeoutDelete),
 			Refresh: func() (interface{}, string, error) {
 				log.Printf("[INFO] checking on state of Linux Virtual Machine %q", id.Name)
 				resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
@@ -1256,7 +1237,7 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 			},
 		}
 
-		if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
+		if _, err := deleteWait.WaitForState(); err != nil {
 			return fmt.Errorf("waiting for the deletion of Linux Virtual Machine %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 		}
 	}

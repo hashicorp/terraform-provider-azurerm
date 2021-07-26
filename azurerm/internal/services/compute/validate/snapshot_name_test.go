@@ -1,12 +1,13 @@
 package validate
 
 import (
-	"strings"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
 func TestSnapshotName_validation(t *testing.T) {
-	str := strings.Repeat("a", 80)
+	str := acctest.RandString(80)
 	cases := []struct {
 		Value    string
 		ErrCount int

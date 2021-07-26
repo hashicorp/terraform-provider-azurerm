@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -18,10 +19,10 @@ func TestAccDataSourceManagedDisk_basic(t *testing.T) {
 	name := fmt.Sprintf("acctestmanageddisk-%d", data.RandomInteger)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: r.basic(data, name, resourceGroupName),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(name),
 				check.That(data.ResourceName).Key("resource_group_name").HasValue(resourceGroupName),
 				check.That(data.ResourceName).Key("storage_account_type").HasValue("Premium_LRS"),
@@ -42,10 +43,10 @@ func TestAccDataSourceManagedDisk_basic_withUltraSSD(t *testing.T) {
 	name := fmt.Sprintf("acctestmanageddisk-%d", data.RandomInteger)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: r.basic_withUltraSSD(data, name, resourceGroupName),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("disk_iops_read_write").HasValue("101"),
 				check.That(data.ResourceName).Key("disk_mbps_read_write").HasValue("10"),
 			),

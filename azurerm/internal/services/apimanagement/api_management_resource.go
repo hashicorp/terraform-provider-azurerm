@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
@@ -152,24 +151,6 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				},
 			},
 
-			"client_certificate_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"gateway_disabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"min_api_version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"notification_sender_email": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -181,7 +162,7 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"location": location.SchemaWithoutForceNew(),
+						"location": azure.SchemaLocation(),
 
 						"virtual_network_configuration": {
 							Type:     pluginsdk.TypeList,
@@ -192,6 +173,7 @@ func resourceApiManagementService() *pluginsdk.Resource {
 									"subnet_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
+										ForceNew:     true,
 										ValidateFunc: azure.ValidateResourceID,
 									},
 								},
@@ -503,8 +485,6 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				},
 			},
 
-			"zones": azure.SchemaZones(),
-
 			"gateway_url": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -687,33 +667,6 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	if d.HasChange("client_certificate_enabled") {
-		enableClientCertificate := d.Get("client_certificate_enabled").(bool)
-		if enableClientCertificate && sku.Name != apimanagement.SkuTypeConsumption {
-			return fmt.Errorf("`client_certificate_enabled` is only supported when sku type is `Consumption`")
-		}
-		properties.ServiceProperties.EnableClientCertificate = utils.Bool(enableClientCertificate)
-	}
-
-	gateWayDisabled := d.Get("gateway_disabled").(bool)
-	if gateWayDisabled && len(*properties.AdditionalLocations) == 0 {
-		return fmt.Errorf("`gateway_disabled` is only supported when `additional_location` is set")
-	}
-	properties.ServiceProperties.DisableGateway = utils.Bool(gateWayDisabled)
-
-	if v, ok := d.GetOk("min_api_version"); ok {
-		properties.ServiceProperties.APIVersionConstraint = &apimanagement.APIVersionConstraint{
-			MinAPIVersion: utils.String(v.(string)),
-		}
-	}
-
-	if v := d.Get("zones").([]interface{}); len(v) > 0 {
-		if sku.Name != apimanagement.SkuTypePremium {
-			return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
-		}
-		properties.Zones = azure.ExpandZones(v)
-	}
-
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
 	if err != nil {
 		return fmt.Errorf("creating/updating API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -861,8 +814,6 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("public_ip_addresses", props.PublicIPAddresses)
 		d.Set("private_ip_addresses", props.PrivateIPAddresses)
 		d.Set("virtual_network_type", props.VirtualNetworkType)
-		d.Set("client_certificate_enabled", props.EnableClientCertificate)
-		d.Set("gateway_disabled", props.DisableGateway)
 
 		if resp.Sku != nil && resp.Sku.Name != "" {
 			if err := d.Set("security", flattenApiManagementSecurityCustomProperties(props.CustomProperties, resp.Sku.Name == apimanagement.SkuTypeConsumption)); err != nil {
@@ -887,12 +838,6 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		if err := d.Set("virtual_network_configuration", flattenApiManagementVirtualNetworkConfiguration(props.VirtualNetworkConfiguration)); err != nil {
 			return fmt.Errorf("setting `virtual_network_configuration`: %+v", err)
 		}
-
-		var minApiVersion string
-		if props.APIVersionConstraint != nil && props.APIVersionConstraint.MinAPIVersion != nil {
-			minApiVersion = *props.APIVersionConstraint.MinAPIVersion
-		}
-		d.Set("min_api_version", minApiVersion)
 	}
 
 	if err := d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku)); err != nil {
@@ -902,8 +847,6 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 	if err := d.Set("policy", flattenApiManagementPolicies(d, policy)); err != nil {
 		return fmt.Errorf("setting `policy`: %+v", err)
 	}
-
-	d.Set("zones", azure.FlattenZones(resp.Zones))
 
 	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
 		signInSettings, err := signInClient.Get(ctx, resourceGroup, name)

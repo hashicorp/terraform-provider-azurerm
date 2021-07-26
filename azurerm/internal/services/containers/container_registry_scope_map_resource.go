@@ -7,42 +7,44 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceContainerRegistryScopeMap() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create:   resourceContainerRegistryScopeMapCreate,
-		Read:     resourceContainerRegistryScopeMapRead,
-		Update:   resourceContainerRegistryScopeMapUpdate,
-		Delete:   resourceContainerRegistryScopeMapDelete,
-		Importer: pluginsdk.DefaultImporter(),
-
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+func resourceContainerRegistryScopeMap() *schema.Resource {
+	return &schema.Resource{
+		Create: resourceContainerRegistryScopeMapCreate,
+		Read:   resourceContainerRegistryScopeMapRead,
+		Update: resourceContainerRegistryScopeMapUpdate,
+		Delete: resourceContainerRegistryScopeMapDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ContainerRegistryScopeMapName,
 			},
 
 			"description": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 256),
 			},
@@ -50,18 +52,18 @@ func resourceContainerRegistryScopeMap() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"container_registry_name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ContainerRegistryName,
 			},
 
 			"actions": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Required: true,
 				MinItems: 1,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
@@ -69,7 +71,7 @@ func resourceContainerRegistryScopeMap() *pluginsdk.Resource {
 	}
 }
 
-func resourceContainerRegistryScopeMapCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryScopeMapCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.ScopeMapsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -125,7 +127,7 @@ func resourceContainerRegistryScopeMapCreate(d *pluginsdk.ResourceData, meta int
 	return resourceContainerRegistryScopeMapRead(d, meta)
 }
 
-func resourceContainerRegistryScopeMapUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryScopeMapUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.ScopeMapsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,7 +169,7 @@ func resourceContainerRegistryScopeMapUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceContainerRegistryScopeMapRead(d, meta)
 }
 
-func resourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryScopeMapRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.ScopeMapsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,7 +200,7 @@ func resourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceContainerRegistryScopeMapDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryScopeMapDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.ScopeMapsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

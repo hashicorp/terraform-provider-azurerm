@@ -11,11 +11,10 @@ import (
 // level fields, and other key-value pairs available via a map in the
 // Path field.
 type ResourceID struct {
-	SubscriptionID    string
-	ResourceGroup     string
-	Provider          string
-	SecondaryProvider string
-	Path              map[string]string
+	SubscriptionID string
+	ResourceGroup  string
+	Provider       string
+	Path           map[string]string
 }
 
 // ParseAzureResourceID converts a long-form Azure Resource Manager ID
@@ -41,7 +40,6 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 	}
 
 	var subscriptionID string
-	var provider string
 
 	// Put the constituent key-value pairs into a map
 	componentMap := make(map[string]string, len(components)/2)
@@ -54,16 +52,11 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 			return nil, fmt.Errorf("Key/Value cannot be empty strings. Key: '%s', Value: '%s'", key, value)
 		}
 
-		switch {
-		case key == "subscriptions" && subscriptionID == "":
-			// Catch the subscriptionID before it can be overwritten by another "subscriptions"
-			// value in the ID which is the case for the Service Bus subscription resource
+		// Catch the subscriptionID before it can be overwritten by another "subscriptions"
+		// value in the ID which is the case for the Service Bus subscription resource
+		if key == "subscriptions" && subscriptionID == "" {
 			subscriptionID = value
-		case key == "providers" && provider == "":
-			// Catch the provider before it can be overwritten by another "providers"
-			// value in the ID which can be the case for the Role Assignment resource
-			provider = value
-		default:
+		} else {
 			componentMap[key] = value
 		}
 	}
@@ -89,12 +82,9 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 		delete(componentMap, "resourcegroups")
 	}
 
-	if provider != "" {
+	// It is OK not to have a provider in the case of a resource group
+	if provider, ok := componentMap["providers"]; ok {
 		idObj.Provider = provider
-	}
-
-	if secondaryProvider := componentMap["providers"]; secondaryProvider != "" {
-		idObj.SecondaryProvider = secondaryProvider
 		delete(componentMap, "providers")
 	}
 

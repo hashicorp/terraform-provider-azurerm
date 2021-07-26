@@ -133,7 +133,7 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	resp, err := stateConf.WaitForStateContext(ctx)
+	resp, err := stateConf.WaitForState()
 	if err != nil {
 		return fmt.Errorf("Waiting: %+v", err)
 	}

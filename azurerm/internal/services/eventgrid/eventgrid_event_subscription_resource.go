@@ -44,8 +44,6 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(eventSubscriptionCustomizeDiffAdvancedFilter),
-
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.EventSubscriptionID(id)
 			return err
@@ -146,8 +144,6 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			"retry_policy": eventSubscriptionSchemaRetryPolicy(),
 
 			"labels": eventSubscriptionSchemaLabels(),
-
-			"advanced_filtering_on_arrays_enabled": eventSubscriptionSchemaEnableAdvancedFilteringOnArrays(),
 		},
 	}
 }
@@ -307,7 +303,6 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 
 		if filter := props.Filter; filter != nil {
 			d.Set("included_event_types", filter.IncludedEventTypes)
-			d.Set("advanced_filtering_on_arrays_enabled", filter.EnableAdvancedFilteringOnArrays)
 			if err := d.Set("subject_filter", flattenEventGridEventSubscriptionSubjectFilter(filter)); err != nil {
 				return fmt.Errorf("Error setting `subject_filter` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
 			}

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresqlflexibleservers"
+	"github.com/Azure/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -15,17 +15,11 @@ import (
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
-	privateDnsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-)
-
-const (
-	ServerMaintenanceWindowEnabled  = "Enabled"
-	ServerMaintenanceWindowDisabled = "Disabled"
 )
 
 func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
@@ -94,9 +88,8 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(postgresqlflexibleservers.ServerVersionOneOne),
-					string(postgresqlflexibleservers.ServerVersionOneTwo),
-					string(postgresqlflexibleservers.ServerVersionOneThree),
+					string(postgresqlflexibleservers.OneOne),
+					string(postgresqlflexibleservers.OneTwo),
 				}, false),
 			},
 
@@ -107,8 +100,8 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(postgresqlflexibleservers.CreateModeDefault),
-					string(postgresqlflexibleservers.CreateModePointInTimeRestore),
+					string(postgresqlflexibleservers.Default),
+					string(postgresqlflexibleservers.PointInTimeRestore),
 				}, false),
 			},
 
@@ -117,17 +110,6 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: networkValidate.SubnetID,
-			},
-
-			"private_dns_zone_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				// This is `computed`, because there is a breaking change to require this field when setting vnet.
-				// For existing fs who don't want to be recreated, they could contact service team to manually migrate to the private dns zone
-				// We need to ignore the diff when remote is set private dns zone
-				ForceNew:     true,
-				ValidateFunc: privateDnsValidate.PrivateDnsZoneID,
 			},
 
 			"point_in_time_restore_time_in_utc": {
@@ -181,28 +163,9 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(7, 35),
 			},
 
-			"high_availability": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"mode": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(postgresqlflexibleservers.HighAvailabilityModeZoneRedundant),
-							}, false),
-						},
-						"standby_availability_zone": azure.SchemaZoneComputed(),
-					},
-				},
-			},
-
 			"cmk_enabled": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Deprecated: "This attribute has been removed from the API and will be removed in version 3.0 of the provider.",
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"fqdn": {
@@ -242,7 +205,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 
 	createMode := d.Get("create_mode").(string)
 
-	if postgresqlflexibleservers.CreateMode(createMode) == postgresqlflexibleservers.CreateModePointInTimeRestore {
+	if postgresqlflexibleservers.CreateMode(createMode) == postgresqlflexibleservers.PointInTimeRestore {
 		if _, ok := d.GetOk("source_server_id"); !ok {
 			return fmt.Errorf("`source_server_id` is required when `create_mode` is `PointInTimeRestore`")
 		}
@@ -251,7 +214,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	if createMode == "" || postgresqlflexibleservers.CreateMode(createMode) == postgresqlflexibleservers.CreateModeDefault {
+	if createMode == "" || postgresqlflexibleservers.CreateMode(createMode) == postgresqlflexibleservers.Default {
 		if _, ok := d.GetOk("administrator_login"); !ok {
 			return fmt.Errorf("`administrator_login` is required when `create_mode` is `Default`")
 		}
@@ -277,12 +240,10 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	parameters := postgresqlflexibleservers.Server{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		ServerProperties: &postgresqlflexibleservers.ServerProperties{
-			CreateMode:       postgresqlflexibleservers.CreateMode(d.Get("create_mode").(string)),
-			Network:          expandArmServerNetwork(d),
-			Version:          postgresqlflexibleservers.ServerVersion(d.Get("version").(string)),
-			Storage:          expandArmServerStorage(d),
-			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{})),
-			Backup:           expandArmServerBackup(d),
+			CreateMode:               postgresqlflexibleservers.CreateMode(d.Get("create_mode").(string)),
+			DelegatedSubnetArguments: expandArmServerServerPropertiesDelegatedSubnetArguments(d.Get("delegated_subnet_id").(string)),
+			Version:                  postgresqlflexibleservers.ServerVersion(d.Get("version").(string)),
+			StorageProfile:           expandArmServerStorageProfile(d),
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -301,7 +262,13 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("source_server_id"); ok && v.(string) != "" {
-		parameters.SourceServerResourceID = utils.String(v.(string))
+		sourceServer, err := parse.FlexibleServerID(v.(string))
+		if err != nil {
+			return err
+		}
+		parameters.ServerProperties.SourceSubscriptionID = utils.String(sourceServer.SubscriptionId)
+		parameters.ServerProperties.SourceResourceGroupName = utils.String(sourceServer.ResourceGroup)
+		parameters.ServerProperties.SourceServerName = utils.String(sourceServer.Name)
 	}
 
 	pointInTimeUTC := d.Get("point_in_time_restore_time_in_utc").(string)
@@ -367,37 +334,28 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-
-	// `cmk_enabled` has been removed from API since 2021-06-01
-	// and should be removed in version 3.0 of the provider.
-	d.Set("cmk_enabled", "")
-
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("zone", props.AvailabilityZone)
+		if props.SourceServerName != nil && props.SourceSubscriptionID != nil && props.SourceResourceGroupName != nil {
+			d.Set("source_server_id", parse.NewFlexibleServerID(*props.SourceSubscriptionID, *props.SourceResourceGroupName, *props.SourceServerName).ID())
+		}
 		d.Set("version", props.Version)
+		d.Set("cmk_enabled", props.ByokEnforcement)
 		d.Set("fqdn", props.FullyQualifiedDomainName)
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
 
-		if network := props.Network; network != nil {
-			d.Set("public_network_access_enabled", network.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
-			d.Set("delegated_subnet_id", network.DelegatedSubnetResourceID)
-			d.Set("private_dns_zone_id", network.PrivateDNSZoneArmResourceID)
+		if props.DelegatedSubnetArguments != nil {
+			d.Set("delegated_subnet_id", props.DelegatedSubnetArguments.SubnetArmResourceID)
 		}
 
 		if err := d.Set("maintenance_window", flattenArmServerMaintenanceWindow(props.MaintenanceWindow)); err != nil {
 			return fmt.Errorf("setting `maintenance_window`: %+v", err)
 		}
 
-		if storage := props.Storage; storage != nil && storage.StorageSizeGB != nil {
-			d.Set("storage_mb", (*storage.StorageSizeGB * 1024))
-		}
-
-		if backup := props.Backup; backup != nil {
-			d.Set("backup_retention_days", backup.BackupRetentionDays)
-		}
-
-		if err := d.Set("high_availability", flattenFlexibleServerHighAvailability(props.HighAvailability)); err != nil {
-			return fmt.Errorf("setting `high_availability`: %+v", err)
+		if storage := props.StorageProfile; storage != nil {
+			d.Set("storage_mb", storage.StorageMB)
+			d.Set("backup_retention_days", storage.BackupRetentionDays)
 		}
 	}
 
@@ -430,12 +388,8 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		parameters.ServerPropertiesForUpdate.AdministratorLoginPassword = utils.String(d.Get("administrator_password").(string))
 	}
 
-	if d.HasChange("storage_mb") {
-		parameters.ServerPropertiesForUpdate.Storage = expandArmServerStorage(d)
-	}
-
-	if d.HasChange("backup_retention_days") {
-		parameters.ServerPropertiesForUpdate.Backup = expandArmServerBackup(d)
+	if d.HasChange("backup_retention_days") || d.HasChange("storage_mb") {
+		parameters.ServerPropertiesForUpdate.StorageProfile = expandArmServerStorageProfile(d)
 	}
 
 	if d.HasChange("maintenance_window") {
@@ -452,10 +406,6 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.HasChange("tags") {
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
-	}
-
-	if d.HasChange("high_availability") {
-		parameters.HighAvailability = expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}))
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
@@ -491,30 +441,26 @@ func resourcePostgresqlFlexibleServerDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandArmServerNetwork(d *pluginsdk.ResourceData) *postgresqlflexibleservers.Network {
-	network := postgresqlflexibleservers.Network{}
-
-	if v, ok := d.GetOk("delegated_subnet_id"); ok {
-		network.DelegatedSubnetResourceID = utils.String(v.(string))
+func expandArmServerServerPropertiesDelegatedSubnetArguments(input string) *postgresqlflexibleservers.ServerPropertiesDelegatedSubnetArguments {
+	if len(input) == 0 {
+		return nil
 	}
 
-	if v, ok := d.GetOk("private_dns_zone_id"); ok {
-		network.PrivateDNSZoneArmResourceID = utils.String(v.(string))
+	return &postgresqlflexibleservers.ServerPropertiesDelegatedSubnetArguments{
+		SubnetArmResourceID: utils.String(input),
 	}
-
-	return &network
 }
 
 func expandArmServerMaintenanceWindow(input []interface{}) *postgresqlflexibleservers.MaintenanceWindow {
 	if len(input) == 0 {
 		return &postgresqlflexibleservers.MaintenanceWindow{
-			CustomWindow: utils.String(ServerMaintenanceWindowDisabled),
+			CustomWindow: utils.String(string(postgresqlflexibleservers.Disabled)),
 		}
 	}
 	v := input[0].(map[string]interface{})
 
 	maintenanceWindow := postgresqlflexibleservers.MaintenanceWindow{
-		CustomWindow: utils.String(ServerMaintenanceWindowEnabled),
+		CustomWindow: utils.String(string(postgresqlflexibleservers.Enabled)),
 		StartHour:    utils.Int32(int32(v["start_hour"].(int))),
 		StartMinute:  utils.Int32(int32(v["start_minute"].(int))),
 		DayOfWeek:    utils.Int32(int32(v["day_of_week"].(int))),
@@ -523,24 +469,18 @@ func expandArmServerMaintenanceWindow(input []interface{}) *postgresqlflexiblese
 	return &maintenanceWindow
 }
 
-func expandArmServerStorage(d *pluginsdk.ResourceData) *postgresqlflexibleservers.Storage {
-	storage := postgresqlflexibleservers.Storage{}
+func expandArmServerStorageProfile(d *pluginsdk.ResourceData) *postgresqlflexibleservers.StorageProfile {
+	storage := postgresqlflexibleservers.StorageProfile{}
+
+	if v, ok := d.GetOk("backup_retention_days"); ok {
+		storage.BackupRetentionDays = utils.Int32(int32(v.(int)))
+	}
 
 	if v, ok := d.GetOk("storage_mb"); ok {
-		storage.StorageSizeGB = utils.Int32(int32(v.(int) / 1024))
+		storage.StorageMB = utils.Int32(int32(v.(int)))
 	}
 
 	return &storage
-}
-
-func expandArmServerBackup(d *pluginsdk.ResourceData) *postgresqlflexibleservers.Backup {
-	backup := postgresqlflexibleservers.Backup{}
-
-	if v, ok := d.GetOk("backup_retention_days"); ok {
-		backup.BackupRetentionDays = utils.Int32(int32(v.(int)))
-	}
-
-	return &backup
 }
 
 func expandFlexibleServerSku(name string) (*postgresqlflexibleservers.Sku, error) {
@@ -552,11 +492,11 @@ func expandFlexibleServerSku(name string) (*postgresqlflexibleservers.Sku, error
 	var tier postgresqlflexibleservers.SkuTier
 	switch strings.TrimSuffix(parts[0], "_") {
 	case "B":
-		tier = postgresqlflexibleservers.SkuTierBurstable
+		tier = postgresqlflexibleservers.Burstable
 	case "GP":
-		tier = postgresqlflexibleservers.SkuTierGeneralPurpose
+		tier = postgresqlflexibleservers.GeneralPurpose
 	case "MO":
-		tier = postgresqlflexibleservers.SkuTierMemoryOptimized
+		tier = postgresqlflexibleservers.MemoryOptimized
 	default:
 		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", name, parts[0])
 	}
@@ -574,11 +514,11 @@ func flattenFlexibleServerSku(sku *postgresqlflexibleservers.Sku) (string, error
 
 	var tier string
 	switch sku.Tier {
-	case postgresqlflexibleservers.SkuTierBurstable:
+	case postgresqlflexibleservers.Burstable:
 		tier = "B"
-	case postgresqlflexibleservers.SkuTierGeneralPurpose:
+	case postgresqlflexibleservers.GeneralPurpose:
 		tier = "GP"
-	case postgresqlflexibleservers.SkuTierMemoryOptimized:
+	case postgresqlflexibleservers.MemoryOptimized:
 		tier = "MO"
 	default:
 		return "", fmt.Errorf("sku_name has unknown sku tier %s", sku.Tier)
@@ -588,7 +528,7 @@ func flattenFlexibleServerSku(sku *postgresqlflexibleservers.Sku) (string, error
 }
 
 func flattenArmServerMaintenanceWindow(input *postgresqlflexibleservers.MaintenanceWindow) []interface{} {
-	if input == nil || input.CustomWindow == nil || *input.CustomWindow == string(ServerMaintenanceWindowDisabled) {
+	if input == nil || input.CustomWindow == nil || *input.CustomWindow == string(postgresqlflexibleservers.Disabled) {
 		return make([]interface{}, 0)
 	}
 
@@ -609,44 +549,6 @@ func flattenArmServerMaintenanceWindow(input *postgresqlflexibleservers.Maintena
 			"day_of_week":  dayOfWeek,
 			"start_hour":   startHour,
 			"start_minute": startMinute,
-		},
-	}
-}
-
-func expandFlexibleServerHighAvailability(inputs []interface{}) *postgresqlflexibleservers.HighAvailability {
-	if len(inputs) == 0 || inputs[0] == nil {
-		return &postgresqlflexibleservers.HighAvailability{
-			Mode: postgresqlflexibleservers.HighAvailabilityModeDisabled,
-		}
-	}
-
-	input := inputs[0].(map[string]interface{})
-
-	result := postgresqlflexibleservers.HighAvailability{
-		Mode: postgresqlflexibleservers.HighAvailabilityMode(input["mode"].(string)),
-	}
-
-	if v, ok := input["standby_availability_zone"]; ok && v.(string) != "" {
-		result.StandbyAvailabilityZone = utils.String(v.(string))
-	}
-
-	return &result
-}
-
-func flattenFlexibleServerHighAvailability(ha *postgresqlflexibleservers.HighAvailability) []interface{} {
-	if ha == nil || ha.Mode == postgresqlflexibleservers.HighAvailabilityModeDisabled {
-		return []interface{}{}
-	}
-
-	var zone string
-	if ha.StandbyAvailabilityZone != nil {
-		zone = *ha.StandbyAvailabilityZone
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"mode":                      string(ha.Mode),
-			"standby_availability_zone": zone,
 		},
 	}
 }

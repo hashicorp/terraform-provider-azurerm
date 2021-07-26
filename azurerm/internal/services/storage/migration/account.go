@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
@@ -43,70 +44,70 @@ func (AccountV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 }
 
 func accountSchemaForV0AndV1() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	return map[string]*schema.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"resource_group_name": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"location": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"account_kind": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Optional: true,
 			ForceNew: true,
 			Default:  "Storage",
 		},
 
 		"account_type": {
-			Type:       pluginsdk.TypeString,
+			Type:       schema.TypeString,
 			Optional:   true,
 			Computed:   true,
 			Deprecated: "This field has been split into `account_tier` and `account_replication_type`",
 		},
 
 		"account_tier": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"account_replication_type": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 		},
 
 		// Only valid for BlobStorage accounts, defaults to "Hot" in create function
 		"access_tier": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
 		},
 
 		"custom_domain": {
-			Type:     pluginsdk.TypeList,
+			Type:     schema.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
+						Type:     schema.TypeString,
 						Required: true,
 					},
 
 					"use_subdomain": {
-						Type:     pluginsdk.TypeBool,
+						Type:     schema.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
@@ -115,91 +116,91 @@ func accountSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 		},
 
 		"enable_blob_encryption": {
-			Type:     pluginsdk.TypeBool,
+			Type:     schema.TypeBool,
 			Optional: true,
 		},
 
 		"enable_file_encryption": {
-			Type:     pluginsdk.TypeBool,
+			Type:     schema.TypeBool,
 			Optional: true,
 		},
 
 		"enable_https_traffic_only": {
-			Type:     pluginsdk.TypeBool,
+			Type:     schema.TypeBool,
 			Optional: true,
 		},
 
 		"primary_location": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
 		"secondary_location": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
 		"primary_blob_endpoint": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
 		"secondary_blob_endpoint": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
 		"primary_queue_endpoint": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
 		"secondary_queue_endpoint": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
 		"primary_table_endpoint": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
 		"secondary_table_endpoint": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
 		// NOTE: The API does not appear to expose a secondary file endpoint
 		"primary_file_endpoint": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
 		"primary_access_key": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
 		"secondary_access_key": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
 		"primary_blob_connection_string": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
 		"secondary_blob_connection_string": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 
 		"tags": {
-			Type:     pluginsdk.TypeMap,
+			Type:     schema.TypeMap,
 			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
 			},
 		},
 	}

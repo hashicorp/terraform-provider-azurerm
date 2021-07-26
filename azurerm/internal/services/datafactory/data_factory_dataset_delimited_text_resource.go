@@ -42,7 +42,6 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
-			// TODO: replace with `data_factory_id` in 3.0
 			"data_factory_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -62,10 +61,11 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 
 			// Delimited Text Specific Field, one option for 'location'
 			"http_server_location": {
-				Type:         pluginsdk.TypeList,
-				MaxItems:     1,
-				Optional:     true,
-				ExactlyOneOf: []string{"http_server_location", "azure_blob_storage_location", "azure_blob_fs_location"},
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
+				ConflictsWith: []string{"azure_blob_storage_location"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"relative_url": {
@@ -89,10 +89,11 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 
 			// Delimited Text Specific Field, one option for 'location'
 			"azure_blob_storage_location": {
-				Type:         pluginsdk.TypeList,
-				MaxItems:     1,
-				Optional:     true,
-				ExactlyOneOf: []string{"http_server_location", "azure_blob_storage_location", "azure_blob_fs_location"},
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
+				ConflictsWith: []string{"http_server_location"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"container": {
@@ -108,32 +109,6 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 						"filename": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
-
-			"azure_blob_fs_location": {
-				Type:         pluginsdk.TypeList,
-				MaxItems:     1,
-				Optional:     true,
-				ExactlyOneOf: []string{"http_server_location", "azure_blob_storage_location", "azure_blob_fs_location"},
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"file_system": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"path": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"filename": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
@@ -183,8 +158,9 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 
 			// Delimited Text Specific Field
 			"null_value": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"parameters": {
@@ -267,7 +243,6 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"None",
 					"bzip2",
 					"gzip",
 					"deflate",
@@ -446,18 +421,14 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta
 	}
 
 	if properties := delimited_textTable.DelimitedTextDatasetTypeProperties; properties != nil {
-		switch location := properties.Location.(type) {
-		case datafactory.HTTPServerLocation:
-			if err := d.Set("http_server_location", flattenDataFactoryDatasetHTTPServerLocation(&location)); err != nil {
-				return fmt.Errorf("setting `http_server_location` for Data Factory Delimited Text Dataset %s", err)
+		if httpServerLocation, ok := properties.Location.AsHTTPServerLocation(); ok {
+			if err := d.Set("http_server_location", flattenDataFactoryDatasetHTTPServerLocation(httpServerLocation)); err != nil {
+				return fmt.Errorf("Error setting `http_server_location` for Data Factory Delimited Text Dataset %s", err)
 			}
-		case datafactory.AzureBlobStorageLocation:
-			if err := d.Set("azure_blob_storage_location", flattenDataFactoryDatasetAzureBlobStorageLocation(&location)); err != nil {
-				return fmt.Errorf("setting `azure_blob_storage_location` for Data Factory Delimited Text Dataset %s", err)
-			}
-		case datafactory.AzureBlobFSLocation:
-			if err := d.Set("azure_blob_fs_location", flattenDataFactoryDatasetAzureBlobFSLocation(&location)); err != nil {
-				return fmt.Errorf("setting `azure_blob_fs_location` for Data Factory Delimited Text Dataset %s", err)
+		}
+		if azureBlobStorageLocation, ok := properties.Location.AsAzureBlobStorageLocation(); ok {
+			if err := d.Set("azure_blob_storage_location", flattenDataFactoryDatasetAzureBlobStorageLocation(azureBlobStorageLocation)); err != nil {
+				return fmt.Errorf("Error setting `azure_blob_storage_location` for Data Factory Delimited Text Dataset %s", err)
 			}
 		}
 

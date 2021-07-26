@@ -5,24 +5,24 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/eventhubs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var eventHubResourceName = "azurerm_eventhub"
 
-func resourceEventHub() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceEventHub() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceEventHubCreateUpdate,
 		Read:   resourceEventHubRead,
 		Update: resourceEventHubCreateUpdate,
@@ -33,23 +33,23 @@ func resourceEventHub() *pluginsdk.Resource {
 			return err
 		}),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubName(),
 			},
 
 			"namespace_name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubNamespaceName(),
@@ -58,62 +58,62 @@ func resourceEventHub() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"partition_count": {
-				Type:         pluginsdk.TypeInt,
+				Type:         schema.TypeInt,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubPartitionCount,
 			},
 
 			"message_retention": {
-				Type:         pluginsdk.TypeInt,
+				Type:         schema.TypeInt,
 				Required:     true,
 				ValidateFunc: validate.ValidateEventHubMessageRetentionCount,
 			},
 
 			"capture_description": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"enabled": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 						"skip_empty_archives": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						"encoding": {
-							Type:             pluginsdk.TypeString,
+							Type:             schema.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(eventhubs.EncodingCaptureDescriptionAvro),
-								string(eventhubs.EncodingCaptureDescriptionAvroDeflate),
+								string(eventhub.Avro),
+								string(eventhub.AvroDeflate),
 							}, true),
 						},
 						"interval_in_seconds": {
-							Type:         pluginsdk.TypeInt,
+							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      300,
 							ValidateFunc: validation.IntBetween(60, 900),
 						},
 						"size_limit_in_bytes": {
-							Type:         pluginsdk.TypeInt,
+							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      314572800,
 							ValidateFunc: validation.IntBetween(10485760, 524288000),
 						},
 						"destination": {
-							Type:     pluginsdk.TypeList,
+							Type:     schema.TypeList,
 							Required: true,
 							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:     pluginsdk.TypeString,
+										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"EventHubArchive.AzureBlockBlob",
@@ -123,16 +123,16 @@ func resourceEventHub() *pluginsdk.Resource {
 										}, false),
 									},
 									"archive_name_format": {
-										Type:         pluginsdk.TypeString,
+										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validate.ValidateEventHubArchiveNameFormat,
 									},
 									"blob_container_name": {
-										Type:     pluginsdk.TypeString,
+										Type:     schema.TypeString,
 										Required: true,
 									},
 									"storage_account_id": {
-										Type:         pluginsdk.TypeString,
+										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: azure.ValidateResourceID,
 									},
@@ -143,28 +143,17 @@ func resourceEventHub() *pluginsdk.Resource {
 				},
 			},
 
-			"status": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(eventhubs.EntityStatusActive),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(eventhubs.EntityStatusActive),
-					string(eventhubs.EntityStatusDisabled),
-					string(eventhubs.EntityStatusSendDisabled),
-				}, false),
-			},
-
 			"partition_ids": {
-				Type:     pluginsdk.TypeSet,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:      pluginsdk.HashString,
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -172,30 +161,28 @@ func resourceEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")
 
-	id := eventhubs.NewEventhubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	id := parse.NewEventHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_eventhub", id.ID())
 		}
 	}
 
 	partitionCount := int64(d.Get("partition_count").(int))
 	messageRetention := int64(d.Get("message_retention").(int))
-	eventhubStatus := eventhubs.EntityStatus(d.Get("status").(string))
 
-	parameters := eventhubs.Eventhub{
-		Properties: &eventhubs.EventhubProperties{
+	parameters := eventhub.Model{
+		Properties: &eventhub.Properties{
 			PartitionCount:         &partitionCount,
 			MessageRetentionInDays: &messageRetention,
-			Status:                 &eventhubStatus,
 		},
 	}
 
@@ -203,7 +190,7 @@ func resourceEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		parameters.Properties.CaptureDescription = expandEventHubCaptureDescription(d)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.NamespaceName, id.Name, parameters); err != nil {
 		return err
 	}
 
@@ -212,19 +199,19 @@ func resourceEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceEventHubRead(d, meta)
 }
 
-func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := eventhubs.EventhubID(d.Id())
+	id, err := parse.EventHubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -235,36 +222,33 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			d.Set("partition_count", props.PartitionCount)
-			d.Set("message_retention", props.MessageRetentionInDays)
-			d.Set("partition_ids", props.PartitionIds)
-			d.Set("status", string(*props.Status))
+	if props := resp.Properties; props != nil {
+		d.Set("partition_count", props.PartitionCount)
+		d.Set("message_retention", props.MessageRetentionInDays)
+		d.Set("partition_ids", props.PartitionIds)
 
-			captureDescription := flattenEventHubCaptureDescription(props.CaptureDescription)
-			if err := d.Set("capture_description", captureDescription); err != nil {
-				return err
-			}
+		captureDescription := flattenEventHubCaptureDescription(props.CaptureDescription)
+		if err := d.Set("capture_description", captureDescription); err != nil {
+			return err
 		}
 	}
 
 	return nil
 }
 
-func resourceEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := eventhubs.EventhubID(d.Id())
+	id, err := parse.EventHubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, *id)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 
@@ -274,7 +258,7 @@ func resourceEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.CaptureDescription {
+func expandEventHubCaptureDescription(d *schema.ResourceData) *eventhub.CaptureDescription {
 	inputs := d.Get("capture_description").([]interface{})
 	input := inputs[0].(map[string]interface{})
 
@@ -284,14 +268,11 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 	sizeLimitInBytes := input["size_limit_in_bytes"].(int)
 	skipEmptyArchives := input["skip_empty_archives"].(bool)
 
-	captureDescription := eventhubs.CaptureDescription{
-		Enabled: utils.Bool(enabled),
-		Encoding: func() *eventhubs.EncodingCaptureDescription {
-			v := eventhubs.EncodingCaptureDescription(encoding)
-			return &v
-		}(),
-		IntervalInSeconds: utils.Int64(int64(intervalInSeconds)),
-		SizeLimitInBytes:  utils.Int64(int64(sizeLimitInBytes)),
+	captureDescription := eventhub.CaptureDescription{
+		Enabled:           utils.Bool(enabled),
+		Encoding:          eventhub.EncodingCaptureDescription(encoding),
+		IntervalInSeconds: utils.Int32(int32(intervalInSeconds)),
+		SizeLimitInBytes:  utils.Int32(int32(sizeLimitInBytes)),
 		SkipEmptyArchives: utils.Bool(skipEmptyArchives),
 	}
 
@@ -305,12 +286,12 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 			blobContainerName := destination["blob_container_name"].(string)
 			storageAccountId := destination["storage_account_id"].(string)
 
-			captureDescription.Destination = &eventhubs.Destination{
+			captureDescription.Destination = &eventhub.Destination{
 				Name: utils.String(destinationName),
-				Properties: &eventhubs.DestinationProperties{
+				DestinationProperties: &eventhub.DestinationProperties{
 					ArchiveNameFormat:        utils.String(archiveNameFormat),
 					BlobContainer:            utils.String(blobContainerName),
-					StorageAccountResourceId: utils.String(storageAccountId),
+					StorageAccountResourceID: utils.String(storageAccountId),
 				},
 			}
 		}
@@ -319,7 +300,7 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 	return &captureDescription
 }
 
-func flattenEventHubCaptureDescription(description *eventhubs.CaptureDescription) []interface{} {
+func flattenEventHubCaptureDescription(description *eventhub.CaptureDescription) []interface{} {
 	results := make([]interface{}, 0)
 
 	if description != nil {
@@ -333,11 +314,7 @@ func flattenEventHubCaptureDescription(description *eventhubs.CaptureDescription
 			output["skip_empty_archives"] = *skipEmptyArchives
 		}
 
-		encoding := ""
-		if description.Encoding != nil {
-			encoding = string(*description.Encoding)
-		}
-		output["encoding"] = encoding
+		output["encoding"] = string(description.Encoding)
 
 		if interval := description.IntervalInSeconds; interval != nil {
 			output["interval_in_seconds"] = *interval
@@ -354,14 +331,14 @@ func flattenEventHubCaptureDescription(description *eventhubs.CaptureDescription
 				destinationOutput["name"] = *name
 			}
 
-			if props := destination.Properties; props != nil {
+			if props := destination.DestinationProperties; props != nil {
 				if archiveNameFormat := props.ArchiveNameFormat; archiveNameFormat != nil {
 					destinationOutput["archive_name_format"] = *archiveNameFormat
 				}
 				if blobContainerName := props.BlobContainer; blobContainerName != nil {
 					destinationOutput["blob_container_name"] = *blobContainerName
 				}
-				if storageAccountId := props.StorageAccountResourceId; storageAccountId != nil {
+				if storageAccountId := props.StorageAccountResourceID; storageAccountId != nil {
 					destinationOutput["storage_account_id"] = *storageAccountId
 				}
 			}

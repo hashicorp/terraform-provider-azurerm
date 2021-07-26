@@ -6,23 +6,25 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceManagedDisk() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceManagedDisk() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceManagedDiskCreate,
 		Read:   resourceManagedDiskRead,
 		Update: resourceManagedDiskUpdate,
@@ -33,16 +35,16 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			return err
 		}),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -54,7 +56,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			"zones": azure.SchemaSingleZone(),
 
 			"storage_account_type": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.StandardLRS),
@@ -66,7 +68,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			},
 
 			"create_option": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -79,33 +81,33 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			},
 
 			"source_uri": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
 			},
 
 			"source_resource_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
 
 			"storage_account_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true, // Not supported by disk update
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"image_reference_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
 
 			"os_type": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.Windows),
@@ -114,26 +116,26 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			},
 
 			"disk_size_gb": {
-				Type:         pluginsdk.TypeInt,
+				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validate.ManagedDiskSizeGB,
 			},
 
 			"disk_iops_read_write": {
-				Type:     pluginsdk.TypeInt,
+				Type:     schema.TypeInt,
 				Optional: true,
 				Computed: true,
 			},
 
 			"disk_mbps_read_write": {
-				Type:     pluginsdk.TypeInt,
+				Type:     schema.TypeInt,
 				Optional: true,
 				Computed: true,
 			},
 
 			"disk_encryption_set_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
 				//       https://github.com/Azure/azure-rest-api-specs/issues/8132
@@ -144,7 +146,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			"encryption_settings": encryptionSettingsSchema(),
 
 			"network_access_policy": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.AllowAll),
@@ -153,7 +155,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				}, false),
 			},
 			"disk_access_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
 				//       https://github.com/Azure/azure-rest-api-specs/issues/14192
@@ -162,7 +164,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			},
 
 			"tier": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
@@ -172,7 +174,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 	}
 }
 
-func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedDiskCreate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -340,7 +342,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceManagedDiskRead(d, meta)
 }
 
-func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -570,7 +572,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceManagedDiskRead(d, meta)
 }
 
-func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -642,7 +644,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedDiskDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

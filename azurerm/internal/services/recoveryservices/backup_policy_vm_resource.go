@@ -322,7 +322,7 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 
 	// Less than 7 daily backups is no longer supported for create/update
 	if (d.IsNewResource() || d.HasChange("retention_daily.0.count")) && (d.Get("retention_daily.0.count").(int) > 1 && d.Get("retention_daily.0.count").(int) < 7) {
-		return fmt.Errorf("The Azure API has recently changed behaviour so that provisioning a `count` for the `retention_daily` field can no longer be less than 7 days for new/updates to existing Backup Policies. Please ensure that `count` is greater than 7, currently %d", d.Get("retention_daily.0.count").(int))
+		return fmt.Errorf("The Azure API has recently changed behaviour so that provisioning a `count` for the `retention_daily` field can no longer be less than 7 days for new/updates to existing Backup Policies. Please ensure that `count` is less than 7, currently %d", d.Get("retention_daily.0.count").(int))
 	}
 
 	vmProtectionPolicyProperties := &backup.AzureIaaSVMProtectionPolicy{
@@ -738,7 +738,7 @@ func resourceBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, client *
 		state.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	resp, err := state.WaitForStateContext(ctx)
+	resp, err := state.WaitForState()
 	if err != nil {
 		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Azure Backup Protection Policy %q to be true (Resource Group %q) to provision: %+v", policyName, resourceGroup, err)
 	}
@@ -756,7 +756,7 @@ func resourceBackupProtectionPolicyVMWaitForDeletion(ctx context.Context, client
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	resp, err := state.WaitForStateContext(ctx)
+	resp, err := state.WaitForState()
 	if err != nil {
 		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Azure Backup Protection Policy %q to be false (Resource Group %q) to provision: %+v", policyName, resourceGroup, err)
 	}

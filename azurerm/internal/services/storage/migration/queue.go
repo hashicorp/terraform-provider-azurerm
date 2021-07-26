@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
@@ -13,19 +14,19 @@ var _ pluginsdk.StateUpgrade = QueueV0ToV1{}
 type QueueV0ToV1 struct{}
 
 func (QueueV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	return map[string]*schema.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 		"resource_group_name": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 		"storage_account_name": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},

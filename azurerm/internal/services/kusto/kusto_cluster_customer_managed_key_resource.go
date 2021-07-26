@@ -13,7 +13,6 @@ import (
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
-	msiValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -62,12 +61,6 @@ func resourceKustoClusterCustomerManagedKey() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"user_identity": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: msiValidate.UserAssignedIdentityID,
 			},
 		},
 	}
@@ -150,10 +143,6 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 		},
 	}
 
-	if v, ok := d.GetOk("user_identity"); ok {
-		props.ClusterProperties.KeyVaultProperties.UserIdentity = utils.String(v.(string))
-	}
-
 	future, err := clusterClient.Update(ctx, clusterID.ResourceGroup, clusterID.Name, props)
 	if err != nil {
 		return fmt.Errorf("Error updating Customer Managed Key for Kusto Cluster %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
@@ -203,7 +192,6 @@ func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta 
 	keyName := ""
 	keyVaultURI := ""
 	keyVersion := ""
-	userIdentity := ""
 	if props != nil {
 		if props.KeyName != nil {
 			keyName = *props.KeyName
@@ -213,9 +201,6 @@ func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta 
 		}
 		if props.KeyVersion != nil {
 			keyVersion = *props.KeyVersion
-		}
-		if props.UserIdentity != nil {
-			userIdentity = *props.UserIdentity
 		}
 	}
 
@@ -233,7 +218,7 @@ func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta 
 	d.Set("key_vault_id", keyVaultID)
 	d.Set("key_name", keyName)
 	d.Set("key_version", keyVersion)
-	d.Set("user_identity", userIdentity)
+
 	return nil
 }
 

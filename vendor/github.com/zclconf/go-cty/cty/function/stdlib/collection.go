@@ -129,9 +129,8 @@ var LengthFunc = function.New(&function.Spec{
 var ElementFunc = function.New(&function.Spec{
 	Params: []function.Parameter{
 		{
-			Name:        "list",
-			Type:        cty.DynamicPseudoType,
-			AllowMarked: true,
+			Name: "list",
+			Type: cty.DynamicPseudoType,
 		},
 		{
 			Name: "index",
@@ -186,12 +185,11 @@ var ElementFunc = function.New(&function.Spec{
 			return cty.DynamicVal, fmt.Errorf("cannot use element function with a negative index")
 		}
 
-		input, marks := args[0].Unmark()
-		if !input.IsKnown() {
+		if !args[0].IsKnown() {
 			return cty.UnknownVal(retType), nil
 		}
 
-		l := input.LengthInt()
+		l := args[0].LengthInt()
 		if l == 0 {
 			return cty.DynamicVal, errors.New("cannot use element function with an empty list")
 		}
@@ -199,7 +197,7 @@ var ElementFunc = function.New(&function.Spec{
 
 		// We did all the necessary type checks in the type function above,
 		// so this is guaranteed not to fail.
-		return input.Index(cty.NumberIntVal(int64(index))).WithMarks(marks), nil
+		return args[0].Index(cty.NumberIntVal(int64(index))), nil
 	},
 })
 
@@ -530,18 +528,10 @@ func flattener(flattenList cty.Value) ([]cty.Value, []cty.ValueMarks, bool) {
 		// predict the length of our result yet either.
 		return nil, markses, false
 	}
-
 	out := make([]cty.Value, 0)
 	isKnown := true
 	for it := flattenList.ElementIterator(); it.Next(); {
 		_, val := it.Element()
-
-		// Any dynamic types could result in more collections that need to be
-		// flattened, so the type cannot be known.
-		if val.Type().Equals(cty.DynamicPseudoType) {
-			isKnown = false
-		}
-
 		if val.Type().IsListType() || val.Type().IsSetType() || val.Type().IsTupleType() {
 			if !val.IsKnown() {
 				isKnown = false
@@ -851,9 +841,8 @@ var MergeFunc = function.New(&function.Spec{
 var ReverseListFunc = function.New(&function.Spec{
 	Params: []function.Parameter{
 		{
-			Name:        "list",
-			Type:        cty.DynamicPseudoType,
-			AllowMarked: true,
+			Name: "list",
+			Type: cty.DynamicPseudoType,
 		},
 	},
 	Type: func(args []cty.Value) (cty.Type, error) {
@@ -873,21 +862,19 @@ var ReverseListFunc = function.New(&function.Spec{
 		}
 	},
 	Impl: func(args []cty.Value, retType cty.Type) (ret cty.Value, err error) {
-		in, marks := args[0].Unmark()
-		inVals := in.AsValueSlice()
-		outVals := make([]cty.Value, len(inVals))
-
-		for i, v := range inVals {
+		in := args[0].AsValueSlice()
+		outVals := make([]cty.Value, len(in))
+		for i, v := range in {
 			outVals[len(outVals)-i-1] = v
 		}
 		switch {
 		case retType.IsTupleType():
-			return cty.TupleVal(outVals).WithMarks(marks), nil
+			return cty.TupleVal(outVals), nil
 		default:
 			if len(outVals) == 0 {
-				return cty.ListValEmpty(retType.ElementType()).WithMarks(marks), nil
+				return cty.ListValEmpty(retType.ElementType()), nil
 			}
-			return cty.ListVal(outVals).WithMarks(marks), nil
+			return cty.ListVal(outVals), nil
 		}
 	},
 })
@@ -948,16 +935,12 @@ var SetProductFunc = function.New(&function.Spec{
 		var retMarks cty.ValueMarks
 
 		total := 1
-		var hasUnknownLength bool
 		for _, arg := range args {
 			arg, marks := arg.Unmark()
 			retMarks = cty.NewValueMarks(retMarks, marks)
 
-			// Continue processing after we find an argument with unknown
-			// length to ensure that we cover all the marks
 			if !arg.Length().IsKnown() {
-				hasUnknownLength = true
-				continue
+				return cty.UnknownVal(retType).Mark(marks), nil
 			}
 
 			// Because of our type checking function, we are guaranteed that
@@ -966,17 +949,13 @@ var SetProductFunc = function.New(&function.Spec{
 			total *= arg.LengthInt()
 		}
 
-		if hasUnknownLength {
-			return cty.UnknownVal(retType).WithMarks(retMarks), nil
-		}
-
 		if total == 0 {
 			// If any of the arguments was an empty collection then our result
 			// is also an empty collection, which we'll short-circuit here.
 			if retType.IsListType() {
-				return cty.ListValEmpty(ety).WithMarks(retMarks), nil
+				return cty.ListValEmpty(ety).Mark(retMarks), nil
 			}
-			return cty.SetValEmpty(ety).WithMarks(retMarks), nil
+			return cty.SetValEmpty(ety).Mark(retMarks), nil
 		}
 
 		subEtys := ety.TupleElementTypes()
@@ -1039,9 +1018,8 @@ var SetProductFunc = function.New(&function.Spec{
 var SliceFunc = function.New(&function.Spec{
 	Params: []function.Parameter{
 		{
-			Name:        "list",
-			Type:        cty.DynamicPseudoType,
-			AllowMarked: true,
+			Name: "list",
+			Type: cty.DynamicPseudoType,
 		},
 		{
 			Name: "start_index",
@@ -1080,10 +1058,10 @@ var SliceFunc = function.New(&function.Spec{
 		return cty.Tuple(argTy.TupleElementTypes()[startIndex:endIndex]), nil
 	},
 	Impl: func(args []cty.Value, retType cty.Type) (ret cty.Value, err error) {
-		inputList, marks := args[0].Unmark()
+		inputList := args[0]
 
 		if retType == cty.DynamicPseudoType {
-			return cty.DynamicVal.WithMarks(marks), nil
+			return cty.DynamicVal, nil
 		}
 
 		// we ignore idxsKnown return value here because the indices are always
@@ -1095,18 +1073,18 @@ var SliceFunc = function.New(&function.Spec{
 
 		if endIndex-startIndex == 0 {
 			if retType.IsTupleType() {
-				return cty.EmptyTupleVal.WithMarks(marks), nil
+				return cty.EmptyTupleVal, nil
 			}
-			return cty.ListValEmpty(retType.ElementType()).WithMarks(marks), nil
+			return cty.ListValEmpty(retType.ElementType()), nil
 		}
 
 		outputList := inputList.AsValueSlice()[startIndex:endIndex]
 
 		if retType.IsTupleType() {
-			return cty.TupleVal(outputList).WithMarks(marks), nil
+			return cty.TupleVal(outputList), nil
 		}
 
-		return cty.ListVal(outputList).WithMarks(marks), nil
+		return cty.ListVal(outputList), nil
 	},
 })
 
@@ -1114,12 +1092,9 @@ func sliceIndexes(args []cty.Value) (int, int, bool, error) {
 	var startIndex, endIndex, length int
 	var startKnown, endKnown, lengthKnown bool
 
-	// remove marks from args[0]
-	list, _ := args[0].Unmark()
-
 	// If it's a tuple then we always know the length by the type, but collections might be unknown or have unknown length
-	if list.Type().IsTupleType() || list.Length().IsKnown() {
-		length = list.LengthInt()
+	if args[0].Type().IsTupleType() || args[0].Length().IsKnown() {
+		length = args[0].LengthInt()
 		lengthKnown = true
 	}
 

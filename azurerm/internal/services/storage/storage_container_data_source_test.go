@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -13,10 +14,10 @@ type StorageContainerDataSource struct{}
 func TestAccDataSourceStorageContainer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_container", "test")
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: StorageContainerDataSource{}.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("container_access_type").HasValue("private"),
 				check.That(data.ResourceName).Key("has_immutability_policy").HasValue("false"),
 				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),

@@ -11,6 +11,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -23,14 +26,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // If the consistency policy of the Cosmos DB Database Account is not bounded staleness,
 // any changes to the configuration for bounded staleness should be suppressed.
-func suppressConsistencyPolicyStalenessConfiguration(_, _, _ string, d *pluginsdk.ResourceData) bool {
+func suppressConsistencyPolicyStalenessConfiguration(_, _, _ string, d *schema.ResourceData) bool {
 	consistencyPolicyList := d.Get("consistency_policy").([]interface{})
 	if len(consistencyPolicyList) == 0 || consistencyPolicyList[0] == nil {
 		return false
@@ -41,8 +43,8 @@ func suppressConsistencyPolicyStalenessConfiguration(_, _, _ string, d *pluginsd
 	return consistencyPolicy["consistency_level"].(string) != string(documentdb.BoundedStaleness)
 }
 
-func resourceCosmosDbAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceCosmosDbAccount() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceCosmosDbAccountCreate,
 		Read:   resourceCosmosDbAccountRead,
 		Update: resourceCosmosDbAccountUpdate,
@@ -50,16 +52,16 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(180 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(180 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(180 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(180 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(180 * time.Minute),
+			Delete: schema.DefaultTimeout(180 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -74,7 +76,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 
 			// resource fields
 			"offer_type": {
-				Type:             pluginsdk.TypeString,
+				Type:             schema.TypeString,
 				Required:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -83,7 +85,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"kind": {
-				Type:             pluginsdk.TypeString,
+				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
 				Default:          string(documentdb.GlobalDocumentDB),
@@ -96,7 +98,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"ip_range_filter": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/([1-2][0-9]|3[0-2]))?\b[,]?)*$`),
@@ -105,33 +107,33 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"enable_free_tier": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 				ForceNew: true,
 			},
 
 			"analytical_storage_enabled": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 				ForceNew: true,
 			},
 
 			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"enable_automatic_failover": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"key_vault_key_id": {
-				Type:             pluginsdk.TypeString,
+				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: keyVaultSuppress.DiffSuppressIgnoreKeyVaultKeyVersion,
@@ -139,13 +141,13 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"consistency_policy": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"consistency_level": {
-							Type:             pluginsdk.TypeString,
+							Type:             schema.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -158,7 +160,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						},
 
 						"max_interval_in_seconds": {
-							Type:             pluginsdk.TypeInt,
+							Type:             schema.TypeInt,
 							Optional:         true,
 							Computed:         true,
 							DiffSuppressFunc: suppressConsistencyPolicyStalenessConfiguration,
@@ -166,7 +168,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						},
 
 						"max_staleness_prefix": {
-							Type:             pluginsdk.TypeInt,
+							Type:             schema.TypeInt,
 							Optional:         true,
 							Computed:         true,
 							DiffSuppressFunc: suppressConsistencyPolicyStalenessConfiguration,
@@ -177,12 +179,12 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"geo_location": {
-				Type:     pluginsdk.TypeSet,
+				Type:     schema.TypeSet,
 				Required: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"prefix": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringMatch(
 								regexp.MustCompile("^[-a-z0-9]{3,50}$"),
@@ -192,20 +194,20 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						},
 
 						"id": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 
 						"location": location.SchemaWithoutForceNew(),
 
 						"failover_priority": {
-							Type:         pluginsdk.TypeInt,
+							Type:         schema.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"zone_redundant": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
@@ -215,13 +217,13 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"capabilities": {
-				Type:     pluginsdk.TypeSet,
+				Type:     schema.TypeSet,
 				Optional: true,
 				ForceNew: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:             pluginsdk.TypeString,
+							Type:             schema.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -245,23 +247,23 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"is_virtual_network_filter_enabled": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"virtual_network_rule": {
-				Type:     pluginsdk.TypeSet,
+				Type:     schema.TypeSet,
 				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"ignore_missing_vnet_service_endpoint": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
@@ -271,19 +273,19 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"enable_multiple_write_locations": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"access_key_metadata_writes_enabled": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"mongo_server_version": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Computed: true,
@@ -295,28 +297,28 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"network_acl_bypass_for_azure_services": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"network_acl_bypass_ids": {
-				Type:     pluginsdk.TypeList,
-				Optional: true, Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
+				Type:     schema.TypeList,
+				Optional: true, Elem: &schema.Schema{
+					Type:         schema.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
 			},
 
 			"backup": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -326,14 +328,14 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						},
 
 						"interval_in_minutes": {
-							Type:         pluginsdk.TypeInt,
+							Type:         schema.TypeInt,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validation.IntBetween(60, 1440),
 						},
 
 						"retention_in_hours": {
-							Type:         pluginsdk.TypeInt,
+							Type:         schema.TypeInt,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validation.IntBetween(8, 720),
@@ -343,14 +345,14 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"identity": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						// only system assigned identity is supported
 						"type": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(documentdb.ResourceIdentityTypeSystemAssigned),
@@ -358,12 +360,12 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						},
 
 						"principal_id": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 
 						"tenant_id": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
@@ -374,84 +376,84 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 
 			// computed
 			"endpoint": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"read_endpoints": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
 			"write_endpoints": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
 			"primary_key": {
-				Type:      pluginsdk.TypeString,
+				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_key": {
-				Type:      pluginsdk.TypeString,
+				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"primary_readonly_key": {
-				Type:      pluginsdk.TypeString,
+				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_readonly_key": {
-				Type:      pluginsdk.TypeString,
+				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"primary_master_key": {
-				Type:       pluginsdk.TypeString,
+				Type:       schema.TypeString,
 				Computed:   true,
 				Sensitive:  true,
 				Deprecated: "This property has been renamed to `primary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
 			},
 
 			"secondary_master_key": {
-				Type:       pluginsdk.TypeString,
+				Type:       schema.TypeString,
 				Computed:   true,
 				Sensitive:  true,
 				Deprecated: "This property has been renamed to `secondary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
 			},
 
 			"primary_readonly_master_key": {
-				Type:       pluginsdk.TypeString,
+				Type:       schema.TypeString,
 				Computed:   true,
 				Sensitive:  true,
 				Deprecated: "This property has been renamed to `primary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
 			},
 
 			"secondary_readonly_master_key": {
-				Type:       pluginsdk.TypeString,
+				Type:       schema.TypeString,
 				Computed:   true,
 				Sensitive:  true,
 				Deprecated: "This property has been renamed to `secondary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
 			},
 
 			"connection_strings": {
-				Type:      pluginsdk.TypeList,
+				Type:      schema.TypeList,
 				Computed:  true,
 				Sensitive: true,
-				Elem: &pluginsdk.Schema{
-					Type:      pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type:      schema.TypeString,
 					Sensitive: true,
 				},
 			},
@@ -461,7 +463,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -593,7 +595,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceCosmosDbAccountRead(d, meta)
 }
 
-func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -748,7 +750,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceCosmosDbAccountRead(d, meta)
 }
 
-func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -924,7 +926,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceCosmosDbAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -939,11 +941,11 @@ func resourceCosmosDbAccountDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	// the SDK now will return a `WasNotFound` response even when still deleting
-	stateConf := &pluginsdk.StateChangeConf{
+	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Deleting"},
 		Target:     []string{"NotFound"},
 		MinTimeout: 30 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+		Timeout:    d.Timeout(schema.TimeoutDelete),
 		Refresh: func() (interface{}, string, error) {
 			resp, err2 := client.Get(ctx, id.ResourceGroup, id.Name)
 			if err2 != nil {
@@ -957,14 +959,14 @@ func resourceCosmosDbAccountDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		},
 	}
 
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for CosmosDB Account %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters, d *pluginsdk.ResourceData) (*documentdb.DatabaseAccountGetResults, error) {
+func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters, d *schema.ResourceData) (*documentdb.DatabaseAccountGetResults, error) {
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, account)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating/updating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -975,7 +977,7 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 	}
 
 	// if a replication location is added or removed it can take some time to provision
-	stateConf := &pluginsdk.StateChangeConf{
+	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Creating", "Updating", "Deleting", "Initializing"},
 		Target:     []string{"Succeeded"},
 		MinTimeout: 30 * time.Second,
@@ -1012,12 +1014,12 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 	}
 
 	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
+		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
 	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
+		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
 	}
 
-	resp, err := stateConf.WaitForStateContext(ctx)
+	resp, err := stateConf.WaitForState()
 	if err != nil {
 		return nil, fmt.Errorf("Error waiting for the CosmosDB Account %q (Resource Group %q) to provision: %+v", name, resourceGroup, err)
 	}
@@ -1026,7 +1028,7 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 	return &r, nil
 }
 
-func expandAzureRmCosmosDBAccountConsistencyPolicy(d *pluginsdk.ResourceData) *documentdb.ConsistencyPolicy {
+func expandAzureRmCosmosDBAccountConsistencyPolicy(d *schema.ResourceData) *documentdb.ConsistencyPolicy {
 	i := d.Get("consistency_policy").([]interface{})
 	if len(i) == 0 || i[0] == nil {
 		return nil
@@ -1054,9 +1056,9 @@ func expandAzureRmCosmosDBAccountConsistencyPolicy(d *pluginsdk.ResourceData) *d
 	return &policy
 }
 
-func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]documentdb.Location, error) {
+func expandAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData) ([]documentdb.Location, error) {
 	locations := make([]documentdb.Location, 0)
-	for _, l := range d.Get("geo_location").(*pluginsdk.Set).List() {
+	for _, l := range d.Get("geo_location").(*schema.Set).List() {
 		data := l.(map[string]interface{})
 
 		location := documentdb.Location{
@@ -1096,8 +1098,8 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]docu
 	return locations, nil
 }
 
-func expandAzureRmCosmosDBAccountCapabilities(d *pluginsdk.ResourceData) *[]documentdb.Capability {
-	capabilities := d.Get("capabilities").(*pluginsdk.Set).List()
+func expandAzureRmCosmosDBAccountCapabilities(d *schema.ResourceData) *[]documentdb.Capability {
+	capabilities := d.Get("capabilities").(*schema.Set).List()
 	s := make([]documentdb.Capability, 0)
 
 	for _, c := range capabilities {
@@ -1108,8 +1110,8 @@ func expandAzureRmCosmosDBAccountCapabilities(d *pluginsdk.ResourceData) *[]docu
 	return &s
 }
 
-func expandAzureRmCosmosDBAccountVirtualNetworkRules(d *pluginsdk.ResourceData) *[]documentdb.VirtualNetworkRule {
-	virtualNetworkRules := d.Get("virtual_network_rule").(*pluginsdk.Set).List()
+func expandAzureRmCosmosDBAccountVirtualNetworkRules(d *schema.ResourceData) *[]documentdb.VirtualNetworkRule {
+	virtualNetworkRules := d.Get("virtual_network_rule").(*schema.Set).List()
 
 	s := make([]documentdb.VirtualNetworkRule, len(virtualNetworkRules))
 	for i, r := range virtualNetworkRules {
@@ -1135,8 +1137,8 @@ func flattenAzureRmCosmosDBAccountConsistencyPolicy(policy *documentdb.Consisten
 	return []interface{}{result}
 }
 
-func flattenAzureRmCosmosDBAccountGeoLocations(account *documentdb.DatabaseAccountGetProperties) *pluginsdk.Set {
-	locationSet := pluginsdk.Set{
+func flattenAzureRmCosmosDBAccountGeoLocations(account *documentdb.DatabaseAccountGetProperties) *schema.Set {
+	locationSet := schema.Set{
 		F: resourceAzureRMCosmosDBAccountGeoLocationHash,
 	}
 	if account == nil {
@@ -1184,8 +1186,8 @@ func isServerlessCapacityMode(accResp documentdb.DatabaseAccountGetResults) bool
 	return false
 }
 
-func flattenAzureRmCosmosDBAccountCapabilities(capabilities *[]documentdb.Capability) *pluginsdk.Set {
-	s := pluginsdk.Set{
+func flattenAzureRmCosmosDBAccountCapabilities(capabilities *[]documentdb.Capability) *schema.Set {
+	s := schema.Set{
 		F: resourceAzureRMCosmosDBAccountCapabilitiesHash,
 	}
 
@@ -1201,8 +1203,8 @@ func flattenAzureRmCosmosDBAccountCapabilities(capabilities *[]documentdb.Capabi
 	return &s
 }
 
-func flattenAzureRmCosmosDBAccountVirtualNetworkRules(rules *[]documentdb.VirtualNetworkRule) *pluginsdk.Set {
-	results := pluginsdk.Set{
+func flattenAzureRmCosmosDBAccountVirtualNetworkRules(rules *[]documentdb.VirtualNetworkRule) *schema.Set {
+	results := schema.Set{
 		F: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
 	}
 
@@ -1229,7 +1231,7 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-%d", location, priority))
 	}
 
-	return pluginsdk.HashString(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceAzureRMCosmosDBAccountCapabilitiesHash(v interface{}) int {
@@ -1239,7 +1241,7 @@ func resourceAzureRMCosmosDBAccountCapabilitiesHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
 	}
 
-	return pluginsdk.HashString(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash(v interface{}) int {
@@ -1249,7 +1251,7 @@ func resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash(v interface{}) int {
 		buf.WriteString(strings.ToLower(m["id"].(string)))
 	}
 
-	return pluginsdk.HashString(buf.String())
+	return schema.HashString(buf.String())
 }
 
 func expandCosmosdbAccountBackup(input []interface{}) (documentdb.BasicBackupPolicy, error) {

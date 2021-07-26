@@ -1,9 +1,10 @@
 package sdk
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
@@ -44,7 +45,9 @@ func combineSchema(arguments map[string]*schema.Schema, attributes map[string]*s
 	return &out, nil
 }
 
-func runArgs(d *schema.ResourceData, meta interface{}, logger Logger) ResourceMetaData {
+func runArgs(d *schema.ResourceData, meta interface{}, logger Logger) (context.Context, ResourceMetaData) {
+	// NOTE: this is wrapped as a result of this function, so this is "fine" being unwrapped
+	stopContext := meta.(*clients.Client).StopContext
 	client := meta.(*clients.Client)
 	metaData := ResourceMetaData{
 		Client:                   client,
@@ -53,5 +56,5 @@ func runArgs(d *schema.ResourceData, meta interface{}, logger Logger) ResourceMe
 		serializationDebugLogger: NullLogger{},
 	}
 
-	return metaData
+	return stopContext, metaData
 }

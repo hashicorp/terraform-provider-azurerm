@@ -5,21 +5,23 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceCosmosDbCassandraTable() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceCosmosDbCassandraTableCreate,
 		Read:   resourceCosmosDbCassandraTableRead,
 		Update: resourceCosmosDbCassandraTableUpdate,
@@ -28,37 +30,37 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosEntityName,
 			},
 
 			"cassandra_keyspace_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CassandraKeyspaceID,
 			},
 
 			"default_ttl": {
-				Type:         pluginsdk.TypeInt,
+				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
 			"analytical_storage_ttl": {
-				Type:         pluginsdk.TypeInt,
+				Type:         schema.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
 				Default:      -2,
@@ -68,7 +70,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 			"schema": common.CassandraTableSchemaPropertySchema(),
 
 			"throughput": {
-				Type:         pluginsdk.TypeInt,
+				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
@@ -79,7 +81,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraTableCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CassandraClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,7 +151,7 @@ func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interf
 	return resourceCosmosDbCassandraTableRead(d, meta)
 }
 
-func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraTableUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CassandraClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -206,7 +208,7 @@ func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta interf
 	return resourceCosmosDbCassandraTableRead(d, meta)
 }
 
-func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraTableRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CassandraClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -266,7 +268,7 @@ func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceCosmosDbCassandraTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraTableDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CassandraClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -291,7 +293,7 @@ func resourceCosmosDbCassandraTableDelete(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func expandTableSchema(d *pluginsdk.ResourceData) *documentdb.CassandraSchema {
+func expandTableSchema(d *schema.ResourceData) *documentdb.CassandraSchema {
 	i := d.Get("schema").([]interface{})
 
 	if len(i) == 0 || i[0] == nil {

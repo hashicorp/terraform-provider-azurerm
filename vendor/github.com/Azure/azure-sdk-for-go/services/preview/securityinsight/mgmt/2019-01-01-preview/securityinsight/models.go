@@ -1342,7 +1342,7 @@ type Aggregations struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindAggregations', 'KindCasesAggregation'
+	// Kind - Possible values include: 'KindKindAggregations', 'KindKindCasesAggregation'
 	Kind Kind `json:"kind,omitempty"`
 }
 
@@ -1354,7 +1354,7 @@ func unmarshalBasicAggregations(body []byte) (BasicAggregations, error) {
 	}
 
 	switch m["kind"] {
-	case string(KindCasesAggregation):
+	case string(KindKindCasesAggregation):
 		var ca CasesAggregation
 		err := json.Unmarshal(body, &ca)
 		return ca, err
@@ -1385,7 +1385,7 @@ func unmarshalBasicAggregationsArray(body []byte) ([]BasicAggregations, error) {
 
 // MarshalJSON is the custom marshaler for Aggregations.
 func (a Aggregations) MarshalJSON() ([]byte, error) {
-	a.Kind = KindAggregations
+	a.Kind = KindKindAggregations
 	objectMap := make(map[string]interface{})
 	if a.Kind != "" {
 		objectMap["kind"] = a.Kind
@@ -2589,7 +2589,7 @@ type BasicAutomationRuleAction interface {
 type AutomationRuleAction struct {
 	// Order - The order of execution of the automation rule action
 	Order *int32 `json:"order,omitempty"`
-	// ActionType - Possible values include: 'ActionTypeAutomationRuleAction', 'ActionTypeRunPlaybook', 'ActionTypeModifyProperties'
+	// ActionType - Possible values include: 'ActionTypeActionTypeAutomationRuleAction', 'ActionTypeActionTypeRunPlaybook', 'ActionTypeActionTypeModifyProperties'
 	ActionType ActionType `json:"actionType,omitempty"`
 }
 
@@ -2601,11 +2601,11 @@ func unmarshalBasicAutomationRuleAction(body []byte) (BasicAutomationRuleAction,
 	}
 
 	switch m["actionType"] {
-	case string(ActionTypeRunPlaybook):
+	case string(ActionTypeActionTypeRunPlaybook):
 		var arrpa AutomationRuleRunPlaybookAction
 		err := json.Unmarshal(body, &arrpa)
 		return arrpa, err
-	case string(ActionTypeModifyProperties):
+	case string(ActionTypeActionTypeModifyProperties):
 		var armpa AutomationRuleModifyPropertiesAction
 		err := json.Unmarshal(body, &armpa)
 		return armpa, err
@@ -2636,7 +2636,7 @@ func unmarshalBasicAutomationRuleActionArray(body []byte) ([]BasicAutomationRule
 
 // MarshalJSON is the custom marshaler for AutomationRuleAction.
 func (ara AutomationRuleAction) MarshalJSON() ([]byte, error) {
-	ara.ActionType = ActionTypeAutomationRuleAction
+	ara.ActionType = ActionTypeActionTypeAutomationRuleAction
 	objectMap := make(map[string]interface{})
 	if ara.Order != nil {
 		objectMap["order"] = ara.Order
@@ -2675,7 +2675,7 @@ type BasicAutomationRuleCondition interface {
 
 // AutomationRuleCondition describes an automation rule condition
 type AutomationRuleCondition struct {
-	// ConditionType - Possible values include: 'ConditionTypeAutomationRuleCondition', 'ConditionTypeProperty'
+	// ConditionType - Possible values include: 'ConditionTypeConditionTypeAutomationRuleCondition', 'ConditionTypeConditionTypeProperty'
 	ConditionType ConditionType `json:"conditionType,omitempty"`
 }
 
@@ -2687,7 +2687,7 @@ func unmarshalBasicAutomationRuleCondition(body []byte) (BasicAutomationRuleCond
 	}
 
 	switch m["conditionType"] {
-	case string(ConditionTypeProperty):
+	case string(ConditionTypeConditionTypeProperty):
 		var arpvc AutomationRulePropertyValuesCondition
 		err := json.Unmarshal(body, &arpvc)
 		return arpvc, err
@@ -2718,7 +2718,7 @@ func unmarshalBasicAutomationRuleConditionArray(body []byte) ([]BasicAutomationR
 
 // MarshalJSON is the custom marshaler for AutomationRuleCondition.
 func (arc AutomationRuleCondition) MarshalJSON() ([]byte, error) {
-	arc.ConditionType = ConditionTypeAutomationRuleCondition
+	arc.ConditionType = ConditionTypeConditionTypeAutomationRuleCondition
 	objectMap := make(map[string]interface{})
 	if arc.ConditionType != "" {
 		objectMap["conditionType"] = arc.ConditionType
@@ -2748,13 +2748,13 @@ type AutomationRuleModifyPropertiesAction struct {
 	ActionConfiguration *AutomationRuleModifyPropertiesActionActionConfiguration `json:"actionConfiguration,omitempty"`
 	// Order - The order of execution of the automation rule action
 	Order *int32 `json:"order,omitempty"`
-	// ActionType - Possible values include: 'ActionTypeAutomationRuleAction', 'ActionTypeRunPlaybook', 'ActionTypeModifyProperties'
+	// ActionType - Possible values include: 'ActionTypeActionTypeAutomationRuleAction', 'ActionTypeActionTypeRunPlaybook', 'ActionTypeActionTypeModifyProperties'
 	ActionType ActionType `json:"actionType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AutomationRuleModifyPropertiesAction.
 func (armpa AutomationRuleModifyPropertiesAction) MarshalJSON() ([]byte, error) {
-	armpa.ActionType = ActionTypeModifyProperties
+	armpa.ActionType = ActionTypeActionTypeModifyProperties
 	objectMap := make(map[string]interface{})
 	if armpa.ActionConfiguration != nil {
 		objectMap["actionConfiguration"] = armpa.ActionConfiguration
@@ -2936,13 +2936,13 @@ func (arp *AutomationRuleProperties) UnmarshalJSON(body []byte) error {
 type AutomationRulePropertyValuesCondition struct {
 	// ConditionProperties - The configuration of the automation rule condition
 	ConditionProperties *AutomationRulePropertyValuesConditionConditionProperties `json:"conditionProperties,omitempty"`
-	// ConditionType - Possible values include: 'ConditionTypeAutomationRuleCondition', 'ConditionTypeProperty'
+	// ConditionType - Possible values include: 'ConditionTypeConditionTypeAutomationRuleCondition', 'ConditionTypeConditionTypeProperty'
 	ConditionType ConditionType `json:"conditionType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AutomationRulePropertyValuesCondition.
 func (arpvc AutomationRulePropertyValuesCondition) MarshalJSON() ([]byte, error) {
-	arpvc.ConditionType = ConditionTypeProperty
+	arpvc.ConditionType = ConditionTypeConditionTypeProperty
 	objectMap := make(map[string]interface{})
 	if arpvc.ConditionProperties != nil {
 		objectMap["conditionProperties"] = arpvc.ConditionProperties
@@ -2985,13 +2985,13 @@ type AutomationRuleRunPlaybookAction struct {
 	ActionConfiguration *AutomationRuleRunPlaybookActionActionConfiguration `json:"actionConfiguration,omitempty"`
 	// Order - The order of execution of the automation rule action
 	Order *int32 `json:"order,omitempty"`
-	// ActionType - Possible values include: 'ActionTypeAutomationRuleAction', 'ActionTypeRunPlaybook', 'ActionTypeModifyProperties'
+	// ActionType - Possible values include: 'ActionTypeActionTypeAutomationRuleAction', 'ActionTypeActionTypeRunPlaybook', 'ActionTypeActionTypeModifyProperties'
 	ActionType ActionType `json:"actionType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AutomationRuleRunPlaybookAction.
 func (arrpa AutomationRuleRunPlaybookAction) MarshalJSON() ([]byte, error) {
-	arrpa.ActionType = ActionTypeRunPlaybook
+	arrpa.ActionType = ActionTypeActionTypeRunPlaybook
 	objectMap := make(map[string]interface{})
 	if arrpa.ActionConfiguration != nil {
 		objectMap["actionConfiguration"] = arrpa.ActionConfiguration
@@ -5084,13 +5084,13 @@ type CasesAggregation struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Azure resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindAggregations', 'KindCasesAggregation'
+	// Kind - Possible values include: 'KindKindAggregations', 'KindKindCasesAggregation'
 	Kind Kind `json:"kind,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CasesAggregation.
 func (ca CasesAggregation) MarshalJSON() ([]byte, error) {
-	ca.Kind = KindCasesAggregation
+	ca.Kind = KindKindCasesAggregation
 	objectMap := make(map[string]interface{})
 	if ca.CasesAggregationProperties != nil {
 		objectMap["properties"] = ca.CasesAggregationProperties
@@ -5190,12 +5190,6 @@ type CasesAggregationBySeverityProperties struct {
 	TotalMediumSeverity *int32 `json:"totalMediumSeverity,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for CasesAggregationBySeverityProperties.
-func (cabsp CasesAggregationBySeverityProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // CasesAggregationByStatusProperties aggregative results of cases by status property bag.
 type CasesAggregationByStatusProperties struct {
 	// TotalDismissedStatus - READ-ONLY; Total amount of closed cases with status Dismissed
@@ -5210,12 +5204,6 @@ type CasesAggregationByStatusProperties struct {
 	TotalFalsePositiveStatus *int32 `json:"totalFalsePositiveStatus,omitempty"`
 	// TotalTruePositiveStatus - READ-ONLY; Total amount of closed cases with status Closed and Close reason of True positive
 	TotalTruePositiveStatus *int32 `json:"totalTruePositiveStatus,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for CasesAggregationByStatusProperties.
-func (cabsp CasesAggregationByStatusProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // CasesAggregationProperties aggregative results of cases property bag.
@@ -5505,12 +5493,6 @@ type CloudErrorBody struct {
 	Code *string `json:"code,omitempty"`
 	// Message - READ-ONLY; A message describing the error, intended to be suitable for display in a user interface.
 	Message *string `json:"message,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for CloudErrorBody.
-func (ceb CloudErrorBody) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // ConnectedEntity expansion result connected entities
@@ -7129,12 +7111,6 @@ type EntityAnalyticsProperties struct {
 	IsEnabled *bool `json:"isEnabled,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for EntityAnalyticsProperties.
-func (eap EntityAnalyticsProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // EntityCommonProperties entity common property bag.
 type EntityCommonProperties struct {
 	// AdditionalData - READ-ONLY; A bag of custom fields that should be part of the entity and will be presented to the user.
@@ -8286,12 +8262,6 @@ type EyesOnSettingsProperties struct {
 	IsEnabled *bool `json:"isEnabled,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for EyesOnSettingsProperties.
-func (eosp EyesOnSettingsProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // FileEntity represents a file entity.
 type FileEntity struct {
 	// FileEntityProperties - File entity properties
@@ -9091,12 +9061,6 @@ type GeoLocation struct {
 	State *string `json:"state,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for GeoLocation.
-func (gl GeoLocation) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // GetInsightsError getInsights Query Errors.
 type GetInsightsError struct {
 	// Kind - the query kind
@@ -9743,12 +9707,6 @@ type IncidentAdditionalData struct {
 	AlertProductNames *[]string `json:"alertProductNames,omitempty"`
 	// Tactics - READ-ONLY; The tactics associated with incident
 	Tactics *[]AttackTactic `json:"tactics,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for IncidentAdditionalData.
-func (iad IncidentAdditionalData) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // IncidentAlertList list of incident alerts.
@@ -11141,12 +11099,6 @@ func (is *IPSyncer) UnmarshalJSON(body []byte) error {
 type IPSyncerSettingsProperties struct {
 	// IsEnabled - READ-ONLY; Determines whether the setting is enable or disabled.
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for IPSyncerSettingsProperties.
-func (issp IPSyncerSettingsProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // MailboxEntity represents a mailbox entity.
@@ -16252,12 +16204,6 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for Resource.
-func (r Resource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // ResourceWithEtag an azure resource object with an Etag property
 type ResourceWithEtag struct {
 	// ID - READ-ONLY; Azure resource Id
@@ -16998,12 +16944,6 @@ type SecurityAlertPropertiesConfidenceReasonsItem struct {
 	ReasonType *string `json:"reasonType,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for SecurityAlertPropertiesConfidenceReasonsItem.
-func (sapRi SecurityAlertPropertiesConfidenceReasonsItem) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // SecurityAlertTimelineItem represents security alert timeline item.
 type SecurityAlertTimelineItem struct {
 	// AzureResourceID - The alert azure resource id.
@@ -17731,12 +17671,6 @@ type ThreatIntelligence struct {
 	ThreatName *string `json:"threatName,omitempty"`
 	// ThreatType - READ-ONLY; Threat type (e.g. "Botnet")
 	ThreatType *string `json:"threatType,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ThreatIntelligence.
-func (ti ThreatIntelligence) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // ThreatIntelligenceAlertRule represents Threat Intelligence alert rule.

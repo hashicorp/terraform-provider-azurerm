@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -156,7 +156,7 @@ func TestAccAzureRMLoadBalancerRule_updateMultipleRules(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerRule_vmssBackendPoolUpdateRemoveLBRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
-	lbRuleName := fmt.Sprintf("LbRule-%s", data.RandomString)
+	lbRuleName := fmt.Sprintf("LbRule-%s", acceptance.RandStringFromCharSet(8, acceptance.CharSetAlpha))
 	r := LoadBalancerRule{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/maintenance/mgmt/2021-05-01/maintenance"
+	"github.com/Azure/azure-sdk-for-go/services/preview/maintenance/mgmt/2018-06-01-preview/maintenance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -67,15 +67,12 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 	virtualMachineIdRaw := d.Get("virtual_machine_id").(string)
 	virtualMachineId, _ := parseCompute.VirtualMachineID(virtualMachineIdRaw)
 
-	existingList, err := getMaintenanceAssignmentVirtualMachine(ctx, client, virtualMachineId, virtualMachineIdRaw)
+	existing, err := getMaintenanceAssignmentVirtualMachine(ctx, client, virtualMachineId, virtualMachineIdRaw)
 	if err != nil {
 		return err
 	}
-	if existingList != nil && len(*existingList) > 0 {
-		existing := (*existingList)[0]
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine", *existing.ID)
 	}
 
 	maintenanceConfigurationID := d.Get("maintenance_configuration_id").(string)
@@ -83,7 +80,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 
 	// set assignment name to configuration name
 	assignmentName := configurationId.Name
-	configurationAssignment := maintenance.ConfigurationAssignment{
+	assignment := maintenance.ConfigurationAssignment{
 		Name:     utils.String(assignmentName),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		ConfigurationAssignmentProperties: &maintenance.ConfigurationAssignmentProperties{
@@ -94,7 +91,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 
 	// It may take a few minutes after starting a VM for it to become available to assign to a configuration
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		if _, err := client.CreateOrUpdate(ctx, virtualMachineId.ResourceGroup, "Microsoft.Compute", "virtualMachines", virtualMachineId.Name, assignmentName, configurationAssignment); err != nil {
+		if _, err := client.CreateOrUpdate(ctx, virtualMachineId.ResourceGroup, "Microsoft.Compute", "virtualMachines", virtualMachineId.Name, assignmentName, assignment); err != nil {
 			if strings.Contains(err.Error(), "It may take a few minutes after starting a VM for it to become available to assign to a configuration") {
 				return pluginsdk.RetryableError(fmt.Errorf("expected VM is available to assign to a configuration but was in pending state, retrying"))
 			}
@@ -102,7 +99,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 		}
 
 		return nil
-	}) //lintignore:R006
+	})
 	if err != nil {
 		return err
 	}
@@ -111,15 +108,11 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 	if err != nil {
 		return err
 	}
-	if resp == nil || len(*resp) == 0 {
-		return fmt.Errorf("could not find Maintenance assignment (virtual machine ID: %q)", virtualMachineIdRaw)
-	}
-	assignment := (*resp)[0]
-	if assignment.ID == nil || *assignment.ID == "" {
+	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("empty or nil ID of Maintenance Assignment (virtual machine ID %q)", virtualMachineIdRaw)
 	}
 
-	d.SetId(*assignment.ID)
+	d.SetId(*resp.ID)
 	return resourceArmMaintenanceAssignmentVirtualMachineRead(d, meta)
 }
 
@@ -133,15 +126,10 @@ func resourceArmMaintenanceAssignmentVirtualMachineRead(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	resp, err := getMaintenanceAssignmentVirtualMachine(ctx, client, id.VirtualMachineId, id.VirtualMachineIdRaw)
+	assignment, err := getMaintenanceAssignmentVirtualMachine(ctx, client, id.VirtualMachineId, id.VirtualMachineIdRaw)
 	if err != nil {
 		return err
 	}
-	if resp == nil || len(*resp) == 0 {
-		d.SetId("")
-		return nil
-	}
-	assignment := (*resp)[0]
 	if assignment.ID == nil || *assignment.ID == "" {
 		return fmt.Errorf("empty or nil ID of Maintenance Assignment (virtual machine ID id: %q", id.VirtualMachineIdRaw)
 	}
@@ -175,13 +163,19 @@ func resourceArmMaintenanceAssignmentVirtualMachineDelete(d *pluginsdk.ResourceD
 	return nil
 }
 
-func getMaintenanceAssignmentVirtualMachine(ctx context.Context, client *maintenance.ConfigurationAssignmentsClient, id *parseCompute.VirtualMachineId, virtualMachineId string) (result *[]maintenance.ConfigurationAssignment, err error) {
+func getMaintenanceAssignmentVirtualMachine(ctx context.Context, client *maintenance.ConfigurationAssignmentsClient, id *parseCompute.VirtualMachineId, virtualMachineId string) (result maintenance.ConfigurationAssignment, err error) {
 	resp, err := client.List(ctx, id.ResourceGroup, "Microsoft.Compute", "virtualMachines", id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			err = fmt.Errorf("checking for presence of existing Maintenance assignment (virtual machine ID: %q): %+v", virtualMachineId, err)
 			return
 		}
+		return result, nil
 	}
-	return resp.Value, nil
+	if resp.Value == nil || len(*resp.Value) == 0 {
+		err = fmt.Errorf("could not find Maintenance assignment (virtual machine ID: %q)", virtualMachineId)
+		return
+	}
+
+	return (*resp.Value)[0], nil
 }

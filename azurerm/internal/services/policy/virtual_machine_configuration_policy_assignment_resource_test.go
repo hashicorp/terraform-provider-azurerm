@@ -15,7 +15,6 @@ import (
 
 type VirtualMachineConfigurationPolicyAssignmentResource struct{}
 
-// TODO: Remove in 3.0
 func TestAccVirtualMachineConfigurationPolicyAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_configuration_policy_assignment", "test")
 	r := VirtualMachineConfigurationPolicyAssignmentResource{}

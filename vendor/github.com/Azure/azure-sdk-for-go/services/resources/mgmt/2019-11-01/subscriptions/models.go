@@ -268,12 +268,6 @@ type ManagedByTenant struct {
 	TenantID *string `json:"tenantId,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for ManagedByTenant.
-func (mbt ManagedByTenant) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // Operation microsoft.Resources operation
 type Operation struct {
 	// Name - Operation name: {provider}/{resource}/{operation}
@@ -464,12 +458,6 @@ type PairedRegion struct {
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for PairedRegion.
-func (pr PairedRegion) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // Policies subscription policies.
 type Policies struct {
 	// LocationPlacementID - READ-ONLY; The subscription location placement ID. The ID indicates which regions are visible for a subscription. For example, a subscription with a location placement Id of Public_2014-09-01 has access to Azure public regions.
@@ -478,12 +466,6 @@ type Policies struct {
 	QuotaID *string `json:"quotaId,omitempty"`
 	// SpendingLimit - READ-ONLY; The subscription spending limit. Possible values include: 'On', 'Off', 'CurrentPeriodOff'
 	SpendingLimit SpendingLimit `json:"spendingLimit,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Policies.
-func (p Policies) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // ResourceName name and Type of the Resource
@@ -551,12 +533,6 @@ type TenantIDDescription struct {
 	DisplayName *string `json:"displayName,omitempty"`
 	// Domains - READ-ONLY; The list of domains for the tenant.
 	Domains *[]string `json:"domains,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for TenantIDDescription.
-func (tid TenantIDDescription) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // TenantListResult tenant Ids information.

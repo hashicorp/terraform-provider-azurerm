@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,10 +21,10 @@ func TestAccFirewallPolicyRuleCollectionGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
 	r := FirewallPolicyRuleCollectionGroupResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -35,10 +36,10 @@ func TestAccFirewallPolicyRuleCollectionGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
 	r := FirewallPolicyRuleCollectionGroupResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -50,24 +51,24 @@ func TestAccFirewallPolicyRuleCollectionGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
 	r := FirewallPolicyRuleCollectionGroupResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.update(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -79,10 +80,10 @@ func TestAccFirewallPolicyRuleCollectionGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
 	r := FirewallPolicyRuleCollectionGroupResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -90,7 +91,7 @@ func TestAccFirewallPolicyRuleCollectionGroup_requiresImport(t *testing.T) {
 	})
 }
 
-func (FirewallPolicyRuleCollectionGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (FirewallPolicyRuleCollectionGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	var id, err = parse.FirewallPolicyRuleCollectionGroupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -183,7 +184,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
         port = 443
       }
       source_addresses  = ["10.0.0.1"]
-      destination_fqdns = ["pluginsdk.io"]
+      destination_fqdns = ["terraform.io"]
     }
     rule {
       name = "app_rule_collection1_rule2"
@@ -196,7 +197,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
         port = 443
       }
       source_ip_groups  = [azurerm_ip_group.test_source.id]
-      destination_fqdns = ["pluginsdk.io"]
+      destination_fqdns = ["terraform.io"]
     }
     rule {
       name = "app_rule_collection1_rule3"
@@ -328,7 +329,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
         port = 443
       }
       source_addresses  = ["10.0.0.1", "10.0.0.2"]
-      destination_fqdns = ["pluginsdk.io"]
+      destination_fqdns = ["terraform.io"]
     }
     rule {
       name = "app_rule_collection1_rule2"
@@ -337,7 +338,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
         port = 80
       }
       source_ip_groups  = [azurerm_ip_group.test_source.id]
-      destination_fqdns = ["pluginsdk.io"]
+      destination_fqdns = ["terraform.io"]
     }
     rule {
       name = "app_rule_collection1_rule3"

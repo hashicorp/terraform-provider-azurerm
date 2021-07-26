@@ -1,7 +1,7 @@
 package compute
 
 import (
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 type Registration struct{}
@@ -19,8 +19,8 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
+func (r Registration) SupportedDataSources() map[string]*schema.Resource {
+	return map[string]*schema.Resource{
 		"azurerm_availability_set":          dataSourceAvailabilitySet(),
 		"azurerm_dedicated_host":            dataSourceDedicatedHost(),
 		"azurerm_dedicated_host_group":      dataSourceDedicatedHostGroup(),
@@ -43,8 +43,8 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
+func (r Registration) SupportedResources() map[string]*schema.Resource {
+	resources := map[string]*schema.Resource{
 		"azurerm_availability_set":                       resourceAvailabilitySet(),
 		"azurerm_dedicated_host":                         resourceDedicatedHost(),
 		"azurerm_dedicated_host_group":                   resourceDedicatedHostGroup(),

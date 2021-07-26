@@ -196,7 +196,7 @@ func resourceNotificationHubCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err2 := stateConf.WaitForStateContext(ctx); err2 != nil {
+	if _, err2 := stateConf.WaitForState(); err2 != nil {
 		return fmt.Errorf("Error waiting for Notification Hub %q to become available: %s", name, err2)
 	}
 

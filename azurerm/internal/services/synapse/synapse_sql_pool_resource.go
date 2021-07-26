@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
-	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2019-06-01-preview/synapse"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	mssqlParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
@@ -41,17 +41,20 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.SqlPoolID(id)
-			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-			d.Set("create_mode", DefaultCreateMode)
-			if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
-				d.Set("create_mode", v)
-			}
+		Importer: &schema.ResourceImporter{
+			State: func(d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+				if _, err := parse.SqlPoolID(d.Id()); err != nil {
+					return []*pluginsdk.ResourceData{d}, err
+				}
 
-			return []*pluginsdk.ResourceData{d}, nil
-		}),
+				d.Set("create_mode", DefaultCreateMode)
+				if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
+					d.Set("create_mode", v)
+				}
+
+				return []*pluginsdk.ResourceData{d}, nil
+			},
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -216,11 +219,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		v := restore[0].(map[string]interface{})
 		sourceDatabaseId := constructSourceDatabaseId(v["source_database_id"].(string))
-		vTime, parseErr := date.ParseTime(time.RFC3339, v["point_in_time"].(string))
-		if parseErr != nil {
-			return fmt.Errorf("parsing time format: %+v", parseErr)
-		}
-		sqlPoolInfo.SQLPoolResourceProperties.RestorePointInTime = &date.Time{Time: vTime}
+		sqlPoolInfo.SQLPoolResourceProperties.RestorePointInTime = utils.String(v["point_in_time"].(string))
 		sqlPoolInfo.SQLPoolResourceProperties.SourceDatabaseID = utils.String(sourceDatabaseId)
 	}
 
@@ -310,7 +309,7 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 				Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
 			}
 
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			if _, err := stateConf.WaitForState(); err != nil {
 				return fmt.Errorf("waiting for scaling of Synapse SqlPool %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
 			}
 		}

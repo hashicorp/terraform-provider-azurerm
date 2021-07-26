@@ -6,11 +6,12 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +22,10 @@ func TestAccVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
 	r := VirtualMachineDataDiskAttachmentResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_machine_id").Exists(),
 				check.That(data.ResourceName).Key("managed_disk_id").Exists(),
@@ -40,10 +41,10 @@ func TestAccVirtualMachineDataDiskAttachment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
 	r := VirtualMachineDataDiskAttachmentResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -58,7 +59,7 @@ func TestAccVirtualMachineDataDiskAttachment_destroy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
 	r := VirtualMachineDataDiskAttachmentResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -72,19 +73,19 @@ func TestAccVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) {
 
 	secondResourceName := "azurerm_virtual_machine_data_disk_attachment.second"
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.multipleDisks(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_machine_id").Exists(),
 				check.That(data.ResourceName).Key("managed_disk_id").Exists(),
 				check.That(data.ResourceName).Key("lun").HasValue("10"),
 				check.That(data.ResourceName).Key("caching").HasValue("None"),
-				acceptance.TestCheckResourceAttrSet(secondResourceName, "virtual_machine_id"),
-				acceptance.TestCheckResourceAttrSet(secondResourceName, "managed_disk_id"),
-				acceptance.TestCheckResourceAttr(secondResourceName, "lun", "20"),
-				acceptance.TestCheckResourceAttr(secondResourceName, "caching", "ReadOnly"),
+				resource.TestCheckResourceAttrSet(secondResourceName, "virtual_machine_id"),
+				resource.TestCheckResourceAttrSet(secondResourceName, "managed_disk_id"),
+				resource.TestCheckResourceAttr(secondResourceName, "lun", "20"),
+				resource.TestCheckResourceAttr(secondResourceName, "caching", "ReadOnly"),
 			),
 		},
 		data.ImportStep(),
@@ -99,24 +100,24 @@ func TestAccVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) {
 func TestAccVirtualMachineDataDiskAttachment_updatingCaching(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
 	r := VirtualMachineDataDiskAttachmentResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("caching").HasValue("None"),
 			),
 		},
 		{
 			Config: r.readOnly(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("caching").HasValue("ReadOnly"),
 			),
 		},
 		{
 			Config: r.readWrite(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("caching").HasValue("ReadWrite"),
 			),
@@ -127,24 +128,24 @@ func TestAccVirtualMachineDataDiskAttachment_updatingCaching(t *testing.T) {
 func TestAccVirtualMachineDataDiskAttachment_updatingWriteAccelerator(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
 	r := VirtualMachineDataDiskAttachmentResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.writeAccelerator(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("write_accelerator_enabled").HasValue("false"),
 			),
 		},
 		{
 			Config: r.writeAccelerator(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("write_accelerator_enabled").HasValue("true"),
 			),
 		},
 		{
 			Config: r.writeAccelerator(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("write_accelerator_enabled").HasValue("false"),
 			),
@@ -156,10 +157,10 @@ func TestAccVirtualMachineDataDiskAttachment_managedServiceIdentity(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
 	r := VirtualMachineDataDiskAttachmentResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.managedServiceIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_machine_id").Exists(),
 				check.That(data.ResourceName).Key("managed_disk_id").Exists(),
@@ -174,13 +175,13 @@ func TestAccVirtualMachineDataDiskAttachment_managedServiceIdentity(t *testing.T
 func TestAccVirtualMachineDataDiskAttachment_virtualMachineExtension(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
 	r := VirtualMachineDataDiskAttachmentResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.virtualMachineExtensionPrep(data),
 		},
 		{
 			Config: r.virtualMachineExtensionComplete(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_machine_id").Exists(),
 				check.That(data.ResourceName).Key("managed_disk_id").Exists(),
@@ -189,7 +190,7 @@ func TestAccVirtualMachineDataDiskAttachment_virtualMachineExtension(t *testing.
 	})
 }
 
-func (t VirtualMachineDataDiskAttachmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t VirtualMachineDataDiskAttachmentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -219,7 +220,7 @@ func (t VirtualMachineDataDiskAttachmentResource) Exists(ctx context.Context, cl
 	return utils.Bool(disk != nil), nil
 }
 
-func (VirtualMachineDataDiskAttachmentResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (VirtualMachineDataDiskAttachmentResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

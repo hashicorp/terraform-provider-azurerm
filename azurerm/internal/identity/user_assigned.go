@@ -1,10 +1,8 @@
 package identity
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var _ Identity = UserAssigned{}
@@ -18,11 +16,8 @@ func (u UserAssigned) Expand(input []interface{}) (*ExpandedConfig, error) {
 		}, nil
 	}
 
-	v := input[0].(map[string]interface{})
-
 	return &ExpandedConfig{
-		Type:                    userAssigned,
-		UserAssignedIdentityIds: utils.ExpandStringSlice(v["identity_ids"].(*pluginsdk.Set).List()),
+		Type: systemAssigned,
 	}, nil
 }
 
@@ -31,10 +26,19 @@ func (u UserAssigned) Flatten(input *ExpandedConfig) []interface{} {
 		return []interface{}{}
 	}
 
+	coalesce := func(input *string) string {
+		if input == nil {
+			return ""
+		}
+
+		return *input
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"type":         input.Type,
-			"identity_ids": utils.FlattenStringSlice(input.UserAssignedIdentityIds),
+			"principal_id": coalesce(input.PrincipalId),
+			"tenant_id":    coalesce(input.TenantId),
 		},
 	}
 }
@@ -54,11 +58,11 @@ func (u UserAssigned) Schema() *pluginsdk.Schema {
 					}, false),
 				},
 				"identity_ids": {
-					Type:     pluginsdk.TypeSet,
+					Type:     pluginsdk.TypeList,
 					Required: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: msivalidate.UserAssignedIdentityID,
+						ValidateFunc: validation.NoZeroValues,
 					},
 				},
 			},

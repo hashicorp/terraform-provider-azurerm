@@ -148,7 +148,7 @@ func resourceLogAnalyticsClusterCreate(d *pluginsdk.ResourceData, meta interface
 
 	createWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(pluginsdk.TimeoutCreate), id.ResourceGroup, id.ClusterName)
 
-	if _, err := createWait.WaitForStateContext(ctx); err != nil {
+	if _, err := createWait.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", id.ClusterName, id.ResourceGroup, err)
 	}
 
@@ -229,7 +229,7 @@ func resourceLogAnalyticsClusterUpdate(d *pluginsdk.ResourceData, meta interface
 
 	updateWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(pluginsdk.TimeoutUpdate), id.ResourceGroup, id.ClusterName)
 
-	if _, err := updateWait.WaitForStateContext(ctx); err != nil {
+	if _, err := updateWait.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", id.ClusterName, id.ResourceGroup, err)
 	}
 

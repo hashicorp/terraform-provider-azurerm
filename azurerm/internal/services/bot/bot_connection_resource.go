@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -149,14 +149,11 @@ func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{})
 			ClientID:          utils.String(d.Get("client_id").(string)),
 			ClientSecret:      utils.String(d.Get("client_secret").(string)),
 			Scopes:            utils.String(d.Get("scopes").(string)),
+			Parameters:        expandBotConnectionParameters(d.Get("parameters").(map[string]interface{})),
 		},
 		Kind:     botservice.KindBot,
 		Location: utils.String(d.Get("location").(string)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if v, ok := d.GetOk("parameters"); ok {
-		connection.Properties.Parameters = expandBotConnectionParameters(v.(map[string]interface{}))
 	}
 
 	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ConnectionName, connection); err != nil {
@@ -220,14 +217,11 @@ func resourceArmBotConnectionUpdate(d *pluginsdk.ResourceData, meta interface{})
 			ClientID:                   utils.String(d.Get("client_id").(string)),
 			ClientSecret:               utils.String(d.Get("client_secret").(string)),
 			Scopes:                     utils.String(d.Get("scopes").(string)),
+			Parameters:                 expandBotConnectionParameters(d.Get("parameters").(map[string]interface{})),
 		},
 		Kind:     botservice.KindBot,
 		Location: utils.String(d.Get("location").(string)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if v, ok := d.GetOk("parameters"); ok {
-		connection.Properties.Parameters = expandBotConnectionParameters(v.(map[string]interface{}))
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, id.ConnectionName, connection); err != nil {

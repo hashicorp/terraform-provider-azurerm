@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
@@ -13,61 +14,61 @@ var _ pluginsdk.StateUpgrade = SqlContainerV0ToV1{}
 type SqlContainerV0ToV1 struct{}
 
 func (SqlContainerV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	return map[string]*schema.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"resource_group_name": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"account_name": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"database_name": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"partition_key_path": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Optional: true,
 			ForceNew: true,
 		},
 
 		"throughput": {
-			Type:     pluginsdk.TypeInt,
+			Type:     schema.TypeInt,
 			Optional: true,
 			Computed: true,
 		},
 
 		"default_ttl": {
-			Type:     pluginsdk.TypeInt,
+			Type:     schema.TypeInt,
 			Optional: true,
 			Computed: true,
 		},
 
 		"unique_key": {
-			Type:     pluginsdk.TypeSet,
+			Type:     schema.TypeSet,
 			Optional: true,
 			ForceNew: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
 					"paths": {
-						Type:     pluginsdk.TypeSet,
+						Type:     schema.TypeSet,
 						Required: true,
 						ForceNew: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
+						Elem: &schema.Schema{
+							Type: schema.TypeString,
 						},
 					},
 				},

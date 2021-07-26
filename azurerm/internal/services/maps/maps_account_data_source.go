@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/sdk/accounts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceMapsAccount() *pluginsdk.Resource {
@@ -60,44 +59,39 @@ func dataSourceMapsAccount() *pluginsdk.Resource {
 
 func dataSourceMapsAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maps.AccountsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := accounts.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id)
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("%s was not found", id)
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Maps Account %q was not found in Resource Group %q", name, resourceGroup)
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("Error making Read request on Maps Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(id.ID())
+	d.SetId(*resp.ID)
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-
-	if model := resp.Model; model != nil {
-		d.Set("sku_name", model.Sku.Name)
-		if props := model.Properties; props != nil {
-			d.Set("x_ms_client_id", props.UniqueId)
-		}
-
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
-			return err
-		}
+	d.Set("name", name)
+	d.Set("resource_group_name", resourceGroup)
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", sku.Name)
+	}
+	if props := resp.Properties; props != nil {
+		d.Set("x_ms_client_id", props.UniqueID)
 	}
 
-	keysResp, err := client.ListKeys(ctx, id)
+	keysResp, err := client.ListKeys(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Access Keys for %s: %+v", id, err)
-	}
-	if model := keysResp.Model; model != nil {
-		d.Set("primary_access_key", model.PrimaryKey)
-		d.Set("secondary_access_key", model.SecondaryKey)
+		return fmt.Errorf("Error reading Access Keys request for Maps Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	return nil
+	d.Set("primary_access_key", keysResp.PrimaryKey)
+	d.Set("secondary_access_key", keysResp.SecondaryKey)
+
+	return tags.FlattenAndSet(d, resp.Tags)
 }

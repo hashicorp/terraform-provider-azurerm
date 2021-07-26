@@ -4,27 +4,26 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/sdk/consumergroups"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func EventHubConsumerGroupDataSource() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func EventHubConsumerGroupDataSource() *schema.Resource {
+	return &schema.Resource{
 		Read: EventHubConsumerGroupDataSourceRead,
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.Any(
 					validate.ValidateEventHubConsumerName(),
@@ -33,13 +32,13 @@ func EventHubConsumerGroupDataSource() *pluginsdk.Resource {
 			},
 
 			"namespace_name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
 			"eventhub_name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ValidateEventHubName(),
 			},
@@ -49,40 +48,40 @@ func EventHubConsumerGroupDataSource() *pluginsdk.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"user_metadata": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func EventHubConsumerGroupDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func EventHubConsumerGroupDataSourceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.ConsumerGroupClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := consumergroups.NewConsumergroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("eventhub_name").(string), d.Get("name").(string))
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	eventHubName := d.Get("eventhub_name").(string)
+	namespaceName := d.Get("namespace_name").(string)
 
-	resp, err := client.Get(ctx, id)
+	resp, err := client.Get(ctx, resourceGroup, namespaceName, eventHubName, name)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("%s was not found", id)
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error: EventHub Consumer Group %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("Error: EventHub Consumer Group %s: %+v", name, err)
 	}
 
-	d.SetId(id.ID())
+	d.SetId(*resp.ID)
 
-	d.Set("name", id.Name)
-	d.Set("eventhub_name", id.EventhubName)
-	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", name)
+	d.Set("eventhub_name", eventHubName)
+	d.Set("namespace_name", namespaceName)
+	d.Set("resource_group_name", resourceGroup)
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			d.Set("user_metadata", props.UserMetadata)
-		}
+	if resp.ConsumerGroupProperties != nil {
+		d.Set("user_metadata", resp.ConsumerGroupProperties.UserMetadata)
 	}
 
 	return nil

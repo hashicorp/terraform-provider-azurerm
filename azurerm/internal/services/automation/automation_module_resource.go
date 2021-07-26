@@ -164,7 +164,7 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Module %q (Automation Account %q / Resource Group %q) to finish provisioning: %+v", name, accName, resGroup, err)
 	}
 

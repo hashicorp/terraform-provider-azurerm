@@ -46,10 +46,12 @@ func StateUpgrades(upgrades map[int]StateUpgrade) []StateUpgrader {
 		resource := Resource{
 			Schema: upgrade.Schema(),
 		}
+		// TODO: with Plugin SDK 1.x we'll need to add a wrapper here to inject ctx
+
 		out = append(out, StateUpgrader{
 			Type: resource.CoreConfigSchema().ImpliedType(),
-			Upgrade: func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-				return upgrade.UpgradeFunc()(ctx, rawState, meta)
+			Upgrade: func(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+				return upgrade.UpgradeFunc()(context.TODO(), rawState, meta)
 			},
 			Version: version,
 		})

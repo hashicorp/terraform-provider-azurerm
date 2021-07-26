@@ -5,19 +5,22 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares"
 )
 
-func resourceStorageShare() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceStorageShare() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceStorageShareCreate,
 		Read:   resourceStorageShareRead,
 		Update: resourceStorageShareUpdate,
@@ -30,29 +33,29 @@ func resourceStorageShare() *pluginsdk.Resource {
 			1: migration.ShareV1ToV2{},
 		}),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageShareName,
 			},
 
 			"storage_account_name": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
 			"quota": {
-				Type:         pluginsdk.TypeInt,
+				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      5120,
 				ValidateFunc: validation.IntBetween(1, 102400),
@@ -61,32 +64,32 @@ func resourceStorageShare() *pluginsdk.Resource {
 			"metadata": MetaDataComputedSchema(),
 
 			"acl": {
-				Type:     pluginsdk.TypeSet,
+				Type:     schema.TypeSet,
 				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringLenBetween(1, 64),
 						},
 						"access_policy": {
-							Type:     pluginsdk.TypeList,
+							Type:     schema.TypeList,
 							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
 									"start": {
-										Type:         pluginsdk.TypeString,
+										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"expiry": {
-										Type:         pluginsdk.TypeString,
+										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"permissions": {
-										Type:         pluginsdk.TypeString,
+										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
@@ -98,19 +101,19 @@ func resourceStorageShare() *pluginsdk.Resource {
 			},
 
 			"resource_manager_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"url": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareCreate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -122,7 +125,7 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	metaData := ExpandMetaData(metaDataRaw)
 
-	aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
+	aclsRaw := d.Get("acl").(*schema.Set).List()
 	acls := expandStorageShareACLs(aclsRaw)
 
 	account, err := storageClient.FindAccount(ctx, accountName)
@@ -166,7 +169,7 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceStorageShareRead(d, meta)
 }
 
-func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -220,7 +223,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -270,7 +273,7 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	if d.HasChange("acl") {
 		log.Printf("[DEBUG] Updating the ACL's for File Share %q (Storage Account %q)", id.Name, id.AccountName)
 
-		aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
+		aclsRaw := d.Get("acl").(*schema.Set).List()
 		acls := expandStorageShareACLs(aclsRaw)
 
 		if err := client.UpdateACLs(ctx, account.ResourceGroup, id.AccountName, id.Name, acls); err != nil {
@@ -283,7 +286,7 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceStorageShareRead(d, meta)
 }
 
-func resourceStorageShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage

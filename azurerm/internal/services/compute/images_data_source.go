@@ -6,72 +6,72 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceImages() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func dataSourceImages() *schema.Resource {
+	return &schema.Resource{
 		Read: dataSourceImagesRead,
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"tags_filter": tags.Schema(),
 
 			"images": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 
 						"location": location.SchemaComputed(),
 
 						"zone_resilient": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Computed: true,
 						},
 
 						"os_disk": {
-							Type:     pluginsdk.TypeList,
+							Type:     schema.TypeList,
 							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
 									"blob_uri": {
-										Type:     pluginsdk.TypeString,
+										Type:     schema.TypeString,
 										Computed: true,
 									},
 									"caching": {
-										Type:     pluginsdk.TypeString,
+										Type:     schema.TypeString,
 										Computed: true,
 									},
 									"managed_disk_id": {
-										Type:     pluginsdk.TypeString,
+										Type:     schema.TypeString,
 										Computed: true,
 									},
 									"os_state": {
-										Type:     pluginsdk.TypeString,
+										Type:     schema.TypeString,
 										Computed: true,
 									},
 									"os_type": {
-										Type:     pluginsdk.TypeString,
+										Type:     schema.TypeString,
 										Computed: true,
 									},
 									"size_gb": {
-										Type:     pluginsdk.TypeInt,
+										Type:     schema.TypeInt,
 										Computed: true,
 									},
 								},
@@ -79,28 +79,28 @@ func dataSourceImages() *pluginsdk.Resource {
 						},
 
 						"data_disk": {
-							Type:     pluginsdk.TypeList,
+							Type:     schema.TypeList,
 							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
 									"blob_uri": {
-										Type:     pluginsdk.TypeString,
+										Type:     schema.TypeString,
 										Computed: true,
 									},
 									"caching": {
-										Type:     pluginsdk.TypeString,
+										Type:     schema.TypeString,
 										Computed: true,
 									},
 									"lun": {
-										Type:     pluginsdk.TypeInt,
+										Type:     schema.TypeInt,
 										Computed: true,
 									},
 									"managed_disk_id": {
-										Type:     pluginsdk.TypeString,
+										Type:     schema.TypeString,
 										Computed: true,
 									},
 									"size_gb": {
-										Type:     pluginsdk.TypeInt,
+										Type:     schema.TypeInt,
 										Computed: true,
 									},
 								},
@@ -115,7 +115,7 @@ func dataSourceImages() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceImagesRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceImagesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

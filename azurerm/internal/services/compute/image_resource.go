@@ -6,19 +6,20 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceImage() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceImage() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceImageCreateUpdate,
 		Read:   resourceImageRead,
 		Update: resourceImageCreateUpdate,
@@ -26,16 +27,16 @@ func resourceImage() *pluginsdk.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(90 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(90 * time.Minute),
+			Delete: schema.DefaultTimeout(90 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -45,14 +46,14 @@ func resourceImage() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"zone_resilient": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 				ForceNew: true,
 			},
 
 			"hyper_v_generation": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				Default:  string(compute.HyperVGenerationTypesV1),
 				ForceNew: true,
@@ -63,20 +64,20 @@ func resourceImage() *pluginsdk.Resource {
 			},
 
 			"source_virtual_machine_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"os_disk": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				ForceNew: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"os_type": {
-							Type:             pluginsdk.TypeString,
+							Type:             schema.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -86,7 +87,7 @@ func resourceImage() *pluginsdk.Resource {
 						},
 
 						"os_state": {
-							Type:             pluginsdk.TypeString,
+							Type:             schema.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -96,7 +97,7 @@ func resourceImage() *pluginsdk.Resource {
 						},
 
 						"managed_disk_id": {
-							Type:             pluginsdk.TypeString,
+							Type:             schema.TypeString,
 							Computed:         true,
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
@@ -104,7 +105,7 @@ func resourceImage() *pluginsdk.Resource {
 						},
 
 						"blob_uri": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
@@ -112,7 +113,7 @@ func resourceImage() *pluginsdk.Resource {
 						},
 
 						"caching": {
-							Type:             pluginsdk.TypeString,
+							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          string(compute.None),
 							DiffSuppressFunc: suppress.CaseDifference,
@@ -124,7 +125,7 @@ func resourceImage() *pluginsdk.Resource {
 						},
 
 						"size_gb": {
-							Type:         pluginsdk.TypeInt,
+							Type:         schema.TypeInt,
 							Computed:     true,
 							Optional:     true,
 							ValidateFunc: validation.NoZeroValues,
@@ -134,32 +135,32 @@ func resourceImage() *pluginsdk.Resource {
 			},
 
 			"data_disk": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 
 						"lun": {
-							Type:     pluginsdk.TypeInt,
+							Type:     schema.TypeInt,
 							Optional: true,
 						},
 
 						"managed_disk_id": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"blob_uri": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 						},
 
 						"caching": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Optional: true,
 							Default:  string(compute.None),
 							ValidateFunc: validation.StringInSlice([]string{
@@ -171,7 +172,7 @@ func resourceImage() *pluginsdk.Resource {
 						},
 
 						"size_gb": {
-							Type:         pluginsdk.TypeInt,
+							Type:         schema.TypeInt,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validation.NoZeroValues,
@@ -185,7 +186,7 @@ func resourceImage() *pluginsdk.Resource {
 	}
 }
 
-func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceImageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -273,7 +274,7 @@ func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceImageRead(d, meta)
 }
 
-func resourceImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -322,7 +323,7 @@ func resourceImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceImageDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceImageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -390,7 +391,7 @@ func flattenAzureRmImageDataDisks(diskImages *[]compute.ImageDataDisk) []interfa
 	return result
 }
 
-func expandAzureRmImageOsDisk(d *pluginsdk.ResourceData) *compute.ImageOSDisk {
+func expandAzureRmImageOsDisk(d *schema.ResourceData) *compute.ImageOSDisk {
 	osDisk := &compute.ImageOSDisk{}
 	disks := d.Get("os_disk").([]interface{})
 
@@ -431,7 +432,7 @@ func expandAzureRmImageOsDisk(d *pluginsdk.ResourceData) *compute.ImageOSDisk {
 	return osDisk
 }
 
-func expandAzureRmImageDataDisks(d *pluginsdk.ResourceData) *[]compute.ImageDataDisk {
+func expandAzureRmImageDataDisks(d *schema.ResourceData) *[]compute.ImageDataDisk {
 	disks := d.Get("data_disk").([]interface{})
 
 	dataDisks := make([]compute.ImageDataDisk, 0, len(disks))

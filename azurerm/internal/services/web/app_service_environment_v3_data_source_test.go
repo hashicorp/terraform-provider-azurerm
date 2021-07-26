@@ -18,7 +18,7 @@ func TestAccAppServiceEnvironmentV3DataSource_basic(t *testing.T) {
 			Config: AppServiceEnvironmentV3DataSource{}.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("cluster_setting.#").HasValue("2"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.#").HasValue("2"),
 			),
 		},
 	})

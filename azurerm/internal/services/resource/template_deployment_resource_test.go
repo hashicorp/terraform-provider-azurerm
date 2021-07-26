@@ -199,7 +199,7 @@ func (r TemplateDeploymentResource) Destroy(ctx context.Context, clients *client
 		},
 	}
 
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := stateConf.WaitForState(); err != nil {
 		return nil, fmt.Errorf("waiting for Template Deployment %q to be deleted: %+v", id, err)
 	}
 
@@ -223,7 +223,7 @@ resource "azurerm_template_deployment" "test" {
 
   template_body = <<DEPLOY
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "variables": {
     "location": "[resourceGroup().location]",
@@ -271,7 +271,7 @@ resource "azurerm_template_deployment" "test" {
 
   template_body = <<DEPLOY
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
     "storageAccountType": {
@@ -359,7 +359,7 @@ resource "azurerm_template_deployment" "test" {
 
   template_body = <<DEPLOY
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
   },
@@ -376,7 +376,7 @@ resource "azurerm_template_deployment" "test" {
       "properties": {
         "mode": "Incremental",
         "template": {
-          "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+          "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
           "contentVersion": "1.0.0.0",
           "variables": {
             "location": "[variables('location')]",
@@ -486,7 +486,7 @@ resource "azurerm_template_deployment" "test" {
 
   template_body = <<DEPLOY
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
     "storageAccountType": {
@@ -585,7 +585,7 @@ resource "azurerm_template_deployment" "test" {
 
   template_body = <<DEPLOY
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
     "storageAccountType": {
@@ -694,7 +694,7 @@ resource "azurerm_template_deployment" "test" {
 
   template_body = <<DEPLOY
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
     "storageAccountType": {
@@ -812,7 +812,7 @@ resource "azurerm_template_deployment" "test" {
 
   template_body = <<DEPLOY
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://pluginsdk.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
     "storageAccountType": {

@@ -240,12 +240,6 @@ type DedicatedHsmError struct {
 	Error *Error `json:"error,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for DedicatedHsmError.
-func (dhe DedicatedHsmError) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // DedicatedHsmListResult list of dedicated HSMs
 type DedicatedHsmListResult struct {
 	autorest.Response `json:"-"`
@@ -536,12 +530,6 @@ type Error struct {
 	Message *string `json:"message,omitempty"`
 	// InnerError - READ-ONLY
 	InnerError *Error `json:"innererror,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Error.
-func (e Error) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // NetworkInterface the network interface definition.

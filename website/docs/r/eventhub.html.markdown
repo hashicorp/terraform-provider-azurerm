@@ -59,8 +59,6 @@ The following arguments are supported:
 
 * `capture_description` - (Optional) A `capture_description` block as defined below.
 
-* `status` - (Optional) Specifies the status of the Event Hub resource. Possible values are `Active`, `Disabled` and `SendDisabled`. Defaults to `Active`.
-
 ---
 
 A `capture_description` block supports the following:

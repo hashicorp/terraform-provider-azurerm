@@ -5,8 +5,11 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -14,13 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceCosmosDbCassandraKeyspace() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceCosmosDbCassandraKeyspace() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceCosmosDbCassandraKeyspaceCreate,
 		Read:   resourceCosmosDbCassandraKeyspaceRead,
 		Update: resourceCosmosDbCassandraKeyspaceUpdate,
@@ -34,16 +36,16 @@ func resourceCosmosDbCassandraKeyspace() *pluginsdk.Resource {
 			0: migration.CassandraKeyspaceV0ToV1{},
 		}),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosEntityName,
@@ -52,14 +54,14 @@ func resourceCosmosDbCassandraKeyspace() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"account_name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosAccountName,
 			},
 
 			"throughput": {
-				Type:         pluginsdk.TypeInt,
+				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
@@ -70,7 +72,7 @@ func resourceCosmosDbCassandraKeyspace() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbCassandraKeyspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraKeyspaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CassandraClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,7 +136,7 @@ func resourceCosmosDbCassandraKeyspaceCreate(d *pluginsdk.ResourceData, meta int
 	return resourceCosmosDbCassandraKeyspaceRead(d, meta)
 }
 
-func resourceCosmosDbCassandraKeyspaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraKeyspaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CassandraClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,7 +187,7 @@ func resourceCosmosDbCassandraKeyspaceUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceCosmosDbCassandraKeyspaceRead(d, meta)
 }
 
-func resourceCosmosDbCassandraKeyspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraKeyspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CassandraClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -229,7 +231,7 @@ func resourceCosmosDbCassandraKeyspaceRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceCosmosDbCassandraKeyspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraKeyspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CassandraClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

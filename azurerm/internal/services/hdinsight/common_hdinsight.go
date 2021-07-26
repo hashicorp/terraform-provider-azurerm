@@ -119,7 +119,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 					Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
 				}
 
-				if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				if _, err := stateConf.WaitForState(); err != nil {
 					return fmt.Errorf("Error waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
 				}
 			}

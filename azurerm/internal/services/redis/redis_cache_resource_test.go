@@ -781,9 +781,8 @@ resource "azurerm_redis_cache" "test" {
   }
 
   patch_schedule {
-    day_of_week        = "Tuesday"
-    start_hour_utc     = 8
-    maintenance_window = "PT7H"
+    day_of_week    = "Tuesday"
+    start_hour_utc = 8
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

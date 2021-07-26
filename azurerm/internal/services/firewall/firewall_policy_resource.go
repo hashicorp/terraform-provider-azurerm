@@ -5,8 +5,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,15 +18,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 const azureFirewallPolicyResourceName = "azurerm_firewall_policy"
 
-func resourceFirewallPolicy() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceFirewallPolicy() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceFirewallPolicyCreateUpdate,
 		Read:   resourceFirewallPolicyRead,
 		Update: resourceFirewallPolicyCreateUpdate,
@@ -35,16 +36,16 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 			return err
 		}),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.FirewallPolicyName(),
@@ -53,7 +54,7 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
@@ -66,34 +67,34 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 			"location": location.Schema(),
 
 			"base_policy_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.FirewallPolicyID,
 			},
 
 			"dns": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				MinItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"servers": {
-							Type:     pluginsdk.TypeSet,
+							Type:     schema.TypeSet,
 							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
 								ValidateFunc: validation.IsIPv4Address,
 							},
 						},
 						"proxy_enabled": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						// TODO 3.0 - remove this property
 						"network_rule_fqdn_enabled": {
-							Type:       pluginsdk.TypeBool,
+							Type:       schema.TypeBool,
 							Optional:   true,
 							Computed:   true,
 							Deprecated: "This property has been deprecated as the service team has removed it from all API versions and is no longer supported by Azure. It will be removed in v3.0 of the provider.",
@@ -103,7 +104,7 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 			},
 
 			"threat_intelligence_mode": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				Default:  string(network.AzureFirewallThreatIntelModeAlert),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -114,26 +115,26 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 			},
 
 			"threat_intelligence_allowlist": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				MinItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"ip_addresses": {
-							Type:     pluginsdk.TypeSet,
+							Type:     schema.TypeSet,
 							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
 								ValidateFunc: validation.Any(validation.IsIPv4Range, validation.IsIPv4Address),
 							},
 							AtLeastOneOf: []string{"threat_intelligence_allowlist.0.ip_addresses", "threat_intelligence_allowlist.0.fqdns"},
 						},
 						"fqdns": {
-							Type:     pluginsdk.TypeSet,
+							Type:     schema.TypeSet,
 							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							AtLeastOneOf: []string{"threat_intelligence_allowlist.0.ip_addresses", "threat_intelligence_allowlist.0.fqdns"},
@@ -143,26 +144,26 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 			},
 
 			"child_policies": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
 			"firewalls": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
 			"rule_collection_groups": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
@@ -171,7 +172,7 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.FirewallPolicyClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -230,7 +231,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceFirewallPolicyRead(d, meta)
 }
 
-func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.FirewallPolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -292,7 +293,7 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceFirewallPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.FirewallPolicyClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -325,8 +326,8 @@ func expandFirewallPolicyThreatIntelWhitelist(input []interface{}) *network.Fire
 
 	raw := input[0].(map[string]interface{})
 	output := &network.FirewallPolicyThreatIntelWhitelist{
-		IPAddresses: utils.ExpandStringSlice(raw["ip_addresses"].(*pluginsdk.Set).List()),
-		Fqdns:       utils.ExpandStringSlice(raw["fqdns"].(*pluginsdk.Set).List()),
+		IPAddresses: utils.ExpandStringSlice(raw["ip_addresses"].(*schema.Set).List()),
+		Fqdns:       utils.ExpandStringSlice(raw["fqdns"].(*schema.Set).List()),
 	}
 
 	return output
@@ -339,7 +340,7 @@ func expandFirewallPolicyDNSSetting(input []interface{}) *network.DNSSettings {
 
 	raw := input[0].(map[string]interface{})
 	output := &network.DNSSettings{
-		Servers:     utils.ExpandStringSlice(raw["servers"].(*pluginsdk.Set).List()),
+		Servers:     utils.ExpandStringSlice(raw["servers"].(*schema.Set).List()),
 		EnableProxy: utils.Bool(raw["proxy_enabled"].(bool)),
 	}
 

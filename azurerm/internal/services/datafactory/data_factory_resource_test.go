@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -195,93 +195,15 @@ func TestAccDataFactory_keyVaultKeyEncryption(t *testing.T) {
 	})
 }
 
-func TestAccDataFactory_globalParameter(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
-	r := DataFactoryResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.globalParameter(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccDataFactory_globalParameterUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
-	r := DataFactoryResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.globalParameter(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-	})
-}
-
-func TestAccDataFactory_managedVirtualNetwork(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
-	r := DataFactoryResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.managedVirtualNetwork(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccDataFactory_managedVirtualNetworkUpdated(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
-	r := DataFactoryResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.managedVirtualNetwork(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (t DataFactoryResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DataFactoryID(state.ID)
+	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["factories"]
 
-	resp, err := clients.DataFactory.FactoriesClient.Get(ctx, id.ResourceGroup, id.FactoryName, "")
+	resp, err := clients.DataFactory.FactoriesClient.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading Data Factory (%s): %+v", id, err)
 	}
@@ -290,12 +212,14 @@ func (t DataFactoryResource) Exists(ctx context.Context, clients *clients.Client
 }
 
 func (DataFactoryResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DataFactoryID(state.ID)
+	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["factories"]
 
-	resp, err := client.DataFactory.FactoriesClient.Delete(ctx, id.ResourceGroup, id.FactoryName)
+	resp, err := client.DataFactory.FactoriesClient.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return nil, fmt.Errorf("delete on dataFactoryClient: %+v", err)
@@ -317,7 +241,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_factory" "test" {
-  name                = "acctestDF%d"
+  name                = "acctestdf%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -336,7 +260,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_factory" "test" {
-  name                = "acctestDF%d"
+  name                = "acctestdf%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -359,7 +283,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_factory" "test" {
-  name                = "acctestDF%d"
+  name                = "acctestdf%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -383,7 +307,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_factory" "test" {
-  name                = "acctestDF%d"
+  name                = "acctestdf%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -406,7 +330,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_factory" "test" {
-  name                = "acctestDF%d"
+  name                = "acctestdf%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -433,7 +357,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_factory" "test" {
-  name                = "acctestDF%d"
+  name                = "acctestdf%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -460,7 +384,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_factory" "test" {
-  name                = "acctestDF%d"
+  name                = "acctestdf%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -583,79 +507,4 @@ resource "azurerm_data_factory" "test" {
   customer_managed_key_id = azurerm_key_vault_key.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (DataFactoryResource) globalParameter(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  global_parameter {
-    name  = "intVal"
-    type  = "Int"
-    value = "3"
-  }
-
-  global_parameter {
-    name  = "stringVal"
-    type  = "String"
-    value = "foo"
-  }
-
-  global_parameter {
-    name  = "boolVal"
-    type  = "Bool"
-    value = "true"
-  }
-
-  global_parameter {
-    name  = "floatVal"
-    type  = "Float"
-    value = "3.0"
-  }
-
-  global_parameter {
-    name  = "arrayVal"
-    type  = "Array"
-    value = "[\"a\", \"b\", \"c\"]"
-  }
-
-  global_parameter {
-    name  = "objectVal"
-    type  = "Object"
-    value = "{'name': 'value'}"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (DataFactoryResource) managedVirtualNetwork(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                            = "acctestDF%d"
-  location                        = azurerm_resource_group.test.location
-  resource_group_name             = azurerm_resource_group.test.name
-  managed_virtual_network_enabled = true
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

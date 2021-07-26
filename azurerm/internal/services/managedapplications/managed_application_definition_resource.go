@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -91,7 +92,7 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+				DiffSuppressFunc: structure.SuppressJsonDiff,
 				ConflictsWith:    []string{"package_file_uri"},
 			},
 
@@ -105,7 +106,7 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+				DiffSuppressFunc: structure.SuppressJsonDiff,
 				ConflictsWith:    []string{"package_file_uri"},
 			},
 

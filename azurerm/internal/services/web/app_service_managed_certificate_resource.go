@@ -183,7 +183,7 @@ func resourceAppServiceManagedCertificateCreateUpdate(d *pluginsdk.ResourceData,
 		certificateWait.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := certificateWait.WaitForStateContext(ctx); err != nil {
+	if _, err := certificateWait.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for App Service Managed Certificate %q: %+v", id.CertificateName, err)
 	}
 

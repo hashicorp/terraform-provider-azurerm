@@ -175,7 +175,7 @@ func resourceRedisEnterpriseClusterCreate(d *pluginsdk.ResourceData, meta interf
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for Redis Enterprise Cluster (Name %q / Resource Group %q) to become available: %+v", resourceId.RedisEnterpriseName, resourceId.ResourceGroup, err)
 	}
 

@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,10 +20,10 @@ type SharedImageResource struct {
 func TestAccSharedImage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	r := SharedImageResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data, ""),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("description").HasValue(""),
 			),
@@ -34,10 +35,10 @@ func TestAccSharedImage_basic(t *testing.T) {
 func TestAccSharedImage_basic_hyperVGeneration_V2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	r := SharedImageResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data, "V2"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("description").HasValue(""),
 				check.That(data.ResourceName).Key("hyper_v_generation").HasValue("V2"),
@@ -51,10 +52,10 @@ func TestAccSharedImage_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	r := SharedImageResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data, ""),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("description").HasValue(""),
 			),
@@ -66,10 +67,10 @@ func TestAccSharedImage_requiresImport(t *testing.T) {
 func TestAccSharedImage_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	r := SharedImageResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.complete(data, "V1"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("os_type").HasValue("Linux"),
 				check.That(data.ResourceName).Key("hyper_v_generation").HasValue("V1"),
@@ -86,10 +87,10 @@ func TestAccSharedImage_complete(t *testing.T) {
 func TestAccSharedImage_specialized(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	r := SharedImageResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.specialized(data, "V1"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -97,7 +98,7 @@ func TestAccSharedImage_specialized(t *testing.T) {
 	})
 }
 
-func (t SharedImageResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t SharedImageResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.SharedImageID(state.ID)
 	if err != nil {
 		return nil, err

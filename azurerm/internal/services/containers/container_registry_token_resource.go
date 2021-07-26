@@ -7,34 +7,36 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceContainerRegistryToken() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create:   resourceContainerRegistryTokenCreate,
-		Read:     resourceContainerRegistryTokenRead,
-		Update:   resourceContainerRegistryTokenUpdate,
-		Delete:   resourceContainerRegistryTokenDelete,
-		Importer: pluginsdk.DefaultImporter(),
-
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+func resourceContainerRegistryToken() *schema.Resource {
+	return &schema.Resource{
+		Create: resourceContainerRegistryTokenCreate,
+		Read:   resourceContainerRegistryTokenRead,
+		Update: resourceContainerRegistryTokenUpdate,
+		Delete: resourceContainerRegistryTokenDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ContainerRegistryTokenName,
@@ -43,20 +45,20 @@ func resourceContainerRegistryToken() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"container_registry_name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ContainerRegistryName,
 			},
 
 			"scope_map_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ContainerRegistryScopeMapID,
 			},
 
 			"enabled": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
@@ -64,7 +66,7 @@ func resourceContainerRegistryToken() *pluginsdk.Resource {
 	}
 }
 
-func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryTokenCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.TokensClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -125,7 +127,7 @@ func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interf
 
 	return resourceContainerRegistryTokenRead(d, meta)
 }
-func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryTokenUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.TokensClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,7 +174,7 @@ func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interf
 	return resourceContainerRegistryTokenRead(d, meta)
 }
 
-func resourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryTokenRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.TokensClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,7 +210,7 @@ func resourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceContainerRegistryTokenDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryTokenDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.TokensClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

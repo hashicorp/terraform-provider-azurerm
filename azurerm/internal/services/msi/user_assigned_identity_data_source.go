@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/sdk/managedidentity"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmUserAssignedIdentity() *pluginsdk.Resource {
@@ -60,30 +61,33 @@ func dataSourceArmUserAssignedIdentityRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := managedidentity.NewUserAssignedIdentitiesID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.UserAssignedIdentitiesGet(ctx, id)
+	id := parse.NewUserAssignedIdentityID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("%s was not found", id)
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("User Assigned Identity %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
 		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving User Assigned Identity %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.SetId(id.ID())
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
-		if props := model.Properties; props != nil {
-			d.Set("client_id", props.ClientId)
-			d.Set("principal_id", props.PrincipalId)
-			d.Set("tenant_id", props.TenantId)
+	if props := resp.UserAssignedIdentityProperties; props != nil {
+		if principalId := props.PrincipalID; principalId != nil {
+			d.Set("principal_id", principalId.String())
 		}
 
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
-			return err
+		if clientId := props.ClientID; clientId != nil {
+			d.Set("client_id", clientId.String())
+		}
+
+		if tenantId := props.TenantID; tenantId != nil {
+			d.Set("tenant_id", tenantId.String())
 		}
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -33,10 +34,11 @@ func NewIotRecommendationsClientWithBaseURI(baseURI string, subscriptionID strin
 
 // Get get IoT recommendation
 // Parameters:
-// scope - scope of the query: Subscription (i.e. /subscriptions/{subscriptionId}) or IoT Hub (i.e.
-// /subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Devices/iotHubs/{iotHubName})
+// resourceGroupName - the name of the resource group within the user's subscription. The name is case
+// insensitive.
+// solutionName - the name of the IoT Security solution.
 // iotRecommendationID - id of the recommendation
-func (client IotRecommendationsClient) Get(ctx context.Context, scope string, iotRecommendationID string) (result IotRecommendationModel, err error) {
+func (client IotRecommendationsClient) Get(ctx context.Context, resourceGroupName string, solutionName string, iotRecommendationID string) (result IotRecommendation, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/IotRecommendationsClient.Get")
 		defer func() {
@@ -47,7 +49,17 @@ func (client IotRecommendationsClient) Get(ctx context.Context, scope string, io
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetPreparer(ctx, scope, iotRecommendationID)
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("security.IotRecommendationsClient", "Get", err.Error())
+	}
+
+	req, err := client.GetPreparer(ctx, resourceGroupName, solutionName, iotRecommendationID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "Get", nil, "Failure preparing request")
 		return
@@ -70,7 +82,85 @@ func (client IotRecommendationsClient) Get(ctx context.Context, scope string, io
 }
 
 // GetPreparer prepares the Get request.
-func (client IotRecommendationsClient) GetPreparer(ctx context.Context, scope string, iotRecommendationID string) (*http.Request, error) {
+func (client IotRecommendationsClient) GetPreparer(ctx context.Context, resourceGroupName string, solutionName string, iotRecommendationID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"iotRecommendationId": autorest.Encode("path", iotRecommendationID),
+		"resourceGroupName":   autorest.Encode("path", resourceGroupName),
+		"solutionName":        autorest.Encode("path", solutionName),
+		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-08-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Security/iotSecuritySolutions/{solutionName}/iotRecommendations/{iotRecommendationId}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetSender sends the Get request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotRecommendationsClient) GetSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetResponder handles the response to the Get request. The method always
+// closes the http.Response Body.
+func (client IotRecommendationsClient) GetResponder(resp *http.Response) (result IotRecommendation, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// Get1 get IoT recommendation
+// Parameters:
+// scope - scope of the query: Subscription (i.e. /subscriptions/{subscriptionId}) or IoT Hub (i.e.
+// /subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Devices/iotHubs/{iotHubName})
+// iotRecommendationID - id of the recommendation
+func (client IotRecommendationsClient) Get1(ctx context.Context, scope string, iotRecommendationID string) (result IotRecommendationModel, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotRecommendationsClient.Get1")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.Get1Preparer(ctx, scope, iotRecommendationID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "Get1", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.Get1Sender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "Get1", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.Get1Responder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "Get1", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// Get1Preparer prepares the Get1 request.
+func (client IotRecommendationsClient) Get1Preparer(ctx context.Context, scope string, iotRecommendationID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"iotRecommendationId": autorest.Encode("path", iotRecommendationID),
 		"scope":               scope,
@@ -89,15 +179,15 @@ func (client IotRecommendationsClient) GetPreparer(ctx context.Context, scope st
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// GetSender sends the Get request. The method will close the
+// Get1Sender sends the Get1 request. The method will close the
 // http.Response Body if it receives an error.
-func (client IotRecommendationsClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client IotRecommendationsClient) Get1Sender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
-// GetResponder handles the response to the Get request. The method always
+// Get1Responder handles the response to the Get1 request. The method always
 // closes the http.Response Body.
-func (client IotRecommendationsClient) GetResponder(resp *http.Response) (result IotRecommendationModel, err error) {
+func (client IotRecommendationsClient) Get1Responder(resp *http.Response) (result IotRecommendationModel, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -109,15 +199,160 @@ func (client IotRecommendationsClient) GetResponder(resp *http.Response) (result
 
 // List list IoT recommendations
 // Parameters:
+// resourceGroupName - the name of the resource group within the user's subscription. The name is case
+// insensitive.
+// solutionName - the name of the IoT Security solution.
+// recommendationType - filter by recommendation type
+// deviceID - filter by device id
+// limit - limit the number of items returned in a single page
+// skipToken - skip token used for pagination
+func (client IotRecommendationsClient) List(ctx context.Context, resourceGroupName string, solutionName string, recommendationType string, deviceID string, limit *int32, skipToken string) (result IotRecommendationListPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotRecommendationsClient.List")
+		defer func() {
+			sc := -1
+			if result.irl.Response.Response != nil {
+				sc = result.irl.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("security.IotRecommendationsClient", "List", err.Error())
+	}
+
+	result.fn = client.listNextResults
+	req, err := client.ListPreparer(ctx, resourceGroupName, solutionName, recommendationType, deviceID, limit, skipToken)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "List", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListSender(req)
+	if err != nil {
+		result.irl.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "List", resp, "Failure sending request")
+		return
+	}
+
+	result.irl, err = client.ListResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "List", resp, "Failure responding to request")
+		return
+	}
+	if result.irl.hasNextLink() && result.irl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// ListPreparer prepares the List request.
+func (client IotRecommendationsClient) ListPreparer(ctx context.Context, resourceGroupName string, solutionName string, recommendationType string, deviceID string, limit *int32, skipToken string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"solutionName":      autorest.Encode("path", solutionName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-08-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if len(recommendationType) > 0 {
+		queryParameters["recommendationType"] = autorest.Encode("query", recommendationType)
+	}
+	if len(deviceID) > 0 {
+		queryParameters["deviceId"] = autorest.Encode("query", deviceID)
+	}
+	if limit != nil {
+		queryParameters["$limit"] = autorest.Encode("query", *limit)
+	}
+	if len(skipToken) > 0 {
+		queryParameters["$skipToken"] = autorest.Encode("query", skipToken)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Security/iotSecuritySolutions/{solutionName}/iotRecommendations", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListSender sends the List request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotRecommendationsClient) ListSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListResponder handles the response to the List request. The method always
+// closes the http.Response Body.
+func (client IotRecommendationsClient) ListResponder(resp *http.Response) (result IotRecommendationList, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listNextResults retrieves the next set of results, if any.
+func (client IotRecommendationsClient) listNextResults(ctx context.Context, lastResults IotRecommendationList) (result IotRecommendationList, err error) {
+	req, err := lastResults.iotRecommendationListPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "listNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "listNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "listNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListComplete enumerates all values, automatically crossing page boundaries as required.
+func (client IotRecommendationsClient) ListComplete(ctx context.Context, resourceGroupName string, solutionName string, recommendationType string, deviceID string, limit *int32, skipToken string) (result IotRecommendationListIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotRecommendationsClient.List")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.List(ctx, resourceGroupName, solutionName, recommendationType, deviceID, limit, skipToken)
+	return
+}
+
+// List1 list IoT recommendations
+// Parameters:
 // scope - scope of the query: Subscription (i.e. /subscriptions/{subscriptionId}) or IoT Hub (i.e.
 // /subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Devices/iotHubs/{iotHubName})
 // recommendationType - filter by recommendation type
 // deviceID - filter by device id
 // limit - limit the number of items returned in a single page
 // skipToken - skip token used for pagination
-func (client IotRecommendationsClient) List(ctx context.Context, scope string, recommendationType string, deviceID string, limit *int32, skipToken string) (result IotRecommendationListModelPage, err error) {
+func (client IotRecommendationsClient) List1(ctx context.Context, scope string, recommendationType string, deviceID string, limit *int32, skipToken string) (result IotRecommendationListModelPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/IotRecommendationsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotRecommendationsClient.List1")
 		defer func() {
 			sc := -1
 			if result.irlm.Response.Response != nil {
@@ -126,23 +361,23 @@ func (client IotRecommendationsClient) List(ctx context.Context, scope string, r
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.fn = client.listNextResults
-	req, err := client.ListPreparer(ctx, scope, recommendationType, deviceID, limit, skipToken)
+	result.fn = client.list1NextResults
+	req, err := client.List1Preparer(ctx, scope, recommendationType, deviceID, limit, skipToken)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "List1", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.ListSender(req)
+	resp, err := client.List1Sender(req)
 	if err != nil {
 		result.irlm.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "List1", resp, "Failure sending request")
 		return
 	}
 
-	result.irlm, err = client.ListResponder(resp)
+	result.irlm, err = client.List1Responder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "List1", resp, "Failure responding to request")
 		return
 	}
 	if result.irlm.hasNextLink() && result.irlm.IsEmpty() {
@@ -153,8 +388,8 @@ func (client IotRecommendationsClient) List(ctx context.Context, scope string, r
 	return
 }
 
-// ListPreparer prepares the List request.
-func (client IotRecommendationsClient) ListPreparer(ctx context.Context, scope string, recommendationType string, deviceID string, limit *int32, skipToken string) (*http.Request, error) {
+// List1Preparer prepares the List1 request.
+func (client IotRecommendationsClient) List1Preparer(ctx context.Context, scope string, recommendationType string, deviceID string, limit *int32, skipToken string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"scope": scope,
 	}
@@ -184,15 +419,15 @@ func (client IotRecommendationsClient) ListPreparer(ctx context.Context, scope s
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// ListSender sends the List request. The method will close the
+// List1Sender sends the List1 request. The method will close the
 // http.Response Body if it receives an error.
-func (client IotRecommendationsClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client IotRecommendationsClient) List1Sender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
-// ListResponder handles the response to the List request. The method always
+// List1Responder handles the response to the List1 request. The method always
 // closes the http.Response Body.
-func (client IotRecommendationsClient) ListResponder(resp *http.Response) (result IotRecommendationListModel, err error) {
+func (client IotRecommendationsClient) List1Responder(resp *http.Response) (result IotRecommendationListModel, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -202,31 +437,31 @@ func (client IotRecommendationsClient) ListResponder(resp *http.Response) (resul
 	return
 }
 
-// listNextResults retrieves the next set of results, if any.
-func (client IotRecommendationsClient) listNextResults(ctx context.Context, lastResults IotRecommendationListModel) (result IotRecommendationListModel, err error) {
+// list1NextResults retrieves the next set of results, if any.
+func (client IotRecommendationsClient) list1NextResults(ctx context.Context, lastResults IotRecommendationListModel) (result IotRecommendationListModel, err error) {
 	req, err := lastResults.iotRecommendationListModelPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "listNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "list1NextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
 	}
-	resp, err := client.ListSender(req)
+	resp, err := client.List1Sender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "listNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "list1NextResults", resp, "Failure sending next results request")
 	}
-	result, err = client.ListResponder(resp)
+	result, err = client.List1Responder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "listNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "list1NextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
-// ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client IotRecommendationsClient) ListComplete(ctx context.Context, scope string, recommendationType string, deviceID string, limit *int32, skipToken string) (result IotRecommendationListModelIterator, err error) {
+// List1Complete enumerates all values, automatically crossing page boundaries as required.
+func (client IotRecommendationsClient) List1Complete(ctx context.Context, scope string, recommendationType string, deviceID string, limit *int32, skipToken string) (result IotRecommendationListModelIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/IotRecommendationsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotRecommendationsClient.List1")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -235,6 +470,6 @@ func (client IotRecommendationsClient) ListComplete(ctx context.Context, scope s
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.List(ctx, scope, recommendationType, deviceID, limit, skipToken)
+	result.page, err = client.List1(ctx, scope, recommendationType, deviceID, limit, skipToken)
 	return
 }

@@ -169,7 +169,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.R
 	fileStorageProperties := &datafactory.AzureFileStorageLinkedServiceTypeProperties{
 		ConnectionString: &datafactory.SecureString{
 			Value: utils.String(d.Get("connection_string").(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		},
 		FileShare: d.Get("file_share").(string),
 		Host:      d.Get("host").(string),
@@ -180,7 +180,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.R
 	if password != "" {
 		fileStorageProperties.Password = &datafactory.SecureString{
 			Value: utils.String(d.Get("password").(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 	}
 
@@ -200,7 +200,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.R
 
 	if v, ok := d.GetOk("key_vault_password"); ok {
 		password := v.([]interface{})
-		fileStorageProperties.Password = expandAzureKeyVaultSecretReference(password)
+		fileStorageProperties.Password = expandAzureKeyVaultPassword(password)
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
@@ -268,7 +268,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageRead(d *pluginsdk.ResourceD
 
 	if password := fileStorage.Password; password != nil {
 		if keyVaultPassword, ok := password.AsAzureKeyVaultSecretReference(); ok {
-			if err := d.Set("key_vault_password", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
+			if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(keyVaultPassword)); err != nil {
 				return fmt.Errorf("setting `key_vault_password`: %+v", err)
 			}
 		}

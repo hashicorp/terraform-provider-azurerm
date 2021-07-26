@@ -5092,12 +5092,6 @@ type JobNavigation struct {
 	ID *string `json:"id,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for JobNavigation.
-func (jn JobNavigation) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // JobProperties definition of job properties.
 type JobProperties struct {
 	// Runbook - Gets or sets the runbook.
@@ -5777,12 +5771,6 @@ type Key struct {
 	Value *string `json:"Value,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for Key.
-func (kVar Key) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // KeyListResult ...
 type KeyListResult struct {
 	autorest.Response `json:"-"`
@@ -5795,12 +5783,6 @@ type LinkedWorkspace struct {
 	autorest.Response `json:"-"`
 	// ID - READ-ONLY; Gets the id of the linked workspace.
 	ID *string `json:"id,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for LinkedWorkspace.
-func (lw LinkedWorkspace) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // LinuxProperties linux specific update configuration.
@@ -6362,12 +6344,6 @@ type ProxyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for ProxyResource.
-func (pr ProxyResource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // PythonPackageCreateParameters the parameters supplied to the create or update module operation.
 type PythonPackageCreateParameters struct {
 	// PythonPackageCreateProperties - Gets or sets the module create properties.
@@ -6456,12 +6432,6 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Resource.
-func (r Resource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // RunAsCredentialAssociationProperty definition of RunAs credential to use for hybrid worker.
@@ -9211,12 +9181,6 @@ type Statistics struct {
 	ID *string `json:"id,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for Statistics.
-func (s Statistics) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // StatisticsListResult the response model for the list statistics operation.
 type StatisticsListResult struct {
 	autorest.Response `json:"-"`
@@ -9478,12 +9442,6 @@ func (ucmrp UpdateConfigurationMachineRunProperties) MarshalJSON() ([]byte, erro
 type UpdateConfigurationNavigation struct {
 	// Name - READ-ONLY; Name of the software update configuration triggered the software update configuration run
 	Name *string `json:"name,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for UpdateConfigurationNavigation.
-func (ucn UpdateConfigurationNavigation) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // Usage definition of Usage.

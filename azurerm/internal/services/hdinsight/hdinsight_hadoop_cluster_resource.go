@@ -299,7 +299,7 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 		}
 
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		if _, err := stateConf.WaitForState(); err != nil {
 			return fmt.Errorf("waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
 		}
 	}

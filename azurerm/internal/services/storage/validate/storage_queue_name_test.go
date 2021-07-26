@@ -1,8 +1,9 @@
 package validate
 
 import (
-	"strings"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
 func TestStorageQueueName_Validation(t *testing.T) {
@@ -27,11 +28,11 @@ func TestStorageQueueName_Validation(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
-			Value:    strings.Repeat("a", 256),
+			Value:    acctest.RandString(256),
 			ErrCount: 1,
 		},
 		{
-			Value:    strings.Repeat("a", 1),
+			Value:    acctest.RandString(1),
 			ErrCount: 1,
 		},
 	}

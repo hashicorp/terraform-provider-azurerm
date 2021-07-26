@@ -10,6 +10,8 @@ description: |-
 
 Manages the Pricing Tier for Azure Security Center in the current subscription.
 
+~> **NOTE:** This resource requires the `Owner` permission on the Subscription.
+
 ~> **NOTE:** Deletion of this resource does not change or reset the pricing tier to `Free`
 
 ## Example Usage

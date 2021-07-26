@@ -7,12 +7,13 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -130,7 +131,7 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for API Management Service %q (Resource Group: %q) to become ready: %+v", serviceName, resourceGroup, err)
 	}
 
@@ -148,7 +149,7 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
 	log.Printf("[DEBUG] Waiting for API Management Service %q (Resource Group: %q) to become ready", serviceName, resourceGroup)
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for API Management Service %q (Resource Group: %q) to become ready: %+v", serviceName, resourceGroup, err)
 	}
 
@@ -234,7 +235,7 @@ func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}
 		ContinuousTargetOccurence: 6,
 	}
 
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for API Management Service %q (Resource Group: %q) to become ready: %+v", serviceName, resourceGroup, err)
 	}
 
@@ -248,7 +249,7 @@ func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
 	log.Printf("[DEBUG] Waiting for API Management Service %q (Resource Group: %q) to become ready", serviceName, resourceGroup)
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for API Management Service %q (Resource Group: %q) to become ready: %+v", serviceName, resourceGroup, err)
 	}
 

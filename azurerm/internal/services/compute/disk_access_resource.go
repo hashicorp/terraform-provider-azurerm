@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,8 +17,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDiskAccess() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceDiskAccess() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceDiskAccessCreateUpdate,
 		Read:   resourceDiskAccessRead,
 		Update: resourceDiskAccessCreateUpdate,
@@ -28,16 +29,16 @@ func resourceDiskAccess() *pluginsdk.Resource {
 			return err
 		}),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -51,7 +52,7 @@ func resourceDiskAccess() *pluginsdk.Resource {
 	}
 }
 
-func resourceDiskAccessCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDiskAccessCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskAccessClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -104,7 +105,7 @@ func resourceDiskAccessCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceDiskAccessRead(d, meta)
 }
 
-func resourceDiskAccessRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDiskAccessRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskAccessClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,7 +135,7 @@ func resourceDiskAccessRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceDiskAccessDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDiskAccessDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskAccessClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

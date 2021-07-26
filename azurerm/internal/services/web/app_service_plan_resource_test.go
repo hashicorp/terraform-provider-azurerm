@@ -207,8 +207,8 @@ func TestAccAppServicePlan_basicWindowsContainer(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("xenon"),
 				check.That(data.ResourceName).Key("is_xenon").HasValue("true"),
-				check.That(data.ResourceName).Key("sku.0.tier").HasValue("PremiumV3"),
-				check.That(data.ResourceName).Key("sku.0.size").HasValue("P1v3"),
+				check.That(data.ResourceName).Key("sku.0.tier").HasValue("PremiumContainer"),
+				check.That(data.ResourceName).Key("sku.0.size").HasValue("PC2"),
 			),
 		},
 		data.ImportStep(),
@@ -570,8 +570,8 @@ resource "azurerm_app_service_plan" "test" {
   is_xenon            = true
 
   sku {
-    tier = "PremiumV3"
-    size = "P1v3"
+    tier = "PremiumContainer"
+    size = "PC2"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

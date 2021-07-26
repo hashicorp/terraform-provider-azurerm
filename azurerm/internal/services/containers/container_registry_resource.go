@@ -7,8 +7,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -20,15 +24,13 @@ import (
 	identityParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	identityValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceContainerRegistry() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceContainerRegistry() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceContainerRegistryCreate,
 		Read:   resourceContainerRegistryRead,
 		Update: resourceContainerRegistryUpdate,
@@ -43,16 +45,16 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate2.ContainerRegistryName,
@@ -63,7 +65,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			"location": azure.SchemaLocation(),
 
 			"sku": {
-				Type:             pluginsdk.TypeString,
+				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          string(containerregistry.Classic),
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -76,46 +78,38 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			},
 
 			"admin_enabled": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 			// TODO 3.0 - Remove below property
 			"georeplication_locations": {
-				Type:          pluginsdk.TypeSet,
+				Type:          schema.TypeSet,
 				Optional:      true,
 				Deprecated:    "Deprecated in favour of `georeplications`",
 				Computed:      true,
 				ConflictsWith: []string{"georeplications"},
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				Set: location.HashCode,
 			},
 
 			"georeplications": {
-				// Don't make this a TypeSet since TypeSet has bugs when there is a nested property using `StateFunc`.
-				// See: https://github.com/hashicorp/terraform-plugin-sdk/issues/160
-				Type:          pluginsdk.TypeList,
+				Type:          schema.TypeSet,
 				Optional:      true,
 				Computed:      true, // TODO -- remove this when deprecation resolves
 				ConflictsWith: []string{"georeplication_locations"},
-				ConfigMode:    pluginsdk.SchemaConfigModeAttr, // TODO -- remove in 3.0, because this property is optional and computed, it has to be declared as empty array to remove existed values
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				ConfigMode:    schema.SchemaConfigModeAttr, // TODO -- remove in 3.0, because this property is optional and computed, it has to be declared as empty array to remove existed values
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"location": {
-							Type:             pluginsdk.TypeString,
+							Type:             schema.TypeString,
 							Required:         true,
 							ValidateFunc:     location.EnhancedValidate,
 							StateFunc:        location.StateFunc,
 							DiffSuppressFunc: location.DiffSuppressFunc,
-						},
-
-						"zone_redundancy_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
 						},
 
 						"tags": tags.Schema(),
@@ -124,42 +118,42 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			},
 
 			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"storage_account_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
 
 			"login_server": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"admin_username": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"admin_password": {
-				Type:      pluginsdk.TypeString,
+				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"identity": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:             pluginsdk.TypeString,
+							Type:             schema.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -169,19 +163,15 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 							}, false),
 						},
 						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"identity_ids": {
-							Type:     pluginsdk.TypeList,
+							Type:     schema.TypeList,
 							Optional: true,
 							MinItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
 								ValidateFunc: identityValidate.UserAssignedIdentityID,
 							},
 						},
@@ -190,42 +180,42 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			},
 
 			"encryption": {
-				Type:       pluginsdk.TypeList,
+				Type:       schema.TypeList,
 				Optional:   true,
 				Computed:   true,
 				MaxItems:   1,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"enabled": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						"identity_client_id": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsUUID,
 						},
 						"key_vault_key_id": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyVaultValidate.NestedItemId,
 						},
 					},
 				},
 			},
 
 			"network_rule_set": {
-				Type:       pluginsdk.TypeList,
+				Type:       schema.TypeList,
 				Optional:   true,
 				Computed:   true,
 				MaxItems:   1,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr, // make sure we can set this to an empty array for Premium -> Basic
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				ConfigMode: schema.SchemaConfigModeAttr, // make sure we can set this to an empty array for Premium -> Basic
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Optional: true,
 							Default:  containerregistry.DefaultActionAllow,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -235,20 +225,20 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 						},
 
 						"ip_rule": {
-							Type:       pluginsdk.TypeSet,
+							Type:       schema.TypeSet,
 							Optional:   true,
-							ConfigMode: pluginsdk.SchemaConfigModeAttr,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
 									"action": {
-										Type:     pluginsdk.TypeString,
+										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(containerregistry.Allow),
 										}, false),
 									},
 									"ip_range": {
-										Type:         pluginsdk.TypeString,
+										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validate.CIDR,
 									},
@@ -257,20 +247,20 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 						},
 
 						"virtual_network": {
-							Type:       pluginsdk.TypeSet,
+							Type:       schema.TypeSet,
 							Optional:   true,
-							ConfigMode: pluginsdk.SchemaConfigModeAttr,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
 									"action": {
-										Type:     pluginsdk.TypeString,
+										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(containerregistry.Allow),
 										}, false),
 									},
 									"subnet_id": {
-										Type:         pluginsdk.TypeString,
+										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: azure.ValidateResourceID,
 									},
@@ -282,26 +272,26 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			},
 
 			"quarantine_policy_enabled": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 			},
 
 			"retention_policy": {
-				Type:       pluginsdk.TypeList,
+				Type:       schema.TypeList,
 				MaxItems:   1,
 				Optional:   true,
 				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"days": {
-							Type:     pluginsdk.TypeInt,
+							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  7,
 						},
 
 						"enabled": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
@@ -310,15 +300,15 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			},
 
 			"trust_policy": {
-				Type:       pluginsdk.TypeList,
+				Type:       schema.TypeList,
 				MaxItems:   1,
 				Optional:   true,
 				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"enabled": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
@@ -326,21 +316,14 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				},
 			},
 
-			"zone_redundancy_enabled": {
-				Type:     pluginsdk.TypeBool,
-				ForceNew: true,
-				Optional: true,
-				Default:  false,
-			},
-
 			"tags": tags.Schema(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			sku := d.Get("sku").(string)
-			geoReplicationLocations := d.Get("georeplication_locations").(*pluginsdk.Set)
-			geoReplications := d.Get("georeplications").([]interface{})
-			hasGeoReplicationsApplied := geoReplicationLocations.Len() > 0 || len(geoReplications) > 0
+			geoReplicationLocations := d.Get("georeplication_locations").(*schema.Set)
+			geoReplications := d.Get("georeplications").(*schema.Set)
+			hasGeoReplicationsApplied := geoReplicationLocations.Len() > 0 || geoReplications.Len() > 0
 			// if locations have been specified for geo-replication then, the SKU has to be Premium
 			if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(containerregistry.Premium)) {
 				return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
@@ -365,26 +348,12 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			if ok && encryptionEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
 				return fmt.Errorf("ACR encryption can only be applied when using the Premium Sku.")
 			}
-
-			// zone redundancy is only available for Premium Sku.
-			zoneRedundancyEnabled, ok := d.GetOk("zone_redundancy_enabled")
-			if ok && zoneRedundancyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
-				return fmt.Errorf("ACR zone redundancy can only be applied when using the Premium Sku")
-			}
-			for _, loc := range geoReplications {
-				loc := loc.(map[string]interface{})
-				zoneRedundancyEnabled, ok := loc["zone_redundancy_enabled"]
-				if ok && zoneRedundancyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
-					return fmt.Errorf("ACR zone redundancy can only be applied when using the Premium Sku")
-				}
-			}
-
 			return nil
 		}),
 	}
 }
 
-func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -423,8 +392,8 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	sku := d.Get("sku").(string)
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
-	geoReplicationLocations := d.Get("georeplication_locations").(*pluginsdk.Set)
-	geoReplications := d.Get("georeplications").([]interface{})
+	geoReplicationLocations := d.Get("georeplication_locations").(*schema.Set)
+	geoReplications := d.Get("georeplications").(*schema.Set)
 
 	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
 	if networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
@@ -449,12 +418,6 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = containerregistry.PublicNetworkAccessDisabled
 	}
-
-	zoneRedundancy := containerregistry.ZoneRedundancyDisabled
-	if d.Get("zone_redundancy_enabled").(bool) {
-		zoneRedundancy = containerregistry.ZoneRedundancyEnabled
-	}
-
 	parameters := containerregistry.Registry{
 		Location: &location,
 		Sku: &containerregistry.Sku{
@@ -464,7 +427,6 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		Identity: identity,
 		RegistryProperties: &containerregistry.RegistryProperties{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
-			Encryption:       encryption,
 			NetworkRuleSet:   networkRuleSet,
 			Policies: &containerregistry.Policies{
 				QuarantinePolicy: quarantinePolicy,
@@ -472,7 +434,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 				TrustPolicy:      trustPolicy,
 			},
 			PublicNetworkAccess: publicNetworkAccess,
-			ZoneRedundancy:      zoneRedundancy,
+			Encryption:          encryption,
 		},
 
 		Tags: tags.Expand(t),
@@ -500,11 +462,11 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	// the ACR is being created so no previous geo-replication locations
-	var oldGeoReplicationLocations, newGeoReplicationLocations []containerregistry.Replication
+	var oldGeoReplicationLocations, newGeoReplicationLocations []*containerregistry.Replication
 	if geoReplicationLocations != nil && geoReplicationLocations.Len() > 0 {
 		newGeoReplicationLocations = expandReplicationsFromLocations(geoReplicationLocations.List())
 	} else {
-		newGeoReplicationLocations = expandReplications(geoReplications)
+		newGeoReplicationLocations = expandReplications(geoReplications.List())
 	}
 	// geo replications have been specified
 	if len(newGeoReplicationLocations) > 0 {
@@ -528,7 +490,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceContainerRegistryRead(d, meta)
 }
 
-func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -548,13 +510,13 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	old, new := d.GetChange("georeplication_locations")
 	hasGeoReplicationLocationsChanges := d.HasChange("georeplication_locations")
-	oldGeoReplicationLocations := old.(*pluginsdk.Set)
-	newGeoReplicationLocations := new.(*pluginsdk.Set)
+	oldGeoReplicationLocations := old.(*schema.Set)
+	newGeoReplicationLocations := new.(*schema.Set)
 
 	oldReplicationsRaw, newReplicationsRaw := d.GetChange("georeplications")
 	hasGeoReplicationsChanges := d.HasChange("georeplications")
-	oldReplications := oldReplicationsRaw.([]interface{})
-	newReplications := newReplicationsRaw.([]interface{})
+	oldReplications := oldReplicationsRaw.(*schema.Set)
+	newReplications := newReplicationsRaw.(*schema.Set)
 
 	// handle upgrade to Premium SKU first
 	if skuChange && isPremiumSku {
@@ -580,9 +542,6 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	identityRaw := d.Get("identity").([]interface{})
 	identity := expandIdentityProperties(identityRaw)
 
-	encryptionRaw := d.Get("encryption").([]interface{})
-	encryption := expandEncryption(encryptionRaw)
-
 	parameters := containerregistry.RegistryUpdateParameters{
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
@@ -593,20 +552,19 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 				TrustPolicy:      trustPolicy,
 			},
 			PublicNetworkAccess: publicNetworkAccess,
-			Encryption:          encryption,
 		},
 		Identity: identity,
 		Tags:     tags.Expand(t),
 	}
 
 	// geo replication is only supported by Premium Sku
-	hasGeoReplicationsApplied := newGeoReplicationLocations.Len() > 0 || len(newReplications) > 0
+	hasGeoReplicationsApplied := newGeoReplicationLocations.Len() > 0 || newReplications.Len() > 0
 	if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(containerregistry.Premium)) {
 		return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 	}
 
 	if hasGeoReplicationsChanges {
-		err := applyGeoReplicationLocations(d, meta, resourceGroup, name, expandReplications(oldReplications), expandReplications(newReplications))
+		err := applyGeoReplicationLocations(d, meta, resourceGroup, name, expandReplications(oldReplications.List()), expandReplications(newReplications.List()))
 		if err != nil {
 			return fmt.Errorf("Error applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -647,7 +605,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceContainerRegistryRead(d, meta)
 }
 
-func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku string, resourceGroup string, name string) error {
+func applyContainerRegistrySku(d *schema.ResourceData, meta interface{}, sku string, resourceGroup string, name string) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -671,7 +629,7 @@ func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku 
 	return nil
 }
 
-func applyGeoReplicationLocations(d *pluginsdk.ResourceData, meta interface{}, resourceGroup string, name string, oldGeoReplications []containerregistry.Replication, newGeoReplications []containerregistry.Replication) error {
+func applyGeoReplicationLocations(d *schema.ResourceData, meta interface{}, resourceGroup string, name string, oldGeoReplications []*containerregistry.Replication, newGeoReplications []*containerregistry.Replication) error {
 	replicationClient := meta.(*clients.Client).Containers.ReplicationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -679,7 +637,7 @@ func applyGeoReplicationLocations(d *pluginsdk.ResourceData, meta interface{}, r
 
 	// delete previously deployed locations
 	for _, replication := range oldGeoReplications {
-		if replication.Location == nil {
+		if replication == nil || len(*replication.Location) == 0 {
 			continue
 		}
 		oldLocation := azure.NormalizeLocation(*replication.Location)
@@ -695,11 +653,11 @@ func applyGeoReplicationLocations(d *pluginsdk.ResourceData, meta interface{}, r
 
 	// create new geo-replication locations
 	for _, replication := range newGeoReplications {
-		if replication.Location == nil {
+		if replication == nil || len(*replication.Location) == 0 {
 			continue
 		}
 		locationToCreate := azure.NormalizeLocation(*replication.Location)
-		future, err := replicationClient.Create(ctx, resourceGroup, name, locationToCreate, replication)
+		future, err := replicationClient.Create(ctx, resourceGroup, name, locationToCreate, *replication)
 		if err != nil {
 			return fmt.Errorf("Error creating Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, locationToCreate, err)
 		}
@@ -712,7 +670,7 @@ func applyGeoReplicationLocations(d *pluginsdk.ResourceData, meta interface{}, r
 	return nil
 }
 
-func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
 	replicationClient := meta.(*clients.Client).Containers.ReplicationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -770,7 +728,6 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if err := d.Set("encryption", flattenEncryption(properties.Encryption)); err != nil {
 			return fmt.Errorf("Error setting `encryption`: %+v", err)
 		}
-		d.Set("zone_redundancy_enabled", properties.ZoneRedundancy == containerregistry.ZoneRedundancyEnabled)
 	}
 
 	if sku := resp.Sku; sku != nil {
@@ -812,7 +769,6 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 				replication := make(map[string]interface{})
 				replication["location"] = valueLocation
 				replication["tags"] = tags.Flatten(value.Tags)
-				replication["zone_redundancy_enabled"] = value.ZoneRedundancy == containerregistry.ZoneRedundancyEnabled
 				geoReplications = append(geoReplications, replication)
 			}
 		}
@@ -823,7 +779,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceContainerRegistryDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -860,7 +816,7 @@ func expandNetworkRuleSet(profiles []interface{}) *containerregistry.NetworkRule
 
 	profile := profiles[0].(map[string]interface{})
 
-	ipRuleConfigs := profile["ip_rule"].(*pluginsdk.Set).List()
+	ipRuleConfigs := profile["ip_rule"].(*schema.Set).List()
 	ipRules := make([]containerregistry.IPRule, 0)
 	for _, ipRuleInterface := range ipRuleConfigs {
 		config := ipRuleInterface.(map[string]interface{})
@@ -871,7 +827,7 @@ func expandNetworkRuleSet(profiles []interface{}) *containerregistry.NetworkRule
 		ipRules = append(ipRules, newIpRule)
 	}
 
-	networkRuleConfigs := profile["virtual_network"].(*pluginsdk.Set).List()
+	networkRuleConfigs := profile["virtual_network"].(*schema.Set).List()
 	virtualNetworkRules := make([]containerregistry.VirtualNetworkRule, 0)
 	for _, networkRuleInterface := range networkRuleConfigs {
 		config := networkRuleInterface.(map[string]interface{})
@@ -937,11 +893,11 @@ func expandTrustPolicy(p []interface{}) *containerregistry.TrustPolicy {
 	return &trustPolicy
 }
 
-func expandReplicationsFromLocations(p []interface{}) []containerregistry.Replication {
-	replications := make([]containerregistry.Replication, 0)
+func expandReplicationsFromLocations(p []interface{}) []*containerregistry.Replication {
+	replications := make([]*containerregistry.Replication, 0)
 	for _, value := range p {
 		location := azure.NormalizeLocation(value)
-		replications = append(replications, containerregistry.Replication{
+		replications = append(replications, &containerregistry.Replication{
 			Location: &location,
 			Name:     &location,
 		})
@@ -949,8 +905,8 @@ func expandReplicationsFromLocations(p []interface{}) []containerregistry.Replic
 	return replications
 }
 
-func expandReplications(p []interface{}) []containerregistry.Replication {
-	replications := make([]containerregistry.Replication, 0)
+func expandReplications(p []interface{}) []*containerregistry.Replication {
+	replications := make([]*containerregistry.Replication, 0)
 	if p == nil {
 		return replications
 	}
@@ -958,17 +914,10 @@ func expandReplications(p []interface{}) []containerregistry.Replication {
 		value := v.(map[string]interface{})
 		location := azure.NormalizeLocation(value["location"])
 		tags := tags.Expand(value["tags"].(map[string]interface{}))
-		zoneRedundancy := containerregistry.ZoneRedundancyDisabled
-		if value["zone_redundancy_enabled"].(bool) {
-			zoneRedundancy = containerregistry.ZoneRedundancyEnabled
-		}
-		replications = append(replications, containerregistry.Replication{
+		replications = append(replications, &containerregistry.Replication{
 			Location: &location,
 			Name:     &location,
 			Tags:     tags,
-			ReplicationProperties: &containerregistry.ReplicationProperties{
-				ZoneRedundancy: zoneRedundancy,
-			},
 		})
 	}
 	return replications
@@ -1043,12 +992,6 @@ func flattenIdentityProperties(identityProperties *containerregistry.IdentityPro
 			identityIds = append(identityIds, parsedId.ID())
 		}
 		identity["identity_ids"] = identityIds
-	}
-	if identityProperties.PrincipalID != nil {
-		identity["principal_id"] = *identityProperties.PrincipalID
-	}
-	if identityProperties.TenantID != nil {
-		identity["tenant_id"] = *identityProperties.TenantID
 	}
 	return []interface{}{identity}, nil
 }

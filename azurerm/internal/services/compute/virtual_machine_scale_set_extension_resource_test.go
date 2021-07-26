@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,10 +20,10 @@ type VirtualMachineScaleSetExtensionResource struct {
 func TestAccVirtualMachineScaleSetExtension_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	r := VirtualMachineScaleSetExtensionResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicLinux(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -33,10 +34,10 @@ func TestAccVirtualMachineScaleSetExtension_basicLinux(t *testing.T) {
 func TestAccVirtualMachineScaleSetExtension_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	r := VirtualMachineScaleSetExtensionResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicWindows(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -48,10 +49,10 @@ func TestAccVirtualMachineScaleSetExtension_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	r := VirtualMachineScaleSetExtensionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicLinux(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -62,10 +63,10 @@ func TestAccVirtualMachineScaleSetExtension_requiresImport(t *testing.T) {
 func TestAccVirtualMachineScaleSetExtension_autoUpgradeDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	r := VirtualMachineScaleSetExtensionResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.autoUpgradeDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -77,10 +78,10 @@ func TestAccVirtualMachineScaleSetExtension_extensionChaining(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "first")
 	r := VirtualMachineScaleSetExtensionResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.extensionChaining(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -96,17 +97,17 @@ func TestAccVirtualMachineScaleSetExtension_extensionChaining(t *testing.T) {
 func TestAccVirtualMachineScaleSetExtension_forceUpdateTag(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	r := VirtualMachineScaleSetExtensionResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.forceUpdateTag(data, "first"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.forceUpdateTag(data, "second"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -117,10 +118,10 @@ func TestAccVirtualMachineScaleSetExtension_forceUpdateTag(t *testing.T) {
 func TestAccVirtualMachineScaleSetExtension_protectedSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	r := VirtualMachineScaleSetExtensionResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.protectedSettings(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -131,10 +132,10 @@ func TestAccVirtualMachineScaleSetExtension_protectedSettings(t *testing.T) {
 func TestAccVirtualMachineScaleSetExtension_protectedSettingsOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	r := VirtualMachineScaleSetExtensionResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.protectedSettingsOnly(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -145,18 +146,18 @@ func TestAccVirtualMachineScaleSetExtension_protectedSettingsOnly(t *testing.T) 
 func TestAccVirtualMachineScaleSetExtension_updateVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	r := VirtualMachineScaleSetExtensionResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			// old version
 			Config: r.updateVersion(data, "1.2"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.updateVersion(data, "1.3"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -164,7 +165,7 @@ func TestAccVirtualMachineScaleSetExtension_updateVersion(t *testing.T) {
 	})
 }
 
-func (t VirtualMachineScaleSetExtensionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t VirtualMachineScaleSetExtensionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.VirtualMachineScaleSetExtensionID(state.ID)
 	if err != nil {
 		return nil, err

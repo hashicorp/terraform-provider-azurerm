@@ -31,8 +31,6 @@ output "postgresql_server_id" {
 
 ## Attributes Reference
 
-* `id` - The ID of the PostgreSQL Server.
-
 * `location` - The location of the Resource Group in which the PostgreSQL Server exists.
 
 * `fqdn` - The fully qualified domain name of the PostgreSQL Server.

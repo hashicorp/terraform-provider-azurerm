@@ -2,6 +2,7 @@ package datafactory
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -54,32 +55,9 @@ func resourceDataFactoryLinkedServiceSQLServer() *pluginsdk.Resource {
 
 			"connection_string": {
 				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ExactlyOneOf:     []string{"connection_string", "key_vault_connection_string"},
+				Required:         true,
 				DiffSuppressFunc: azureRmDataFactoryLinkedServiceConnectionStringDiff,
 				ValidateFunc:     validation.StringIsNotEmpty,
-			},
-
-			"key_vault_connection_string": {
-				Type:         pluginsdk.TypeList,
-				Optional:     true,
-				ExactlyOneOf: []string{"connection_string", "key_vault_connection_string"},
-				MaxItems:     1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"linked_service_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"secret_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
 			},
 
 			"key_vault_password": {
@@ -172,17 +150,10 @@ func resourceDataFactoryLinkedServiceSQLServerCreateUpdate(d *pluginsdk.Resource
 	sqlServerLinkedService := &datafactory.SQLServerLinkedService{
 		Description: utils.String(d.Get("description").(string)),
 		SQLServerLinkedServiceTypeProperties: &datafactory.SQLServerLinkedServiceTypeProperties{
-			Password: expandAzureKeyVaultSecretReference(password),
+			ConnectionString: d.Get("connection_string").(string),
+			Password:         expandAzureKeyVaultPassword(password),
 		},
 		Type: datafactory.TypeBasicLinkedServiceTypeSQLServer,
-	}
-
-	if v, ok := d.GetOk("connection_string"); ok {
-		sqlServerLinkedService.SQLServerLinkedServiceTypeProperties.ConnectionString = v.(string)
-	}
-
-	if v, ok := d.GetOk("key_vault_connection_string"); ok {
-		sqlServerLinkedService.SQLServerLinkedServiceTypeProperties.ConnectionString = expandAzureKeyVaultSecretReference(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -274,20 +245,17 @@ func resourceDataFactoryLinkedServiceSQLServerRead(d *pluginsdk.ResourceData, me
 
 	if properties := sqlServer.SQLServerLinkedServiceTypeProperties; properties != nil {
 		if properties.ConnectionString != nil {
-			if val, ok := properties.ConnectionString.(map[string]interface{}); ok {
-				if err := d.Set("key_vault_connection_string", flattenAzureKeyVaultConnectionString(val)); err != nil {
-					return fmt.Errorf("setting `key_vault_connection_string`: %+v", err)
-				}
-			} else if val, ok := properties.ConnectionString.(string); ok {
+			if val, ok := properties.ConnectionString.(string); ok {
 				d.Set("connection_string", val)
 			} else {
-				return fmt.Errorf("setting `connection_string`: %+v", err)
+				d.Set("connection_string", "")
+				log.Printf("[DEBUG] Skipping connection string %q since it's not a string", val)
 			}
 		}
 
 		if password := properties.Password; password != nil {
 			if keyVaultPassword, ok := password.AsAzureKeyVaultSecretReference(); ok {
-				if err := d.Set("key_vault_password", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
+				if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(keyVaultPassword)); err != nil {
 					return fmt.Errorf("setting `key_vault_password`: %+v", err)
 				}
 			}

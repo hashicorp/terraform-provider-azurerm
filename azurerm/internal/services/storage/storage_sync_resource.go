@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -14,13 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceStorageSync() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceStorageSync() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceStorageSyncCreate,
 		Read:   resourceStorageSyncRead,
 		Update: resourceStorageSyncUpdate,
@@ -31,16 +32,16 @@ func resourceStorageSync() *pluginsdk.Resource {
 			return err
 		}),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageSyncName,
@@ -51,7 +52,7 @@ func resourceStorageSync() *pluginsdk.Resource {
 			"location": azure.SchemaLocation(),
 
 			"incoming_traffic_policy": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				Default:  string(storagesync.AllowAllTraffic),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -65,7 +66,7 @@ func resourceStorageSync() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -112,7 +113,7 @@ func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceStorageSyncRead(d, meta)
 }
 
-func resourceStorageSyncRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -140,7 +141,7 @@ func resourceStorageSyncRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceStorageSyncUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,7 +175,7 @@ func resourceStorageSyncUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceStorageSyncRead(d, meta)
 }
 
-func resourceStorageSyncDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

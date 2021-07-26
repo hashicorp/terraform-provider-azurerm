@@ -169,32 +169,6 @@ func TestAccLighthouseDefinition_emptyID(t *testing.T) {
 	})
 }
 
-func TestAccLighthouseDefinition_plan(t *testing.T) {
-	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
-	principalID := os.Getenv("ARM_PRINCIPAL_ID_ALT_TENANT")
-	planName := os.Getenv("ARM_PLAN_NAME")
-	planPublisher := os.Getenv("ARM_PLAN_PUBLISHER")
-	planProduct := os.Getenv("ARM_PLAN_PRODUCT")
-	planVersion := os.Getenv("ARM_PLAN_VERSION")
-	if secondTenantID == "" || principalID == "" || planName == "" || planPublisher == "" || planProduct == "" || planVersion == "" {
-		t.Skip("Skipping as ARM_TENANT_ID_ALT, ARM_PRINCIPAL_ID_ALT_TENANT, ARM_PLAN_NAME, ARM_PLAN_PUBLISHER, ARM_PLAN_PRODUCT or ARM_PLAN_VERSION are not specified")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_lighthouse_definition", "test")
-	r := LighthouseDefinitionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.plan(data, secondTenantID, principalID, planName, planPublisher, planProduct, planVersion),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("id").Exists(),
-				check.That(data.ResourceName).Key("lighthouse_definition_id").Exists(),
-			),
-		},
-	})
-}
-
 func (LighthouseDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LighthouseDefinitionID(state.ID)
 	if err != nil {
@@ -350,38 +324,4 @@ resource "azurerm_lighthouse_definition" "test" {
   }
 }
 `, data.RandomInteger, secondTenantID, principalID)
-}
-
-func (LighthouseDefinitionResource) plan(data acceptance.TestData, secondTenantID, principalID, planName, planPublisher, planProduct, planVersion string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_role_definition" "reader" {
-  role_definition_id = "acdd72a7-3385-48ef-bd42-f606fba81ae7"
-}
-
-data "azurerm_subscription" "test" {}
-
-resource "azurerm_lighthouse_definition" "test" {
-  name               = "acctest-LD-%d"
-  description        = "Acceptance Test Lighthouse Definition"
-  managing_tenant_id = "%s"
-  scope              = data.azurerm_subscription.test.id
-
-  authorization {
-    principal_id           = "%s"
-    role_definition_id     = data.azurerm_role_definition.reader.role_definition_id
-    principal_display_name = "Reader"
-  }
-
-  plan {
-    name      = "%s"
-    publisher = "%s"
-    product   = "%s"
-    version   = "%s"
-  }
-}
-`, data.RandomInteger, secondTenantID, principalID, planName, planPublisher, planProduct, planVersion)
 }

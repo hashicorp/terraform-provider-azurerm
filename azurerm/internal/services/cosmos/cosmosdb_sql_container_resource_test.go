@@ -6,11 +6,12 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,11 +22,11 @@ func TestAccCosmosDbSqlContainer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
 	r := CosmosSqlContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 
 			Config: r.basic(data),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,11 +38,11 @@ func TestAccCosmosDbSqlContainer_basic_serverless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
 	r := CosmosSqlContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 
 			Config: r.basic_serverless(data),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -53,11 +54,11 @@ func TestAccCosmosDbSqlContainer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
 	r := CosmosSqlContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 
 			Config: r.complete(data),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -69,11 +70,11 @@ func TestAccCosmosDbSqlContainer_analyticalStorageTTL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
 	r := CosmosSqlContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 
 			Config: r.analyticalStorageTTL(data),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -85,11 +86,11 @@ func TestAccCosmosDbSqlContainer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
 	r := CosmosSqlContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 
 			Config: r.complete(data),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_ttl").HasValue("500"),
 				check.That(data.ResourceName).Key("throughput").HasValue("600"),
@@ -99,7 +100,7 @@ func TestAccCosmosDbSqlContainer_update(t *testing.T) {
 		{
 
 			Config: r.update(data),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_ttl").HasValue("1000"),
 				check.That(data.ResourceName).Key("throughput").HasValue("400"),
@@ -113,11 +114,11 @@ func TestAccCosmosDbSqlContainer_autoscale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
 	r := CosmosSqlContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 
 			Config: r.autoscale(data, 4000),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("autoscale_settings.0.max_throughput").HasValue("4000"),
 			),
@@ -126,7 +127,7 @@ func TestAccCosmosDbSqlContainer_autoscale(t *testing.T) {
 		{
 
 			Config: r.autoscale(data, 5000),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("autoscale_settings.0.max_throughput").HasValue("5000"),
 			),
@@ -135,7 +136,7 @@ func TestAccCosmosDbSqlContainer_autoscale(t *testing.T) {
 		{
 
 			Config: r.autoscale(data, 4000),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("autoscale_settings.0.max_throughput").HasValue("4000"),
 			),
@@ -148,11 +149,11 @@ func TestAccCosmosDbSqlContainer_indexing_policy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
 	r := CosmosSqlContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 
 			Config: r.basic(data),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -160,7 +161,7 @@ func TestAccCosmosDbSqlContainer_indexing_policy(t *testing.T) {
 		{
 
 			Config: r.indexing_policy(data, "/includedPath01/*", "/excludedPath01/?"),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -168,22 +169,7 @@ func TestAccCosmosDbSqlContainer_indexing_policy(t *testing.T) {
 		{
 
 			Config: r.indexing_policy(data, "/includedPath02/*", "/excludedPath02/?"),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-
-			Config: r.indexing_policy_update_spatialIndex(data, "/includedPath02/*", "/excludedPath02/?"),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-
-			Config: r.basic(data),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -195,11 +181,11 @@ func TestAccCosmosDbSqlContainer_partition_key_version(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
 	r := CosmosSqlContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 
 			Config: r.partition_key_version(data, 2),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
+			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("partition_key_version").HasValue("2"),
 			),
@@ -212,10 +198,10 @@ func TestAccCosmosDbSqlContainer_customConflictResolutionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
 	r := CosmosSqlContainerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.conflictResolutionPolicy(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -223,7 +209,7 @@ func TestAccCosmosDbSqlContainer_customConflictResolutionPolicy(t *testing.T) {
 	})
 }
 
-func (t CosmosSqlContainerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t CosmosSqlContainerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.SqlContainerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -459,66 +445,6 @@ resource "azurerm_cosmosdb_sql_container" "test" {
         path  = "/path4"
         order = "Descending"
       }
-    }
-  }
-}
-`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger, includedPath, excludedPath)
-}
-
-func (CosmosSqlContainerResource) indexing_policy_update_spatialIndex(data acceptance.TestData, includedPath, excludedPath string) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_cosmosdb_sql_container" "test" {
-  name                = "acctest-CSQLC-%[2]d"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-  database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
-
-  indexing_policy {
-    indexing_mode = "Consistent"
-
-    included_path {
-      path = "/*"
-    }
-
-    included_path {
-      path = "%s"
-    }
-
-    excluded_path {
-      path = "%s"
-    }
-
-    composite_index {
-      index {
-        path  = "/path1"
-        order = "Ascending"
-      }
-      index {
-        path  = "/path2"
-        order = "Descending"
-      }
-    }
-
-    composite_index {
-      index {
-        path  = "/path3"
-        order = "Ascending"
-      }
-      index {
-        path  = "/path4"
-        order = "Descending"
-      }
-    }
-
-    spatial_index {
-      path = "/path/*"
-    }
-
-    spatial_index {
-      path = "/test/to/all/?"
     }
   }
 }

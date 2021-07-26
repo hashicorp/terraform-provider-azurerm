@@ -92,12 +92,6 @@ type AliasPathMetadata struct {
 	Attributes AliasPathAttributes `json:"attributes,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for AliasPathMetadata.
-func (apm AliasPathMetadata) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // AliasPattern the type of the pattern for an alias path.
 type AliasPattern struct {
 	// Phrase - The alias pattern phrase.
@@ -114,12 +108,6 @@ type APIProfile struct {
 	ProfileVersion *string `json:"profileVersion,omitempty"`
 	// APIVersion - READ-ONLY; The API version.
 	APIVersion *string `json:"apiVersion,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for APIProfile.
-func (ap APIProfile) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // BasicDependency deployment dependency information.
@@ -595,12 +583,6 @@ type DeploymentOperationProperties struct {
 	Response *HTTPMessage `json:"response,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for DeploymentOperationProperties.
-func (dop DeploymentOperationProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // DeploymentOperationsListResult list of deployment operations.
 type DeploymentOperationsListResult struct {
 	autorest.Response `json:"-"`
@@ -826,12 +808,6 @@ type DeploymentPropertiesExtended struct {
 	ValidatedResources *[]Reference `json:"validatedResources,omitempty"`
 	// Error - READ-ONLY; The deployment error.
 	Error *ErrorResponse `json:"error,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for DeploymentPropertiesExtended.
-func (dpe DeploymentPropertiesExtended) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // DeploymentsCreateOrUpdateAtManagementGroupScopeFuture an abstraction for monitoring and retrieving the
@@ -1683,12 +1659,6 @@ type ErrorAdditionalInfo struct {
 	Info interface{} `json:"info,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for ErrorAdditionalInfo.
-func (eai ErrorAdditionalInfo) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // ErrorResponse common error response for all Azure Resource Manager APIs to return error details for
 // failed operations. (This also follows the OData error response format.)
 type ErrorResponse struct {
@@ -1702,12 +1672,6 @@ type ErrorResponse struct {
 	Details *[]ErrorResponse `json:"details,omitempty"`
 	// AdditionalInfo - READ-ONLY; The error additional info.
 	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ErrorResponse.
-func (er ErrorResponse) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // ExportTemplateRequest export resource group template request parameters.
@@ -2112,12 +2076,6 @@ type GroupProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for GroupProperties.
-func (gp GroupProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // GroupsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type GroupsDeleteFuture struct {
 	azure.FutureAPI
@@ -2233,12 +2191,6 @@ type IdentityUserAssignedIdentitiesValue struct {
 	PrincipalID *string `json:"principalId,omitempty"`
 	// ClientID - READ-ONLY; The client id of user assigned identity.
 	ClientID *string `json:"clientId,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for IdentityUserAssignedIdentitiesValue.
-func (iAiv IdentityUserAssignedIdentitiesValue) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // ListResult list of resource groups.
@@ -2944,12 +2896,6 @@ func (prt ProviderResourceType) MarshalJSON() ([]byte, error) {
 type Reference struct {
 	// ID - READ-ONLY; The fully qualified resource Id.
 	ID *string `json:"id,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Reference.
-func (r Reference) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // Resource specified resource.

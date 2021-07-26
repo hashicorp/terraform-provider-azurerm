@@ -26,7 +26,6 @@ func TestAccMaintenanceConfiguration_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").HasValue("All"),
-				check.That(data.ResourceName).Key("visibility").HasValue("Custom"),
 			),
 		},
 		data.ImportStep(),
@@ -57,17 +56,9 @@ func TestAccMaintenanceConfiguration_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scope").HasValue("SQLDB"),
-				check.That(data.ResourceName).Key("visibility").HasValue("Custom"),
+				check.That(data.ResourceName).Key("scope").HasValue("Host"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.enV").HasValue("TesT"),
-				check.That(data.ResourceName).Key("window.0.start_date_time").HasValue("5555-12-31 00:00"),
-				check.That(data.ResourceName).Key("window.0.expiration_date_time").HasValue("6666-12-31 00:00"),
-				check.That(data.ResourceName).Key("window.0.duration").HasValue("06:00"),
-				check.That(data.ResourceName).Key("window.0.time_zone").HasValue("Pacific Standard Time"),
-				check.That(data.ResourceName).Key("window.0.recur_every").HasValue("2Days"),
-				check.That(data.ResourceName).Key("properties.%").HasValue("1"),
-				check.That(data.ResourceName).Key("properties.description").HasValue("acceptance test"),
+				check.That(data.ResourceName).Key("tags.env").HasValue("TesT"),
 			),
 		},
 		data.ImportStep(),
@@ -84,10 +75,7 @@ func TestAccMaintenanceConfiguration_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").HasValue("All"),
-				check.That(data.ResourceName).Key("visibility").HasValue("Custom"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-				check.That(data.ResourceName).Key("window.#").HasValue("0"),
-				check.That(data.ResourceName).Key("properties.%").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -95,17 +83,9 @@ func TestAccMaintenanceConfiguration_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scope").HasValue("SQLDB"),
-				check.That(data.ResourceName).Key("visibility").HasValue("Custom"),
+				check.That(data.ResourceName).Key("scope").HasValue("Host"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.enV").HasValue("TesT"),
-				check.That(data.ResourceName).Key("window.0.start_date_time").HasValue("5555-12-31 00:00"),
-				check.That(data.ResourceName).Key("window.0.expiration_date_time").HasValue("6666-12-31 00:00"),
-				check.That(data.ResourceName).Key("window.0.duration").HasValue("06:00"),
-				check.That(data.ResourceName).Key("window.0.time_zone").HasValue("Pacific Standard Time"),
-				check.That(data.ResourceName).Key("window.0.recur_every").HasValue("2Days"),
-				check.That(data.ResourceName).Key("properties.%").HasValue("1"),
-				check.That(data.ResourceName).Key("properties.description").HasValue("acceptance test"),
+				check.That(data.ResourceName).Key("tags.env").HasValue("TesT"),
 			),
 		},
 		data.ImportStep(),
@@ -114,10 +94,7 @@ func TestAccMaintenanceConfiguration_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").HasValue("All"),
-				check.That(data.ResourceName).Key("visibility").HasValue("Custom"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-				check.That(data.ResourceName).Key("window.#").HasValue("0"),
-				check.That(data.ResourceName).Key("properties.%").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -154,7 +131,6 @@ resource "azurerm_maintenance_configuration" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   scope               = "All"
-  visibility          = "Custom"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -168,7 +144,6 @@ resource "azurerm_maintenance_configuration" "import" {
   resource_group_name = azurerm_maintenance_configuration.test.resource_group_name
   location            = azurerm_maintenance_configuration.test.location
   scope               = azurerm_maintenance_configuration.test.scope
-  visibility          = azurerm_maintenance_configuration.test.visibility
 }
 `, r.basic(data))
 }
@@ -188,23 +163,10 @@ resource "azurerm_maintenance_configuration" "test" {
   name                = "acctest-MC%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  scope               = "SQLDB"
-  visibility          = "Custom"
-
-  window {
-    start_date_time      = "5555-12-31 00:00"
-    expiration_date_time = "6666-12-31 00:00"
-    duration             = "06:00"
-    time_zone            = "Pacific Standard Time"
-    recur_every          = "2Days"
-  }
-
-  properties = {
-    description = "acceptance test"
-  }
+  scope               = "Host"
 
   tags = {
-    enV = "TesT"
+    env = "TesT"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

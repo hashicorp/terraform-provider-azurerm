@@ -17,9 +17,6 @@ import (
 type AppServiceCertificateBindingResource struct{}
 
 func TestAccAppServiceCertificateBinding_basic(t *testing.T) {
-	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
-		t.Skip("Skipping as ARM_TEST_DNS_ZONE or ARM_TEST_DATA_RESOURCE_GROUP is not set")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_binding", "test")
 	r := AppServiceCertificateBindingResource{}
 
@@ -36,10 +33,6 @@ func TestAccAppServiceCertificateBinding_basic(t *testing.T) {
 }
 
 func TestAccAppServiceCertificateBinding_basicSniEnabled(t *testing.T) {
-	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
-		t.Skip("Skipping as ARM_TEST_DNS_ZONE or ARM_TEST_DATA_RESOURCE_GROUP is not set")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_binding", "test")
 	r := AppServiceCertificateBindingResource{}
 
@@ -56,10 +49,6 @@ func TestAccAppServiceCertificateBinding_basicSniEnabled(t *testing.T) {
 }
 
 func TestAccAppServiceCertificateBinding_requiresImport(t *testing.T) {
-	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
-		t.Skip("Skipping as ARM_TEST_DNS_ZONE or ARM_TEST_DATA_RESOURCE_GROUP is not set")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_binding", "test")
 	r := AppServiceCertificateBindingResource{}
 

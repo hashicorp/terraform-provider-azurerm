@@ -5,18 +5,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
-
 	"github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2021-02-01/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/sdk/accounts"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceMapsAccount() *pluginsdk.Resource {
@@ -34,7 +33,7 @@ func resourceMapsAccount() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := accounts.ParseAccountID(id)
+			_, err := parse.AccountID(id)
 			return err
 		}),
 
@@ -83,41 +82,51 @@ func resourceMapsAccount() *pluginsdk.Resource {
 
 func resourceMapsAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maps.AccountsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Maps Account creation.")
 
-	id := accounts.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
+	t := d.Get("tags").(map[string]interface{})
+	sku := d.Get("sku_name").(string)
+
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Maps Account %q (Resource Group %q): %+v", name, resGroup, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_maps_account", id.ID())
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_maps_account", *existing.ID)
 		}
 	}
 
-	parameters := accounts.MapsAccount{
-		Location: "global",
-		Sku: accounts.Sku{
-			Name: accounts.Name(d.Get("sku_name").(string)),
+	parameters := maps.Account{
+		Location: utils.String("global"),
+		Sku: &maps.Sku{
+			Name: maps.Name(sku),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(t),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if _, err := client.CreateOrUpdate(ctx, resGroup, name, parameters); err != nil {
+		return fmt.Errorf("Error creating/updating Maps Account %q (Resource Group %q) %+v", name, resGroup, err)
 	}
 
-	if d.IsNewResource() {
-		d.SetId(id.ID())
+	read, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Maps Account %q (Resource Group %q) %+v", name, resGroup, err)
 	}
+
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read Maps Account %q (Resource Group %q) ID", name, resGroup)
+	}
+
+	d.SetId(*read.ID)
 
 	return resourceMapsAccountRead(d, meta)
 }
@@ -127,45 +136,38 @@ func resourceMapsAccountRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := accounts.ParseAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("Error making Read request on Maps Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
-	if model := resp.Model; model != nil {
-		d.Set("sku_name", model.Sku.Name)
-		if props := model.Properties; props != nil {
-			d.Set("x_ms_client_id", props.UniqueId)
-		}
-
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
-			return err
-		}
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", sku.Name)
+	}
+	if props := resp.Properties; props != nil {
+		d.Set("x_ms_client_id", props.UniqueID)
 	}
 
-	keysResp, err := client.ListKeys(ctx, *id)
+	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving Access Keys for %s: %+v", *id, err)
+		return fmt.Errorf("Error making Read Access Keys request on Maps Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-	if model := keysResp.Model; model != nil {
-		d.Set("primary_access_key", model.PrimaryKey)
-		d.Set("secondary_access_key", model.SecondaryKey)
-	}
+	d.Set("primary_access_key", keysResp.PrimaryKey)
+	d.Set("secondary_access_key", keysResp.SecondaryKey)
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceMapsAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -173,13 +175,13 @@ func resourceMapsAccountDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := accounts.ParseAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+		return fmt.Errorf("Error deleting Maps Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

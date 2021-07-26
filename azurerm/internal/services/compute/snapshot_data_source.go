@@ -4,24 +4,24 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceSnapshot() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func dataSourceSnapshot() *schema.Resource {
+	return &schema.Resource{
 		Read: dataSourceSnapshotRead,
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 			},
 
@@ -29,72 +29,72 @@ func dataSourceSnapshot() *pluginsdk.Resource {
 
 			// Computed
 			"os_type": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"disk_size_gb": {
-				Type:     pluginsdk.TypeInt,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 			"time_created": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"creation_option": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"source_uri": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"source_resource_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"storage_account_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"encryption_settings": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"enabled": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Computed: true,
 						},
 
 						"disk_encryption_key": {
-							Type:     pluginsdk.TypeList,
+							Type:     schema.TypeList,
 							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
 									"secret_url": {
-										Type:     pluginsdk.TypeString,
+										Type:     schema.TypeString,
 										Computed: true,
 									},
 
 									"source_vault_id": {
-										Type:     pluginsdk.TypeString,
+										Type:     schema.TypeString,
 										Computed: true,
 									},
 								},
 							},
 						},
 						"key_encryption_key": {
-							Type:     pluginsdk.TypeList,
+							Type:     schema.TypeList,
 							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
 									"key_url": {
-										Type:     pluginsdk.TypeString,
+										Type:     schema.TypeString,
 										Computed: true,
 									},
 
 									"source_vault_id": {
-										Type:     pluginsdk.TypeString,
+										Type:     schema.TypeString,
 										Computed: true,
 									},
 								},
@@ -107,7 +107,7 @@ func dataSourceSnapshot() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SnapshotsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

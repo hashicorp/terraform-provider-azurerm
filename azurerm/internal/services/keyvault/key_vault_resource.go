@@ -382,7 +382,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 				Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 			}
 
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			if _, err := stateConf.WaitForState(); err != nil {
 				return fmt.Errorf("Error waiting for %s to become available: %s", id, err)
 			}
 		}

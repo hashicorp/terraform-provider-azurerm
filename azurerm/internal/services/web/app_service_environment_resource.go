@@ -145,26 +145,6 @@ func resourceAppServiceEnvironment() *pluginsdk.Resource {
 			"tags": tags.ForceNewSchema(),
 
 			// Computed
-
-			// VipInfo
-			"internal_ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"service_ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"outbound_ip_addresses": {
-				Type: pluginsdk.TypeList,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-				Computed: true,
-			},
-
 			"location": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -275,7 +255,7 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	// as such we'll ignore it and use a custom poller instead
-	if _, err := createWait.WaitForStateContext(ctx); err != nil {
+	if _, err := createWait.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for the creation of App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -347,7 +327,7 @@ func resourceAppServiceEnvironmentUpdate(d *pluginsdk.ResourceData, meta interfa
 		Refresh:    appServiceEnvironmentRefresh(ctx, client, id.ResourceGroup, id.HostingEnvironmentName),
 	}
 
-	if _, err := updateWait.WaitForStateContext(ctx); err != nil {
+	if _, err := updateWait.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for Update of App Service Environment %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
 	}
 
@@ -405,19 +385,6 @@ func resourceAppServiceEnvironmentRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("allowed_user_ip_cidrs", props.UserWhitelistedIPRanges)
 		d.Set("cluster_setting", flattenClusterSettings(props.ClusterSettings))
 	}
-
-	// Get IP attributes for ASE.
-	vipInfo, err := client.GetVipInfo(ctx, id.ResourceGroup, id.HostingEnvironmentName)
-	if err != nil {
-		if utils.ResponseWasNotFound(vipInfo.Response) {
-			return fmt.Errorf("Error retrieving VIP info: App Service Environment %q (Resource Group %q) was not found", id.HostingEnvironmentName, id.ResourceGroup)
-		}
-		return fmt.Errorf("Error retrieving VIP info App Service Environment %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
-	}
-
-	d.Set("internal_ip_address", vipInfo.InternalIPAddress)
-	d.Set("service_ip_address", vipInfo.ServiceIPAddress)
-	d.Set("outbound_ip_addresses", vipInfo.OutboundIPAddresses)
 
 	return tags.FlattenAndSet(d, existing.Tags)
 }

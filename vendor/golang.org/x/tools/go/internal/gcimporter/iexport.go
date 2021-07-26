@@ -25,25 +25,12 @@ import (
 // 0: Go1.11 encoding
 const iexportVersion = 0
 
-// Current bundled export format version. Increase with each format change.
-// 0: initial implementation
-const bundleVersion = 0
-
-// IExportData writes indexed export data for pkg to out.
+// IExportData returns the binary export data for pkg.
 //
 // If no file set is provided, position info will be missing.
 // The package path of the top-level package will not be recorded,
 // so that calls to IImportData can override with a provided package path.
-func IExportData(out io.Writer, fset *token.FileSet, pkg *types.Package) error {
-	return iexportCommon(out, fset, false, []*types.Package{pkg})
-}
-
-// IExportBundle writes an indexed export bundle for pkgs to out.
-func IExportBundle(out io.Writer, fset *token.FileSet, pkgs []*types.Package) error {
-	return iexportCommon(out, fset, true, pkgs)
-}
-
-func iexportCommon(out io.Writer, fset *token.FileSet, bundle bool, pkgs []*types.Package) (err error) {
+func IExportData(fset *token.FileSet, pkg *types.Package) (b []byte, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			if ierr, ok := e.(internalError); ok {
@@ -56,14 +43,13 @@ func iexportCommon(out io.Writer, fset *token.FileSet, bundle bool, pkgs []*type
 	}()
 
 	p := iexporter{
+		out:         bytes.NewBuffer(nil),
 		fset:        fset,
 		allPkgs:     map[*types.Package]bool{},
 		stringIndex: map[string]uint64{},
 		declIndex:   map[types.Object]uint64{},
 		typIndex:    map[types.Type]uint64{},
-	}
-	if !bundle {
-		p.localpkg = pkgs[0]
+		localpkg:    pkg,
 	}
 
 	for i, pt := range predeclared() {
@@ -74,20 +60,10 @@ func iexportCommon(out io.Writer, fset *token.FileSet, bundle bool, pkgs []*type
 	}
 
 	// Initialize work queue with exported declarations.
-	for _, pkg := range pkgs {
-		scope := pkg.Scope()
-		for _, name := range scope.Names() {
-			if ast.IsExported(name) {
-				p.pushDecl(scope.Lookup(name))
-			}
-		}
-
-		if bundle {
-			// Ensure pkg and its imports are included in the index.
-			p.allPkgs[pkg] = true
-			for _, imp := range pkg.Imports() {
-				p.allPkgs[imp] = true
-			}
+	scope := pkg.Scope()
+	for _, name := range scope.Names() {
+		if ast.IsExported(name) {
+			p.pushDecl(scope.Lookup(name))
 		}
 	}
 
@@ -100,35 +76,21 @@ func iexportCommon(out io.Writer, fset *token.FileSet, bundle bool, pkgs []*type
 	dataLen := uint64(p.data0.Len())
 	w := p.newWriter()
 	w.writeIndex(p.declIndex)
-
-	if bundle {
-		w.uint64(uint64(len(pkgs)))
-		for _, pkg := range pkgs {
-			w.pkg(pkg)
-			imps := pkg.Imports()
-			w.uint64(uint64(len(imps)))
-			for _, imp := range imps {
-				w.pkg(imp)
-			}
-		}
-	}
 	w.flush()
 
 	// Assemble header.
 	var hdr intWriter
-	if bundle {
-		hdr.uint64(bundleVersion)
-	}
+	hdr.WriteByte('i')
 	hdr.uint64(iexportVersion)
 	hdr.uint64(uint64(p.strings.Len()))
 	hdr.uint64(dataLen)
 
 	// Flush output.
-	io.Copy(out, &hdr)
-	io.Copy(out, &p.strings)
-	io.Copy(out, &p.data0)
+	io.Copy(p.out, &hdr)
+	io.Copy(p.out, &p.strings)
+	io.Copy(p.out, &p.data0)
 
-	return nil
+	return p.out.Bytes(), nil
 }
 
 // writeIndex writes out an object index. mainIndex indicates whether
@@ -142,9 +104,7 @@ func (w *exportWriter) writeIndex(index map[types.Object]uint64) {
 	// For the main index, make sure to include every package that
 	// we reference, even if we're not exporting (or reexporting)
 	// any symbols from it.
-	if w.p.localpkg != nil {
-		pkgObjs[w.p.localpkg] = nil
-	}
+	pkgObjs[w.p.localpkg] = nil
 	for pkg := range w.p.allPkgs {
 		pkgObjs[pkg] = nil
 	}
@@ -514,10 +474,10 @@ func (w *exportWriter) param(obj types.Object) {
 func (w *exportWriter) value(typ types.Type, v constant.Value) {
 	w.typ(typ, nil)
 
-	switch b := typ.Underlying().(*types.Basic); b.Info() & types.IsConstType {
-	case types.IsBoolean:
+	switch v.Kind() {
+	case constant.Bool:
 		w.bool(constant.BoolVal(v))
-	case types.IsInteger:
+	case constant.Int:
 		var i big.Int
 		if i64, exact := constant.Int64Val(v); exact {
 			i.SetInt64(i64)
@@ -527,27 +487,25 @@ func (w *exportWriter) value(typ types.Type, v constant.Value) {
 			i.SetString(v.ExactString(), 10)
 		}
 		w.mpint(&i, typ)
-	case types.IsFloat:
+	case constant.Float:
 		f := constantToFloat(v)
 		w.mpfloat(f, typ)
-	case types.IsComplex:
+	case constant.Complex:
 		w.mpfloat(constantToFloat(constant.Real(v)), typ)
 		w.mpfloat(constantToFloat(constant.Imag(v)), typ)
-	case types.IsString:
+	case constant.String:
 		w.string(constant.StringVal(v))
+	case constant.Unknown:
+		// package contains type errors
 	default:
-		if b.Kind() == types.Invalid {
-			// package contains type errors
-			break
-		}
-		panic(internalErrorf("unexpected type %v (%v)", typ, typ.Underlying()))
+		panic(internalErrorf("unexpected value %v (%T)", v, v))
 	}
 }
 
 // constantToFloat converts a constant.Value with kind constant.Float to a
 // big.Float.
 func constantToFloat(x constant.Value) *big.Float {
-	x = constant.ToFloat(x)
+	assert(x.Kind() == constant.Float)
 	// Use the same floating-point precision (512) as cmd/compile
 	// (see Mpprec in cmd/compile/internal/gc/mpfloat.go).
 	const mpprec = 512

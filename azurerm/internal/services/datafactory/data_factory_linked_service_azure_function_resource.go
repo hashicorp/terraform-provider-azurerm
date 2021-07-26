@@ -132,7 +132,7 @@ func resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *pluginsdk.Reso
 			FunctionAppURL: d.Get("url").(string),
 			FunctionKey: &datafactory.SecureString{
 				Value: utils.String(d.Get("key").(string)),
-				Type:  datafactory.TypeSecureString,
+				Type:  datafactory.TypeTypeSecureString,
 			},
 		},
 		Type: datafactory.TypeBasicLinkedServiceTypeAzureFunction,

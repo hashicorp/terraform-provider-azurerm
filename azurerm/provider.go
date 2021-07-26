@@ -1,10 +1,10 @@
 package azurerm
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 )
 
-func Provider() *schema.Provider {
+func Provider() terraform.ResourceProvider {
 	return provider.AzureProvider()
 }

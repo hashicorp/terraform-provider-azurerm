@@ -270,7 +270,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 		},
 	}
 
-	if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
+	if _, err := deleteWait.WaitForState(); err != nil {
 		return fmt.Errorf("error waiting the deletion of Service Bus Namespace Disaster Recovery Configs %q deletion (Namespace %q / Resource Group %q): %v", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
@@ -291,7 +291,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 		},
 	}
 
-	if _, err := nameFreeWait.WaitForStateContext(ctx); err != nil {
+	if _, err := nameFreeWait.WaitForState(); err != nil {
 		return fmt.Errorf("error waiting the the Service Bus Namespace Disaster Recovery Configs %q name to be available (Namespace %q / Resource Group %q): %v", id.DisasterRecoveryConfigName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
@@ -321,6 +321,6 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx context.C
 		},
 	}
 
-	_, err := stateConf.WaitForStateContext(ctx)
+	_, err := stateConf.WaitForState()
 	return err
 }

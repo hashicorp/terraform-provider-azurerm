@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -100,7 +101,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Consumption_0"
+  sku_name = "Developer_1"
 }
 
 resource "azurerm_api_management_property" "test" {
@@ -132,7 +133,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Consumption_0"
+  sku_name = "Developer_1"
 }
 
 resource "azurerm_api_management_property" "test" {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
@@ -13,68 +14,68 @@ var _ pluginsdk.StateUpgrade = BlobV0ToV1{}
 type BlobV0ToV1 struct{}
 
 func (BlobV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	return map[string]*schema.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 		"resource_group_name": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 		"storage_account_name": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 		"storage_container_name": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 		"type": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Optional: true,
 			ForceNew: true,
 		},
 		"size": {
-			Type:     pluginsdk.TypeInt,
+			Type:     schema.TypeInt,
 			Optional: true,
 			ForceNew: true,
 			Default:  0,
 		},
 		"content_type": {
-			Type:          pluginsdk.TypeString,
+			Type:          schema.TypeString,
 			Optional:      true,
 			Default:       "application/octet-stream",
 			ConflictsWith: []string{"source_uri"},
 		},
 		"source": {
-			Type:          pluginsdk.TypeString,
+			Type:          schema.TypeString,
 			Optional:      true,
 			ForceNew:      true,
 			ConflictsWith: []string{"source_uri"},
 		},
 		"source_uri": {
-			Type:          pluginsdk.TypeString,
+			Type:          schema.TypeString,
 			Optional:      true,
 			ForceNew:      true,
 			ConflictsWith: []string{"source"},
 		},
 		"url": {
-			Type:     pluginsdk.TypeString,
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 		"parallelism": {
-			Type:     pluginsdk.TypeInt,
+			Type:     schema.TypeInt,
 			Optional: true,
 			Default:  8,
 			ForceNew: true,
 		},
 		"attempts": {
-			Type:     pluginsdk.TypeInt,
+			Type:     schema.TypeInt,
 			Optional: true,
 			Default:  1,
 			ForceNew: true,

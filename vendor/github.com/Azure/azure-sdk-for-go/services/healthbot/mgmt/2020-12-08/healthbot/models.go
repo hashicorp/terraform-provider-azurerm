@@ -189,12 +189,6 @@ type BotResponseList struct {
 	Value *[]HealthBot `json:"value,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for BotResponseList.
-func (brl BotResponseList) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // BotResponseListIterator provides access to a complete listing of HealthBot values.
 type BotResponseListIterator struct {
 	i    int
@@ -437,12 +431,6 @@ type ErrorAdditionalInfo struct {
 	Info interface{} `json:"info,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for ErrorAdditionalInfo.
-func (eai ErrorAdditionalInfo) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // ErrorError the error object.
 type ErrorError struct {
 	// Code - READ-ONLY; The error code.
@@ -455,12 +443,6 @@ type ErrorError struct {
 	Details *[]Error `json:"details,omitempty"`
 	// AdditionalInfo - READ-ONLY; The error additional info.
 	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ErrorError.
-func (e ErrorError) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // HealthBot healthBot resource definition
@@ -538,12 +520,6 @@ type Properties struct {
 	BotManagementPortalLink *string `json:"botManagementPortalLink,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for Properties.
-func (p Properties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // Resource the resource model definition for a ARM tracked top level resource
 type Resource struct {
 	// ID - READ-ONLY; Fully qualified resource Id for the resource.
@@ -554,12 +530,6 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 	// SystemData - READ-ONLY; Metadata pertaining to creation and last modification of the resource
 	SystemData *SystemData `json:"systemData,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Resource.
-func (r Resource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // Sku the resource model definition representing SKU

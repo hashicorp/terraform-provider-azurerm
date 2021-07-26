@@ -161,7 +161,7 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, 
 		password := d.Get("password").(string)
 		passwordSecureString := datafactory.SecureString{
 			Value: &password,
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 		basicAuthProperties := &datafactory.WebBasicAuthentication{
 			AuthenticationType: datafactory.AuthenticationType(authenticationType),

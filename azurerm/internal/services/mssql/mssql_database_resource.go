@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/migration"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/Azure/go-autorest/autorest/date"
@@ -15,7 +17,6 @@ import (
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/helper"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -110,9 +111,9 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 		},
 
 		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.DatabaseV0ToV1{},
-		}),
+		StateUpgraders: []pluginsdk.StateUpgrader{
+			migration.DatabaseV0ToV1(),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -392,10 +393,6 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for MsSql Database creation.")
-
-	if strings.HasPrefix(d.Get("sku_name").(string), "GP_S_") && d.Get("license_type").(string) != "" {
-		return fmt.Errorf("serverless databases do not support license type")
-	}
 
 	name := d.Get("name").(string)
 	sqlServerId := d.Get("server_id").(string)

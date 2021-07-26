@@ -1,7 +1,6 @@
 package features
 
 type UserFeatures struct {
-	CognitiveAccount       CognitiveAccountFeatures
 	VirtualMachine         VirtualMachineFeatures
 	VirtualMachineScaleSet VirtualMachineScaleSetFeatures
 	KeyVault               KeyVaultFeatures
@@ -10,18 +9,12 @@ type UserFeatures struct {
 	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
 }
 
-type CognitiveAccountFeatures struct {
-	PurgeSoftDeleteOnDestroy bool
-}
-
 type VirtualMachineFeatures struct {
-	DeleteOSDiskOnDeletion     bool
-	GracefulShutdown           bool
-	SkipShutdownAndForceDelete bool
+	DeleteOSDiskOnDeletion bool
+	GracefulShutdown       bool
 }
 
 type VirtualMachineScaleSetFeatures struct {
-	ForceDelete               bool
 	RollInstancesWhenRequired bool
 }
 

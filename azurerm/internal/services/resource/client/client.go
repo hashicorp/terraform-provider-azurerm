@@ -13,7 +13,6 @@ type Client struct {
 	GroupsClient                *resources.GroupsClient
 	LocksClient                 *locks.ManagementLocksClient
 	ProvidersClient             *providers.ProvidersClient
-	ResourceProvidersClient     *resources.ProvidersClient
 	ResourcesClient             *resources.Client
 	TemplateSpecsVersionsClient *templatespecs.VersionsClient
 }
@@ -32,10 +31,6 @@ func NewClient(o *common.ClientOptions) *Client {
 	providersClient := providers.NewProvidersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&providersClient.Client, o.ResourceManagerAuthorizer)
 
-	// add a secondary ProvidersClient to use latest resources sdk
-	resourceProvidersClient := resources.NewProvidersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&resourceProvidersClient.Client, o.ResourceManagerAuthorizer)
-
 	resourcesClient := resources.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&resourcesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -47,7 +42,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		DeploymentsClient:           &deploymentsClient,
 		LocksClient:                 &locksClient,
 		ProvidersClient:             &providersClient,
-		ResourceProvidersClient:     &resourceProvidersClient,
 		ResourcesClient:             &resourcesClient,
 		TemplateSpecsVersionsClient: &templatespecsVersionsClient,
 	}

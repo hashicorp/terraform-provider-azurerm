@@ -151,7 +151,7 @@ func resourceDataFactoryLinkedServiceSynapseCreateUpdate(d *pluginsdk.ResourceDa
 		Description: utils.String(d.Get("description").(string)),
 		AzureSQLDWLinkedServiceTypeProperties: &datafactory.AzureSQLDWLinkedServiceTypeProperties{
 			ConnectionString: d.Get("connection_string").(string),
-			Password:         expandAzureKeyVaultSecretReference(password),
+			Password:         expandAzureKeyVaultPassword(password),
 		},
 		Type: datafactory.TypeBasicLinkedServiceTypeAzureSQLDW,
 	}
@@ -253,7 +253,7 @@ func resourceDataFactoryLinkedServiceSynapseRead(d *pluginsdk.ResourceData, meta
 			}
 		}
 
-		if err := d.Set("key_vault_password", flattenAzureKeyVaultSecretReference(properties.Password)); err != nil {
+		if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(properties.Password)); err != nil {
 			return fmt.Errorf("setting `key_vault_password`: %+v", err)
 		}
 	}

@@ -4,26 +4,26 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceSharedImageGallery() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func dataSourceSharedImageGallery() *schema.Resource {
+	return &schema.Resource{
 		Read: dataSourceSharedImageGalleryRead,
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.SharedImageGalleryName,
 			},
@@ -33,12 +33,12 @@ func dataSourceSharedImageGallery() *pluginsdk.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"description": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"unique_name": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
@@ -47,7 +47,7 @@ func dataSourceSharedImageGallery() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSharedImageGalleryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleriesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

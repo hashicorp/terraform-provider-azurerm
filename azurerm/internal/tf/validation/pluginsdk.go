@@ -1,11 +1,10 @@
 package validation
 
 import (
-	"fmt"
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 // This file is intended to provide a transition from Plugin SDKv1 to Plugin SDKv2
@@ -13,61 +12,61 @@ import (
 
 // All returns a SchemaValidateFunc which tests if the provided value
 // passes all provided SchemaValidateFunc
-func All(validators ...schema.SchemaValidateFunc) schema.SchemaValidateFunc { //nolint:SA1019
+func All(validators ...schema.SchemaValidateFunc) schema.SchemaValidateFunc {
 	return validation.All(validators...)
 }
 
 // Any returns a SchemaValidateFunc which tests if the provided value
 // passes any of the provided SchemaValidateFunc
-func Any(validators ...schema.SchemaValidateFunc) schema.SchemaValidateFunc { //nolint:SA1019
+func Any(validators ...schema.SchemaValidateFunc) schema.SchemaValidateFunc {
 	return validation.Any(validators...)
 }
 
 // FloatBetween returns a SchemaValidateFunc which tests if the provided value
 // is of type float64 and is between min and max (inclusive).
-func FloatBetween(min, max float64) func(interface{}, string) ([]string, []error) {
+func FloatBetween(min, max float64) schema.SchemaValidateFunc {
 	return validation.FloatBetween(min, max)
 }
 
 // FloatAtLeast returns a SchemaValidateFunc which tests if the provided value
 // is of type float and is at least min (inclusive)
-func FloatAtLeast(min float64) func(interface{}, string) ([]string, []error) {
+func FloatAtLeast(min float64) schema.SchemaValidateFunc {
 	return validation.FloatAtLeast(min)
 }
 
 // IntNotInSlice returns a SchemaValidateFunc which tests if the provided value
 // is of type int and matches the value of an element in the valid slice
-func IntNotInSlice(valid []int) func(interface{}, string) ([]string, []error) {
+func IntNotInSlice(valid []int) schema.SchemaValidateFunc {
 	return validation.IntNotInSlice(valid)
 }
 
 // IntAtLeast returns a SchemaValidateFunc which tests if the provided value
 // is of type int and is at least min (inclusive)
-func IntAtLeast(min int) func(interface{}, string) ([]string, []error) {
+func IntAtLeast(min int) schema.SchemaValidateFunc {
 	return validation.IntAtLeast(min)
 }
 
 // IntAtMost returns a SchemaValidateFunc which tests if the provided value
 // is of type int and is at most max (inclusive)
-func IntAtMost(max int) func(interface{}, string) ([]string, []error) {
+func IntAtMost(max int) schema.SchemaValidateFunc {
 	return validation.IntAtMost(max)
 }
 
 // IntBetween returns a SchemaValidateFunc which tests if the provided value
 // is of type int and is between min and max (inclusive)
-func IntBetween(min, max int) func(interface{}, string) ([]string, []error) {
+func IntBetween(min, max int) schema.SchemaValidateFunc {
 	return validation.IntBetween(min, max)
 }
 
 // IntDivisibleBy returns a SchemaValidateFunc which tests if the provided value
 // is of type int and is divisible by a given number
-func IntDivisibleBy(divisor int) func(interface{}, string) ([]string, []error) {
+func IntDivisibleBy(divisor int) schema.SchemaValidateFunc {
 	return validation.IntDivisibleBy(divisor)
 }
 
 // IntInSlice returns a SchemaValidateFunc which tests if the provided value
 // is of type int and matches the value of an element in the valid slice
-func IntInSlice(valid []int) func(interface{}, string) ([]string, []error) {
+func IntInSlice(valid []int) schema.SchemaValidateFunc {
 	return validation.IntInSlice(valid)
 }
 
@@ -77,7 +76,7 @@ func IsCIDR(i interface{}, k string) ([]string, []error) {
 }
 
 // IsDayOfTheWeek id a SchemaValidateFunc which tests if the provided value is of type string and a valid english day of the week
-func IsDayOfTheWeek(ignoreCase bool) func(interface{}, string) ([]string, []error) {
+func IsDayOfTheWeek(ignoreCase bool) schema.SchemaValidateFunc {
 	return validation.IsDayOfTheWeek(ignoreCase)
 }
 
@@ -102,7 +101,7 @@ func IsIPv6Address(i interface{}, k string) ([]string, []error) {
 }
 
 // IsMonth id a SchemaValidateFunc which tests if the provided value is of type string and a valid english month
-func IsMonth(ignoreCase bool) func(interface{}, string) ([]string, []error) {
+func IsMonth(ignoreCase bool) schema.SchemaValidateFunc {
 	return validation.IsMonth(ignoreCase)
 }
 
@@ -127,29 +126,13 @@ func IsURLWithHTTPS(i interface{}, k string) ([]string, []error) {
 }
 
 // IsURLWithScheme is a SchemaValidateFunc which tests if the provided value is of type string and a valid URL with the provided schemas
-func IsURLWithScheme(validSchemes []string) func(interface{}, string) ([]string, []error) {
+func IsURLWithScheme(validSchemes []string) schema.SchemaValidateFunc {
 	return validation.IsURLWithScheme(validSchemes)
 }
 
 // IsUUID is a ValidateFunc that ensures a string can be parsed as UUID
 func IsUUID(i interface{}, k string) ([]string, []error) {
 	return validation.IsUUID(i, k)
-}
-
-// None returns a SchemaValidateFunc which tests if the provided value
-// returns errors for all of the provided SchemaValidateFunc
-func None(validators map[string]func(interface{}, string) ([]string, []error)) func(interface{}, string) ([]string, []error) {
-	return func(i interface{}, k string) ([]string, []error) {
-		var allErrors []error
-		var allWarnings []string
-		for name, validator := range validators {
-			validatorWarnings, validatorErrors := validator(i, k)
-			if len(validatorWarnings) == 0 && len(validatorErrors) == 0 {
-				allErrors = append(allErrors, fmt.Errorf("ID cannot be a %s", name))
-			}
-		}
-		return allWarnings, allErrors
-	}
 }
 
 // NoZeroValues is a SchemaValidateFunc which tests if the provided value is
@@ -161,14 +144,14 @@ func NoZeroValues(i interface{}, k string) ([]string, []error) {
 
 // StringDoesNotContainAny returns a SchemaValidateFunc which validates that the
 // provided value does not contain any of the specified Unicode code points in chars.
-func StringDoesNotContainAny(chars string) func(interface{}, string) ([]string, []error) {
+func StringDoesNotContainAny(chars string) schema.SchemaValidateFunc {
 	return validation.StringDoesNotContainAny(chars)
 }
 
 // StringInSlice returns a SchemaValidateFunc which tests if the provided value
 // is of type string and matches the value of an element in the valid slice
 // will test with in lower case if ignoreCase is true
-func StringInSlice(valid []string, ignoreCase bool) func(interface{}, string) ([]string, []error) {
+func StringInSlice(valid []string, ignoreCase bool) schema.SchemaValidateFunc {
 	return func(i interface{}, k string) ([]string, []error) {
 		return validation.StringInSlice(valid, ignoreCase)(i, k)
 	}
@@ -206,20 +189,20 @@ func StringIsValidRegExp(i interface{}, k string) ([]string, []error) {
 
 // StringLenBetween returns a SchemaValidateFunc which tests if the provided value
 // is of type string and has length between min and max (inclusive)
-func StringLenBetween(min, max int) func(interface{}, string) ([]string, []error) {
+func StringLenBetween(min, max int) schema.SchemaValidateFunc {
 	return validation.StringLenBetween(min, max)
 }
 
 // StringMatch returns a SchemaValidateFunc which tests if the provided value
 // matches a given regexp. Optionally an error message can be provided to
 // return something friendlier than "must match some globby regexp".
-func StringMatch(r *regexp.Regexp, message string) func(interface{}, string) ([]string, []error) {
+func StringMatch(r *regexp.Regexp, message string) schema.SchemaValidateFunc {
 	return validation.StringMatch(r, message)
 }
 
 // StringNotInSlice returns a SchemaValidateFunc which tests if the provided value
 // is of type string and does not match the value of any element in the invalid slice
 // will test with in lower case if ignoreCase is true
-func StringNotInSlice(invalid []string, ignoreCase bool) func(interface{}, string) ([]string, []error) {
+func StringNotInSlice(invalid []string, ignoreCase bool) schema.SchemaValidateFunc {
 	return validation.StringNotInSlice(invalid, ignoreCase)
 }

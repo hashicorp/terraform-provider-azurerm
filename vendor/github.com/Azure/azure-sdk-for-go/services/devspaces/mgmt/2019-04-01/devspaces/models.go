@@ -530,12 +530,6 @@ type ErrorDetails struct {
 	Target *string `json:"target,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for ErrorDetails.
-func (ed ErrorDetails) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // ErrorResponse error response indicates that the service is not able to process the incoming request. The
 // reason is provided in the error message.
 type ErrorResponse struct {
@@ -670,12 +664,6 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Resource.
-func (r Resource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // ResourceProviderOperationDefinition ...

@@ -118,8 +118,6 @@ the color output with:
     	color.NoColor = true // disables colorized output
     }
 
-You can also disable the color by setting the NO_COLOR environment variable to any value.
-
 It also has support for single color definitions (local). You can
 disable/enable color output on the fly:
 

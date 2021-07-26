@@ -1,3 +1,5 @@
+// +build !go1.9
+
 package testing
 
 import (
@@ -10,7 +12,6 @@ import (
 // In unit tests you can just pass a *testing.T struct. At runtime, outside
 // of tests, you can pass in a RuntimeT struct from this package.
 type T interface {
-	Cleanup(func())
 	Error(args ...interface{})
 	Errorf(format string, args ...interface{})
 	Fail()
@@ -18,7 +19,6 @@ type T interface {
 	Failed() bool
 	Fatal(args ...interface{})
 	Fatalf(format string, args ...interface{})
-	Helper()
 	Log(args ...interface{})
 	Logf(format string, args ...interface{})
 	Name() string
@@ -34,13 +34,10 @@ type T interface {
 // for calls to Fatal. For calls to Error, you'll have to check the errors
 // list to determine whether to exit yourself.
 //
-// Cleanup does NOT work, so if you're using a helper that uses Cleanup,
-// there may be dangling resources.
-//
 // Parallel does not do anything.
 type RuntimeT struct {
-	skipped bool
 	failed  bool
+	skipped bool
 }
 
 func (t *RuntimeT) Error(args ...interface{}) {
@@ -49,8 +46,18 @@ func (t *RuntimeT) Error(args ...interface{}) {
 }
 
 func (t *RuntimeT) Errorf(format string, args ...interface{}) {
-	log.Printf(format, args...)
+	log.Println(fmt.Sprintf(format, args...))
 	t.Fail()
+}
+
+func (t *RuntimeT) Fatal(args ...interface{}) {
+	log.Println(fmt.Sprintln(args...))
+	t.FailNow()
+}
+
+func (t *RuntimeT) Fatalf(format string, args ...interface{}) {
+	log.Println(fmt.Sprintf(format, args...))
+	t.FailNow()
 }
 
 func (t *RuntimeT) Fail() {
@@ -63,16 +70,6 @@ func (t *RuntimeT) FailNow() {
 
 func (t *RuntimeT) Failed() bool {
 	return t.failed
-}
-
-func (t *RuntimeT) Fatal(args ...interface{}) {
-	log.Print(args...)
-	t.FailNow()
-}
-
-func (t *RuntimeT) Fatalf(format string, args ...interface{}) {
-	log.Printf(format, args...)
-	t.FailNow()
 }
 
 func (t *RuntimeT) Log(args ...interface{}) {
@@ -106,7 +103,3 @@ func (t *RuntimeT) Skipf(format string, args ...interface{}) {
 func (t *RuntimeT) Skipped() bool {
 	return t.skipped
 }
-
-func (t *RuntimeT) Helper() {}
-
-func (t *RuntimeT) Cleanup(func()) {}

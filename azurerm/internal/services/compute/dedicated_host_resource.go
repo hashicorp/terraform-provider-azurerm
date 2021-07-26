@@ -6,22 +6,27 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDedicatedHost() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceDedicatedHost() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceDedicatedHostCreate,
 		Read:   resourceDedicatedHostRead,
 		Update: resourceDedicatedHostUpdate,
@@ -32,16 +37,16 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 			return err
 		}),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DedicatedHostName(),
@@ -50,14 +55,14 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 			"location": azure.SchemaLocation(),
 
 			"dedicated_host_group_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DedicatedHostGroupID,
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				ForceNew: true,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -93,19 +98,19 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 			},
 
 			"platform_fault_domain": {
-				Type:     pluginsdk.TypeInt,
+				Type:     schema.TypeInt,
 				ForceNew: true,
 				Required: true,
 			},
 
 			"auto_replace_on_failure": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"license_type": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.DedicatedHostLicenseTypesNone),
@@ -120,7 +125,7 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 	}
 }
 
-func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHostCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -179,7 +184,7 @@ func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceDedicatedHostRead(d, meta)
 }
 
-func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
 	groupsClient := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
 	hostsClient := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -233,7 +238,7 @@ func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -262,7 +267,7 @@ func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceDedicatedHostRead(d, meta)
 }
 
-func resourceDedicatedHostDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHostDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -285,23 +290,23 @@ func resourceDedicatedHostDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	// API has bug, which appears to be eventually consistent. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/8137
 	log.Printf("[DEBUG] Waiting for Dedicated Host %q (Host Group Name %q / Resource Group %q) to disappear", id.HostName, id.HostGroupName, id.ResourceGroup)
-	stateConf := &pluginsdk.StateChangeConf{
+	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
 		Refresh:                   dedicatedHostDeletedRefreshFunc(ctx, client, id),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 20,
-		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Dedicated Host %q (Host Group Name %q / Resource Group %q) to become available: %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func dedicatedHostDeletedRefreshFunc(ctx context.Context, client *compute.DedicatedHostsClient, id *parse.DedicatedHostId) pluginsdk.StateRefreshFunc {
+func dedicatedHostDeletedRefreshFunc(ctx context.Context, client *compute.DedicatedHostsClient, id *parse.DedicatedHostId) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id.ResourceGroup, id.HostGroupName, id.HostName, "")
 		if err != nil {

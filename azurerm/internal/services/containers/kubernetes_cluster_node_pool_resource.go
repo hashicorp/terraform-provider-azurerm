@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,13 +17,12 @@ import (
 	containerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceKubernetesClusterNodePool() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceKubernetesClusterNodePoolCreate,
 		Read:   resourceKubernetesClusterNodePoolRead,
 		Update: resourceKubernetesClusterNodePoolUpdate,
@@ -32,30 +33,30 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			return err
 		}),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: containerValidate.KubernetesAgentPoolName,
 			},
 
 			"kubernetes_cluster_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: containerValidate.ClusterID,
 			},
 
 			"node_count": {
-				Type:         pluginsdk.TypeInt,
+				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(0, 1000),
@@ -64,7 +65,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 
 			"vm_size": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -72,33 +73,32 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 
 			// Optional
 			"availability_zones": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
 			"enable_auto_scaling": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 			},
 
 			"enable_host_encryption": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				ForceNew: true,
 			},
 
 			"enable_node_public_ip": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"eviction_policy": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -107,40 +107,21 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"kubelet_config": schemaNodePoolKubeletConfig(),
-
-			"linux_os_config": schemaNodePoolLinuxOSConfig(),
-
-			"fips_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-			},
-
-			"kubelet_disk_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(containerservice.KubeletDiskTypeOS),
-				}, false),
-			},
-
 			"max_count": {
-				Type:         pluginsdk.TypeInt,
+				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 1000),
 			},
 
 			"max_pods": {
-				Type:     pluginsdk.TypeInt,
+				Type:     schema.TypeInt,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				Default:  string(containerservice.AgentPoolModeUser),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -150,46 +131,39 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			},
 
 			"min_count": {
-				Type:     pluginsdk.TypeInt,
+				Type:     schema.TypeInt,
 				Optional: true,
 				// NOTE: rather than setting `0` users should instead pass `null` here
 				ValidateFunc: validation.IntBetween(0, 1000),
 			},
 
 			"node_labels": {
-				Type:     pluginsdk.TypeMap,
+				Type:     schema.TypeMap,
 				Optional: true,
 				ForceNew: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
-			"node_public_ip_prefix_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				RequiredWith: []string{"enable_node_public_ip"},
-			},
-
 			"node_taints": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
 			"orchestrator_version": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"os_disk_size_gb": {
-				Type:         pluginsdk.TypeInt,
+				Type:         schema.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
 				Computed:     true,
@@ -197,7 +171,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			},
 
 			"os_disk_type": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  containerservice.OSDiskTypeManaged,
@@ -208,7 +182,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			},
 
 			"os_type": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  string(containerservice.OSTypeLinux),
@@ -219,7 +193,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			},
 
 			"priority": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  string(containerservice.ScaleSetPriorityRegular),
@@ -230,14 +204,14 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			},
 
 			"proximity_placement_group_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: computeValidate.ProximityPlacementGroupID,
 			},
 
 			"spot_max_price": {
-				Type:         pluginsdk.TypeFloat,
+				Type:         schema.TypeFloat,
 				Optional:     true,
 				ForceNew:     true,
 				Default:      -1.0,
@@ -245,7 +219,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			},
 
 			"vnet_subnet_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
@@ -256,7 +230,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 	}
 }
 
-func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
 	containersClient := meta.(*clients.Client).Containers
 	clustersClient := containersClient.KubernetesClustersClient
 	poolsClient := containersClient.AgentPoolsClient
@@ -323,9 +297,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	profile := containerservice.ManagedClusterAgentPoolProfileProperties{
 		OsType:                 containerservice.OSType(osType),
 		EnableAutoScaling:      utils.Bool(enableAutoScaling),
-		EnableFIPS:             utils.Bool(d.Get("fips_enabled").(bool)),
 		EnableNodePublicIP:     utils.Bool(d.Get("enable_node_public_ip").(bool)),
-		KubeletDiskType:        containerservice.KubeletDiskType(d.Get("kubelet_disk_type").(string)),
 		Mode:                   mode,
 		ScaleSetPriority:       containerservice.ScaleSetPriority(priority),
 		Tags:                   tags.Expand(t),
@@ -372,10 +344,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	nodeLabelsRaw := d.Get("node_labels").(map[string]interface{})
 	if nodeLabels := utils.ExpandMapStringPtrString(nodeLabelsRaw); len(nodeLabels) > 0 {
 		profile.NodeLabels = nodeLabels
-	}
-
-	if nodePublicIPPrefixID := d.Get("node_public_ip_prefix_id").(string); nodePublicIPPrefixID != "" {
-		profile.NodePublicIPPrefixID = utils.String(nodePublicIPPrefixID)
 	}
 
 	nodeTaintsRaw := d.Get("node_taints").([]interface{})
@@ -428,21 +396,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("`max_count` and `min_count` must be set to `null` when enable_auto_scaling is set to `false`")
 	}
 
-	if kubeletConfig := d.Get("kubelet_config").([]interface{}); len(kubeletConfig) > 0 {
-		profile.KubeletConfig = expandAgentPoolKubeletConfig(kubeletConfig)
-	}
-
-	if linuxOSConfig := d.Get("linux_os_config").([]interface{}); len(linuxOSConfig) > 0 {
-		if osType != string(containerservice.OSTypeLinux) {
-			return fmt.Errorf("`linux_os_config` can only be configured when `os_type` is set to `linux`")
-		}
-		linuxOSConfig, err := expandAgentPoolLinuxOSConfig(linuxOSConfig)
-		if err != nil {
-			return err
-		}
-		profile.LinuxOSConfig = linuxOSConfig
-	}
-
 	parameters := containerservice.AgentPool{
 		Name:                                     &name,
 		ManagedClusterAgentPoolProfileProperties: &profile,
@@ -471,7 +424,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
 
-func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	containersClient := meta.(*clients.Client).Containers
 	client := containersClient.AgentPoolsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -541,10 +494,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("node_count") {
 		props.Count = utils.Int32(int32(d.Get("node_count").(int)))
-	}
-
-	if d.HasChange("node_public_ip_prefix_id") {
-		props.NodePublicIPPrefixID = utils.String(d.Get("node_public_ip_prefix_id").(string))
 	}
 
 	if d.HasChange("orchestrator_version") {
@@ -619,7 +568,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
 
-func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).Containers.KubernetesClustersClient
 	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -664,26 +613,12 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("enable_auto_scaling", props.EnableAutoScaling)
 		d.Set("enable_node_public_ip", props.EnableNodePublicIP)
 		d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
-		d.Set("fips_enabled", props.EnableFIPS)
-		d.Set("kubelet_disk_type", string(props.KubeletDiskType))
 
 		evictionPolicy := ""
 		if props.ScaleSetEvictionPolicy != "" {
 			evictionPolicy = string(props.ScaleSetEvictionPolicy)
 		}
 		d.Set("eviction_policy", evictionPolicy)
-
-		if err := d.Set("kubelet_config", flattenAgentPoolKubeletConfig(props.KubeletConfig)); err != nil {
-			return fmt.Errorf("setting `kubelet_config`: %+v", err)
-		}
-
-		linuxOSConfig, err := flattenAgentPoolLinuxOSConfig(props.LinuxOSConfig)
-		if err != nil {
-			return err
-		}
-		if err := d.Set("linux_os_config", linuxOSConfig); err != nil {
-			return fmt.Errorf("setting `linux_os_config`: %+v", err)
-		}
 
 		maxCount := 0
 		if props.MaxCount != nil {
@@ -718,8 +653,6 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		if err := d.Set("node_labels", props.NodeLabels); err != nil {
 			return fmt.Errorf("setting `node_labels`: %+v", err)
 		}
-
-		d.Set("node_public_ip_prefix_id", props.NodePublicIPPrefixID)
 
 		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("setting `node_taints`: %+v", err)
@@ -765,7 +698,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.AgentPoolsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -787,15 +720,15 @@ func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func upgradeSettingsSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+func upgradeSettingsSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				"max_surge": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Required: true,
 				},
 			},
@@ -803,14 +736,14 @@ func upgradeSettingsSchema() *pluginsdk.Schema {
 	}
 }
 
-func upgradeSettingsForDataSourceSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+func upgradeSettingsForDataSourceSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
 		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				"max_surge": {
-					Type:     pluginsdk.TypeString,
+					Type:     schema.TypeString,
 					Computed: true,
 				},
 			},

@@ -319,7 +319,7 @@ func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client *resources
 		Refresh: templateDeploymentStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
 		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
 	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Template Deployment (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
 	}
 

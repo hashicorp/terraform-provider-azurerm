@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -66,11 +66,11 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          string(network.VpnTypeRouteBased),
+				Default:          string(network.RouteBased),
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.VpnTypeRouteBased),
-					string(network.VpnTypePolicyBased),
+					string(network.RouteBased),
+					string(network.PolicyBased),
 				}, true),
 			},
 
@@ -139,10 +139,10 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.IPAllocationMethodStatic),
-								string(network.IPAllocationMethodDynamic),
+								string(network.Static),
+								string(network.Dynamic),
 							}, false),
-							Default: string(network.IPAllocationMethodDynamic),
+							Default: string(network.Dynamic),
 						},
 
 						"subnet_id": {
@@ -289,9 +289,9 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(network.VpnClientProtocolIkeV2),
-									string(network.VpnClientProtocolOpenVPN),
-									string(network.VpnClientProtocolSSTP),
+									string(network.IkeV2),
+									string(network.OpenVPN),
+									string(network.SSTP),
 								}, true),
 							},
 						},
@@ -596,21 +596,21 @@ func getVirtualNetworkGatewayProperties(id parse.VirtualNetworkGatewayId, d *plu
 	}
 
 	// Sku validation for policy-based VPN gateways
-	if props.GatewayType == network.VirtualNetworkGatewayTypeVpn && props.VpnType == network.VpnTypePolicyBased {
+	if props.GatewayType == network.VirtualNetworkGatewayTypeVpn && props.VpnType == network.PolicyBased {
 		if ok, err := evaluateSchemaValidateFunc(string(props.Sku.Name), "sku", validateVirtualNetworkGatewayPolicyBasedVpnSku()); !ok {
 			return nil, err
 		}
 	}
 
 	// Sku validation for route-based VPN gateways of first geneneration
-	if props.GatewayType == network.VirtualNetworkGatewayTypeVpn && props.VpnType == network.VpnTypeRouteBased && props.VpnGatewayGeneration == network.VpnGatewayGenerationGeneration1 {
+	if props.GatewayType == network.VirtualNetworkGatewayTypeVpn && props.VpnType == network.RouteBased && props.VpnGatewayGeneration == network.VpnGatewayGenerationGeneration1 {
 		if ok, err := evaluateSchemaValidateFunc(string(props.Sku.Name), "sku", validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration1()); !ok {
 			return nil, err
 		}
 	}
 
 	// Sku validation for route-based VPN gateways of second geneneration
-	if props.GatewayType == network.VirtualNetworkGatewayTypeVpn && props.VpnType == network.VpnTypeRouteBased && props.VpnGatewayGeneration == network.VpnGatewayGenerationGeneration2 {
+	if props.GatewayType == network.VirtualNetworkGatewayTypeVpn && props.VpnType == network.RouteBased && props.VpnGatewayGeneration == network.VpnGatewayGenerationGeneration2 {
 		if ok, err := evaluateSchemaValidateFunc(string(props.Sku.Name), "sku", validateVirtualNetworkGatewayRouteBasedVpnSkuGeneration2()); !ok {
 			return nil, err
 		}

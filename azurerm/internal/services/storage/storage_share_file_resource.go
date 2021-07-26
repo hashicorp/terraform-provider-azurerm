@@ -6,19 +6,20 @@ import (
 	"os"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/files"
 )
 
-func resourceStorageShareFile() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceStorageShareFile() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceStorageShareFileCreate,
 		Read:   resourceStorageShareFileRead,
 		Update: resourceStorageShareFileUpdate,
@@ -26,27 +27,27 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 			"storage_share_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: storageValidate.StorageShareID,
 			},
 			"path": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				ForceNew:     true,
 				Optional:     true,
 				Default:      "",
@@ -54,31 +55,31 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 			},
 
 			"content_type": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "application/octet-stream",
 			},
 
 			"content_encoding": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"content_md5": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"content_disposition": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"source": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 				ForceNew:     true,
@@ -89,7 +90,7 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareFileCreate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -182,7 +183,7 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceStorageShareFileRead(d, meta)
 }
 
-func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareFileUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -245,7 +246,7 @@ func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceStorageShareFileRead(d, meta)
 }
 
-func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareFileRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -305,7 +306,7 @@ func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceStorageShareFileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareFileDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage

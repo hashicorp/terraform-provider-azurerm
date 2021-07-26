@@ -54,8 +54,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabase() *pluginsdk.Resource {
 
 			"connection_string": {
 				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ExactlyOneOf:     []string{"connection_string", "key_vault_connection_string"},
+				Required:         true,
 				DiffSuppressFunc: azureRmDataFactoryLinkedServiceConnectionStringDiff,
 				ValidateFunc:     validation.StringIsNotEmpty,
 			},
@@ -64,28 +63,6 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabase() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"key_vault_connection_string": {
-				Type:         pluginsdk.TypeList,
-				Optional:     true,
-				ExactlyOneOf: []string{"connection_string", "key_vault_connection_string"},
-				MaxItems:     1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"linked_service_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"secret_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
 			},
 
 			"key_vault_password": {
@@ -201,12 +178,8 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 	if v, ok := d.GetOk("connection_string"); ok {
 		sqlDatabaseProperties.ConnectionString = &datafactory.SecureString{
 			Value: utils.String(v.(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
-	}
-
-	if v, ok := d.GetOk("key_vault_connection_string"); ok {
-		sqlDatabaseProperties.ConnectionString = expandAzureKeyVaultSecretReference(v.([]interface{}))
 	}
 
 	if d.Get("use_managed_identity").(bool) {
@@ -214,7 +187,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 	} else {
 		secureString := datafactory.SecureString{
 			Value: utils.String(d.Get("service_principal_key").(string)),
-			Type:  datafactory.TypeSecureString,
+			Type:  datafactory.TypeTypeSecureString,
 		}
 
 		sqlDatabaseProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))
@@ -224,7 +197,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 
 	if v, ok := d.GetOk("key_vault_password"); ok {
 		password := v.([]interface{})
-		sqlDatabaseProperties.Password = expandAzureKeyVaultSecretReference(password)
+		sqlDatabaseProperties.Password = expandAzureKeyVaultPassword(password)
 	}
 
 	azureSQLDatabaseLinkedService := &datafactory.AzureSQLDatabaseLinkedService{
@@ -314,22 +287,12 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *pluginsdk.ResourceD
 		}
 	}
 
-	if sql.ConnectionString != nil {
-		if val, ok := sql.ConnectionString.(map[string]interface{}); ok {
-			if val["type"] != "SecureString" {
-				if err := d.Set("key_vault_connection_string", flattenAzureKeyVaultConnectionString(val)); err != nil {
-					return fmt.Errorf("setting `key_vault_connection_string`: %+v", err)
-				}
-			}
-		}
-	}
-
 	d.Set("additional_properties", sql.AdditionalProperties)
 	d.Set("description", sql.Description)
 
 	if password := sql.Password; password != nil {
 		if keyVaultPassword, ok := password.AsAzureKeyVaultSecretReference(); ok {
-			if err := d.Set("key_vault_password", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
+			if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(keyVaultPassword)); err != nil {
 				return fmt.Errorf("setting `key_vault_password`: %+v", err)
 			}
 		}

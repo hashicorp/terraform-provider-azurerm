@@ -8,39 +8,39 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceImage() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func dataSourceImage() *schema.Resource {
+	return &schema.Resource{
 		Read: dataSourceImageRead,
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 
 			"name_regex": {
-				Type:          pluginsdk.TypeString,
+				Type:          schema.TypeString,
 				Optional:      true,
 				ValidateFunc:  validation.StringIsValidRegExp,
 				ConflictsWith: []string{"name"},
 			},
 			"sort_descending": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
 			"name": {
-				Type:          pluginsdk.TypeString,
+				Type:          schema.TypeString,
 				Optional:      true,
 				ConflictsWith: []string{"name_regex"},
 			},
@@ -50,37 +50,37 @@ func dataSourceImage() *pluginsdk.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"zone_resilient": {
-				Type:     pluginsdk.TypeBool,
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
 			"os_disk": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"blob_uri": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"caching": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"managed_disk_id": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"os_state": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"os_type": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"size_gb": {
-							Type:     pluginsdk.TypeInt,
+							Type:     schema.TypeInt,
 							Computed: true,
 						},
 					},
@@ -88,28 +88,28 @@ func dataSourceImage() *pluginsdk.Resource {
 			},
 
 			"data_disk": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"blob_uri": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"caching": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"lun": {
-							Type:     pluginsdk.TypeInt,
+							Type:     schema.TypeInt,
 							Computed: true,
 						},
 						"managed_disk_id": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"size_gb": {
-							Type:     pluginsdk.TypeInt,
+							Type:     schema.TypeInt,
 							Computed: true,
 						},
 					},
@@ -121,7 +121,7 @@ func dataSourceImage() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

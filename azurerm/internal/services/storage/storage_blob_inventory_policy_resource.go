@@ -6,72 +6,73 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceStorageBlobInventoryPolicy() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceStorageBlobInventoryPolicyCreateUpdate,
 		Read:   resourceStorageBlobInventoryPolicyRead,
 		Update: resourceStorageBlobInventoryPolicyCreateUpdate,
 		Delete: resourceStorageBlobInventoryPolicyDelete,
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.BlobInventoryPolicyID(id)
 			return err
 		}),
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"storage_account_id": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageAccountID,
 			},
 
 			"storage_container_name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageContainerName,
 			},
 
 			"rules": {
-				Type:     pluginsdk.TypeSet,
+				Type:     schema.TypeSet,
 				Required: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"filter": {
-							Type:     pluginsdk.TypeList,
+							Type:     schema.TypeList,
 							Required: true,
 							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
 									"blob_types": {
-										Type:     pluginsdk.TypeSet,
+										Type:     schema.TypeSet,
 										Required: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
 												"blockBlob",
 												"appendBlob",
@@ -81,22 +82,22 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 									},
 
 									"include_blob_versions": {
-										Type:     pluginsdk.TypeBool,
+										Type:     schema.TypeBool,
 										Optional: true,
 										Default:  false,
 									},
 
 									"include_snapshots": {
-										Type:     pluginsdk.TypeBool,
+										Type:     schema.TypeBool,
 										Optional: true,
 										Default:  false,
 									},
 
 									"prefix_match": {
-										Type:     pluginsdk.TypeSet,
+										Type:     schema.TypeSet,
 										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
@@ -109,7 +110,7 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 		},
 	}
 }
-func resourceStorageBlobInventoryPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageBlobInventoryPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Storage.BlobInventoryPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -140,7 +141,7 @@ func resourceStorageBlobInventoryPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 				Enabled:     utils.Bool(true),
 				Destination: utils.String(d.Get("storage_container_name").(string)),
 				Type:        utils.String("Inventory"),
-				Rules:       expandBlobInventoryPolicyRules(d.Get("rules").(*pluginsdk.Set).List()),
+				Rules:       expandBlobInventoryPolicyRules(d.Get("rules").(*schema.Set).List()),
 			},
 		},
 	}
@@ -152,7 +153,7 @@ func resourceStorageBlobInventoryPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 	return resourceStorageBlobInventoryPolicyRead(d, meta)
 }
 
-func resourceStorageBlobInventoryPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageBlobInventoryPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Storage.BlobInventoryPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -187,7 +188,7 @@ func resourceStorageBlobInventoryPolicyRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceStorageBlobInventoryPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageBlobInventoryPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.BlobInventoryPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -224,8 +225,8 @@ func expandBlobInventoryPolicyFilter(input []interface{}) *storage.BlobInventory
 	}
 	v := input[0].(map[string]interface{})
 	return &storage.BlobInventoryPolicyFilter{
-		PrefixMatch:         utils.ExpandStringSlice(v["prefix_match"].(*pluginsdk.Set).List()),
-		BlobTypes:           utils.ExpandStringSlice(v["blob_types"].(*pluginsdk.Set).List()),
+		PrefixMatch:         utils.ExpandStringSlice(v["prefix_match"].(*schema.Set).List()),
+		BlobTypes:           utils.ExpandStringSlice(v["blob_types"].(*schema.Set).List()),
 		IncludeBlobVersions: utils.Bool(v["include_blob_versions"].(bool)),
 		IncludeSnapshots:    utils.Bool(v["include_snapshots"].(bool)),
 	}

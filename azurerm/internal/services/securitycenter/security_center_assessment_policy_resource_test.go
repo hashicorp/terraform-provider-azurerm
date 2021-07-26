@@ -114,7 +114,6 @@ resource "azurerm_security_center_assessment_policy" "test" {
   remediation_description = "Test Remediation Description"
   threats                 = ["DataExfiltration", "DataSpillage", "MaliciousInsider"]
   user_impact             = "Low"
-  categories              = ["Data"]
 }
 `
 }

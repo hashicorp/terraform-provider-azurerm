@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -67,27 +67,24 @@ func resourceNatGateway() *pluginsdk.Resource {
 					ValidateFunc: azure.ValidateResourceID,
 				},
 				// TODO: remove in 3.0
-				Deprecated: "Inline Public IP Address ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_association` pluginsdk. This field will be removed in the next major version of the Azure Provider.",
+				Deprecated: "Inline Public IP Address ID Deprecations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_association` pluginsdk. This field will be removed in the next major version of the Azure Provider.",
 			},
 
 			"public_ip_prefix_ids": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
-				// TODO: remove in 3.0
-				Deprecated: "Inline Public IP Prefix ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_prefix_association` pluginsdk. This field will be removed in the next major version of the Azure Provider.",
 			},
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(network.NatGatewaySkuNameStandard),
+				Default:  string(network.Standard),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.NatGatewaySkuNameStandard),
+					string(network.Standard),
 				}, false),
 			},
 

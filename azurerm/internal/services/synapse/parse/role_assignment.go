@@ -10,19 +10,20 @@ import (
 var _ resourceid.Formatter = RoleAssignmentId{}
 
 type RoleAssignmentId struct {
-	Scope                 string
+	Workspace             WorkspaceId
 	DataPlaneAssignmentId string
 }
 
-func NewRoleAssignmentId(scope string, dataPlaneAssignmentId string) RoleAssignmentId {
+func NewRoleAssignmentId(workspace WorkspaceId, dataPlaneAssignmentId string) RoleAssignmentId {
 	return RoleAssignmentId{
-		Scope:                 scope,
+		Workspace:             workspace,
 		DataPlaneAssignmentId: dataPlaneAssignmentId,
 	}
 }
 
 func (id RoleAssignmentId) ID() string {
-	return fmt.Sprintf("%s|%s", id.Scope, id.DataPlaneAssignmentId)
+	workspaceId := id.Workspace.ID()
+	return fmt.Sprintf("%s|%s", workspaceId, id.DataPlaneAssignmentId)
 }
 
 func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
@@ -31,22 +32,13 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 		return nil, fmt.Errorf("expected an ID in the format `{workspaceId}|{id} but got %q", input)
 	}
 
+	workspaceId, err := WorkspaceID(segments[0])
+	if err != nil {
+		return nil, err
+	}
+
 	return &RoleAssignmentId{
-		Scope:                 segments[0],
+		Workspace:             *workspaceId,
 		DataPlaneAssignmentId: segments[1],
 	}, nil
-}
-
-func SynapseScope(synapseScope string) (string, string, error) {
-	workspaceId, err := WorkspaceID(synapseScope)
-	if err == nil {
-		return workspaceId.Name, fmt.Sprintf("workspaces/%s", workspaceId.Name), nil
-	}
-
-	sparkPoolID, err := SparkPoolID(synapseScope)
-	if err == nil {
-		return sparkPoolID.WorkspaceName, fmt.Sprintf("workspaces/%s/bigDataPools/%s", sparkPoolID.WorkspaceName, sparkPoolID.BigDataPoolName), nil
-	}
-
-	return "", "", fmt.Errorf("synapseScope format error")
 }

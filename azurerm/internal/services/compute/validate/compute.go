@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func SharedImageGalleryName(v interface{}, k string) (warnings []string, errors []error) {
@@ -51,16 +51,16 @@ func SharedImageVersionName(v interface{}, k string) (warnings []string, errors 
 }
 
 // VirtualMachineTimeZone returns a case-sensitive validation function for the Time Zones for a Virtual Machine
-func VirtualMachineTimeZone() pluginsdk.SchemaValidateFunc {
+func VirtualMachineTimeZone() schema.SchemaValidateFunc {
 	return virtualMachineTimeZone(false)
 }
 
 // VirtualMachineTimeZone returns a case-insensitive validation function for the Time Zones for a Virtual Machine
-func VirtualMachineTimeZoneCaseInsensitive() pluginsdk.SchemaValidateFunc {
+func VirtualMachineTimeZoneCaseInsensitive() schema.SchemaValidateFunc {
 	return virtualMachineTimeZone(true)
 }
 
-func virtualMachineTimeZone(ignoreCase bool) pluginsdk.SchemaValidateFunc {
+func virtualMachineTimeZone(ignoreCase bool) schema.SchemaValidateFunc {
 	// Candidates are listed here: http://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/
 	candidates := []string{
 		"",

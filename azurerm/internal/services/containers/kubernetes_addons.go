@@ -6,14 +6,15 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	commonValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-	laparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	logAnalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	applicationGatewayValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	subnetValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+
+	laparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 )
 
 const (
@@ -34,6 +35,7 @@ const (
 var unsupportedAddonsForEnvironment = map[string][]string{
 	azure.ChinaCloud.Name: {
 		aciConnectorKey,           // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5510
+		azurePolicyKey,            // https://github.com/terraform-providers/terraform-provider-azurerm/issues/6462
 		httpApplicationRoutingKey, // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5960
 		kubernetesDashboardKey,    // https://github.com/terraform-providers/terraform-provider-azurerm/issues/7487
 	},
@@ -44,28 +46,28 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 	},
 }
 
-func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
+func schemaKubernetesAddOnProfiles() *schema.Schema {
 	//lintignore:XS003
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+	return &schema.Schema{
+		Type:     schema.TypeList,
 		MaxItems: 1,
 		Optional: true,
 		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
 				"aci_connector_linux": {
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					MaxItems: 1,
 					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
 							"enabled": {
-								Type:     pluginsdk.TypeBool,
+								Type:     schema.TypeBool,
 								Required: true,
 							},
 
 							"subnet_name": {
-								Type:         pluginsdk.TypeString,
+								Type:         schema.TypeString,
 								Optional:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
@@ -74,13 +76,13 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 				},
 
 				"azure_policy": {
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					MaxItems: 1,
 					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
 							"enabled": {
-								Type:     pluginsdk.TypeBool,
+								Type:     schema.TypeBool,
 								Required: true,
 							},
 						},
@@ -88,13 +90,13 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 				},
 
 				"kube_dashboard": {
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					MaxItems: 1,
 					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
 							"enabled": {
-								Type:     pluginsdk.TypeBool,
+								Type:     schema.TypeBool,
 								Required: true,
 							},
 						},
@@ -102,17 +104,17 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 				},
 
 				"http_application_routing": {
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					MaxItems: 1,
 					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
 							"enabled": {
-								Type:     pluginsdk.TypeBool,
+								Type:     schema.TypeBool,
 								Required: true,
 							},
 							"http_application_routing_zone_name": {
-								Type:     pluginsdk.TypeString,
+								Type:     schema.TypeString,
 								Computed: true,
 							},
 						},
@@ -120,35 +122,35 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 				},
 
 				"oms_agent": {
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					MaxItems: 1,
 					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
 							"enabled": {
-								Type:     pluginsdk.TypeBool,
+								Type:     schema.TypeBool,
 								Required: true,
 							},
 							"log_analytics_workspace_id": {
-								Type:         pluginsdk.TypeString,
+								Type:         schema.TypeString,
 								Optional:     true,
 								ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
 							},
 							"oms_agent_identity": {
-								Type:     pluginsdk.TypeList,
+								Type:     schema.TypeList,
 								Computed: true,
-								Elem: &pluginsdk.Resource{
-									Schema: map[string]*pluginsdk.Schema{
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
 										"client_id": {
-											Type:     pluginsdk.TypeString,
+											Type:     schema.TypeString,
 											Computed: true,
 										},
 										"object_id": {
-											Type:     pluginsdk.TypeString,
+											Type:     schema.TypeString,
 											Computed: true,
 										},
 										"user_assigned_identity_id": {
-											Type:     pluginsdk.TypeString,
+											Type:     schema.TypeString,
 											Computed: true,
 										},
 									},
@@ -159,57 +161,52 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 				},
 
 				"ingress_application_gateway": {
-					Type:     pluginsdk.TypeList,
+					Type:     schema.TypeList,
 					MaxItems: 1,
 					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
 							"enabled": {
-								Type:     pluginsdk.TypeBool,
+								Type:     schema.TypeBool,
 								Required: true,
 							},
 							"gateway_id": {
-								Type:          pluginsdk.TypeString,
+								Type:          schema.TypeString,
 								Optional:      true,
 								ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.subnet_cidr", "addon_profile.0.ingress_application_gateway.0.subnet_id"},
 								ValidateFunc:  applicationGatewayValidate.ApplicationGatewayID,
 							},
-							"gateway_name": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
 							"subnet_cidr": {
-								Type:          pluginsdk.TypeString,
+								Type:          schema.TypeString,
 								Optional:      true,
 								ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.gateway_id", "addon_profile.0.ingress_application_gateway.0.subnet_id"},
 								ValidateFunc:  commonValidate.CIDR,
 							},
 							"subnet_id": {
-								Type:          pluginsdk.TypeString,
+								Type:          schema.TypeString,
 								Optional:      true,
 								ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.gateway_id", "addon_profile.0.ingress_application_gateway.0.subnet_cidr"},
 								ValidateFunc:  subnetValidate.SubnetID,
 							},
 							"effective_gateway_id": {
-								Type:     pluginsdk.TypeString,
+								Type:     schema.TypeString,
 								Computed: true,
 							},
 							"ingress_application_gateway_identity": {
-								Type:     pluginsdk.TypeList,
+								Type:     schema.TypeList,
 								Computed: true,
-								Elem: &pluginsdk.Resource{
-									Schema: map[string]*pluginsdk.Schema{
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
 										"client_id": {
-											Type:     pluginsdk.TypeString,
+											Type:     schema.TypeString,
 											Computed: true,
 										},
 										"object_id": {
-											Type:     pluginsdk.TypeString,
+											Type:     schema.TypeString,
 											Computed: true,
 										},
 										"user_assigned_identity_id": {
-											Type:     pluginsdk.TypeString,
+											Type:     schema.TypeString,
 											Computed: true,
 										},
 									},
@@ -321,10 +318,6 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 
 		if gatewayId, ok := value["gateway_id"]; ok && gatewayId != "" {
 			config["applicationGatewayId"] = utils.String(gatewayId.(string))
-		}
-
-		if gatewayName, ok := value["gateway_name"]; ok && gatewayName != "" {
-			config["applicationGatewayName"] = utils.String(gatewayName.(string))
 		}
 
 		if subnetCIDR, ok := value["subnet_cidr"]; ok && subnetCIDR != "" {
@@ -469,11 +462,6 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			gatewayId = *v
 		}
 
-		gatewayName := ""
-		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayName"); v != nil {
-			gatewayName = *v
-		}
-
 		effectiveGatewayId := ""
 		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "effectiveApplicationGatewayId"); v != nil {
 			effectiveGatewayId = *v
@@ -494,7 +482,6 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 		ingressApplicationGateways = append(ingressApplicationGateways, map[string]interface{}{
 			"enabled":                              enabled,
 			"gateway_id":                           gatewayId,
-			"gateway_name":                         gatewayName,
 			"effective_gateway_id":                 effectiveGatewayId,
 			"subnet_cidr":                          subnetCIDR,
 			"subnet_id":                            subnetId,

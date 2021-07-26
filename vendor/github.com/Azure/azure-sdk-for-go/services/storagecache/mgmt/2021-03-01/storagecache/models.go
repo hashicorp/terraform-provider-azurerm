@@ -1229,12 +1229,6 @@ type CacheUpgradeStatus struct {
 	PendingFirmwareVersion *string `json:"pendingFirmwareVersion,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for CacheUpgradeStatus.
-func (cus CacheUpgradeStatus) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // CacheUsernameDownloadSettings settings for Extended Groups username and group download.
 type CacheUsernameDownloadSettings struct {
 	// ExtendedGroups - Whether or not Extended Groups is enabled.
@@ -1341,12 +1335,6 @@ type Condition struct {
 	Timestamp *date.Time `json:"timestamp,omitempty"`
 	// Message - READ-ONLY; The issue requiring attention.
 	Message *string `json:"message,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Condition.
-func (c Condition) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // ErrorResponse describes the format of Error response.
@@ -1813,12 +1801,6 @@ type StorageTargetResource struct {
 	Location *string `json:"location,omitempty"`
 	// SystemData - READ-ONLY; The system meta data relating to this resource.
 	SystemData *SystemData `json:"systemData,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for StorageTargetResource.
-func (str StorageTargetResource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // StorageTargetsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a

@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -82,14 +82,14 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(network.WebApplicationFirewallMatchVariableRemoteAddr),
-														string(network.WebApplicationFirewallMatchVariableRequestMethod),
-														string(network.WebApplicationFirewallMatchVariableQueryString),
-														string(network.WebApplicationFirewallMatchVariablePostArgs),
-														string(network.WebApplicationFirewallMatchVariableRequestURI),
-														string(network.WebApplicationFirewallMatchVariableRequestHeaders),
-														string(network.WebApplicationFirewallMatchVariableRequestBody),
-														string(network.WebApplicationFirewallMatchVariableRequestCookies),
+														string(network.RemoteAddr),
+														string(network.RequestMethod),
+														string(network.QueryString),
+														string(network.PostArgs),
+														string(network.RequestURI),
+														string(network.RequestHeaders),
+														string(network.RequestBody),
+														string(network.RequestCookies),
 													}, false),
 												},
 												"selector": {
@@ -126,12 +126,12 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
-												string(network.WebApplicationFirewallTransformHTMLEntityDecode),
-												string(network.WebApplicationFirewallTransformLowercase),
-												string(network.WebApplicationFirewallTransformRemoveNulls),
-												string(network.WebApplicationFirewallTransformTrim),
-												string(network.WebApplicationFirewallTransformURLDecode),
-												string(network.WebApplicationFirewallTransformURLEncode),
+												string(network.HTMLEntityDecode),
+												string(network.Lowercase),
+												string(network.RemoveNulls),
+												string(network.Trim),
+												string(network.URLDecode),
+												string(network.URLEncode),
 											}, false),
 										},
 									},
@@ -173,9 +173,9 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(network.OwaspCrsExclusionEntryMatchVariableRequestArgNames),
-											string(network.OwaspCrsExclusionEntryMatchVariableRequestCookieNames),
-											string(network.OwaspCrsExclusionEntryMatchVariableRequestHeaderNames),
+											string(network.RequestArgNames),
+											string(network.RequestCookieNames),
+											string(network.RequestHeaderNames),
 										}, false),
 									},
 									"selector": {
@@ -255,10 +255,10 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.WebApplicationFirewallModePrevention),
-								string(network.WebApplicationFirewallModeDetection),
+								string(network.Prevention),
+								string(network.Detection),
 							}, false),
-							Default: string(network.WebApplicationFirewallModePrevention),
+							Default: string(network.Prevention),
 						},
 						"request_body_check": {
 							Type:     pluginsdk.TypeBool,

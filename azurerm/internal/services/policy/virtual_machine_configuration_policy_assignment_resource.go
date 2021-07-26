@@ -19,14 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// TODO: Remove in 3.0
 func resourceVirtualMachineConfigurationPolicyAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		DeprecationMessage: "`azurerm_virtual_machine_configuration_policy_assignment` resource is deprecated in favor of `azurerm_policy_virtual_machine_configuration_assignment` and will be removed in v3.0 of the AzureRM Provider",
-		Create:             resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate,
-		Read:               resourceVirtualMachineConfigurationPolicyAssignmentRead,
-		Update:             resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate,
-		Delete:             resourceVirtualMachineConfigurationPolicyAssignmentDelete,
+		Create: resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate,
+		Read:   resourceVirtualMachineConfigurationPolicyAssignmentRead,
+		Update: resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate,
+		Delete: resourceVirtualMachineConfigurationPolicyAssignmentDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -127,7 +125,7 @@ func resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate(d *pluginsd
 		Name:     utils.String(d.Get("name").(string)),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &guestconfiguration.AssignmentProperties{
-			GuestConfiguration: expandGuestConfigAssignment(d.Get("configuration").([]interface{})),
+			GuestConfiguration: expandGuestConfigurationAssignment(d.Get("configuration").([]interface{})),
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, id.GuestConfigurationAssignmentName, parameter, id.ResourceGroup, id.VirtualMachineName); err != nil {
@@ -166,7 +164,7 @@ func resourceVirtualMachineConfigurationPolicyAssignmentRead(d *pluginsdk.Resour
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
-		if err := d.Set("configuration", flattenGuestConfigAssignment(props.GuestConfiguration)); err != nil {
+		if err := d.Set("configuration", flattenGuestConfigurationAssignment(props.GuestConfiguration)); err != nil {
 			return fmt.Errorf("setting `configuration`: %+v", err)
 		}
 	}
@@ -190,7 +188,7 @@ func resourceVirtualMachineConfigurationPolicyAssignmentDelete(d *pluginsdk.Reso
 	return nil
 }
 
-func expandGuestConfigAssignment(input []interface{}) *guestconfiguration.Navigation {
+func expandGuestConfigurationAssignment(input []interface{}) *guestconfiguration.Navigation {
 	if len(input) == 0 {
 		return nil
 	}
@@ -198,11 +196,11 @@ func expandGuestConfigAssignment(input []interface{}) *guestconfiguration.Naviga
 	return &guestconfiguration.Navigation{
 		Name:                   utils.String(v["name"].(string)),
 		Version:                utils.String(v["version"].(string)),
-		ConfigurationParameter: expandGuestConfigAssignmentConfigurationParameters(v["parameter"].(*pluginsdk.Set).List()),
+		ConfigurationParameter: expandGuestConfigurationAssignmentConfigurationParameters(v["parameter"].(*pluginsdk.Set).List()),
 	}
 }
 
-func expandGuestConfigAssignmentConfigurationParameters(input []interface{}) *[]guestconfiguration.ConfigurationParameter {
+func expandGuestConfigurationAssignmentConfigurationParameters(input []interface{}) *[]guestconfiguration.ConfigurationParameter {
 	results := make([]guestconfiguration.ConfigurationParameter, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
@@ -214,7 +212,7 @@ func expandGuestConfigAssignmentConfigurationParameters(input []interface{}) *[]
 	return &results
 }
 
-func flattenGuestConfigAssignment(input *guestconfiguration.Navigation) []interface{} {
+func flattenGuestConfigurationAssignment(input *guestconfiguration.Navigation) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -230,13 +228,13 @@ func flattenGuestConfigAssignment(input *guestconfiguration.Navigation) []interf
 	return []interface{}{
 		map[string]interface{}{
 			"name":      name,
-			"parameter": flattenGuestConfigAssignmentConfigurationParameters(input.ConfigurationParameter),
+			"parameter": flattenGuestConfigurationAssignmentConfigurationParameters(input.ConfigurationParameter),
 			"version":   version,
 		},
 	}
 }
 
-func flattenGuestConfigAssignmentConfigurationParameters(input *[]guestconfiguration.ConfigurationParameter) []interface{} {
+func flattenGuestConfigurationAssignmentConfigurationParameters(input *[]guestconfiguration.ConfigurationParameter) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

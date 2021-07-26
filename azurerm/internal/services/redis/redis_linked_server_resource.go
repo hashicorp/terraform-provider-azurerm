@@ -131,7 +131,7 @@ func resourceRedisLinkedServerCreate(d *pluginsdk.ResourceData, meta interface{}
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for Linked Server %q (Redis Cache %q / Resource Group %q) to become available: %+v", resourceId.Name, resourceId.RediName, resourceId.ResourceGroup, err)
 	}
 
@@ -211,7 +211,7 @@ func resourceRedisLinkedServerDelete(d *pluginsdk.ResourceData, meta interface{}
 		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for Linked Server %q (Redis Cache %q / Resource Group %q) to be deleted: %+v", id.Name, id.RediName, id.ResourceGroup, err)
 	}
 

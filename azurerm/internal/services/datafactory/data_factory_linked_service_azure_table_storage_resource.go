@@ -125,7 +125,7 @@ func resourceDataFactoryLinkedServiceTableStorageCreateUpdate(d *pluginsdk.Resou
 		AzureStorageLinkedServiceTypeProperties: &datafactory.AzureStorageLinkedServiceTypeProperties{
 			ConnectionString: &datafactory.SecureString{
 				Value: utils.String(d.Get("connection_string").(string)),
-				Type:  datafactory.TypeSecureString,
+				Type:  datafactory.TypeTypeSecureString,
 			},
 		},
 		Type: datafactory.TypeBasicLinkedServiceTypeAzureTableStorage,

@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -102,7 +103,7 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
 							ValidateFunc:     validation.StringIsJSON,
-							DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+							DiffSuppressFunc: structure.SuppressJsonDiff,
 						},
 						"region": {
 							Type:             pluginsdk.TypeString,

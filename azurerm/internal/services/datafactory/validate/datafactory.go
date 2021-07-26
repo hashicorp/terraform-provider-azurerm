@@ -28,19 +28,3 @@ func DataFactoryName() pluginsdk.SchemaValidateFunc {
 		return warnings, errors
 	}
 }
-
-func DataFactoryManagedPrivateEndpointName() pluginsdk.SchemaValidateFunc {
-	return func(i interface{}, k string) (warnings []string, errors []error) {
-		v, ok := i.(string)
-		if !ok {
-			errors = append(errors, fmt.Errorf("expected %q to be a string", k))
-			return
-		}
-
-		if !regexp.MustCompile(`^[A-Za-z0-9_]+$`).MatchString(v) {
-			errors = append(errors, fmt.Errorf("invalid Data Factory Managed Private Endpoint name, must match the regular expression ^[A-Za-z0-9_]+"))
-		}
-
-		return warnings, errors
-	}
-}

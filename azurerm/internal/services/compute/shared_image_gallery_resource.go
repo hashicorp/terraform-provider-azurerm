@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -18,8 +19,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSharedImageGallery() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceSharedImageGallery() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceSharedImageGalleryCreateUpdate,
 		Read:   resourceSharedImageGalleryRead,
 		Update: resourceSharedImageGalleryCreateUpdate,
@@ -29,16 +30,16 @@ func resourceSharedImageGallery() *pluginsdk.Resource {
 			return err
 		}),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SharedImageGalleryName,
@@ -49,21 +50,21 @@ func resourceSharedImageGallery() *pluginsdk.Resource {
 			"location": azure.SchemaLocation(),
 
 			"description": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 
 			"tags": tags.Schema(),
 
 			"unique_name": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceSharedImageGalleryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageGalleryCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleriesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -120,7 +121,7 @@ func resourceSharedImageGalleryCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceSharedImageGalleryRead(d, meta)
 }
 
-func resourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageGalleryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleriesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,7 +158,7 @@ func resourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceSharedImageGalleryDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageGalleryDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleriesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

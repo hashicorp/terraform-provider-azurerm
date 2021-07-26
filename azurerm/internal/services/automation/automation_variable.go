@@ -40,11 +40,11 @@ func ParseAzureAutomationVariableValue(resource string, input *string) (interfac
 		}
 	} else if value, err = strconv.Unquote(*input); err == nil {
 		actualResource = "azurerm_automation_variable_string"
+	} else if value, err = strconv.ParseBool(*input); err == nil {
+		actualResource = "azurerm_automation_variable_bool"
 	} else if value, err = strconv.ParseInt(*input, 10, 32); err == nil {
 		value = int32(value.(int64))
 		actualResource = "azurerm_automation_variable_int"
-	} else if value, err = strconv.ParseBool(*input); err == nil {
-		actualResource = "azurerm_automation_variable_bool"
 	}
 
 	if actualResource != resource {

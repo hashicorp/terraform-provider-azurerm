@@ -134,17 +134,6 @@ const (
 	FADV_NOREUSE  = 0x5
 )
 
-type RawSockaddrNFCLLCP struct {
-	Sa_family        uint16
-	Dev_idx          uint32
-	Target_idx       uint32
-	Nfc_protocol     uint32
-	Dsap             uint8
-	Ssap             uint8
-	Service_name     [63]uint8
-	Service_name_len uint64
-}
-
 type RawSockaddr struct {
 	Family uint16
 	Data   [14]int8
@@ -178,10 +167,9 @@ type Cmsghdr struct {
 }
 
 const (
-	SizeofSockaddrNFCLLCP = 0x60
-	SizeofIovec           = 0x10
-	SizeofMsghdr          = 0x38
-	SizeofCmsghdr         = 0x10
+	SizeofIovec   = 0x10
+	SizeofMsghdr  = 0x38
+	SizeofCmsghdr = 0x10
 )
 
 const (

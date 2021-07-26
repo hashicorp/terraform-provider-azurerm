@@ -39,12 +39,6 @@ type AccessKeys struct {
 	KeyName *string `json:"keyName,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for AccessKeys.
-func (ak AccessKeys) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // Action represents the filter actions which are allowed for the transformation of a message that have
 // been matched by a filter expression.
 type Action struct {
@@ -500,12 +494,6 @@ type ErrorAdditionalInfo struct {
 	Info interface{} `json:"info,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for ErrorAdditionalInfo.
-func (eai ErrorAdditionalInfo) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // ErrorResponse the resource management error response.
 type ErrorResponse struct {
 	// Error - The error object.
@@ -524,12 +512,6 @@ type ErrorResponseError struct {
 	Details *[]ErrorResponse `json:"details,omitempty"`
 	// AdditionalInfo - READ-ONLY; The error additional info.
 	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ErrorResponseError.
-func (er ErrorResponseError) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // Eventhub single item in List or Get Event Hub operation
@@ -820,12 +802,6 @@ type MessageCountDetails struct {
 	TransferMessageCount *int64 `json:"transferMessageCount,omitempty"`
 	// TransferDeadLetterMessageCount - READ-ONLY; Number of messages transferred into dead letters.
 	TransferDeadLetterMessageCount *int64 `json:"transferDeadLetterMessageCount,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for MessageCountDetails.
-func (mcd MessageCountDetails) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // MigrationConfigListResult the result of the List migrationConfigurations operation.
@@ -1504,12 +1480,6 @@ type OperationDisplay struct {
 	Operation *string `json:"operation,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for OperationDisplay.
-func (o OperationDisplay) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // OperationListResult result of the request to list ServiceBus operations. It contains a list of
 // operations and a URL link to get the next set of results.
 type OperationListResult struct {
@@ -1518,12 +1488,6 @@ type OperationListResult struct {
 	Value *[]Operation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; URL to get the next set of operation list results if there are any.
 	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for OperationListResult.
-func (olr OperationListResult) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // OperationListResultIterator provides access to a complete listing of Operation values.
@@ -1883,12 +1847,6 @@ type PremiumMessagingRegionsProperties struct {
 	FullName *string `json:"fullName,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for PremiumMessagingRegionsProperties.
-func (pmr PremiumMessagingRegionsProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // RegenerateAccessKeyParameters parameters supplied to the Regenerate Authorization Rule operation,
 // specifies which key needs to be reset.
 type RegenerateAccessKeyParameters struct {
@@ -1906,12 +1864,6 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Resource.
-func (r Resource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // ResourceNamespacePatch the Resource definition.
@@ -2715,12 +2667,6 @@ type SBNamespaceProperties struct {
 	ServiceBusEndpoint *string `json:"serviceBusEndpoint,omitempty"`
 	// MetricID - READ-ONLY; Identifier for Azure Insights metrics
 	MetricID *string `json:"metricId,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for SBNamespaceProperties.
-func (snp SBNamespaceProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // SBNamespaceUpdateParameters description of a namespace resource.

@@ -205,7 +205,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "PT5H",
-				ValidateFunc: validate.ISO8601DurationBetween("PT5M", "P14D"),
+				ValidateFunc: validate.ISO8601DurationBetween("PT5M", "PT24H"),
 			},
 
 			"query_period": {

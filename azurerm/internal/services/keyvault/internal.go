@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -57,7 +58,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 		PollInterval:              5 * time.Second,
 		Timeout:                   time.Until(timeout),
 	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for %s to be deleted: %+v", description, err)
 	}
 	log.Printf("[DEBUG] Deleted %s.", description)
@@ -68,7 +69,6 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	}
 
 	log.Printf("[DEBUG] Purging %s..", description)
-	//lintignore:R006
 	err := pluginsdk.Retry(time.Until(timeout), func() *pluginsdk.RetryError {
 		_, err := helper.PurgeNestedItem(ctx)
 		if err == nil {
@@ -103,7 +103,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 		PollInterval:              5 * time.Second,
 		Timeout:                   time.Until(timeout),
 	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for %s to finish purging: %+v", description, err)
 	}
 	log.Printf("[DEBUG] Purged %s.", description)
@@ -134,9 +134,12 @@ func keyVaultChildItemRefreshFunc(secretUri string) pluginsdk.StateRefreshFunc {
 	}
 }
 
-func nestedItemResourceImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+func nestedItemResourceImporter(d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	resourcesClient := meta.(*clients.Client).Resource
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	id, err := parse.ParseNestedItemID(d.Id())
 	if err != nil {
 		return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing ID %q for Key Vault Child import: %v", d.Id(), err)

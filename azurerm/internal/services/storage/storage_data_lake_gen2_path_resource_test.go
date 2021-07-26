@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/paths"
 )
@@ -19,10 +20,10 @@ func TestAccStorageDataLakeGen2Path_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
 	r := StorageDataLakeGen2PathResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -34,10 +35,10 @@ func TestAccStorageDataLakeGen2Path_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
 	r := StorageDataLakeGen2PathResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -49,17 +50,17 @@ func TestAccStorageDataLakeGen2Path_withSimpleACLAndUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
 	r := StorageDataLakeGen2PathResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.withSimpleACL(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.withSimpleACLUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -71,10 +72,10 @@ func TestAccStorageDataLakeGen2Path_withSimpleACL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
 	r := StorageDataLakeGen2PathResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.withSimpleACL(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -86,10 +87,10 @@ func TestAccStorageDataLakeGen2Path_withACLWithSpecificUserAndDefaults(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
 	r := StorageDataLakeGen2PathResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.withACLWithSpecificUserAndDefaults(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -101,10 +102,10 @@ func TestAccStorageDataLakeGen2Path_withOwner(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
 	r := StorageDataLakeGen2PathResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.withOwner(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -112,7 +113,7 @@ func TestAccStorageDataLakeGen2Path_withOwner(t *testing.T) {
 	})
 }
 
-func (r StorageDataLakeGen2PathResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageDataLakeGen2PathResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := paths.ParseResourceID(state.ID)
 	if err != nil {
 		return nil, err

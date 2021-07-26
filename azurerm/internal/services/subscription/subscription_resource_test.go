@@ -75,24 +75,6 @@ func TestAccSubscriptionResource_update(t *testing.T) {
 	})
 }
 
-func TestAccSubscriptionResource_devTest(t *testing.T) {
-	if os.Getenv("ARM_BILLING_ACCOUNT") == "" {
-		t.Skip("skipping tests - no billing account data provided")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_subscription", "test")
-	r := SubscriptionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicEnrollmentAccountDevTest(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (SubscriptionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SubscriptionAliasID(state.ID)
 	if err != nil {
@@ -148,28 +130,6 @@ resource "azurerm_subscription" "test" {
   alias             = "testAcc-%[3]d"
   subscription_name = "testAccSubscription Renamed %[3]d"
   billing_scope_id  = data.azurerm_billing_enrollment_account_scope.test.id
-}
-`, billingAccount, enrollmentAccount, data.RandomInteger)
-}
-
-func (SubscriptionResource) basicEnrollmentAccountDevTest(data acceptance.TestData) string {
-	billingAccount := os.Getenv("ARM_BILLING_ACCOUNT")
-	enrollmentAccount := os.Getenv("ARM_BILLING_ENROLLMENT_ACCOUNT")
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_billing_enrollment_account_scope" "test" {
-  billing_account_name    = "%s"
-  enrollment_account_name = "%s"
-}
-
-resource "azurerm_subscription" "test" {
-  alias             = "testAcc-%[3]d"
-  subscription_name = "testAccSubscription Renamed %[3]d"
-  billing_scope_id  = data.azurerm_billing_enrollment_account_scope.test.id
-  workload          = "DevTest"
 }
 `, billingAccount, enrollmentAccount, data.RandomInteger)
 }

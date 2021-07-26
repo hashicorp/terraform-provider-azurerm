@@ -57,7 +57,6 @@ func TestAccSynapseWorkspace_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("managed_resource_group_name").HasValue(fmt.Sprintf("acctest-ManagedSynapse-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("sql_identity_control_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("data_exfiltration_protection_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("sql_administrator_login_password"),
@@ -207,7 +206,6 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
-  data_exfiltration_protection_enabled = true
   managed_virtual_network_enabled      = true
   managed_resource_group_name          = "acctest-ManagedSynapse-%d"
   sql_identity_control_enabled         = true

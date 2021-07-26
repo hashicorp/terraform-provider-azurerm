@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -15,11 +16,11 @@ func TestAccDataSourceSharedImageVersion_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_version", "test")
 	r := SharedImageVersionDataSource{}
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTest(t, []resource.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
 			Config: SharedImageVersionResource{}.setup(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
@@ -29,7 +30,7 @@ func TestAccDataSourceSharedImageVersion_basic(t *testing.T) {
 		},
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("managed_image_id").Exists(),
 				check.That(data.ResourceName).Key("target_region.#").HasValue("1"),
 				check.That(data.ResourceName).Key("target_region.0.storage_account_type").HasValue("Standard_LRS"),
@@ -42,11 +43,11 @@ func TestAccDataSourceSharedImageVersion_latest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_version", "test")
 	r := SharedImageVersionDataSource{}
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTest(t, []resource.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
 			Config: SharedImageVersionResource{}.setup(data),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
@@ -56,7 +57,7 @@ func TestAccDataSourceSharedImageVersion_latest(t *testing.T) {
 		},
 		{
 			Config: r.customName(data, "latest"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("managed_image_id").Exists(),
 				check.That(data.ResourceName).Key("target_region.#").HasValue("1"),
 				check.That(data.ResourceName).Key("target_region.0.storage_account_type").HasValue("Standard_LRS"),
@@ -69,12 +70,12 @@ func TestAccDataSourceSharedImageVersion_recent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_version", "test")
 	r := SharedImageVersionDataSource{}
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTest(t, []resource.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
 			Config:  SharedImageVersionResource{}.setup(data),
 			Destroy: false,
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
@@ -84,7 +85,7 @@ func TestAccDataSourceSharedImageVersion_recent(t *testing.T) {
 		},
 		{
 			Config: r.customName(data, "recent"),
-			Check: acceptance.ComposeTestCheckFunc(
+			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("managed_image_id").Exists(),
 				check.That(data.ResourceName).Key("target_region.#").HasValue("1"),
 				check.That(data.ResourceName).Key("target_region.0.storage_account_type").HasValue("Standard_LRS"),

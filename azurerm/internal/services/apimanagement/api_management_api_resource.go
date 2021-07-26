@@ -6,13 +6,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/schemaz"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -44,22 +45,19 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 
 			"display_name": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
+				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"path": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
+				Required:     true,
 				ValidateFunc: validate.ApiManagementApiPath,
 			},
 
 			"protocols": {
 				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Computed: true,
+				Required: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -73,12 +71,6 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"revision_description": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -180,12 +172,6 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"source_api_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.ApiID,
-			},
-
 			"oauth2_authorization": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -249,12 +235,6 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"version_description": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"version_set_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -277,17 +257,9 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	apiId := fmt.Sprintf("%s;rev=%s", name, revision)
 	version := d.Get("version").(string)
 	versionSetId := d.Get("version_set_id").(string)
-	displayName := d.Get("display_name").(string)
-	protocolsRaw := d.Get("protocols").(*pluginsdk.Set).List()
-	protocols := expandApiManagementApiProtocols(protocolsRaw)
-	sourceApiId := d.Get("source_api_id").(string)
 
 	if version != "" && versionSetId == "" {
 		return fmt.Errorf("setting `version` without the required `version_set_id`")
-	}
-
-	if sourceApiId == "" && (displayName == "" || protocols == nil || len(*protocols) == 0) {
-		return fmt.Errorf("`display_name`, `protocols` are required when `source_api_id` is not set")
 	}
 
 	if d.IsNewResource() {
@@ -367,8 +339,12 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	description := d.Get("description").(string)
+	displayName := d.Get("display_name").(string)
 	serviceUrl := d.Get("service_url").(string)
 	subscriptionRequired := d.Get("subscription_required").(bool)
+
+	protocolsRaw := d.Get("protocols").(*pluginsdk.Set).List()
+	protocols := expandApiManagementApiProtocols(protocolsRaw)
 
 	subscriptionKeyParameterNamesRaw := d.Get("subscription_key_parameter_names").([]interface{})
 	subscriptionKeyParameterNames := expandApiManagementApiSubscriptionKeyParamNames(subscriptionKeyParameterNamesRaw)
@@ -388,6 +364,7 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			APIType:                       apiType,
 			SoapAPIType:                   soapApiType,
 			Description:                   utils.String(description),
+			DisplayName:                   utils.String(displayName),
 			Path:                          utils.String(path),
 			Protocols:                     protocols,
 			ServiceURL:                    utils.String(serviceUrl),
@@ -395,17 +372,7 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			APIVersion:                    utils.String(version),
 			SubscriptionRequired:          &subscriptionRequired,
 			AuthenticationSettings:        authenticationSettings,
-			APIRevisionDescription:        utils.String(d.Get("revision_description").(string)),
-			APIVersionDescription:         utils.String(d.Get("version_description").(string)),
 		},
-	}
-
-	if sourceApiId != "" {
-		params.APICreateOrUpdateProperties.SourceAPIID = &sourceApiId
-	}
-
-	if displayName != "" {
-		params.APICreateOrUpdateProperties.DisplayName = &displayName
 	}
 
 	if versionSetId != "" {
@@ -482,8 +449,6 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("subscription_required", props.SubscriptionRequired)
 		d.Set("version", props.APIVersion)
 		d.Set("version_set_id", props.APIVersionSetID)
-		d.Set("revision_description", props.APIRevisionDescription)
-		d.Set("version_description", props.APIVersionDescription)
 
 		if err := d.Set("protocols", flattenApiManagementApiProtocols(props.Protocols)); err != nil {
 			return fmt.Errorf("setting `protocols`: %s", err)
@@ -537,9 +502,6 @@ func resourceApiManagementApiDelete(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func expandApiManagementApiProtocols(input []interface{}) *[]apimanagement.Protocol {
-	if len(input) == 0 {
-		return nil
-	}
 	results := make([]apimanagement.Protocol, 0)
 
 	for _, v := range input {

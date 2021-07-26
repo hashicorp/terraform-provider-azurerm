@@ -4,73 +4,73 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func dataSourceStorageManagementPolicy() *schema.Resource {
+	return &schema.Resource{
 		Read: dataSourceStorageManagementPolicyRead,
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"storage_account_id": {
-				Type:     pluginsdk.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 			},
 			"rule": {
-				Type:     pluginsdk.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"enabled": {
-							Type:     pluginsdk.TypeBool,
+							Type:     schema.TypeBool,
 							Computed: true,
 						},
 						"filters": {
-							Type:     pluginsdk.TypeList,
+							Type:     schema.TypeList,
 							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
 									"prefix_match": {
-										Type:     pluginsdk.TypeSet,
+										Type:     schema.TypeSet,
 										Computed: true,
-										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-										Set:      pluginsdk.HashString,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+										Set:      schema.HashString,
 									},
 									"blob_types": {
-										Type:     pluginsdk.TypeSet,
+										Type:     schema.TypeSet,
 										Computed: true,
-										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-										Set:      pluginsdk.HashString,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+										Set:      schema.HashString,
 									},
 
 									"match_blob_index_tag": {
-										Type:     pluginsdk.TypeList,
+										Type:     schema.TypeList,
 										Computed: true,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
 												"name": {
-													Type:     pluginsdk.TypeString,
+													Type:     schema.TypeString,
 													Computed: true,
 												},
 
 												"operation": {
-													Type:     pluginsdk.TypeString,
+													Type:     schema.TypeString,
 													Computed: true,
 												},
 
 												"value": {
-													Type:     pluginsdk.TypeString,
+													Type:     schema.TypeString,
 													Computed: true,
 												},
 											},
@@ -80,66 +80,66 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 							},
 						},
 						"actions": {
-							Type:     pluginsdk.TypeList,
+							Type:     schema.TypeList,
 							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
 									"base_blob": {
-										Type:     pluginsdk.TypeList,
+										Type:     schema.TypeList,
 										Computed: true,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
 												"tier_to_cool_after_days_since_modification_greater_than": {
-													Type:     pluginsdk.TypeInt,
+													Type:     schema.TypeInt,
 													Computed: true,
 												},
 												"tier_to_archive_after_days_since_modification_greater_than": {
-													Type:     pluginsdk.TypeInt,
+													Type:     schema.TypeInt,
 													Computed: true,
 												},
 												"delete_after_days_since_modification_greater_than": {
-													Type:     pluginsdk.TypeInt,
+													Type:     schema.TypeInt,
 													Computed: true,
 												},
 											},
 										},
 									},
 									"snapshot": {
-										Type:     pluginsdk.TypeList,
+										Type:     schema.TypeList,
 										Computed: true,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
 												"change_tier_to_archive_after_days_since_creation": {
-													Type:     pluginsdk.TypeInt,
+													Type:     schema.TypeInt,
 													Computed: true,
 												},
 												"change_tier_to_cool_after_days_since_creation": {
-													Type:     pluginsdk.TypeInt,
+													Type:     schema.TypeInt,
 													Optional: true,
 													Computed: true,
 												},
 												"delete_after_days_since_creation_greater_than": {
-													Type:     pluginsdk.TypeInt,
+													Type:     schema.TypeInt,
 													Computed: true,
 												},
 											},
 										},
 									},
 									"version": {
-										Type:     pluginsdk.TypeList,
+										Type:     schema.TypeList,
 										Computed: true,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
 												"change_tier_to_archive_after_days_since_creation": {
-													Type:     pluginsdk.TypeInt,
+													Type:     schema.TypeInt,
 													Computed: true,
 												},
 												"change_tier_to_cool_after_days_since_creation": {
-													Type:     pluginsdk.TypeInt,
+													Type:     schema.TypeInt,
 													Computed: true,
 												},
 												"delete_after_days_since_creation": {
-													Type:     pluginsdk.TypeInt,
+													Type:     schema.TypeInt,
 													Computed: true,
 												},
 											},
@@ -155,7 +155,7 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageManagementPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.ManagementPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

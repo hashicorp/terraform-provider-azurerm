@@ -5,19 +5,20 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/tables"
 )
 
-func resourceStorageTable() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+func resourceStorageTable() *schema.Resource {
+	return &schema.Resource{
 		Create: resourceStorageTableCreate,
 		Read:   resourceStorageTableRead,
 		Delete: resourceStorageTableDelete,
@@ -30,55 +31,55 @@ func resourceStorageTable() *pluginsdk.Resource {
 			1: migration.TableV1ToV2{},
 		}),
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageTableName,
 			},
 
 			"storage_account_name": {
-				Type:         pluginsdk.TypeString,
+				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageAccountName,
 			},
 
 			"acl": {
-				Type:     pluginsdk.TypeSet,
+				Type:     schema.TypeSet,
 				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:         pluginsdk.TypeString,
+							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringLenBetween(1, 64),
 						},
 						"access_policy": {
-							Type:     pluginsdk.TypeList,
+							Type:     schema.TypeList,
 							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
 									"start": {
-										Type:         pluginsdk.TypeString,
+										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"expiry": {
-										Type:         pluginsdk.TypeString,
+										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"permissions": {
-										Type:         pluginsdk.TypeString,
+										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
@@ -92,14 +93,14 @@ func resourceStorageTable() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableCreate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
 
 	tableName := d.Get("name").(string)
 	accountName := d.Get("storage_account_name").(string)
-	aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
+	aclsRaw := d.Get("acl").(*schema.Set).List()
 	acls := expandStorageTableACLs(aclsRaw)
 
 	account, err := storageClient.FindAccount(ctx, accountName)
@@ -138,7 +139,7 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceStorageTableRead(d, meta)
 }
 
-func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableRead(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +189,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableDelete(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -219,7 +220,7 @@ func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableUpdate(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -245,7 +246,7 @@ func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	if d.HasChange("acl") {
 		log.Printf("[DEBUG] Updating the ACL's for Storage Table %q (Storage Account %q)", id.Name, id.AccountName)
 
-		aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
+		aclsRaw := d.Get("acl").(*schema.Set).List()
 		acls := expandStorageTableACLs(aclsRaw)
 
 		if err := client.UpdateACLs(ctx, account.ResourceGroup, id.AccountName, id.Name, acls); err != nil {
