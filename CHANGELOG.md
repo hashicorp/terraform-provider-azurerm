@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * dependencies: Upgrade `web` (App Service) API to `2021-01-15` [GH-12635]
 * maps: refactoring to use an Embedded SDK [GH-12716]
 * msi: refactoring to use an Embedded SDK [GH-12715]
+* `data_azurerm_storage_account_sas` - add ip_addresses field [GH-12705]
 
 ---
 
