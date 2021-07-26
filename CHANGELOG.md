@@ -1,5 +1,9 @@
 ## 2.70.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource** `azurerm_data_factory_trigger_custom_event` [GH-12448]
+
 ENHANCEMENTS:
 
 * maps: refactoring to use an Embedded SDK [GH-12716]
