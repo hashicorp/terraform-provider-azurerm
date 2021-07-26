@@ -22,6 +22,8 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 		"channel": {
 			"slackBasic":             testAccBotChannelSlack_basic,
 			"slackUpdate":            testAccBotChannelSlack_update,
+			"smsBasic":               testAccBotChannelSMS_basic,
+			"smsRequiresImport":      testAccBotChannelSMS_requiresImport,
 			"msteamsBasic":           testAccBotChannelMsTeams_basic,
 			"msteamsUpdate":          testAccBotChannelMsTeams_update,
 			"directlineBasic":        testAccBotChannelDirectline_basic,
