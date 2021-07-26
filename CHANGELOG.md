@@ -1,3 +1,17 @@
+## 2.70.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource** `azurerm_bot_channel_facebook` [GH-12709]
+* **New Resource** `azurerm_bot_channel_sms` [GH-12713]
+* **New Resource** `azurerm_data_factory_trigger_custom_event` [GH-12448]
+* **New Resource** `azurerm_data_protection_backup_instance_disk` [GH-12617]
+
+ENHANCEMENTS:
+
+* maps: refactoring to use an Embedded SDK [GH-12716]
+* msi: refactoring to use an Embedded SDK [GH-12715]
+
 ## 2.69.0 (July 23, 2021)
 
 FEATURES:

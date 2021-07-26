@@ -22,6 +22,8 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 		"channel": {
 			"slackBasic":                     testAccBotChannelSlack_basic,
 			"slackUpdate":                    testAccBotChannelSlack_update,
+			"smsBasic":                       testAccBotChannelSMS_basic,
+			"smsRequiresImport":              testAccBotChannelSMS_requiresImport,
 			"msteamsBasic":                   testAccBotChannelMsTeams_basic,
 			"msteamsUpdate":                  testAccBotChannelMsTeams_update,
 			"directlineBasic":                testAccBotChannelDirectline_basic,
@@ -31,6 +33,9 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 			"directLineSpeechComplete":       testAccBotChannelDirectLineSpeech_complete,
 			"directLineSpeechUpdate":         testAccBotChannelDirectLineSpeech_update,
 			"directLineSpeechRequiresImport": testAccBotChannelDirectLineSpeech_requiresImport,
+			"facebookBasic":                  testAccBotChannelFacebook_basic,
+			"facebookUpdate":                 testAccBotChannelFacebook_update,
+			"facebookRequiresImport":         testAccBotChannelFacebook_requiresImport,
 			"webchatBasic":                   testAccBotChannelWebChat_basic,
 			"webchatComplete":                testAccBotChannelWebChat_complete,
 			"webchatUpdate":                  testAccBotChannelWebChat_update,

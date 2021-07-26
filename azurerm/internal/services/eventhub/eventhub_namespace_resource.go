@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -112,7 +111,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(eventhub.SystemAssigned),
+								string(namespaces.ManagedServiceIdentityTypeSystemAssigned),
 							}, false),
 						},
 
@@ -144,13 +143,12 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"default_action": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(eventhub.Allow),
-								string(eventhub.Deny),
+								string(networkrulesets.DefaultActionAllow),
+								string(networkrulesets.DefaultActionDeny),
 							}, false),
 						},
 
@@ -201,9 +199,9 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 									"action": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(eventhub.NetworkRuleIPActionAllow),
+										Default:  string(networkrulesets.NetworkRuleIPActionAllow),
 										ValidateFunc: validation.StringInSlice([]string{
-											string(eventhub.NetworkRuleIPActionAllow),
+											string(networkrulesets.NetworkRuleIPActionAllow),
 										}, false),
 									},
 								},
