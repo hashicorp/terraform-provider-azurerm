@@ -4,19 +4,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
-type identityType string
+type Type string
 
 const (
-	none                       identityType = "None"
-	systemAssigned             identityType = "SystemAssigned"
-	userAssigned               identityType = "UserAssigned"
-	systemAssignedUserAssigned identityType = "SystemAssigned, UserAssigned"
+	none                       Type = "None"
+	systemAssigned             Type = "SystemAssigned"
+	userAssigned               Type = "UserAssigned"
+	systemAssignedUserAssigned Type = "SystemAssigned, UserAssigned"
 )
 
 type ExpandedConfig struct {
 	// Type is the type of User Assigned Identity, either `None`, `SystemAssigned`, `UserAssigned`
 	// or `SystemAssigned, UserAssigned`
-	Type                    identityType
+	Type                    Type
 	PrincipalId             *string
 	TenantId                *string
 	UserAssignedIdentityIds *[]string

@@ -23,7 +23,7 @@ func (s SystemAssignedUserAssigned) Expand(input []interface{}) (*ExpandedConfig
 	v := input[0].(map[string]interface{})
 
 	config := &ExpandedConfig{
-		Type: identityType(v["type"].(string)),
+		Type: Type(v["type"].(string)),
 	}
 
 	identityIds := v["identity_ids"].(*pluginsdk.Set).List()
