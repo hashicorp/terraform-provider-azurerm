@@ -112,15 +112,6 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 			"backend_request": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 
 			"backend_response": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
-
-			"operation_name_format": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.Name),
-					string(apimanagement.URL),
-				}, false),
-			},
 		},
 	}
 }
@@ -176,10 +167,6 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	if httpCorrelationProtocol, ok := d.GetOk("http_correlation_protocol"); ok {
 		parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocol(httpCorrelationProtocol.(string))
-	}
-
-	if v, ok := d.GetOk("operation_name_format"); ok {
-		parameters.DiagnosticContractProperties.OperationNameFormat = apimanagement.OperationNameFormat(v.(string))
 	}
 
 	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
@@ -269,8 +256,6 @@ func resourceApiManagementDiagnosticRead(d *pluginsdk.ResourceData, meta interfa
 			d.Set("backend_request", nil)
 			d.Set("backend_response", nil)
 		}
-
-		d.Set("operation_name_format", props.OperationNameFormat)
 	}
 
 	return nil
