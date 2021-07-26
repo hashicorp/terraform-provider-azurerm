@@ -56,8 +56,8 @@ resource "azurerm_bot_channel_line" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   line_registration {
-    channel_access_token = "jqCpHynWsyRB5TOjwz8gnJq4waPsS/4n6/KfCzCvkSz+hXKAGk7Aw2P4RTYGYAKlP2EDSftnGnBj+GhImiIOMMz1S5HXWekicIGcDXU9fck5cr0CSPc6Hn/JrCRxVfZBFX3e6UmecLZByfxlWoRL3gdB04t89/1O/w1cDnyilFU="
-    channel_secret       = "584e95cf94d7c9ff4c29908182916f90"
+    channel_access_token = ""
+    channel_secret       = ""
   }
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))
