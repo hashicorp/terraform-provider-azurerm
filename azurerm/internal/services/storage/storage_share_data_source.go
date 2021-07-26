@@ -7,7 +7,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
@@ -38,25 +37,25 @@ func dataSourceStorageShare() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:         pluginsdk.TypeString,
-							Computed:     true,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 						"access_policy": {
 							Type:     pluginsdk.TypeList,
-							Computed:     true,
+							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"start": {
-										Type:         pluginsdk.TypeString,
-										Computed:     true,
+										Type:     pluginsdk.TypeString,
+										Computed: true,
 									},
 									"expiry": {
-										Type:         pluginsdk.TypeString,
-										Computed:     true,
+										Type:     pluginsdk.TypeString,
+										Computed: true,
 									},
 									"permissions": {
-										Type:         pluginsdk.TypeString,
-										Computed:     true,
+										Type:     pluginsdk.TypeString,
+										Computed: true,
 									},
 								},
 							},
