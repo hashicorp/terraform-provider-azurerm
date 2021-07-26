@@ -138,6 +138,12 @@ The following arguments are supported:
 
 * `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`.
 
+* `function_app_scale_limit` - (Optional) The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.
+
+* `functions_runtime_scale_monitoring_enabled` - (Optional) Should Runtime Scale Monitoring be enabled?. Only applicable to apps on the Premium plan. Defaults to `false`.
+
+* `minimum_elastic_instance_count` - (Optional) The number of minimum instances for this function app. Only applicable to apps on the Premium plan.
+
 * `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this function app. Only affects apps on the Premium plan.
 
 * `cors` - (Optional) A `cors` block as defined below.

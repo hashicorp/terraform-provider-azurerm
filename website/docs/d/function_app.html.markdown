@@ -120,9 +120,15 @@ A `site_config` block exports the following:
 
 * `ftps_state` - State of FTP / FTPS service for this AppService.
 
+* `function_app_scale_limit` - The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.
+
+* `functions_runtime_scale_monitoring_enabled` - Is Runtime Scale Monitoring Enabled on this function app?
+
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
 
 * `java_version` - Java version hosted by the function app in Azure.
+
+* `minimum_elastic_instance_count` - The number of minimum instances for this function app. Only applicable to apps on the Premium plan.
 
 * `pre_warmed_instance_count` - The number of pre-warmed instances for this function app. Only applicable to apps on the Premium plan.
 

@@ -580,6 +580,54 @@ func TestAccFunctionAppSlot_preWarmedInstanceCount(t *testing.T) {
 	})
 }
 
+func TestAccFunctionAppSlot_minimumElasticInstanceCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	r := FunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.minimumElasticInstanceCount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.minimum_elastic_instance_count").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFunctionAppSlot_functionAppScaleLimit(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	r := FunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.functionAppScaleLimit(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.function_app_scale_limit").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFunctionAppSlot_functionsRuntimeScaleMonitoringEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+	r := FunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.functionsRuntimeScaleMonitoringEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.functions_runtime_scale_monitoring_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r FunctionAppSlotResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FunctionAppSlotID(state.ID)
 	if err != nil {
@@ -2177,6 +2225,173 @@ resource "azurerm_function_app_slot" "test" {
 
   site_config {
     pre_warmed_instance_count = "1"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r FunctionAppSlotResource) minimumElasticInstanceCount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "elastic"
+  sku {
+    tier = "ElasticPremium"
+    size = "EP1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+}
+
+resource "azurerm_function_app_slot" "test" {
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    minimum_elastic_instance_count = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r FunctionAppSlotResource) functionAppScaleLimit(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "elastic"
+  sku {
+    tier = "ElasticPremium"
+    size = "EP1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+}
+
+resource "azurerm_function_app_slot" "test" {
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    function_app_scale_limit = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r FunctionAppSlotResource) functionsRuntimeScaleMonitoringEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "elastic"
+  sku {
+    tier = "ElasticPremium"
+    size = "EP1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+}
+
+resource "azurerm_function_app_slot" "test" {
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  version                    = "~3"
+
+  site_config {
+    pre_warmed_instance_count                  = 1
+    functions_runtime_scale_monitoring_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)

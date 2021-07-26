@@ -952,6 +952,54 @@ func TestAccFunctionApp_clientCertMode(t *testing.T) {
 	})
 }
 
+func TestAccFunctionApp_minimumElasticInstanceCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.minimumElasticInstanceCount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.minimum_elastic_instance_count").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFunctionApp_functionAppScaleLimit(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.functionAppScaleLimit(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.function_app_scale_limit").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFunctionApp_functionsRuntimeScaleMonitoringEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.functionsRuntimeScaleMonitoringEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.functions_runtime_scale_monitoring_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r FunctionAppResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FunctionAppID(state.ID)
 	if err != nil {
@@ -3083,4 +3131,141 @@ resource "azurerm_function_app" "test" {
   client_cert_mode           = "%[4]s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, modeValue)
+}
+
+func (r FunctionAppResource) minimumElasticInstanceCount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "elastic"
+
+  sku {
+    tier = "ElasticPremium"
+    size = "EP1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%d-func"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  app_service_plan_id       = azurerm_app_service_plan.test.id
+  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+
+  site_config {
+    minimum_elastic_instance_count = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func (r FunctionAppResource) functionAppScaleLimit(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "elastic"
+
+  sku {
+    tier = "ElasticPremium"
+    size = "EP1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%d-func"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  app_service_plan_id       = azurerm_app_service_plan.test.id
+  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+
+  site_config {
+    function_app_scale_limit = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func (r FunctionAppResource) functionsRuntimeScaleMonitoringEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "elastic"
+
+  sku {
+    tier = "ElasticPremium"
+    size = "EP1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%d-func"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  app_service_plan_id       = azurerm_app_service_plan.test.id
+  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  version                   = "~3"
+
+  site_config {
+    pre_warmed_instance_count                  = 1
+    functions_runtime_scale_monitoring_enabled = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
