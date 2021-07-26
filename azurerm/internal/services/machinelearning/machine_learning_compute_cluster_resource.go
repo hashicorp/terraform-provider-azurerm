@@ -156,13 +156,18 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", *existing.ID)
 	}
 
+	computeClusterAmlComputeProperties := machinelearningservices.AmlComputeProperties{
+		VMSize:        utils.String(d.Get("vm_size").(string)),
+		VMPriority:    machinelearningservices.VMPriority(d.Get("vm_priority").(string)),
+		ScaleSettings: expandScaleSettings(d.Get("scale_settings").([]interface{})),
+	}
+
+	if subnetId, ok := d.GetOk("subnet_resource_id"); ok && subnetId.(string) != "" {
+		computeClusterAmlComputeProperties.Subnet = &machinelearningservices.ResourceID{ID: utils.String(subnetId.(string))}
+	}
+
 	computeClusterProperties := machinelearningservices.AmlCompute{
-		Properties: &machinelearningservices.AmlComputeProperties{
-			VMSize:        utils.String(d.Get("vm_size").(string)),
-			VMPriority:    machinelearningservices.VMPriority(d.Get("vm_priority").(string)),
-			ScaleSettings: expandScaleSettings(d.Get("scale_settings").([]interface{})),
-			Subnet:        &machinelearningservices.ResourceID{ID: utils.String(d.Get("subnet_resource_id").(string))},
-		},
+		Properties:      &computeClusterAmlComputeProperties,
 		ComputeLocation: utils.String(d.Get("location").(string)),
 		Description:     utils.String(d.Get("description").(string)),
 	}
@@ -235,10 +240,14 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("compute resource %s is not an Aml Compute cluster", id.ComputeName)
 	}
 
-	d.Set("vm_size", computeCluster.Properties.VMSize)
-	d.Set("vm_priority", computeCluster.Properties.VMPriority)
-	d.Set("scale_settings", flattenScaleSettings(computeCluster.Properties.ScaleSettings))
-	d.Set("subnet_resource_id", computeCluster.Properties.Subnet.ID)
+	if props := computeCluster.Properties; props != nil {
+		d.Set("vm_size", props.VMSize)
+		d.Set("vm_priority", props.VMPriority)
+		d.Set("scale_settings", flattenScaleSettings(props.ScaleSettings))
+		if props.Subnet != nil {
+			d.Set("subnet_resource_id", props.Subnet.ID)
+		}
+	}
 
 	if location := computeResource.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))

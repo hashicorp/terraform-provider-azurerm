@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 	"reflect"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
 func metadataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {

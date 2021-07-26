@@ -172,6 +172,10 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
 						"identity_ids": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -1039,6 +1043,12 @@ func flattenIdentityProperties(identityProperties *containerregistry.IdentityPro
 			identityIds = append(identityIds, parsedId.ID())
 		}
 		identity["identity_ids"] = identityIds
+	}
+	if identityProperties.PrincipalID != nil {
+		identity["principal_id"] = *identityProperties.PrincipalID
+	}
+	if identityProperties.TenantID != nil {
+		identity["tenant_id"] = *identityProperties.TenantID
 	}
 	return []interface{}{identity}, nil
 }
