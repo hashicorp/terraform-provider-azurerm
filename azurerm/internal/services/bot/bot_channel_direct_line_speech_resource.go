@@ -51,32 +51,31 @@ func resourceBotChannelDirectLineSpeech() *pluginsdk.Resource {
 				ValidateFunc: validate.BotName,
 			},
 
-			"cognitive_service_region": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+			"cognitive_service_location": {
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ValidateFunc:     location.EnhancedValidate,
+				StateFunc:        location.StateFunc,
+				DiffSuppressFunc: location.DiffSuppressFunc,
 			},
 
-			"cognitive_service_subscription_key": {
-				Type:     schema.TypeString,
-				Required: true,
+			"cognitive_service_access_key": {
+				Type:         schema.TypeString,
+				Required:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"custom_speech_model_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"custom_voice_deployment_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"is_default_bot_for_cog_svc_account": {
-				Type:     schema.TypeBool,
-				Optional: true,
 			},
 		},
 	}
@@ -104,10 +103,10 @@ func resourceBotChannelDirectLineSpeechCreate(d *pluginsdk.ResourceData, meta in
 	channel := botservice.BotChannel{
 		Properties: botservice.DirectLineSpeechChannel{
 			Properties: &botservice.DirectLineSpeechChannelProperties{
-				CognitiveServiceRegion: utils.String(d.Get("cognitive_service_region").(string)),
-				CognitiveServiceSubscriptionKey: utils.String(d.Get("cognitive_service_subscription_key").(string)),
-				IsDefaultBotForCogSvcAccount: utils.Bool(d.Get("is_default_bot_for_cog_svc_account").(bool)),
-				IsEnabled:                    utils.Bool(true),
+				CognitiveServiceRegion:          utils.String(d.Get("cognitive_service_location").(string)),
+				CognitiveServiceSubscriptionKey: utils.String(d.Get("cognitive_service_access_key").(string)),
+				IsDefaultBotForCogSvcAccount:    utils.Bool(false),
+				IsEnabled:                       utils.Bool(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameDirectLineSpeechChannel,
 		},
@@ -158,19 +157,11 @@ func resourceBotChannelDirectLineSpeechRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	channelsResp, err := client.ListWithKeys(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineSpeechChannel)
-	if err != nil {
-		return fmt.Errorf("listing keys for %s: %+v", id, err)
-	}
-
-	if props := channelsResp.Properties; props != nil {
+	if props := resp.Properties; props != nil {
 		if channel, ok := props.AsDirectLineSpeechChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
-				d.Set("cognitive_service_region", channelProps.CognitiveServiceRegion)
-				d.Set("cognitive_service_subscription_key", channelProps.CognitiveServiceSubscriptionKey)
 				d.Set("custom_speech_model_id", channelProps.CustomSpeechModelID)
 				d.Set("custom_voice_deployment_id", channelProps.CustomVoiceDeploymentID)
-				d.Set("is_default_bot_for_cog_svc_account", channelProps.IsDefaultBotForCogSvcAccount)
 			}
 		}
 	}
@@ -191,10 +182,10 @@ func resourceBotChannelDirectLineSpeechUpdate(d *pluginsdk.ResourceData, meta in
 	channel := botservice.BotChannel{
 		Properties: botservice.DirectLineSpeechChannel{
 			Properties: &botservice.DirectLineSpeechChannelProperties{
-				CognitiveServiceRegion: utils.String(d.Get("cognitive_service_region").(string)),
-				CognitiveServiceSubscriptionKey: utils.String(d.Get("cognitive_service_subscription_key").(string)),
-				IsDefaultBotForCogSvcAccount: utils.Bool(d.Get("is_default_bot_for_cog_svc_account").(bool)),
-				IsEnabled:                    utils.Bool(true),
+				CognitiveServiceRegion:          utils.String(d.Get("cognitive_service_location").(string)),
+				CognitiveServiceSubscriptionKey: utils.String(d.Get("cognitive_service_access_key").(string)),
+				IsDefaultBotForCogSvcAccount:    utils.Bool(false),
+				IsEnabled:                       utils.Bool(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameDirectLineSpeechChannel,
 		},
