@@ -2,6 +2,8 @@ package bot
 
 import (
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"log"
 	"time"
 
@@ -51,17 +53,21 @@ func resourceBotChannelLine() *pluginsdk.Resource {
 
 			"line_registration": {
 				Type:     pluginsdk.TypeSet,
-				Optional: true,
+				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"channel_access_token": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"channel_secret": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -137,7 +143,12 @@ func resourceBotChannelLineRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if props := resp.Properties; props != nil {
+	channelsResp, err := client.ListWithKeys(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameLineChannel)
+	if err != nil {
+		return fmt.Errorf("listing keys for %s: %+v", *id, err)
+	}
+
+	if props := channelsResp.Properties; props != nil {
 		if channel, ok := props.AsLineChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
 				if err := d.Set("line_registration", flattenLineRegistration(channelProps.LineRegistrations)); err != nil {
@@ -207,6 +218,7 @@ func expandLineRegistration(input []interface{}) *[]botservice.LineRegistration 
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		results = append(results, botservice.LineRegistration{
+			GeneratedID:        utils.String(uuid.New().String()),
 			ChannelSecret:      utils.String(v["channel_secret"].(string)),
 			ChannelAccessToken: utils.String(v["channel_access_token"].(string)),
 		})
