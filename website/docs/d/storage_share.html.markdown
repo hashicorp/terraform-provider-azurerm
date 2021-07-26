@@ -14,7 +14,7 @@ Use this data source to access information about an existing File Share.
 
 ```hcl
 data "azurerm_storage_share" "example" {
-  name = "existing"
+  name                 = "existing"
   storage_account_name = "existing"
 }
 

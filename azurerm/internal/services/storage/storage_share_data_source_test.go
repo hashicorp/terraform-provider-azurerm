@@ -48,9 +48,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                  = "sharedstest-%s"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  quota                 = 120
+  name                 = "sharedstest-%s"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+  quota                = 120
   acl {
     id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
 
