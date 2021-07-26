@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource** `azurerm_bot_channel_facebook` [GH-12709]
 * **New Resource** `azurerm_data_factory_trigger_custom_event` [GH-12448]
 
 ENHANCEMENTS:
