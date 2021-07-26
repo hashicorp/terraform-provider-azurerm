@@ -33,34 +33,30 @@ func dataSourceStorageShare() *pluginsdk.Resource {
 			"metadata": MetaDataComputedSchema(),
 
 			"acl": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringLenBetween(1, 64),
+							Computed:     true,
 						},
 						"access_policy": {
 							Type:     pluginsdk.TypeList,
-							Optional: true,
+							Computed:     true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"start": {
 										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Computed:     true,
 									},
 									"expiry": {
 										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Computed:     true,
 									},
 									"permissions": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Computed:     true,
 									},
 								},
 							},
