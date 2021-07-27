@@ -143,7 +143,7 @@ func (r AppServiceEnvironmentV3Resource) basic(data acceptance.TestData) string 
 resource "azurerm_app_service_environment_v3" "test" {
   name                = "acctest-ase-%d"
   resource_group_name = azurerm_resource_group.test.name
-  subnet_id           = azurerm_subnet.outbound.id
+  subnet_id           = azurerm_subnet.test.id
 }
 `, template, data.RandomInteger)
 }
@@ -155,7 +155,7 @@ func (r AppServiceEnvironmentV3Resource) complete(data acceptance.TestData) stri
 resource "azurerm_app_service_environment_v3" "test" {
   name                         = "acctest-ase-%d"
   resource_group_name          = azurerm_resource_group.test2.name
-  subnet_id                    = azurerm_subnet.outbound.id
+  subnet_id                    = azurerm_subnet.test.id
   internal_load_balancing_mode = "Web, Publishing"
 
   cluster_setting {
@@ -188,7 +188,7 @@ func (r AppServiceEnvironmentV3Resource) completeUpdate(data acceptance.TestData
 resource "azurerm_app_service_environment_v3" "test" {
   name                = "acctest-ase-%d"
   resource_group_name = azurerm_resource_group.test2.name
-  subnet_id           = azurerm_subnet.outbound.id
+  subnet_id           = azurerm_subnet.test.id
 
   cluster_setting {
     name  = "InternalEncryption"
