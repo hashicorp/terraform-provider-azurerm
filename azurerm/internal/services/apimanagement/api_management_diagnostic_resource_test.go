@@ -83,6 +83,28 @@ func TestAccApiManagementDiagnostic_complete(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementDiagnostic_completeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_diagnostic", "test")
+	r := ApiManagementDiagnosticResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ApiManagementDiagnosticResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	diagnosticId, err := parse.DiagnosticID(state.ID)
 	if err != nil {
@@ -226,6 +248,26 @@ resource "azurerm_api_management_diagnostic" "test" {
     body_bytes     = 10
     headers_to_log = ["Content-Type"]
   }
+  operation_name_format = "Name"
+}
+`, r.template(data))
+}
+
+func (r ApiManagementDiagnosticResource) completeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_diagnostic" "test" {
+  identifier                = "applicationinsights"
+  resource_group_name       = azurerm_resource_group.test.name
+  api_management_name       = azurerm_api_management.test.name
+  api_management_logger_id  = azurerm_api_management_logger.test.id
+  sampling_percentage       = 11.1
+  always_log_errors         = false
+  log_client_ip             = false
+  http_correlation_protocol = "Legacy"
+  verbosity                 = "error"
+  operation_name_format     = "Url"
 }
 `, r.template(data))
 }
