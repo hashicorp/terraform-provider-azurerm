@@ -8,13 +8,13 @@ FEATURES:
 * **New Resource** `azurerm_data_factory_trigger_tumbling_window` [GH-12437]
 * **New Resource** `azurerm_data_protection_backup_instance_disk` [GH-12617]
 
-
 ENHANCEMENTS:
 
 * dependencies: Upgrade `web` (App Service) API to `2021-01-15` [GH-12635]
 * maps: refactoring to use an Embedded SDK [GH-12716]
 * msi: refactoring to use an Embedded SDK [GH-12715]
 * `data_azurerm_storage_account_sas` - add ip_addresses field [GH-12705]
+* `azurerm_data_factory_dataset_binary` - the blob `path` and `filename` propeties are now optional [GH-12676]
 
 ---
 
