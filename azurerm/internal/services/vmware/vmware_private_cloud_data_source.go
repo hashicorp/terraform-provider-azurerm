@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/avs/mgmt/2020-03-20/avs"
+	"github.com/hashicorp/go-azure-helpers/response"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/privateclouds"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceVmwarePrivateCloud() *pluginsdk.Resource {
@@ -156,21 +157,23 @@ func dataSourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewPrivateCloudID(subscriptionId, resourceGroup, name).ID()
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	id := privateclouds.NewPrivateCloudID(subscriptionId, resourceGroup, name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("VMware PrivateCloud %q does not exist", name)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("retrieving VMware PrivateCloud %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(id)
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	if props := resp.PrivateCloudProperties; props != nil {
+	d.SetId(id.ID())
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+
+		props := model.Properties
 		if err := d.Set("management_cluster", flattenArmPrivateCloudManagementCluster(props.ManagementCluster)); err != nil {
 			return fmt.Errorf("setting `management_cluster`: %+v", err)
 		}
@@ -178,7 +181,13 @@ func dataSourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{
 		if err := d.Set("circuit", flattenArmPrivateCloudCircuit(props.Circuit)); err != nil {
 			return fmt.Errorf("setting `circuit`: %+v", err)
 		}
-		d.Set("internet_connection_enabled", props.Internet == avs.Enabled)
+
+		internetConnectionEnabled := false
+		if props.Internet != nil {
+			internetConnectionEnabled = *props.Internet == privateclouds.InternetEnumEnabled
+		}
+
+		d.Set("internet_connection_enabled", internetConnectionEnabled)
 		d.Set("hcx_cloud_manager_endpoint", props.Endpoints.HcxCloudManager)
 		d.Set("nsxt_manager_endpoint", props.Endpoints.NsxtManager)
 		d.Set("vcsa_endpoint", props.Endpoints.Vcsa)
@@ -187,11 +196,13 @@ func dataSourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("provisioning_subnet_cidr", props.ProvisioningNetwork)
 		d.Set("vcenter_certificate_thumbprint", props.VcenterCertificateThumbprint)
 		d.Set("vmotion_subnet_cidr", props.VmotionNetwork)
+
+		d.Set("sku_name", model.Sku.Name)
+
+		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			return err
+		}
 	}
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", sku.Name)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
