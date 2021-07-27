@@ -22,7 +22,7 @@ func (u UserAssigned) Expand(input []interface{}) (*ExpandedConfig, error) {
 
 	return &ExpandedConfig{
 		Type:                    userAssigned,
-		UserAssignedIdentityIds: utils.ExpandStringSlice(v["identity_ids"].(*pluginsdk.Set).List()),
+		UserAssignedIdentityIds: *utils.ExpandStringSlice(v["identity_ids"].(*pluginsdk.Set).List()),
 	}, nil
 }
 
@@ -34,7 +34,7 @@ func (u UserAssigned) Flatten(input *ExpandedConfig) []interface{} {
 	return []interface{}{
 		map[string]interface{}{
 			"type":         input.Type,
-			"identity_ids": utils.FlattenStringSlice(input.UserAssignedIdentityIds),
+			"identity_ids": utils.FlattenStringSlice(&input.UserAssignedIdentityIds),
 		},
 	}
 }

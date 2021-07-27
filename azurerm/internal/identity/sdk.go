@@ -19,18 +19,26 @@ var _ ExpandedConfigCaster = &SystemAssignedIdentity{}
 
 type SystemAssignedIdentity struct {
 	Type        string  `json:"type,omitempty"`
-	TenantID    *string `json:"tenantId,omitempty"`
-	PrincipalID *string `json:"principalId,omitempty"`
+	TenantId    *string `json:"tenantId,omitempty"`
+	PrincipalId *string `json:"principalId,omitempty"`
 }
 
 func (s *SystemAssignedIdentity) CastToExpandedConfig() ExpandedConfig {
 	if s == nil {
 		return ExpandedConfig{}
 	}
+	principalId := ""
+	if s.PrincipalId != nil {
+		principalId = *s.PrincipalId
+	}
+	tenantId := ""
+	if s.TenantId != nil {
+		tenantId = *s.TenantId
+	}
 	return ExpandedConfig{
 		Type:        s.Type,
-		PrincipalId: s.PrincipalID,
-		TenantId:    s.TenantID,
+		PrincipalId: principalId,
+		TenantId:    tenantId,
 	}
 }
 
@@ -40,8 +48,8 @@ func (s *SystemAssignedIdentity) CastFromExpandedConfig(config ExpandedConfig) {
 	}
 	*s = SystemAssignedIdentity{
 		Type:        config.Type,
-		TenantID:    config.TenantId,
-		PrincipalID: config.PrincipalId,
+		TenantId:    &config.TenantId,
+		PrincipalId: &config.PrincipalId,
 	}
 }
 
@@ -71,7 +79,7 @@ func (u *UserAssignedIdentityList) CastToExpandedConfig() ExpandedConfig {
 		}
 		identities = append(identities, *id.PrincipalId)
 	}
-	out.UserAssignedIdentityIds = &identities
+	out.UserAssignedIdentityIds = identities
 
 	return out
 }
@@ -84,12 +92,12 @@ func (u *UserAssignedIdentityList) CastFromExpandedConfig(config ExpandedConfig)
 		Type: config.Type,
 	}
 
-	if config.UserAssignedIdentityIds == nil {
+	if len(config.UserAssignedIdentityIds) == 0 {
 		return
 	}
 
 	var identities []userAssignedIdentity
-	for _, id := range *config.UserAssignedIdentityIds {
+	for _, id := range config.UserAssignedIdentityIds {
 		identities = append(identities, userAssignedIdentity{
 			ResourceId: &id,
 		})
@@ -117,9 +125,7 @@ func (u *UserAssignedIdentityMap) CastToExpandedConfig() ExpandedConfig {
 		identities = append(identities, k)
 	}
 
-	if len(identities) > 0 {
-		out.UserAssignedIdentityIds = &identities
-	}
+	out.UserAssignedIdentityIds = identities
 
 	return out
 }
@@ -133,12 +139,12 @@ func (u *UserAssignedIdentityMap) CastFromExpandedConfig(config ExpandedConfig) 
 		Type: config.Type,
 	}
 
-	if config.UserAssignedIdentityIds == nil {
+	if len(config.UserAssignedIdentityIds) == 0 {
 		return
 	}
 
 	u.UserAssignedIdentities = map[string]*userAssignedIdentityInfo{}
-	for _, id := range *config.UserAssignedIdentityIds {
+	for _, id := range config.UserAssignedIdentityIds {
 		// The user assigned identity information is not used by the provider. So simply assign the value to nil.
 		u.UserAssignedIdentities[id] = nil
 	}
@@ -157,11 +163,19 @@ func (s *SystemUserAssignedIdentityList) CastToExpandedConfig() ExpandedConfig {
 	if s == nil {
 		return ExpandedConfig{}
 	}
+	principalId := ""
+	if s.PrincipalId != nil {
+		principalId = *s.PrincipalId
+	}
+	tenantId := ""
+	if s.TenantId != nil {
+		tenantId = *s.TenantId
+	}
 
 	out := ExpandedConfig{
 		Type:        s.Type,
-		PrincipalId: s.PrincipalId,
-		TenantId:    s.TenantId,
+		PrincipalId: principalId,
+		TenantId:    tenantId,
 	}
 
 	if s.UserAssignedIdentities == nil {
@@ -175,7 +189,7 @@ func (s *SystemUserAssignedIdentityList) CastToExpandedConfig() ExpandedConfig {
 		}
 		identities = append(identities, *id.ResourceId)
 	}
-	out.UserAssignedIdentityIds = &identities
+	out.UserAssignedIdentityIds = identities
 
 	return out
 }
@@ -187,16 +201,16 @@ func (s *SystemUserAssignedIdentityList) CastFromExpandedConfig(config ExpandedC
 
 	*s = SystemUserAssignedIdentityList{
 		Type:        config.Type,
-		TenantId:    config.TenantId,
-		PrincipalId: config.PrincipalId,
+		TenantId:    &config.TenantId,
+		PrincipalId: &config.PrincipalId,
 	}
 
-	if config.UserAssignedIdentityIds == nil {
+	if len(config.UserAssignedIdentityIds) == 0 {
 		return
 	}
 
 	var identities []userAssignedIdentity
-	for _, id := range *config.UserAssignedIdentityIds {
+	for _, id := range config.UserAssignedIdentityIds {
 		identities = append(identities, userAssignedIdentity{
 			ResourceId: &id,
 		})
@@ -217,20 +231,26 @@ func (s *SystemUserAssignedIdentityMap) CastToExpandedConfig() ExpandedConfig {
 	if s == nil {
 		return ExpandedConfig{}
 	}
+	principalId := ""
+	if s.PrincipalId != nil {
+		principalId = *s.PrincipalId
+	}
+	tenantId := ""
+	if s.TenantId != nil {
+		tenantId = *s.TenantId
+	}
 
 	out := ExpandedConfig{
 		Type:        s.Type,
-		PrincipalId: s.PrincipalId,
-		TenantId:    s.TenantId,
+		PrincipalId: principalId,
+		TenantId:    tenantId,
 	}
 
 	var identities []string
 	for k := range s.UserAssignedIdentities {
 		identities = append(identities, k)
 	}
-	if len(identities) > 0 {
-		out.UserAssignedIdentityIds = &identities
-	}
+	out.UserAssignedIdentityIds = identities
 
 	return out
 }
@@ -242,16 +262,16 @@ func (s *SystemUserAssignedIdentityMap) CastFromExpandedConfig(config ExpandedCo
 
 	*s = SystemUserAssignedIdentityMap{
 		Type:        config.Type,
-		TenantId:    config.TenantId,
-		PrincipalId: config.PrincipalId,
+		TenantId:    &config.TenantId,
+		PrincipalId: &config.PrincipalId,
 	}
 
-	if config.UserAssignedIdentityIds == nil {
+	if len(config.UserAssignedIdentityIds) == 0 {
 		return
 	}
 
 	s.UserAssignedIdentities = map[string]*userAssignedIdentityInfo{}
-	for _, id := range *config.UserAssignedIdentityIds {
+	for _, id := range config.UserAssignedIdentityIds {
 		// The user assigned identity information is not used by the provider. So simply assign the value to nil.
 		s.UserAssignedIdentities[id] = nil
 	}
