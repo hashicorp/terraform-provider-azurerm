@@ -56,14 +56,86 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 			},
 		},
 
+		"dedicated_host_count": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"dns_suffix": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"pricing_tier": {
 			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"inbound_network_dependencies": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"description": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"ip_addresses": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"ports": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
+			},
+		},
+
+		"internal_load_balancing_mode": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"ip_ssl_address_count": {
+			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
 
 		"location": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+		},
+
+		"windows_outbound_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"linux_outbound_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"zone_redundant": {
+			Type:     pluginsdk.TypeBool,
+			ForceNew: true,
+			Optional: true,
+			Default:  false,
 		},
 
 		"tags": tags.SchemaDataSource(),
@@ -111,11 +183,32 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 				if props.VirtualNetwork != nil {
 					model.SubnetId = utils.NormalizeNilableString(props.VirtualNetwork.ID)
 				}
-
+				model.InternalLoadBalancingMode = string(props.InternalLoadBalancingMode)
+				model.DedicatedHostCount = int(utils.NormaliseNilableInt32(props.DedicatedHostCount))
 				model.PricingTier = utils.NormalizeNilableString(props.MultiSize)
-
 				model.ClusterSetting = flattenClusterSettingsModel(props.ClusterSettings)
+				model.DnsSuffix = utils.NormalizeNilableString(props.DNSSuffix)
+				model.IpSSLAddressCount = int(utils.NormaliseNilableInt32(existing.IpsslAddressCount))
+				// model.ZoneRedundant = *props.ZoneRedundant
 			}
+
+			existingNetwork, err := client.GetAseV3NetworkingConfiguration(ctx, id.ResourceGroup, id.HostingEnvironmentName)
+			if err != nil {
+				return fmt.Errorf("reading network configuration for %s: %+v", id, err)
+			}
+
+			if props := existingNetwork.AseV3NetworkingConfigurationProperties; props != nil {
+				model.WindowsOutboundIPAddresses = *props.WindowsOutboundIPAddresses
+				model.LinuxOutboundIPAddresses = *props.LinuxOutboundIPAddresses
+				model.AllowNewPrivateEndpointConnections = *props.AllowNewPrivateEndpointConnections
+			}
+
+			inboundNetworkDependencies := &[]AppServiceV3InboundDependencies{}
+			inboundNetworkDependencies, err = flattenInboundNetworkDependencies(ctx, client, &id)
+			if err != nil {
+				return err
+			}
+			model.InboundNetworkDependencies = *inboundNetworkDependencies
 
 			model.Tags = tags.Flatten(existing.Tags)
 
