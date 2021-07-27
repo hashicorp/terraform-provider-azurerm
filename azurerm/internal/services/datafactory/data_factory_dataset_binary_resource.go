@@ -122,12 +122,12 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 						},
 						"path": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
