@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * msi: refactoring to use an Embedded SDK [GH-12715]
 * `data_azurerm_storage_account_sas` - add ip_addresses field [GH-12705]
 * `azurerm_data_factory_dataset_binary` - the blob `path` and `filename` propeties are now optional [GH-12676]
+* `azurerm_data_factory_trigger_blob_event` - supprot for the `activation` property [GH-12644]
 
 ---
 
