@@ -264,11 +264,11 @@ func resourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("location", location.Normalize(model.Location))
 		props := model.Properties
 
-		if err := d.Set("management_cluster", flattenArmPrivateCloudManagementCluster(props.ManagementCluster)); err != nil {
+		if err := d.Set("management_cluster", flattenPrivateCloudManagementCluster(props.ManagementCluster)); err != nil {
 			return fmt.Errorf("setting `management_cluster`: %+v", err)
 		}
 		d.Set("network_subnet_cidr", props.NetworkBlock)
-		if err := d.Set("circuit", flattenArmPrivateCloudCircuit(props.Circuit)); err != nil {
+		if err := d.Set("circuit", flattenPrivateCloudCircuit(props.Circuit)); err != nil {
 			return fmt.Errorf("setting `circuit`: %+v", err)
 		}
 
@@ -355,45 +355,4 @@ func resourceVmwarePrivateCloudDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	return nil
-}
-
-func flattenArmPrivateCloudManagementCluster(input privateclouds.ManagementCluster) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
-			"size":  input.ClusterSize,
-			"id":    input.ClusterId,
-			"hosts": utils.FlattenStringSlice(input.Hosts),
-		},
-	}
-}
-
-func flattenArmPrivateCloudCircuit(input *privateclouds.Circuit) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var expressRouteId string
-	if input.ExpressRouteID != nil {
-		expressRouteId = *input.ExpressRouteID
-	}
-	var expressRoutePrivatePeeringId string
-	if input.ExpressRoutePrivatePeeringID != nil {
-		expressRoutePrivatePeeringId = *input.ExpressRoutePrivatePeeringID
-	}
-	var primarySubnet string
-	if input.PrimarySubnet != nil {
-		primarySubnet = *input.PrimarySubnet
-	}
-	var secondarySubnet string
-	if input.SecondarySubnet != nil {
-		secondarySubnet = *input.SecondarySubnet
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"express_route_id":                 expressRouteId,
-			"express_route_private_peering_id": expressRoutePrivatePeeringId,
-			"primary_subnet_cidr":              primarySubnet,
-			"secondary_subnet_cidr":            secondarySubnet,
-		},
-	}
 }

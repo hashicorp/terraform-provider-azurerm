@@ -174,11 +174,11 @@ func dataSourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("location", location.Normalize(model.Location))
 
 		props := model.Properties
-		if err := d.Set("management_cluster", flattenArmPrivateCloudManagementCluster(props.ManagementCluster)); err != nil {
+		if err := d.Set("management_cluster", flattenPrivateCloudManagementCluster(props.ManagementCluster)); err != nil {
 			return fmt.Errorf("setting `management_cluster`: %+v", err)
 		}
 		d.Set("network_subnet_cidr", props.NetworkBlock)
-		if err := d.Set("circuit", flattenArmPrivateCloudCircuit(props.Circuit)); err != nil {
+		if err := d.Set("circuit", flattenPrivateCloudCircuit(props.Circuit)); err != nil {
 			return fmt.Errorf("setting `circuit`: %+v", err)
 		}
 
