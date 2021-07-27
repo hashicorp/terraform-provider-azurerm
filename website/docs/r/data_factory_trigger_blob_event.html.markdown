@@ -45,6 +45,7 @@ resource "azurerm_data_factory_trigger_blob_event" "example" {
   events              = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobDeleted"]
   blob_path_ends_with = ".txt"
   ignore_empty_blobs  = true
+  activated           = true
 
   annotations = ["test1", "test2", "test3"]
   description = "example description"
@@ -76,6 +77,8 @@ The following arguments are supported:
 * `events` - (Required) List of events that will fire this trigger. Possible values are `Microsoft.Storage.BlobCreated` and `Microsoft.Storage.BlobDeleted`.
 
 * `pipeline` - (Required) One or more `pipeline` blocks as defined below.
+
+* `activated` - (Optional) Specifies if the Data Factory Blob Event Trigger is activated. Defaults to `true`.
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Blob Event Trigger.
 
