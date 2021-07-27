@@ -93,41 +93,15 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(1, 50),
 			},
 
-			"elapsed_time_metric_duration": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
-
 			"folder": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"run_dimension": {
-				Type:     pluginsdk.TypeSet,
+			"moniter_metrics_after_duration": {
+				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"value": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"dynamic_value_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-					},
-				},
 			},
 		},
 	}
@@ -158,10 +132,9 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	pipeline := &datafactory.Pipeline{
-		Parameters:    expandDataFactoryParameters(d.Get("parameters").(map[string]interface{})),
-		Variables:     expandDataFactoryVariables(d.Get("variables").(map[string]interface{})),
-		RunDimensions: expandDataFactoryPipelineRunDimension(d.Get("run_dimension").(*pluginsdk.Set).List()),
-		Description:   utils.String(d.Get("description").(string)),
+		Parameters:  expandDataFactoryParameters(d.Get("parameters").(map[string]interface{})),
+		Variables:   expandDataFactoryVariables(d.Get("variables").(map[string]interface{})),
+		Description: utils.String(d.Get("description").(string)),
 	}
 
 	if v, ok := d.GetOk("activities_json"); ok {
@@ -184,7 +157,7 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		pipeline.Concurrency = utils.Int32(int32(v.(int)))
 	}
 
-	if v, ok := d.GetOk("elapsed_time_metric_duration"); ok {
+	if v, ok := d.GetOk("moniter_metrics_after_duration"); ok {
 		pipeline.Policy = &datafactory.PipelinePolicy{
 			ElapsedTimeMetric: &datafactory.PipelineElapsedTimeMetricPolicy{
 				Duration: v.(string),
@@ -272,7 +245,7 @@ func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}
 				elapsedTimeMetricDuration = v
 			}
 		}
-		d.Set("elapsed_time_metric_duration", elapsedTimeMetricDuration)
+		d.Set("moniter_metrics_after_duration", elapsedTimeMetricDuration)
 
 		if folder := props.Folder; folder != nil {
 			if folder.Name != nil {
@@ -293,10 +266,6 @@ func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}
 			if err := d.Set("activities_json", activitiesJson); err != nil {
 				return fmt.Errorf("setting `activities_json`: %+v", err)
 			}
-		}
-
-		if err := d.Set("run_dimension", flattenDataFactoryPipelineRunDimension(props.RunDimensions)); err != nil {
-			return fmt.Errorf("setting `run_dimension`: %+v", err)
 		}
 	}
 
@@ -321,38 +290,4 @@ func resourceDataFactoryPipelineDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return nil
-}
-
-func expandDataFactoryPipelineRunDimension(input []interface{}) map[string]interface{} {
-	if len(input) == 0 {
-		return nil
-	}
-
-	result := make(map[string]interface{})
-	for _, item := range input {
-		raw := item.(map[string]interface{})
-
-		name := raw["name"].(string)
-		value := raw["value"].(string)
-		isDynamic := raw["dynamic_value_enabled"].(bool)
-		result[name] = expandDataFactoryExpressionResultType(value, isDynamic)
-	}
-	return result
-}
-
-func flattenDataFactoryPipelineRunDimension(input map[string]interface{}) []interface{} {
-	if len(input) == 0 {
-		return []interface{}{}
-	}
-
-	result := make([]interface{}, 0)
-	for k, v := range input {
-		value, dynamicValueEnabled := flattenDataFactoryExpressionResultType(v)
-		result = append(result, map[string]interface{}{
-			"name":                  k,
-			"value":                 value,
-			"dynamic_value_enabled": dynamicValueEnabled,
-		})
-	}
-	return result
 }
