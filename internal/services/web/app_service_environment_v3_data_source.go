@@ -133,9 +133,7 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 
 		"zone_redundant": {
 			Type:     pluginsdk.TypeBool,
-			ForceNew: true,
-			Optional: true,
-			Default:  false,
+			Computed: true,
 		},
 
 		"tags": tags.SchemaDataSource(),
