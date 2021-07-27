@@ -3,17 +3,18 @@ package client
 import (
 	"github.com/Azure/azure-sdk-for-go/services/avs/mgmt/2020-03-20/avs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/authorizations"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/clusters"
 )
 
 type Client struct {
-	AuthorizationClient *avs.AuthorizationsClient
+	AuthorizationClient *authorizations.AuthorizationsClient
 	ClusterClient       *clusters.ClustersClient
 	PrivateCloudClient  *avs.PrivateCloudsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	authorizationClient := avs.NewAuthorizationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	authorizationClient := authorizations.NewAuthorizationsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&authorizationClient.Client, o.ResourceManagerAuthorizer)
 
 	clusterClient := clusters.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint)

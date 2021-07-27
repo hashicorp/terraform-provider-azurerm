@@ -5,7 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/avs/mgmt/2020-03-20/avs"
+	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/privateclouds"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/authorizations"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/parse"
@@ -13,7 +17,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceVmwareExpressRouteAuthorization() *pluginsdk.Resource {
@@ -29,7 +32,7 @@ func resourceVmwareExpressRouteAuthorization() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ExpressRouteAuthorizationID(id)
+			_, err := authorizations.ParseAuthorizationID(id)
 			return err
 		}),
 
@@ -61,6 +64,7 @@ func resourceVmwareExpressRouteAuthorization() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceVmwareExpressRouteAuthorizationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Vmware.AuthorizationClient
@@ -68,32 +72,26 @@ func resourceVmwareExpressRouteAuthorizationCreate(d *pluginsdk.ResourceData, me
 	defer cancel()
 
 	name := d.Get("name").(string)
-	privateCloudId, err := parse.PrivateCloudID(d.Get("private_cloud_id").(string))
+	privateCloudId, err := privateclouds.ParsePrivateCloudID(d.Get("private_cloud_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewExpressRouteAuthorizationID(subscriptionId, privateCloudId.ResourceGroup, privateCloudId.Name, name)
-
-	existing, err := client.Get(ctx, id.ResourceGroup, id.PrivateCloudName, id.AuthorizationName)
+	id := authorizations.NewAuthorizationID(subscriptionId, privateCloudId.ResourceGroup, privateCloudId.Name, name)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing %q : %+v", id.ID(), err)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_vmware_express_route_authorization", id.ID())
 	}
 
-	props := avs.ExpressRouteAuthorization{}
+	props := authorizations.ExpressRouteAuthorization{}
 
-	future, err := client.CreateOrUpdate(ctx, privateCloudId.ResourceGroup, privateCloudId.Name, name, props)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, props); err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the creation of the %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -106,27 +104,32 @@ func resourceVmwareExpressRouteAuthorizationRead(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ExpressRouteAuthorizationID(d.Id())
+	id, err := authorizations.ParseAuthorizationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.PrivateCloudName, id.AuthorizationName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] avs %q does not exist - removing from state", d.Id())
+		if !response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %q: %+v", id, err)
+
+		return fmt.Errorf("retrieving %q: %+v", *id, err)
 	}
 
-	d.Set("name", id.AuthorizationName)
+	d.Set("name", id.Name)
 	d.Set("private_cloud_id", parse.NewPrivateCloudID(subscriptionId, id.ResourceGroup, id.PrivateCloudName).ID())
-	if props := resp.ExpressRouteAuthorizationProperties; props != nil {
-		d.Set("express_route_authorization_id", props.ExpressRouteAuthorizationID)
-		d.Set("express_route_authorization_key", props.ExpressRouteAuthorizationKey)
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("express_route_authorization_id", props.ExpressRouteAuthorizationId)
+			d.Set("express_route_authorization_key", props.ExpressRouteAuthorizationKey)
+		}
 	}
+
 	return nil
 }
 
@@ -135,18 +138,14 @@ func resourceVmwareExpressRouteAuthorizationDelete(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ExpressRouteAuthorizationID(d.Id())
+	id, err := authorizations.ParseAuthorizationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.PrivateCloudName, id.AuthorizationName)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of the %q: %+v", id, err)
-	}
 	return nil
 }
