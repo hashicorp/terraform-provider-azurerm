@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice"
 
 // AccessProfile profile for enabling a user to access a managed cluster.
 type AccessProfile struct {
@@ -651,6 +651,26 @@ type DiagnosticsProfile struct {
 	VMDiagnostics *VMDiagnostics `json:"vmDiagnostics,omitempty"`
 }
 
+// EndpointDependency a domain name that AKS agent nodes are reaching at.
+type EndpointDependency struct {
+	// DomainName - The domain name of the dependency.
+	DomainName *string `json:"domainName,omitempty"`
+	// EndpointDetails - The Ports and Protocols used when connecting to domainName.
+	EndpointDetails *[]EndpointDetail `json:"endpointDetails,omitempty"`
+}
+
+// EndpointDetail connect information from the AKS agent nodes to a single endpoint.
+type EndpointDetail struct {
+	// IPAddress - An IP Address that Domain Name currently resolves to.
+	IPAddress *string `json:"ipAddress,omitempty"`
+	// Port - The port an endpoint is connected to.
+	Port *int32 `json:"port,omitempty"`
+	// Protocol - The protocol used for connection
+	Protocol *string `json:"protocol,omitempty"`
+	// Description - Description of the detail
+	Description *string `json:"description,omitempty"`
+}
+
 // ExtendedLocation the complex type of the extended location.
 type ExtendedLocation struct {
 	// Name - The name of the extended location.
@@ -1264,7 +1284,7 @@ type ManagedClusterAddonProfileIdentity struct {
 type ManagedClusterAgentPoolProfile struct {
 	// Name - Unique name of the agent pool profile in the context of the subscription and resource group.
 	Name *string `json:"name,omitempty"`
-	// Count - Number of agents (VMs) to host docker containers. Allowed values must be in the range of 0 to 100 (inclusive) for user pools and in the range of 1 to 100 (inclusive) for system pools. The default value is 1.
+	// Count - Number of agents (VMs) to host docker containers. Allowed values must be in the range of 0 to 1000 (inclusive) for user pools and in the range of 1 to 1000 (inclusive) for system pools. The default value is 1.
 	Count *int32 `json:"count,omitempty"`
 	// VMSize - Size of agent VMs.
 	VMSize *string `json:"vmSize,omitempty"`
@@ -1330,6 +1350,8 @@ type ManagedClusterAgentPoolProfile struct {
 	LinuxOSConfig *LinuxOSConfig `json:"linuxOSConfig,omitempty"`
 	// EnableEncryptionAtHost - Whether to enable EncryptionAtHost
 	EnableEncryptionAtHost *bool `json:"enableEncryptionAtHost,omitempty"`
+	// EnableUltraSSD - Whether to enable UltraSSD
+	EnableUltraSSD *bool `json:"enableUltraSSD,omitempty"`
 	// EnableFIPS - Whether to use FIPS enabled OS
 	EnableFIPS *bool `json:"enableFIPS,omitempty"`
 	// GpuInstanceProfile - GPUInstanceProfile to be used to specify GPU MIG instance profile for supported GPU VM SKU. Supported values are MIG1g, MIG2g, MIG3g, MIG4g and MIG7g. Possible values include: 'GPUInstanceProfileMIG1g', 'GPUInstanceProfileMIG2g', 'GPUInstanceProfileMIG3g', 'GPUInstanceProfileMIG4g', 'GPUInstanceProfileMIG7g'
@@ -1432,6 +1454,9 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	if mcapp.EnableEncryptionAtHost != nil {
 		objectMap["enableEncryptionAtHost"] = mcapp.EnableEncryptionAtHost
 	}
+	if mcapp.EnableUltraSSD != nil {
+		objectMap["enableUltraSSD"] = mcapp.EnableUltraSSD
+	}
 	if mcapp.EnableFIPS != nil {
 		objectMap["enableFIPS"] = mcapp.EnableFIPS
 	}
@@ -1443,7 +1468,7 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 
 // ManagedClusterAgentPoolProfileProperties properties for the container service agent pool profile.
 type ManagedClusterAgentPoolProfileProperties struct {
-	// Count - Number of agents (VMs) to host docker containers. Allowed values must be in the range of 0 to 100 (inclusive) for user pools and in the range of 1 to 100 (inclusive) for system pools. The default value is 1.
+	// Count - Number of agents (VMs) to host docker containers. Allowed values must be in the range of 0 to 1000 (inclusive) for user pools and in the range of 1 to 1000 (inclusive) for system pools. The default value is 1.
 	Count *int32 `json:"count,omitempty"`
 	// VMSize - Size of agent VMs.
 	VMSize *string `json:"vmSize,omitempty"`
@@ -1509,6 +1534,8 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	LinuxOSConfig *LinuxOSConfig `json:"linuxOSConfig,omitempty"`
 	// EnableEncryptionAtHost - Whether to enable EncryptionAtHost
 	EnableEncryptionAtHost *bool `json:"enableEncryptionAtHost,omitempty"`
+	// EnableUltraSSD - Whether to enable UltraSSD
+	EnableUltraSSD *bool `json:"enableUltraSSD,omitempty"`
 	// EnableFIPS - Whether to use FIPS enabled OS
 	EnableFIPS *bool `json:"enableFIPS,omitempty"`
 	// GpuInstanceProfile - GPUInstanceProfile to be used to specify GPU MIG instance profile for supported GPU VM SKU. Supported values are MIG1g, MIG2g, MIG3g, MIG4g and MIG7g. Possible values include: 'GPUInstanceProfileMIG1g', 'GPUInstanceProfileMIG2g', 'GPUInstanceProfileMIG3g', 'GPUInstanceProfileMIG4g', 'GPUInstanceProfileMIG7g'
@@ -1608,6 +1635,9 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	if mcappp.EnableEncryptionAtHost != nil {
 		objectMap["enableEncryptionAtHost"] = mcappp.EnableEncryptionAtHost
 	}
+	if mcappp.EnableUltraSSD != nil {
+		objectMap["enableUltraSSD"] = mcappp.EnableUltraSSD
+	}
 	if mcappp.EnableFIPS != nil {
 		objectMap["enableFIPS"] = mcappp.EnableFIPS
 	}
@@ -1625,6 +1655,8 @@ type ManagedClusterAPIServerAccessProfile struct {
 	EnablePrivateCluster *bool `json:"enablePrivateCluster,omitempty"`
 	// PrivateDNSZone - Private dns zone mode for private cluster.
 	PrivateDNSZone *string `json:"privateDNSZone,omitempty"`
+	// EnablePrivateClusterPublicFQDN - Whether to create additional public FQDN for private cluster or not.
+	EnablePrivateClusterPublicFQDN *bool `json:"enablePrivateClusterPublicFQDN,omitempty"`
 }
 
 // ManagedClusterAutoUpgradeProfile auto upgrade profile for a managed cluster.
@@ -2859,6 +2891,183 @@ type OSOptionProperty struct {
 type OSOptionPropertyList struct {
 	// OsOptionPropertyList - The list of OS option properties.
 	OsOptionPropertyList *[]OSOptionProperty `json:"osOptionPropertyList,omitempty"`
+}
+
+// OutboundEnvironmentEndpoint egress endpoints which AKS agent nodes connect to for common purpose.
+type OutboundEnvironmentEndpoint struct {
+	// Category - The category of endpoints accessed by the AKS agent node, e.g. azure-resource-management, apiserver, etc.
+	Category *string `json:"category,omitempty"`
+	// Endpoints - The endpoints that AKS agent nodes connect to
+	Endpoints *[]EndpointDependency `json:"endpoints,omitempty"`
+}
+
+// OutboundEnvironmentEndpointCollection collection of OutboundEnvironmentEndpoint
+type OutboundEnvironmentEndpointCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of resources.
+	Value *[]OutboundEnvironmentEndpoint `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to next page of resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OutboundEnvironmentEndpointCollection.
+func (oeec OutboundEnvironmentEndpointCollection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if oeec.Value != nil {
+		objectMap["value"] = oeec.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// OutboundEnvironmentEndpointCollectionIterator provides access to a complete listing of
+// OutboundEnvironmentEndpoint values.
+type OutboundEnvironmentEndpointCollectionIterator struct {
+	i    int
+	page OutboundEnvironmentEndpointCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *OutboundEnvironmentEndpointCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/OutboundEnvironmentEndpointCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *OutboundEnvironmentEndpointCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter OutboundEnvironmentEndpointCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter OutboundEnvironmentEndpointCollectionIterator) Response() OutboundEnvironmentEndpointCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter OutboundEnvironmentEndpointCollectionIterator) Value() OutboundEnvironmentEndpoint {
+	if !iter.page.NotDone() {
+		return OutboundEnvironmentEndpoint{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the OutboundEnvironmentEndpointCollectionIterator type.
+func NewOutboundEnvironmentEndpointCollectionIterator(page OutboundEnvironmentEndpointCollectionPage) OutboundEnvironmentEndpointCollectionIterator {
+	return OutboundEnvironmentEndpointCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (oeec OutboundEnvironmentEndpointCollection) IsEmpty() bool {
+	return oeec.Value == nil || len(*oeec.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (oeec OutboundEnvironmentEndpointCollection) hasNextLink() bool {
+	return oeec.NextLink != nil && len(*oeec.NextLink) != 0
+}
+
+// outboundEnvironmentEndpointCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (oeec OutboundEnvironmentEndpointCollection) outboundEnvironmentEndpointCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if !oeec.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(oeec.NextLink)))
+}
+
+// OutboundEnvironmentEndpointCollectionPage contains a page of OutboundEnvironmentEndpoint values.
+type OutboundEnvironmentEndpointCollectionPage struct {
+	fn   func(context.Context, OutboundEnvironmentEndpointCollection) (OutboundEnvironmentEndpointCollection, error)
+	oeec OutboundEnvironmentEndpointCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *OutboundEnvironmentEndpointCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/OutboundEnvironmentEndpointCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.oeec)
+		if err != nil {
+			return err
+		}
+		page.oeec = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *OutboundEnvironmentEndpointCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page OutboundEnvironmentEndpointCollectionPage) NotDone() bool {
+	return !page.oeec.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page OutboundEnvironmentEndpointCollectionPage) Response() OutboundEnvironmentEndpointCollection {
+	return page.oeec
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page OutboundEnvironmentEndpointCollectionPage) Values() []OutboundEnvironmentEndpoint {
+	if page.oeec.IsEmpty() {
+		return nil
+	}
+	return *page.oeec.Value
+}
+
+// Creates a new instance of the OutboundEnvironmentEndpointCollectionPage type.
+func NewOutboundEnvironmentEndpointCollectionPage(cur OutboundEnvironmentEndpointCollection, getNextPage func(context.Context, OutboundEnvironmentEndpointCollection) (OutboundEnvironmentEndpointCollection, error)) OutboundEnvironmentEndpointCollectionPage {
+	return OutboundEnvironmentEndpointCollectionPage{
+		fn:   getNextPage,
+		oeec: cur,
+	}
 }
 
 // PowerState describes the Power State of the cluster
