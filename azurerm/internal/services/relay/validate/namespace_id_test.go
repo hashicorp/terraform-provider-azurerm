@@ -1,7 +1,5 @@
 package validate
 
-// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
-
 import "testing"
 
 func TestNamespaceID(t *testing.T) {
