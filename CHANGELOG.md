@@ -14,9 +14,13 @@ ENHANCEMENTS:
 * maps: refactoring to use an Embedded SDK [GH-12716]
 * msi: refactoring to use an Embedded SDK [GH-12715]
 * Data Source: `azurerm_storage_account_sas` - add ip_addresses field [GH-12705]
-* `azurerm_cdn_endpoint` - fixing a crash when the future is nil [GH-12743]
+* `azurerm_api_management_diagnostic` - support for `operation_name_format` [GH-12736]
 * `azurerm_data_factory_dataset_binary` - the blob `path` and `filename` propeties are now optional [GH-12676]
 * `azurerm_data_factory_trigger_blob_event` - supprot for the `activation` property [GH-12644]
+
+BUG FIXES:
+
+* `azurerm_cdn_endpoint` - fixing a crash when the future is nil [GH-12743]
 
 ---
 
