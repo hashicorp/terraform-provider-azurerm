@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * `azurerm_api_management_diagnostic` - support for `operation_name_format` [GH-12736]
 * `azurerm_data_factory_dataset_binary` - the blob `path` and `filename` propeties are now optional [GH-12676]
 * `azurerm_data_factory_trigger_blob_event` - supprot for the `activation` property [GH-12644]
+* `azurerm_automation_certificate` - Allow exportable property to be set [GH-12738]
 
 BUG FIXES:
 
