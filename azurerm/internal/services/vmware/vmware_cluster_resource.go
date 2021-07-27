@@ -5,7 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/avs/mgmt/2020-03-20/avs"
+	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/clusters"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/parse"
@@ -31,7 +33,7 @@ func resourceVmwareCluster() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ClusterID(id)
+			_, err := clusters.ParseClusterID(id)
 			return err
 		}),
 
@@ -82,6 +84,7 @@ func resourceVmwareCluster() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Vmware.ClusterClient
@@ -94,33 +97,28 @@ func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	id := parse.NewClusterID(subscriptionId, privateCloudId.ResourceGroup, privateCloudId.Name, name)
-
-	existing, err := client.Get(ctx, id.ResourceGroup, id.PrivateCloudName, id.Name)
+	id := clusters.NewClusterID(subscriptionId, privateCloudId.ResourceGroup, privateCloudId.Name, name)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing %q : %+v", id.ID(), err)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_vmware_cluster", id.ID())
 	}
 
-	cluster := avs.Cluster{
-		Sku: &avs.Sku{
-			Name: utils.String(d.Get("sku_name").(string)),
+	cluster := clusters.Cluster{
+		Sku: clusters.Sku{
+			Name: d.Get("sku_name").(string),
 		},
-		ClusterProperties: &avs.ClusterProperties{
-			ClusterSize: utils.Int32(int32(d.Get("cluster_node_count").(int))),
+		Properties: clusters.ClusterProperties{
+			ClusterSize: int64(d.Get("cluster_node_count").(int)),
 		},
-	}
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.PrivateCloudName, id.Name, cluster)
-	if err != nil {
-		return fmt.Errorf("creating Vmware  Cluster %q (Resource Group %q / privateCloudName %q): %+v", id.Name, id.ResourceGroup, id.PrivateCloudName, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the creation of the Vmware  Cluster %q (Resource Group %q / privateCloudName %q): %+v", id.Name, id.ResourceGroup, id.PrivateCloudName, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, id, cluster); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -128,34 +126,35 @@ func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta interface{}) er
 }
 
 func resourceVmwareClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Vmware.ClusterClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ClusterID(d.Id())
+	id, err := clusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.PrivateCloudName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Vmware Cluster %q does not exist - removing from state", d.Id())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Vmware  Cluster %q (Resource Group %q / privateCloudName %q): %+v", id.Name, id.ResourceGroup, id.PrivateCloudName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
-	d.Set("vmware_cloud_id", parse.NewPrivateCloudID(subscriptionId, id.ResourceGroup, id.PrivateCloudName).ID())
-	d.Set("sku_name", resp.Sku.Name)
-	if props := resp.ClusterProperties; props != nil {
-		d.Set("cluster_node_count", props.ClusterSize)
-		d.Set("cluster_number", props.ClusterID)
-		d.Set("hosts", utils.FlattenStringSlice(props.Hosts))
+	d.Set("vmware_cloud_id", parse.NewPrivateCloudID(id.SubscriptionId, id.ResourceGroup, id.PrivateCloudName).ID())
+
+	if model := resp.Model; model != nil {
+		d.Set("cluster_node_count", model.Properties.ClusterSize)
+		d.Set("cluster_number", model.Properties.ClusterId)
+		d.Set("hosts", utils.FlattenStringSlice(model.Properties.Hosts))
+		d.Set("sku_name", model.Sku.Name)
 	}
+
 	return nil
 }
 
@@ -164,25 +163,20 @@ func resourceVmwareClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ClusterID(d.Id())
+	id, err := clusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	clusterUpdate := avs.ClusterUpdate{
-		ClusterUpdateProperties: &avs.ClusterUpdateProperties{},
+	clusterUpdate := clusters.ClusterUpdate{
+		Properties: &clusters.ClusterUpdateProperties{},
 	}
 	if d.HasChange("cluster_node_count") {
-		clusterUpdate.ClusterUpdateProperties.ClusterSize = utils.Int32(int32(d.Get("cluster_node_count").(int)))
+		clusterUpdate.Properties.ClusterSize = utils.Int64(int64(d.Get("cluster_node_count").(int)))
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.PrivateCloudName, id.Name, clusterUpdate)
-	if err != nil {
-		return fmt.Errorf("updating Vmware  Cluster %q (Resource Group %q / privateCloudName %q): %+v", id.Name, id.ResourceGroup, id.PrivateCloudName, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of the Vmware  Cluster %q (Resource Group %q / privateCloudName %q): %+v", id.Name, id.ResourceGroup, id.PrivateCloudName, err)
+	if err := client.UpdateThenPoll(ctx, *id, clusterUpdate); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 	return resourceVmwareClusterRead(d, meta)
 }
@@ -192,18 +186,14 @@ func resourceVmwareClusterDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ClusterID(d.Id())
+	id, err := clusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.PrivateCloudName, id.Name)
-	if err != nil {
-		return fmt.Errorf("deleting Vmware  Cluster %q (Resource Group %q / privateCloudName %q): %+v", id.Name, id.ResourceGroup, id.PrivateCloudName, err)
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of the Vmware  Cluster %q (Resource Group %q / privateCloudName %q): %+v", id.Name, id.ResourceGroup, id.PrivateCloudName, err)
-	}
 	return nil
 }

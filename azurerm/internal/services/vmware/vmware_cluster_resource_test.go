@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/clusters"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -84,17 +85,17 @@ func TestAccVmwareCluster_update(t *testing.T) {
 }
 
 func (VmwareClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ClusterID(state.ID)
+	id, err := clusters.ParseClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Vmware.ClusterClient.Get(ctx, id.ResourceGroup, id.PrivateCloudName, id.Name)
+	resp, err := clients.Vmware.ClusterClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Vmware Cluster %q (resource group: %q / Private Cloud Name: %q): %+v", id.Name, id.ResourceGroup, id.PrivateCloudName, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ClusterProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r VmwareClusterResource) basic(data acceptance.TestData) string {
