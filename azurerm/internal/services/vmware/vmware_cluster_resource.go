@@ -5,12 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/clusters"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/privateclouds"
 
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/clusters"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -92,7 +92,7 @@ func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	defer cancel()
 
 	name := d.Get("name").(string)
-	privateCloudId, err := parse.PrivateCloudID(d.Get("vmware_cloud_id").(string))
+	privateCloudId, err := privateclouds.ParsePrivateCloudID(d.Get("vmware_cloud_id").(string))
 	if err != nil {
 		return err
 	}
@@ -146,7 +146,7 @@ func resourceVmwareClusterRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	d.Set("name", id.Name)
-	d.Set("vmware_cloud_id", parse.NewPrivateCloudID(id.SubscriptionId, id.ResourceGroup, id.PrivateCloudName).ID())
+	d.Set("vmware_cloud_id", privateclouds.NewPrivateCloudID(id.SubscriptionId, id.ResourceGroup, id.PrivateCloudName).ID())
 
 	if model := resp.Model; model != nil {
 		d.Set("cluster_node_count", model.Properties.ClusterSize)

@@ -6,13 +6,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/privateclouds"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/authorizations"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/authorizations"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/privateclouds"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -121,7 +118,7 @@ func resourceVmwareExpressRouteAuthorizationRead(d *pluginsdk.ResourceData, meta
 	}
 
 	d.Set("name", id.Name)
-	d.Set("private_cloud_id", parse.NewPrivateCloudID(subscriptionId, id.ResourceGroup, id.PrivateCloudName).ID())
+	d.Set("private_cloud_id", privateclouds.NewPrivateCloudID(subscriptionId, id.ResourceGroup, id.PrivateCloudName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
