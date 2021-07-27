@@ -64,6 +64,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the App Service exists. Changing this forces a new resource to be created.
 
+* `app_service_slot` - (Optional) The name of the App Service Slot in which to add the Custom Hostname Binding. Changing this forces a new resource to be created.
+
 * `ssl_state` - (Optional) The SSL type. Possible values are `IpBasedEnabled` and `SniEnabled`. Changing this forces a new resource to be created.
 
 * `thumbprint` - (Optional) The SSL certificate thumbprint. Changing this forces a new resource to be created.

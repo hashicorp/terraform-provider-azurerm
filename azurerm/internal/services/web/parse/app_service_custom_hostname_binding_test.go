@@ -55,6 +55,16 @@ func TestParseAppServiceCustomHostnameBinding(t *testing.T) {
 			},
 		},
 		{
+			Name:  "Valid Resource ID for Slot",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/site1/slots/staging/hostNameBindings/binding1",
+			Expected: &AppServiceCustomHostnameBindingId{
+				Name:           "binding1",
+				AppServiceName: "site1",
+				AppServiceSlot: "staging",
+				ResourceGroup:  "mygroup1",
+			},
+		},
+		{
 			Name:     "Wrong Casing",
 			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/Sites/site1/HostNameBindings/binding1",
 			Expected: nil,

@@ -1,11 +1,13 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -51,6 +53,12 @@ func resourceAppServiceCustomHostnameBinding() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"app_service_slot": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"ssl_state": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -87,6 +95,7 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	appServiceName := d.Get("app_service_name").(string)
+	appServiceSlot := d.Get("app_service_slot").(string)
 	hostname := d.Get("hostname").(string)
 	sslState := d.Get("ssl_state").(string)
 	thumbprint := d.Get("thumbprint").(string)
@@ -94,11 +103,13 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 	locks.ByName(appServiceName, appServiceCustomHostnameBindingResourceName)
 	defer locks.UnlockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
 
+	slotMessage := GetSlotMessage(appServiceSlot)
+
 	if d.IsNewResource() {
-		existing, err := client.GetHostNameBinding(ctx, resourceGroup, appServiceName, hostname)
+		existing, err := GetHostNameBinding(*client, ctx, resourceGroup, appServiceName, appServiceSlot, hostname)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Custom Hostname Binding %q (App Service %q / Resource Group %q): %s", hostname, appServiceName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Custom Hostname Binding %q (App Service %q%s / Resource Group %q): %s", hostname, appServiceName, slotMessage, resourceGroup, err)
 			}
 		}
 
@@ -129,16 +140,16 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 		properties.HostNameBindingProperties.Thumbprint = utils.String(thumbprint)
 	}
 
-	if _, err := client.CreateOrUpdateHostNameBinding(ctx, resourceGroup, appServiceName, hostname, properties); err != nil {
-		return fmt.Errorf("Error creating/updating Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", hostname, appServiceName, resourceGroup, err)
+	if _, err := CreateOrUpdateHostNameBinding(*client, ctx, resourceGroup, appServiceName, appServiceSlot, hostname, properties); err != nil {
+		return fmt.Errorf("Error creating/updating Custom Hostname Binding %q (App Service %q%s / Resource Group %q): %+v", hostname, appServiceName, slotMessage, resourceGroup, err)
 	}
 
-	read, err := client.GetHostNameBinding(ctx, resourceGroup, appServiceName, hostname)
+	read, err := GetHostNameBinding(*client, ctx, resourceGroup, appServiceName, appServiceSlot, hostname)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", hostname, appServiceName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Custom Hostname Binding %q (App Service %q%s / Resource Group %q): %+v", hostname, appServiceName, slotMessage, resourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Hostname Binding %q (App Service %q / Resource Group %q) ID", hostname, appServiceName, resourceGroup)
+		return fmt.Errorf("Cannot read Hostname Binding %q (App Service %q%s / Resource Group %q) ID", hostname, appServiceName, slotMessage, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -156,18 +167,21 @@ func resourceAppServiceCustomHostnameBindingRead(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	resp, err := client.GetHostNameBinding(ctx, id.ResourceGroup, id.AppServiceName, id.Name)
+	slotMessage := GetSlotMessage(id.AppServiceSlot)
+
+	resp, err := GetHostNameBinding(*client, ctx, id.ResourceGroup, id.AppServiceName, id.AppServiceSlot, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service Hostname Binding %q (App Service %q / Resource Group %q) was not found - removing from state", id.Name, id.AppServiceName, id.ResourceGroup)
+			log.Printf("[DEBUG] App Service Hostname Binding %q (App Service %q%s / Resource Group %q) was not found - removing from state", id.Name, id.AppServiceName, slotMessage, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", id.Name, id.AppServiceName, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Custom Hostname Binding %q (App Service %q%s / Resource Group %q): %+v", id.Name, id.AppServiceName, slotMessage, id.ResourceGroup, err)
 	}
 
 	d.Set("hostname", id.Name)
 	d.Set("app_service_name", id.AppServiceName)
+	d.Set("app_service_slot", id.AppServiceSlot)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.HostNameBindingProperties; props != nil {
@@ -192,14 +206,43 @@ func resourceAppServiceCustomHostnameBindingDelete(d *pluginsdk.ResourceData, me
 	locks.ByName(id.AppServiceName, appServiceCustomHostnameBindingResourceName)
 	defer locks.UnlockByName(id.AppServiceName, appServiceCustomHostnameBindingResourceName)
 
-	log.Printf("[DEBUG] Deleting App Service Hostname Binding %q (App Service %q / Resource Group %q)", id.Name, id.AppServiceName, id.ResourceGroup)
+	slotMessage := GetSlotMessage(id.AppServiceSlot)
+	log.Printf("[DEBUG] Deleting App Service Hostname Binding %q (App Service %q%s / Resource Group %q)", id.Name, id.AppServiceName, slotMessage, id.ResourceGroup)
 
-	resp, err := client.DeleteHostNameBinding(ctx, id.ResourceGroup, id.AppServiceName, id.Name)
+	resp, err := DeleteHostNameBinding(*client, ctx, id.ResourceGroup, id.AppServiceName, id.AppServiceSlot, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", id.Name, id.AppServiceName, id.ResourceGroup, err)
+			return fmt.Errorf("Error deleting Custom Hostname Binding %q (App Service %q%s / Resource Group %q): %+v", id.Name, id.AppServiceName, slotMessage, id.ResourceGroup, err)
 		}
 	}
 
 	return nil
+}
+
+func GetSlotMessage(slot string) (result string) {
+	if slot != "" {
+		return fmt.Sprintf(" / Slot %q", slot)
+	}
+	return ""
+}
+
+func GetHostNameBinding(client web.AppsClient, ctx context.Context, resourceGroupName string, name string, slot string, hostName string) (result web.HostNameBinding, err error) {
+	if slot != "" {
+		return client.GetHostNameBindingSlot(ctx, resourceGroupName, name, slot, hostName)
+	}
+	return client.GetHostNameBinding(ctx, resourceGroupName, name, hostName)
+}
+
+func CreateOrUpdateHostNameBinding(client web.AppsClient, ctx context.Context, resourceGroupName string, name string, slot string, hostName string, hostNameBinding web.HostNameBinding) (result web.HostNameBinding, err error) {
+	if slot != "" {
+		return client.CreateOrUpdateHostNameBindingSlot(ctx, resourceGroupName, name, hostName, hostNameBinding, slot)
+	}
+	return client.CreateOrUpdateHostNameBinding(ctx, resourceGroupName, name, hostName, hostNameBinding)
+}
+
+func DeleteHostNameBinding(client web.AppsClient, ctx context.Context, resourceGroupName string, name string, slot string, hostName string) (result autorest.Response, err error) {
+	if slot != "" {
+		return client.DeleteHostNameBindingSlot(ctx, resourceGroupName, name, slot, hostName)
+	}
+	return client.DeleteHostNameBinding(ctx, resourceGroupName, name, hostName)
 }

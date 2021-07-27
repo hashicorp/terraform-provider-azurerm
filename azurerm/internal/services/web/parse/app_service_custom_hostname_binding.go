@@ -9,6 +9,7 @@ import (
 type AppServiceCustomHostnameBindingId struct {
 	ResourceGroup  string
 	AppServiceName string
+	AppServiceSlot string
 	Name           string
 }
 
@@ -25,6 +26,9 @@ func AppServiceCustomHostnameBindingID(input string) (*AppServiceCustomHostnameB
 	if binding.AppServiceName, err = id.PopSegment("sites"); err != nil {
 		return nil, err
 	}
+
+	// optional
+	binding.AppServiceSlot, err = id.PopSegment("slots")
 
 	if binding.Name, err = id.PopSegment("hostNameBindings"); err != nil {
 		return nil, err
