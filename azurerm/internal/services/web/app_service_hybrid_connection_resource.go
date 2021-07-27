@@ -195,8 +195,8 @@ func resourceAppServiceHybridConnectionRead(d *pluginsdk.ResourceData, meta inte
 
 	// key values are not returned in the response, so we get the primary key from the relay namespace ListKeys func
 	if resp.ServiceBusNamespace != nil && resp.SendKeyName != nil {
-		relayNSClient := meta.(*clients.Client).Relay.NamespacesClient
-		relayNamespaceRG, err := findRelayNamespace(relayNSClient, ctx, *resp.ServiceBusNamespace)
+		relayNSClient := meta.(*clients.Client).Relay.Track1NamespacesClient
+		relayNamespaceRG, err := findRelayNamespace(ctx, relayNSClient, *resp.ServiceBusNamespace)
 		if err != nil {
 			return err
 		}
@@ -231,7 +231,7 @@ func resourceAppServiceHybridConnectionDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func findRelayNamespace(client *relayMngt.NamespacesClient, ctx context.Context, name string) (string, error) {
+func findRelayNamespace(ctx context.Context, client *relayMngt.NamespacesClient, name string) (string, error) {
 	relayNSIterator, err := client.ListComplete(ctx)
 	if err != nil {
 		return "", fmt.Errorf("listing Relay Namespaces: %+v", err)
