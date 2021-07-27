@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/sdk/hybridconnections"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -88,17 +89,17 @@ func TestAccRelayHybridConnection_requiresImport(t *testing.T) {
 }
 
 func (t RelayHybridConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.HybridConnectionID(state.ID)
+	id, err := hybridconnections.ParseHybridConnectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Relay.HybridConnectionsClient.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
+	resp, err := clients.Relay.HybridConnectionsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Relay Hybrid Connection (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.HybridConnectionProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (RelayHybridConnectionResource) basic(data acceptance.TestData) string {
