@@ -100,6 +100,11 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 			},
 		},
 
+		"allow_new_private_endpoint_connections": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"internal_load_balancing_mode": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
