@@ -37,3 +37,14 @@ type SkuTier string
 const (
 	SkuTierStandard SkuTier = "Standard"
 )
+
+type UnavailableReason string
+
+const (
+	UnavailableReasonInvalidName                           UnavailableReason = "InvalidName"
+	UnavailableReasonNameInLockdown                        UnavailableReason = "NameInLockdown"
+	UnavailableReasonNameInUse                             UnavailableReason = "NameInUse"
+	UnavailableReasonNone                                  UnavailableReason = "None"
+	UnavailableReasonSubscriptionIsDisabled                UnavailableReason = "SubscriptionIsDisabled"
+	UnavailableReasonTooManyNamespaceInCurrentSubscription UnavailableReason = "TooManyNamespaceInCurrentSubscription"
+)
