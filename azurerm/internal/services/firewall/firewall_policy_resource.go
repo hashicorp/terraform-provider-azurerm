@@ -496,14 +496,27 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *network.Firewa
 	bypass_traffic_settings := []network.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications{}
 	raw_bypass_traffic_settings := raw["bypass_traffic_settings"].(map[string]interface{})
 
+	for i, v := range bypass_traffic_settings{
+		bypass_traffic_settings[i].Name = v.Name
+		bypass_traffic_settings[i].Description = v.Description
+		bypass_traffic_settings[i].Protocol = v.Protocol
+		bypass_traffic_settings[i].SourceAddresses = v.SourceAddresses
+		bypass_traffic_settings[i].DestinationAddresses = v.DestinationAddresses
+		bypass_traffic_settings[i].DestinationPorts = v.DestinationPorts
+		bypass_traffic_settings[i].SourceIPGroups = v.SourceIPGroups
+		bypass_traffic_settings[i].DestinationIPGroups = v.DestinationIPGroups
+	}
+
+	/*
 	bypass_traffic_settings[0].Name = utils.String(raw_bypass_traffic_settings["name"].(string))
 	bypass_traffic_settings[0].Description = utils.String(raw_bypass_traffic_settings["description"].(string))
 	bypass_traffic_settings[0].Protocol = network.FirewallPolicyIntrusionDetectionProtocol(raw_bypass_traffic_settings["protocol"].(string))
-	bypass_traffic_settings[0].SourceAddresses = utils.String(raw_bypass_traffic_settings["source_addresses"].(string))
-	bypass_traffic_settings[0].DestinationAddresses = utils.String(raw_bypass_traffic_settings["destination_addresses"].(string))
-	bypass_traffic_settings[0].DestinationPorts = utils.String(raw_bypass_traffic_settings["destination_ports"].(string))
-	bypass_traffic_settings[0].SourceIPGroups = utils.String(raw_bypass_traffic_settings["source_ip_groups"].(string))
-	bypass_traffic_settings[0].DestinationIPGroups = utils.String(raw_bypass_traffic_settings["destination_ip_groups"].(string))
+	bypass_traffic_settings[0].SourceAddresses = raw_bypass_traffic_settings["source_addresses"].(*[]string)
+	bypass_traffic_settings[0].DestinationAddresses = raw_bypass_traffic_settings["destination_addresses"].(*[]string)
+	bypass_traffic_settings[0].DestinationPorts = raw_bypass_traffic_settings["destination_ports"].(*[]string)
+	bypass_traffic_settings[0].SourceIPGroups = raw_bypass_traffic_settings["source_ip_groups"].(*[]string)
+	bypass_traffic_settings[0].DestinationIPGroups = raw_bypass_traffic_settings["destination_ip_groups"].(*[]string)
+	*/
 
 	return &network.FirewallPolicyIntrusionDetection{
 		Mode: network.FirewallPolicyIntrusionDetectionStateType(raw["mode"].(string)),
@@ -524,8 +537,8 @@ func expandFirewallPolicyTransportSecurity(input []interface{}) *network.Firewal
 
 	return &network.FirewallPolicyTransportSecurity{
 		CertificateAuthority: &network.FirewallPolicyCertificateAuthority{
-			KeyVaultSecretID: raw["key_vault_secret_id"].(string),
-			Name:             raw["name"].(string),
+			KeyVaultSecretID: utils.String(raw["key_vault_secret_id"].(string)),
+			Name:             utils.String(raw["name"].(string)),
 		},
 	}
 }
