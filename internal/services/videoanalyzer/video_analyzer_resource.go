@@ -7,19 +7,18 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/videoanalyzer/mgmt/2021-05-01-preview/videoanalyzer"
-	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/azurerm/utils"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVideoAnalyzer() *pluginsdk.Resource {
@@ -65,7 +64,7 @@ func resourceVideoAnalyzer() *pluginsdk.Resource {
 						"id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: storageValidate.StorageAccountID,
 						},
 
 						"identity_id": {
@@ -77,7 +76,6 @@ func resourceVideoAnalyzer() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:XS003
 			"identity": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -85,12 +83,11 @@ func resourceVideoAnalyzer() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string("UserAssigned"),
-							}, true),
+							}, false),
 						},
 						"identity_ids": {
 							Type:     pluginsdk.TypeSet,
@@ -163,12 +160,12 @@ func resourceVideoAnalyzerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Video Analyzer %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Video Analyzer %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -191,7 +188,7 @@ func resourceVideoAnalyzerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if err := d.Set("identity", flattenedIdentity); err != nil {
-		return fmt.Errorf("flattening `identity`: %s", err)
+		return fmt.Errorf("setting `identity`: %s", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -207,12 +204,9 @@ func resourceVideoAnalyzerDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	_, err = client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(resp.Response) {
-			return nil
-		}
-		return fmt.Errorf("issuing AzureRM delete request for Video Analyzer '%s': %+v", id.Name, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
@@ -240,17 +234,20 @@ func flattenVideoAnalyzerStorageAccounts(input *[]videoanalyzer.StorageAccount) 
 
 	results := make([]interface{}, 0)
 	for _, storageAccount := range *input {
-		output := make(map[string]interface{})
-
+		storageAccountId := ""
 		if storageAccount.ID != nil {
-			output["id"] = *storageAccount.ID
+			storageAccountId = *storageAccount.ID
 		}
 
-		if storageAccount.Identity != nil {
-			output["identity_id"] = *storageAccount.Identity.UserAssignedIdentity
+		userAssignedIdentityId := ""
+		if storageAccount.Identity != nil && storageAccount.Identity.UserAssignedIdentity != nil {
+			userAssignedIdentityId = *storageAccount.Identity.UserAssignedIdentity
 		}
 
-		results = append(results, output)
+		results = append(results, map[string]interface{}{
+			"id":          storageAccountId,
+			"identity_id": userAssignedIdentityId,
+		})
 	}
 
 	return results
@@ -259,7 +256,7 @@ func flattenVideoAnalyzerStorageAccounts(input *[]videoanalyzer.StorageAccount) 
 func expandAzureRmVideoAnalyzerIdentity(d *pluginsdk.ResourceData) (*videoanalyzer.Identity, error) {
 	identityRaw := d.Get("identity").([]interface{})
 	if identityRaw[0] == nil {
-		return nil, nil
+		return nil, fmt.Errorf("an `identity` block is required")
 	}
 	identity := identityRaw[0].(map[string]interface{})
 	result := &videoanalyzer.Identity{
@@ -270,21 +267,11 @@ func expandAzureRmVideoAnalyzerIdentity(d *pluginsdk.ResourceData) (*videoanalyz
 		identityIdSet = identityIds.(*pluginsdk.Set).List()
 	}
 
-	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
-	if *result.Type == "UserAssigned" {
-		if len(identityIdSet) == 0 {
-			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
-		}
-
-		userAssignedIdentities := make(map[string]*videoanalyzer.UserAssignedManagedIdentity)
-		for _, id := range identityIdSet {
-			userAssignedIdentities[id.(string)] = &videoanalyzer.UserAssignedManagedIdentity{}
-		}
-		result.UserAssignedIdentities = userAssignedIdentities
-	} else if len(identityIdSet) > 0 {
-		// If type does _not_ contain `UserAssigned` (i.e. is set to `SystemAssigned` or defaulted to `None`), `identity_ids` is not allowed
-		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`; but `type` is currently %q", *result.Type)
+	userAssignedIdentities := make(map[string]*videoanalyzer.UserAssignedManagedIdentity)
+	for _, id := range identityIdSet {
+		userAssignedIdentities[id.(string)] = &videoanalyzer.UserAssignedManagedIdentity{}
 	}
+	result.UserAssignedIdentities = userAssignedIdentities
 
 	return result, nil
 }
@@ -294,8 +281,10 @@ func flattenAzureRmVideoServiceIdentity(identity *videoanalyzer.Identity) ([]int
 		return make([]interface{}, 0), nil
 	}
 
-	result := make(map[string]interface{})
-	result["type"] = identity.Type
+	identityType := ""
+	if identity.Type != nil {
+		identityType = *identity.Type
+	}
 
 	identityIds := make([]interface{}, 0)
 	if identity.UserAssignedIdentities != nil {
@@ -314,8 +303,12 @@ func flattenAzureRmVideoServiceIdentity(identity *videoanalyzer.Identity) ([]int
 			}
 			identityIds = append(identityIds, parsedId.ID())
 		}
-		result["identity_ids"] = identityIds
 	}
 
-	return []interface{}{result}, nil
+	return []interface{}{
+		map[string]interface{}{
+			"type":         identityType,
+			"identity_ids": identityIds,
+		},
+	}, nil
 }
