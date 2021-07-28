@@ -279,8 +279,9 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				Target: []string{
 					string(web.ProvisioningStateSucceeded),
 				},
-				MinTimeout: 1 * time.Minute,
-				Refresh:    appServiceEnvironmentRefresh(ctx, client, id.ResourceGroup, id.HostingEnvironmentName),
+				MinTimeout:     1 * time.Minute,
+				NotFoundChecks: 20,
+				Refresh:        appServiceEnvironmentRefresh(ctx, client, id.ResourceGroup, id.HostingEnvironmentName),
 			}
 
 			timeout, _ := ctx.Deadline()
