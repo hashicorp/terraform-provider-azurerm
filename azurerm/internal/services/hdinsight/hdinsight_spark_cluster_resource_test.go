@@ -1392,7 +1392,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   cluster_version     = "4.0"
   tier                = "Standard"
   tls_min_version     = "1.2"
-  
+
   encryption_in_transit_enabled = true
 
   component_version {
