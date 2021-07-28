@@ -155,6 +155,7 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 								string(network.FirewallPolicyIntrusionDetectionStateTypeAlert),
 								string(network.FirewallPolicyIntrusionDetectionStateTypeDeny),
 							}, false),
+							Optional: true,
 						},
 						"signature_overrides": {
 							Type:     pluginsdk.TypeList,
@@ -169,9 +170,11 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 											string(network.FirewallPolicyIntrusionDetectionStateTypeAlert),
 											string(network.FirewallPolicyIntrusionDetectionStateTypeDeny),
 										}, false),
+										Optional: true,
 									},
 									"id": {
-										Type: pluginsdk.TypeString,
+										Type:     pluginsdk.TypeString,
+										Optional: true,
 									},
 								},
 							},
