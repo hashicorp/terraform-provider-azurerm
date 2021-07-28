@@ -19,6 +19,8 @@ ENHANCEMENTS:
 * `azurerm_automation_certificate` - Allow exportable property to be set [GH-12738]
 * `azurerm_data_factory_dataset_binary` - the blob `path` and `filename` propeties are now optional [GH-12676]
 * `azurerm_data_factory_trigger_blob_event` - supprot for the `activation` property [GH-12644]
+* `hdinsight_interactive_query_cluster` - supprot for the `encryption_in_transit_enabled` property [GH-12767]
+* `hdinsight_spark_cluster` - supprot for the `encryption_in_transit_enabled` property [GH-12767]
 
 BUG FIXES:
 
