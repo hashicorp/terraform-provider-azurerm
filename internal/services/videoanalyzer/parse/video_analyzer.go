@@ -33,7 +33,7 @@ func (id VideoAnalyzerId) String() string {
 }
 
 func (id VideoAnalyzerId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/videoanalyzers/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/videoAnalyzers/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
@@ -57,7 +57,7 @@ func VideoAnalyzerID(input string) (*VideoAnalyzerId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.Name, err = id.PopSegment("videoanalyzers"); err != nil {
+	if resourceId.Name, err = id.PopSegment("videoAnalyzers"); err != nil {
 		return nil, err
 	}
 
