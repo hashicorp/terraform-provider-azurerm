@@ -66,7 +66,6 @@ resource "azurerm_video_analyzer" "example" {
   }
 
   depends_on = [
-    azurerm_user_assigned_identity.example,
     azurerm_role_assignment.contributor,
     azurerm_role_assignment.reader,
   ]
@@ -95,15 +94,15 @@ A `storage_account` block supports the following:
 
 * `id` - (Required) Specifies the ID of the Storage Account that will be associated with the Video Analyzer instance.
 
-* `identity_id` - (Required) ID for User Assigned Managed Identity resources to be assigned.
+* `identity_id` - (Required) Specifies the User Assigned Identity ID which should be assigned to a access this Storage Account.
 
 ---
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Video Analyzer. Possible value is `UserAssigned`. 
+* `type` - (Required) Specifies the type of Managed Identity that should be configured on this Video Analyzer. At this time the only possible value is `UserAssigned`. 
 
-* `identity_ids` - (Required) A list of IDs for User Assigned Managed Identity resources to be assigned.
+* `identity_ids` - (Required) A list of User Assigned Identity ID's to be assigned to this Video Analyzer.
 
 ---
 
@@ -128,5 +127,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Video Analyzer can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_video_analyzer.analyzer /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Media/videoanalyzers/analyzer1
+terraform import azurerm_video_analyzer.analyzer /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Media/videoAnalyzers/analyzer1
 ```
