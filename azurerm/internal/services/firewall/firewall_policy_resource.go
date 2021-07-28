@@ -488,13 +488,12 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *network.Firewa
 	raw := input[0].(map[string]interface{})
 
 	signature_overrides := []network.FirewallPolicyIntrusionDetectionSignatureSpecification{}
-	raw_signature_overrides := raw["signature_overrides"].(map[string]interface{})
-
-	signature_overrides[0].ID = utils.String(raw_signature_overrides["id"].(string))
-	signature_overrides[0].Mode = network.FirewallPolicyIntrusionDetectionStateType(raw_signature_overrides["mode"].(string))
+	for i, v := range signature_overrides {
+		signature_overrides[i].ID = v.ID
+		signature_overrides[i].Mode = v.Mode
+	}
 
 	bypass_traffic_settings := []network.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications{}
-	raw_bypass_traffic_settings := raw["bypass_traffic_settings"].(map[string]interface{})
 
 	for i, v := range bypass_traffic_settings{
 		bypass_traffic_settings[i].Name = v.Name
@@ -506,17 +505,6 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *network.Firewa
 		bypass_traffic_settings[i].SourceIPGroups = v.SourceIPGroups
 		bypass_traffic_settings[i].DestinationIPGroups = v.DestinationIPGroups
 	}
-
-	/*
-	bypass_traffic_settings[0].Name = utils.String(raw_bypass_traffic_settings["name"].(string))
-	bypass_traffic_settings[0].Description = utils.String(raw_bypass_traffic_settings["description"].(string))
-	bypass_traffic_settings[0].Protocol = network.FirewallPolicyIntrusionDetectionProtocol(raw_bypass_traffic_settings["protocol"].(string))
-	bypass_traffic_settings[0].SourceAddresses = raw_bypass_traffic_settings["source_addresses"].(*[]string)
-	bypass_traffic_settings[0].DestinationAddresses = raw_bypass_traffic_settings["destination_addresses"].(*[]string)
-	bypass_traffic_settings[0].DestinationPorts = raw_bypass_traffic_settings["destination_ports"].(*[]string)
-	bypass_traffic_settings[0].SourceIPGroups = raw_bypass_traffic_settings["source_ip_groups"].(*[]string)
-	bypass_traffic_settings[0].DestinationIPGroups = raw_bypass_traffic_settings["destination_ip_groups"].(*[]string)
-	*/
 
 	return &network.FirewallPolicyIntrusionDetection{
 		Mode: network.FirewallPolicyIntrusionDetectionStateType(raw["mode"].(string)),
