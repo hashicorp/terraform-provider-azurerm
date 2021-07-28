@@ -153,7 +153,7 @@ func resourceStaticSiteCustomDomainCreateOrUpdate(d *pluginsdk.ResourceData, met
 			},
 		}
 
-		if _, err := stateConf.WaitForState(); err != nil {
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("error waiting for Static Site custom domain %q (Static Site %q / Resource Group %q): %+v", domainName, staticSiteName, staticSiteId.ResourceGroup, err)
 		}
 	}
