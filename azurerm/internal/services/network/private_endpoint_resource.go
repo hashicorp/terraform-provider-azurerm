@@ -13,6 +13,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	mariaDBParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/parse"
+	mysqlParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	postgresqlParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
@@ -583,8 +585,19 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 				attrs["private_connection_resource_alias"] = privateConnectionId
 			} else {
 				// There is a bug from ARM Cache, the PE created from portal could be with the connection id for postgresql server "Microsoft.DBForPostgreSQL" instead of "Microsoft.DBforPostgreSQL"
+				// and for Mysql and MariaDB
 				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbforpostgresql") {
 					if serverId, err := postgresqlParse.ServerID(privateConnectionId); err == nil {
+						privateConnectionId = serverId.ID()
+					}
+				}
+				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformysql") {
+					if serverId, err := mysqlParse.ServerID(privateConnectionId); err == nil {
+						privateConnectionId = serverId.ID()
+					}
+				}
+				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformariadb") {
+					if serverId, err := mariaDBParse.ServerID(privateConnectionId); err == nil {
 						privateConnectionId = serverId.ID()
 					}
 				}
@@ -629,8 +642,19 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 				attrs["private_connection_resource_alias"] = privateConnectionId
 			} else {
 				// There is a bug from ARM Cache, the PE created from portal could be with the connection id for postgresql server "Microsoft.DBForPostgreSQL" instead of "Microsoft.DBforPostgreSQL"
+				// and for Mysql and MariaDB
 				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbforpostgresql") {
 					if serverId, err := postgresqlParse.ServerID(privateConnectionId); err == nil {
+						privateConnectionId = serverId.ID()
+					}
+				}
+				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformysql") {
+					if serverId, err := mysqlParse.ServerID(privateConnectionId); err == nil {
+						privateConnectionId = serverId.ID()
+					}
+				}
+				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformariadb") {
+					if serverId, err := mariaDBParse.ServerID(privateConnectionId); err == nil {
 						privateConnectionId = serverId.ID()
 					}
 				}
