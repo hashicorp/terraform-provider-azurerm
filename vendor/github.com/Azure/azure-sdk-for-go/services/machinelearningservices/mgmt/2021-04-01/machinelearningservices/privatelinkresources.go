@@ -77,7 +77,7 @@ func (client PrivateLinkResourcesClient) ListByWorkspacePreparer(ctx context.Con
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

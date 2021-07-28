@@ -85,7 +85,7 @@ func (client QuotasClient) ListPreparer(ctx context.Context, location string) (*
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -93,7 +93,7 @@ func (client QuotasClient) ListPreparer(ctx context.Context, location string) (*
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.MachineLearningServices/locations/{location}/Quotas", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.MachineLearningServices/locations/{location}/quotas", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -203,7 +203,7 @@ func (client QuotasClient) UpdatePreparer(ctx context.Context, location string, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -83,7 +83,7 @@ func (client WorkspacesClient) CreateOrUpdatePreparer(ctx context.Context, resou
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -163,7 +163,7 @@ func (client WorkspacesClient) DeletePreparer(ctx context.Context, resourceGroup
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -247,7 +247,7 @@ func (client WorkspacesClient) GetPreparer(ctx context.Context, resourceGroupNam
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -281,8 +281,8 @@ func (client WorkspacesClient) GetResponder(resp *http.Response) (result Workspa
 // ListByResourceGroup lists all the available machine learning workspaces under the specified resource group.
 // Parameters:
 // resourceGroupName - name of the resource group in which workspace is located.
-// skiptoken - continuation token for pagination.
-func (client WorkspacesClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, skiptoken string) (result WorkspaceListResultPage, err error) {
+// skip - continuation token for pagination.
+func (client WorkspacesClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, skip string) (result WorkspaceListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.ListByResourceGroup")
 		defer func() {
@@ -294,7 +294,7 @@ func (client WorkspacesClient) ListByResourceGroup(ctx context.Context, resource
 		}()
 	}
 	result.fn = client.listByResourceGroupNextResults
-	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName, skiptoken)
+	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName, skip)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ListByResourceGroup", nil, "Failure preparing request")
 		return
@@ -321,18 +321,18 @@ func (client WorkspacesClient) ListByResourceGroup(ctx context.Context, resource
 }
 
 // ListByResourceGroupPreparer prepares the ListByResourceGroup request.
-func (client WorkspacesClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string, skiptoken string) (*http.Request, error) {
+func (client WorkspacesClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string, skip string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
-	if len(skiptoken) > 0 {
-		queryParameters["$skiptoken"] = autorest.Encode("query", skiptoken)
+	if len(skip) > 0 {
+		queryParameters["$skip"] = autorest.Encode("query", skip)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -383,7 +383,7 @@ func (client WorkspacesClient) listByResourceGroupNextResults(ctx context.Contex
 }
 
 // ListByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
-func (client WorkspacesClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string, skiptoken string) (result WorkspaceListResultIterator, err error) {
+func (client WorkspacesClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string, skip string) (result WorkspaceListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.ListByResourceGroup")
 		defer func() {
@@ -394,14 +394,14 @@ func (client WorkspacesClient) ListByResourceGroupComplete(ctx context.Context, 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByResourceGroup(ctx, resourceGroupName, skiptoken)
+	result.page, err = client.ListByResourceGroup(ctx, resourceGroupName, skip)
 	return
 }
 
 // ListBySubscription lists all the available machine learning workspaces under the specified subscription.
 // Parameters:
-// skiptoken - continuation token for pagination.
-func (client WorkspacesClient) ListBySubscription(ctx context.Context, skiptoken string) (result WorkspaceListResultPage, err error) {
+// skip - continuation token for pagination.
+func (client WorkspacesClient) ListBySubscription(ctx context.Context, skip string) (result WorkspaceListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.ListBySubscription")
 		defer func() {
@@ -413,7 +413,7 @@ func (client WorkspacesClient) ListBySubscription(ctx context.Context, skiptoken
 		}()
 	}
 	result.fn = client.listBySubscriptionNextResults
-	req, err := client.ListBySubscriptionPreparer(ctx, skiptoken)
+	req, err := client.ListBySubscriptionPreparer(ctx, skip)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ListBySubscription", nil, "Failure preparing request")
 		return
@@ -440,17 +440,17 @@ func (client WorkspacesClient) ListBySubscription(ctx context.Context, skiptoken
 }
 
 // ListBySubscriptionPreparer prepares the ListBySubscription request.
-func (client WorkspacesClient) ListBySubscriptionPreparer(ctx context.Context, skiptoken string) (*http.Request, error) {
+func (client WorkspacesClient) ListBySubscriptionPreparer(ctx context.Context, skip string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
-	if len(skiptoken) > 0 {
-		queryParameters["$skiptoken"] = autorest.Encode("query", skiptoken)
+	if len(skip) > 0 {
+		queryParameters["$skip"] = autorest.Encode("query", skip)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -501,7 +501,7 @@ func (client WorkspacesClient) listBySubscriptionNextResults(ctx context.Context
 }
 
 // ListBySubscriptionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client WorkspacesClient) ListBySubscriptionComplete(ctx context.Context, skiptoken string) (result WorkspaceListResultIterator, err error) {
+func (client WorkspacesClient) ListBySubscriptionComplete(ctx context.Context, skip string) (result WorkspaceListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.ListBySubscription")
 		defer func() {
@@ -512,7 +512,7 @@ func (client WorkspacesClient) ListBySubscriptionComplete(ctx context.Context, s
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListBySubscription(ctx, skiptoken)
+	result.page, err = client.ListBySubscription(ctx, skip)
 	return
 }
 
@@ -562,7 +562,7 @@ func (client WorkspacesClient) ListKeysPreparer(ctx context.Context, resourceGro
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -593,18 +593,94 @@ func (client WorkspacesClient) ListKeysResponder(resp *http.Response) (result Li
 	return
 }
 
+// ListNotebookAccessToken return notebook access token and refresh token
+// Parameters:
+// resourceGroupName - name of the resource group in which workspace is located.
+// workspaceName - name of Azure Machine Learning workspace.
+func (client WorkspacesClient) ListNotebookAccessToken(ctx context.Context, resourceGroupName string, workspaceName string) (result NotebookAccessTokenResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.ListNotebookAccessToken")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.ListNotebookAccessTokenPreparer(ctx, resourceGroupName, workspaceName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ListNotebookAccessToken", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListNotebookAccessTokenSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ListNotebookAccessToken", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListNotebookAccessTokenResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ListNotebookAccessToken", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ListNotebookAccessTokenPreparer prepares the ListNotebookAccessToken request.
+func (client WorkspacesClient) ListNotebookAccessTokenPreparer(ctx context.Context, resourceGroupName string, workspaceName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":     autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2021-04-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MachineLearningServices/workspaces/{workspaceName}/listNotebookAccessToken", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListNotebookAccessTokenSender sends the ListNotebookAccessToken request. The method will close the
+// http.Response Body if it receives an error.
+func (client WorkspacesClient) ListNotebookAccessTokenSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListNotebookAccessTokenResponder handles the response to the ListNotebookAccessToken request. The method always
+// closes the http.Response Body.
+func (client WorkspacesClient) ListNotebookAccessTokenResponder(resp *http.Response) (result NotebookAccessTokenResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // ResyncKeys resync all the keys associated with this workspace. This includes keys for the storage account, app
 // insights and password for container registry
 // Parameters:
 // resourceGroupName - name of the resource group in which workspace is located.
 // workspaceName - name of Azure Machine Learning workspace.
-func (client WorkspacesClient) ResyncKeys(ctx context.Context, resourceGroupName string, workspaceName string) (result autorest.Response, err error) {
+func (client WorkspacesClient) ResyncKeys(ctx context.Context, resourceGroupName string, workspaceName string) (result WorkspacesResyncKeysFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.ResyncKeys")
 		defer func() {
 			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -615,16 +691,9 @@ func (client WorkspacesClient) ResyncKeys(ctx context.Context, resourceGroupName
 		return
 	}
 
-	resp, err := client.ResyncKeysSender(req)
+	result, err = client.ResyncKeysSender(req)
 	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ResyncKeys", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.ResyncKeysResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ResyncKeys", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ResyncKeys", nil, "Failure sending request")
 		return
 	}
 
@@ -639,7 +708,7 @@ func (client WorkspacesClient) ResyncKeysPreparer(ctx context.Context, resourceG
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -654,8 +723,17 @@ func (client WorkspacesClient) ResyncKeysPreparer(ctx context.Context, resourceG
 
 // ResyncKeysSender sends the ResyncKeys request. The method will close the
 // http.Response Body if it receives an error.
-func (client WorkspacesClient) ResyncKeysSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client WorkspacesClient) ResyncKeysSender(req *http.Request) (future WorkspacesResyncKeysFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
 }
 
 // ResyncKeysResponder handles the response to the ResyncKeys request. The method always
@@ -663,7 +741,7 @@ func (client WorkspacesClient) ResyncKeysSender(req *http.Request) (*http.Respon
 func (client WorkspacesClient) ResyncKeysResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -715,7 +793,7 @@ func (client WorkspacesClient) UpdatePreparer(ctx context.Context, resourceGroup
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -30,6 +30,82 @@ func NewNotebooksClientWithBaseURI(baseURI string, subscriptionID string) Notebo
 	return NotebooksClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// ListKeys sends the list keys request.
+// Parameters:
+// resourceGroupName - name of the resource group in which workspace is located.
+// workspaceName - name of Azure Machine Learning workspace.
+func (client NotebooksClient) ListKeys(ctx context.Context, resourceGroupName string, workspaceName string) (result ListNotebookKeysResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/NotebooksClient.ListKeys")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.ListKeysPreparer(ctx, resourceGroupName, workspaceName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.NotebooksClient", "ListKeys", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListKeysSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "machinelearningservices.NotebooksClient", "ListKeys", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListKeysResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.NotebooksClient", "ListKeys", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ListKeysPreparer prepares the ListKeys request.
+func (client NotebooksClient) ListKeysPreparer(ctx context.Context, resourceGroupName string, workspaceName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":     autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2021-04-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MachineLearningServices/workspaces/{workspaceName}/listNotebookKeys", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListKeysSender sends the ListKeys request. The method will close the
+// http.Response Body if it receives an error.
+func (client NotebooksClient) ListKeysSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListKeysResponder handles the response to the ListKeys request. The method always
+// closes the http.Response Body.
+func (client NotebooksClient) ListKeysResponder(resp *http.Response) (result ListNotebookKeysResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // Prepare sends the prepare request.
 // Parameters:
 // resourceGroupName - name of the resource group in which workspace is located.
@@ -68,7 +144,7 @@ func (client NotebooksClient) PreparePreparer(ctx context.Context, resourceGroup
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
