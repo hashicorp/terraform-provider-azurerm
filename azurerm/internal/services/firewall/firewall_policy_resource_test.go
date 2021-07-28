@@ -61,6 +61,21 @@ func TestAccFirewallPolicy_complete(t *testing.T) {
 	})
 }
 
+func TestAccFirewallPolicy_completePremium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	r := FirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completePremium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccFirewallPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
 	r := FirewallPolicyResource{}
@@ -75,6 +90,35 @@ func TestAccFirewallPolicy_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFirewallPolicy_updatePremium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	r := FirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completePremium(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -178,6 +222,51 @@ resource "azurerm_firewall_policy" "test" {
   dns {
     servers       = ["1.1.1.1", "2.2.2.2"]
     proxy_enabled = true
+  }
+  tags = {
+    env = "Test"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (FirewallPolicyResource) completePremium(data acceptance.TestData) string {
+	template := FirewallPolicyResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_firewall_policy" "test" {
+  name                     = "acctest-networkfw-Policy-%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  threat_intelligence_mode = "Off"
+  threat_intelligence_allowlist {
+    ip_addresses = ["1.1.1.1", "2.2.2.2"]
+    fqdns        = ["foo.com", "bar.com"]
+  }
+  dns {
+    servers       = ["1.1.1.1", "2.2.2.2"]
+    proxy_enabled = true
+  }
+  intrusion_detection {
+    mode = "Alert"
+    signature_overrides {
+      state = "Alert"
+      id    = "TODO"
+    }
+    bypass_traffic_settings {
+      name                  = "Name bypass traffic settings"
+      description           = "Description bypass traffic settings"
+      protocol              = "Any"
+      destination_addresses = ["*"]
+      destination_ports     = ["*"]
+      source_ip_groups      = ["*"]
+      destination_ip_groups = ["*"]
+    }
+  }
+  tls_certificate {
+    key_vault_secret_id = "TODO"
+    name                = "certificate name"
   }
   tags = {
     env = "Test"
