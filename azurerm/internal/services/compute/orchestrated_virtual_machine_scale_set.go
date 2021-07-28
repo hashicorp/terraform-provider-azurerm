@@ -365,12 +365,6 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 4095),
 				},
-
-				"write_accelerator_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
 			},
 		},
 	}
