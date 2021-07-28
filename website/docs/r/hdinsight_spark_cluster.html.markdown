@@ -92,6 +92,8 @@ The following arguments are supported:
 
 * `component_version` - (Required) A `component_version` block as defined below.
 
+* `encryption_in_transit_enabled` - (Optional) Whether encryption in transit is enabled for this Cluster. Changing this forces a new resource to be created.
+
 * `gateway` - (Required) A `gateway` block as defined below.
 
 * `roles` - (Required) A `roles` block as defined below.
