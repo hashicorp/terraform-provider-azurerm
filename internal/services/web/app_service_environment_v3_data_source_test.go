@@ -18,11 +18,13 @@ func TestAccAppServiceEnvironmentV3DataSource_basic(t *testing.T) {
 			Config: AppServiceEnvironmentV3DataSource{}.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("cluster_setting.#").HasValue("2"),
+				check.That(data.ResourceName).Key("cluster_setting.#").HasValue("3"),
+				check.That(data.ResourceName).Key("dns_suffix").HasValue(fmt.Sprintf("acctest-ase-%d.appserviceenvironment.net", data.RandomInteger)),
+				check.That(data.ResourceName).Key("ip_ssl_address_count").HasValue("0"),
+				check.That(data.ResourceName).Key("inbound_network_dependencies.#").HasValue("3"),
+				check.That(data.ResourceName).Key("linux_outbound_ip_addresses.#").HasValue("2"),
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
-				check.That(data.ResourceName).Key("ip_ssl_address_count").IsSet(),
-				check.That(data.ResourceName).Key("dns_suffix").HasValue(".p.azurewebsites.net"),
-				check.That(data.ResourceName).Key("dedicated_host_count").HasValue("0"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("windows_outbound_ip_addresses.#").HasValue("2"),
 			),
 		},
 	})

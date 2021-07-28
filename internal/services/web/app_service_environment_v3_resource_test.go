@@ -24,8 +24,6 @@ func TestAccAppServiceEnvironmentV3_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("pricing_tier").Exists(),
-				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
 			),
 		},
 		data.ImportStep(),
@@ -41,8 +39,6 @@ func TestAccAppServiceEnvironmentV3_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("pricing_tier").Exists(),
-				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -58,12 +54,12 @@ func TestAccAppServiceEnvironmentV3_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("pricing_tier").Exists(),
-				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
 				check.That(data.ResourceName).Key("cluster_setting.#").HasValue("3"),
-				check.That(data.ResourceName).Key("dns_suffix").IsSet(),
-				check.That(data.ResourceName).Key("inbound_network_dependencies").IsSet(),
-				check.That(data.ResourceName).Key("windows_outbound_ip_addresses").IsSet(),
-				check.That(data.ResourceName).Key("linux_outbound_ip_addresses").IsSet(),
+				check.That(data.ResourceName).Key("dns_suffix").HasValue(fmt.Sprintf("acctest-ase-%d.appserviceenvironment.net", data.RandomInteger)),
+				check.That(data.ResourceName).Key("inbound_network_dependencies.#").HasValue("3"),
+				check.That(data.ResourceName).Key("linux_outbound_ip_addresses.#").HasValue("2"),
+				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key("windows_outbound_ip_addresses.#").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
@@ -79,8 +75,6 @@ func TestAccAppServiceEnvironmentV3_completeUpdate(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("pricing_tier").Exists(),
-				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
 			),
 		},
 		data.ImportStep(),
@@ -88,8 +82,6 @@ func TestAccAppServiceEnvironmentV3_completeUpdate(t *testing.T) {
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("pricing_tier").Exists(),
-				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
 			),
 		},
 		data.ImportStep(),

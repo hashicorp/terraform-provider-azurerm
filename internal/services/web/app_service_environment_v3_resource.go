@@ -144,37 +144,6 @@ func (r AppServiceEnvironmentV3Resource) Attributes() map[string]*pluginsdk.Sche
 			Computed: true,
 		},
 
-		"pricing_tier": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"ip_ssl_address_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-
-		"location": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"windows_outbound_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
-
-		"linux_outbound_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
-
 		"inbound_network_dependencies": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -201,6 +170,37 @@ func (r AppServiceEnvironmentV3Resource) Attributes() map[string]*pluginsdk.Sche
 						},
 					},
 				},
+			},
+		},
+
+		"ip_ssl_address_count": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"linux_outbound_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"location": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"pricing_tier": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"windows_outbound_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
 		},
 	}
@@ -263,7 +263,7 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 					VirtualNetwork: &web.VirtualNetworkProfile{
 						ID: utils.String(model.SubnetId),
 					},
-					// ZoneRedundant: utils.bool(model.ZoneRedundant) // TODO - SDK missing support for this property at time of writing, tracked at https://github.com/Azure/azure-rest-api-specs/issues/15385
+					// ZoneRedundant: utils.bool(model.ZoneRedundant) // TODO - blocked on https://github.com/Azure/azure-rest-api-specs/issues/15385
 				},
 				Tags: tags.Expand(model.Tags),
 			}

@@ -33,11 +33,10 @@ func (r AppServiceEnvironmentV3DataSource) Arguments() map[string]*pluginsdk.Sch
 
 func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"subnet_id": {
-			Type:     pluginsdk.TypeString,
+		"allow_new_private_endpoint_connections": {
+			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
-
 		"cluster_setting": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -62,11 +61,6 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 		},
 
 		"dns_suffix": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"pricing_tier": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -100,12 +94,25 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 			},
 		},
 
-		"allow_new_private_endpoint_connections": {
-			Type:     pluginsdk.TypeBool,
+		"internal_load_balancing_mode": {
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"internal_load_balancing_mode": {
+		"linux_outbound_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"location": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"pricing_tier": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -115,20 +122,12 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 			Computed: true,
 		},
 
-		"location": {
+		"subnet_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
 		"windows_outbound_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
-
-		"linux_outbound_ip_addresses": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Schema{
