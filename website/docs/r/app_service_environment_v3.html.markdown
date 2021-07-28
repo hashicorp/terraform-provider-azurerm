@@ -28,14 +28,7 @@ resource "azurerm_virtual_network" "example" {
   address_space       = ["10.0.0.0/16"]
 }
 
-resource "azurerm_subnet" "inbound" {
-  name                 = "inbound"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-
-resource "azurerm_subnet" "outbound" {
+resource "azurerm_subnet" "example" {
   name                 = "outbound"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
@@ -50,7 +43,7 @@ resource "azurerm_subnet" "outbound" {
 resource "azurerm_app_service_environment_v3" "example" {
   name                = "example-asev3"
   resource_group_name = azurerm_resource_group.example.name
-  subnet_id           = azurerm_subnet.outbound.id
+  subnet_id           = azurerm_subnet.example.id
 
   cluster_setting {
     name  = "DisableTls1.0"
@@ -64,7 +57,7 @@ resource "azurerm_app_service_environment_v3" "example" {
 
   cluster_setting {
     name  = "FrontEndSSLCipherSuiteOrder"
-    value = "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384_P256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256_P256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384_P256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA_P256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA_P256"
+    value = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
   }
 
   tags = {
@@ -82,19 +75,31 @@ resource "azurerm_app_service_environment_v3" "example" {
 
 * `resource_group_name` - (Required) The name of the Resource Group where the App Service Environment exists. Defaults to the Resource Group of the Subnet (specified by `subnet_id`).
 
-* `subnet_id` - (Required) The ID of the Subnet which the App Service Environment should be connected to. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The ID of the Subnet which the App Service Environment should be connected to.
 
 ~> **NOTE** a /24 or larger CIDR is required. Once associated with an ASE, this size cannot be changed.
 
-~> **NOTE:** This is the "outbound" Subnet which is required to have a delegation to `Microsoft.Web/hostingEnvironments` as detailed in the example above. Additionally, an "inbound" subnet is required in the Virtual Network which must not have `enforce_private_link_endpoint_network_policies` enabled.   
+~> **NOTE:** This Subnet requires a delegation to `Microsoft.Web/hostingEnvironments` as detailed in the example above.    
+
+* `allow_new_private_endpoint_connections` - (Optional) Should new Private Endpoint Connections be allowed. Defaults to `true`. 
 
 * `cluster_setting` - (Optional) Zero or more `cluster_setting` blocks as defined below. 
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. 
+* `dedicated_host_count` - (Optional) This ASEv3 should use dedicated Hosts. Possible vales are `2`. Changing this forces a new resource to be created.
+
+~> **NOTE:** Setting this value will provision 2 Physical Hosts for your App Service Environment V3, this is done at additional cost, please be aware of the pricing commitment in the [General Availability Notes](https://techcommunity.microsoft.com/t5/apps-on-azure/announcing-app-service-environment-v3-ga/ba-p/2517990)
+
+* `internal_load_balancing_mode` - (Optional) Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment. Possible values are `None` (for an External VIP Type), and `"Web, Publishing"` (for an Internal VIP Type). Defaults to `None`.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+
+~> **NOTE:** The underlying API does not currently support changing Tags on this resource. Making changes in the portal for tags will cause Terraform to detect a change that will force a recreation of the ASEV3 unless `ignore_changes` lifecycle meta-argument is used.
 
 ---
 
 A `cluster_setting` block supports the following:
+
+~> **NOTE:** If this block is specified it must contain the `FrontEndSSLCipherSuiteOrder` setting, with the value `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`.
 
 * `name` - (Required) The name of the Cluster Setting. 
 
@@ -104,9 +109,29 @@ A `cluster_setting` block supports the following:
 
 * `id` - The ID of the App Service Environment.
 
+* `dns_suffix` - the DNS suffix for this App Service Environment V3. 
+
+* `inbound_network_dependencies` - An Inbound Network Dependencies block as defined below.
+
+* `ip_ssl_address_count` - The number of IP SSL addresses reserved for the App Service Environment V3.
+
+* `linux_outbound_ip_addresses` - Outbound addresses of Linux based Apps in this App Service Environment V3
+
 * `location` - The location where the App Service Environment exists.
 
 * `pricing_tier` - Pricing tier for the front end instances.
+
+* `windows_outbound_ip_addresses` - Outbound addresses of Windows based Apps in this App Service Environment V3. 
+
+--- 
+
+An `inbound_network_dependencies` block exports the following:
+
+* `description` - A short description of the purpose of the network traffic.
+
+* `ip_addresses` - A list of IP addresses that network traffic will originate from in CIDR notation.
+
+* `ports` - The ports that network traffic will arrive to the App Service Environment V3 on.
 
 ## Timeouts
 
