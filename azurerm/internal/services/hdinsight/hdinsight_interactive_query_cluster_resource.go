@@ -71,6 +71,13 @@ func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
 
 			"tls_min_version": SchemaHDInsightTls(),
 
+			"encryption_in_transit_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Computed: true,
+			},
+
 			"component_version": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -188,6 +195,8 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 		return tf.ImportAsExistsError("azurerm_hdinsight_interactive_query_cluster", *existing.ID)
 	}
 
+	encryptionInTransit := d.Get("encryption_in_transit_enabled").(bool)
+
 	params := hdinsight.ClusterCreateParametersExtended{
 		Location: utils.String(location),
 		Properties: &hdinsight.ClusterCreateProperties{
@@ -196,6 +205,9 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 			ClusterVersion:         utils.String(clusterVersion),
 			MinSupportedTLSVersion: utils.String(tls),
 			NetworkProperties:      networkProperties,
+			EncryptionInTransitProperties: &hdinsight.EncryptionInTransitProperties{
+				IsEncryptionInTransitEnabled: &encryptionInTransit,
+			},
 			ClusterDefinition: &hdinsight.ClusterDefinition{
 				Kind:             utils.String("INTERACTIVEHIVE"),
 				ComponentVersion: componentVersions,
@@ -301,6 +313,10 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 			}
 
 			flattenHDInsightsMetastores(d, configurations.Configurations)
+
+			if props.EncryptionInTransitProperties != nil {
+				d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)
+			}
 
 			if props.NetworkProperties != nil {
 				if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
