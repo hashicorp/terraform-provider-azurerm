@@ -584,7 +584,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 			} else {
 				// There is a bug from ARM Cache, the PE created from portal could be with the connection id for postgresql server "Microsoft.DBForPostgreSQL" instead of "Microsoft.DBforPostgreSQL"
 				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbforpostgresql") {
-					if serverId, err := postgresqlParse.ServerID(privateConnectionId); err != nil {
+					if serverId, err := postgresqlParse.ServerID(privateConnectionId); err == nil {
 						privateConnectionId = serverId.ID()
 					}
 				}
@@ -630,7 +630,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 			} else {
 				// There is a bug from ARM Cache, the PE created from portal could be with the connection id for postgresql server "Microsoft.DBForPostgreSQL" instead of "Microsoft.DBforPostgreSQL"
 				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbforpostgresql") {
-					if serverId, err := postgresqlParse.ServerID(privateConnectionId); err != nil {
+					if serverId, err := postgresqlParse.ServerID(privateConnectionId); err == nil {
 						privateConnectionId = serverId.ID()
 					}
 				}
