@@ -52,7 +52,13 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_function_app":                                      resourceFunctionApp(),
 		"azurerm_function_app_slot":                                 resourceFunctionAppSlot(),
 		"azurerm_static_site":                                       resourceStaticSite(),
+		"azurerm_static_site_custom_domain":                         resourceStaticSiteCustomDomain(),
 	}
+}
+
+// PackagePath is the relative path to this package
+func (r Registration) PackagePath() string {
+	return "TODO: do we need this?"
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
