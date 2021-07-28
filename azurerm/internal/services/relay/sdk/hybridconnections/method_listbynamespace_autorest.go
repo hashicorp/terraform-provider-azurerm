@@ -34,19 +34,6 @@ func (r ListByNamespaceResponse) LoadMore(ctx context.Context) (resp ListByNames
 	return r.nextPageFunc(ctx, *r.nextLink)
 }
 
-type HybridConnectionPredicate struct {
-	// TODO: implement me
-}
-
-func (p HybridConnectionPredicate) Matches(input HybridConnection) bool {
-	// TODO: implement me
-	// if p.Name != nil && input.Name != *p.Name {
-	// 	return false
-	// }
-
-	return true
-}
-
 // ListByNamespace ...
 func (c HybridConnectionsClient) ListByNamespace(ctx context.Context, id NamespaceId) (resp ListByNamespaceResponse, err error) {
 	req, err := c.preparerForListByNamespace(ctx, id)
@@ -69,7 +56,7 @@ func (c HybridConnectionsClient) ListByNamespace(ctx context.Context, id Namespa
 	return
 }
 
-// ListByNamespaceCompleteMatchingPredicate retrieves all of the results into a single object
+// ListByNamespaceComplete retrieves all of the results into a single object
 func (c HybridConnectionsClient) ListByNamespaceComplete(ctx context.Context, id NamespaceId) (ListByNamespaceCompleteResult, error) {
 	return c.ListByNamespaceCompleteMatchingPredicate(ctx, id, HybridConnectionPredicate{})
 }

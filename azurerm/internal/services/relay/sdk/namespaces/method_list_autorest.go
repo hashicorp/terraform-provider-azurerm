@@ -34,19 +34,6 @@ func (r ListResponse) LoadMore(ctx context.Context) (resp ListResponse, err erro
 	return r.nextPageFunc(ctx, *r.nextLink)
 }
 
-type RelayNamespacePredicate struct {
-	// TODO: implement me
-}
-
-func (p RelayNamespacePredicate) Matches(input RelayNamespace) bool {
-	// TODO: implement me
-	// if p.Name != nil && input.Name != *p.Name {
-	// 	return false
-	// }
-
-	return true
-}
-
 // List ...
 func (c NamespacesClient) List(ctx context.Context, id SubscriptionId) (resp ListResponse, err error) {
 	req, err := c.preparerForList(ctx, id)
@@ -69,7 +56,7 @@ func (c NamespacesClient) List(ctx context.Context, id SubscriptionId) (resp Lis
 	return
 }
 
-// ListCompleteMatchingPredicate retrieves all of the results into a single object
+// ListComplete retrieves all of the results into a single object
 func (c NamespacesClient) ListComplete(ctx context.Context, id SubscriptionId) (ListCompleteResult, error) {
 	return c.ListCompleteMatchingPredicate(ctx, id, RelayNamespacePredicate{})
 }

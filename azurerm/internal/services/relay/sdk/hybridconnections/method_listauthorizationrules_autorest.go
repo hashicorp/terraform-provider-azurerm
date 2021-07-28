@@ -34,19 +34,6 @@ func (r ListAuthorizationRulesResponse) LoadMore(ctx context.Context) (resp List
 	return r.nextPageFunc(ctx, *r.nextLink)
 }
 
-type AuthorizationRulePredicate struct {
-	// TODO: implement me
-}
-
-func (p AuthorizationRulePredicate) Matches(input AuthorizationRule) bool {
-	// TODO: implement me
-	// if p.Name != nil && input.Name != *p.Name {
-	// 	return false
-	// }
-
-	return true
-}
-
 // ListAuthorizationRules ...
 func (c HybridConnectionsClient) ListAuthorizationRules(ctx context.Context, id HybridConnectionId) (resp ListAuthorizationRulesResponse, err error) {
 	req, err := c.preparerForListAuthorizationRules(ctx, id)
@@ -69,7 +56,7 @@ func (c HybridConnectionsClient) ListAuthorizationRules(ctx context.Context, id 
 	return
 }
 
-// ListAuthorizationRulesCompleteMatchingPredicate retrieves all of the results into a single object
+// ListAuthorizationRulesComplete retrieves all of the results into a single object
 func (c HybridConnectionsClient) ListAuthorizationRulesComplete(ctx context.Context, id HybridConnectionId) (ListAuthorizationRulesCompleteResult, error) {
 	return c.ListAuthorizationRulesCompleteMatchingPredicate(ctx, id, AuthorizationRulePredicate{})
 }

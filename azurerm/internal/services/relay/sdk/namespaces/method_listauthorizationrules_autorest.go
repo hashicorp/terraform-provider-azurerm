@@ -34,19 +34,6 @@ func (r ListAuthorizationRulesResponse) LoadMore(ctx context.Context) (resp List
 	return r.nextPageFunc(ctx, *r.nextLink)
 }
 
-type AuthorizationRulePredicate struct {
-	// TODO: implement me
-}
-
-func (p AuthorizationRulePredicate) Matches(input AuthorizationRule) bool {
-	// TODO: implement me
-	// if p.Name != nil && input.Name != *p.Name {
-	// 	return false
-	// }
-
-	return true
-}
-
 // ListAuthorizationRules ...
 func (c NamespacesClient) ListAuthorizationRules(ctx context.Context, id NamespaceId) (resp ListAuthorizationRulesResponse, err error) {
 	req, err := c.preparerForListAuthorizationRules(ctx, id)
@@ -69,7 +56,7 @@ func (c NamespacesClient) ListAuthorizationRules(ctx context.Context, id Namespa
 	return
 }
 
-// ListAuthorizationRulesCompleteMatchingPredicate retrieves all of the results into a single object
+// ListAuthorizationRulesComplete retrieves all of the results into a single object
 func (c NamespacesClient) ListAuthorizationRulesComplete(ctx context.Context, id NamespaceId) (ListAuthorizationRulesCompleteResult, error) {
 	return c.ListAuthorizationRulesCompleteMatchingPredicate(ctx, id, AuthorizationRulePredicate{})
 }
