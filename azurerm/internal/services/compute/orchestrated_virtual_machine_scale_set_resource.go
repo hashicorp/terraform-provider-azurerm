@@ -329,28 +329,14 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
 			SinglePlacementGroup:  utils.Bool(d.Get("single_placement_group").(bool)),
 			VirtualMachineProfile: &virtualMachineProfile,
+			// Per the service team, OrchestrationMode needs to be hardcoded to Flexible,
+			// since in the previous release the VM Profile was not supported so the RP
+			// assumed the Orchestration Mode was Flexible, however in this new release
+			// the VM Profile is exposed so we need to always send this value as Flexible
+			OrchestrationMode: compute.Flexible,
 		},
 		Zones: zones,
 	}
-
-	// props := compute.VirtualMachineScaleSet{
-	// 	Location: utils.String(location),
-	// 	Sku: &compute.Sku{
-	// 		Name:     utils.String(d.Get("sku").(string)),
-	// 		Capacity: utils.Int64(int64(d.Get("instances").(int))),
-
-	// 		// doesn't appear this can be set to anything else, even Promo machines are Standard
-	// 		Tier: utils.String("Standard"),
-	// 	},
-	// 	Identity: identity,
-	// 	Plan:     plan,
-	// 	Tags:     tags.Expand(t),
-	// 	VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
-	// 		SinglePlacementGroup:                   utils.Bool(d.Get("single_placement_group").(bool)),
-	// 		VirtualMachineProfile:                  &virtualMachineProfile,
-	// 	},
-	// 	Zones: zones,
-	// }
 
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
 		props.VirtualMachineScaleSetProperties.ProximityPlacementGroup = &compute.SubResource{
