@@ -168,11 +168,11 @@ resource "azurerm_app_service" "test" {
 }
 
 resource "azurerm_app_service_slot" "test" {
-	name                = "staging"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	app_service_name    = azurerm_app_service.test.name
-	app_service_plan_id = azurerm_app_service_plan.test.id  
+  name                = "staging"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_name    = azurerm_app_service.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot_custom_hostname_binding" "test" {
@@ -240,11 +240,11 @@ resource "azurerm_app_service" "test" {
 }
 
 resource "azurerm_app_service_slot" "test" {
-	name                = "staging"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	app_service_name    = azurerm_app_service.test.name
-	app_service_plan_id = azurerm_app_service_plan.test.id  
+  name                = "staging"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_name    = azurerm_app_service.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 data "azurerm_client_config" "test" {
