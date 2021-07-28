@@ -495,7 +495,7 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *network.Firewa
 
 	bypass_traffic_settings := []network.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications{}
 
-	for i, v := range bypass_traffic_settings{
+	for i, v := range bypass_traffic_settings {
 		bypass_traffic_settings[i].Name = v.Name
 		bypass_traffic_settings[i].Description = v.Description
 		bypass_traffic_settings[i].Protocol = v.Protocol
