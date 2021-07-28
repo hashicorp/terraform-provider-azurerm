@@ -11,19 +11,19 @@ type userAssignedIdentityInfo struct {
 }
 
 type ExpandedConfigCaster interface {
-	CastToExpandedConfig() ExpandedConfig
-	CastFromExpandedConfig(ExpandedConfig)
+	ToExpandedConfig() ExpandedConfig
+	FromExpandedConfig(ExpandedConfig)
 }
 
 var _ ExpandedConfigCaster = &SystemAssignedIdentity{}
 
 type SystemAssignedIdentity struct {
-	Type        string  `json:"type,omitempty"`
+	Type        Type    `json:"type,omitempty"`
 	TenantId    *string `json:"tenantId,omitempty"`
 	PrincipalId *string `json:"principalId,omitempty"`
 }
 
-func (s *SystemAssignedIdentity) CastToExpandedConfig() ExpandedConfig {
+func (s *SystemAssignedIdentity) ToExpandedConfig() ExpandedConfig {
 	if s == nil {
 		return ExpandedConfig{}
 	}
@@ -42,7 +42,7 @@ func (s *SystemAssignedIdentity) CastToExpandedConfig() ExpandedConfig {
 	}
 }
 
-func (s *SystemAssignedIdentity) CastFromExpandedConfig(config ExpandedConfig) {
+func (s *SystemAssignedIdentity) FromExpandedConfig(config ExpandedConfig) {
 	if s == nil {
 		return
 	}
@@ -56,11 +56,11 @@ func (s *SystemAssignedIdentity) CastFromExpandedConfig(config ExpandedConfig) {
 var _ ExpandedConfigCaster = &UserAssignedIdentityList{}
 
 type UserAssignedIdentityList struct {
-	Type                   string                  `json:"type,omitempty"`
+	Type                   Type                    `json:"type,omitempty"`
 	UserAssignedIdentities *[]userAssignedIdentity `json:"userAssignedIdentities,omitempty"`
 }
 
-func (u *UserAssignedIdentityList) CastToExpandedConfig() ExpandedConfig {
+func (u *UserAssignedIdentityList) ToExpandedConfig() ExpandedConfig {
 	if u == nil {
 		return ExpandedConfig{}
 	}
@@ -84,7 +84,7 @@ func (u *UserAssignedIdentityList) CastToExpandedConfig() ExpandedConfig {
 	return out
 }
 
-func (u *UserAssignedIdentityList) CastFromExpandedConfig(config ExpandedConfig) {
+func (u *UserAssignedIdentityList) FromExpandedConfig(config ExpandedConfig) {
 	if u == nil {
 		return
 	}
@@ -108,11 +108,11 @@ func (u *UserAssignedIdentityList) CastFromExpandedConfig(config ExpandedConfig)
 var _ ExpandedConfigCaster = &UserAssignedIdentityMap{}
 
 type UserAssignedIdentityMap struct {
-	Type                   string                               `json:"type,omitempty"`
+	Type                   Type                                 `json:"type,omitempty"`
 	UserAssignedIdentities map[string]*userAssignedIdentityInfo `json:"userAssignedIdentities,omitempty"`
 }
 
-func (u *UserAssignedIdentityMap) CastToExpandedConfig() ExpandedConfig {
+func (u *UserAssignedIdentityMap) ToExpandedConfig() ExpandedConfig {
 	if u == nil {
 		return ExpandedConfig{}
 	}
@@ -130,7 +130,7 @@ func (u *UserAssignedIdentityMap) CastToExpandedConfig() ExpandedConfig {
 	return out
 }
 
-func (u *UserAssignedIdentityMap) CastFromExpandedConfig(config ExpandedConfig) {
+func (u *UserAssignedIdentityMap) FromExpandedConfig(config ExpandedConfig) {
 	if u == nil {
 		return
 	}
@@ -153,13 +153,13 @@ func (u *UserAssignedIdentityMap) CastFromExpandedConfig(config ExpandedConfig) 
 var _ ExpandedConfigCaster = &SystemUserAssignedIdentityList{}
 
 type SystemUserAssignedIdentityList struct {
-	Type                   string                  `json:"type,omitempty"`
+	Type                   Type                    `json:"type,omitempty"`
 	TenantId               *string                 `json:"tenantId,omitempty"`
 	PrincipalId            *string                 `json:"principalId,omitempty"`
 	UserAssignedIdentities *[]userAssignedIdentity `json:"userAssignedIdentities,omitempty"`
 }
 
-func (s *SystemUserAssignedIdentityList) CastToExpandedConfig() ExpandedConfig {
+func (s *SystemUserAssignedIdentityList) ToExpandedConfig() ExpandedConfig {
 	if s == nil {
 		return ExpandedConfig{}
 	}
@@ -194,7 +194,7 @@ func (s *SystemUserAssignedIdentityList) CastToExpandedConfig() ExpandedConfig {
 	return out
 }
 
-func (s *SystemUserAssignedIdentityList) CastFromExpandedConfig(config ExpandedConfig) {
+func (s *SystemUserAssignedIdentityList) FromExpandedConfig(config ExpandedConfig) {
 	if s == nil {
 		return
 	}
@@ -221,13 +221,13 @@ func (s *SystemUserAssignedIdentityList) CastFromExpandedConfig(config ExpandedC
 var _ ExpandedConfigCaster = &SystemUserAssignedIdentityMap{}
 
 type SystemUserAssignedIdentityMap struct {
-	Type                   string                               `json:"type,omitempty"`
+	Type                   Type                                 `json:"type,omitempty"`
 	TenantId               *string                              `json:"tenantId,omitempty"`
 	PrincipalId            *string                              `json:"principalId,omitempty"`
 	UserAssignedIdentities map[string]*userAssignedIdentityInfo `json:"userAssignedIdentities,omitempty"`
 }
 
-func (s *SystemUserAssignedIdentityMap) CastToExpandedConfig() ExpandedConfig {
+func (s *SystemUserAssignedIdentityMap) ToExpandedConfig() ExpandedConfig {
 	if s == nil {
 		return ExpandedConfig{}
 	}
@@ -255,7 +255,7 @@ func (s *SystemUserAssignedIdentityMap) CastToExpandedConfig() ExpandedConfig {
 	return out
 }
 
-func (s *SystemUserAssignedIdentityMap) CastFromExpandedConfig(config ExpandedConfig) {
+func (s *SystemUserAssignedIdentityMap) FromExpandedConfig(config ExpandedConfig) {
 	if s == nil {
 		return
 	}
