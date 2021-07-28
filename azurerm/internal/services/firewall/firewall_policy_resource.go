@@ -143,97 +143,124 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 			},
 
 			"intrusion_detection": {
-				Type: pluginsdk.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"mode" : {
+						"mode": {
 							Type: pluginsdk.TypeString,
-							ValidateFunce: validation.Any(network.FirewallPolicyIntrusionDetectionStateType),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.FirewallPolicyIntrusionDetectionStateTypeOff),
+								string(network.FirewallPolicyIntrusionDetectionStateTypeAlert),
+								string(network.FirewallPolicyIntrusionDetectionStateTypeDeny),
+							}, false),
 						},
-						"configuration_signature_overrides" : {
-								"state": {
-									Type: pluginsdk.TypeString,
-									ValidateFunc: validation.Any(network.FirewallPolicyIntrusionDetectionStateType),
-								},
-								"id": {
-									Type: pluginsdk.String,
-								},
-							},
-						"configuration_bypass_traffic_settings" : {
-							"name": {
-								Type: pluginsdk.TypeString,
-								Required: True,
-							},
-							"description": {
-								Type: pluginsdk.TypeString,
-								Optional: True,
-							},
-							"protocol": {
-								Type: pluginsdk.TypeString,
-								Required: True,
-								ValidateFunc: validation.Any(network.FirewallPolicyIntrusionDetectionProtocol),
-							},
-							"source_addresses": {
-								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: validation.IsIPv4Address,
-								},
-							},
-							"destination_addresses": {
-								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: validation.IsIPv4Address,
-								},
-							},
-							"destination_ports": {
-								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: validation.IsIPv4Address,
-								},
-							},
-							"source_ip_groups": {
-								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: validation.IsIPv4Address,
-								},
-							},
-							"destination_ip_groups": {
-								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: validation.IsIPv4Address,
+						"signature_overrides": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"state": {
+										Type: pluginsdk.TypeString,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(network.FirewallPolicyIntrusionDetectionStateTypeOff),
+											string(network.FirewallPolicyIntrusionDetectionStateTypeAlert),
+											string(network.FirewallPolicyIntrusionDetectionStateTypeDeny),
+										}, false),
+									},
+									"id": {
+										Type: pluginsdk.TypeString,
+									},
 								},
 							},
 						},
+						"bypass_traffic_settings": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+									},
+									"description": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+									},
+									"protocol": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(network.FirewallPolicyIntrusionDetectionProtocolICMP),
+											string(network.FirewallPolicyIntrusionDetectionProtocolANY),
+											string(network.FirewallPolicyIntrusionDetectionProtocolTCP),
+											string(network.FirewallPolicyIntrusionDetectionProtocolUDP),
+										}, false),
+									},
+									"source_addresses": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.IsIPv4Address,
+										},
+									},
+									"destination_addresses": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.IsIPv4Address,
+										},
+									},
+									"destination_ports": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.IsIPv4Address,
+										},
+									},
+									"source_ip_groups": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.IsIPv4Address,
+										},
+									},
+									"destination_ip_groups": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.IsIPv4Address,
+										},
+									},
+								},
+							},
 						},
 					},
 				},
 			},
 
 			"tls_certificate": {
-				Type: pluginsdk.TypeList,
-				Optional: True,
+				Type:     pluginsdk.TypeList,
+				Optional: true,
 				MaxItems: 1,
 				MinItems: 1,
-				Elem: &pluginsdk.Schema{
-					"key_vault_secret_id" : {
-						Type: pluginsdk.TypeString,
-						Required: True,
-					},
-					"name" : {
-						Type: pluginsdk.TypeString,
-						Required: True,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_secret_id": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
 					},
 				},
 			},
@@ -293,8 +320,8 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			ThreatIntelMode:      network.AzureFirewallThreatIntelMode(d.Get("threat_intelligence_mode").(string)),
 			ThreatIntelWhitelist: expandFirewallPolicyThreatIntelWhitelist(d.Get("threat_intelligence_allowlist").([]interface{})),
 			DNSSettings:          expandFirewallPolicyDNSSetting(d.Get("dns").([]interface{})),
-			IntrusionDetection: expandFirewallPolicyIntrusionDetection(d.Get("intrusion_detection").([]interface{})),
-			TransportSecurity: expandFirewallPolicyTransportSecurity(d.Get("tls_certificate").([]interface{})),
+			IntrusionDetection:   expandFirewallPolicyIntrusionDetection(d.Get("intrusion_detection").([]interface{})),
+			TransportSecurity:    expandFirewallPolicyTransportSecurity(d.Get("tls_certificate").([]interface{})),
 		},
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -452,7 +479,7 @@ func expandFirewallPolicyDNSSetting(input []interface{}) *network.DNSSettings {
 	return output
 }
 
-func expandFirewallPolicyIntrusionDetection(input []interface{}) *network.FirewallPolicyIntrusionDetection{
+func expandFirewallPolicyIntrusionDetection(input []interface{}) *network.FirewallPolicyIntrusionDetection {
 
 	if len(input) == 0 || input[0] == nil {
 		return nil
@@ -460,34 +487,47 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *network.Firewa
 
 	raw := input[0].(map[string]interface{})
 
+	signature_overrides := []network.FirewallPolicyIntrusionDetectionSignatureSpecification{}
+	raw_signature_overrides := raw["signature_overrides"].(map[string]interface{})
+
+	signature_overrides[0].ID = utils.String(raw_signature_overrides["id"].(string))
+	signature_overrides[0].Mode = network.FirewallPolicyIntrusionDetectionStateType(raw_signature_overrides["mode"].(string))
+
+	bypass_traffic_settings := []network.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications{}
+	raw_bypass_traffic_settings := raw["bypass_traffic_settings"].(map[string]interface{})
+
+	bypass_traffic_settings[0].Name = utils.String(raw_bypass_traffic_settings["name"].(string))
+	bypass_traffic_settings[0].Description = utils.String(raw_bypass_traffic_settings["description"].(string))
+	bypass_traffic_settings[0].Protocol = network.FirewallPolicyIntrusionDetectionProtocol(raw_bypass_traffic_settings["protocol"].(string))
+	bypass_traffic_settings[0].SourceAddresses = utils.String(raw_bypass_traffic_settings["source_addresses"].(string))
+	bypass_traffic_settings[0].DestinationAddresses = utils.String(raw_bypass_traffic_settings["destination_addresses"].(string))
+	bypass_traffic_settings[0].DestinationPorts = utils.String(raw_bypass_traffic_settings["destination_ports"].(string))
+	bypass_traffic_settings[0].SourceIPGroups = utils.String(raw_bypass_traffic_settings["source_ip_groups"].(string))
+	bypass_traffic_settings[0].DestinationIPGroups = utils.String(raw_bypass_traffic_settings["destination_ip_groups"].(string))
+
 	return &network.FirewallPolicyIntrusionDetection{
-	Mode: network.FirewallPolicyIntrusionDetectionStateType(raw["mode"]),
-	Configuration: &network.FirewallPolicyIntrusionDetectionConfiguration{
-		SignatureOverrides: network.FirewallPolicyIntrusionDetectionSignatureSpecification(
-			ID: network.FirewallPolicyIntrusionDetectionStateType(raw["configuration_signature_overrides"]["id"]).(string),
-			Mode: network.FirewallPolicyIntrusionDetectionStateType(raw["configuration_signature_overrides"]["state"]),
-		),
-		BypassTrafficSettings: network.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications(
-			raw["configuration_bypass_traffic_settings"],
-		),
-	    },
-    } 
+		Mode: network.FirewallPolicyIntrusionDetectionStateType(raw["mode"].(string)),
+		Configuration: &network.FirewallPolicyIntrusionDetectionConfiguration{
+			SignatureOverrides:    &signature_overrides,
+			BypassTrafficSettings: &bypass_traffic_settings,
+		},
+	}
 
 }
 
-func expandFirewallPolicyTransportSecurity(input []interface{}) *network.FirewallPolicyTransportSecurity{
+func expandFirewallPolicyTransportSecurity(input []interface{}) *network.FirewallPolicyTransportSecurity {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	raw := input[0].(map[string]interface{})
 
-    return &network.FirewallPolicyTransportSecurity{
-	    CertificateAuthority: &network.FirewallPolicyCertificateAuthority{
-		    KeyVaultSecretID: raw["key_vault_secret_id"].(string),
-		    Name: raw["name"].(string),
-        },
-    }
+	return &network.FirewallPolicyTransportSecurity{
+		CertificateAuthority: &network.FirewallPolicyCertificateAuthority{
+			KeyVaultSecretID: raw["key_vault_secret_id"].(string),
+			Name:             raw["name"].(string),
+		},
+	}
 }
 
 func flattenFirewallPolicyThreatIntelWhitelist(input *network.FirewallPolicyThreatIntelWhitelist) []interface{} {
@@ -523,7 +563,7 @@ func flattenFirewallPolicyDNSSetting(input *network.DNSSettings) []interface{} {
 	}
 }
 
-func flattenFirewallPolicyIntrusionDetection(input *network.FirewallPolicyIntrusionDetection) []interface{}{
+func flattenFirewallPolicyIntrusionDetection(input *network.FirewallPolicyIntrusionDetection) []interface{} {
 
 	if input == nil {
 		return []interface{}{}
@@ -531,21 +571,22 @@ func flattenFirewallPolicyIntrusionDetection(input *network.FirewallPolicyIntrus
 
 	return []interface{}{
 		map[string]interface{}{
-			"mode": input.Mode,
-			"configuration_signature_overrides": input.SignatureOverrides,
-			"configuration_bypass_traffic_settings": input.BypassTrafficSettings,
+			"mode":                                  input.Mode,
+			"configuration_signature_overrides":     input.Configuration.SignatureOverrides,
+			"configuration_bypass_traffic_settings": input.Configuration.BypassTrafficSettings,
 		},
 	}
 }
 
-func flattenFirewallPolicyTransportSecurity(input *network.FirewallPolicyTransportSecurity) []interface{}{
+func flattenFirewallPolicyTransportSecurity(input *network.FirewallPolicyTransportSecurity) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
-    return []interface{}{
+	return []interface{}{
 		map[string]interface{}{
 			"key_vault_secret_id": input.CertificateAuthority.KeyVaultSecretID,
-			"name": input.CertificateAuthority.Name,
+			"name":                input.CertificateAuthority.Name,
+		},
 	}
 }
