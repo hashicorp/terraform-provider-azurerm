@@ -70,5 +70,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_factory_trigger_blob_event":                    resourceDataFactoryTriggerBlobEvent(),
 		"azurerm_data_factory_trigger_custom_event":                  resourceDataFactoryTriggerCustomEvent(),
 		"azurerm_data_factory_trigger_schedule":                      resourceDataFactoryTriggerSchedule(),
+		"azurerm_data_factory_trigger_tumbling_window":               resourceDataFactoryTriggerTumblingWindow(),
 	}
 }

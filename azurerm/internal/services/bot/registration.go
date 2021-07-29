@@ -26,6 +26,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
+		"azurerm_bot_channel_alexa":              resourceBotChannelAlexa(),
 		"azurerm_bot_channel_directline":         resourceBotChannelDirectline(),
 		"azurerm_bot_channel_direct_line_speech": resourceBotChannelDirectLineSpeech(),
 		"azurerm_bot_channel_email":              resourceBotChannelEmail(),

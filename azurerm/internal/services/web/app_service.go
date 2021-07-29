@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -207,8 +207,8 @@ func schemaAppServiceAuthSettings() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.AllowAnonymous),
-						string(web.RedirectToLoginPage),
+						string(web.UnauthenticatedClientActionAllowAnonymous),
+						string(web.UnauthenticatedClientActionRedirectToLoginPage),
 					}, false),
 				},
 
@@ -356,8 +356,8 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.Classic),
-						string(web.Integrated),
+						string(web.ManagedPipelineModeClassic),
+						string(web.ManagedPipelineModeIntegrated),
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
@@ -443,9 +443,9 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.AllAllowed),
-						string(web.Disabled),
-						string(web.FtpsOnly),
+						string(web.FtpsStateAllAllowed),
+						string(web.FtpsStateDisabled),
+						string(web.FtpsStateFtpsOnly),
 					}, false),
 				},
 
@@ -478,9 +478,9 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.OneFullStopZero),
-						string(web.OneFullStopOne),
-						string(web.OneFullStopTwo),
+						string(web.SupportedTLSVersionsOneFullStopZero),
+						string(web.SupportedTLSVersionsOneFullStopOne),
+						string(web.SupportedTLSVersionsOneFullStopTwo),
 					}, false),
 				},
 
@@ -516,11 +516,11 @@ func schemaAppServiceLogsConfig() *pluginsdk.Schema {
 								Default:       "Off",
 								ConflictsWith: []string{"logs.0.http_logs.0.azure_blob_storage"},
 								ValidateFunc: validation.StringInSlice([]string{
-									string(web.Error),
-									string(web.Information),
-									string(web.Off),
-									string(web.Verbose),
-									string(web.Warning),
+									string(web.LogLevelError),
+									string(web.LogLevelInformation),
+									string(web.LogLevelOff),
+									string(web.LogLevelVerbose),
+									string(web.LogLevelWarning),
 								}, false),
 							},
 							"azure_blob_storage": {
@@ -533,11 +533,11 @@ func schemaAppServiceLogsConfig() *pluginsdk.Schema {
 											Type:     pluginsdk.TypeString,
 											Required: true,
 											ValidateFunc: validation.StringInSlice([]string{
-												string(web.Error),
-												string(web.Information),
-												string(web.Off),
-												string(web.Verbose),
-												string(web.Warning),
+												string(web.LogLevelError),
+												string(web.LogLevelInformation),
+												string(web.LogLevelOff),
+												string(web.LogLevelVerbose),
+												string(web.LogLevelWarning),
 											}, false),
 										},
 										"sas_url": {
@@ -638,8 +638,8 @@ func schemaAppServiceStorageAccounts() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.AzureBlob),
-						string(web.AzureFiles),
+						string(web.AzureStorageTypeAzureBlob),
+						string(web.AzureStorageTypeAzureFiles),
 					}, false),
 				},
 
@@ -1580,9 +1580,9 @@ func expandAppServiceIdentity(input []interface{}) *web.ManagedServiceIdentity {
 	identity := input[0].(map[string]interface{})
 	identityType := web.ManagedServiceIdentityType(identity["type"].(string))
 
-	identityIds := make(map[string]*web.ManagedServiceIdentityUserAssignedIdentitiesValue)
+	identityIds := make(map[string]*web.UserAssignedIdentity)
 	for _, id := range identity["identity_ids"].([]interface{}) {
-		identityIds[id.(string)] = &web.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+		identityIds[id.(string)] = &web.UserAssignedIdentity{}
 	}
 
 	managedServiceIdentity := web.ManagedServiceIdentity{
@@ -1901,7 +1901,7 @@ func flattenAppServiceIpRestriction(input *[]web.IPSecurityRestriction) []interf
 				continue
 			} else {
 				switch v.Tag {
-				case web.ServiceTag:
+				case web.IPFilterTagServiceTag:
 					restriction["service_tag"] = *ip
 				default:
 					restriction["ip_address"] = *ip
@@ -2035,7 +2035,7 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 
 		if serviceTag != "" {
 			ipSecurityRestriction.IPAddress = &serviceTag
-			ipSecurityRestriction.Tag = web.ServiceTag
+			ipSecurityRestriction.Tag = web.IPFilterTagServiceTag
 		}
 
 		if vNetSubnetID != "" {
