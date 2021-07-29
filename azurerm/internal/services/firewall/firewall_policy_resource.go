@@ -160,7 +160,6 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 						"signature_overrides": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"state": {

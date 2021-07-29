@@ -3,6 +3,7 @@ package firewall_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -65,9 +66,11 @@ func TestAccFirewallPolicy_completePremium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
 	r := FirewallPolicyResource{}
 
+	tenantID := os.Getenv("ARM_TENANT_ID")
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.completePremium(data),
+			Config: r.completePremium(data, tenantID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -235,6 +238,11 @@ func (FirewallPolicyResource) completePremium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+data "azurerm_key_vault" "test" {
+  name                = azurerm_key_vault.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+
 resource "azurerm_firewall_policy" "test" {
   name                     = "acctest-networkfw-Policy-%d"
   resource_group_name      = azurerm_resource_group.test.name
@@ -265,8 +273,8 @@ resource "azurerm_firewall_policy" "test" {
     }
   }
   tls_certificate {
-    key_vault_secret_id = "TODO"
-    name                = "certificate name"
+    key_vault_secret_id = data.azurem_key_vault.test.id
+    name                = "AzureFirewallPolicyCertificate"
   }
   tags = {
     env = "Test"
@@ -330,4 +338,43 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (FirewallPolicyResource) templatePremium(data acceptance.TestData, tenantID string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-networkfw-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                            = "tls-secret-kv"
+  location                        = "${azurerm_resource_group.test.location}"
+  resource_group_name             = "${azurerm_resource_group.test.name}"
+  enabled_for_disk_encryption     = true
+  enabled_for_deployment          = true
+  enabled_for_template_deployment = true
+  tenant_id                       = "%s"
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = "%s"
+    object_id = "${data.azuread_service_principal.test.object_id}"
+
+    secret_permissions = [
+      "get",
+      "list",
+      "set",
+      "delete",
+      "recover"
+    ]
+
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, tenantID)
 }
