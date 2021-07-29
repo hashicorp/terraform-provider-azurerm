@@ -14,9 +14,9 @@ Manages a Firewall Policy.
 
 ```hcl
 resource "azurerm_firewall_policy" "example" {
-  name = "example"
+  name                = "example"
   resource_group_name = "example"
-  location = "West Europe"
+  location            = "West Europe"
 }
 ```
 
