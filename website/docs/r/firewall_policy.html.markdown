@@ -14,9 +14,9 @@ Manages a Firewall Policy.
 
 ```hcl
 resource "azurerm_firewall_policy" "example" {
-  name                = "example"
+  name = "example"
   resource_group_name = "example"
-  location            = "West Europe"
+  location = "West Europe"
 }
 ```
 
@@ -32,47 +32,97 @@ The following arguments are supported:
 
 ---
 
-* `sku` - (Optional) The SKU Tier of the Firewall Policy. Possible values are `Standard`, `Premium`.
-
-* `base_policy_id` - (Optional) The ID of the base Firewall Policy.
+* `base_policy_id` - (Optional) The ID of the TODO.
 
 * `dns` - (Optional) A `dns` block as defined below.
 
-* `threat_intelligence_mode` - (Optional) The operation mode for Threat Intelligence. Possible values are `Alert`, `Deny` and `Off`. Defaults to `Alert`.
+* `intrusion_detection` - (Optional) A `intrusion_detection` block as defined below.
+
+* `sku` - (Optional) TODO. Changing this forces a new Firewall Policy to be created.
+
+* `tags` - (Optional) A mapping of tags which should be assigned to the Firewall Policy.
 
 * `threat_intelligence_allowlist` - (Optional) A `threat_intelligence_allowlist` block as defined below.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Firewall Policy.
+* `threat_intelligence_mode` - (Optional) TODO.
+
+* `tls_certificate` - (Optional) A `tls_certificate` block as defined below.
 
 ---
 
 A `dns` block supports the following:
 
-* `servers` - (Optional) A list of custom DNS servers' IP addresses.
+* `network_rule_fqdn_enabled` - (Optional) Should the TODO be enabled?
 
-* `proxy_enabled` - (Optional) Whether to enable DNS proxy on Firewalls attached to this Firewall Policy? Defaults to `false`.
+* `proxy_enabled` - (Optional) Should the TODO be enabled?
+
+* `servers` - (Optional) Specifies a list of TODO.
+
+---
+
+A `intrusion_detection` block supports the following:
+
+* `mode` - (Optional) TODO.
+
+* `signature_overrides` - (Optional) A `signature_overrides` block as defined below.
+
+* `traffic_bypass` - (Optional) One or more `traffic_bypass` blocks as defined below.
+
+---
+
+A `signature_overrides` block supports the following:
+
+* `id` - (Optional) TODO.
+
+* `state` - (Optional) TODO.
 
 ---
 
 A `threat_intelligence_allowlist` block supports the following:
 
-* `ip_addresses` - (Optional) A list of IP addresses or IP address ranges that will be skipped for threat detection.
+* `fqdns` - (Optional) Specifies a list of TODO.
 
-* `fqdns` - (Optional) A list of FQDNs that will be skipped for threat detection.
+* `ip_addresses` - (Optional) Specifies a list of TODO.
 
 ---
 
+A `tls_certificate` block supports the following:
+
+* `key_vault_secret_id` - (Required) The ID of the TODO.
+
+* `name` - (Required) The name which should be used for this TODO.
+
+---
+
+A `traffic_bypass` block supports the following:
+
+* `name` - (Required) The name which should be used for this TODO.
+
+* `protocol` - (Required) TODO.
+
+* `description` - (Optional) TODO.
+
+* `destination_addresses` - (Optional) Specifies a list of TODO.
+
+* `destination_ip_groups` - (Optional) Specifies a list of TODO.
+
+* `destination_ports` - (Optional) Specifies a list of TODO.
+
+* `source_addresses` - (Optional) Specifies a list of TODO.
+
+* `source_ip_groups` - (Optional) Specifies a list of TODO.
+
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Firewall Policy.
 
-* `child_policies` - A list of reference to child Firewall Policies of this Firewall Policy.
+* `child_policies` - A `child_policies` block as defined below.
 
-* `firewalls` - A list of references to Azure Firewalls that this Firewall Policy is associated with.
+* `firewalls` - A `firewalls` block as defined below.
 
-* `rule_collection_groups` - A list of references to Firewall Policy Rule Collection Groups that belongs to this Firewall Policy.
+* `rule_collection_groups` - A `rule_collection_groups` block as defined below.
 
 ## Timeouts
 
@@ -85,7 +135,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-networks can be imported using the `resource id`, e.g.
+Firewall Policys can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/firewallPolicies/policy1

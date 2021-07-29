@@ -179,7 +179,7 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 								},
 							},
 						},
-						"bypass_traffic_settings": {
+						"traffic_bypass": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Elem: &pluginsdk.Resource{
@@ -496,24 +496,24 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *network.Firewa
 		signature_overrides[i].Mode = v.Mode
 	}
 
-	bypass_traffic_settings := []network.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications{}
+	traffic_bypass := []network.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications{}
 
-	for i, v := range bypass_traffic_settings {
-		bypass_traffic_settings[i].Name = v.Name
-		bypass_traffic_settings[i].Description = v.Description
-		bypass_traffic_settings[i].Protocol = v.Protocol
-		bypass_traffic_settings[i].SourceAddresses = v.SourceAddresses
-		bypass_traffic_settings[i].DestinationAddresses = v.DestinationAddresses
-		bypass_traffic_settings[i].DestinationPorts = v.DestinationPorts
-		bypass_traffic_settings[i].SourceIPGroups = v.SourceIPGroups
-		bypass_traffic_settings[i].DestinationIPGroups = v.DestinationIPGroups
+	for i, v := range traffic_bypass {
+		traffic_bypass[i].Name = v.Name
+		traffic_bypass[i].Description = v.Description
+		traffic_bypass[i].Protocol = v.Protocol
+		traffic_bypass[i].SourceAddresses = v.SourceAddresses
+		traffic_bypass[i].DestinationAddresses = v.DestinationAddresses
+		traffic_bypass[i].DestinationPorts = v.DestinationPorts
+		traffic_bypass[i].SourceIPGroups = v.SourceIPGroups
+		traffic_bypass[i].DestinationIPGroups = v.DestinationIPGroups
 	}
 
 	return &network.FirewallPolicyIntrusionDetection{
 		Mode: network.FirewallPolicyIntrusionDetectionStateType(raw["mode"].(string)),
 		Configuration: &network.FirewallPolicyIntrusionDetectionConfiguration{
 			SignatureOverrides:    &signature_overrides,
-			BypassTrafficSettings: &bypass_traffic_settings,
+			BypassTrafficSettings: &traffic_bypass,
 		},
 	}
 
@@ -575,9 +575,9 @@ func flattenFirewallPolicyIntrusionDetection(input *network.FirewallPolicyIntrus
 
 	return []interface{}{
 		map[string]interface{}{
-			"mode":                                  input.Mode,
-			"configuration_signature_overrides":     input.Configuration.SignatureOverrides,
-			"configuration_bypass_traffic_settings": input.Configuration.BypassTrafficSettings,
+			"mode":                input.Mode,
+			"signature_overrides": input.Configuration.SignatureOverrides,
+			"traffic_bypass":      input.Configuration.BypassTrafficSettings,
 		},
 	}
 }
