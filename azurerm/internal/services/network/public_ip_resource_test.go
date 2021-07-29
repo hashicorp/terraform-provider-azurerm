@@ -443,6 +443,8 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
+  sku                 = "Standard"
+  sku_tier            = "Global"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -677,6 +679,8 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   domain_name_label   = "acctest-%d"
+  sku                 = "Standard"
+  sku_tier            = "Regional"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
