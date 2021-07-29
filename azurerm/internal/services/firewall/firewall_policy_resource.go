@@ -407,8 +407,8 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf(`setting "intrusion_detection": %+v`, err)
 		}
 
-		if err := d.Set("transport_security", flattenFirewallPolicyTransportSecurity(prop.TransportSecurity)); err != nil {
-			return fmt.Errorf(`setting "transport_security": %+v`, err)
+		if err := d.Set("tls_certificate", flattenFirewallPolicyTransportSecurity(prop.TransportSecurity)); err != nil {
+			return fmt.Errorf(`setting "tls_certificate": %+v`, err)
 		}
 
 		if err := d.Set("child_policies", flattenNetworkSubResourceID(prop.ChildPolicies)); err != nil {
