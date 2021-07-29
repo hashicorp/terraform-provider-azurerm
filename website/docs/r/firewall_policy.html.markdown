@@ -72,7 +72,7 @@ A `intrusion_detection` block supports the following:
 
 A `signature_overrides` block supports the following:
 
-* `id` - (Optional) 12-digit number which identifies your signature_id.
+* `id` - (Optional) 12-digit number (id) which identifies your signature.
 
 * `state` - (Optional) state can be any of "Off", "Alert" or "Deny".
 
@@ -110,7 +110,7 @@ A `traffic_bypass` block supports the following:
 
 * `source_addresses` - (Optional) Specifies a list of source addresses that shall be bypassed by intrusion detection.
 
-* `source_ip_groups` - (Optional) Specifies a list of TODO.
+* `source_ip_groups` - (Optional) Specifies a list of source ip groups that shall be bypassed by intrusion detection.
 
 ## Attributes Reference
 
