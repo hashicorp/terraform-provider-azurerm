@@ -20,6 +20,9 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 			"complete": testAccBotConnection_complete,
 		},
 		"channel": {
+			"alexaBasic":             testAccBotChannelAlexa_basic,
+			"alexaUpdate":            testAccBotChannelAlexa_update,
+			"alexaRequiresImport":    testAccBotChannelAlexa_requiresImport,
 			"slackBasic":             testAccBotChannelSlack_basic,
 			"slackUpdate":            testAccBotChannelSlack_update,
 			"smsBasic":               testAccBotChannelSMS_basic,
