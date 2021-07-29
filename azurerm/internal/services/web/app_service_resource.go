@@ -553,6 +553,7 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		appServiceIdentityRaw := d.Get("identity").([]interface{})
 		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
 		site.Identity = appServiceIdentity
+		site.SiteConfig = siteConfig
 
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, site)
 		if err != nil {

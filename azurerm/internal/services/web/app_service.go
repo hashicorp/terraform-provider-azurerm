@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 )
 
 func schemaAppServiceAadAuthSettings() *pluginsdk.Schema {
@@ -491,19 +490,15 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
-
 				"acr_use_managed_identity_creds": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
-
 				"acr_user_managed_identity_id": {
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: msivalidate.UserAssignedIdentityID,
-					Optional:     true,
+					Type:     pluginsdk.TypeString,
+					Optional: true,
 				},
-
 			},
 		},
 	}
@@ -833,12 +828,10 @@ func schemaAppServiceDataSourceSiteConfig() *pluginsdk.Schema {
 						},
 					},
 				},
-
 				"acr_use_managed_identity_creds": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
-
 				"acr_user_managed_identity_id": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
