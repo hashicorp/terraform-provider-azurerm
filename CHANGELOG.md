@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source** `azurerm_storage_share` [GH-12693]
 * **New Resource** `azurerm_bot_channel_alexa` [GH-12682]
 * **New Resource** `azurerm_bot_channel_direct_line_speech` [GH-12735]
 * **New Resource** `azurerm_bot_channel_facebook` [GH-12709]
