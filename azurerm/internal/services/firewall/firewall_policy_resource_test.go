@@ -111,6 +111,7 @@ func TestAccFirewallPolicy_update(t *testing.T) {
 func TestAccFirewallPolicy_updatePremium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
 	r := FirewallPolicyResource{}
+	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -121,7 +122,7 @@ func TestAccFirewallPolicy_updatePremium(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.completePremium(data),
+			Config: r.completePremium(data, tenantID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -233,8 +234,8 @@ resource "azurerm_firewall_policy" "test" {
 `, template, data.RandomInteger)
 }
 
-func (FirewallPolicyResource) completePremium(data acceptance.TestData) string {
-	template := FirewallPolicyResource{}.template(data)
+func (FirewallPolicyResource) completePremium(data acceptance.TestData, tenantID string) string {
+	template := FirewallPolicyResource{}.templatePremium(data, tenantID)
 	return fmt.Sprintf(`
 %s
 
@@ -376,5 +377,17 @@ resource "azurerm_key_vault" "test" {
 
   }
 }
-`, data.RandomInteger, data.Locations.Primary, tenantID)
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "AzureFirewallPolicyCertificate"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate {
+    contents = file("testdata/cert.pem")
+    password = file("testdata/key.pem")
+  }
+
+}
+
+`, data.RandomInteger, data.Locations.Primary, tenantID, tenantID)
 }

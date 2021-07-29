@@ -130,7 +130,7 @@ func FirewallDataSourcePolicyRead(d *pluginsdk.ResourceData, meta interface{}) e
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Firewall Policy %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("firewall Policy %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
 		return fmt.Errorf("retrieving Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
