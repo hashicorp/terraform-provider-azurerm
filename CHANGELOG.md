@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource** `azurerm_bot_channel_alexa` [GH-12682]
+* **New Resource** `azurerm_bot_channel_direct_line_speech` [GH-12735]
 * **New Resource** `azurerm_bot_channel_facebook` [GH-12709]
 * **New Resource** `azurerm_bot_channel_sms` [GH-12713]
 * **New Resource** `azurerm_data_factory_trigger_custom_event` [GH-12448]
