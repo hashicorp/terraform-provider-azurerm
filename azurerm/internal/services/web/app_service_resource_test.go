@@ -5499,7 +5499,7 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     acr_use_managed_identity_creds = true
-    acr_user_managed_identity_id = azurerm_user_assigned_identity.test.client_id
+    acr_user_managed_identity_id   = azurerm_user_assigned_identity.test.client_id
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)

@@ -234,7 +234,7 @@ The following arguments are supported:
 
 * `auto_swap_slot_name` - (Optional) The name of the slot to automatically swap to during deployment
 
-* `acr_use_managed_identity_creds` - (Optional) Are Managed Identity Credential used for Azure Container Registry pull
+* `acr_use_managed_identity_credentials` - (Optional) Are Managed Identity Credential used for Azure Container Registry pull
 
 * `acr_user_managed_identity_id` - (Optional) If using User Managed Identity, the User Managed Identity Client Id
 
