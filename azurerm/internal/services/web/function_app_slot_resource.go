@@ -659,7 +659,7 @@ func getBasicFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, appServiceTie
 	// (see https://github.com/Azure/azure-functions-python-worker/issues/598)
 	if (strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium") || strings.HasPrefix(strings.ToLower(appServiceTier), "premium")) &&
 		!strings.EqualFold(d.Get("os_type").(string), "linux") {
-		return append(basicSettings, consumptionSettings...), nil
+		return append(basicSettings, consumptionSettings...)
 	}
 
 	return basicSettings
