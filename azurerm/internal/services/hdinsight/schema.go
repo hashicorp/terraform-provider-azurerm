@@ -7,9 +7,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
 	"github.com/hashicorp/go-getter/helper/url"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	dsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/domainservices/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/validate"
+	msiValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -233,6 +236,73 @@ func SchemaHDInsightsNetwork() *pluginsdk.Schema {
 					Optional: true,
 					ForceNew: true,
 					Default:  false,
+				},
+			},
+		},
+	}
+}
+
+func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"aadds_resource_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: dsValidate.DomainServiceID,
+				},
+
+				"cluster_users_group_dns": {
+					Type:     pluginsdk.TypeSet,
+					Required: true,
+					ForceNew: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+
+				"domain_name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"domain_username": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"ldaps_urls": {
+					Type:     pluginsdk.TypeSet,
+					Required: true,
+					ForceNew: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+
+				"msi_resource_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: msiValidate.UserAssignedIdentityID,
+				},
+
+				"organizational_unit_dn": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 		},
@@ -1025,6 +1095,25 @@ func ExpandHDInsightAutoscaleRecurrenceDefinition(input []interface{}) *hdinsigh
 	return result
 }
 
+func ExpandHDInsightSecurityProfile(input []interface{}) *hdinsight.SecurityProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &hdinsight.SecurityProfile{
+		DirectoryType:        hdinsight.DirectoryTypeActiveDirectory,
+		Domain:               utils.String(v["domain_name"].(string)),
+		OrganizationalUnitDN: utils.String(v["organizational_unit_dn"].(string)),
+		LdapsUrls:            utils.ExpandStringSlice(v["ldaps_urls"].(*schema.Set).List()),
+		DomainUsername:       utils.String(v["domain_username"].(string)),
+		ClusterUsersGroupDNS: utils.ExpandStringSlice(v["cluster_users_group_dns"].(*schema.Set).List()),
+		AaddsResourceID:      utils.String(v["aadds_resource_id"].(string)),
+		MsiResourceID:        utils.String(v["msi_resource_id"].(string)),
+	}
+}
+
 func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{}, definition HDInsightNodeDefinition) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -1208,6 +1297,49 @@ func FlattenHDInsightAutoscaleRecurrenceDefinition(input *hdinsight.AutoscaleRec
 		map[string]interface{}{
 			"timezone": input.TimeZone,
 			"schedule": &schedules,
+		},
+	}
+}
+
+func flattenHDInsightSecurityProfile(input *hdinsight.SecurityProfile) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var aaddsResourceId string
+	if input.AaddsResourceID != nil {
+		aaddsResourceId = *input.AaddsResourceID
+	}
+
+	var domain string
+	if input.Domain != nil {
+		domain = *input.Domain
+	}
+
+	var domainUsername string
+	if input.DomainUsername != nil {
+		domainUsername = *input.DomainUsername
+	}
+
+	var msiResourceId string
+	if input.MsiResourceID != nil {
+		msiResourceId = *input.MsiResourceID
+	}
+
+	var organizationalUnitDN string
+	if input.OrganizationalUnitDN != nil {
+		organizationalUnitDN = *input.OrganizationalUnitDN
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"aadds_resource_id":       aaddsResourceId,
+			"cluster_users_group_dns": utils.FlattenStringSlice(input.ClusterUsersGroupDNS),
+			"domain_name":             domain,
+			"domain_username":         domainUsername,
+			"ldaps_urls":              utils.FlattenStringSlice(input.LdapsUrls),
+			"msi_resource_id":         msiResourceId,
+			"organizational_unit_dn":  organizationalUnitDN,
 		},
 	}
 }

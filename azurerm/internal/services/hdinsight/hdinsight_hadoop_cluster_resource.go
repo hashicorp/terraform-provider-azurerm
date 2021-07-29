@@ -158,6 +158,8 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"security_profile": SchemaHDInsightsSecurityProfile(),
+
 			"tags": tags.Schema(),
 
 			"https_endpoint": {
@@ -258,6 +260,11 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 		Tags:     tags.Expand(t),
 		Identity: identity,
 	}
+
+	if v, ok := d.GetOk("security_profile"); ok {
+		params.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]interface{}))
+	}
+
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
 		return fmt.Errorf("creating HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -417,6 +424,10 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 		}
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
+
+		if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile)); err != nil {
+			return fmt.Errorf("setting `security_profile`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
