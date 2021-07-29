@@ -10,9 +10,9 @@ description: |-
 
 Manages an Orchestrated Virtual Machine Scale Set.
 
--> **Note:** Orchestrated Virtual Machine Scale Sets are in Public Preview and it may receive breaking changes - [more details can be found in the Azure Documentation](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/orchestration-modes).
+~> **NOTE** Orchestrated Virtual Machine Scale Sets are in Public Preview and it may receive breaking changes - [more details can be found in the Azure Documentation](https://docs.microsoft.com/azure/virtual-machine-scale-sets/orchestration-modes).
 
--> **Note:** Azure is planning to deprecate the `single_placement_group` attribute in the Orchestrated Virtual Machine Scale Set starting from api-version `2019-12-01` and there will be a breaking change in the Orchestrated Virtual Machine Scale Set.
+~> **NOTE:** Azure is planning to deprecate the `single_placement_group` attribute in the Orchestrated Virtual Machine Scale Set starting from api-version `2019-12-01` and there will be a breaking change in the Orchestrated Virtual Machine Scale Set.
 
 ## Example Usage
 
@@ -37,7 +37,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 The following arguments are supported:
 
-* `sku` - (Required) The Virtual Machine SKU for the Scale Set, such as Standard_F2.
+* `sku_name` - (Required) A string consisting of two segments separated by an underscore(\_). The first segment is the `name`, valid values include: any of the [General purpose](https://docs.microsoft.com/azure/virtual-machines/sizes-general), [Compute optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-compute), [Memory optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-memory), [Storage optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-storage), [GPU optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-gpu), [FPGA optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-field-programmable-gate-arrays), [High performance](https://docs.microsoft.com/azure/virtual-machines/sizes-hpc), or [Previous generation](https://docs.microsoft.com/azure/virtual-machines/sizes-previous-gen) virtual machine sku's. The second segment is the `capacity` (e.g. the number of virtual machines in the Orchestrated Virtual Machine Scale Set). Valid values for the `capacity` segment of the `sku_name` are positive `integers` between `0` and `1000`(e.g. `Standard_D48_v3_6`).
 
 * `network_interface` - (Required) One or more `network_interface` blocks as defined below.
 
@@ -97,6 +97,14 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Orchestrated Virtual Machine Scale Set.
 
+
+---
+
+A `automatic_instance_repair` block supports the following: 
+
+* `enabled` - (Required) Should the automatic instance repair be enabled on this Orchestrated Virtual Machine Scale Set? Possible values are `true` and `false`. Defaults to `false`.
+
+* `grace_period` - (Optional) Amount of time for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. Possible values are between `30` and `90` minutes. Defaults to `30` minutes. The time duration should be specified in `ISO 8601` format (e.g. `PT30M` to `PT90M`).
 
 ---
 

@@ -12,7 +12,7 @@ import (
 	// msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
-	// "github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
@@ -424,5 +424,41 @@ func OrchestratedVirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.
 				},
 			},
 		},
+	}
+}
+
+func OrchestratedVirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"enabled": {
+					Type:     pluginsdk.TypeBool,
+					Required: true,
+				},
+				"grace_period": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      "PT30M",
+					ValidateFunc: azValidate.ISO8601DurationBetween("PT30M", "PT90M"),
+				},
+			},
+		},
+	}
+}
+
+func ExpandOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(input []interface{}) *compute.AutomaticRepairsPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+
+	return &compute.AutomaticRepairsPolicy{
+		Enabled:     utils.Bool(raw["enabled"].(bool)),
+		GracePeriod: utils.String(raw["grace_period"].(string)),
 	}
 }

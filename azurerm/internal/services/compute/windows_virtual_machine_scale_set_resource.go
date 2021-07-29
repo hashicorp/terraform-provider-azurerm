@@ -531,7 +531,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 			UpgradePolicy:                          &upgradePolicy,
 			// OrchestrationMode needs to be hardcoded to Uniform, for the
 			// standard VMSS resource, since virtualMachineProfile is now supported
-			// in both resources
+			// in both VMSS and Orcestrated VMSS...
 			OrchestrationMode: compute.Uniform,
 			ScaleInPolicy: &compute.ScaleInPolicy{
 				Rules: &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)},

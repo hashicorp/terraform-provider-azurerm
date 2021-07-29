@@ -71,16 +71,13 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			},
 
 			// Start New
-			"instances": {
-				Type:         pluginsdk.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntAtLeast(0),
-			},
-
+			// For sku I will create a format like: tier_sku name_capacity. Capacity can be from 0 to 1000
+			// NOTE: all of the exposed vm sku tier's are Standard so this will continue to be hardcoded
+			// Examples: Standard_HC44rs_4, Standard_D48_v3_6, Standard_M64s_20, Standard_HB120-96rs_v3_8
 			"sku_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: azure.ValidateOrchestratedVirtualMachineScaleSetSku,
 			},
 
 			// If multiple network_interface blocks are specified, one must be set to primary.
@@ -89,6 +86,8 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"os_disk": OrchestratedVirtualMachineScaleSetOSDiskSchema(),
 
 			// Optional
+			"automatic_instance_repair": OrchestratedVirtualMachineScaleSetAutomaticRepairsPolicySchema(),
+
 			"boot_diagnostics": bootDiagnosticsSchema(),
 
 			// If unspecified this defaults to the value for the name field. If the value of
@@ -313,22 +312,30 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	if v, ok := d.GetOk("terminate_notification"); ok {
 		virtualMachineProfile.ScheduledEventsProfile = ExpandOrchestratedVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
 	}
+
+	skuName, capacity, err := azure.SplitOrchestratedVirtualMachineScaleSetSku(d.Get("sku_name").(string))
+	if err != nil {
+		return fmt.Errorf("expanding 'sku_name': %+v", err)
+	}
+
+	automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
+	automaticRepairsPolicy := ExpandOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 	// End new
 
 	props := compute.VirtualMachineScaleSet{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Sku: &compute.Sku{
-			Name:     utils.String(d.Get("sku_name").(string)),
-			Capacity: utils.Int64(int64(d.Get("instances").(int))),
-			// doesn't appear this can be set to anything else, even Promo machines are Standard
-			Tier: utils.String("Standard"),
+			Name:     utils.String(skuName),
+			Capacity: utils.Int64(int64(capacity)),
+			Tier:     utils.String("Standard"),
 		},
 		Identity: identity,
 		Plan:     plan,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
-			SinglePlacementGroup:  utils.Bool(d.Get("single_placement_group").(bool)),
-			VirtualMachineProfile: &virtualMachineProfile,
+			AutomaticRepairsPolicy: automaticRepairsPolicy,
+			SinglePlacementGroup:   utils.Bool(d.Get("single_placement_group").(bool)),
+			VirtualMachineProfile:  &virtualMachineProfile,
 			// Per the service team, OrchestrationMode needs to be hardcoded to Flexible,
 			// since in the previous release the VM Profile was not supported so the RP
 			// assumed the Orchestration Mode was Flexible, however in this new release
@@ -570,19 +577,21 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		update.Plan = expandPlan(planRaw)
 	}
 
-	if d.HasChange("sku") || d.HasChange("instances") {
+	if d.HasChange("sku_name") {
 		// in-case ignore_changes is being used, since both fields are required
 		// look up the current values and override them as needed
 		sku := existing.Sku
 
-		if d.HasChange("sku") {
+		if d.HasChange("sku_name") {
 			updateInstances = true
 
-			sku.Name = utils.String(d.Get("sku").(string))
-		}
+			skuName, capacity, err := azure.SplitOrchestratedVirtualMachineScaleSetSku(d.Get("sku_name").(string))
+			if err != nil {
+				return fmt.Errorf("expanding 'sku_name': %+v", err)
+			}
 
-		if d.HasChange("instances") {
-			sku.Capacity = utils.Int64(int64(d.Get("instances").(int)))
+			sku.Name = utils.String(skuName)
+			sku.Capacity = utils.Int64(int64(capacity))
 		}
 
 		update.Sku = sku
