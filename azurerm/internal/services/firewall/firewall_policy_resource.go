@@ -227,7 +227,8 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	if v, ok := d.GetOk("private_ip_ranges"); ok {
 		privateIpRanges := utils.ExpandStringSlice(v.([]interface{}))
 		props.FirewallPolicyPropertiesFormat.Snat = &network.FirewallPolicySNAT{
-			PrivateRanges: privateIpRanges}
+			PrivateRanges: privateIpRanges,
+		}
 	}
 
 	locks.ByName(name, azureFirewallPolicyResourceName)
