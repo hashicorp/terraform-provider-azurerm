@@ -1,16 +1,16 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/sdk/servers"
 )
 
 type Client struct {
-	ServerClient *analysisservices.ServersClient
+	ServerClient *servers.ServersClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	serverClient := analysisservices.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	serverClient := servers.NewServersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&serverClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
