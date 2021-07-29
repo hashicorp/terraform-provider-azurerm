@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * analysisservices: refactoring to use an Embedded SDK [GH-12771]
 * maps: refactoring to use an Embedded SDK [GH-12716]
 * msi: refactoring to use an Embedded SDK [GH-12715]
+* relay: refactoring to use an Embedded SDK [GH-12772]
 * vmware: refactoring to use an Embedded SDK [GH-12751]
 * Data Source: `azurerm_storage_account_sas` - support for the property `ip_addresses` [GH-12705]
 * `azurerm_api_management_diagnostic` - support for the property `operation_name_format` [GH-12736]
