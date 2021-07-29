@@ -1,11 +1,9 @@
 package validate
 
-// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
-
 import (
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/sdk/hybridconnections"
 )
 
 func HybridConnectionID(input interface{}, key string) (warnings []string, errors []error) {
@@ -15,7 +13,7 @@ func HybridConnectionID(input interface{}, key string) (warnings []string, error
 		return
 	}
 
-	if _, err := parse.HybridConnectionID(v); err != nil {
+	if _, err := hybridconnections.ParseHybridConnectionID(v); err != nil {
 		errors = append(errors, err)
 	}
 
