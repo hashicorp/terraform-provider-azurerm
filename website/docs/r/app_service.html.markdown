@@ -249,7 +249,7 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
-* `acr_use_managed_identity_creds` - (Optional) Should Managed Identity Creds be used for Azure Container Registry pull
+* `acr_use_managed_identity_creds` - (Optional) Are Managed Identity Credentials used for Azure Container Registry pull
 
 * `acr_user_managed_identity_id` - (Optional) If using User Managed Identity, the User Managed Identity Client Id
 
