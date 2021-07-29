@@ -544,8 +544,8 @@ func (t AnalysisServicesServerResource) checkState(expectedState servers.State) 
 			actualState = string(*resp.Model.Properties.State)
 		}
 
-		if actualState != actualState {
-			return fmt.Errorf("Unexpected state. Expected %s but is %s", expectedState, actualState)
+		if actualState != string(expectedState) {
+			return fmt.Errorf("Unexpected state. Expected %s but is %s", string(expectedState), actualState)
 		}
 
 		return nil
