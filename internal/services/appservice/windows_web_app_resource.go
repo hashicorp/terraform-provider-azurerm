@@ -487,11 +487,12 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				state.LogsConfig = logs
 			}
 
-			if siteConfig := flattenSiteConfigWindows(webAppSiteConfig.SiteConfig); siteConfig != nil {
-				currentStack, ok := siteMetadata.Properties["CURRENT_STACK"]
-				if ok {
-					siteConfig[0].ApplicationStack[0].CurrentStack = *currentStack // YUK!!!
-				}
+			currentStack := ""
+			currentStackPtr, ok := siteMetadata.Properties["CURRENT_STACK"]
+			if ok {
+				currentStack = *currentStackPtr
+			}
+			if siteConfig := flattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack); siteConfig != nil {
 				state.SiteConfig = siteConfig
 			}
 
@@ -503,16 +504,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				state.ConnectionStrings = appConnectionStrings
 			}
 
-			if userProps := siteCredentials.UserProperties; userProps != nil {
-				siteCredential := helpers.SiteCredential{}
-				if userProps.PublishingUserName != nil {
-					siteCredential.Username = *userProps.PublishingUserName
-				}
-				if userProps.PublishingPassword != nil {
-					siteCredential.Password = *userProps.PublishingPassword
-				}
-				state.SiteCredentials = []helpers.SiteCredential{siteCredential}
-			}
+			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
 			return metadata.Encode(&state)
 		},

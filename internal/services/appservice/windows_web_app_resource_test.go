@@ -456,7 +456,63 @@ func TestAccWindowsWebApp_withMultiStack(t *testing.T) {
 	})
 }
 
-// TODO - Test(s) for new acr creds properties?
+func TestAccWindowsWebApp_containerRegistryCredentials(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.acrCredentials(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsWebApp_containerRegistryCredentialsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.container_registry_use_managed_identity").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.acrCredentials(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.container_registry_use_managed_identity").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.container_registry_managed_identity_id").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.acrCredentialsUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.container_registry_use_managed_identity").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.container_registry_managed_identity_id").HasValue(fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.ManagedIdentity/userAssignedIdentities/acct-%d", data.Client().SubscriptionID, data.RandomInteger, data.RandomInteger)),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.acrCredentials(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.container_registry_use_managed_identity").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.container_registry_managed_identity_id").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
 // TODO - Needs more property tests for autoheal
 
@@ -675,7 +731,7 @@ resource "azurerm_windows_web_app" "test" {
     enabled = true
     issuer  = "https://sts.windows.net/%s"
 
-    additional_login_params = {
+    additional_login_parameters = {
       test_key = "test_value"
     }
 
@@ -781,6 +837,9 @@ resource "azurerm_windows_web_app" "test" {
       support_credentials = true
     }
 
+    container_registry_use_managed_identity = true
+    container_registry_managed_identity_id  = azurerm_user_assigned_identity.test.id
+
     // auto_swap_slot_name = // TODO
     auto_heal = true
 
@@ -840,7 +899,7 @@ resource "azurerm_windows_web_app" "test" {
     enabled = true
     issuer  = "https://sts.windows.net/%s"
 
-    additional_login_params = {
+    additional_login_parameters = {
       test_key = "test_value_new"
     }
 
@@ -929,9 +988,8 @@ resource "azurerm_windows_web_app" "test" {
     ftps_state                  = "FtpsOnly"
     health_check_path           = "/health2"
     number_of_workers           = 2
-    // windows_fx_version          = "DOCKER|mcr.microsoft.com/azure-app-service/samples/aspnethelloworld:latest"
-    minimum_tls_version     = "1.2"
-    scm_minimum_tls_version = "1.2"
+    minimum_tls_version         = "1.2"
+    scm_minimum_tls_version     = "1.2"
     cors {
       allowed_origins = [
         "http://www.contoso.com",
@@ -941,6 +999,8 @@ resource "azurerm_windows_web_app" "test" {
 
       support_credentials = true
     }
+
+    container_registry_use_managed_identity = true
 
     auto_heal = true
 
@@ -1331,6 +1391,57 @@ resource "azurerm_windows_web_app" "test" {
         minimum_process_execution_time = "00:05:00"
       }
     }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+// Misc Properties
+
+func (r WindowsWebAppResource) acrCredentials(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    container_registry_use_managed_identity = true
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) acrCredentialsUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    container_registry_use_managed_identity = true
+    container_registry_managed_identity_id  = azurerm_user_assigned_identity.test.id
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)

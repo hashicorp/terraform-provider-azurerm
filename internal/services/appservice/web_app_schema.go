@@ -19,36 +19,37 @@ import (
 )
 
 type SiteConfigWindows struct {
-	AlwaysOn                bool                      `tfschema:"always_on"`
-	ApiManagementConfigId   string                    `tfschema:"api_management_config_id"`
-	AppCommandLine          string                    `tfschema:"app_command_line"`
-	AutoHeal                bool                      `tfschema:"auto_heal"`
-	AutoHealSettings        []AutoHealSettingWindows  `tfschema:"auto_heal_setting"`
-	ContainerRegistryMSI    string                    `tfschema:"container_registry_managed_identity_id"`
-	DefaultDocuments        []string                  `tfschema:"default_documents"`
-	Http2Enabled            bool                      `tfschema:"http2_enabled"`
-	IpRestriction           []helpers.IpRestriction   `tfschema:"ip_restriction"`
-	ScmUseMainIpRestriction bool                      `tfschema:"scm_use_main_ip_restriction"`
-	ScmIpRestriction        []helpers.IpRestriction   `tfschema:"scm_ip_restriction"`
-	LoadBalancing           string                    `tfschema:"load_balancing_mode"`
-	LocalMysql              bool                      `tfschema:"local_mysql"`
-	ManagedPipelineMode     string                    `tfschema:"managed_pipeline_mode"`
-	RemoteDebugging         bool                      `tfschema:"remote_debugging"`
-	RemoteDebuggingVersion  string                    `tfschema:"remote_debugging_version"`
-	ScmType                 string                    `tfschema:"scm_type"`
-	Use32BitWorker          bool                      `tfschema:"use_32_bit_worker"`
-	WebSockets              bool                      `tfschema:"websockets"`
-	FtpsState               string                    `tfschema:"ftps_state"`
-	HealthCheckPath         string                    `tfschema:"health_check_path"`
-	NumberOfWorkers         int                       `tfschema:"number_of_workers"`
-	ApplicationStack        []ApplicationStackWindows `tfschema:"application_stack"`
-	VirtualApplications     []VirtualApplication      `tfschema:"virtual_application"`
-	MinTlsVersion           string                    `tfschema:"minimum_tls_version"`
-	ScmMinTlsVersion        string                    `tfschema:"scm_minimum_tls_version"`
-	AutoSwapSlotName        string                    `tfschema:"auto_swap_slot_name"`
-	Cors                    []helpers.CorsSetting     `tfschema:"cors"`
-	DetailedErrorLogging    bool                      `tfschema:"detailed_error_logging"`
-	WindowsFxVersion        string                    `tfschema:"windows_fx_version"`
+	AlwaysOn                 bool                      `tfschema:"always_on"`
+	ApiManagementConfigId    string                    `tfschema:"api_management_config_id"`
+	AppCommandLine           string                    `tfschema:"app_command_line"`
+	AutoHeal                 bool                      `tfschema:"auto_heal"`
+	AutoHealSettings         []AutoHealSettingWindows  `tfschema:"auto_heal_setting"`
+	UseManagedIdentityACR    bool                      `tfschema:"container_registry_use_managed_identity"`
+	ContainerRegistryUserMSI string                    `tfschema:"container_registry_managed_identity_id"`
+	DefaultDocuments         []string                  `tfschema:"default_documents"`
+	Http2Enabled             bool                      `tfschema:"http2_enabled"`
+	IpRestriction            []helpers.IpRestriction   `tfschema:"ip_restriction"`
+	ScmUseMainIpRestriction  bool                      `tfschema:"scm_use_main_ip_restriction"`
+	ScmIpRestriction         []helpers.IpRestriction   `tfschema:"scm_ip_restriction"`
+	LoadBalancing            string                    `tfschema:"load_balancing_mode"`
+	LocalMysql               bool                      `tfschema:"local_mysql"`
+	ManagedPipelineMode      string                    `tfschema:"managed_pipeline_mode"`
+	RemoteDebugging          bool                      `tfschema:"remote_debugging"`
+	RemoteDebuggingVersion   string                    `tfschema:"remote_debugging_version"`
+	ScmType                  string                    `tfschema:"scm_type"`
+	Use32BitWorker           bool                      `tfschema:"use_32_bit_worker"`
+	WebSockets               bool                      `tfschema:"websockets"`
+	FtpsState                string                    `tfschema:"ftps_state"`
+	HealthCheckPath          string                    `tfschema:"health_check_path"`
+	NumberOfWorkers          int                       `tfschema:"number_of_workers"`
+	ApplicationStack         []ApplicationStackWindows `tfschema:"application_stack"`
+	VirtualApplications      []VirtualApplication      `tfschema:"virtual_application"`
+	MinTlsVersion            string                    `tfschema:"minimum_tls_version"`
+	ScmMinTlsVersion         string                    `tfschema:"scm_minimum_tls_version"`
+	AutoSwapSlotName         string                    `tfschema:"auto_swap_slot_name"`
+	Cors                     []helpers.CorsSetting     `tfschema:"cors"`
+	DetailedErrorLogging     bool                      `tfschema:"detailed_error_logging"`
+	WindowsFxVersion         string                    `tfschema:"windows_fx_version"`
 	// TODO new properties / blocks
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - New block to (possibly) support? No way to configure this in the portal?
 	// PushSettings - Supported in SDK, but blocked by manual step needed for connecting app to notification hub.
@@ -60,6 +61,7 @@ type SiteConfigLinux struct {
 	AppCommandLine          string                  `tfschema:"app_command_line"`
 	AutoHeal                bool                    `tfschema:"auto_heal"`
 	AutoHealSettings        []AutoHealSettingLinux  `tfschema:"auto_heal_setting"`
+	UseManagedIdentityACR   bool                    `tfschema:"container_registry_use_managed_identity"`
 	ContainerRegistryMSI    string                  `tfschema:"container_registry_managed_identity_id"`
 	DefaultDocuments        []string                `tfschema:"default_documents"`
 	Http2Enabled            bool                    `tfschema:"http2_enabled"`
@@ -123,6 +125,12 @@ func siteConfigSchemaWindows() *pluginsdk.Schema {
 				},
 
 				"auto_heal_setting": autoHealSettingSchemaWindows(),
+
+				"container_registry_use_managed_identity": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
 
 				"container_registry_managed_identity_id": {
 					Type:         pluginsdk.TypeString,
@@ -293,6 +301,161 @@ func siteConfigSchemaWindows() *pluginsdk.Schema {
 	}
 }
 
+func siteConfigSchemaWindowsComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"always_on": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"api_management_config_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"application_stack": windowsApplicationStackSchemaComputed(),
+
+				"app_command_line": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"auto_heal": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"auto_heal_setting": autoHealSettingSchemaWindowsComputed(),
+
+				"container_registry_use_managed_identity": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"container_registry_managed_identity_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"default_documents": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"http2_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"ip_restriction": helpers.IpRestrictionSchemaComputed(),
+
+				"scm_use_main_ip_restriction": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"scm_ip_restriction": helpers.IpRestrictionSchemaComputed(),
+
+				"local_mysql": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"load_balancing_mode": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"managed_pipeline_mode": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"remote_debugging": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"remote_debugging_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"scm_type": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"use_32_bit_worker": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"websockets": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"ftps_state": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"health_check_path": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"number_of_workers": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"minimum_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"scm_minimum_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"cors": helpers.CorsSettingsSchemaComputed(),
+
+				"virtual_application": virtualApplicationsSchemaComputed(),
+
+				"auto_swap_slot_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"detailed_error_logging": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"linux_fx_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"windows_fx_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 func siteConfigSchemaLinux() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -329,6 +492,12 @@ func siteConfigSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"auto_heal_setting": autoHealSettingSchemaLinux(),
+
+				"container_registry_use_managed_identity": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
 
 				"container_registry_managed_identity_id": {
 					Type:         pluginsdk.TypeString,
@@ -476,6 +645,159 @@ func siteConfigSchemaLinux() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					// TODO - Add slot name validation here?
+				},
+
+				"detailed_error_logging": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"linux_fx_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"windows_fx_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func siteConfigSchemaLinuxComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"always_on": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"api_management_config_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"app_command_line": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"application_stack": linuxApplicationStackSchemaComputed(),
+
+				"auto_heal": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"auto_heal_setting": autoHealSettingSchemaLinuxComputed(),
+
+				"container_registry_use_managed_identity": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"container_registry_managed_identity_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"default_documents": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"http2_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"ip_restriction": helpers.IpRestrictionSchemaComputed(),
+
+				"scm_use_main_ip_restriction": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"scm_ip_restriction": helpers.IpRestrictionSchemaComputed(),
+
+				"local_mysql": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"load_balancing_mode": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"managed_pipeline_mode": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"remote_debugging": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"remote_debugging_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"scm_type": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"use_32_bit_worker": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"websockets": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"ftps_state": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"health_check_path": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"number_of_workers": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"minimum_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"scm_minimum_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"cors": helpers.CorsSettingsSchemaComputed(),
+
+				"auto_swap_slot_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 
 				"detailed_error_logging": {
@@ -648,6 +970,70 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 	}
 }
 
+func windowsApplicationStackSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"dotnet_framework_version": { // Windows Only
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"php_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"python_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"node_version": { // Discarded by service if JavaVersion is specified
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"java_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"java_container": {Type: pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"java_container_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"docker_container_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"docker_container_registry": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"docker_container_tag": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"current_stack": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 type ApplicationStackLinux struct {
 	NetFrameworkVersion string `tfschema:"dotnet_framework_version"`
 	PhpVersion          string `tfschema:"php_version"`
@@ -772,6 +1158,66 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 	}
 }
 
+func linuxApplicationStackSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"dotnet_framework_version": { // Windows Only
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"php_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"python_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"node_version": { // Discarded by service if JavaVersion is specified
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"ruby_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"java_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"java_server": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"java_server_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"docker_image": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"docker_image_tag": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 type AutoHealSettingWindows struct {
 	Triggers []AutoHealTriggerWindows `tfschema:"trigger"`
 	Actions  []AutoHealActionWindows  `tfschema:"action"`
@@ -850,6 +1296,20 @@ func autoHealSettingSchemaWindows() *pluginsdk.Schema {
 	}
 }
 
+func autoHealSettingSchemaWindowsComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"trigger": autoHealTriggerSchemaWindowsComputed(),
+
+				"action": autoHealActionSchemaWindowsComputed(),
+			},
+		},
+	}
+}
+
 func autoHealSettingSchemaLinux() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -864,6 +1324,20 @@ func autoHealSettingSchemaLinux() *pluginsdk.Schema {
 		},
 		RequiredWith: []string{
 			"site_config.0.auto_heal",
+		},
+	}
+}
+
+func autoHealSettingSchemaLinuxComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"trigger": autoHealTriggerSchemaLinuxComputed(),
+
+				"action": autoHealActionSchemaLinuxComputed(),
+			},
 		},
 	}
 }
@@ -917,6 +1391,44 @@ func autoHealActionSchemaWindows() *pluginsdk.Schema {
 	}
 }
 
+func autoHealActionSchemaWindowsComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"action_type": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"custom_action": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"executable": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"parameters": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+
+				"minimum_process_execution_time": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 func autoHealActionSchemaLinux() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -937,6 +1449,26 @@ func autoHealActionSchemaLinux() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					//ValidateFunc: // TODO - Time in hh:mm:ss, because why not...
+				},
+			},
+		},
+	}
+}
+
+func autoHealActionSchemaLinuxComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"action_type": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"minimum_process_execution_time": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 			},
 		},
@@ -1059,6 +1591,105 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 	}
 }
 
+func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"requests": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+
+							"interval": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+
+				"private_memory_kb": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"status_code": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"status_code_range": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+
+							"interval": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"sub_status": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+
+							"win_32_status": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"path": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+
+				"slow_request": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"time_taken": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"interval": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+
+							"path": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 // (@jackofallops) - trigger schemas intentionally left long-hand for now
 func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
@@ -1168,6 +1799,100 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 	}
 }
 
+func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"requests": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+
+							"interval": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+
+				"status_code": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"status_code_range": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+
+							"interval": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"sub_status": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+
+							"win_32_status": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"path": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+
+				"slow_request": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"time_taken": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"interval": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+
+							"path": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 type VirtualApplication struct {
 	VirtualPath        string             `tfschema:"virtual_path"`
 	PhysicalPath       string             `tfschema:"physical_path"`
@@ -1234,6 +1959,49 @@ func virtualApplicationsSchema() *pluginsdk.Schema {
 	}
 }
 
+func virtualApplicationsSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"virtual_path": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"physical_path": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"preload": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"virtual_directory": {
+					Type:     pluginsdk.TypeSet,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"virtual_path": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"physical_path": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 type StorageAccount struct {
 	Name        string `tfschema:"name"`
 	Type        string `tfschema:"type"`
@@ -1287,6 +2055,47 @@ func storageAccountSchema() *pluginsdk.Schema {
 				"mount_path": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+				},
+			},
+		},
+	}
+}
+
+func storageAccountSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"type": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"account_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"share_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"access_key": {
+					Type:      pluginsdk.TypeString,
+					Computed:  true,
+					Sensitive: true,
+				},
+
+				"mount_path": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 			},
 		},
@@ -1389,6 +2198,70 @@ func backupSchema() *pluginsdk.Schema {
 	}
 }
 
+func backupSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"storage_account_url": {
+					Type:      pluginsdk.TypeString,
+					Computed:  true,
+					Sensitive: true,
+				},
+
+				"enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"schedule": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"frequency_interval": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+
+							"frequency_unit": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"keep_at_least_one_backup": {
+								Type:     pluginsdk.TypeBool,
+								Computed: true,
+							},
+
+							"retention_period_days": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+
+							"start_time": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"last_execution_time": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 type ConnectionString struct {
 	Name  string `tfschema:"name"`
 	Type  string `tfschema:"type"`
@@ -1403,8 +2276,9 @@ func connectionStringSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"type": {
@@ -1429,6 +2303,32 @@ func connectionStringSchema() *pluginsdk.Schema {
 				"value": {
 					Type:      pluginsdk.TypeString,
 					Required:  true,
+					Sensitive: true,
+				},
+			},
+		},
+	}
+}
+
+func connectionStringSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"type": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"value": {
+					Type:      pluginsdk.TypeString,
+					Computed:  true,
 					Sensitive: true,
 				},
 			},
@@ -1497,6 +2397,30 @@ func logsConfigSchema() *pluginsdk.Schema {
 	}
 }
 
+func logsConfigSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"application_logs": applicationLogSchemaComputed(),
+
+				"http_logs": httpLogSchemaComputed(),
+
+				"failed_request_tracing": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"detailed_error_messages": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 func applicationLogSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -1519,6 +2443,23 @@ func applicationLogSchema() *pluginsdk.Schema {
 				},
 
 				"azure_blob_storage": appLogBlobStorageSchema(),
+			},
+		},
+	}
+}
+
+func applicationLogSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"file_system_level": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"azure_blob_storage": appLogBlobStorageSchemaComputed(),
 			},
 		},
 	}
@@ -1557,6 +2498,30 @@ func appLogBlobStorageSchema() *pluginsdk.Schema {
 	}
 }
 
+func appLogBlobStorageSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"level": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"sas_url": {
+					Type:      pluginsdk.TypeString,
+					Computed:  true,
+					Sensitive: true,
+				},
+				"retention_in_days": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 func httpLogSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -1568,6 +2533,20 @@ func httpLogSchema() *pluginsdk.Schema {
 				"file_system": httpLogFileSystemSchema(),
 
 				"azure_blob_storage": httpLogBlobStorageSchema(),
+			},
+		},
+	}
+}
+
+func httpLogSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"file_system": httpLogFileSystemSchemaComputed(),
+
+				"azure_blob_storage": httpLogBlobStorageSchemaComputed(),
 			},
 		},
 	}
@@ -1596,6 +2575,26 @@ func httpLogFileSystemSchema() *pluginsdk.Schema {
 	}
 }
 
+func httpLogFileSystemSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"retention_in_mb": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"retention_in_days": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 func httpLogBlobStorageSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -1611,6 +2610,26 @@ func httpLogBlobStorageSchema() *pluginsdk.Schema {
 				"retention_in_days": {
 					Type:     pluginsdk.TypeInt,
 					Required: true,
+				},
+			},
+		},
+	}
+}
+
+func httpLogBlobStorageSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"sas_url": {
+					Type:      pluginsdk.TypeString,
+					Computed:  true,
+					Sensitive: true,
+				},
+				"retention_in_days": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
 				},
 			},
 		},
@@ -1677,12 +2696,9 @@ func expandSiteConfigWindows(siteConfig []SiteConfigWindows) (*web.SiteConfig, *
 		expanded.VirtualApplications = expandVirtualApplications(winSiteConfig.VirtualApplications)
 	}
 
-	if winSiteConfig.ContainerRegistryMSI != "" {
-		expanded.AcrUseManagedIdentityCreds = utils.Bool(true)
-		expanded.AcrUserManagedIdentityID = utils.String(winSiteConfig.ContainerRegistryMSI)
-	} else {
-		expanded.AcrUseManagedIdentityCreds = utils.Bool(false)
-	}
+	expanded.AcrUseManagedIdentityCreds = utils.Bool(winSiteConfig.UseManagedIdentityACR)
+
+	expanded.AcrUserManagedIdentityID = utils.String(winSiteConfig.ContainerRegistryUserMSI)
 
 	if len(winSiteConfig.DefaultDocuments) != 0 {
 		expanded.DefaultDocuments = &winSiteConfig.DefaultDocuments
@@ -1718,9 +2734,7 @@ func expandSiteConfigWindows(siteConfig []SiteConfigWindows) (*web.SiteConfig, *
 		expanded.ManagedPipelineMode = web.ManagedPipelineMode(winSiteConfig.ManagedPipelineMode)
 	}
 
-	if winSiteConfig.RemoteDebugging {
-		expanded.RemoteDebuggingEnabled = utils.Bool(winSiteConfig.RemoteDebugging)
-	}
+	expanded.RemoteDebuggingEnabled = utils.Bool(winSiteConfig.RemoteDebugging)
 
 	if winSiteConfig.RemoteDebuggingVersion != "" {
 		expanded.RemoteDebuggingVersion = utils.String(winSiteConfig.RemoteDebuggingVersion)
@@ -1822,11 +2836,10 @@ func expandSiteConfigLinux(siteConfig []SiteConfigLinux) (*web.SiteConfig, error
 		}
 	}
 
+	expanded.AcrUseManagedIdentityCreds = utils.Bool(linuxSiteConfig.UseManagedIdentityACR)
+
 	if linuxSiteConfig.ContainerRegistryMSI != "" {
-		expanded.AcrUseManagedIdentityCreds = utils.Bool(true)
 		expanded.AcrUserManagedIdentityID = utils.String(linuxSiteConfig.ContainerRegistryMSI)
-	} else {
-		expanded.AcrUseManagedIdentityCreds = utils.Bool(false)
 	}
 
 	if len(linuxSiteConfig.DefaultDocuments) != 0 {
@@ -2191,7 +3204,7 @@ func flattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
 	return []LogsConfig{logs}
 }
 
-func flattenSiteConfigWindows(appSiteConfig *web.SiteConfig) []SiteConfigWindows {
+func flattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string) []SiteConfigWindows {
 	if appSiteConfig == nil {
 		return nil
 	}
@@ -2218,8 +3231,10 @@ func flattenSiteConfigWindows(appSiteConfig *web.SiteConfig) []SiteConfigWindows
 		siteConfig.DefaultDocuments = *appSiteConfig.DefaultDocuments
 	}
 
-	if appSiteConfig.AcrUseManagedIdentityCreds != nil && *appSiteConfig.AcrUseManagedIdentityCreds && appSiteConfig.AcrUserManagedIdentityID != nil {
-		siteConfig.ContainerRegistryMSI = *appSiteConfig.AcrUserManagedIdentityID
+	siteConfig.UseManagedIdentityACR = *appSiteConfig.AcrUseManagedIdentityCreds
+
+	if appSiteConfig.AcrUserManagedIdentityID != nil {
+		siteConfig.ContainerRegistryUserMSI = *appSiteConfig.AcrUserManagedIdentityID
 	}
 
 	siteConfig.DetailedErrorLogging = *appSiteConfig.DetailedErrorLoggingEnabled
@@ -2300,6 +3315,7 @@ func flattenSiteConfigWindows(appSiteConfig *web.SiteConfig) []SiteConfigWindows
 		winAppStack.DockerContainerRegistry = path[0]
 		winAppStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
 	}
+	winAppStack.CurrentStack = currentStack
 
 	siteConfig.ApplicationStack = []ApplicationStackWindows{winAppStack}
 
@@ -2353,6 +3369,8 @@ func flattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 	if appSiteConfig.AppCommandLine != nil {
 		siteConfig.AppCommandLine = *appSiteConfig.AppCommandLine
 	}
+
+	siteConfig.UseManagedIdentityACR = *appSiteConfig.AcrUseManagedIdentityCreds
 
 	if appSiteConfig.AcrUseManagedIdentityCreds != nil && *appSiteConfig.AcrUseManagedIdentityCreds && appSiteConfig.AcrUserManagedIdentityID != nil {
 		siteConfig.ContainerRegistryMSI = *appSiteConfig.AcrUserManagedIdentityID

@@ -106,6 +106,50 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 	}
 }
 
+func IpRestrictionSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:       pluginsdk.TypeList,
+		Optional:   true,
+		Computed:   true,
+		ConfigMode: pluginsdk.SchemaConfigModeAttr,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"ip_address": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"service_tag": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"virtual_network_subnet_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"priority": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"action": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"headers": IpRestrictionHeadersSchemaComputed(),
+			},
+		},
+	}
+}
+
 func IpRestrictionHeadersSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:       pluginsdk.TypeList,
@@ -153,6 +197,49 @@ func IpRestrictionHeadersSchema() *pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice([]string{
 							"1",
 						}, false),
+					},
+				},
+			},
+		},
+	}
+}
+
+func IpRestrictionHeadersSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:       pluginsdk.TypeList,
+		Computed:   true,
+		ConfigMode: pluginsdk.SchemaConfigModeAttr,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"x_forwarded_host": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"x_forwarded_for": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"x_azure_fdid": { // Front Door ID (UUID)
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"x_fd_health_probe": { // 1 or absent
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
 					},
 				},
 			},
@@ -210,6 +297,39 @@ func IdentitySchema() *pluginsdk.Schema {
 	}
 }
 
+func IdentitySchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"identity_ids": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"type": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"principal_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"tenant_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 type CorsSetting struct {
 	AllowedOrigins     []string `tfschema:"allowed_origins"`
 	SupportCredentials bool     `tfschema:"support_credentials"`
@@ -235,6 +355,29 @@ func CorsSettingsSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
+				},
+			},
+		},
+	}
+}
+
+func CorsSettingsSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"allowed_origins": {
+					Type:     pluginsdk.TypeSet,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"support_credentials": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
 				},
 			},
 		},
@@ -385,6 +528,79 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 	}
 }
 
+func AuthSettingsSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"additional_login_parameters": {
+					Type:     pluginsdk.TypeMap,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"allowed_external_redirect_urls": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"default_provider": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"issuer": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"runtime_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"token_refresh_extension_hours": {
+					Type:     pluginsdk.TypeFloat,
+					Computed: true,
+				},
+
+				"token_store_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"unauthenticated_client_action": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"active_directory": AadAuthSettingsSchemaComputed(),
+
+				"facebook": FacebookAuthSettingsSchemaComputed(),
+
+				"github": GithubAuthSettingsSchemaComputed(),
+
+				"google": GoogleAuthSettingsSchemaComputed(),
+
+				"microsoft": MicrosoftAuthSettingsSchemaComputed(),
+
+				"twitter": TwitterAuthSettingsSchemaComputed(),
+			},
+		},
+	}
+}
+
 type AadAuthSettings struct {
 	ClientId                string   `tfschema:"client_id"`
 	ClientSecret            string   `tfschema:"client_secret"`
@@ -429,6 +645,41 @@ func AadAuthSettingsSchema() *pluginsdk.Schema {
 				"allowed_audiences": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+	}
+}
+
+func AadAuthSettingsSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"client_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"client_secret": {
+					Type:      pluginsdk.TypeString,
+					Computed:  true,
+					Sensitive: true,
+				},
+
+				"client_secret_setting_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"allowed_audiences": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -491,6 +742,40 @@ func FacebookAuthSettingsSchema() *pluginsdk.Schema {
 	}
 }
 
+func FacebookAuthSettingsSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"app_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"app_secret": {
+					Type:      pluginsdk.TypeString,
+					Computed:  true,
+					Sensitive: true,
+				},
+
+				"app_secret_setting_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"oauth_scopes": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+	}
+}
+
 type GoogleAuthSettings struct {
 	ClientId                string   `tfschema:"client_id"`
 	ClientSecret            string   `tfschema:"client_schema"`
@@ -535,6 +820,40 @@ func GoogleAuthSettingsSchema() *pluginsdk.Schema {
 				"oauth_scopes": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+	}
+}
+
+func GoogleAuthSettingsSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"client_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"client_secret": {
+					Type:      pluginsdk.TypeString,
+					Computed:  true,
+					Sensitive: true,
+				},
+
+				"client_secret_setting_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"oauth_scopes": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -597,6 +916,40 @@ func MicrosoftAuthSettingsSchema() *pluginsdk.Schema {
 	}
 }
 
+func MicrosoftAuthSettingsSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"client_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"client_secret": {
+					Type:      pluginsdk.TypeString,
+					Computed:  true,
+					Sensitive: true,
+				},
+
+				"client_secret_setting_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"oauth_scopes": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+	}
+}
+
 type TwitterAuthSettings struct {
 	ConsumerKey               string `tfschema:"consumer_key"`
 	ConsumerSecret            string `tfschema:"consumer_secret"`
@@ -628,6 +981,32 @@ func TwitterAuthSettingsSchema() *pluginsdk.Schema {
 				"consumer_secret_setting_name": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+				},
+			},
+		},
+	}
+}
+
+func TwitterAuthSettingsSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"consumer_key": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"consumer_secret": {
+					Type:      pluginsdk.TypeString,
+					Computed:  true,
+					Sensitive: true,
+				},
+
+				"consumer_secret_setting_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 			},
 		},
@@ -675,6 +1054,40 @@ func GithubAuthSettingsSchema() *pluginsdk.Schema {
 				"oauth_scopes": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+	}
+}
+
+func GithubAuthSettingsSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"client_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"client_secret": {
+					Type:      pluginsdk.TypeString,
+					Computed:  true,
+					Sensitive: true,
+				},
+
+				"client_secret_setting_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"oauth_scopes": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -1184,6 +1597,21 @@ func FlattenWebStringDictionary(input web.StringDictionary) map[string]string {
 	for k, v := range input.Properties {
 		result[k] = utils.NormalizeNilableString(v)
 	}
+
+	return result
+}
+
+func FlattenSiteCredentials(input web.User) []SiteCredential {
+	var result []SiteCredential
+	if input.UserProperties == nil {
+		return result
+	}
+
+	userProps := *input.UserProperties
+	result = append(result, SiteCredential{
+		Username: utils.NormalizeNilableString(userProps.PublishingUserName),
+		Password: utils.NormalizeNilableString(userProps.PublishingPassword),
+	})
 
 	return result
 }
