@@ -1,11 +1,9 @@
 package validate
 
-// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
-
 import (
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/authorizations"
 )
 
 func ExpressRouteAuthorizationID(input interface{}, key string) (warnings []string, errors []error) {
@@ -15,7 +13,7 @@ func ExpressRouteAuthorizationID(input interface{}, key string) (warnings []stri
 		return
 	}
 
-	if _, err := parse.ExpressRouteAuthorizationID(v); err != nil {
+	if _, err := authorizations.ParseAuthorizationID(v); err != nil {
 		errors = append(errors, err)
 	}
 

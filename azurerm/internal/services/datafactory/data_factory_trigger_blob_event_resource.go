@@ -92,6 +92,12 @@ func resourceDataFactoryTriggerBlobEvent() *pluginsdk.Resource {
 				},
 			},
 
+			"activated": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"additional_properties": {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
@@ -160,6 +166,15 @@ func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, 
 			return tf.ImportAsExistsError("azurerm_data_factory_trigger_blob_event", id.ID())
 		}
 	}
+	if !d.IsNewResource() {
+		future, err := client.Stop(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+		if err != nil {
+			return fmt.Errorf("stopping %s: %+v", id, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting to stop %s: %+v", id, err)
+		}
+	}
 
 	blobEventProps := &datafactory.BlobEventsTrigger{
 		BlobEventsTriggerTypeProperties: &datafactory.BlobEventsTriggerTypeProperties{
@@ -197,6 +212,16 @@ func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	if v, ok := d.GetOk("activated"); ok && v.(bool) {
+		future, err := client.Start(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+		if err != nil {
+			return fmt.Errorf("starting %s: %+v", id, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting on start %s: %+v", id, err)
+		}
+	}
+
 	d.SetId(id.ID())
 
 	return resourceDataFactoryTriggerBlobEventRead(d, meta)
@@ -205,7 +230,7 @@ func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, 
 func resourceDataFactoryTriggerBlobEventRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.TriggerID(d.Id())
@@ -230,6 +255,7 @@ func resourceDataFactoryTriggerBlobEventRead(d *pluginsdk.ResourceData, meta int
 	d.Set("name", id.Name)
 	d.Set("data_factory_id", parse.NewDataFactoryID(subscriptionId, id.ResourceGroup, id.FactoryName).ID())
 
+	d.Set("activated", blobEventsTrigger.RuntimeState == datafactory.TriggerRuntimeStateStarted)
 	d.Set("additional_properties", blobEventsTrigger.AdditionalProperties)
 	d.Set("description", blobEventsTrigger.Description)
 
@@ -257,12 +283,20 @@ func resourceDataFactoryTriggerBlobEventRead(d *pluginsdk.ResourceData, meta int
 
 func resourceDataFactoryTriggerBlobEventDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.TriggerID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	future, err := client.Stop(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	if err != nil {
+		return fmt.Errorf("stopping %s: %+v", id, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting to stop %s: %+v", id, err)
 	}
 
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name); err != nil {

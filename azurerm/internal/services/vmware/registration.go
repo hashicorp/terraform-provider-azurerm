@@ -6,7 +6,7 @@ type Registration struct{}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-	return "Vmware"
+	return "VMware"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar

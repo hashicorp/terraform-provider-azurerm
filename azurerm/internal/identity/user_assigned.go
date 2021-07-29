@@ -50,7 +50,7 @@ func (u UserAssigned) Schema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						userAssigned,
+						string(userAssigned),
 					}, false),
 				},
 				"identity_ids": {

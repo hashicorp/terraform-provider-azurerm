@@ -51,6 +51,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_api_management_diagnostic":                  resourceApiManagementDiagnostic(),
 		"azurerm_api_management_email_template":              resourceApiManagementEmailTemplate(),
 		"azurerm_api_management_gateway":                     resourceApiManagementGateway(),
+		"azurerm_api_management_gateway_api":                 resourceApiManagementGatewayApi(),
 		"azurerm_api_management_group":                       resourceApiManagementGroup(),
 		"azurerm_api_management_group_user":                  resourceApiManagementGroupUser(),
 		"azurerm_api_management_identity_provider_aad":       resourceApiManagementIdentityProviderAAD(),

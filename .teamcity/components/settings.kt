@@ -69,6 +69,6 @@ var serviceTestConfigurationOverrides = mapOf(
         // Spring Cloud only allows a max of 10 provisioned
         "springcloud" to testConfiguration(parallelism = 5),
 
-        // Currently have a quota of 10 nodes, 3 nodes required per test so lets limit it to 3
-        "vmware" to testConfiguration(parallelism = 3)
+        // Currently have a quota of 10 nodes, 3 nodes required per test
+        "vmware" to testConfiguration(parallelism = 1)
 )
