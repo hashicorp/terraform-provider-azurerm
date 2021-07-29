@@ -25,6 +25,7 @@ ENHANCEMENTS:
 * `azurerm_data_factory_pipeline` - support for the `concurrency` and `moniter_metrics_after_duration` properties [GH-12685]
 * `azurerm_hdinsight_interactive_query_cluster` - support for the `encryption_in_transit_enabled` property [GH-12767]
 * `azurerm_hdinsight_spark_cluster` - support for the `encryption_in_transit_enabled` property [GH-12767]
+* `azurerm_firewall_polcy` - support for property `private_ip_ranges` [GH-12696]
 
 BUG FIXES:
 
