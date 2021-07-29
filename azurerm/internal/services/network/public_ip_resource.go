@@ -112,7 +112,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.PublicIPAddressSkuTierGlobal),
 					string(network.PublicIPAddressSkuTierRegional),
-				}, true),
+				}, false),
 			},
 
 			"idle_timeout_in_minutes": {
@@ -236,6 +236,10 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("Availability Zones are not available on the `Basic` SKU")
 		}
 		zones = &[]string{}
+
+		if strings.EqualFold(sku_tier, "Global") {
+			return fmt.Errorf("Global` SKU tier is not available on the `Basic` SKU")
+		}
 	}
 
 	if strings.EqualFold(sku_tier, "Global") {
