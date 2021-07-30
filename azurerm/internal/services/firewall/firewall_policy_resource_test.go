@@ -239,11 +239,6 @@ func (FirewallPolicyResource) completePremium(data acceptance.TestData, tenantID
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_key_vault" "test" {
-  name                = azurerm_key_vault.test.name
-  resource_group_name = azurerm_resource_group.test.name
-}
-
 resource "azurerm_firewall_policy" "test" {
   name                     = "acctest-networkfw-Policy-%d"
   resource_group_name      = azurerm_resource_group.test.name
@@ -263,10 +258,10 @@ resource "azurerm_firewall_policy" "test" {
       state = "Alert"
       id    = "TODO"
     }
-    bypass_traffic_settings {
+    traffic_bypass {
       name                  = "Name bypass traffic settings"
       description           = "Description bypass traffic settings"
-      protocol              = "Any"
+      protocol              = "ANY"
       destination_addresses = ["*"]
       destination_ports     = ["*"]
       source_ip_groups      = ["*"]
@@ -274,7 +269,7 @@ resource "azurerm_firewall_policy" "test" {
     }
   }
   tls_certificate {
-    key_vault_secret_id = data.azurem_key_vault.test.id
+    key_vault_secret_id = azurerm_key_vault_certificate.test.id
     name                = "AzureFirewallPolicyCertificate"
   }
   tags = {
@@ -356,7 +351,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                            = "tls-secret-kv"
+  name                            = "tlskv%d"
   location                        = azurerm_resource_group.test.location
   resource_group_name             = azurerm_resource_group.test.name
   enabled_for_disk_encryption     = true
@@ -369,6 +364,15 @@ resource "azurerm_key_vault" "test" {
   access_policy {
     tenant_id = "%s"
     object_id = data.azurerm_client_config.current.object_id
+
+    certificate_permissions = [
+      "get",
+      "list",
+      "import",
+      "purge",
+      "delete",
+      "recover",
+    ]
 
     secret_permissions = [
       "get",
@@ -386,11 +390,43 @@ resource "azurerm_key_vault_certificate" "test" {
   key_vault_id = azurerm_key_vault.test.id
 
   certificate {
-    contents = file("testdata/cert.pem")
-    password = file("testdata/key.pem")
+    contents = filebase64("testdata/cert_key.pem")
+  }
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+    secret_properties {
+      content_type = "application/x-pem-file"
+    }
+    x509_certificate_properties {
+      # Server Authentication = 1.3.6.1.5.5.7.3.1
+      # Client Authentication = 1.3.6.1.5.5.7.3.2
+      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+      subject_alternative_names {
+        dns_names = ["api.pluginsdk.io"]
+      }
+      subject            = "CN=api.pluginsdk.io"
+      validity_in_months = 1
+    }
   }
 
 }
 
-`, data.RandomInteger, data.Locations.Primary, tenantID, tenantID)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, tenantID, tenantID)
 }

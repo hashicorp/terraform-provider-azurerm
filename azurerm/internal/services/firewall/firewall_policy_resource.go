@@ -205,40 +205,35 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
-											ValidateFunc: validation.IsIPv4Address,
+											Type: pluginsdk.TypeString,
 										},
 									},
 									"destination_addresses": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
-											ValidateFunc: validation.IsIPv4Address,
+											Type: pluginsdk.TypeString,
 										},
 									},
 									"destination_ports": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
-											ValidateFunc: validation.IsIPv4Address,
+											Type: pluginsdk.TypeString,
 										},
 									},
 									"source_ip_groups": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
-											ValidateFunc: validation.IsIPv4Address,
+											Type: pluginsdk.TypeString,
 										},
 									},
 									"destination_ip_groups": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
-											ValidateFunc: validation.IsIPv4Address,
+											Type: pluginsdk.TypeString,
 										},
 									},
 								},
