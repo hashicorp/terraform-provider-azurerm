@@ -7,6 +7,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: upgrading to `v56.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-12781]
 * dependencies: updating `containerservice` to use API Version `2021-05-1` [GH-12747]
 * `azurerm_logic_app_workflow` - support for the `workflow_parameters` [GH-12314]
 
