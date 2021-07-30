@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source** `azurerm_databricks_workspace_private_endpoint_connection` [GH-12543]
 * **New Resource** `azurerm_cdn_endpoint_custom_domain` [GH-12496]
 * **New Resource** `azurerm_cognitive_account_customer_managed_key` [GH-12544]
 * **New Resource** `azurerm_data_factory_data_flow` [GH-12588]
@@ -10,8 +11,10 @@ ENHANCEMENTS:
 
 * dependencies: upgrading to `v56.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-12781]
 * dependencies: updating `containerservice` to use API Version `2021-05-1` [GH-12747]
+* dependencies: updating `azurerm_databricks_workspace` to use API Version `2021-04-01-preview` [GH-12543]
 * PowerBI: refactoring to use an Embedded SDK [GH-12787]
 * `azurerm_api_management_api_diagnostic` - support for the `operation_name_format` property [GH-12782]
+* `azurerm_databricks_workspace` - support for private link endpoint [GH-12543]
 * `azurerm_kubernetes_cluster` - support for the `local_account_disabled` property [GH-12386]
 * `azurerm_logic_app_workflow` - support for the `workflow_parameters` [GH-12314]
 
