@@ -5,6 +5,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating `containerservice` to use API Version `2021-05-1` [GH-12747]
+* `azurerm_logic_app_workflow` - support for the `workflow_parameters` [GH-12314]
 
 BUG FIXES:
 
