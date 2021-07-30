@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_databricks_workspace
 
-~> **NOTE:** Some Databricks Workspace features are in Private Preview(e.g. Private Link Endpoint, Notebook Customer Managed Key, etc.) and potentially subject to breaking change without notice. If you would like to use these features please contact your Microsoft support representitive on how to opt-in to the Databricks Workspace Private Preview feature program.
+~> **NOTE:** Some Databricks Workspace features are in Private Preview(e.g. Private Link Endpoint, Notebook Customer Managed Key, etc.) and potentially subject to breaking change without notice. If you would like to use these features please contact your Microsoft support representative on how to opt-in to the Databricks Workspace Private Preview feature program.
 
 Manages a Databricks Workspace
 
