@@ -269,8 +269,8 @@ resource "azurerm_firewall_policy" "test" {
     }
   }
   tls_certificate {
-    key_vault_secret_id = azurerm_key_vault_certificate.test.id
-    name                = "AzureFirewallPolicyCertificate"
+    key_vault_secret_id = azurerm_key_vault_certificate.test.secret_id
+    name                = azurerm_key_vault_certificate.test.name
   }
   tags = {
     env = "Test"
