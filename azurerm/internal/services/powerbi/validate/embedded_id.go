@@ -1,11 +1,9 @@
 package validate
 
-// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
-
 import (
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/powerbi/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/powerbi/sdk/capacities"
 )
 
 func EmbeddedID(input interface{}, key string) (warnings []string, errors []error) {
@@ -15,7 +13,7 @@ func EmbeddedID(input interface{}, key string) (warnings []string, errors []erro
 		return
 	}
 
-	if _, err := parse.EmbeddedID(v); err != nil {
+	if _, err := capacities.ParseCapacitiesID(v); err != nil {
 		errors = append(errors, err)
 	}
 
