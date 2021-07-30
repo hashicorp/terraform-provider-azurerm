@@ -1,3 +1,13 @@
+## 2.71.0 (Unreleased)
+
+FEATURES:
+
+ENHANCEMENTS:
+
+* dependencies: updating `containerservice` to use API Version `2021-05-1` [GH-12747]
+
+BUG FIXES:
+
 ## 2.70.0 (July 30, 2021)
 
 FEATURES:
