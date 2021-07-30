@@ -116,9 +116,9 @@ resource "azurerm_bot_channel_line" "test" {
   location            = azurerm_bot_channels_registration.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  line_registration {
-    channel_access_token = "%s"
-    channel_secret       = "%s"
+  line_channel {
+    access_token = "%s"
+    secret       = "%s"
   }
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data), os.Getenv("ARM_TEST_CHANNEL_ACCESS_TOKEN"), os.Getenv("ARM_TEST_CHANNEL_SECRET"))
@@ -133,9 +133,9 @@ resource "azurerm_bot_channel_line" "import" {
   location            = azurerm_bot_channel_line.test.location
   resource_group_name = azurerm_bot_channel_line.test.resource_group_name
 
-  line_registration {
-    channel_access_token = "%s"
-    channel_secret       = "%s"
+  line_channel {
+    access_token = "%s"
+    secret       = "%s"
   }
 }
 `, r.basic(data), os.Getenv("ARM_TEST_CHANNEL_ACCESS_TOKEN"), os.Getenv("ARM_TEST_CHANNEL_SECRET"))
@@ -150,14 +150,14 @@ resource "azurerm_bot_channel_line" "test" {
   location            = azurerm_bot_channels_registration.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  line_registration {
-    channel_access_token = "%s"
-    channel_secret       = "%s"
+  line_channel {
+    access_token = "%s"
+    secret       = "%s"
   }
 
-  line_registration {
-    channel_access_token = "%s"
-    channel_secret       = "%s"
+  line_channel {
+    access_token = "%s"
+    secret       = "%s"
   }
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data), os.Getenv("ARM_TEST_CHANNEL_ACCESS_TOKEN"), os.Getenv("ARM_TEST_CHANNEL_SECRET"), os.Getenv("ARM_TEST_CHANNEL_ACCESS_TOKEN2"), os.Getenv("ARM_TEST_CHANNEL_SECRET2"))
@@ -172,9 +172,9 @@ resource "azurerm_bot_channel_line" "test" {
   location            = azurerm_bot_channels_registration.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  line_registration {
-    channel_access_token = "%s"
-    channel_secret       = "%s"
+  line_channel {
+    access_token = "%s"
+    secret       = "%s"
   }
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data), os.Getenv("ARM_TEST_CHANNEL_ACCESS_TOKEN2"), os.Getenv("ARM_TEST_CHANNEL_SECRET2"))

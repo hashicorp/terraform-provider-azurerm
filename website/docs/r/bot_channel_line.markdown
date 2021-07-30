@@ -35,9 +35,9 @@ resource "azurerm_bot_channel_line" "example" {
   location            = azurerm_bot_channels_registration.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  line_registration {
-    channel_access_token = "asdfsdfTYUIOIoj1231hkjhk"
-    channel_secret       = "aagfdgfd123567"
+  line_channel {
+    access_token = "asdfsdfTYUIOIoj1231hkjhk"
+    secret       = "aagfdgfd123567"
   }
 }
 ```
@@ -52,15 +52,15 @@ The following arguments are supported:
 
 * `bot_name` - (Required) The name of the Bot Resource this channel will be associated with. Changing this forces a new resource to be created.
 
-* `line_registration` - (Required) One or more `line_registration` blocks as defined below.
+* `line_channel` - (Required) One or more `line_channel` blocks as defined below.
 
 ---
 
-The `line_registration` block supports the following:
+The `line_channel` block supports the following:
 
-* `channel_access_token` - (Required) The access token which is used to call the Line Channel API.
+* `access_token` - (Required) The access token which is used to call the Line Channel API.
 
-* `channel_secret` - (Required) The secret which is used to access the Line Channel.
+* `secret` - (Required) The secret which is used to access the Line Channel.
 
 ## Attributes Reference
 

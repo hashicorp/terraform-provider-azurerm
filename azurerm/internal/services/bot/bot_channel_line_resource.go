@@ -50,19 +50,19 @@ func resourceBotChannelLine() *pluginsdk.Resource {
 				ValidateFunc: validate.BotName,
 			},
 
-			"line_registration": {
+			"line_channel": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"channel_access_token": {
+						"access_token": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"channel_secret": {
+						"secret": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							Sensitive:    true,
@@ -97,7 +97,7 @@ func resourceBotChannelLineCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	channel := botservice.BotChannel{
 		Properties: botservice.LineChannel{
 			Properties: &botservice.LineChannelProperties{
-				LineRegistrations: expandLineRegistration(d.Get("line_registration").(*pluginsdk.Set).List()),
+				LineRegistrations: expandLineChannel(d.Get("line_channel").(*pluginsdk.Set).List()),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameLineChannel,
 		},
@@ -146,8 +146,8 @@ func resourceBotChannelLineRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if props := channelsResp.Properties; props != nil {
 		if channel, ok := props.AsLineChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
-				if err := d.Set("line_registration", flattenLineRegistration(channelProps.LineRegistrations)); err != nil {
-					return fmt.Errorf("setting `line_registration`: %+v", err)
+				if err := d.Set("line_channel", flattenLineChannel(channelProps.LineRegistrations)); err != nil {
+					return fmt.Errorf("setting `line_channel`: %+v", err)
 				}
 			}
 		}
@@ -169,7 +169,7 @@ func resourceBotChannelLineUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	channel := botservice.BotChannel{
 		Properties: botservice.LineChannel{
 			Properties: &botservice.LineChannelProperties{
-				LineRegistrations: expandLineRegistration(d.Get("line_registration").(*pluginsdk.Set).List()),
+				LineRegistrations: expandLineChannel(d.Get("line_channel").(*pluginsdk.Set).List()),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameLineChannel,
 		},
@@ -204,22 +204,22 @@ func resourceBotChannelLineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func expandLineRegistration(input []interface{}) *[]botservice.LineRegistration {
+func expandLineChannel(input []interface{}) *[]botservice.LineRegistration {
 	results := make([]botservice.LineRegistration, 0)
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
 		results = append(results, botservice.LineRegistration{
-			ChannelSecret:      utils.String(v["channel_secret"].(string)),
-			ChannelAccessToken: utils.String(v["channel_access_token"].(string)),
+			ChannelSecret:      utils.String(v["secret"].(string)),
+			ChannelAccessToken: utils.String(v["access_token"].(string)),
 		})
 	}
 
 	return &results
 }
 
-func flattenLineRegistration(input *[]botservice.LineRegistration) []interface{} {
+func flattenLineChannel(input *[]botservice.LineRegistration) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -237,8 +237,8 @@ func flattenLineRegistration(input *[]botservice.LineRegistration) []interface{}
 		}
 
 		results = append(results, map[string]interface{}{
-			"channel_access_token": channelAccessToken,
-			"channel_secret":       channelSecret,
+			"access_token": channelAccessToken,
+			"secret":       channelSecret,
 		})
 	}
 
