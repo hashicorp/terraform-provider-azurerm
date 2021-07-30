@@ -132,7 +132,7 @@ func TestAccDatabricksWorkspace_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id"),
 	})
 }
 
@@ -147,14 +147,14 @@ func TestAccDatabricksWorkspace_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id"),
 		{
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id"),
 	})
 }
 
@@ -599,8 +599,8 @@ resource "azurerm_databricks_workspace" "test" {
   sku                         = "premium"
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
-  public_network_access_enabled        = false
-  require_network_security_group_rules = "NoAzureDatabricksRules"
+  public_network_access_enabled         = false
+  network_security_group_rules_required = "NoAzureDatabricksRules"
 
   custom_parameters {
     no_public_ip        = true
