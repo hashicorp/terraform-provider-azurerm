@@ -134,7 +134,7 @@ func (b *BucketHandle) DefaultObjectACL() *ACLHandle {
 //
 // name must consist entirely of valid UTF-8-encoded runes. The full specification
 // for valid object names can be found at:
-//   https://cloud.google.com/storage/docs/bucket-naming
+//   https://cloud.google.com/storage/docs/naming-objects
 func (b *BucketHandle) Object(name string) *ObjectHandle {
 	return &ObjectHandle{
 		c:      b.c,
@@ -243,6 +243,13 @@ type BucketAttrs struct {
 	// See https://cloud.google.com/storage/docs/uniform-bucket-level-access
 	// for more information.
 	UniformBucketLevelAccess UniformBucketLevelAccess
+
+	// PublicAccessPrevention is the setting for the bucket's
+	// PublicAccessPrevention policy, which can be used to prevent public access
+	// of data in the bucket. See
+	// https://cloud.google.com/storage/docs/public-access-prevention for more
+	// information.
+	PublicAccessPrevention PublicAccessPrevention
 
 	// DefaultObjectACL is the list of access controls to
 	// apply to new objects when no object ACL is provided.
@@ -353,6 +360,41 @@ type UniformBucketLevelAccess struct {
 	LockedTime time.Time
 }
 
+// PublicAccessPrevention configures the Public Access Prevention feature, which
+// can be used to disallow public access to any data in a bucket. See
+// https://cloud.google.com/storage/docs/public-access-prevention for more
+// information.
+type PublicAccessPrevention int
+
+const (
+	// PublicAccessPreventionUnknown is a zero value, used only if this field is
+	// not set in a call to GCS.
+	PublicAccessPreventionUnknown PublicAccessPrevention = iota
+
+	// PublicAccessPreventionUnspecified corresponds to a value of "unspecified"
+	// and is the default for buckets.
+	PublicAccessPreventionUnspecified
+
+	// PublicAccessPreventionEnforced corresponds to a value of "enforced". This
+	// enforces Public Access Prevention on the bucket.
+	PublicAccessPreventionEnforced
+
+	publicAccessPreventionUnknown     string = ""
+	publicAccessPreventionUnspecified        = "unspecified"
+	publicAccessPreventionEnforced           = "enforced"
+)
+
+func (p PublicAccessPrevention) String() string {
+	switch p {
+	case PublicAccessPreventionUnspecified:
+		return publicAccessPreventionUnspecified
+	case PublicAccessPreventionEnforced:
+		return publicAccessPreventionEnforced
+	default:
+		return publicAccessPreventionUnknown
+	}
+}
+
 // Lifecycle is the lifecycle configuration for objects in the bucket.
 type Lifecycle struct {
 	Rules []LifecycleRule
@@ -389,7 +431,8 @@ type RetentionPolicy struct {
 }
 
 const (
-	// RFC3339 date with only the date segment, used for CreatedBefore in LifecycleRule.
+	// RFC3339 timestamp with only the date segment, used for CreatedBefore,
+	// CustomTimeBefore, and NoncurrentTimeBefore in LifecycleRule.
 	rfc3339Date = "2006-01-02"
 
 	// DeleteAction is a lifecycle action that deletes a live and/or archived
@@ -455,6 +498,21 @@ type LifecycleCondition struct {
 	// the specified date in UTC.
 	CreatedBefore time.Time
 
+	// CustomTimeBefore is the CustomTime metadata field of the object. This
+	// condition is satisfied when an object's CustomTime timestamp is before
+	// midnight of the specified date in UTC.
+	//
+	// This condition can only be satisfied if CustomTime has been set.
+	CustomTimeBefore time.Time
+
+	// DaysSinceCustomTime is the days elapsed since the CustomTime date of the
+	// object. This condition can only be satisfied if CustomTime has been set.
+	DaysSinceCustomTime int64
+
+	// DaysSinceNoncurrentTime is the days elapsed since the noncurrent timestamp
+	// of the object. This condition is relevant only for versioned objects.
+	DaysSinceNoncurrentTime int64
+
 	// Liveness specifies the object's liveness. Relevant only for versioned objects
 	Liveness Liveness
 
@@ -463,6 +521,13 @@ type LifecycleCondition struct {
 	//
 	// Values include "STANDARD", "NEARLINE", "COLDLINE" and "ARCHIVE".
 	MatchesStorageClasses []string
+
+	// NoncurrentTimeBefore is the noncurrent timestamp of the object. This
+	// condition is satisfied when an object's noncurrent timestamp is before
+	// midnight of the specified date in UTC.
+	//
+	// This condition is relevant only for versioned objects.
+	NoncurrentTimeBefore time.Time
 
 	// NumNewerVersions is the condition matching objects with a number of newer versions.
 	//
@@ -528,6 +593,7 @@ func newBucket(b *raw.Bucket) (*BucketAttrs, error) {
 		Website:                  toBucketWebsite(b.Website),
 		BucketPolicyOnly:         toBucketPolicyOnly(b.IamConfiguration),
 		UniformBucketLevelAccess: toUniformBucketLevelAccess(b.IamConfiguration),
+		PublicAccessPrevention:   toPublicAccessPrevention(b.IamConfiguration),
 		Etag:                     b.Etag,
 		LocationType:             b.LocationType,
 	}, nil
@@ -555,11 +621,15 @@ func (b *BucketAttrs) toRawBucket() *raw.Bucket {
 		bb = &raw.BucketBilling{RequesterPays: true}
 	}
 	var bktIAM *raw.BucketIamConfiguration
-	if b.UniformBucketLevelAccess.Enabled || b.BucketPolicyOnly.Enabled {
-		bktIAM = &raw.BucketIamConfiguration{
-			UniformBucketLevelAccess: &raw.BucketIamConfigurationUniformBucketLevelAccess{
+	if b.UniformBucketLevelAccess.Enabled || b.BucketPolicyOnly.Enabled || b.PublicAccessPrevention != PublicAccessPreventionUnknown {
+		bktIAM = &raw.BucketIamConfiguration{}
+		if b.UniformBucketLevelAccess.Enabled || b.BucketPolicyOnly.Enabled {
+			bktIAM.UniformBucketLevelAccess = &raw.BucketIamConfigurationUniformBucketLevelAccess{
 				Enabled: true,
-			},
+			}
+		}
+		if b.PublicAccessPrevention != PublicAccessPreventionUnknown {
+			bktIAM.PublicAccessPrevention = b.PublicAccessPrevention.String()
 		}
 	}
 	return &raw.Bucket{
@@ -637,6 +707,21 @@ type BucketAttrsToUpdate struct {
 	// See https://cloud.google.com/storage/docs/uniform-bucket-level-access
 	// for more information.
 	UniformBucketLevelAccess *UniformBucketLevelAccess
+
+	// PublicAccessPrevention is the setting for the bucket's
+	// PublicAccessPrevention policy, which can be used to prevent public access
+	// of data in the bucket. See
+	// https://cloud.google.com/storage/docs/public-access-prevention for more
+	// information.
+	PublicAccessPrevention PublicAccessPrevention
+
+	// StorageClass is the default storage class of the bucket. This defines
+	// how objects in the bucket are stored and determines the SLA
+	// and the cost of storage. Typical values are "STANDARD", "NEARLINE",
+	// "COLDLINE" and "ARCHIVE". Defaults to "STANDARD".
+	// See https://cloud.google.com/storage/docs/storage-classes for all
+	// valid values.
+	StorageClass string
 
 	// If set, updates the retention policy of the bucket. Using
 	// RetentionPolicy.RetentionPeriod = 0 will delete the existing policy.
@@ -740,6 +825,12 @@ func (ua *BucketAttrsToUpdate) toRawBucket() *raw.Bucket {
 			},
 		}
 	}
+	if ua.PublicAccessPrevention != PublicAccessPreventionUnknown {
+		if rb.IamConfiguration == nil {
+			rb.IamConfiguration = &raw.BucketIamConfiguration{}
+		}
+		rb.IamConfiguration.PublicAccessPrevention = ua.PublicAccessPrevention.String()
+	}
 	if ua.Encryption != nil {
 		if ua.Encryption.DefaultKMSKeyName == "" {
 			rb.NullFields = append(rb.NullFields, "Encryption")
@@ -778,6 +869,7 @@ func (ua *BucketAttrsToUpdate) toRawBucket() *raw.Bucket {
 		rb.DefaultObjectAcl = nil
 		rb.ForceSendFields = append(rb.ForceSendFields, "DefaultObjectAcl")
 	}
+	rb.StorageClass = ua.StorageClass
 	if ua.setLabels != nil || ua.deleteLabels != nil {
 		rb.Labels = map[string]string{}
 		for k, v := range ua.setLabels {
@@ -946,9 +1038,11 @@ func toRawLifecycle(l Lifecycle) *raw.BucketLifecycle {
 				StorageClass: r.Action.StorageClass,
 			},
 			Condition: &raw.BucketLifecycleRuleCondition{
-				Age:                 r.Condition.AgeInDays,
-				MatchesStorageClass: r.Condition.MatchesStorageClasses,
-				NumNewerVersions:    r.Condition.NumNewerVersions,
+				Age:                     r.Condition.AgeInDays,
+				DaysSinceCustomTime:     r.Condition.DaysSinceCustomTime,
+				DaysSinceNoncurrentTime: r.Condition.DaysSinceNoncurrentTime,
+				MatchesStorageClass:     r.Condition.MatchesStorageClasses,
+				NumNewerVersions:        r.Condition.NumNewerVersions,
 			},
 		}
 
@@ -963,6 +1057,12 @@ func toRawLifecycle(l Lifecycle) *raw.BucketLifecycle {
 
 		if !r.Condition.CreatedBefore.IsZero() {
 			rr.Condition.CreatedBefore = r.Condition.CreatedBefore.Format(rfc3339Date)
+		}
+		if !r.Condition.CustomTimeBefore.IsZero() {
+			rr.Condition.CustomTimeBefore = r.Condition.CustomTimeBefore.Format(rfc3339Date)
+		}
+		if !r.Condition.NoncurrentTimeBefore.IsZero() {
+			rr.Condition.NoncurrentTimeBefore = r.Condition.NoncurrentTimeBefore.Format(rfc3339Date)
 		}
 		rl.Rule = append(rl.Rule, rr)
 	}
@@ -981,9 +1081,11 @@ func toLifecycle(rl *raw.BucketLifecycle) Lifecycle {
 				StorageClass: rr.Action.StorageClass,
 			},
 			Condition: LifecycleCondition{
-				AgeInDays:             rr.Condition.Age,
-				MatchesStorageClasses: rr.Condition.MatchesStorageClass,
-				NumNewerVersions:      rr.Condition.NumNewerVersions,
+				AgeInDays:               rr.Condition.Age,
+				DaysSinceCustomTime:     rr.Condition.DaysSinceCustomTime,
+				DaysSinceNoncurrentTime: rr.Condition.DaysSinceNoncurrentTime,
+				MatchesStorageClasses:   rr.Condition.MatchesStorageClass,
+				NumNewerVersions:        rr.Condition.NumNewerVersions,
 			},
 		}
 
@@ -997,6 +1099,12 @@ func toLifecycle(rl *raw.BucketLifecycle) Lifecycle {
 
 		if rr.Condition.CreatedBefore != "" {
 			r.Condition.CreatedBefore, _ = time.Parse(rfc3339Date, rr.Condition.CreatedBefore)
+		}
+		if rr.Condition.CustomTimeBefore != "" {
+			r.Condition.CustomTimeBefore, _ = time.Parse(rfc3339Date, rr.Condition.CustomTimeBefore)
+		}
+		if rr.Condition.NoncurrentTimeBefore != "" {
+			r.Condition.NoncurrentTimeBefore, _ = time.Parse(rfc3339Date, rr.Condition.NoncurrentTimeBefore)
 		}
 		l.Rules = append(l.Rules, r)
 	}
@@ -1091,8 +1199,23 @@ func toUniformBucketLevelAccess(b *raw.BucketIamConfiguration) UniformBucketLeve
 	}
 }
 
-// Objects returns an iterator over the objects in the bucket that match the Query q.
-// If q is nil, no filtering is done.
+func toPublicAccessPrevention(b *raw.BucketIamConfiguration) PublicAccessPrevention {
+	if b == nil {
+		return PublicAccessPreventionUnknown
+	}
+	switch b.PublicAccessPrevention {
+	case publicAccessPreventionUnspecified:
+		return PublicAccessPreventionUnspecified
+	case publicAccessPreventionEnforced:
+		return PublicAccessPreventionEnforced
+	default:
+		return PublicAccessPreventionUnknown
+	}
+}
+
+// Objects returns an iterator over the objects in the bucket that match the
+// Query q. If q is nil, no filtering is done. Objects will be iterated over
+// lexicographically by name.
 //
 // Note: The returned iterator is not safe for concurrent operations without explicit synchronization.
 func (b *BucketHandle) Objects(ctx context.Context, q *Query) *ObjectIterator {
@@ -1131,6 +1254,13 @@ func (it *ObjectIterator) PageInfo() *iterator.PageInfo { return it.pageInfo }
 // there are no more results. Once Next returns iterator.Done, all subsequent
 // calls will return iterator.Done.
 //
+// In addition, if Next returns an error other than iterator.Done, all
+// subsequent calls will return the same error. To continue iteration, a new
+// `ObjectIterator` must be created. Since objects are ordered lexicographically
+// by name, `Query.StartOffset` can be used to create a new iterator which will
+// start at the desired place. See
+// https://pkg.go.dev/cloud.google.com/go/storage?tab=doc#hdr-Listing_objects.
+//
 // If Query.Delimiter is non-empty, some of the ObjectAttrs returned by Next will
 // have a non-empty Prefix field, and a zero value for all other fields. These
 // represent prefixes.
@@ -1148,9 +1278,15 @@ func (it *ObjectIterator) Next() (*ObjectAttrs, error) {
 func (it *ObjectIterator) fetch(pageSize int, pageToken string) (string, error) {
 	req := it.bucket.c.raw.Objects.List(it.bucket.name)
 	setClientHeader(req.Header())
-	req.Projection("full")
+	projection := it.query.Projection
+	if projection == ProjectionDefault {
+		projection = ProjectionFull
+	}
+	req.Projection(projection.String())
 	req.Delimiter(it.query.Delimiter)
 	req.Prefix(it.query.Prefix)
+	req.StartOffset(it.query.StartOffset)
+	req.EndOffset(it.query.EndOffset)
 	req.Versions(it.query.Versions)
 	if len(it.query.fieldSelection) > 0 {
 		req.Fields("nextPageToken", googleapi.Field(it.query.fieldSelection))

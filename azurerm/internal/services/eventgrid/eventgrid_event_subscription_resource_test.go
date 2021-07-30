@@ -150,6 +150,7 @@ func TestAccEventGridEventSubscription_filter(t *testing.T) {
 				check.That(data.ResourceName).Key("included_event_types.1").HasValue("Microsoft.Storage.BlobDeleted"),
 				check.That(data.ResourceName).Key("subject_filter.0.subject_ends_with").HasValue(".jpg"),
 				check.That(data.ResourceName).Key("subject_filter.0.subject_begins_with").HasValue("test/test"),
+				check.That(data.ResourceName).Key("advanced_filtering_on_arrays_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -157,7 +158,7 @@ func TestAccEventGridEventSubscription_filter(t *testing.T) {
 }
 
 func TestAccEventGridEventSubscription_advancedFilter(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test1")
 	r := EventGridEventSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -165,30 +166,7 @@ func TestAccEventGridEventSubscription_advancedFilter(t *testing.T) {
 			Config: r.advancedFilter(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("advanced_filter.0.bool_equals.0.key").HasValue("subject"),
-				check.That(data.ResourceName).Key("advanced_filter.0.bool_equals.0.value").HasValue("true"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than.0.key").HasValue("data.metadataVersion"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than.0.value").HasValue("1"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than_or_equals.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than_or_equals.0.value").HasValue("42"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than.0.value").HasValue("42.1"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than_or_equals.0.key").HasValue("data.metadataVersion"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than_or_equals.0.value").HasValue("2"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_in.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_in.0.values.0").HasValue("0"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in.0.values.0").HasValue("5"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_begins_with.0.key").HasValue("subject"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_begins_with.0.values.0").HasValue("foo"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_ends_with.0.key").HasValue("subject"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_ends_with.0.values.0").HasValue("bar"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_contains.0.key").HasValue("data.contentType"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_contains.0.values.0").HasValue("application"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_in.0.key").HasValue("data.blobType"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_in.0.values.0").HasValue("Block"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_not_in.0.key").HasValue("data.blobType"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_not_in.0.values.0").HasValue("Page"),
+				check.That("azurerm_eventgrid_event_subscription.test2").ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -204,43 +182,6 @@ func TestAccEventGridEventSubscription_advancedFilterMaxItems(t *testing.T) {
 			Config: r.advancedFilterMaxItems(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("advanced_filter.0.bool_equals.0.key").HasValue("subject"),
-				check.That(data.ResourceName).Key("advanced_filter.0.bool_equals.0.value").HasValue("true"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than.0.key").HasValue("data.metadataVersion"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than.0.value").HasValue("2"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than_or_equals.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than_or_equals.0.value").HasValue("3"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than.0.value").HasValue("4"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than_or_equals.0.key").HasValue("data.metadataVersion"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than_or_equals.0.value").HasValue("5"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_in.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_in.0.values.0").HasValue("6"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_in.0.values.1").HasValue("7"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_in.0.values.2").HasValue("8"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in.0.key").HasValue("data.contentLength"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in.0.values.0").HasValue("9"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in.0.values.1").HasValue("10"),
-				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in.0.values.2").HasValue("11"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_begins_with.0.key").HasValue("subject"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_begins_with.0.values.0").HasValue("12"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_begins_with.0.values.1").HasValue("13"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_begins_with.0.values.2").HasValue("14"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_ends_with.0.key").HasValue("subject"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_ends_with.0.values.0").HasValue("15"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_ends_with.0.values.1").HasValue("16"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_ends_with.0.values.2").HasValue("17"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_contains.0.key").HasValue("data.contentType"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_contains.0.values.0").HasValue("18"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_contains.0.values.1").HasValue("19"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_contains.0.values.2").HasValue("20"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_in.0.key").HasValue("data.blobType"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_in.0.values.0").HasValue("21"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_in.0.values.1").HasValue("22"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_in.0.values.2").HasValue("23"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_not_in.0.key").HasValue("data.blobType"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_not_in.0.values.0").HasValue("24"),
-				check.That(data.ResourceName).Key("advanced_filter.0.string_not_in.0.values.1").HasValue("25"),
 			),
 		},
 		data.ImportStep(),
@@ -268,12 +209,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eg-%d"
-  location = "%s"
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "acctestacc%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -285,7 +226,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_queue" "test" {
-  name                 = "mysamplequeue-%d"
+  name                 = "mysamplequeue-%[1]d"
   storage_account_name = azurerm_storage_account.test.name
 }
 
@@ -306,7 +247,7 @@ resource "azurerm_storage_blob" "test" {
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name  = "acctesteg-%d"
+  name  = "acctesteg-%[1]d"
   scope = azurerm_resource_group.test.id
 
   storage_queue_endpoint {
@@ -326,7 +267,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 
   labels = ["test", "test1", "test2"]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (EventGridEventSubscriptionResource) requiresImport(data acceptance.TestData) string {
@@ -348,12 +289,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eg-%d"
-  location = "%s"
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "acctestacc%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -365,7 +306,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_queue" "test" {
-  name                 = "mysamplequeue-%d"
+  name                 = "mysamplequeue-%[1]d"
   storage_account_name = azurerm_storage_account.test.name
 }
 
@@ -386,7 +327,7 @@ resource "azurerm_storage_blob" "test" {
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name  = "acctest-eg-%d"
+  name  = "acctest-eg-%[1]d"
   scope = azurerm_resource_group.test.id
 
   storage_queue_endpoint {
@@ -412,7 +353,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   included_event_types = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobDeleted"]
   labels               = ["test4", "test5", "test6"]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (EventGridEventSubscriptionResource) eventHubID(data acceptance.TestData) string {
@@ -422,19 +363,19 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eg-%d"
-  location = "%s"
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
+  name                = "acctesteventhubnamespace-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Basic"
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%d"
+  name                = "acctesteventhub-%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   partition_count     = 2
@@ -442,13 +383,13 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                  = "acctest-eg-%d"
+  name                  = "acctest-eg-%[1]d"
   scope                 = azurerm_resource_group.test.id
   event_delivery_schema = "CloudEventSchemaV1_0"
 
   eventhub_endpoint_id = azurerm_eventhub.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (EventGridEventSubscriptionResource) serviceBusQueueID(data acceptance.TestData) string {
@@ -457,29 +398,29 @@ provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eg-%d"
-  location = "%s"
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_servicebus_namespace" "example" {
-  name                = "acctestservicebusnamespace-%d"
+  name                = "acctestservicebusnamespace-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Basic"
 }
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctestservicebusqueue-%d"
+  name                = "acctestservicebusqueue-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   namespace_name      = azurerm_servicebus_namespace.example.name
   enable_partitioning = true
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                          = "acctest-eg-%d"
+  name                          = "acctest-eg-%[1]d"
   scope                         = azurerm_resource_group.test.id
   event_delivery_schema         = "CloudEventSchemaV1_0"
   service_bus_queue_endpoint_id = azurerm_servicebus_queue.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (EventGridEventSubscriptionResource) serviceBusTopicID(data acceptance.TestData) string {
@@ -488,28 +429,28 @@ provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eg-%d"
-  location = "%s"
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
 }
 resource "azurerm_servicebus_namespace" "example" {
-  name                = "acctestservicebusnamespace-%d"
+  name                = "acctestservicebusnamespace-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%d"
+  name                = "acctestservicebustopic-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   namespace_name      = azurerm_servicebus_namespace.example.name
   enable_partitioning = true
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                          = "acctest-eg-%d"
+  name                          = "acctest-eg-%[1]d"
   scope                         = azurerm_resource_group.test.id
   event_delivery_schema         = "CloudEventSchemaV1_0"
   service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (EventGridEventSubscriptionResource) filter(data acceptance.TestData) string {
@@ -519,12 +460,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eg-%d"
-  location = "%s"
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "acctestacc%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -536,18 +477,20 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_queue" "test" {
-  name                 = "mysamplequeue-%d"
+  name                 = "mysamplequeue-%[1]d"
   storage_account_name = azurerm_storage_account.test.name
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name  = "acctest-eg-%d"
+  name  = "acctest-eg-%[1]d"
   scope = azurerm_resource_group.test.id
 
   storage_queue_endpoint {
     storage_account_id = azurerm_storage_account.test.id
     queue_name         = azurerm_storage_queue.test.name
   }
+
+  advanced_filtering_on_arrays_enabled = true
 
   included_event_types = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobDeleted"]
 
@@ -556,7 +499,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     subject_ends_with   = ".jpg"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (EventGridEventSubscriptionResource) advancedFilter(data acceptance.TestData) string {
@@ -566,12 +509,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eg-%d"
-  location = "%s"
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "acctestacc%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -583,12 +526,12 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_queue" "test" {
-  name                 = "mysamplequeue-%d"
+  name                 = "mysamplequeue-%[1]d"
   storage_account_name = azurerm_storage_account.test.name
 }
 
-resource "azurerm_eventgrid_event_subscription" "test" {
-  name  = "acctesteg-%d"
+resource "azurerm_eventgrid_event_subscription" "test1" {
+  name  = "acctesteg-%[1]d-1"
   scope = azurerm_storage_account.test.id
 
   storage_queue_endpoint {
@@ -625,17 +568,50 @@ resource "azurerm_eventgrid_event_subscription" "test" {
       key    = "data.contentLength"
       values = [5, 8, 13, 21, 34]
     }
+    number_in_range {
+      key    = "data.contentLength"
+      values = [[0, 1], [2, 3]]
+    }
+    number_not_in_range {
+      key    = "data.contentLength"
+      values = [[5, 13], [21, 34]]
+    }
     string_begins_with {
       key    = "subject"
       values = ["foo"]
     }
+  }
+}
+
+resource "azurerm_eventgrid_event_subscription" "test2" {
+  name  = "acctesteg-%[1]d-2"
+  scope = azurerm_storage_account.test.id
+
+  storage_queue_endpoint {
+    storage_account_id = azurerm_storage_account.test.id
+    queue_name         = azurerm_storage_queue.test.name
+  }
+
+  advanced_filter {
     string_ends_with {
       key    = "subject"
       values = ["bar"]
     }
+    string_not_begins_with {
+      key    = "subject"
+      values = ["lorem"]
+    }
+    string_not_ends_with {
+      key    = "subject"
+      values = ["ipsum"]
+    }
     string_contains {
       key    = "data.contentType"
       values = ["application", "octet-stream"]
+    }
+    string_not_contains {
+      key    = "data.contentType"
+      values = ["text"]
     }
     string_in {
       key    = "data.blobType"
@@ -645,10 +621,15 @@ resource "azurerm_eventgrid_event_subscription" "test" {
       key    = "data.blobType"
       values = ["Page"]
     }
+    is_not_null {
+      key = "subject"
+    }
+    is_null_or_undefined {
+      key = "subject"
+    }
   }
-
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (EventGridEventSubscriptionResource) advancedFilterMaxItems(data acceptance.TestData) string {
@@ -658,12 +639,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eg-%d"
-  location = "%s"
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "acctestacc%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -675,12 +656,12 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_queue" "test" {
-  name                 = "mysamplequeue-%d"
+  name                 = "mysamplequeue-%[1]d"
   storage_account_name = azurerm_storage_account.test.name
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name  = "acctesteg-%d"
+  name  = "acctesteg-%[1]d"
   scope = azurerm_storage_account.test.id
 
   storage_queue_endpoint {
@@ -740,5 +721,5 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   }
 
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

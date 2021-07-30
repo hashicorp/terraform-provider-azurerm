@@ -238,6 +238,43 @@ func TestAccDataFactory_globalParameterUpdate(t *testing.T) {
 	})
 }
 
+func TestAccDataFactory_managedVirtualNetwork(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+	r := DataFactoryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managedVirtualNetwork(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataFactory_managedVirtualNetworkUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+	r := DataFactoryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.managedVirtualNetwork(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t DataFactoryResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataFactoryID(state.ID)
 	if err != nil {
@@ -599,6 +636,26 @@ resource "azurerm_data_factory" "test" {
     type  = "Object"
     value = "{'name': 'value'}"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (DataFactoryResource) managedVirtualNetwork(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                            = "acctestDF%d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  managed_virtual_network_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

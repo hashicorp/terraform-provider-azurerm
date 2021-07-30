@@ -98,7 +98,7 @@ A `http_server_location` block supports the following:
 
 * `path` - (Required) The folder path to the file on the web server.
 
-* `filename` - (Required) The filename of the file on the web server.
+* `filename` - (Optional) The filename of the file on the web server.
 
 ---
 
@@ -109,7 +109,6 @@ A `azure_blob_storage_location` block supports the following:
 * `path` - (Required) The folder path to the file on the web server.
 
 * `filename` - (Required) The filename of the file on the web server.
-
 
 ## Attributes Reference
 

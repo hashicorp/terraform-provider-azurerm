@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
@@ -34,8 +33,10 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 	}
 
 	modelObj := rw.resource.ModelObject()
-	if err := ValidateModelObject(&modelObj); err != nil {
-		return nil, fmt.Errorf("validating model for %q: %+v", rw.resource.ResourceType(), err)
+	if modelObj != nil {
+		if err := ValidateModelObject(&modelObj); err != nil {
+			return nil, fmt.Errorf("validating model for %q: %+v", rw.resource.ResourceType(), err)
+		}
 	}
 
 	d := func(duration time.Duration) *time.Duration {

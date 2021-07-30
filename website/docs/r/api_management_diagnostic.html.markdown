@@ -130,6 +130,8 @@ The following arguments are supported:
 
 * `verbosity` - (Optional) Logging verbosity. Possible values are `verbose`, `information` or `error`.
 
+* `operation_name_format` - (Optional) The format of the Operation Name for Application Insights telemetries. Possible values are `Name`, and `Url`. Defaults to `Name`.
+
 ---
 
 A `backend_request`, `backend_response`, `frontend_request` or `frontend_response` block supports the following:

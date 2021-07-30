@@ -838,27 +838,43 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 		},
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-			if d.HasChange("account_kind") {
-				accountKind, changedKind := d.GetChange("account_kind")
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+				if d.HasChange("account_kind") {
+					accountKind, changedKind := d.GetChange("account_kind")
 
-				if accountKind != string(storage.Storage) && changedKind != string(storage.StorageV2) {
-					log.Printf("[DEBUG] recreate storage account, could't be migrated from %s to %s", accountKind, changedKind)
-					d.ForceNew("account_kind")
-				} else {
-					log.Printf("[DEBUG] storage account can be upgraded from %s to %s", accountKind, changedKind)
+					if accountKind != string(storage.Storage) && changedKind != string(storage.StorageV2) {
+						log.Printf("[DEBUG] recreate storage account, could't be migrated from %s to %s", accountKind, changedKind)
+						d.ForceNew("account_kind")
+					} else {
+						log.Printf("[DEBUG] storage account can be upgraded from %s to %s", accountKind, changedKind)
+					}
 				}
-			}
 
-			if d.HasChange("large_file_share_enabled") {
-				lfsEnabled, changedEnabled := d.GetChange("large_file_share_enabled")
-				if lfsEnabled.(bool) && !changedEnabled.(bool) {
-					return fmt.Errorf("`large_file_share_enabled` cannot be disabled once it's been enabled")
+				if d.HasChange("large_file_share_enabled") {
+					lfsEnabled, changedEnabled := d.GetChange("large_file_share_enabled")
+					if lfsEnabled.(bool) && !changedEnabled.(bool) {
+						return fmt.Errorf("`large_file_share_enabled` cannot be disabled once it's been enabled")
+					}
 				}
-			}
+				return nil
+			}),
+			pluginsdk.ForceNewIfChange("account_replication_type", func(ctx context.Context, old, new, meta interface{}) bool {
+				newAccRep := strings.ToUpper(new.(string))
 
-			return nil
-		}),
+				switch strings.ToUpper(old.(string)) {
+				case "LRS", "GRS", "RAGRS":
+					if newAccRep == "GZRS" || newAccRep == "RAGZRS" || newAccRep == "ZRS" {
+						return true
+					}
+				case "ZRS", "GZRS", "RAGZRS":
+					if newAccRep == "LRS" || newAccRep == "GRS" || newAccRep == "RAGRS" {
+						return true
+					}
+				}
+				return false
+			}),
+		),
 	}
 }
 

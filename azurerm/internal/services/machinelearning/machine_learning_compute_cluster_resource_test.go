@@ -38,6 +38,29 @@ func TestAccComputeCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccComputeCluster_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
+	r := ComputeClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("scale_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("scale_settings.0.max_node_count").Exists(),
+				check.That(data.ResourceName).Key("scale_settings.0.min_node_count").Exists(),
+				check.That(data.ResourceName).Key("scale_settings.0.scale_down_nodes_after_idle_duration").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccComputeCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
 	r := ComputeClusterResource{}
@@ -80,7 +103,32 @@ func (r ComputeClusterResource) Exists(ctx context.Context, client *clients.Clie
 }
 
 func (r ComputeClusterResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_machine_learning_compute_cluster" "test" {
+  name                          = "CC-%d"
+  location                      = azurerm_resource_group.test.location
+  vm_priority                   = "LowPriority"
+  vm_size                       = "STANDARD_DS2_V2"
+  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
+
+  scale_settings {
+    min_node_count                       = 0
+    max_node_count                       = 1
+    scale_down_nodes_after_idle_duration = "PT30S" # 30 seconds
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomIntOfLength(8))
+}
+
+func (r ComputeClusterResource) complete(data acceptance.TestData) string {
+	template := r.template_complete(data)
 	return fmt.Sprintf(`
 %s
 
@@ -131,7 +179,66 @@ resource "azurerm_machine_learning_compute_cluster" "import" {
 `, template)
 }
 
-func (r ComputeClusterResource) template(data acceptance.TestData) string {
+func (r ComputeClusterResource) template_basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-ml-%[1]d"
+  location = "%[2]s"
+  tags = {
+    "stage" = "test"
+  }
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestai-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestvault%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+
+  sku_name = "standard"
+
+  purge_protection_enabled = true
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[4]d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctest-MLW%[5]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary,
+		data.RandomIntOfLength(12), data.RandomIntOfLength(15), data.RandomIntOfLength(16),
+		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r ComputeClusterResource) template_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

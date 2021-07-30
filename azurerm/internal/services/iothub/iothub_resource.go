@@ -315,6 +315,7 @@ func resourceIotHub() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								"DeviceConnectionStateEvents",
 								"DeviceJobLifecycleEvents",
 								"DeviceLifecycleEvents",
 								"DeviceMessages",
@@ -389,6 +390,7 @@ func resourceIotHub() *pluginsdk.Resource {
 							Optional: true,
 							Default:  "DeviceMessages",
 							ValidateFunc: validation.StringInSlice([]string{
+								"DeviceConnectionStateEvents",
 								"DeviceJobLifecycleEvents",
 								"DeviceLifecycleEvents",
 								"DeviceMessages",

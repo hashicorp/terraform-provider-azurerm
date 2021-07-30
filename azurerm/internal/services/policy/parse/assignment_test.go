@@ -1,7 +1,6 @@
 package parse
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -21,12 +20,8 @@ func TestPolicyAssignmentID(t *testing.T) {
 			Name:  "policy assignment in resource group",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Authorization/policyAssignments/assignment1",
 			Expected: &PolicyAssignmentId{
-				Name: "assignment1",
-				PolicyScopeId: ScopeAtResourceGroup{
-					scopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
-					SubscriptionId: "00000000-0000-0000-0000-000000000000",
-					ResourceGroup:  "foo",
-				},
+				Name:  "assignment1",
+				Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
 			},
 		},
 		{
@@ -38,23 +33,16 @@ func TestPolicyAssignmentID(t *testing.T) {
 			Name:  "the returned value of policy assignment id may not keep its casing",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.authorization/policyassignments/assignment1",
 			Expected: &PolicyAssignmentId{
-				Name: "assignment1",
-				PolicyScopeId: ScopeAtResourceGroup{
-					scopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
-					SubscriptionId: "00000000-0000-0000-0000-000000000000",
-					ResourceGroup:  "foo",
-				},
+				Name:  "assignment1",
+				Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
 			},
 		},
 		{
 			Name:  "policy assignment in subscription",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policyAssignments/assignment1",
 			Expected: &PolicyAssignmentId{
-				Name: "assignment1",
-				PolicyScopeId: ScopeAtSubscription{
-					scopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000",
-					SubscriptionId: "00000000-0000-0000-0000-000000000000",
-				},
+				Name:  "assignment1",
+				Scope: "/subscriptions/00000000-0000-0000-0000-000000000000",
 			},
 		},
 		{
@@ -66,11 +54,8 @@ func TestPolicyAssignmentID(t *testing.T) {
 			Name:  "policy assignment in management group",
 			Input: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policyAssignments/assignment1",
 			Expected: &PolicyAssignmentId{
-				Name: "assignment1",
-				PolicyScopeId: ScopeAtManagementGroup{
-					scopeId:             "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
-					ManagementGroupName: "00000000-0000-0000-0000-000000000000",
-				},
+				Name:  "assignment1",
+				Scope: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
 			},
 		},
 		{
@@ -82,10 +67,8 @@ func TestPolicyAssignmentID(t *testing.T) {
 			Name:  "policy assignment in resource",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.Authorization/policyAssignments/assignment1",
 			Expected: &PolicyAssignmentId{
-				Name: "assignment1",
-				PolicyScopeId: ScopeAtResource{
-					scopeId: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Compute/virtualMachines/vm1",
-				},
+				Name:  "assignment1",
+				Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Compute/virtualMachines/vm1",
 			},
 		},
 		{
@@ -111,8 +94,8 @@ func TestPolicyAssignmentID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q", v.Expected.Name, actual.Name)
 		}
 
-		if !reflect.DeepEqual(v.Expected.PolicyScopeId, actual.PolicyScopeId) {
-			t.Fatalf("Expected %+v but got %+v", v.Expected.PolicyScopeId, actual.PolicyScopeId)
+		if v.Expected.Scope != actual.Scope {
+			t.Fatalf("Expected %+v but got %+v", v.Expected.Scope, actual.Scope)
 		}
 	}
 }
