@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Resource** `azurerm_cognitive_account_customer_managed_key` [GH-12544]
+* 
 ENHANCEMENTS:
 
 * dependencies: updating `containerservice` to use API Version `2021-05-1` [GH-12747]
