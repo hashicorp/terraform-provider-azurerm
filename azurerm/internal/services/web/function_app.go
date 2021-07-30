@@ -132,21 +132,21 @@ func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{"1.8", "11"}, false),
 				},
 
-				"minimum_elastic_instance_count": {
+				"elastic_instance_minimum": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 20),
 				},
 
-				"function_app_scale_limit": {
+				"app_scale_limit": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.IntAtLeast(0),
 				},
 
-				"functions_runtime_scale_monitoring_enabled": {
+				"runtime_scale_monitoring_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -234,17 +234,17 @@ func schemaFunctionAppDataSourceSiteConfig() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"minimum_elastic_instance_count": {
+				"elastic_instance_minimum": {
 					Type:     pluginsdk.TypeInt,
 					Computed: true,
 				},
 
-				"function_app_scale_limit": {
+				"app_scale_limit": {
 					Type:     pluginsdk.TypeInt,
 					Computed: true,
 				},
 
-				"functions_runtime_scale_monitoring_enabled": {
+				"runtime_scale_monitoring_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -444,15 +444,15 @@ func expandFunctionAppSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig, err
 		siteConfig.JavaVersion = utils.String(v.(string))
 	}
 
-	if v, ok := config["minimum_elastic_instance_count"]; ok {
+	if v, ok := config["elastic_instance_minimum"]; ok {
 		siteConfig.MinimumElasticInstanceCount = utils.Int32(int32(v.(int)))
 	}
 
-	if v, ok := config["function_app_scale_limit"]; ok {
+	if v, ok := config["app_scale_limit"]; ok {
 		siteConfig.FunctionAppScaleLimit = utils.Int32(int32(v.(int)))
 	}
 
-	if v, ok := config["functions_runtime_scale_monitoring_enabled"]; ok {
+	if v, ok := config["runtime_scale_monitoring_enabled"]; ok {
 		siteConfig.FunctionsRuntimeScaleMonitoringEnabled = utils.Bool(v.(bool))
 	}
 
@@ -519,15 +519,15 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	}
 
 	if input.MinimumElasticInstanceCount != nil {
-		result["minimum_elastic_instance_count"] = *input.MinimumElasticInstanceCount
+		result["elastic_instance_minimum"] = *input.MinimumElasticInstanceCount
 	}
 
 	if input.FunctionAppScaleLimit != nil {
-		result["function_app_scale_limit"] = *input.FunctionAppScaleLimit
+		result["app_scale_limit"] = *input.FunctionAppScaleLimit
 	}
 
 	if input.FunctionsRuntimeScaleMonitoringEnabled != nil {
-		result["functions_runtime_scale_monitoring_enabled"] = *input.FunctionsRuntimeScaleMonitoringEnabled
+		result["runtime_scale_monitoring_enabled"] = *input.FunctionsRuntimeScaleMonitoringEnabled
 	}
 
 	results = append(results, result)

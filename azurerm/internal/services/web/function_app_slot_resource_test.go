@@ -580,48 +580,48 @@ func TestAccFunctionAppSlot_preWarmedInstanceCount(t *testing.T) {
 	})
 }
 
-func TestAccFunctionAppSlot_minimumElasticInstanceCount(t *testing.T) {
+func TestAccFunctionAppSlot_elasticInstanceMinimum(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.minimumElasticInstanceCount(data),
+			Config: r.elasticInstanceMinimum(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.minimum_elastic_instance_count").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccFunctionAppSlot_functionAppScaleLimit(t *testing.T) {
+func TestAccFunctionAppSlot_appScaleLimit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.functionAppScaleLimit(data),
+			Config: r.appScaleLimit(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.function_app_scale_limit").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.app_scale_limit").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccFunctionAppSlot_functionsRuntimeScaleMonitoringEnabled(t *testing.T) {
+func TestAccFunctionAppSlot_runtimeScaleMonitoringEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 	r := FunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.functionsRuntimeScaleMonitoringEnabled(data),
+			Config: r.runtimeScaleMonitoringEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.functions_runtime_scale_monitoring_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.runtime_scale_monitoring_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -2230,7 +2230,7 @@ resource "azurerm_function_app_slot" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r FunctionAppSlotResource) minimumElasticInstanceCount(data acceptance.TestData) string {
+func (r FunctionAppSlotResource) elasticInstanceMinimum(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2279,13 +2279,13 @@ resource "azurerm_function_app_slot" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
-    minimum_elastic_instance_count = 1
+    elastic_instance_minimum = 1
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r FunctionAppSlotResource) functionAppScaleLimit(data acceptance.TestData) string {
+func (r FunctionAppSlotResource) appScaleLimit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2334,13 +2334,13 @@ resource "azurerm_function_app_slot" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
-    function_app_scale_limit = 1
+    app_scale_limit = 1
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r FunctionAppSlotResource) functionsRuntimeScaleMonitoringEnabled(data acceptance.TestData) string {
+func (r FunctionAppSlotResource) runtimeScaleMonitoringEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2390,8 +2390,8 @@ resource "azurerm_function_app_slot" "test" {
   version                    = "~3"
 
   site_config {
-    pre_warmed_instance_count                  = 1
-    functions_runtime_scale_monitoring_enabled = true
+    pre_warmed_instance_count        = 1
+    runtime_scale_monitoring_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
