@@ -3,7 +3,6 @@ package firewall_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -66,11 +65,9 @@ func TestAccFirewallPolicy_completePremium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
 	r := FirewallPolicyResource{}
 
-	tenantID := os.Getenv("ARM_TENANT_ID")
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.completePremium(data, tenantID),
+			Config: r.completePremium(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -111,7 +108,6 @@ func TestAccFirewallPolicy_update(t *testing.T) {
 func TestAccFirewallPolicy_updatePremium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
 	r := FirewallPolicyResource{}
-	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -122,7 +118,7 @@ func TestAccFirewallPolicy_updatePremium(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.completePremium(data, tenantID),
+			Config: r.completePremium(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -183,7 +179,8 @@ func (FirewallPolicyResource) Exists(ctx context.Context, clients *clients.Clien
 }
 
 func (FirewallPolicyResource) basic(data acceptance.TestData) string {
-	template := FirewallPolicyResource{}.template(data)
+	r := FirewallPolicyResource{}
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -196,7 +193,8 @@ resource "azurerm_firewall_policy" "test" {
 }
 
 func (FirewallPolicyResource) basicPremium(data acceptance.TestData) string {
-	template := FirewallPolicyResource{}.template(data)
+	r := FirewallPolicyResource{}
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -210,7 +208,8 @@ resource "azurerm_firewall_policy" "test" {
 }
 
 func (FirewallPolicyResource) complete(data acceptance.TestData) string {
-	template := FirewallPolicyResource{}.template(data)
+	r := FirewallPolicyResource{}
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -234,8 +233,9 @@ resource "azurerm_firewall_policy" "test" {
 `, template, data.RandomInteger)
 }
 
-func (FirewallPolicyResource) completePremium(data acceptance.TestData, tenantID string) string {
-	template := FirewallPolicyResource{}.templatePremium(data, tenantID)
+func (FirewallPolicyResource) completePremium(data acceptance.TestData) string {
+	r := FirewallPolicyResource{}
+	template := r.templatePremium(data)
 	return fmt.Sprintf(`
 %s
 
@@ -256,7 +256,7 @@ resource "azurerm_firewall_policy" "test" {
     mode = "Alert"
     signature_overrides {
       state = "Alert"
-      id    = "TODO"
+      id    = "1"
     }
     traffic_bypass {
       name                  = "Name bypass traffic settings"
@@ -267,6 +267,9 @@ resource "azurerm_firewall_policy" "test" {
       source_ip_groups      = ["*"]
       destination_ip_groups = ["*"]
     }
+  }
+  identity {
+    type = "SystemAssigned"
   }
   tls_certificate {
     key_vault_secret_id = azurerm_key_vault_certificate.test.secret_id
@@ -280,7 +283,8 @@ resource "azurerm_firewall_policy" "test" {
 }
 
 func (FirewallPolicyResource) requiresImport(data acceptance.TestData) string {
-	template := FirewallPolicyResource{}.basic(data)
+	r := FirewallPolicyResource{}
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -293,7 +297,8 @@ resource "azurerm_firewall_policy" "import" {
 }
 
 func (FirewallPolicyResource) inherit(data acceptance.TestData) string {
-	template := FirewallPolicyResource{}.template(data)
+	r := FirewallPolicyResource{}
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -336,7 +341,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (FirewallPolicyResource) templatePremium(data acceptance.TestData, tenantID string) string {
+func (FirewallPolicyResource) templatePremium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -357,32 +362,50 @@ resource "azurerm_key_vault" "test" {
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
-  tenant_id                       = "%s"
+  tenant_id                       = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
+}
 
-  access_policy {
-    tenant_id = "%s"
-    object_id = data.azurerm_client_config.current.object_id
+resource "azurerm_key_vault_access_policy" "test" {
+  key_vault_id   = azurerm_key_vault.test.id
+  application_id = data.azurerm_client_config.current.client_id
+  tenant_id      = data.azurerm_client_config.current.tenant_id
+  object_id      = data.azurerm_client_config.current.object_id
 
-    certificate_permissions = [
-      "get",
-      "list",
-      "import",
-      "purge",
-      "delete",
-      "recover",
-    ]
+  key_permissions = [
+    "backup",
+    "create",
+    "delete",
+    "get",
+    "import",
+    "list",
+    "purge",
+    "recover",
+    "restore",
+    "update"
+  ]
 
-    secret_permissions = [
-      "get",
-      "list",
-      "set",
-      "delete",
-      "recover"
-    ]
+  certificate_permissions = [
+    "backup",
+    "create",
+    "get",
+    "list",
+    "import",
+    "purge",
+    "delete",
+    "recover",
+  ]
 
-  }
+  secret_permissions = [
+    "get",
+    "list",
+    "set",
+    "purge",
+    "delete",
+    "recover"
+  ]
+
 }
 
 resource "azurerm_key_vault_certificate" "test" {
@@ -428,5 +451,5 @@ resource "azurerm_key_vault_certificate" "test" {
 
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, tenantID, tenantID)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -243,6 +243,53 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 				},
 			},
 
+			"identity": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.ResourceIdentityTypeNone),
+								string(network.ResourceIdentityTypeSystemAssigned),
+								string(network.ResourceIdentityTypeSystemAssignedUserAssigned),
+								string(network.ResourceIdentityTypeUserAssigned),
+							}, false),
+						},
+						"user_assigned_managed_identities": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"principal_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"client_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"principal_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tls_certificate": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -320,6 +367,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			IntrusionDetection:   expandFirewallPolicyIntrusionDetection(d.Get("intrusion_detection").([]interface{})),
 			TransportSecurity:    expandFirewallPolicyTransportSecurity(d.Get("tls_certificate").([]interface{})),
 		},
+		Identity: expandFirewallPolicyIdentity(d.Get("identity").([]interface{})),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -417,6 +465,11 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("rule_collection_groups", flattenNetworkSubResourceID(prop.RuleCollectionGroups)); err != nil {
 			return fmt.Errorf(`setting "rule_collection_groups": %+v`, err)
 		}
+	}
+
+	if err := d.Set("identity", flattenFirewallPolicyIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("flattening identity on Firewall Policy %q (Resource Group %q): %+v",
+			id.Name, id.ResourceGroup, err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -528,6 +581,18 @@ func expandFirewallPolicyTransportSecurity(input []interface{}) *network.Firewal
 	}
 }
 
+func expandFirewallPolicyIdentity(input []interface{}) *network.ManagedServiceIdentity {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &network.ManagedServiceIdentity{
+		Type: network.ResourceIdentityType(v["type"].(string)),
+	}
+}
+
 func flattenFirewallPolicyThreatIntelWhitelist(input *network.FirewallPolicyThreatIntelWhitelist) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -585,6 +650,37 @@ func flattenFirewallPolicyTransportSecurity(input *network.FirewallPolicyTranspo
 		map[string]interface{}{
 			"key_vault_secret_id": input.CertificateAuthority.KeyVaultSecretID,
 			"name":                input.CertificateAuthority.Name,
+		},
+	}
+}
+
+func flattenFirewallPolicyIdentity(identity *network.ManagedServiceIdentity) []interface{} {
+	if identity == nil {
+		return []interface{}{}
+	}
+
+	principalID := ""
+	if identity.PrincipalID != nil {
+		principalID = *identity.PrincipalID
+	}
+
+	tenantID := ""
+	if identity.TenantID != nil {
+		tenantID = *identity.TenantID
+	}
+
+	userAssignedIdentities := make(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue, 0)
+
+	if identity.UserAssignedIdentities != nil {
+		userAssignedIdentities = map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue(identity.UserAssignedIdentities)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":                            string(identity.Type),
+			"principal_id":                    principalID,
+			"tenant_id":                       tenantID,
+			"user_assigned_managed_identites": userAssignedIdentities,
 		},
 	}
 }
