@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource** `azurerm_cdn_endpoint_custom_domain` [GH-12496]
 * **New Resource** `azurerm_cognitive_account_customer_managed_key` [GH-12544]
 * **New Resource** `azurerm_data_factory_data_flow` [GH-12588]
 
