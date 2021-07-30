@@ -83,6 +83,28 @@ func TestAccApiManagementApiDiagnostic_complete(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementApiDiagnostic_completeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_diagnostic", "test")
+	r := ApiManagementApiDiagnosticResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApiManagementApiDiagnostic_dataMasking(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_diagnostic", "test")
 	r := ApiManagementApiDiagnosticResource{}
@@ -247,6 +269,7 @@ resource "azurerm_api_management_api_diagnostic" "test" {
   log_client_ip             = true
   http_correlation_protocol = "W3C"
   verbosity                 = "verbose"
+  operation_name_format     = "Name"
 
   backend_request {
     body_bytes     = 1
@@ -309,6 +332,26 @@ resource "azurerm_api_management_api_diagnostic" "test" {
       }
     }
   }
+}
+`, r.template(data))
+}
+
+func (r ApiManagementApiDiagnosticResource) completeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_diagnostic" "test" {
+  identifier                = "applicationinsights"
+  resource_group_name       = azurerm_resource_group.test.name
+  api_management_name       = azurerm_api_management.test.name
+  api_name                  = azurerm_api_management_api.test.name
+  api_management_logger_id  = azurerm_api_management_logger.test.id
+  sampling_percentage       = 1.0
+  always_log_errors         = true
+  log_client_ip             = true
+  http_correlation_protocol = "W3C"
+  verbosity                 = "verbose"
+  operation_name_format     = "Url"
 }
 `, r.template(data))
 }
