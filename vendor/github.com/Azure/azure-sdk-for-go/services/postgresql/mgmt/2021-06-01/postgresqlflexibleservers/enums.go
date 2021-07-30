@@ -125,19 +125,6 @@ func PossibleOperationOriginValues() []OperationOrigin {
 	return []OperationOrigin{OperationOriginNotSpecified, OperationOriginSystem, OperationOriginUser}
 }
 
-// ResourceIdentityType enumerates the values for resource identity type.
-type ResourceIdentityType string
-
-const (
-	// ResourceIdentityTypeSystemAssigned ...
-	ResourceIdentityTypeSystemAssigned ResourceIdentityType = "SystemAssigned"
-)
-
-// PossibleResourceIdentityTypeValues returns an array of possible values for the ResourceIdentityType const type.
-func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
-	return []ResourceIdentityType{ResourceIdentityTypeSystemAssigned}
-}
-
 // ServerHAState enumerates the values for server ha state.
 type ServerHAState string
 
