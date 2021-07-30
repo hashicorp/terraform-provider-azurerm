@@ -60,6 +60,12 @@ The following arguments are supported:
 
 * `custom_setup_script` - (Optional) A `custom_setup_script` block as defined below.
 
+* `express_custom_setup` - (Optional) An `express_custom_setup` block as defined below.
+
+* `package_store` - (Optional) One or more `package_store` block as defined below.
+  
+* `proxy` - (Optional) A `proxy` block as defined below.
+
 * `vnet_integration` - (Optional) A `vnet_integration` block as defined below.
 
 * `description` - (Optional) Integration runtime description.
@@ -76,6 +82,8 @@ A `catalog_info` block supports the following:
 
 * `pricing_tier` - (Optional) Pricing tier for the database that will be created for the SSIS catalog. Valid values are: `Basic`, `Standard`, `Premium` and `PremiumRS`.
 
+* `dual_standby_pair_name` - (Optional) The dual standby Azure-SSIS Integration Runtime pair with SSISDB failover.
+
 ---
 
 A `custom_setup_script` block supports the following:
@@ -86,11 +94,79 @@ A `custom_setup_script` block supports the following:
 
 ---
 
+An `express_custom_setup` block supports the following:
+
+* `command_key` - (Optional) One or more `command_key` blocks as defined below.
+
+* `component` - (Optional) One or more `component` blocks as defined below.
+
+* `environment` - (Optional) The Environment Variables for the Azure-SSIS Integration Runtime.
+
+* `powershell_version` - (Optional) The version of Azure Powershell installed for the Azure-SSIS Integration Runtime.
+
+~> **NOTE** At least one of `env`, `powershell_version`, `component` and `command_key` should be specified.
+
+---
+
+A `command_key` block supports the following:
+
+* `target_name` - (Required) The target computer or domain name.
+
+* `user_name` - (Required) The username for the target device.
+
+* `password` - (Optional) The password for the target device.
+
+* `key_vault_password` - (Optional) A `key_vault_secret_reference` block as defined below.
+
+---
+
+A `component` block supports the following:
+
+* `name` - (Required) The Component Name installed for the Azure-SSIS Integration Runtime.
+
+* `license` - (Optional) The license used for the Component.
+
+* `key_vault_license` - (Optional) A `key_vault_secret_reference` block as defined below.
+
+---
+
+A `key_vault_secret_reference` block supports the following:
+
+* `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault.
+
+* `secret_version` - (Optional) Specifies the secret version in Azure Key Vault.
+
+* `parameters` - (Optional) A map of parameters to associate with the Key Vault Data Factory Linked Service.
+
+---
+
+A `package_store` block supports the following:
+
+* `name` - (Required) Name of the package store.
+
+* `linked_service_name` - (Required) Name of the Linked Service to associate with the packages.
+
+---
+
+A `proxy` block supports the following:
+
+* `self_hosted_integration_runtime_name` - (Required) Name of Self Hosted Integration Runtime as a proxy.
+
+* `staging_storage_linked_service_name` - (Required)  Name of Azure Blob Storage linked service to reference the staging data store to be used when moving data between self-hosted and Azure-SSIS integration runtimes.
+
+* `path` - (Optional) The path in the data store to be used when moving data between Self-Hosted and Azure-SSIS Integration Runtimes.
+
+---
+
 A `vnet_integration` block supports the following:
 
 * `vnet_id` - (Required) ID of the virtual network to which the nodes of the Azure-SSIS Integration Runtime will be added.
 
 * `subnet_name` - (Required) Name of the subnet to which the nodes of the Azure-SSIS Integration Runtime will be added.
+
+* `public_ips` - (Optional) Static public IP addresses for the Azure-SSIS Integration Runtime. The size must be 2.
 
 ## Attributes Reference
 

@@ -163,6 +163,12 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
+						"maintenance_window": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
 						"start_hour_utc": {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,

@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dataprotection/legacysdk/dataprotection"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dataprotection/parse"
@@ -67,9 +68,10 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 			},
 
 			"default_retention_duration": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ISO8601Duration,
 			},
 
 			"retention_rule": {
@@ -85,9 +87,10 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 						},
 
 						"duration": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.ISO8601Duration,
 						},
 
 						"criteria": {

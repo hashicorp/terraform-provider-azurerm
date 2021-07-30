@@ -74,6 +74,7 @@ func TestAccNetworkWatcher(t *testing.T) {
 			"retentionPolicy":      testAccNetworkWatcherFlowLog_retentionPolicy,
 			"updateStorageAccount": testAccNetworkWatcherFlowLog_updateStorageAccount,
 			"trafficAnalytics":     testAccNetworkWatcherFlowLog_trafficAnalytics,
+			"long_name":            testAccNetworkWatcherFlowLog_longName,
 			"version":              testAccNetworkWatcherFlowLog_version,
 			"location":             testAccNetworkWatcherFlowLog_location,
 			"tags":                 testAccNetworkWatcherFlowLog_tags,

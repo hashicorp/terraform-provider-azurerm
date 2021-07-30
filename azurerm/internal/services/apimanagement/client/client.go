@@ -11,6 +11,7 @@ type Client struct {
 	ApiPoliciesClient          *apimanagement.APIPolicyClient
 	ApiOperationsClient        *apimanagement.APIOperationClient
 	ApiOperationPoliciesClient *apimanagement.APIOperationPolicyClient
+	ApiReleasesClient          *apimanagement.APIReleaseClient
 	ApiSchemasClient           *apimanagement.APISchemaClient
 	ApiVersionSetClient        *apimanagement.APIVersionSetClient
 	AuthorizationServersClient *apimanagement.AuthorizationServerClient
@@ -20,6 +21,7 @@ type Client struct {
 	DiagnosticClient           *apimanagement.DiagnosticClient
 	EmailTemplateClient        *apimanagement.EmailTemplateClient
 	GatewayClient              *apimanagement.GatewayClient
+	GatewayApisClient          *apimanagement.GatewayAPIClient
 	GroupClient                *apimanagement.GroupClient
 	GroupUsersClient           *apimanagement.GroupUserClient
 	IdentityProviderClient     *apimanagement.IdentityProviderClient
@@ -56,6 +58,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	apiOperationPoliciesClient := apimanagement.NewAPIOperationPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiOperationPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
+	apiReleasesClient := apimanagement.NewAPIReleaseClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&apiReleasesClient.Client, o.ResourceManagerAuthorizer)
+
 	apiSchemasClient := apimanagement.NewAPISchemaClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiSchemasClient.Client, o.ResourceManagerAuthorizer)
 
@@ -82,6 +87,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	gatewayClient := apimanagement.NewGatewayClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gatewayClient.Client, o.ResourceManagerAuthorizer)
+
+	gatewayApisClient := apimanagement.NewGatewayAPIClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&gatewayApisClient.Client, o.ResourceManagerAuthorizer)
 
 	groupClient := apimanagement.NewGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&groupClient.Client, o.ResourceManagerAuthorizer)
@@ -143,6 +151,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ApiPoliciesClient:          &apiPoliciesClient,
 		ApiOperationsClient:        &apiOperationsClient,
 		ApiOperationPoliciesClient: &apiOperationPoliciesClient,
+		ApiReleasesClient:          &apiReleasesClient,
 		ApiSchemasClient:           &apiSchemasClient,
 		ApiVersionSetClient:        &apiVersionSetClient,
 		AuthorizationServersClient: &authorizationServersClient,
@@ -152,6 +161,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		DiagnosticClient:           &diagnosticClient,
 		EmailTemplateClient:        &emailTemplateClient,
 		GatewayClient:              &gatewayClient,
+		GatewayApisClient:          &gatewayApisClient,
 		GroupClient:                &groupClient,
 		GroupUsersClient:           &groupUsersClient,
 		IdentityProviderClient:     &identityProviderClient,

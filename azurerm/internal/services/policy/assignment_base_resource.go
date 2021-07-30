@@ -6,21 +6,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
-
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/identity"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type policyAssignmentIdentity = identity.SystemAssigned
@@ -155,8 +151,9 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 			}
 
 			metadata.ResourceData.Set("name", id.Name)
-			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 			metadata.ResourceData.Set("location", location.NormalizeNilable(resp.Location))
+			// lintignore:R001
+			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 
 			if err := metadata.ResourceData.Set("identity", br.flattenIdentity(resp.Identity)); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
@@ -364,7 +361,7 @@ func (br assignmentBaseResource) flattenIdentity(input *policy.Identity) []inter
 	var config *identity.ExpandedConfig
 	if input != nil {
 		config = &identity.ExpandedConfig{
-			Type:        string(input.Type),
+			Type:        identity.Type(string(input.Type)),
 			PrincipalId: input.PrincipalID,
 			TenantId:    input.TenantID,
 		}

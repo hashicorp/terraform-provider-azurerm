@@ -300,7 +300,7 @@ func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties)
 	var config *identity.ExpandedConfig
 	if input != nil {
 		config = &identity.ExpandedConfig{
-			Type:        string(input.Type),
+			Type:        identity.Type(string(input.Type)),
 			PrincipalId: input.PrincipalID,
 			TenantId:    input.TenantID,
 		}

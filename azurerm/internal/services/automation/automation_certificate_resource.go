@@ -65,6 +65,7 @@ func resourceAutomationCertificate() *pluginsdk.Resource {
 			"exportable": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
+				Optional: true,
 			},
 
 			"thumbprint": {
@@ -85,6 +86,7 @@ func resourceAutomationCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("automation_account_name").(string)
+	exportable := d.Get("exportable").(bool)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, name)
@@ -104,7 +106,8 @@ func resourceAutomationCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 	parameters := automation.CertificateCreateOrUpdateParameters{
 		Name: &name,
 		CertificateCreateOrUpdateProperties: &automation.CertificateCreateOrUpdateProperties{
-			Description: &description,
+			Description:  &description,
+			IsExportable: &exportable,
 		},
 	}
 

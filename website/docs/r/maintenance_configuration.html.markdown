@@ -44,11 +44,31 @@ The following arguments are supported:
 
 * `location` - (Required) Specified the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `scope` - (Optional) The scope of the Maintenance Configuration. Possible values are `All`, `Host`, `Resource` or `InResource`. Default to `All`.
+* `scope` - (Optional) The scope of the Maintenance Configuration. Possible values are `All`, `Extension`, `Host`, `InGuestPatch`, `OSImage`, `SQLDB` or `SQLManagedInstance`. Defaults to `All`.
+
+* `visibility` - (Optional) The visibility of the Maintenance Configuration. The only allowable value is `Custom`.
+
+* `window` - (Optional) A `window` block as defined below.
+
+* `properties` - (Optional) A mapping of properties to assign to the resource.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. The key could not contain upper case letter.
 
-~> **NOTE** Because of restriction by the Maintenance backend service, the key in `tags` will be converted to lower case. 
+---
+
+A `window` block supports:
+
+* `start_date_time` - (Required) Effective start date of the maintenance window in YYYY-MM-DD hh:mm format.
+
+* `expiration_date_time` - (Optional) Effective expiration date of the maintenance window in YYYY-MM-DD hh:mm format.
+
+* `duration` - (Optional) The duration of the maintenance window in HH:mm format.
+
+* `time_zone` - (Required) The time zone for the maintenance window. A list of timezones can be obtained by executing [System.TimeZoneInfo]::GetSystemTimeZones() in PowerShell.
+
+* `recur_every` - (Optional) The rate at which a maintenance window is expected to recur. The rate can be expressed as daily, weekly, or monthly schedules.
+
+---
 
 ## Attributes Reference
 

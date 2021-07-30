@@ -87,10 +87,21 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 				},
 			},
 
+			"concurrency": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 50),
+			},
+
 			"folder": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"moniter_metrics_after_duration": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 		},
 	}
@@ -120,11 +131,10 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	description := d.Get("description").(string)
 	pipeline := &datafactory.Pipeline{
 		Parameters:  expandDataFactoryParameters(d.Get("parameters").(map[string]interface{})),
 		Variables:   expandDataFactoryVariables(d.Get("variables").(map[string]interface{})),
-		Description: &description,
+		Description: utils.String(d.Get("description").(string)),
 	}
 
 	if v, ok := d.GetOk("activities_json"); ok {
@@ -141,6 +151,18 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	} else {
 		annotations := make([]interface{}, 0)
 		pipeline.Annotations = &annotations
+	}
+
+	if v, ok := d.GetOk("concurrency"); ok {
+		pipeline.Concurrency = utils.Int32(int32(v.(int)))
+	}
+
+	if v, ok := d.GetOk("moniter_metrics_after_duration"); ok {
+		pipeline.Policy = &datafactory.PipelinePolicy{
+			ElapsedTimeMetric: &datafactory.PipelineElapsedTimeMetricPolicy{
+				Duration: v.(string),
+			},
+		}
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
@@ -210,6 +232,20 @@ func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}
 		if err := d.Set("annotations", annotations); err != nil {
 			return fmt.Errorf("setting `annotations`: %+v", err)
 		}
+
+		concurrency := 0
+		if props.Concurrency != nil {
+			concurrency = int(*props.Concurrency)
+		}
+		d.Set("concurrency", concurrency)
+
+		elapsedTimeMetricDuration := ""
+		if props.Policy != nil && props.Policy.ElapsedTimeMetric != nil && props.Policy.ElapsedTimeMetric.Duration != nil {
+			if v, ok := props.Policy.ElapsedTimeMetric.Duration.(string); ok {
+				elapsedTimeMetricDuration = v
+			}
+		}
+		d.Set("moniter_metrics_after_duration", elapsedTimeMetricDuration)
 
 		if folder := props.Folder; folder != nil {
 			if folder.Name != nil {
