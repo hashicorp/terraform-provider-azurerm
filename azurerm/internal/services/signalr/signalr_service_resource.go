@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2020-05-01/signalr"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/sdk/signalr"
 	signalrValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -35,7 +35,7 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ServiceID(id)
+			_, err := signalr.ParseSignalRID(id)
 			return err
 		}),
 
@@ -85,11 +85,9 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								// Looks like the default has changed, ours will need to be updated in AzureRM 3.0.
-								// issue has been created https://github.com/Azure/azure-sdk-for-go/issues/9619
-								"EnableMessagingLogs",
-								string(signalr.EnableConnectivityLogs),
-								string(signalr.ServiceMode),
+								string(signalr.FeatureFlagsEnableConnectivityLogs),
+								string(signalr.FeatureFlagsEnableMessagingLogs),
+								string(signalr.FeatureFlagsServiceMode),
 							}, false),
 						},
 
@@ -151,7 +149,9 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 						"allowed_origins": {
 							Type:     pluginsdk.TypeSet,
 							Required: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
 						},
 					},
 				},
@@ -208,29 +208,27 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 
 func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SignalR.Client
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	id := signalr.NewSignalRID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_signalr_service", *existing.ID)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_signalr_service", id.ID())
 	}
 
 	sku := d.Get("sku").([]interface{})
-	t := d.Get("tags").(map[string]interface{})
 	featureFlags := d.Get("features").(*pluginsdk.Set).List()
 	cors := d.Get("cors").([]interface{})
-	expandedTags := tags.Expand(t)
 	upstreamSettings := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
 
 	expandedFeatures := expandSignalRFeatures(featureFlags)
@@ -240,36 +238,22 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("Upstream configurations are only allowed when the SignalR Service is in `Serverless` mode")
 	}
 
-	properties := &signalr.Properties{
-		Cors:     expandSignalRCors(cors),
-		Features: expandedFeatures,
-		Upstream: expandUpstreamSettings(upstreamSettings),
+	resourceType := signalr.SignalRResource{
+		Location: utils.String(location),
+		Properties: &signalr.SignalRProperties{
+			Cors:     expandSignalRCors(cors),
+			Features: expandedFeatures,
+			Upstream: expandUpstreamSettings(upstreamSettings),
+		},
+		Sku:  expandSignalRServiceSku(sku),
+		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	resourceType := &signalr.ResourceType{
-		Location:   utils.String(location),
-		Sku:        expandSignalRServiceSku(sku),
-		Tags:       expandedTags,
-		Properties: properties,
+	if err := client.CreateOrUpdateThenPoll(ctx, id, resourceType); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, resourceType)
-	if err != nil {
-		return fmt.Errorf("Error creating or updating SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the result of creating or updating SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("SignalR Service %q (Resource Group %q) ID is empty", name, resourceGroup)
-	}
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceArmSignalRServiceUpdate(d, meta)
 }
 
@@ -278,62 +262,69 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceID(d.Id())
+	id, err := signalr.ParseSignalRID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SignalRName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] SignalR %q was not found in Resource Group %q - removing from state!", id.SignalRName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error getting SignalR %q (Resource Group %q): %+v", id.SignalRName, id.ResourceGroup, err)
+
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.SignalRName)
+	keys, err := client.ListKeys(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("Error getting keys of SignalR %q (Resource Group %q): %+v", id.SignalRName, id.ResourceGroup, err)
+		return fmt.Errorf("listing keys for %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.SignalRName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	if err = d.Set("sku", flattenSignalRServiceSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
-	}
-
-	if properties := resp.Properties; properties != nil {
-		d.Set("hostname", properties.HostName)
-		d.Set("ip_address", properties.ExternalIP)
-		d.Set("public_port", properties.PublicPort)
-		d.Set("server_port", properties.ServerPort)
-
-		if err := d.Set("features", flattenSignalRFeatures(properties.Features)); err != nil {
-			return fmt.Errorf("Error setting `features`: %+v", err)
+		if err = d.Set("sku", flattenSignalRServiceSku(model.Sku)); err != nil {
+			return fmt.Errorf("setting `sku`: %+v", err)
 		}
 
-		if err := d.Set("cors", flattenSignalRCors(properties.Cors)); err != nil {
-			return fmt.Errorf("Error setting `cors`: %+v", err)
-		}
+		if props := model.Properties; props != nil {
+			d.Set("hostname", props.HostName)
+			d.Set("ip_address", props.ExternalIP)
+			d.Set("public_port", props.PublicPort)
+			d.Set("server_port", props.ServerPort)
 
-		if err := d.Set("upstream_endpoint", flattenUpstreamSettings(properties.Upstream)); err != nil {
-			return fmt.Errorf("Error setting `upstream_endpoint`: %+v", err)
+			if err := d.Set("features", flattenSignalRFeatures(props.Features)); err != nil {
+				return fmt.Errorf("setting `features`: %+v", err)
+			}
+
+			if err := d.Set("cors", flattenSignalRCors(props.Cors)); err != nil {
+				return fmt.Errorf("setting `cors`: %+v", err)
+			}
+
+			if err := d.Set("upstream_endpoint", flattenUpstreamSettings(props.Upstream)); err != nil {
+				return fmt.Errorf("setting `upstream_endpoint`: %+v", err)
+			}
+
+			if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+				return err
+			}
 		}
 	}
 
-	d.Set("primary_access_key", keys.PrimaryKey)
-	d.Set("primary_connection_string", keys.PrimaryConnectionString)
-	d.Set("secondary_access_key", keys.SecondaryKey)
-	d.Set("secondary_connection_string", keys.SecondaryConnectionString)
+	if model := keys.Model; model != nil {
+		d.Set("primary_access_key", model.PrimaryKey)
+		d.Set("primary_connection_string", model.PrimaryConnectionString)
+		d.Set("secondary_access_key", model.SecondaryKey)
+		d.Set("secondary_connection_string", model.SecondaryConnectionString)
+	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -341,15 +332,15 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceID(d.Id())
+	id, err := signalr.ParseSignalRID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceType := &signalr.ResourceType{}
+	resourceType := signalr.SignalRResource{}
 
 	if d.HasChanges("cors", "features", "upstream_endpoint") {
-		resourceType.Properties = &signalr.Properties{}
+		resourceType.Properties = &signalr.SignalRProperties{}
 
 		if d.HasChange("cors") {
 			corsRaw := d.Get("cors").([]interface{})
@@ -374,15 +365,11 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("tags") {
 		tagsRaw := d.Get("tags").(map[string]interface{})
-		resourceType.Tags = tags.Expand(tagsRaw)
+		resourceType.Tags = expandTags(tagsRaw)
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.SignalRName, resourceType)
-	if err != nil {
-		return fmt.Errorf("updating SignalR Service %q (Resource Group %q): %+v", id.SignalRName, id.ResourceGroup, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of SignalR Service %q (Resource Group %q): %+v", id.SignalRName, id.ResourceGroup, err)
+	if err := client.UpdateThenPoll(ctx, *id, resourceType); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceArmSignalRServiceRead(d, meta)
@@ -393,49 +380,40 @@ func resourceArmSignalRServiceDelete(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceID(d.Id())
+	id, err := signalr.ParseSignalRID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.SignalRName)
-	if err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("deleting SignalR Service %q (Resource Group %q): %+v", id.SignalRName, id.ResourceGroup, err)
-		}
-		return nil
-	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for the deletion of SignalR Service %q (Resource Group %q): %+v", id.SignalRName, id.ResourceGroup, err)
-		}
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func signalRIsInServerlessMode(features *[]signalr.Feature) bool {
+func signalRIsInServerlessMode(features *[]signalr.SignalRFeature) bool {
 	if features == nil {
 		return false
 	}
 
 	for _, feature := range *features {
-		if feature.Flag == signalr.ServiceMode && feature.Value != nil {
-			return *feature.Value == "Serverless"
+		if feature.Flag == signalr.FeatureFlagsServiceMode {
+			return strings.EqualFold(feature.Value, "Serverless")
 		}
 	}
 
 	return false
 }
 
-func expandSignalRFeatures(input []interface{}) *[]signalr.Feature {
-	features := make([]signalr.Feature, 0)
+func expandSignalRFeatures(input []interface{}) *[]signalr.SignalRFeature {
+	features := make([]signalr.SignalRFeature, 0)
 	for _, featureValue := range input {
 		value := featureValue.(map[string]interface{})
 
-		feature := signalr.Feature{
+		feature := signalr.SignalRFeature{
 			Flag:  signalr.FeatureFlags(value["flag"].(string)),
-			Value: utils.String(value["value"].(string)),
+			Value: value["value"].(string),
 		}
 
 		features = append(features, feature)
@@ -444,21 +422,16 @@ func expandSignalRFeatures(input []interface{}) *[]signalr.Feature {
 	return &features
 }
 
-func flattenSignalRFeatures(features *[]signalr.Feature) []interface{} {
+func flattenSignalRFeatures(features *[]signalr.SignalRFeature) []interface{} {
 	if features == nil {
 		return []interface{}{}
 	}
 
 	result := make([]interface{}, 0)
 	for _, feature := range *features {
-		value := ""
-		if feature.Value != nil {
-			value = *feature.Value
-		}
-
 		result = append(result, map[string]interface{}{
 			"flag":  string(feature.Flag),
-			"value": value,
+			"value": feature.Value,
 		})
 	}
 	return result
@@ -474,7 +447,7 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 			HubPattern:      utils.String(strings.Join(*utils.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
 			EventPattern:    utils.String(strings.Join(*utils.ExpandStringSlice(setting["event_pattern"].([]interface{})), ",")),
 			CategoryPattern: utils.String(strings.Join(*utils.ExpandStringSlice(setting["category_pattern"].([]interface{})), ",")),
-			URLTemplate:     utils.String(setting["url_template"].(string)),
+			UrlTemplate:     setting["url_template"].(string),
 		}
 
 		upstreamTemplates = append(upstreamTemplates, upstreamTemplate)
@@ -510,13 +483,8 @@ func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSetting
 			hubPattern = utils.FlattenStringSlice(&hubPatterns)
 		}
 
-		urlTemplate := ""
-		if settings.URLTemplate != nil {
-			urlTemplate = *settings.URLTemplate
-		}
-
 		result = append(result, map[string]interface{}{
-			"url_template":     urlTemplate,
+			"url_template":     settings.UrlTemplate,
 			"hub_pattern":      hubPattern,
 			"event_pattern":    eventPattern,
 			"category_pattern": categoryPattern,
@@ -525,8 +493,8 @@ func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSetting
 	return result
 }
 
-func expandSignalRCors(input []interface{}) *signalr.CorsSettings {
-	corsSettings := signalr.CorsSettings{}
+func expandSignalRCors(input []interface{}) *signalr.SignalRCorsSettings {
+	corsSettings := signalr.SignalRCorsSettings{}
 
 	if len(input) == 0 || input[0] == nil {
 		return &corsSettings
@@ -545,7 +513,7 @@ func expandSignalRCors(input []interface{}) *signalr.CorsSettings {
 	return &corsSettings
 }
 
-func flattenSignalRCors(input *signalr.CorsSettings) []interface{} {
+func flattenSignalRCors(input *signalr.SignalRCorsSettings) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -567,8 +535,8 @@ func flattenSignalRCors(input *signalr.CorsSettings) []interface{} {
 func expandSignalRServiceSku(input []interface{}) *signalr.ResourceSku {
 	v := input[0].(map[string]interface{})
 	return &signalr.ResourceSku{
-		Name:     utils.String(v["name"].(string)),
-		Capacity: utils.Int32(int32(v["capacity"].(int))),
+		Name:     v["name"].(string),
+		Capacity: utils.Int64(int64(v["capacity"].(int))),
 	}
 }
 
@@ -582,15 +550,10 @@ func flattenSignalRServiceSku(input *signalr.ResourceSku) []interface{} {
 		capacity = int(*input.Capacity)
 	}
 
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"capacity": capacity,
-			"name":     name,
+			"name":     input.Name,
 		},
 	}
 }

@@ -1,11 +1,9 @@
 package validate
 
-// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
-
 import (
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/sdk/signalr"
 )
 
 func ServiceID(input interface{}, key string) (warnings []string, errors []error) {
@@ -15,7 +13,7 @@ func ServiceID(input interface{}, key string) (warnings []string, errors []error
 		return
 	}
 
-	if _, err := parse.ServiceID(v); err != nil {
+	if _, err := signalr.ParseSignalRID(v); err != nil {
 		errors = append(errors, err)
 	}
 

@@ -1,16 +1,16 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2020-05-01/signalr"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/sdk/signalr"
 )
 
 type Client struct {
-	Client *signalr.Client
+	Client *signalr.SignalRClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	client := signalr.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	client := signalr.NewSignalRClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&client.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
