@@ -36,7 +36,7 @@ resource "azurerm_bot_channel_line" "example" {
   resource_group_name = azurerm_resource_group.example.name
 
   line_channel {
-    access_token = "asdfsdfTYUIOIoj1231hkjhk"
+    access_token = "asdfdsdfTYUIOIoj1231hkjhk"
     secret       = "aagfdgfd123567"
   }
 }
