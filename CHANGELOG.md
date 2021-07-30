@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * dependencies: upgrading to `v56.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-12781]
 * dependencies: updating `containerservice` to use API Version `2021-05-1` [GH-12747]
 * PowerBI: refactoring to use an Embedded SDK [GH-12787]
+* `azurerm_kubernetes_cluster` - support for the `local_account_disabled` property [GH-12386]
 * `azurerm_logic_app_workflow` - support for the `workflow_parameters` [GH-12314]
 
 BUG FIXES:
