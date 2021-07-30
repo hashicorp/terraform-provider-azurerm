@@ -70,15 +70,14 @@ func resourceApiManagementTagCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	if err != nil {
 		return err
 	}
-	name := d.Get("name").(string)
 
-	id := parse.NewTagID(subscriptionId, apiManagementId.ResourceGroup, apiManagementId.ServiceName, name)
+	id := parse.NewTagID(subscriptionId, apiManagementId.ResourceGroup, apiManagementId.ServiceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, apiManagementId.ResourceGroup, apiManagementId.ServiceName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Tag %q: %s", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
@@ -98,8 +97,8 @@ func resourceApiManagementTagCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, apiManagementId.ResourceGroup, apiManagementId.ServiceName, name, parameters, ""); err != nil {
-		return fmt.Errorf("creating/updating %q: %+v", id, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.Name, parameters, ""); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -108,7 +107,6 @@ func resourceApiManagementTagCreateUpdate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceApiManagementTagRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.TagClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,15 +119,15 @@ func resourceApiManagementTagRead(d *pluginsdk.ResourceData, meta interface{}) e
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] %q was not found - removing from state!", id)
+			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %q: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("api_management_id", parse.NewApiManagementID(subscriptionId, id.ResourceGroup, id.ServiceName).ID())
+	d.Set("api_management_id", parse.NewApiManagementID(id.SubscriptionId, id.ResourceGroup, id.ServiceName).ID())
 	d.Set("name", id.Name)
 
 	if props := resp.TagContractProperties; props != nil {
@@ -150,7 +148,7 @@ func resourceApiManagementTagDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name, ""); err != nil {
-		return fmt.Errorf("deleting %q: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil

@@ -91,18 +91,18 @@ func (ApiManagementTagResource) Exists(ctx context.Context, clients *clients.Cli
 
 func (r ApiManagementTagResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_api_management_tag" "test" {
   api_management_id = azurerm_api_management.test.id
-  name              = "acctest-Op-Tag-%d"
+  name              = "acctest-Op-Tag-%[2]d"
 }
 `, ApiManagementResource{}.consumption(data), data.RandomInteger)
 }
 
 func (r ApiManagementTagResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_api_management_tag" "import" {
   api_management_id = azurerm_api_management_tag.test.api_management_id
@@ -113,11 +113,11 @@ resource "azurerm_api_management_tag" "import" {
 
 func (r ApiManagementTagResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_api_management_tag" "test" {
   api_management_id = azurerm_api_management.test.id
-  name              = "acctest-Op-Tag-%d"
+  name              = "acctest-Op-Tag-%[2]d"
   display_name      = "Display-Op-Tag Updated"
 }
 `, ApiManagementResource{}.consumption(data), data.RandomInteger)
