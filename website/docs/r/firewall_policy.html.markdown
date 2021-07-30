@@ -74,6 +74,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `rule_collection_groups` - A list of references to Firewall Policy Rule Collection Groups that belongs to this Firewall Policy.
 
+* `private_ip_ranges` - A list of private IP ranges to which traffic will not be SNAT.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

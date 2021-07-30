@@ -122,10 +122,6 @@ The following arguments are supported:
 
 * `managed_rules` - (Required) A `managed_rules` blocks as defined below.
 
-* `http_listener_ids` - (Optional) A list of HTTP Listener IDs from an `azurerm_application_gateway`.
-
-* `path_based_rule_ids` - (Optional) A list of URL Path Map Path Rule IDs from an `azurerm_application_gateway`.
-
 * `tags` - (Optional) A mapping of tags to assign to the Web Application Firewall Policy.
 
 ---
@@ -219,6 +215,10 @@ The `rule_group_override` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Web Application Firewall Policy.
+
+* `http_listener_ids` - A list of HTTP Listener IDs from an `azurerm_application_gateway`.
+
+* `path_based_rule_ids` - A list of URL Path Map Path Rule IDs from an `azurerm_application_gateway`.
 
 ## Timeouts
 

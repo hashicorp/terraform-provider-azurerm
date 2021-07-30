@@ -102,7 +102,7 @@ func flattenVirtualMachineIdentity(input *compute.VirtualMachineIdentity) ([]int
 		}
 
 		config = &identity.ExpandedConfig{
-			Type:                    string(input.Type),
+			Type:                    identity.Type(string(input.Type)),
 			PrincipalId:             input.PrincipalID,
 			TenantId:                input.TenantID,
 			UserAssignedIdentityIds: &identityIds,
