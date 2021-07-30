@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
+	"github.com/Azure/azure-sdk-for-go/services/preview/databricks/mgmt/2021-04-01-preview/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -148,22 +148,14 @@ func DatabricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	params := workspace.Parameters
 	params.Encryption = &databricks.WorkspaceEncryptionParameter{
 		Value: &databricks.Encryption{
-			KeySource:   databricks.MicrosoftKeyvault,
+			KeySource:   databricks.KeySourceMicrosoftKeyvault,
 			KeyName:     &key.Name,
 			KeyVersion:  &key.Version,
 			KeyVaultURI: &key.KeyVaultBaseUrl,
 		},
 	}
 
-	props := databricks.Workspace{
-		Location: workspace.Location,
-		Sku:      workspace.Sku,
-		WorkspaceProperties: &databricks.WorkspaceProperties{
-			ManagedResourceGroupID: workspace.WorkspaceProperties.ManagedResourceGroupID,
-			Parameters:             params,
-		},
-		Tags: workspace.Tags,
-	}
+	props := getProps(workspace, params)
 
 	future, err := workspaceClient.CreateOrUpdate(ctx, props, resourceID.ResourceGroup, resourceID.CustomerMangagedKeyName)
 	if err != nil {
@@ -229,7 +221,7 @@ func DatabricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 	// 	return fmt.Errorf("retrieving Databricks Workspace %q (Resource Group %q): `Workspace.WorkspaceProperties.Encryption.Value.KeySource` was expected to be %q, got %q", id.CustomerMangagedKeyName, id.ResourceGroup, string(databricks.MicrosoftKeyvault), keySource)
 	// }
 
-	if strings.EqualFold(keySource, string(databricks.MicrosoftKeyvault)) && (keyName == "" || keyVersion == "" || keyVaultURI == "") {
+	if strings.EqualFold(keySource, string(databricks.KeySourceMicrosoftKeyvault)) && (keyName == "" || keyVersion == "" || keyVaultURI == "") {
 		return fmt.Errorf("Databricks Workspace %q (Resource Group %q): `Workspace.WorkspaceProperties.Encryption.Value(s)` were nil", id.CustomerMangagedKeyName, id.ResourceGroup)
 	}
 
@@ -282,19 +274,11 @@ func DatabricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta
 	params := workspace.Parameters
 	params.Encryption = &databricks.WorkspaceEncryptionParameter{
 		Value: &databricks.Encryption{
-			KeySource: databricks.Default,
+			KeySource: databricks.KeySourceDefault,
 		},
 	}
 
-	props := databricks.Workspace{
-		Location: workspace.Location,
-		Sku:      workspace.Sku,
-		WorkspaceProperties: &databricks.WorkspaceProperties{
-			ManagedResourceGroupID: workspace.WorkspaceProperties.ManagedResourceGroupID,
-			Parameters:             params,
-		},
-		Tags: workspace.Tags,
-	}
+	props := getProps(workspace, params)
 
 	future, err := client.CreateOrUpdate(ctx, props, workspaceID.ResourceGroup, workspaceID.Name)
 	if err != nil {
@@ -306,4 +290,24 @@ func DatabricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta
 	}
 
 	return nil
+}
+
+func getProps(workspace databricks.Workspace, params *databricks.WorkspaceCustomParameters) databricks.Workspace {
+	props := databricks.Workspace{
+		Location: workspace.Location,
+		Sku:      workspace.Sku,
+		WorkspaceProperties: &databricks.WorkspaceProperties{
+			PublicNetworkAccess:    workspace.PublicNetworkAccess,
+			ManagedResourceGroupID: workspace.WorkspaceProperties.ManagedResourceGroupID,
+			Parameters:             params,
+		},
+		Tags: workspace.Tags,
+	}
+
+	// This is only valid if Private Link only is set
+	if workspace.PublicNetworkAccess == databricks.PublicNetworkAccessDisabled {
+		props.WorkspaceProperties.RequiredNsgRules = workspace.WorkspaceProperties.RequiredNsgRules
+	}
+
+	return props
 }
