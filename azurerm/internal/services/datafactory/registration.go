@@ -29,7 +29,9 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_data_factory":                                       resourceDataFactory(),
+		"azurerm_data_factory_data_flow":                             resourceDataFactoryDataFlow(),
 		"azurerm_data_factory_dataset_azure_blob":                    resourceDataFactoryDatasetAzureBlob(),
+		"azurerm_data_factory_dataset_binary":                        resourceDataFactoryDatasetBinary(),
 		"azurerm_data_factory_dataset_cosmosdb_sqlapi":               resourceDataFactoryDatasetCosmosDbSQLAPI(),
 		"azurerm_data_factory_dataset_delimited_text":                resourceDataFactoryDatasetDelimitedText(),
 		"azurerm_data_factory_dataset_http":                          resourceDataFactoryDatasetHTTP(),
@@ -39,6 +41,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_factory_dataset_postgresql":                    resourceDataFactoryDatasetPostgreSQL(),
 		"azurerm_data_factory_dataset_snowflake":                     resourceDataFactoryDatasetSnowflake(),
 		"azurerm_data_factory_dataset_sql_server_table":              resourceDataFactoryDatasetSQLServerTable(),
+		"azurerm_data_factory_custom_dataset":                        resourceDataFactoryCustomDataset(),
 		"azurerm_data_factory_integration_runtime_managed":           resourceDataFactoryIntegrationRuntimeManaged(),
 		"azurerm_data_factory_integration_runtime_azure":             resourceDataFactoryIntegrationRuntimeAzure(),
 		"azurerm_data_factory_integration_runtime_azure_ssis":        resourceDataFactoryIntegrationRuntimeAzureSsis(),
@@ -63,8 +66,11 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_factory_linked_service_sql_server":             resourceDataFactoryLinkedServiceSQLServer(),
 		"azurerm_data_factory_linked_service_synapse":                resourceDataFactoryLinkedServiceSynapse(),
 		"azurerm_data_factory_linked_service_web":                    resourceDataFactoryLinkedServiceWeb(),
+		"azurerm_data_factory_managed_private_endpoint":              resourceDataFactoryManagedPrivateEndpoint(),
 		"azurerm_data_factory_pipeline":                              resourceDataFactoryPipeline(),
 		"azurerm_data_factory_trigger_blob_event":                    resourceDataFactoryTriggerBlobEvent(),
+		"azurerm_data_factory_trigger_custom_event":                  resourceDataFactoryTriggerCustomEvent(),
 		"azurerm_data_factory_trigger_schedule":                      resourceDataFactoryTriggerSchedule(),
+		"azurerm_data_factory_trigger_tumbling_window":               resourceDataFactoryTriggerTumblingWindow(),
 	}
 }

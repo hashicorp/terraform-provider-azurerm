@@ -882,49 +882,51 @@ func PossibleIssueValues() []Issue {
 type KindEnum string
 
 const (
-	// KindDataExportSettings ...
-	KindDataExportSettings KindEnum = "DataExportSettings"
-	// KindSetting ...
-	KindSetting KindEnum = "Setting"
+	// KindAAD ...
+	KindAAD KindEnum = "AAD"
+	// KindATA ...
+	KindATA KindEnum = "ATA"
+	// KindCEF ...
+	KindCEF KindEnum = "CEF"
+	// KindExternalSecuritySolution ...
+	KindExternalSecuritySolution KindEnum = "ExternalSecuritySolution"
 )
 
 // PossibleKindEnumValues returns an array of possible values for the KindEnum const type.
 func PossibleKindEnumValues() []KindEnum {
-	return []KindEnum{KindDataExportSettings, KindSetting}
+	return []KindEnum{KindAAD, KindATA, KindCEF, KindExternalSecuritySolution}
 }
 
 // KindEnum1 enumerates the values for kind enum 1.
 type KindEnum1 string
 
 const (
-	// KindAAD ...
-	KindAAD KindEnum1 = "AAD"
-	// KindATA ...
-	KindATA KindEnum1 = "ATA"
-	// KindCEF ...
-	KindCEF KindEnum1 = "CEF"
-	// KindExternalSecuritySolution ...
-	KindExternalSecuritySolution KindEnum1 = "ExternalSecuritySolution"
+	// KindAlertSimulatorRequestProperties ...
+	KindAlertSimulatorRequestProperties KindEnum1 = "AlertSimulatorRequestProperties"
+	// KindBundles ...
+	KindBundles KindEnum1 = "Bundles"
 )
 
 // PossibleKindEnum1Values returns an array of possible values for the KindEnum1 const type.
 func PossibleKindEnum1Values() []KindEnum1 {
-	return []KindEnum1{KindAAD, KindATA, KindCEF, KindExternalSecuritySolution}
+	return []KindEnum1{KindAlertSimulatorRequestProperties, KindBundles}
 }
 
 // KindEnum2 enumerates the values for kind enum 2.
 type KindEnum2 string
 
 const (
-	// KindAlertSimulatorRequestProperties ...
-	KindAlertSimulatorRequestProperties KindEnum2 = "AlertSimulatorRequestProperties"
-	// KindBundles ...
-	KindBundles KindEnum2 = "Bundles"
+	// KindAlertSyncSettings ...
+	KindAlertSyncSettings KindEnum2 = "AlertSyncSettings"
+	// KindDataExportSettings ...
+	KindDataExportSettings KindEnum2 = "DataExportSettings"
+	// KindSetting ...
+	KindSetting KindEnum2 = "Setting"
 )
 
 // PossibleKindEnum2Values returns an array of possible values for the KindEnum2 const type.
 func PossibleKindEnum2Values() []KindEnum2 {
-	return []KindEnum2{KindAlertSimulatorRequestProperties, KindBundles}
+	return []KindEnum2{KindAlertSyncSettings, KindDataExportSettings, KindSetting}
 }
 
 // MacSignificance enumerates the values for mac significance.
@@ -980,13 +982,17 @@ type OnboardingKind string
 const (
 	// Default ...
 	Default OnboardingKind = "Default"
+	// Evaluation ...
+	Evaluation OnboardingKind = "Evaluation"
 	// MigratedToAzure ...
 	MigratedToAzure OnboardingKind = "MigratedToAzure"
+	// Purchased ...
+	Purchased OnboardingKind = "Purchased"
 )
 
 // PossibleOnboardingKindValues returns an array of possible values for the OnboardingKind const type.
 func PossibleOnboardingKindValues() []OnboardingKind {
-	return []OnboardingKind{Default, MigratedToAzure}
+	return []OnboardingKind{Default, Evaluation, MigratedToAzure, Purchased}
 }
 
 // Operator enumerates the values for operator.

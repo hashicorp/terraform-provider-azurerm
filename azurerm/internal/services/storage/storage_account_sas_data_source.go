@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
 const (
@@ -37,6 +38,15 @@ func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"ip_addresses": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.Any(
+					validation.IsIPv4Address,
+					validation.IsIPv4Range,
+				),
 			},
 
 			"signed_version": {
@@ -173,6 +183,7 @@ func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
 func dataSourceStorageAccountSasRead(d *pluginsdk.ResourceData, _ interface{}) error {
 	connString := d.Get("connection_string").(string)
 	httpsOnly := d.Get("https_only").(bool)
+	ipAddresses := d.Get("ip_addresses").(string)
 	signedVersion := d.Get("signed_version").(string)
 	resourceTypesIface := d.Get("resource_types").([]interface{})
 	servicesIface := d.Get("services").([]interface{})
@@ -200,10 +211,9 @@ func dataSourceStorageAccountSasRead(d *pluginsdk.ResourceData, _ interface{}) e
 	if httpsOnly {
 		signedProtocol = "https"
 	}
-	signedIp := ""
 
 	sasToken, err := storage.ComputeAccountSASToken(accountName, accountKey, permissions, services, resourceTypes,
-		start, expiry, signedProtocol, signedIp, signedVersion)
+		start, expiry, signedProtocol, ipAddresses, signedVersion)
 	if err != nil {
 		return err
 	}

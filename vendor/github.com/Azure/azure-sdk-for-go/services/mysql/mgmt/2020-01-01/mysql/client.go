@@ -68,8 +68,7 @@ func (client BaseClient) CreateRecommendedActionSession(ctx context.Context, res
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("mysql.BaseClient", "CreateRecommendedActionSession", err.Error())
 	}
 
@@ -134,5 +133,90 @@ func (client BaseClient) CreateRecommendedActionSessionResponder(resp *http.Resp
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
+	return
+}
+
+// ResetQueryPerformanceInsightData reset data for Query Performance Insight.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// serverName - the name of the server.
+func (client BaseClient) ResetQueryPerformanceInsightData(ctx context.Context, resourceGroupName string, serverName string) (result QueryPerformanceInsightResetDataResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.ResetQueryPerformanceInsightData")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("mysql.BaseClient", "ResetQueryPerformanceInsightData", err.Error())
+	}
+
+	req, err := client.ResetQueryPerformanceInsightDataPreparer(ctx, resourceGroupName, serverName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "mysql.BaseClient", "ResetQueryPerformanceInsightData", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ResetQueryPerformanceInsightDataSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "mysql.BaseClient", "ResetQueryPerformanceInsightData", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ResetQueryPerformanceInsightDataResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "mysql.BaseClient", "ResetQueryPerformanceInsightData", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ResetQueryPerformanceInsightDataPreparer prepares the ResetQueryPerformanceInsightData request.
+func (client BaseClient) ResetQueryPerformanceInsightDataPreparer(ctx context.Context, resourceGroupName string, serverName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serverName":        autorest.Encode("path", serverName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBforMySQL/servers/{serverName}/resetQueryPerformanceInsightData", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ResetQueryPerformanceInsightDataSender sends the ResetQueryPerformanceInsightData request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) ResetQueryPerformanceInsightDataSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ResetQueryPerformanceInsightDataResponder handles the response to the ResetQueryPerformanceInsightData request. The method always
+// closes the http.Response Body.
+func (client BaseClient) ResetQueryPerformanceInsightDataResponder(resp *http.Response) (result QueryPerformanceInsightResetDataResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }

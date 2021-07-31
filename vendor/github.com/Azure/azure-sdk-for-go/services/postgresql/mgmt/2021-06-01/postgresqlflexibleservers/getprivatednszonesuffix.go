@@ -77,7 +77,7 @@ func (client GetPrivateDNSZoneSuffixClient) ExecutePreparer(ctx context.Context)
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPath("/providers/Microsoft.DBForPostgreSql/getPrivateDnsZoneSuffix"),
+		autorest.WithPath("/providers/Microsoft.DBforPostgreSQL/getPrivateDnsZoneSuffix"),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }

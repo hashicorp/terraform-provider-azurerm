@@ -179,6 +179,7 @@ resource "azurerm_firewall_policy" "test" {
     servers       = ["1.1.1.1", "2.2.2.2"]
     proxy_enabled = true
   }
+  private_ip_ranges = ["172.16.0.0/12", "192.168.0.0/16"]
   tags = {
     env = "Test"
   }

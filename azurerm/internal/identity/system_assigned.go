@@ -55,7 +55,7 @@ func (s SystemAssigned) Schema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						systemAssigned,
+						string(systemAssigned),
 					}, false),
 				},
 				"principal_id": {

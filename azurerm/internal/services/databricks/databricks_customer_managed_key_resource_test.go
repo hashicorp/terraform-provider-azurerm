@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
+	"github.com/Azure/azure-sdk-for-go/services/preview/databricks/mgmt/2021-04-01-preview/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -117,7 +117,7 @@ func (DatabricksWorkspaceCustomerManagedKeyResource) Exists(ctx context.Context,
 
 	// This is the only way we can tell if the CMK has actually been provisioned or not...
 	if resp.WorkspaceProperties.Parameters != nil && resp.WorkspaceProperties.Parameters.Encryption != nil {
-		if resp.WorkspaceProperties.Parameters.Encryption.Value.KeySource == databricks.MicrosoftKeyvault {
+		if resp.WorkspaceProperties.Parameters.Encryption.Value.KeySource == databricks.KeySourceMicrosoftKeyvault {
 			return utils.Bool(true), nil
 		}
 	}

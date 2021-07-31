@@ -2,7 +2,7 @@ module github.com/terraform-providers/terraform-provider-azurerm
 
 require (
 	cloud.google.com/go/storage v1.16.0 // indirect
-	github.com/Azure/azure-sdk-for-go v55.5.0+incompatible
+	github.com/Azure/azure-sdk-for-go v56.0.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.19
 	github.com/Azure/go-autorest/autorest/adal v0.9.14 // indirect
 	github.com/Azure/go-autorest/autorest/date v0.3.0

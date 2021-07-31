@@ -212,7 +212,7 @@ func resourceDataProtectionBackupVaultDelete(d *pluginsdk.ResourceData, meta int
 func expandBackupVaultDppIdentityDetails(input []interface{}) *dataprotection.DppIdentityDetails {
 	config, _ := identity.SystemAssigned{}.Expand(input)
 	return &dataprotection.DppIdentityDetails{
-		Type: utils.String(config.Type),
+		Type: utils.String(string(config.Type)),
 	}
 }
 
@@ -220,7 +220,7 @@ func flattenBackupVaultDppIdentityDetails(input *dataprotection.DppIdentityDetai
 	var config *identity.ExpandedConfig
 	if input != nil {
 		config = &identity.ExpandedConfig{
-			Type:        *input.Type,
+			Type:        identity.Type(*input.Type),
 			PrincipalId: input.PrincipalID,
 			TenantId:    input.TenantID,
 		}

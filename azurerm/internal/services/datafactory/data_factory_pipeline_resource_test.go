@@ -212,12 +212,14 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name                = "acctest%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  annotations         = ["test1", "test2"]
-  description         = "test description2"
-  folder              = "test-folder"
+  name                           = "acctest%d"
+  resource_group_name            = azurerm_resource_group.test.name
+  data_factory_name              = azurerm_data_factory.test.name
+  annotations                    = ["test1", "test2"]
+  concurrency                    = 30
+  description                    = "test description2"
+  moniter_metrics_after_duration = "12:23:34"
+  folder                         = "test-folder"
 
   parameters = {
     test  = "testparameter"

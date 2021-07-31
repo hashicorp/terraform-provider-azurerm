@@ -23,7 +23,7 @@ func (s SystemAssignedUserAssigned) Expand(input []interface{}) (*ExpandedConfig
 	v := input[0].(map[string]interface{})
 
 	config := &ExpandedConfig{
-		Type: v["type"].(string),
+		Type: Type(v["type"].(string)),
 	}
 
 	identityIds := v["identity_ids"].(*pluginsdk.Set).List()
@@ -72,9 +72,9 @@ func (s SystemAssignedUserAssigned) Schema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						userAssigned,
-						systemAssigned,
-						systemAssignedUserAssigned,
+						string(userAssigned),
+						string(systemAssigned),
+						string(systemAssignedUserAssigned),
 					}, false),
 				},
 				"identity_ids": {
