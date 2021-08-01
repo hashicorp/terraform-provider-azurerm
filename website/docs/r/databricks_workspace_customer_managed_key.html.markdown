@@ -37,7 +37,7 @@ resource "azurerm_databricks_workspace_customer_managed_key" "example" {
   depends_on = [azurerm_key_vault_access_policy.databricks]
 
   workspace_id     = azurerm_databricks_workspace.example.id
-  key_vault_key_id = azurerm_key_vault.example.id
+  key_vault_key_id = azurerm_key_vault_key.example.id
 }
 
 resource "azurerm_key_vault" "example" {
