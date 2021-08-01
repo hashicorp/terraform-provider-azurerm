@@ -104,6 +104,8 @@ A `custom_parameters` block supports the following:
 * [Databricks Workspace Secure Connectivity Cluster with Load Balancer](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/databricks/secure-connectivity-cluster/with-load-balancer)
 * [Databricks Workspace Secure Connectivity Cluster without Load Balancer](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/databricks/secure-connectivity-cluster/without-load-balancer)
 * [Databricks Workspace with Private Endpoint](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/databricks)
+* [Databricks Workspace with Databricks File System Customer Managed Keys](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/databricks/customer-managed-key/dbfs)
+* [Databricks Workspace with Customer Managed Keys for Managed Services](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/databricks/customer-managed-key/managed-services)
 
 
 ## Attributes Reference
