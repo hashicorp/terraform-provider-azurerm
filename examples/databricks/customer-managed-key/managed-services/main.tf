@@ -12,10 +12,11 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_databricks_workspace" "example" {
   depends_on = [azurerm_key_vault_access_policy.managed]
 
-  name                = "${var.prefix}-DBW"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  sku                 = "premium"
+  name                        = "${var.prefix}-DBW"
+  resource_group_name         = azurerm_resource_group.example.name
+  location                    = azurerm_resource_group.example.location
+  sku                         = "premium"
+  managed_resource_group_name = "${var.prefix}-DBW-managed-services"
 
   customer_managed_keys_for_managed_services_key_vault_key_id = azurerm_key_vault_key.example.id
 

@@ -10,10 +10,11 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_databricks_workspace" "example" {
-  name                = "${var.prefix}-DBW"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  sku                 = "premium"
+  name                        = "${var.prefix}-DBW"
+  resource_group_name         = azurerm_resource_group.example.name
+  location                    = azurerm_resource_group.example.location
+  sku                         = "premium"
+  managed_resource_group_name = "${var.prefix}-DBW-managed-dbfs"
 
   customer_managed_key_enabled = true
 
