@@ -13,12 +13,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type FirewallPolicyResource struct {
+type FirewallPolicyTLSCertificateResource struct {
 }
 
-func TestAccFirewallPolicy_basic(t *testing.T) {
+func TestAccFirewallPolicyTLSCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
-	r := FirewallPolicyResource{}
+	r := FirewallPolicyTLSCertificateResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,54 +31,9 @@ func TestAccFirewallPolicy_basic(t *testing.T) {
 	})
 }
 
-func TestAccFirewallPolicy_basicPremium(t *testing.T) {
+func TestAccFirewallPolicyTLSCertificate_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
-	r := FirewallPolicyResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicPremium(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccFirewallPolicy_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
-	r := FirewallPolicyResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccFirewallPolicy_completePremium(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
-	r := FirewallPolicyResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.completePremium(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccFirewallPolicy_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
-	r := FirewallPolicyResource{}
+	r := FirewallPolicyTLSCertificateResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -89,7 +44,7 @@ func TestAccFirewallPolicy_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -105,38 +60,9 @@ func TestAccFirewallPolicy_update(t *testing.T) {
 	})
 }
 
-func TestAccFirewallPolicy_updatePremium(t *testing.T) {
+func TestAccFirewallPolicyTLSCertificate_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
-	r := FirewallPolicyResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.completePremium(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccFirewallPolicy_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
-	r := FirewallPolicyResource{}
+	r := FirewallPolicyTLSCertificateResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -149,22 +75,7 @@ func TestAccFirewallPolicy_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccFirewallPolicy_inherit(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
-	r := FirewallPolicyResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.inherit(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func (FirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (FirewallPolicyTLSCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	var id, err = parse.FirewallPolicyID(state.ID)
 	if err != nil {
 		return nil, err
@@ -178,64 +89,9 @@ func (FirewallPolicyResource) Exists(ctx context.Context, clients *clients.Clien
 	return utils.Bool(resp.FirewallPolicyPropertiesFormat != nil), nil
 }
 
-func (FirewallPolicyResource) basic(data acceptance.TestData) string {
-	r := FirewallPolicyResource{}
+func (FirewallPolicyTLSCertificateResource) basic(data acceptance.TestData) string {
+	r := FirewallPolicyTLSCertificateResource{}
 	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_firewall_policy" "test" {
-  name                = "acctest-networkfw-Policy-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-`, template, data.RandomInteger)
-}
-
-func (FirewallPolicyResource) basicPremium(data acceptance.TestData) string {
-	r := FirewallPolicyResource{}
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_firewall_policy" "test" {
-  name                = "acctest-networkfw-Policy-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Premium"
-}
-`, template, data.RandomInteger)
-}
-
-func (FirewallPolicyResource) complete(data acceptance.TestData) string {
-	r := FirewallPolicyResource{}
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_firewall_policy" "test" {
-  name                     = "acctest-networkfw-Policy-%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  threat_intelligence_mode = "Off"
-  threat_intelligence_allowlist {
-    ip_addresses = ["1.1.1.1", "2.2.2.2"]
-    fqdns        = ["foo.com", "bar.com"]
-  }
-  dns {
-    servers       = ["1.1.1.1", "2.2.2.2"]
-    proxy_enabled = true
-  }
-  tags = {
-    env = "Test"
-  }
-}
-`, template, data.RandomInteger)
-}
-
-func (FirewallPolicyResource) completePremium(data acceptance.TestData) string {
-	r := FirewallPolicyResource{}
-	template := r.templatePremium(data)
 	return fmt.Sprintf(`
 %s
 
@@ -271,6 +127,10 @@ resource "azurerm_firewall_policy" "test" {
   identity {
     type = "SystemAssigned"
   }
+  tls_certificate {
+    key_vault_secret_id = azurerm_key_vault_certificate.test.secret_id
+    name                = azurerm_key_vault_certificate.test.name
+  }
   tags = {
     env = "Test"
   }
@@ -278,8 +138,8 @@ resource "azurerm_firewall_policy" "test" {
 `, template, data.RandomInteger)
 }
 
-func (FirewallPolicyResource) requiresImport(data acceptance.TestData) string {
-	r := FirewallPolicyResource{}
+func (FirewallPolicyTLSCertificateResource) requiresImport(data acceptance.TestData) string {
+	r := FirewallPolicyTLSCertificateResource{}
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -292,8 +152,8 @@ resource "azurerm_firewall_policy" "import" {
 `, template)
 }
 
-func (FirewallPolicyResource) inherit(data acceptance.TestData) string {
-	r := FirewallPolicyResource{}
+func (FirewallPolicyTLSCertificateResource) inherit(data acceptance.TestData) string {
+	r := FirewallPolicyTLSCertificateResource{}
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -324,20 +184,7 @@ resource "azurerm_firewall_policy" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func (FirewallPolicyResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-networkfw-%d"
-  location = "%s"
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (FirewallPolicyResource) templatePremium(data acceptance.TestData) string {
+func (FirewallPolicyTLSCertificateResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -405,7 +252,7 @@ resource "azurerm_key_vault_access_policy" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name         = "AzureFirewallPolicyCertificate"
+  name         = "AzureFirewallPolicyTLSCertificateCertificate"
   key_vault_id = azurerm_key_vault.test.id
 
   certificate {
