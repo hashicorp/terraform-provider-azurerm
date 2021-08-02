@@ -52,6 +52,7 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 			"publisher": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"type": {

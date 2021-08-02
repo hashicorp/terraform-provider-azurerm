@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -175,9 +175,9 @@ func dataSourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta in
 		d.Set("certificates", flattenArmCertificateOrderCertificate(props.Certificates))
 		d.Set("app_service_certificate_not_renewable_reasons", utils.FlattenStringSlice(props.AppServiceCertificateNotRenewableReasons))
 
-		if productType := props.ProductType; productType == web.StandardDomainValidatedSsl {
+		if productType := props.ProductType; productType == web.CertificateProductTypeStandardDomainValidatedSsl {
 			d.Set("product_type", "Standard")
-		} else if productType == web.StandardDomainValidatedWildCardSsl {
+		} else if productType == web.CertificateProductTypeStandardDomainValidatedWildCardSsl {
 			d.Set("product_type", "WildCard")
 		}
 

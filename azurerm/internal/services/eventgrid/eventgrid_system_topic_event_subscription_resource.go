@@ -124,6 +124,8 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 			"retry_policy": eventSubscriptionSchemaRetryPolicy(),
 
 			"labels": eventSubscriptionSchemaLabels(),
+
+			"advanced_filtering_on_arrays_enabled": eventSubscriptionSchemaEnableAdvancedFilteringOnArrays(),
 		},
 	}
 }
@@ -277,6 +279,7 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 
 		if filter := props.Filter; filter != nil {
 			d.Set("included_event_types", filter.IncludedEventTypes)
+			d.Set("advanced_filtering_on_arrays_enabled", filter.EnableAdvancedFilteringOnArrays)
 			if err := d.Set("subject_filter", flattenEventGridEventSubscriptionSubjectFilter(filter)); err != nil {
 				return fmt.Errorf("Error setting `subject_filter` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", id.Name, id.SystemTopic, err)
 			}

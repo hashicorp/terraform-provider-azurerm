@@ -33,11 +33,14 @@ func NewEventsClientWithBaseURI(baseURI string, subscriptionID string) EventsCli
 
 // List lists the events by billingAccountId and billingProfileId for given start and end date.
 // Parameters:
-// billingAccountID - billingAccount ID
-// billingProfileID - azure Billing Profile ID.
 // startDate - start date
 // endDate - end date
-func (client EventsClient) List(ctx context.Context, billingAccountID string, billingProfileID string, startDate string, endDate string) (result EventsPage, err error) {
+// scope - the scope associated with events operations. This includes
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfile/{billingProfileId}' for
+// Billing Profile scope, and
+// 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}' specific for
+// partners.
+func (client EventsClient) List(ctx context.Context, startDate string, endDate string, scope string) (result EventsPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/EventsClient.List")
 		defer func() {
@@ -49,7 +52,7 @@ func (client EventsClient) List(ctx context.Context, billingAccountID string, bi
 		}()
 	}
 	result.fn = client.listNextResults
-	req, err := client.ListPreparer(ctx, billingAccountID, billingProfileID, startDate, endDate)
+	req, err := client.ListPreparer(ctx, startDate, endDate, scope)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "consumption.EventsClient", "List", nil, "Failure preparing request")
 		return
@@ -76,10 +79,9 @@ func (client EventsClient) List(ctx context.Context, billingAccountID string, bi
 }
 
 // ListPreparer prepares the List request.
-func (client EventsClient) ListPreparer(ctx context.Context, billingAccountID string, billingProfileID string, startDate string, endDate string) (*http.Request, error) {
+func (client EventsClient) ListPreparer(ctx context.Context, startDate string, endDate string, scope string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"billingAccountId": autorest.Encode("path", billingAccountID),
-		"billingProfileId": autorest.Encode("path", billingProfileID),
+		"scope": scope,
 	}
 
 	const APIVersion = "2019-10-01"
@@ -92,7 +94,7 @@ func (client EventsClient) ListPreparer(ctx context.Context, billingAccountID st
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/providers/Microsoft.Consumption/events", pathParameters),
+		autorest.WithPathParameters("/{scope}/providers/Microsoft.Consumption/events", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -137,7 +139,7 @@ func (client EventsClient) listNextResults(ctx context.Context, lastResults Even
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client EventsClient) ListComplete(ctx context.Context, billingAccountID string, billingProfileID string, startDate string, endDate string) (result EventsIterator, err error) {
+func (client EventsClient) ListComplete(ctx context.Context, startDate string, endDate string, scope string) (result EventsIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/EventsClient.List")
 		defer func() {
@@ -148,6 +150,6 @@ func (client EventsClient) ListComplete(ctx context.Context, billingAccountID st
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.List(ctx, billingAccountID, billingProfileID, startDate, endDate)
+	result.page, err = client.List(ctx, startDate, endDate, scope)
 	return
 }
