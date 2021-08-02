@@ -151,7 +151,7 @@ resource "azurerm_databricks_workspace" "test" {
 }
 
 %[4]s
-`, data.RandomInteger, data.Locations.Primary, keyVault, cmk)
+`, data.RandomInteger, "eastus2", keyVault, cmk)
 }
 
 func (DatabricksWorkspaceCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {
@@ -197,7 +197,7 @@ resource "azurerm_databricks_workspace" "test" {
 }
 
 %[5]s
-`, data.RandomInteger, data.Locations.Primary, keyVault, data.RandomString, cmk)
+`, data.RandomInteger, "eastus2", keyVault, data.RandomString, cmk)
 }
 
 func (DatabricksWorkspaceCustomerManagedKeyResource) cmkTemplate() string {

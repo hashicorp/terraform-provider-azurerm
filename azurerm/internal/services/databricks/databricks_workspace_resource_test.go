@@ -560,7 +560,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "premium"
 
-  # purge_protection_enabled   = true
+  purge_protection_enabled   = true
   soft_delete_retention_days = 7
 }
 
@@ -600,7 +600,7 @@ resource "azurerm_databricks_workspace" "test" {
     machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
+`, data.RandomInteger, "eastus2", sku, data.RandomString)
 }
 
 func (DatabricksWorkspaceResource) privateLink(data acceptance.TestData) string {
