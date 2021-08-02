@@ -45,6 +45,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_app_service_managed_certificate":                   resourceAppServiceManagedCertificate(),
 		"azurerm_app_service_plan":                                  resourceAppServicePlan(),
 		"azurerm_app_service_slot":                                  resourceAppServiceSlot(),
+		"azurerm_app_service_slot_config_names":                     resourceAppServiceSlotConfigNames(),
 		"azurerm_app_service_slot_virtual_network_swift_connection": resourceAppServiceSlotVirtualNetworkSwiftConnection(),
 		"azurerm_app_service_source_control_token":                  resourceAppServiceSourceControlToken(),
 		"azurerm_app_service_virtual_network_swift_connection":      resourceAppServiceVirtualNetworkSwiftConnection(),
