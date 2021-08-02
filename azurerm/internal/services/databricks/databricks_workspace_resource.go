@@ -595,15 +595,15 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 	encryptKeyVaultURI := ""
 
 	if resp.WorkspaceProperties.Encryption != nil {
-		if props := resp.WorkspaceProperties.Encryption; props != nil {
-			if props.Entities.ManagedServices.KeyVaultProperties.KeyName != nil {
-				encryptKeyName = *props.Entities.ManagedServices.KeyVaultProperties.KeyName
+		if props := resp.WorkspaceProperties.Encryption.Entities; props != nil {
+			if props.ManagedServices.KeyVaultProperties.KeyName != nil {
+				encryptKeyName = *props.ManagedServices.KeyVaultProperties.KeyName
 			}
-			if props.Entities.ManagedServices.KeyVaultProperties.KeyVersion != nil {
-				encryptKeyVersion = *props.Entities.ManagedServices.KeyVaultProperties.KeyVersion
+			if props.ManagedServices.KeyVaultProperties.KeyVersion != nil {
+				encryptKeyVersion = *props.ManagedServices.KeyVaultProperties.KeyVersion
 			}
-			if props.Entities.ManagedServices.KeyVaultProperties.KeyVaultURI != nil {
-				encryptKeyVaultURI = *props.Entities.ManagedServices.KeyVaultProperties.KeyVaultURI
+			if props.ManagedServices.KeyVaultProperties.KeyVaultURI != nil {
+				encryptKeyVaultURI = *props.ManagedServices.KeyVaultProperties.KeyVaultURI
 			}
 		}
 	}
