@@ -32,7 +32,6 @@ resource "azurerm_key_vault" "example" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "premium"
 
-  purge_protection_enabled   = true
   soft_delete_retention_days = 7
 }
 
