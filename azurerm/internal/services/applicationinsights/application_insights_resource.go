@@ -6,8 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appinsights/mgmt/2020-02-02-preview/insights"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
+	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -178,6 +177,10 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		applicationInsightsComponentProperties.WorkspaceResourceID = utils.String(workspaceRaw.(string))
 	}
 
+	if v, ok := d.GetOk("retention_in_days"); ok {
+		applicationInsightsComponentProperties.RetentionInDays = utils.Int32(int32(v.(int)))
+	}
+
 	insightProperties := insights.ApplicationInsightsComponent{
 		Name:                                   &name,
 		Location:                               &location,
@@ -197,24 +200,6 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read AzureRM Application Insights '%s' (Resource Group %s) ID", name, resGroup)
-	}
-	if v, hasRetention := d.GetOk("retention_in_days"); hasRetention {
-
-		resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
-		genericResource := resources.GenericResource{
-			Properties: &map[string]interface{}{
-				"retentionInDays": utils.Int32(int32(v.(int))),
-			},
-		}
-
-		retentionUpdate, err := resourcesClient.UpdateByID(ctx, *read.ID, "2020-02-02-preview", genericResource)
-		if err != nil {
-			return fmt.Errorf("Error updating Application Insights data retention settings %q (Resource Group %q): %+v", name, resGroup, err)
-		}
-
-		if err := retentionUpdate.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for update of data retention settings %q (Resource Group %q): %+v", name, resGroup, err)
-		}
 	}
 
 	billingRead, err := billingClient.Get(ctx, resGroup, name)

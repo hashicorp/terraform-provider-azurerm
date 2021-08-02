@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/appinsights/mgmt/2020-02-02-preview/insights"
+	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 

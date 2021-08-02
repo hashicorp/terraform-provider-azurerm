@@ -17,7 +17,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/appinsights/mgmt/2020-02-02-preview/insights"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
 
 // Annotation annotation associated with an application insights resource.
 type Annotation struct {
@@ -810,7 +810,7 @@ type ApplicationInsightsComponentProperties struct {
 	SamplingPercentage *float64 `json:"SamplingPercentage,omitempty"`
 	// ConnectionString - READ-ONLY; Application Insights component connection string.
 	ConnectionString *string `json:"ConnectionString,omitempty"`
-	// RetentionInDays - READ-ONLY; Retention period in days.
+	// RetentionInDays - Retention period in days.
 	RetentionInDays *int32 `json:"RetentionInDays,omitempty"`
 	// DisableIPMasking - Disable IP masking.
 	DisableIPMasking *bool `json:"DisableIpMasking,omitempty"`
@@ -851,6 +851,9 @@ func (aicp ApplicationInsightsComponentProperties) MarshalJSON() ([]byte, error)
 	}
 	if aicp.SamplingPercentage != nil {
 		objectMap["SamplingPercentage"] = aicp.SamplingPercentage
+	}
+	if aicp.RetentionInDays != nil {
+		objectMap["RetentionInDays"] = aicp.RetentionInDays
 	}
 	if aicp.DisableIPMasking != nil {
 		objectMap["DisableIpMasking"] = aicp.DisableIPMasking
@@ -917,136 +920,6 @@ type ApplicationInsightsWebTestLocationsListResult struct {
 	autorest.Response `json:"-"`
 	// Value - List of web test locations.
 	Value *[]ApplicationInsightsComponentWebTestLocation `json:"value,omitempty"`
-}
-
-// AzureEntityResource the resource model definition for an Azure Resource Manager resource with an etag.
-type AzureEntityResource struct {
-	// Etag - READ-ONLY; Resource Etag.
-	Etag *string `json:"etag,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for AzureEntityResource.
-func (aer AzureEntityResource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
-// ComponentLinkedStorageAccounts an Application Insights component linked storage accounts
-type ComponentLinkedStorageAccounts struct {
-	autorest.Response `json:"-"`
-	// LinkedStorageAccountsProperties - The properties of the linked storage accounts.
-	*LinkedStorageAccountsProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ComponentLinkedStorageAccounts.
-func (clsa ComponentLinkedStorageAccounts) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if clsa.LinkedStorageAccountsProperties != nil {
-		objectMap["properties"] = clsa.LinkedStorageAccountsProperties
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for ComponentLinkedStorageAccounts struct.
-func (clsa *ComponentLinkedStorageAccounts) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var linkedStorageAccountsProperties LinkedStorageAccountsProperties
-				err = json.Unmarshal(*v, &linkedStorageAccountsProperties)
-				if err != nil {
-					return err
-				}
-				clsa.LinkedStorageAccountsProperties = &linkedStorageAccountsProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				clsa.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				clsa.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				clsa.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// ComponentLinkedStorageAccountsPatch an Application Insights component linked storage accounts patch
-type ComponentLinkedStorageAccountsPatch struct {
-	// LinkedStorageAccountsProperties - The properties of the linked storage accounts.
-	*LinkedStorageAccountsProperties `json:"properties,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ComponentLinkedStorageAccountsPatch.
-func (clsap ComponentLinkedStorageAccountsPatch) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if clsap.LinkedStorageAccountsProperties != nil {
-		objectMap["properties"] = clsap.LinkedStorageAccountsProperties
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for ComponentLinkedStorageAccountsPatch struct.
-func (clsap *ComponentLinkedStorageAccountsPatch) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var linkedStorageAccountsProperties LinkedStorageAccountsProperties
-				err = json.Unmarshal(*v, &linkedStorageAccountsProperties)
-				if err != nil {
-					return err
-				}
-				clsap.LinkedStorageAccountsProperties = &linkedStorageAccountsProperties
-			}
-		}
-	}
-
-	return nil
 }
 
 // ComponentPurgeBody describes the body of a purge request for an App Insights component
@@ -1149,39 +1022,12 @@ func (erc ErrorResponseComponentsError) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ErrorResponseLinkedStorage ...
-type ErrorResponseLinkedStorage struct {
-	// Error - Error response indicates Insights service is not able to process the incoming request. The reason is provided in the error message.
-	Error *ErrorResponseLinkedStorageError `json:"error,omitempty"`
-}
-
-// ErrorResponseLinkedStorageError error response indicates Insights service is not able to process the
-// incoming request. The reason is provided in the error message.
-type ErrorResponseLinkedStorageError struct {
-	// Code - READ-ONLY; Error code.
-	Code *string `json:"code,omitempty"`
-	// Message - READ-ONLY; Error message indicating why the operation failed.
-	Message *string `json:"message,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ErrorResponseLinkedStorageError.
-func (erls ErrorResponseLinkedStorageError) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // InnerError inner error
 type InnerError struct {
 	// Diagnosticcontext - Provides correlation for request
 	Diagnosticcontext *string `json:"diagnosticcontext,omitempty"`
 	// Time - Request time
 	Time *date.Time `json:"time,omitempty"`
-}
-
-// LinkedStorageAccountsProperties an Application Insights component linked storage account
-type LinkedStorageAccountsProperties struct {
-	// LinkedStorageAccount - Linked storage account resource ID
-	LinkedStorageAccount *string `json:"linkedStorageAccount,omitempty"`
 }
 
 // LinkProperties contains a sourceId and workbook resource id to link two resources.
@@ -1636,39 +1482,6 @@ type PrivateLinkScopedResource struct {
 	ScopeID *string `json:"ScopeId,omitempty"`
 }
 
-// ProxyResource the resource model definition for a Azure Resource Manager proxy resource. It will not
-// have tags and a location
-type ProxyResource struct {
-	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ProxyResource.
-func (pr ProxyResource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
-// Resource common fields that are returned in the response for all Azure Resource Manager resources
-type Resource struct {
-	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Resource.
-func (r Resource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
 // TagsResource a container holding only the Tags for a resource, allowing the user to update the tags on a
 // WebTest instance.
 type TagsResource struct {
@@ -1681,33 +1494,6 @@ func (tr TagsResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if tr.Tags != nil {
 		objectMap["tags"] = tr.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
-// TrackedResource the resource model definition for an Azure Resource Manager tracked top level resource
-// which has 'tags' and a 'location'
-type TrackedResource struct {
-	// Tags - Resource tags.
-	Tags map[string]*string `json:"tags"`
-	// Location - The geo-location where the resource lives
-	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for TrackedResource.
-func (tr TrackedResource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if tr.Tags != nil {
-		objectMap["tags"] = tr.Tags
-	}
-	if tr.Location != nil {
-		objectMap["location"] = tr.Location
 	}
 	return json.Marshal(objectMap)
 }
