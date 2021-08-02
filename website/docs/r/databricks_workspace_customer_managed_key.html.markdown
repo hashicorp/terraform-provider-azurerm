@@ -109,6 +109,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 
 * [Databricks Workspace with Databricks File System Customer Managed Keys](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/databricks/customer-managed-key/dbfs)
 * [Databricks Workspace with Customer Managed Keys for Managed Services](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/databricks/customer-managed-key/managed-services)
+* [Databricks Workspace with Private Endpoint, Customer Managed Keys for Managed Services and Databricks File System Customer Managed Keys](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/databricks/managed-services)
 
 
 ## Argument Reference
