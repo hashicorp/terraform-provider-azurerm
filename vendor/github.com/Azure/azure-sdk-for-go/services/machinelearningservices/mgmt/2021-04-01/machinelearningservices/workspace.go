@@ -1,6 +1,3 @@
-// Package machinelearningservices implements the Azure ARM Machinelearningservices service API version 2020-04-01.
-//
-// These APIs allow end users to operate on Azure Machine Learning Workspace resources.
 package machinelearningservices
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -17,37 +14,26 @@ import (
 	"net/http"
 )
 
-const (
-	// DefaultBaseURI is the default URI used for the service Machinelearningservices
-	DefaultBaseURI = "https://management.azure.com"
-)
-
-// BaseClient is the base client for Machinelearningservices.
-type BaseClient struct {
-	autorest.Client
-	BaseURI        string
-	SubscriptionID string
+// WorkspaceClient is the these APIs allow end users to operate on Azure Machine Learning Workspace resources.
+type WorkspaceClient struct {
+	BaseClient
 }
 
-// New creates an instance of the BaseClient client.
-func New(subscriptionID string) BaseClient {
-	return NewWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewWorkspaceClient creates an instance of the WorkspaceClient client.
+func NewWorkspaceClient(subscriptionID string) WorkspaceClient {
+	return NewWorkspaceClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWithBaseURI creates an instance of the BaseClient client using a custom endpoint.  Use this when interacting with
-// an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewWithBaseURI(baseURI string, subscriptionID string) BaseClient {
-	return BaseClient{
-		Client:         autorest.NewClientWithUserAgent(UserAgent()),
-		BaseURI:        baseURI,
-		SubscriptionID: subscriptionID,
-	}
+// NewWorkspaceClientWithBaseURI creates an instance of the WorkspaceClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
+func NewWorkspaceClientWithBaseURI(baseURI string, subscriptionID string) WorkspaceClient {
+	return WorkspaceClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // ListSkus lists all skus with associated features
-func (client BaseClient) ListSkus(ctx context.Context) (result SkuListResultPage, err error) {
+func (client WorkspaceClient) ListSkus(ctx context.Context) (result SkuListResultPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.ListSkus")
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspaceClient.ListSkus")
 		defer func() {
 			sc := -1
 			if result.slr.Response.Response != nil {
@@ -59,20 +45,20 @@ func (client BaseClient) ListSkus(ctx context.Context) (result SkuListResultPage
 	result.fn = client.listSkusNextResults
 	req, err := client.ListSkusPreparer(ctx)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.BaseClient", "ListSkus", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspaceClient", "ListSkus", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSkusSender(req)
 	if err != nil {
 		result.slr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "machinelearningservices.BaseClient", "ListSkus", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspaceClient", "ListSkus", resp, "Failure sending request")
 		return
 	}
 
 	result.slr, err = client.ListSkusResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.BaseClient", "ListSkus", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspaceClient", "ListSkus", resp, "Failure responding to request")
 		return
 	}
 	if result.slr.hasNextLink() && result.slr.IsEmpty() {
@@ -84,12 +70,12 @@ func (client BaseClient) ListSkus(ctx context.Context) (result SkuListResultPage
 }
 
 // ListSkusPreparer prepares the ListSkus request.
-func (client BaseClient) ListSkusPreparer(ctx context.Context) (*http.Request, error) {
+func (client WorkspaceClient) ListSkusPreparer(ctx context.Context) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -104,13 +90,13 @@ func (client BaseClient) ListSkusPreparer(ctx context.Context) (*http.Request, e
 
 // ListSkusSender sends the ListSkus request. The method will close the
 // http.Response Body if it receives an error.
-func (client BaseClient) ListSkusSender(req *http.Request) (*http.Response, error) {
+func (client WorkspaceClient) ListSkusSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSkusResponder handles the response to the ListSkus request. The method always
 // closes the http.Response Body.
-func (client BaseClient) ListSkusResponder(resp *http.Response) (result SkuListResult, err error) {
+func (client WorkspaceClient) ListSkusResponder(resp *http.Response) (result SkuListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -121,10 +107,10 @@ func (client BaseClient) ListSkusResponder(resp *http.Response) (result SkuListR
 }
 
 // listSkusNextResults retrieves the next set of results, if any.
-func (client BaseClient) listSkusNextResults(ctx context.Context, lastResults SkuListResult) (result SkuListResult, err error) {
+func (client WorkspaceClient) listSkusNextResults(ctx context.Context, lastResults SkuListResult) (result SkuListResult, err error) {
 	req, err := lastResults.skuListResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "machinelearningservices.BaseClient", "listSkusNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "machinelearningservices.WorkspaceClient", "listSkusNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -132,19 +118,19 @@ func (client BaseClient) listSkusNextResults(ctx context.Context, lastResults Sk
 	resp, err := client.ListSkusSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "machinelearningservices.BaseClient", "listSkusNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "machinelearningservices.WorkspaceClient", "listSkusNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListSkusResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.BaseClient", "listSkusNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspaceClient", "listSkusNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListSkusComplete enumerates all values, automatically crossing page boundaries as required.
-func (client BaseClient) ListSkusComplete(ctx context.Context) (result SkuListResultIterator, err error) {
+func (client WorkspaceClient) ListSkusComplete(ctx context.Context) (result SkuListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.ListSkus")
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspaceClient.ListSkus")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
