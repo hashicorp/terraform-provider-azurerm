@@ -269,7 +269,10 @@ resource "azurerm_firewall_policy" "test" {
     }
   }
   identity {
-    type = "SystemAssigned"
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
   }
   tls_certificate {
     key_vault_secret_id = azurerm_key_vault_certificate.test.secret_id
@@ -367,11 +370,17 @@ resource "azurerm_key_vault" "test" {
   sku_name = "standard"
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id   = azurerm_key_vault.test.id
-  application_id = data.azurerm_client_config.current.client_id
+  application_id = azurerm_user_assigned_identity.test.client_id
   tenant_id      = data.azurerm_client_config.current.tenant_id
-  object_id      = data.azurerm_client_config.current.object_id
+  object_id      = azurerm_user_assigned_identity.test.principal_id
 
   key_permissions = [
     "backup",
@@ -451,5 +460,5 @@ resource "azurerm_key_vault_certificate" "test" {
 
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, "westeurope", data.RandomInteger, data.RandomInteger)
 }

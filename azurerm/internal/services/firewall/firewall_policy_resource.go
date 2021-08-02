@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/validate"
+	msiValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -256,27 +257,8 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ResourceIdentityTypeNone),
-								string(network.ResourceIdentityTypeSystemAssigned),
-								string(network.ResourceIdentityTypeSystemAssignedUserAssigned),
 								string(network.ResourceIdentityTypeUserAssigned),
 							}, false),
-						},
-						"user_assigned_managed_identities": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							ForceNew: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"principal_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"client_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-								},
-							},
 						},
 						"principal_id": {
 							Type:     pluginsdk.TypeString,
@@ -285,6 +267,15 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 						"tenant_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
+						},
+						"identity_ids": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							MinItems: 1,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: msiValidate.UserAssignedIdentityID,
+							},
 						},
 					},
 				},
@@ -537,30 +528,30 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *network.Firewa
 
 	raw := input[0].(map[string]interface{})
 
-	signature_overrides := []network.FirewallPolicyIntrusionDetectionSignatureSpecification{}
-	for i, v := range signature_overrides {
-		signature_overrides[i].ID = v.ID
-		signature_overrides[i].Mode = v.Mode
+	signatureOverrides := []network.FirewallPolicyIntrusionDetectionSignatureSpecification{}
+	for i, v := range signatureOverrides {
+		signatureOverrides[i].ID = v.ID
+		signatureOverrides[i].Mode = v.Mode
 	}
 
-	traffic_bypass := []network.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications{}
+	trafficBypass := []network.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications{}
 
-	for i, v := range traffic_bypass {
-		traffic_bypass[i].Name = v.Name
-		traffic_bypass[i].Description = v.Description
-		traffic_bypass[i].Protocol = v.Protocol
-		traffic_bypass[i].SourceAddresses = v.SourceAddresses
-		traffic_bypass[i].DestinationAddresses = v.DestinationAddresses
-		traffic_bypass[i].DestinationPorts = v.DestinationPorts
-		traffic_bypass[i].SourceIPGroups = v.SourceIPGroups
-		traffic_bypass[i].DestinationIPGroups = v.DestinationIPGroups
+	for i, v := range trafficBypass {
+		trafficBypass[i].Name = v.Name
+		trafficBypass[i].Description = v.Description
+		trafficBypass[i].Protocol = v.Protocol
+		trafficBypass[i].SourceAddresses = v.SourceAddresses
+		trafficBypass[i].DestinationAddresses = v.DestinationAddresses
+		trafficBypass[i].DestinationPorts = v.DestinationPorts
+		trafficBypass[i].SourceIPGroups = v.SourceIPGroups
+		trafficBypass[i].DestinationIPGroups = v.DestinationIPGroups
 	}
 
 	return &network.FirewallPolicyIntrusionDetection{
 		Mode: network.FirewallPolicyIntrusionDetectionStateType(raw["mode"].(string)),
 		Configuration: &network.FirewallPolicyIntrusionDetectionConfiguration{
-			SignatureOverrides:    &signature_overrides,
-			BypassTrafficSettings: &traffic_bypass,
+			SignatureOverrides:    &signatureOverrides,
+			BypassTrafficSettings: &trafficBypass,
 		},
 	}
 
