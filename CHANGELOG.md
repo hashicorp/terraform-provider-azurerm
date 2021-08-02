@@ -9,9 +9,11 @@ FEATURES:
 
 ENHANCEMENTS:
 
+
 * dependencies: upgrading to `v56.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-12781]
 * dependencies: updating `containerservice` to use API Version `2021-05-1` [GH-12747]
-* dependencies: updating `azurerm_databricks_workspace` to use API Version `2021-04-01-preview` [GH-12543]
+* dependencies: updating `machinelearning` to use API Version `2021-04-01` [GH-12804]
+* dependencies: updating `databricks` to use API Version `2021-04-01-preview` [GH-12543]
 * PowerBI: refactoring to use an Embedded SDK [GH-12787]
 * `azurerm_api_management_api_diagnostic` - support for the `operation_name_format` property [GH-12782]
 * `azurerm_databricks_workspace` - support for private link endpoint [GH-12543]
@@ -21,7 +23,9 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_app_service_active_slot` - fix 404 not found on read for slot [GH-12792]
+* `azurerm_linux_virtual_machine_scale_set` - fix crash in checking for latest image [GH-12808]
 * `azurerm_virtual_machine_extension` - changing the `publisher` property now creates a new resource [GH-12790]
+
 
 ## 2.70.0 (July 30, 2021)
 

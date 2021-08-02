@@ -81,7 +81,7 @@ func (client WorkspaceFeaturesClient) ListPreparer(ctx context.Context, resource
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2020-04-01"
+	const APIVersion = "2021-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
