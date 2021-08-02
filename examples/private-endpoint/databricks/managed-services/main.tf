@@ -10,7 +10,7 @@ data "azurerm_databricks_workspace_private_endpoint_connection" "example" {
 }
 
 resource "azurerm_resource_group" "example" {
-  name     = "${var.prefix}-databricks-private-endpoint-ms-dpfscmk"
+  name     = "${var.prefix}-databricks-private-endpoint-ms-dbfscmk"
   location = "eastus2"
 }
 
