@@ -9,19 +9,21 @@ import (
 )
 
 var kubernetesAuthTests = map[string]func(t *testing.T){
-	"apiServerAuthorizedIPRanges":      testAccKubernetesCluster_apiServerAuthorizedIPRanges,
-	"managedClusterIdentity":           testAccKubernetesCluster_managedClusterIdentity,
-	"userAssignedIdentity":             testAccKubernetesCluster_userAssignedIdentity,
-	"updateWithUserAssignedIdentity":   testAccKubernetesCluster_updateWithUserAssignedIdentity,
-	"roleBasedAccessControl":           testAccKubernetesCluster_roleBasedAccessControl,
-	"AAD":                              testAccKubernetesCluster_roleBasedAccessControlAAD,
-	"AADUpdateToManaged":               testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged,
-	"AADManaged":                       testAccKubernetesCluster_roleBasedAccessControlAADManaged,
-	"AADManagedChange":                 testAccKubernetesCluster_roleBasedAccessControlAADManagedChange,
-	"roleBasedAccessControlAzure":      testAccKubernetesCluster_roleBasedAccessControlAzure,
-	"servicePrincipal":                 testAccKubernetesCluster_servicePrincipal,
-	"servicePrincipalToSystemAssigned": testAccKubernetesCluster_servicePrincipalToSystemAssignedIdentity,
-	"servicePrincipalToUserAssigned":   testAccKubernetesCluster_servicePrincipalToUserAssignedIdentity,
+	"apiServerAuthorizedIPRanges":          testAccKubernetesCluster_apiServerAuthorizedIPRanges,
+	"managedClusterIdentity":               testAccKubernetesCluster_managedClusterIdentity,
+	"userAssignedIdentity":                 testAccKubernetesCluster_userAssignedIdentity,
+	"updateWithUserAssignedIdentity":       testAccKubernetesCluster_updateWithUserAssignedIdentity,
+	"roleBasedAccessControl":               testAccKubernetesCluster_roleBasedAccessControl,
+	"AAD":                                  testAccKubernetesCluster_roleBasedAccessControlAAD,
+	"AADUpdateToManaged":                   testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged,
+	"AADManaged":                           testAccKubernetesCluster_roleBasedAccessControlAADManaged,
+	"AADManagedLocalAccountDisabled":       testAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabled,
+	"AADManagedLocalAccountDisabledUpdate": testAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabledUpdated,
+	"AADManagedChange":                     testAccKubernetesCluster_roleBasedAccessControlAADManagedChange,
+	"roleBasedAccessControlAzure":          testAccKubernetesCluster_roleBasedAccessControlAzure,
+	"servicePrincipal":                     testAccKubernetesCluster_servicePrincipal,
+	"servicePrincipalToSystemAssigned":     testAccKubernetesCluster_servicePrincipalToSystemAssignedIdentity,
+	"servicePrincipalToUserAssigned":       testAccKubernetesCluster_servicePrincipalToUserAssignedIdentity,
 }
 
 func TestAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
@@ -307,6 +309,62 @@ func testAccKubernetesCluster_roleBasedAccessControlAADManaged(t *testing.T) {
 		data.ImportStep(
 			"role_based_access_control.0.azure_active_directory.0.server_app_secret",
 		),
+	})
+}
+
+func TestAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabled(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabled(t)
+}
+
+func testAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	clientData := data.Client()
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.roleBasedAccessControlAADManagedConfigWithLocalAccountDisabled(data, clientData.TenantID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("role_based_access_control.0.azure_active_directory.0.server_app_secret"),
+	})
+}
+
+func TestAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabledUpdated(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabledUpdated(t)
+}
+
+func testAccKubernetesCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabledUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	clientData := data.Client()
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.roleBasedAccessControlAADManagedConfig(data, clientData.TenantID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("role_based_access_control.0.azure_active_directory.0.server_app_secret"),
+		{
+			Config: r.roleBasedAccessControlAADManagedConfigWithLocalAccountDisabled(data, clientData.TenantID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("role_based_access_control.0.azure_active_directory.0.server_app_secret"),
+		{
+			Config: r.roleBasedAccessControlAADManagedConfig(data, clientData.TenantID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("role_based_access_control.0.azure_active_directory.0.server_app_secret"),
 	})
 }
 
@@ -889,6 +947,55 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  role_based_access_control {
+    enabled = true
+
+    azure_active_directory {
+      tenant_id          = var.tenant_id
+      managed            = true
+      azure_rbac_enabled = false
+    }
+  }
+}
+`, tenantId, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) roleBasedAccessControlAADManagedConfigWithLocalAccountDisabled(data acceptance.TestData, tenantId string) string {
+	return fmt.Sprintf(`
+variable "tenant_id" {
+  default = "%s"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                   = "acctestaks%d"
+  location               = "${azurerm_resource_group.test.location}"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  dns_prefix             = "acctestaks%d"
+  local_account_disabled = true
 
   linux_profile {
     admin_username = "acctestuser%d"

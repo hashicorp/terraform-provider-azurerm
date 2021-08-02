@@ -655,8 +655,10 @@ func getBasicFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, appServiceTie
 		{Name: &contentFileConnStringPropName, Value: &storageConnection},
 	}
 
-	// On consumption and premium plans include WEBSITE_CONTENT components
-	if strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium") {
+	// On consumption and premium plans include WEBSITE_CONTENT components, unless it's a Linux consumption plan
+	// (see https://github.com/Azure/azure-functions-python-worker/issues/598)
+	if (strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium") || strings.HasPrefix(strings.ToLower(appServiceTier), "premium")) &&
+		!strings.EqualFold(d.Get("os_type").(string), "linux") {
 		return append(basicSettings, consumptionSettings...)
 	}
 

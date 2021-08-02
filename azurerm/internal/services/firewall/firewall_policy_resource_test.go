@@ -278,6 +278,7 @@ resource "azurerm_firewall_policy" "test" {
     key_vault_secret_id = azurerm_key_vault_certificate.test.secret_id
     name                = azurerm_key_vault_certificate.test.name
   }
+  private_ip_ranges = ["172.16.0.0/12", "192.168.0.0/16"]
   tags = {
     env = "Test"
   }
