@@ -216,7 +216,7 @@ func TestAccLogicAppTriggerRecurrence_timeZone(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.startTimeWithTimeZone(data, "2020-01-01T01:02:03Z", "Egypt Standard Time"),
+			Config: r.timeZone(data, "Egypt Standard Time"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("time_zone").HasValue("Egypt Standard Time"),
