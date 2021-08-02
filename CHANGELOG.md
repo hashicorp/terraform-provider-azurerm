@@ -21,7 +21,9 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_app_service_active_slot` - fix 404 not found on read for slot [GH-12792]
+* `azurerm_linux_virtual_machine_scale_set` - fix crash in checking for latest image [GH-12808]
 * `azurerm_virtual_machine_extension` - changing the `publisher` property now creates a new resource [GH-12790]
+
 
 ## 2.70.0 (July 30, 2021)
 
