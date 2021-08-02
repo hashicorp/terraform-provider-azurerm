@@ -29,6 +29,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_data_factory":                                       resourceDataFactory(),
+		"azurerm_data_factory_data_flow":                             resourceDataFactoryDataFlow(),
 		"azurerm_data_factory_dataset_azure_blob":                    resourceDataFactoryDatasetAzureBlob(),
 		"azurerm_data_factory_dataset_binary":                        resourceDataFactoryDatasetBinary(),
 		"azurerm_data_factory_dataset_cosmosdb_sqlapi":               resourceDataFactoryDatasetCosmosDbSQLAPI(),
@@ -68,6 +69,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_factory_managed_private_endpoint":              resourceDataFactoryManagedPrivateEndpoint(),
 		"azurerm_data_factory_pipeline":                              resourceDataFactoryPipeline(),
 		"azurerm_data_factory_trigger_blob_event":                    resourceDataFactoryTriggerBlobEvent(),
+		"azurerm_data_factory_trigger_custom_event":                  resourceDataFactoryTriggerCustomEvent(),
 		"azurerm_data_factory_trigger_schedule":                      resourceDataFactoryTriggerSchedule(),
+		"azurerm_data_factory_trigger_tumbling_window":               resourceDataFactoryTriggerTumblingWindow(),
 	}
 }

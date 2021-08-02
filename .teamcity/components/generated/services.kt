@@ -34,6 +34,7 @@ var services = mapOf(
         "desktopvirtualization" to "Desktop Virtualization",
         "devtestlabs" to "Dev Test",
         "digitaltwins" to "Digital Twins",
+        "domainservices" to "DomainServices",
         "eventgrid" to "EventGrid",
         "eventhub" to "EventHub",
         "firewall" to "Firewall",
@@ -90,6 +91,6 @@ var services = mapOf(
         "synapse" to "Synapse",
         "iottimeseriesinsights" to "Time Series Insights",
         "trafficmanager" to "Traffic Manager",
-        "vmware" to "Vmware",
+        "vmware" to "VMware",
         "web" to "Web"
 )

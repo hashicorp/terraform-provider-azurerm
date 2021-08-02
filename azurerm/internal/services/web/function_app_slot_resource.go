@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -154,17 +154,17 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(web.APIHub),
-								string(web.Custom),
-								string(web.DocDb),
-								string(web.EventHub),
-								string(web.MySQL),
-								string(web.NotificationHub),
-								string(web.PostgreSQL),
-								string(web.RedisCache),
-								string(web.ServiceBus),
-								string(web.SQLAzure),
-								string(web.SQLServer),
+								string(web.ConnectionStringTypeAPIHub),
+								string(web.ConnectionStringTypeCustom),
+								string(web.ConnectionStringTypeDocDb),
+								string(web.ConnectionStringTypeEventHub),
+								string(web.ConnectionStringTypeMySQL),
+								string(web.ConnectionStringTypeNotificationHub),
+								string(web.ConnectionStringTypePostgreSQL),
+								string(web.ConnectionStringTypeRedisCache),
+								string(web.ConnectionStringTypeServiceBus),
+								string(web.ConnectionStringTypeSQLAzure),
+								string(web.ConnectionStringTypeSQLServer),
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
@@ -655,8 +655,10 @@ func getBasicFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, appServiceTie
 		{Name: &contentFileConnStringPropName, Value: &storageConnection},
 	}
 
-	// On consumption and premium plans include WEBSITE_CONTENT components
-	if strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium") {
+	// On consumption and premium plans include WEBSITE_CONTENT components, unless it's a Linux consumption plan
+	// (see https://github.com/Azure/azure-functions-python-worker/issues/598)
+	if (strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium") || strings.HasPrefix(strings.ToLower(appServiceTier), "premium")) &&
+		!strings.EqualFold(d.Get("os_type").(string), "linux") {
 		return append(basicSettings, consumptionSettings...)
 	}
 

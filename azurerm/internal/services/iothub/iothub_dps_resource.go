@@ -122,7 +122,13 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 
 			"allocation_policy": {
 				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Optional: true,
+				Default:  string(iothub.Hashed),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(iothub.Hashed),
+					string(iothub.GeoLatency),
+					string(iothub.Static),
+				}, false),
 			},
 
 			"device_provisioning_host_name": {
@@ -171,7 +177,8 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Name:     utils.String(name),
 		Sku:      expandIoTHubDPSSku(d),
 		Properties: &iothub.IotDpsPropertiesDescription{
-			IotHubs: expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
+			IotHubs:          expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
+			AllocationPolicy: d.Get("allocation_policy").(iothub.AllocationPolicy),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
