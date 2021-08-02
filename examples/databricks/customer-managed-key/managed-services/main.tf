@@ -18,7 +18,7 @@ resource "azurerm_databricks_workspace" "example" {
   sku                         = "premium"
   managed_resource_group_name = "${var.prefix}-DBW-managed-services"
 
-  customer_managed_keys_for_managed_services_key_vault_key_id = azurerm_key_vault_key.example.id
+  managed_services_key_vault_key_id = azurerm_key_vault_key.example.id
 
   tags = {
     Environment = "Production"
