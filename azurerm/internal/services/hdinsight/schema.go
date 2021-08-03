@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/validate"
 	msiValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -664,7 +663,7 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 
 // ExpandHDInsightsStorageAccounts returns an array of StorageAccount structs, as well as a ClusterIdentity
 // populated with any managed identities required for accessing Data Lake Gen2 storage.
-func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageAccounts []interface{}, subscriptionId string, resourceGroupName string, clusterType string) (*[]hdinsight.StorageAccount, *hdinsight.ClusterIdentity, error) {
+func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageAccounts []interface{}) (*[]hdinsight.StorageAccount, *hdinsight.ClusterIdentity, error) {
 	results := make([]hdinsight.StorageAccount, 0)
 
 	var clusterIndentity *hdinsight.ClusterIdentity
@@ -687,16 +686,6 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 			Key:       utils.String(storageAccountKey),
 			IsDefault: utils.Bool(isDefault),
 		}
-
-		if clusterType == "Hadoop" || clusterType == "HBase" || clusterType == "Kafka" || clusterType == "Spark" || clusterType == "INTERACTIVEHIVE" {
-			storageContainerId, err := parse.StorageContainerDataPlaneID(storageContainerID)
-			if err != nil {
-				return nil, nil, err
-			}
-			storageAccountId := parse.NewStorageAccountID(subscriptionId, resourceGroupName, storageContainerId.AccountName)
-			result.ResourceID = utils.String(storageAccountId.ID())
-		}
-
 		results = append(results, result)
 	}
 
