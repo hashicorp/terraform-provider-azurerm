@@ -1968,8 +1968,8 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 		if queryParameters := cacheConfiguration.QueryParameters; queryParameters != nil {
 			cacheQueryParameters = queryParameters
 		}
-		if cacheDuration := cacheConfiguration.CacheDuration; cacheDuration != nil {
-			cacheDuration = cacheDuration
+		if duration := cacheConfiguration.CacheDuration; duration != nil {
+			cacheDuration = duration
 		}
 	} else {
 		// if the cache is disabled, use the default values or revert to what they were in the previous plan
