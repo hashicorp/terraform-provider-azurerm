@@ -828,7 +828,7 @@ func schemaAppServiceDataSourceSiteConfig() *pluginsdk.Schema {
 						},
 					},
 				},
-				"acr_use_managed_identity_creds": {
+				"acr_use_managed_identity_credentials": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -1790,7 +1790,7 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 		siteConfig.AutoSwapSlotName = utils.String(v.(string))
 	}
 
-	if v, ok := config["acr_use_managed_identity_creds"]; ok {
+	if v, ok := config["acr_use_managed_identity_credentials"]; ok {
 		siteConfig.AcrUseManagedIdentityCreds = utils.Bool(v.(bool))
 	}
 
@@ -1910,7 +1910,7 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	}
 
 	if input.AcrUseManagedIdentityCreds != nil {
-		result["acr_use_managed_identity_creds"] = *input.AcrUseManagedIdentityCreds
+		result["acr_use_managed_identity_credentials"] = *input.AcrUseManagedIdentityCreds
 	}
 
 	if input.AcrUserManagedIdentityID != nil {
