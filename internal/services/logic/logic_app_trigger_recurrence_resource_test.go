@@ -208,18 +208,18 @@ func TestAccLogicAppTriggerRecurrence_timeZone(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.timeZone(data, "U.S. Eastern Standard Time"),
+			Config: r.timeZone(data, "W. Europe Standard Time"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("time_zone").HasValue("U.S. Eastern Standard Time"),
+				check.That(data.ResourceName).Key("time_zone").HasValue("W. Europe Standard Time"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.timeZone(data, "Egypt Standard Time"),
+			Config: r.timeZone(data, "US Eastern Standard Time"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("time_zone").HasValue("Egypt Standard Time"),
+				check.That(data.ResourceName).Key("time_zone").HasValue("US Eastern Standard Time"),
 			),
 		},
 		data.ImportStep(),
