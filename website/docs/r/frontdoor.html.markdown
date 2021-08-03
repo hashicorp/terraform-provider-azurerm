@@ -33,7 +33,6 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_frontdoor" "example" {
   name                                         = "example-FrontDoor"
-  location                                     = "EastUS2"
   resource_group_name                          = azurerm_resource_group.example.name
   enforce_backend_pools_certificate_name_check = false
 
@@ -82,7 +81,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Front Door service. Must be globally unique. Changing this forces a new resource to be created. 
 
-* `location` -  (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created
+* `location` -  (Deprecated) The `location` argument is deprecated and is now always set to `global`.
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door service should exist. Changing this forces a new resource to be created.
 

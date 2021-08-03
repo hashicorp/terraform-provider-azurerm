@@ -1954,6 +1954,9 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 	cacheQueryParameterStripDirective := string(frontdoor.StripAll)
 	cacheUseDynamicCompression := false
 
+	var cacheQueryParameters *string
+	var cacheDuration *string
+
 	if cacheConfiguration := v.CacheConfiguration; cacheConfiguration != nil {
 		cacheEnabled = true
 		if stripDirective := cacheConfiguration.QueryParameterStripDirective; stripDirective != "" {
@@ -1961,6 +1964,12 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 		}
 		if dynamicCompression := cacheConfiguration.DynamicCompression; dynamicCompression != "" {
 			cacheUseDynamicCompression = string(dynamicCompression) == string(frontdoor.DynamicCompressionEnabledEnabled)
+		}
+		if queryParameters := cacheConfiguration.QueryParameters; queryParameters != nil {
+			cacheQueryParameters = queryParameters
+		}
+		if cacheDuration := cacheConfiguration.CacheDuration; cacheDuration != nil {
+			cacheDuration = cacheDuration
 		}
 	} else {
 		// if the cache is disabled, use the default values or revert to what they were in the previous plan
@@ -1991,6 +2000,8 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 			"cache_enabled":                         cacheEnabled,
 			"cache_query_parameter_strip_directive": cacheQueryParameterStripDirective,
 			"cache_use_dynamic_compression":         cacheUseDynamicCompression,
+			"cache_query_parameters":                cacheQueryParameters,
+			"cache_duration":                        cacheDuration,
 		},
 	}, nil
 }
