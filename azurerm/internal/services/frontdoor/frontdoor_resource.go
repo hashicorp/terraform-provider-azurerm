@@ -230,6 +230,10 @@ func resourceFrontDoor() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 									},
+									"cache_duration": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+									},
 									"custom_forwarding_path": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
@@ -1168,6 +1172,7 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId par
 	cacheUseDynamicCompression := v["cache_use_dynamic_compression"].(bool)
 	cacheQueryParameterStripDirective := v["cache_query_parameter_strip_directive"].(string)
 	cacheQueryParameters := v["cache_query_parameters"].(string)
+	cacheDuration := v["cache_duration"].(string)
 	cacheEnabled := v["cache_enabled"].(bool)
 
 	backendPoolId := parse.NewBackendPoolID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, backendPoolName).ID()
@@ -1201,6 +1206,7 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId par
 			DynamicCompression:           dynamicCompression,
 			QueryParameterStripDirective: frontdoor.Query(cacheQueryParameterStripDirective),
 			QueryParameters:              utils.String(cacheQueryParameters),
+			CacheDuration:                utils.String(cacheDuration),
 		}
 	}
 
