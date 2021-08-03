@@ -247,11 +247,19 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 		d.Set("parameter_values", parameterValues)
 
-		if err = d.Set("parameters", flattenManagedApplicationParametersOrOutputs(props.Parameters)); err != nil {
+		parameters, err := flattenManagedApplicationParametersOrOutputs(props.Parameters)
+		if err != nil {
+			return err
+		}
+		if err = d.Set("parameters", parameters); err != nil {
 			return err
 		}
 
-		if err = d.Set("outputs", flattenManagedApplicationParametersOrOutputs(props.Outputs)); err != nil {
+		outputs, err := flattenManagedApplicationParametersOrOutputs(props.Outputs)
+		if err != nil {
+			return err
+		}
+		if err = d.Set("outputs", outputs); err != nil {
 			return err
 		}
 	}
@@ -358,10 +366,10 @@ func flattenManagedApplicationPlan(input *managedapplications.Plan) []interface{
 	return results
 }
 
-func flattenManagedApplicationParametersOrOutputs(input interface{}) map[string]interface{} {
+func flattenManagedApplicationParametersOrOutputs(input interface{}) (map[string]interface{}, error) {
 	results := make(map[string]interface{})
 	if input == nil {
-		return results
+		return results, nil
 	}
 
 	for k, v := range input.(map[string]interface{}) {
@@ -372,13 +380,13 @@ func flattenManagedApplicationParametersOrOutputs(input interface{}) map[string]
 			case string:
 				results[k] = v.(map[string]interface{})["value"].(string)
 			default:
-				fmt.Errorf("unexpected parameter type %T", t)
+				return nil, fmt.Errorf("unexpected parameter type %T", t)
 			}
 
 		}
 	}
 
-	return results
+	return results, nil
 }
 
 func flattenManagedApplicationParameterValuesValueToString(input interface{}) (string, error) {
