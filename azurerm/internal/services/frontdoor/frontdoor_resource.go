@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor"
+	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-05-01/frontdoor"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -223,7 +223,12 @@ func resourceFrontDoor() *pluginsdk.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.StripAll),
 											string(frontdoor.StripNone),
+											string(frontdoor.StripAllExcept),
 										}, false),
+									},
+									"cache_query_parameters": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
 									},
 									"custom_forwarding_path": {
 										Type:     pluginsdk.TypeString,
@@ -1162,6 +1167,7 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId par
 	backendPoolName := v["backend_pool_name"].(string)
 	cacheUseDynamicCompression := v["cache_use_dynamic_compression"].(bool)
 	cacheQueryParameterStripDirective := v["cache_query_parameter_strip_directive"].(string)
+	cacheQueryParameters := v["cache_query_parameters"].(string)
 	cacheEnabled := v["cache_enabled"].(bool)
 
 	backendPoolId := parse.NewBackendPoolID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, backendPoolName).ID()
@@ -1186,9 +1192,15 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId par
 			// Set Default Value for strip directive is not in the key slice and cache is enabled
 			cacheQueryParameterStripDirective = string(frontdoor.StripAll)
 		}
+
+		if cacheQueryParameterStripDirective != "StripAllExcept" {
+			cacheQueryParameters = ""
+		}
+
 		forwardingConfiguration.CacheConfiguration = &frontdoor.CacheConfiguration{
 			DynamicCompression:           dynamicCompression,
 			QueryParameterStripDirective: frontdoor.Query(cacheQueryParameterStripDirective),
+			QueryParameters:              utils.String(cacheQueryParameters),
 		}
 	}
 
