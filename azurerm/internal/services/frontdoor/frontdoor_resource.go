@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
@@ -231,8 +232,9 @@ func resourceFrontDoor() *pluginsdk.Resource {
 										Optional: true,
 									},
 									"cache_duration": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validate.ISO8601Duration,
+										Optional:     true,
 									},
 									"custom_forwarding_path": {
 										Type:     pluginsdk.TypeString,

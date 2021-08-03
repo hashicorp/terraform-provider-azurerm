@@ -180,8 +180,8 @@ func TestAccFrontDoor_EnableDisableCache(t *testing.T) {
 				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive").HasValue("StripAll"),
 			),
 		},
-    {
-      
+		{
+
 			Config: r.testWithCachingEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -189,8 +189,9 @@ func TestAccFrontDoor_EnableDisableCache(t *testing.T) {
 				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression").HasValue("false"),
 				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive").HasValue("StripAllExcept"),
 				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameters").HasValue("width,height"),
+				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_duration").HasValue("P31D"),
 			),
-    },
+		},
 		data.ImportStep("explicit_resource_order"),
 	})
 }
@@ -823,7 +824,6 @@ resource "azurerm_frontdoor" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-
 func (FrontDoorResource) testWithCachingEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -859,6 +859,8 @@ resource "azurerm_frontdoor" "test" {
       cache_use_dynamic_compression = false
 
       cache_query_parameter_strip_directive = "StripAllExcept"
+
+      cache_duration = "P31D"
 
       cache_query_parameters = "width,height"
     }
