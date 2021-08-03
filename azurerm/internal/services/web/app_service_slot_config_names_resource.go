@@ -153,7 +153,10 @@ func expandAppServiceSlotConfigNamesResource(input *pluginsdk.Set) (web.SlotConf
 	appSettingNames := make([]string, 0)
 	connectionStringNames := make([]string, 0)
 	for _, newSlotConfigName := range newSlotConfigNames {
-		slotConfigName := newSlotConfigName.(map[string]interface{})
+		slotConfigName, ok := newSlotConfigName.(map[string]interface{})
+		if !ok {
+			return web.SlotConfigNamesResource{}, fmt.Errorf("invalid set input")
+		}
 
 		for _, v := range slotConfigName["app_setting_names"].([]interface{}) {
 			appSettingNames = append(appSettingNames, v.(string))

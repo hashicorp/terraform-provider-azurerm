@@ -9,15 +9,14 @@ package web
 import (
 	"context"
 	"encoding/json"
-	"io"
-	"net/http"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
 	"github.com/gofrs/uuid"
+	"io"
+	"net/http"
 )
 
 // The package's fully qualified name.
