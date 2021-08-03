@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `azurerm_databricks_workspace` - support for private link endpoint [GH-12543]
 * `azurerm_kubernetes_cluster` - support for the `local_account_disabled` property [GH-12386]
 * `azurerm_logic_app_workflow` - support for the `workflow_parameters` [GH-12314]
+* `azurerm_public_ip_resource` - support for sku_tier property [GH-12775]
 
 BUG FIXES:
 
