@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -53,7 +53,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorName,
+				ValidateFunc: azValidate.FrontDoorName,
 			},
 
 			"cname": {
@@ -115,7 +115,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: azValidate.BackendPoolRoutingRuleName,
 						},
 						"enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -205,7 +205,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 									"backend_pool_name": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validate.BackendPoolRoutingRuleName,
+										ValidateFunc: azValidate.BackendPoolRoutingRuleName,
 									},
 									"cache_enabled": {
 										Type:     pluginsdk.TypeBool,
@@ -270,7 +270,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: azValidate.BackendPoolRoutingRuleName,
 						},
 						"sample_size": {
 							Type:     pluginsdk.TypeInt,
@@ -304,7 +304,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: azValidate.BackendPoolRoutingRuleName,
 						},
 						"enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -399,7 +399,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: azValidate.BackendPoolRoutingRuleName,
 						},
 						"health_probe_name": {
 							Type:     pluginsdk.TypeString,
@@ -426,7 +426,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: azValidate.BackendPoolRoutingRuleName,
 						},
 						"host_name": {
 							Type:     pluginsdk.TypeString,

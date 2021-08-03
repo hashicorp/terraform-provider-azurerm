@@ -216,7 +216,7 @@ The `forwarding_configuration` block supports the following:
 
 * `cache_query_parameters` - (Optional) Specify query parameters (comma separated). Works only in combination with `cache_query_parameter_strip_directive` set to `StripAllExcept`.
 
-* `cache_duration` - (Optional) Specify the caching duration. Works only in combination with `cache_enabled` set to `true`. 
+* `cache_duration` - (Optional) Specify the caching duration (in ISO8601 notation e.g. `P1DT2` for 1 day and 2 hours). Works only in combination with `cache_enabled` set to `true`. 
 
 * `custom_forwarding_path` - (Optional) Path to use when constructing the request to forward to the backend. This functions as a URL Rewrite. Default behaviour preserves the URL path.
 
