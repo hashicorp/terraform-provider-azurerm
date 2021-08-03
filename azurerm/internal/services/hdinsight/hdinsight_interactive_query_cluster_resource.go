@@ -92,6 +92,8 @@ func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
 
 			"network": SchemaHDInsightsNetwork(),
 
+			"security_profile": SchemaHDInsightsSecurityProfile(),
+
 			"storage_account": SchemaHDInsightsStorageAccounts(),
 
 			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
@@ -161,7 +163,7 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
-	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
+	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw, subscriptionId, resourceGroup, "INTERACTIVEHIVE")
 	if err != nil {
 		return fmt.Errorf("expanding `storage_account`: %s", err)
 	}
@@ -211,6 +213,17 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 		Tags:     tags.Expand(t),
 		Identity: identity,
 	}
+
+	if v, ok := d.GetOk("security_profile"); ok {
+		params.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]interface{}))
+
+		params.Identity = &hdinsight.ClusterIdentity{
+			Type:                   hdinsight.ResourceIdentityTypeUserAssigned,
+			UserAssignedIdentities: make(map[string]*hdinsight.ClusterIdentityUserAssignedIdentitiesValue),
+		}
+		params.Identity.UserAssignedIdentities[*params.Properties.SecurityProfile.MsiResourceID] = &hdinsight.ClusterIdentityUserAssignedIdentitiesValue{}
+	}
+
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
 		return fmt.Errorf("creating HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -330,6 +343,10 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 		}
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
+
+		if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile)); err != nil {
+			return fmt.Errorf("setting `security_profile`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

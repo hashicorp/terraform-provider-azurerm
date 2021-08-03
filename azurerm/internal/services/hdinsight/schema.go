@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-	dsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/domainservices/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/validate"
 	msiValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -251,10 +251,9 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"aadds_resource_id": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: dsValidate.DomainServiceID,
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ForceNew: true,
 				},
 
 				"cluster_users_group_dns": {
@@ -281,6 +280,13 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
+				"domain_user_password": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
 				"ldaps_urls": {
 					Type:     pluginsdk.TypeSet,
 					Required: true,
@@ -300,7 +306,7 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 
 				"organizational_unit_dn": {
 					Type:         pluginsdk.TypeString,
-					Required:     true,
+					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
@@ -658,7 +664,7 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 
 // ExpandHDInsightsStorageAccounts returns an array of StorageAccount structs, as well as a ClusterIdentity
 // populated with any managed identities required for accessing Data Lake Gen2 storage.
-func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageAccounts []interface{}) (*[]hdinsight.StorageAccount, *hdinsight.ClusterIdentity, error) {
+func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageAccounts []interface{}, subscriptionId string, resourceGroupName string, clusterType string) (*[]hdinsight.StorageAccount, *hdinsight.ClusterIdentity, error) {
 	results := make([]hdinsight.StorageAccount, 0)
 
 	var clusterIndentity *hdinsight.ClusterIdentity
@@ -681,6 +687,16 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 			Key:       utils.String(storageAccountKey),
 			IsDefault: utils.Bool(isDefault),
 		}
+
+		if clusterType == "Hadoop" || clusterType == "HBase" || clusterType == "Kafka" || clusterType == "Spark" || clusterType == "INTERACTIVEHIVE" {
+			storageContainerId, err := parse.StorageContainerDataPlaneID(storageContainerID)
+			if err != nil {
+				return nil, nil, err
+			}
+			storageAccountId := parse.NewStorageAccountID(subscriptionId, resourceGroupName, storageContainerId.AccountName)
+			result.ResourceID = utils.String(storageAccountId.ID())
+		}
+
 		results = append(results, result)
 	}
 
@@ -1102,16 +1118,22 @@ func ExpandHDInsightSecurityProfile(input []interface{}) *hdinsight.SecurityProf
 
 	v := input[0].(map[string]interface{})
 
-	return &hdinsight.SecurityProfile{
+	result := hdinsight.SecurityProfile{
 		DirectoryType:        hdinsight.DirectoryTypeActiveDirectory,
 		Domain:               utils.String(v["domain_name"].(string)),
-		OrganizationalUnitDN: utils.String(v["organizational_unit_dn"].(string)),
 		LdapsUrls:            utils.ExpandStringSlice(v["ldaps_urls"].(*schema.Set).List()),
 		DomainUsername:       utils.String(v["domain_username"].(string)),
+		DomainUserPassword:   utils.String(v["domain_user_password"].(string)),
 		ClusterUsersGroupDNS: utils.ExpandStringSlice(v["cluster_users_group_dns"].(*schema.Set).List()),
 		AaddsResourceID:      utils.String(v["aadds_resource_id"].(string)),
 		MsiResourceID:        utils.String(v["msi_resource_id"].(string)),
 	}
+
+	if organizationalUnitDN := v["organizational_unit_dn"].(string); organizationalUnitDN != "" {
+		result.OrganizationalUnitDN = utils.String(organizationalUnitDN)
+	}
+
+	return &result
 }
 
 func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{}, definition HDInsightNodeDefinition) []interface{} {
@@ -1321,6 +1343,11 @@ func flattenHDInsightSecurityProfile(input *hdinsight.SecurityProfile) []interfa
 		domainUsername = *input.DomainUsername
 	}
 
+	var domainUserPassword string
+	if input.DomainUserPassword != nil {
+		domainUserPassword = *input.DomainUserPassword
+	}
+
 	var msiResourceId string
 	if input.MsiResourceID != nil {
 		msiResourceId = *input.MsiResourceID
@@ -1337,6 +1364,7 @@ func flattenHDInsightSecurityProfile(input *hdinsight.SecurityProfile) []interfa
 			"cluster_users_group_dns": utils.FlattenStringSlice(input.ClusterUsersGroupDNS),
 			"domain_name":             domain,
 			"domain_username":         domainUsername,
+			"domain_user_password":    domainUserPassword,
 			"ldaps_urls":              utils.FlattenStringSlice(input.LdapsUrls),
 			"msi_resource_id":         msiResourceId,
 			"organizational_unit_dn":  organizationalUnitDN,

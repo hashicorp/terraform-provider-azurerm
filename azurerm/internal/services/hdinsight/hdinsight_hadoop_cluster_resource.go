@@ -97,6 +97,8 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 
 			"network": SchemaHDInsightsNetwork(),
 
+			"security_profile": SchemaHDInsightsSecurityProfile(),
+
 			"storage_account": SchemaHDInsightsStorageAccounts(),
 
 			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
@@ -158,8 +160,6 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"security_profile": SchemaHDInsightsSecurityProfile(),
-
 			"tags": tags.Schema(),
 
 			"https_endpoint": {
@@ -210,7 +210,7 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
-	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
+	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw, subscriptionId, resourceGroup, "Hadoop")
 	if err != nil {
 		return fmt.Errorf("expanding `storage_account`: %s", err)
 	}
@@ -263,6 +263,12 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 
 	if v, ok := d.GetOk("security_profile"); ok {
 		params.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]interface{}))
+
+		params.Identity = &hdinsight.ClusterIdentity{
+			Type:                   hdinsight.ResourceIdentityTypeUserAssigned,
+			UserAssignedIdentities: make(map[string]*hdinsight.ClusterIdentityUserAssignedIdentitiesValue),
+		}
+		params.Identity.UserAssignedIdentities[*params.Properties.SecurityProfile.MsiResourceID] = &hdinsight.ClusterIdentityUserAssignedIdentitiesValue{}
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, params)
@@ -422,7 +428,6 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 		if err != nil {
 			return fmt.Errorf("reading monitor configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
-
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
 
 		if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile)); err != nil {

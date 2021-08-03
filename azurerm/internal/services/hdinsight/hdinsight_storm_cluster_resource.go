@@ -156,7 +156,7 @@ func resourceHDInsightStormClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
-	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, nil)
+	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, nil, "", "", "Storm")
 	if err != nil {
 		return fmt.Errorf("failure expanding `storage_account`: %s", err)
 	}

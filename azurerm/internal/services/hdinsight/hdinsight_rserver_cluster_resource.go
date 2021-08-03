@@ -162,7 +162,7 @@ func resourceHDInsightRServerClusterCreate(d *pluginsdk.ResourceData, meta inter
 	gateway := expandHDInsightsRServerConfigurations(gatewayRaw, rStudio)
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
-	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, nil)
+	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, nil, "", "", "RServer")
 	if err != nil {
 		return fmt.Errorf("Error expanding `storage_account`: %s", err)
 	}
