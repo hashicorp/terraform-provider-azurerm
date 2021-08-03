@@ -233,7 +233,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 									},
 									"cache_duration": {
 										Type:         pluginsdk.TypeString,
-										ValidateFunc: validate.ISO8601Duration,
+										ValidateFunc: validate.ISO8601DurationBetween("PT1S", "P365D"),
 										Optional:     true,
 									},
 									"custom_forwarding_path": {
@@ -443,9 +443,9 @@ func resourceFrontDoor() *pluginsdk.Resource {
 							Default:  0,
 						},
 						"web_application_firewall_policy_link_id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							// TODO: validation that this is a resource id
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
