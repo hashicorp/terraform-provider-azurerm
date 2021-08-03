@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `sku_tier` - (Optional) The SKU Tier that should be used for the Public IP. Possible values are `Regional` and `Global`. Defaults to `Regional`.
 
--> **Note** Public IP Global SKU Tier requires `sku` to be set to `Standard`.
+-> **Note** When `sku_tier` is set to `Global`, `sku` must be set to `Standard`.
 
 * `allocation_method` - (Required)  Defines the allocation method for this IP address. Possible values are `Static` or `Dynamic`.
 

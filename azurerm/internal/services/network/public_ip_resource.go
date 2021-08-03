@@ -104,11 +104,10 @@ func resourcePublicIp() *pluginsdk.Resource {
 			},
 
 			"sku_tier": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Default:          string(network.PublicIPAddressSkuTierRegional),
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(network.PublicIPAddressSkuTierRegional),
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.PublicIPAddressSkuTierGlobal),
 					string(network.PublicIPAddressSkuTierRegional),
