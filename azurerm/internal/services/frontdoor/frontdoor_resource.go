@@ -1199,7 +1199,6 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId par
 			// Set Default Value for strip directive is not in the key slice and cache is enabled
 			cacheQueryParameterStripDirective = string(frontdoor.StripAll)
 		}
-
 		if cacheQueryParameterStripDirective != "StripAllExcept" {
 			cacheQueryParameters = ""
 		}
@@ -1985,6 +1984,8 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 							ofc := oldConfigs[0].(map[string]interface{})
 							cacheQueryParameterStripDirective = ofc["cache_query_parameter_strip_directive"].(string)
 							cacheUseDynamicCompression = ofc["cache_use_dynamic_compression"].(bool)
+							cacheDuration = utils.String(ofc["cache_duration"].(string))
+							cacheQueryParameters = utils.String(ofc["cache_query_parameters"].(string))
 						}
 					}
 				}
