@@ -180,6 +180,17 @@ func TestAccFrontDoor_EnableDisableCache(t *testing.T) {
 				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive").HasValue("StripAll"),
 			),
 		},
+    {
+      
+			Config: r.testWithCachingEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression").HasValue("false"),
+				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive").HasValue("StripAllExcept"),
+				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameters").HasValue("width,height"),
+			),
+    },
 		data.ImportStep("explicit_resource_order"),
 	})
 }
@@ -802,6 +813,79 @@ resource "azurerm_frontdoor" "test" {
     backend {
       host_header = "google.com"
       address     = "google.com"
+      http_port   = 80
+      https_port  = 443
+      weight      = 75
+      enabled     = true
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+
+func (FrontDoorResource) testWithCachingEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-frontdoor-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_frontdoor" "test" {
+  name                                         = "acctest-FD-%[1]d"
+  resource_group_name                          = azurerm_resource_group.test.name
+  enforce_backend_pools_certificate_name_check = false
+
+  frontend_endpoint {
+    name      = "acctest-FD-%[1]d-default-FE"
+    host_name = "acctest-FD-%[1]d.azurefd.net"
+  }
+
+  routing_rule {
+    name               = "acctest-FD-%[1]d-bing-RR"
+    accepted_protocols = ["Https"]
+    patterns_to_match  = ["/poolBing/*"]
+    frontend_endpoints = ["acctest-FD-%[1]d-default-FE"]
+
+    forwarding_configuration {
+      forwarding_protocol = "MatchRequest"
+      backend_pool_name   = "acctest-FD-%[1]d-pool-bing"
+      cache_enabled       = true
+
+      cache_use_dynamic_compression = false
+
+      cache_query_parameter_strip_directive = "StripAllExcept"
+
+      cache_query_parameters = "width,height"
+    }
+  }
+
+  backend_pool_load_balancing {
+    name                            = "acctest-FD-%[1]d-bing-LB"
+    additional_latency_milliseconds = 0
+    sample_size                     = 4
+    successful_samples_required     = 2
+  }
+
+  backend_pool_health_probe {
+    name         = "acctest-FD-%[1]d-bing-HP"
+    protocol     = "Https"
+    enabled      = true
+    probe_method = "HEAD"
+  }
+
+  backend_pool {
+    name                = "acctest-FD-%[1]d-pool-bing"
+    load_balancing_name = "acctest-FD-%[1]d-bing-LB"
+    health_probe_name   = "acctest-FD-%[1]d-bing-HP"
+
+    backend {
+      host_header = "bing.com"
+      address     = "bing.com"
       http_port   = 80
       https_port  = 443
       weight      = 75
