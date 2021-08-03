@@ -366,11 +366,13 @@ func flattenManagedApplicationParametersOrOutputs(input interface{}) map[string]
 
 	for k, v := range input.(map[string]interface{}) {
 		if v != nil {
-			switch _ := v.(type) {
+			switch t := v.(type) {
 			case float64:
 				results[k] = v.(map[string]interface{})["value"].(float64)
-			default:
+			case string:
 				results[k] = v.(map[string]interface{})["value"].(string)
+			default:
+				fmt.Errorf("unexpected parameter type %T", t)
 			}
 
 		}
