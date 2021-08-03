@@ -146,7 +146,7 @@ func resourceLocalNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 			return fmt.Errorf("error waiting for completion of Local Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
 		}
 	}
-	gateway.LocalNetworkGatewayPropertiesFormat.LocalNetworkAddressSpace.AddressPrefixes = expandLocalNetworkGatewayAddressSpaces(d)
+	gateway.LocalNetworkGatewayPropertiesFormat.LocalNetworkAddressSpace = expandLocalNetworkGatewayAddressSpaces(d)
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, gateway)
 	if err != nil {
@@ -271,14 +271,16 @@ func expandLocalNetworkGatewayBGPSettings(d *pluginsdk.ResourceData) *network.Bg
 	return &bgpSettings
 }
 
-func expandLocalNetworkGatewayAddressSpaces(d *pluginsdk.ResourceData) *[]string {
+func expandLocalNetworkGatewayAddressSpaces(d *pluginsdk.ResourceData) *network.AddressSpace {
 	prefixes := make([]string, 0)
 
 	for _, pref := range d.Get("address_space").([]interface{}) {
 		prefixes = append(prefixes, pref.(string))
 	}
 
-	return &prefixes
+	return &network.AddressSpace{
+		AddressPrefixes: &prefixes,
+	}
 }
 
 func flattenLocalNetworkGatewayBGPSettings(input *network.BgpSettings) []interface{} {
