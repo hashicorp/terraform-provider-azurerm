@@ -85,7 +85,7 @@ resource "azurerm_vpn_gateway" "test" {
 }
 
 data "azurerm_vpn_gateway" "test" {
-  name = azurerm_vpn_gateway.test.name
+  name                = azurerm_vpn_gateway.test.name
   resource_group_name = azurerm_vpn_gateway.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)

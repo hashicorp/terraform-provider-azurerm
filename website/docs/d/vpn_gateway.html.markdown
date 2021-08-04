@@ -14,7 +14,7 @@ Use this data source to access information about an existing VPN Gateway within 
 
 ```hcl
 data "azurerm_vpn_gateway" "example" {
-  name = "existing-local-vpn_gateway"
+  name                = "existing-local-vpn_gateway"
   resource_group_name = "existing-vpn_gateway"
 }
 
