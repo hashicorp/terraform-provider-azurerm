@@ -224,17 +224,19 @@ func resourceFrontDoor() *pluginsdk.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.StripAll),
 											string(frontdoor.StripNone),
+											string(frontdoor.StripOnly),
 											string(frontdoor.StripAllExcept),
 										}, false),
 									},
 									"cache_query_parameters": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"cache_duration": {
 										Type:         pluginsdk.TypeString,
-										ValidateFunc: validate.ISO8601DurationBetween("PT1S", "P365D"),
 										Optional:     true,
+										ValidateFunc: validate.ISO8601DurationBetween("PT1S", "P365D"),
 									},
 									"custom_forwarding_path": {
 										Type:     pluginsdk.TypeString,
@@ -1199,7 +1201,8 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId par
 			// Set Default Value for strip directive is not in the key slice and cache is enabled
 			cacheQueryParameterStripDirective = string(frontdoor.StripAll)
 		}
-		if cacheQueryParameterStripDirective != "StripAllExcept" {
+		// set cacheQueryParameters to "" when StripDirective is "StripAll" or "StripNone"
+		if cacheQueryParameterStripDirective == "StripAll" || cacheQueryParameterStripDirective == "StripNone" {
 			cacheQueryParameters = ""
 		}
 

@@ -146,6 +146,32 @@ func frontDoorSettings(d *pluginsdk.ResourceDiff) error {
 			if err := verifyBackendPoolExists(fc["backend_pool_name"].(string), backendPools); err != nil {
 				return fmt.Errorf(`routing_rule %s is invalid. %+v`, routingRuleName, err)
 			}
+
+			// cacheConfiguration validation
+			cacheEnabled := fc["cache_enabled"].(bool)
+			cacheQueryParameters := fc["cache_query_parameters"].(string)
+			cacheDuration := fc["cache_duration"].(string)
+			cacheQueryParameterStripDirective := fc["cache_query_parameter_strip_directive"].(string)
+
+			// cacheQueryParameters cannot be set when cacheEnabled is false
+			if !cacheEnabled && strings.TrimSpace(cacheQueryParameters) != "" {
+				return fmt.Errorf(`"cache_query_parameters" (%s) cannot be configured when "cache_enabled" is set to "false"`, cacheQueryParameters)
+			}
+
+			// cacheQueryParametersStripDirective cannot be different than StripAll (default) when cacheEnabled is false
+			if !cacheEnabled && strings.TrimSpace(cacheQueryParameterStripDirective) != "StripAll" {
+				return fmt.Errorf(`"cache_query_parameter_strip_directive" (%s) cannot be configured when "cache_enabled" is set to "false"`, cacheQueryParameterStripDirective)
+			}
+
+			// cacheDuration cannot be set when cacheEnabled is false
+			if !cacheEnabled && strings.TrimSpace(cacheDuration) != "" {
+				return fmt.Errorf(`"cache_duration" (%s) cannot be configured when "cache_enabled" is set to "false"`, cacheDuration)
+			}
+
+			// cacheQueryParameters cannot be empty when cacheEnabled is true and cacheQueryParameterStripDirective is other than StripAllExcept or StripOnly
+			if cacheEnabled && (strings.TrimSpace(cacheQueryParameterStripDirective) != "StripAllExcept" && strings.TrimSpace(cacheQueryParameterStripDirective) != "StripOnly") && strings.TrimSpace(cacheQueryParameters) == "" {
+				return fmt.Errorf(`"cache_query_parameters" cannot be empty when "cache_query_parameter_strip_directive" (%s) is set to "StripAllExcept" or "StripOnly"`, cacheQueryParameterStripDirective)
+			}
 		}
 
 		// Check 3. validate that each routing rule frontend_endpoints are actually defined in the resource schema

@@ -211,7 +211,7 @@ The `forwarding_configuration` block supports the following:
 
 * `cache_use_dynamic_compression` - (Optional) Whether to use dynamic compression when caching. Valid options are `true` or `false`. Defaults to `false`.
 
-* `cache_query_parameter_strip_directive` - (Optional) Defines cache behaviour in relation to query string parameters. Valid options are `StripAll`, `StripAllExcept` or `StripNone`. Defaults to `StripAll`.
+* `cache_query_parameter_strip_directive` - (Optional) Defines cache behaviour in relation to query string parameters. Valid options are `StripAll`, `StripAllExcept`, `StripOnly` or `StripNone`. Defaults to `StripAll`.
 
 * `cache_query_parameters` - (Optional) Specify query parameters (comma separated). Works only in combination with `cache_query_parameter_strip_directive` set to `StripAllExcept`.
 
