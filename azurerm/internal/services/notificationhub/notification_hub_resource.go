@@ -44,6 +44,7 @@ func resourceNotificationHub() *pluginsdk.Resource {
 			return err
 		}),
 
+		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.NotificationHubResourceV0ToV1{},
 		}),
