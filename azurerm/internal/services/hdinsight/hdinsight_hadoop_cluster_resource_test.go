@@ -2121,7 +2121,7 @@ resource azurerm_subnet_network_security_group_association "test" {
 }
 
 resource "azuread_group" "test" {
-  display_name = "AAD DC Administrators Test"
+  display_name = "AAD DC Administrators %s"
   description  = "Test for delegating group to administer Azure AD Domain Services"
 }
 
@@ -2267,5 +2267,5 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     azurerm_virtual_network_dns_servers.test,
   ]
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
 }
