@@ -70,14 +70,16 @@ The following arguments are supported:
 * `redis_configuration` - (Optional) A `redis_configuration` as defined below - with some limitations by SKU - defaults/details are shown below.
 
 * `replicas_per_master` - (Optional) Amount of replicas to create per master for this Redis Cache.
-  
-* `replicas_per_primary` - (Optional) Amount of replicas to create per primary for this Redis Cache. If both `replicas_per_primary` and `replicas_per_master` are set, they need to be equal.
-
-* `redis_version` - (Optional) Redis version. Only major version needed. Valid values: `4`.
-
-* `tenant_settings` - (Optional) A mapping of tenant settings to assign to the resource.
 
 ~> **Note:** Configuring the number of replicas per master is only available when using the Premium SKU and cannot be used in conjunction with shards.
+
+* `replicas_per_primary` - (Optional) Amount of replicas to create per primary for this Redis Cache. If both `replicas_per_primary` and `replicas_per_master` are set, they need to be equal.
+
+* `redis_version` - (Optional) Redis version. Only major version needed. Valid values: `4`, `6`. 
+
+~> **Note:** Redis 6 does not support `shard_count`.
+
+* `tenant_settings` - (Optional) A mapping of tenant settings to assign to the resource.
 
 * `shard_count` - (Optional) *Only available when using the Premium SKU* The number of Shards to create on the Redis Cluster.
 
