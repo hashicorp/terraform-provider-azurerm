@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * dependencies: updating `machinelearning` to use API Version `2021-04-01` [GH-12804]
 * dependencies: updating `databricks` to use API Version `2021-04-01-preview` [GH-12543]
 * PowerBI: refactoring to use an Embedded SDK [GH-12787]
+* SignalR: refactoring to use an Embedded SDK [GH-12785]
 * `azurerm_api_management_api_diagnostic` - support for the `operation_name_format` property [GH-12782]
 * `azurerm_databricks_workspace` - support for private link endpoint [GH-12543]
 * `azurerm_databricks_workspace` - add support for `Customer Managed Keys for Managed Services` [GH-12799]
