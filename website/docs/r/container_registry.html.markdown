@@ -38,8 +38,7 @@ resource "azurerm_container_registry" "acr" {
       location                = "westeurope"
       zone_redundancy_enabled = true
       tags                    = {}
-    }
-  ]
+    }]
 }
 ```
 
