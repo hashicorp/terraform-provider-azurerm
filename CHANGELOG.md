@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `azurerm_databricks_workspace` - add support for `Customer Managed Keys for Managed Services` [GH-12799]
 * `azurerm_kubernetes_cluster` - support for the `local_account_disabled` property [GH-12386]
 * `azurerm_logic_app_workflow` - support for the `workflow_parameters` [GH-12314]
+* `azurerm_mssql_database` - support for the `Free` and `FSV2` SKU's [GH-12835]
 * `azurerm_public_ip_resource` - support for sku_tier property [GH-12775]
 
 BUG FIXES:
