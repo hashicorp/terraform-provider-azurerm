@@ -44,7 +44,7 @@ data "azurerm_databricks_workspace_private_endpoint_connection" "test" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-db-%[1]d"
+  name     = "acctestRG-databricks-%[1]d"
   location = "%[2]s"
 }
 

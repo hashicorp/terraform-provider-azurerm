@@ -215,18 +215,13 @@ func DatabricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	// I have to get rid of this check due to import if you want to re-cmk your DBFS.
-	// This is because when you delete this it sets the key source to default
-	// if !strings.EqualFold(keySource, string(databricks.MicrosoftKeyvault)) {
-	// 	return fmt.Errorf("retrieving Databricks Workspace %q (Resource Group %q): `Workspace.WorkspaceProperties.Encryption.Value.KeySource` was expected to be %q, got %q", id.CustomerMangagedKeyName, id.ResourceGroup, string(databricks.MicrosoftKeyvault), keySource)
-	// }
-
 	if strings.EqualFold(keySource, string(databricks.KeySourceMicrosoftKeyvault)) && (keyName == "" || keyVersion == "" || keyVaultURI == "") {
-		return fmt.Errorf("Databricks Workspace %q (Resource Group %q): `Workspace.WorkspaceProperties.Encryption.Value(s)` were nil", id.CustomerMangagedKeyName, id.ResourceGroup)
+		return fmt.Errorf("Databricks Workspace %q (Resource Group %q): `Workspace.WorkspaceProperties.Parameters.Encryption.Value(s)` were nil", id.CustomerMangagedKeyName, id.ResourceGroup)
 	}
 
 	d.SetId(id.ID())
 	d.Set("workspace_id", workspaceId.ID())
+
 	if keyVaultURI != "" {
 		key, err := keyVaultParse.NewNestedItemID(keyVaultURI, "keys", keyName, keyVersion)
 		if err == nil {
@@ -302,6 +297,11 @@ func getProps(workspace databricks.Workspace, params *databricks.WorkspaceCustom
 			Parameters:             params,
 		},
 		Tags: workspace.Tags,
+	}
+
+	// If notebook encryption exists add it to the properties
+	if workspace.WorkspaceProperties.Encryption != nil {
+		props.WorkspaceProperties.Encryption = workspace.WorkspaceProperties.Encryption
 	}
 
 	// This is only valid if Private Link only is set

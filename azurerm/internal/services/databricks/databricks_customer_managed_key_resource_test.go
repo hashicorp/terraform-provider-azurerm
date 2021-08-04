@@ -151,7 +151,7 @@ resource "azurerm_databricks_workspace" "test" {
 }
 
 %[4]s
-`, data.RandomInteger, data.Locations.Primary, keyVault, cmk)
+`, data.RandomInteger, "eastus2", keyVault, cmk)
 }
 
 func (DatabricksWorkspaceCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {
@@ -197,7 +197,7 @@ resource "azurerm_databricks_workspace" "test" {
 }
 
 %[5]s
-`, data.RandomInteger, data.Locations.Primary, keyVault, data.RandomString, cmk)
+`, data.RandomInteger, "eastus2", keyVault, data.RandomString, cmk)
 }
 
 func (DatabricksWorkspaceCustomerManagedKeyResource) cmkTemplate() string {
@@ -224,7 +224,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  depends_on = [azurerm_key_vault_access_policy.test]
+  depends_on = [azurerm_key_vault_access_policy.terraform]
 
   name         = "acctest-key-%[1]d"
   key_vault_id = azurerm_key_vault.test.id
@@ -241,7 +241,7 @@ resource "azurerm_key_vault_key" "test" {
   ]
 }
 
-resource "azurerm_key_vault_access_policy" "test" {
+resource "azurerm_key_vault_access_policy" "terraform" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = azurerm_key_vault.test.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
@@ -276,7 +276,6 @@ resource "azurerm_key_vault_access_policy" "databricks" {
     "unwrapKey",
     "wrapKey",
     "delete",
-    "purge",
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

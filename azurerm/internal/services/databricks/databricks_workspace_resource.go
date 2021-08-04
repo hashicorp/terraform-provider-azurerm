@@ -15,6 +15,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/validate"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	loadBalancerParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
 	resourcesParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -78,6 +80,13 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				ForceNew: true,
 				Optional: true,
 				Default:  false,
+			},
+
+			"managed_services_cmk_key_vault_key_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: keyVaultValidate.KeyVaultChildID,
 			},
 
 			"infrastructure_encryption_enabled": {
@@ -264,6 +273,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			_, publicNetworkAccess := d.GetChange("public_network_access_enabled")
 			_, requireNsgRules := d.GetChange("network_security_group_rules_required")
 			_, backendPool := d.GetChange("load_balancer_backend_address_pool_id")
+			_, managedServicesCMK := d.GetChange("managed_services_cmk_key_vault_key_id")
 
 			oldSku, newSku := d.GetChange("sku")
 
@@ -289,8 +299,8 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				}
 			}
 
-			if (customerEncryptionEnabled.(bool) || infrastructureEncryptionEnabled.(bool)) && !strings.EqualFold("premium", newSku.(string)) {
-				return fmt.Errorf("'customer_managed_key_enabled' and 'infrastructure_encryption_enabled' are only available with a 'premium' workspace 'sku', got %q", newSku)
+			if (customerEncryptionEnabled.(bool) || infrastructureEncryptionEnabled.(bool) || managedServicesCMK.(string) != "") && !strings.EqualFold("premium", newSku.(string)) {
+				return fmt.Errorf("'customer_managed_key_enabled', 'infrastructure_encryption_enabled' and 'managed_services_cmk_key_vault_key_id' are only available with a 'premium' workspace 'sku', got %q", newSku)
 			}
 
 			return nil
@@ -301,6 +311,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -392,6 +403,34 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
+	// Set up customer-managed keys for managed services encryption (e.g. notebook)
+	encrypt := &databricks.WorkspacePropertiesEncryption{}
+	keyIdRaw := d.Get("managed_services_cmk_key_vault_key_id").(string)
+	if keyIdRaw != "" {
+		key, err := keyVaultParse.ParseNestedItemID(keyIdRaw)
+		if err != nil {
+			return err
+		}
+
+		encrypt.Entities = &databricks.EncryptionEntitiesDefinition{
+			ManagedServices: &databricks.EncryptionV2{
+				// There is only one valid source for this field at this point in time so I have hardcoded the value
+				KeySource: utils.String(string(databricks.KeySourceMicrosoftKeyvault)),
+				KeyVaultProperties: &databricks.EncryptionV2KeyVaultProperties{
+					KeyName:     utils.String(key.Name),
+					KeyVersion:  utils.String(key.Version),
+					KeyVaultURI: utils.String(key.KeyVaultBaseUrl),
+				},
+			},
+		}
+
+		// make sure the key vault exists
+		keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, meta.(*clients.Client).Resource, key.KeyVaultBaseUrl)
+		if err != nil || keyVaultIdRaw == nil {
+			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
+		}
+	}
+
 	// Including the Tags in the workspace parameters will update the tags on
 	// the workspace only
 	workspace := databricks.Workspace{
@@ -409,6 +448,10 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	if requireNsgRules != "" {
 		workspace.WorkspaceProperties.RequiredNsgRules = databricks.RequiredNsgRules(requireNsgRules)
+	}
+
+	if encrypt.Entities != nil {
+		workspace.WorkspaceProperties.Encryption = encrypt
 	}
 
 	future, err := client.CreateOrUpdate(ctx, workspace, id.ResourceGroup, id.Name)
@@ -452,6 +495,10 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	if err := d.Set("custom_parameters", custom); err != nil {
 		return fmt.Errorf("setting `custom_parameters`: %+v", err)
+	}
+
+	if encrypt != nil && keyIdRaw != "" {
+		d.Set("managed_services_cmk_key_vault_key_id", keyIdRaw)
 	}
 
 	return resourceDatabricksWorkspaceRead(d, meta)
@@ -539,6 +586,32 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 		if props.WorkspaceID != nil {
 			d.Set("workspace_id", props.WorkspaceID)
+		}
+	}
+
+	// customer managed key for managed services
+	encryptKeyName := ""
+	encryptKeyVersion := ""
+	encryptKeyVaultURI := ""
+
+	if resp.WorkspaceProperties.Encryption != nil {
+		if props := resp.WorkspaceProperties.Encryption.Entities; props != nil {
+			if props.ManagedServices.KeyVaultProperties.KeyName != nil {
+				encryptKeyName = *props.ManagedServices.KeyVaultProperties.KeyName
+			}
+			if props.ManagedServices.KeyVaultProperties.KeyVersion != nil {
+				encryptKeyVersion = *props.ManagedServices.KeyVaultProperties.KeyVersion
+			}
+			if props.ManagedServices.KeyVaultProperties.KeyVaultURI != nil {
+				encryptKeyVaultURI = *props.ManagedServices.KeyVaultProperties.KeyVaultURI
+			}
+		}
+	}
+
+	if encryptKeyVaultURI != "" {
+		key, err := keyVaultParse.NewNestedItemID(encryptKeyVaultURI, "keys", encryptKeyName, encryptKeyVersion)
+		if err == nil {
+			d.Set("managed_services_cmk_key_vault_key_id", key.ID())
 		}
 	}
 
