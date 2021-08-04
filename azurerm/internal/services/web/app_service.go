@@ -490,12 +490,12 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
-				"acr_use_managed_identity_creds": {
+				"acr_use_managed_identity_credentials": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
-				"acr_user_managed_identity_id": {
+				"acr_user_managed_identity_client_id": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
@@ -832,7 +832,7 @@ func schemaAppServiceDataSourceSiteConfig() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
-				"acr_user_managed_identity_id": {
+				"acr_user_managed_identity_client_id": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -1794,7 +1794,7 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 		siteConfig.AcrUseManagedIdentityCreds = utils.Bool(v.(bool))
 	}
 
-	if v, ok := config["acr_user_managed_identity_id"]; ok {
+	if v, ok := config["acr_user_managed_identity_client_id"]; ok {
 		siteConfig.AcrUserManagedIdentityID = utils.String(v.(string))
 	}
 
@@ -1914,7 +1914,7 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	}
 
 	if input.AcrUserManagedIdentityID != nil {
-		result["acr_user_managed_identity_id"] = *input.AcrUserManagedIdentityID
+		result["acr_user_managed_identity_client_id"] = *input.AcrUserManagedIdentityID
 	}
 
 	return append(results, result)
