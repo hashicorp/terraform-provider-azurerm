@@ -303,14 +303,6 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
-
-				"organizational_unit_dn": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Computed:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
 			},
 		},
 	}
@@ -1123,10 +1115,6 @@ func ExpandHDInsightSecurityProfile(input []interface{}) *hdinsight.SecurityProf
 		result.ClusterUsersGroupDNS = utils.ExpandStringSlice(clusterUsersGroupDNS)
 	}
 
-	if organizationalUnitDN := v["organizational_unit_dn"].(string); organizationalUnitDN != "" {
-		result.OrganizationalUnitDN = utils.String(organizationalUnitDN)
-	}
-
 	return &result
 }
 
@@ -1342,11 +1330,6 @@ func flattenHDInsightSecurityProfile(input *hdinsight.SecurityProfile) []interfa
 		msiResourceId = *input.MsiResourceID
 	}
 
-	var organizationalUnitDN string
-	if input.OrganizationalUnitDN != nil {
-		organizationalUnitDN = *input.OrganizationalUnitDN
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"aadds_resource_id":       aaddsResourceId,
@@ -1355,7 +1338,6 @@ func flattenHDInsightSecurityProfile(input *hdinsight.SecurityProfile) []interfa
 			"domain_username":         domainUsername,
 			"ldaps_urls":              utils.FlattenStringSlice(input.LdapsUrls),
 			"msi_resource_id":         msiResourceId,
-			"organizational_unit_dn":  organizationalUnitDN,
 		},
 	}
 }
