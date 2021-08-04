@@ -2212,7 +2212,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   tier                = "Premium"
 
   component_version {
-    spark = "3.1"
+    hadoop = "3.1"
   }
 
   gateway {

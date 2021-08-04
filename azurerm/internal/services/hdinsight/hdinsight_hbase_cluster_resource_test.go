@@ -1494,7 +1494,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   tier                = "Premium"
 
   component_version {
-    spark = "2.1"
+    hbase = "2.1"
   }
 
   gateway {

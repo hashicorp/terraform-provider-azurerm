@@ -1903,7 +1903,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   tier                = "Premium"
 
   component_version {
-    spark = "3.1"
+    interactive_hive = "3.1"
   }
 
   gateway {

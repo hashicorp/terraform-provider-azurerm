@@ -1572,7 +1572,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   tier                = "Premium"
 
   component_version {
-    spark = "2.1"
+    kafka = "2.1"
   }
 
   gateway {
