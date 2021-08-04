@@ -70,7 +70,7 @@ func (PostgresqlFlexibleServerDatabaseResource) Exists(ctx context.Context, clie
 
 	resp, err := clients.Postgres.FlexibleServerDatabaseClient.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.DatabaseName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Azure Postgresql Flexible Server database %q on server %q (Resource Group: %q): %+v", id.DatabaseName, id.FlexibleServerName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.DatabaseProperties != nil), nil

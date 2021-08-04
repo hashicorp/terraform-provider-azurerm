@@ -83,7 +83,7 @@ func resourcePostgresqlFlexibleServerDatabaseCreate(d *pluginsdk.ResourceData, m
 		existing, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing %q: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing %q: %+v", id, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -100,11 +100,11 @@ func resourcePostgresqlFlexibleServerDatabaseCreate(d *pluginsdk.ResourceData, m
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.FlexibleServerName, id.DatabaseName, properties)
 	if err != nil {
-		return fmt.Errorf("creating Azure Postgresql Flexible Server database %q on server %q (Resource Group %q): %+v", id.DatabaseName, id.FlexibleServerName, id.ResourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Azure Postgresql Flexible Server database %q on server %q (Resource Group %q): %+v", id.DatabaseName, id.FlexibleServerName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -125,16 +125,19 @@ func resourcePostgresqlFlexibleServerDatabaseRead(d *pluginsdk.ResourceData, met
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.DatabaseName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Azure Postgresql Flexible Server database %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %q: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	d.Set("name", id.DatabaseName)
 	d.Set("server_id", parse.NewFlexibleServerID(subscriptionId, id.ResourceGroup, id.FlexibleServerName).ID())
-	d.Set("charset", resp.Charset)
-	d.Set("collation", resp.Collation)
+
+	if props := resp.DatabaseProperties; props != nil {
+		d.Set("charset", props.Charset)
+		d.Set("collation", props.Collation)
+	}
 
 	return nil
 }
@@ -151,11 +154,11 @@ func resourcePostgresqlFlexibleServerDatabaseDelete(d *pluginsdk.ResourceData, m
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.FlexibleServerName, id.DatabaseName)
 	if err != nil {
-		return fmt.Errorf("deleting Azure Postgresql Flexible Server database %q on server %q (Resource Group %q): %+v", id.DatabaseName, id.FlexibleServerName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deleting of Azure Postgresql Flexible Server database %q on server %q (Resource Group %q): %+v", id.DatabaseName, id.FlexibleServerName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deleting of %s: %+v", *id, err)
 	}
 
 	return nil
