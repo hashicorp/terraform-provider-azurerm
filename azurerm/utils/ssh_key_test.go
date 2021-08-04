@@ -1,8 +1,8 @@
-package compute
+package utils
 
 import "testing"
 
-func TestNormaliseSSHKey(t *testing.T) {
+func TestNormalizeSSHKey(t *testing.T) {
 	cases := []struct {
 		Input    string
 		Error    bool
@@ -104,10 +104,10 @@ func TestNormaliseSSHKey(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Input, func(t *testing.T) {
-			output, err := NormaliseSSHKey(tc.Input)
+			output, err := NormalizeSSHKey(tc.Input)
 			if err != nil {
 				if !tc.Error {
-					t.Fatalf("expected NormaliseSSHKey to error")
+					t.Fatalf("expected NormalizeSSHKey to error")
 				}
 			}
 			if output != nil && *output != tc.Expected {
