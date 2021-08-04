@@ -252,7 +252,7 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: azure.ValidateResourceID,
 				},
 
 				"domain_name": {

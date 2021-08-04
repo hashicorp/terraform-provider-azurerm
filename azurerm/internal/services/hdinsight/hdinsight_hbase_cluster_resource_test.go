@@ -434,7 +434,9 @@ func TestAccHDInsightHBaseCluster_securityProfile(t *testing.T) {
 			"roles.0.worker_node.0.vm_size",
 			"roles.0.zookeeper_node.0.password",
 			"roles.0.zookeeper_node.0.vm_size",
-			"storage_account"),
+			"storage_account",
+			"security_profile.0.domain_user_password",
+			"gateway.0.password"),
 	})
 }
 
@@ -1325,9 +1327,35 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
 
 func (r HDInsightHBaseClusterResource) securityProfile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
 
 provider "azuread" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRGhdi-%d"
+  location = "%s"
+
+  tags = {
+    StorageType = "Standard_LRS"
+    type        = "test"
+  }
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestsc-%d"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestVnet-%d"
@@ -1549,5 +1577,5 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
     azurerm_virtual_network_dns_servers.test,
   ]
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
 }
