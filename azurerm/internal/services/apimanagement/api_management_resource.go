@@ -1079,7 +1079,7 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 		output.NegotiateClientCertificate = utils.Bool(v.(bool))
 	}
 
-	if v, ok := input["identity_client_id"].(string); ok && v != "" {
+	if v, ok := input["ssl_keyvault_identity_client_id"].(string); ok && v != "" {
 		output.IdentityClientID = utils.String(v)
 	}
 
@@ -1119,7 +1119,7 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 		}
 
 		if config.IdentityClientID != nil {
-			output["identity_client_id"] = *config.IdentityClientID
+			output["ssl_keyvault_identity_client_id"] = *config.IdentityClientID
 		}
 
 		var configType string

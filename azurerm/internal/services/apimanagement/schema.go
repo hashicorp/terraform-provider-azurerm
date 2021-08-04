@@ -46,7 +46,7 @@ func apiManagementResourceHostnameSchema() map[string]*pluginsdk.Schema {
 
 		"certificate_information": schemaz.SchemaApiManagementCertificate(),
 
-		"identity_client_id": {
+		"ssl_keyvault_identity_client_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsUUID,

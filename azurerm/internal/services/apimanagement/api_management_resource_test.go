@@ -1635,11 +1635,11 @@ resource "azurerm_api_management" "test" {
 
   hostname_configuration {
     proxy {
-      host_name                    = "api.terraform.io"
-      key_vault_id                 = azurerm_key_vault_certificate.test.secret_id
-      default_ssl_binding          = true
-      negotiate_client_certificate = false
-      identity_client_id           = azurerm_user_assigned_identity.test.client_id
+      host_name                       = "api.terraform.io"
+      key_vault_id                    = azurerm_key_vault_certificate.test.secret_id
+      default_ssl_binding             = true
+      negotiate_client_certificate    = false
+      ssl_keyvault_identity_client_id = azurerm_user_assigned_identity.test.client_id
     }
   }
 
