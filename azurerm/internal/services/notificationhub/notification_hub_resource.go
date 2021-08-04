@@ -7,6 +7,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub/migration"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -38,6 +42,10 @@ func resourceNotificationHub() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.NotificationHubID(id)
 			return err
+		}),
+
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.NotificationHubResourceV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -146,29 +154,26 @@ func resourceNotificationHub() *pluginsdk.Resource {
 
 func resourceNotificationHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	namespaceName := d.Get("namespace_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-
+	id := parse.NewNotificationHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_notification_hub", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_notification_hub", id.ID())
 		}
 	}
 
 	parameters := notificationhubs.CreateOrUpdateParameters{
-		Location: utils.String(location),
+		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &notificationhubs.Properties{
 			ApnsCredential: expandNotificationHubsAPNSCredentials(d.Get("apns_credential").([]interface{})),
 			GcmCredential:  expandNotificationHubsGCMCredentials(d.Get("gcm_credential").([]interface{})),
@@ -176,53 +181,41 @@ func resourceNotificationHubCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
-		return fmt.Errorf("Error creating Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.NamespaceName, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	// Notification Hubs are eventually consistent
-	log.Printf("[DEBUG] Waiting for Notification Hub %q to become available", name)
+	log.Printf("[DEBUG] Waiting for %s to become available..", id)
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
-		Refresh:                   notificationHubStateRefreshFunc(ctx, client, resourceGroup, namespaceName, name),
+		Refresh:                   notificationHubStateRefreshFunc(ctx, client, id),
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 10,
+		Timeout:                   time.Until(deadline),
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 	}
 
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
-	}
-
-	if _, err2 := stateConf.WaitForStateContext(ctx); err2 != nil {
-		return fmt.Errorf("Error waiting for Notification Hub %q to become available: %s", name, err2)
-	}
-
-	read, err := client.Get(ctx, resourceGroup, namespaceName, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Notification Hub %q (Namespace %q / Resource Group %q) ID", name, namespaceName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceNotificationHubRead(d, meta)
 }
 
-func notificationHubStateRefreshFunc(ctx context.Context, client *notificationhubs.Client, resourceGroup, namespaceName, name string) pluginsdk.StateRefreshFunc {
+func notificationHubStateRefreshFunc(ctx context.Context, client *notificationhubs.Client, id parse.NotificationHubId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroup, namespaceName, name)
+		res, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 		if err != nil {
 			if utils.ResponseWasNotFound(res.Response) {
 				return nil, "404", nil
 			}
 
-			return nil, "", fmt.Errorf("Error retrieving Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
+			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil
@@ -242,35 +235,33 @@ func resourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) er
 	resp, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Notification Hub %q was not found in Namespace %q / Resource Group %q", id.Name, id.NamespaceName, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Notification Hub %q (Namespace %q / Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	credentials, err := client.GetPnsCredentials(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Credentials for Notification Hub %q (Namespace %q / Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving credentials for %s: %+v", *id, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := credentials.PnsCredentialsProperties; props != nil {
 		apns := flattenNotificationHubsAPNSCredentials(props.ApnsCredential)
 		if setErr := d.Set("apns_credential", apns); setErr != nil {
-			return fmt.Errorf("Error setting `apns_credential`: %+v", setErr)
+			return fmt.Errorf("setting `apns_credential`: %+v", setErr)
 		}
 
 		gcm := flattenNotificationHubsGCMCredentials(props.GcmCredential)
 		if setErr := d.Set("gcm_credential", gcm); setErr != nil {
-			return fmt.Errorf("Error setting `gcm_credential`: %+v", setErr)
+			return fmt.Errorf("setting `gcm_credential`: %+v", setErr)
 		}
 	}
 
@@ -290,7 +281,7 @@ func resourceNotificationHubDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting Notification Hub %q (Namespace %q / Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 
