@@ -81,7 +81,7 @@ func (client Client) CheckNameAvailabilityPreparer(ctx context.Context, paramete
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -166,7 +166,7 @@ func (client Client) CreatePreparer(ctx context.Context, resourceGroupName strin
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -246,7 +246,7 @@ func (client Client) DeletePreparer(ctx context.Context, resourceGroupName strin
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -331,7 +331,7 @@ func (client Client) ExportDataPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -419,7 +419,7 @@ func (client Client) ForceRebootPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -497,7 +497,7 @@ func (client Client) GetPreparer(ctx context.Context, resourceGroupName string, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -573,7 +573,7 @@ func (client Client) ImportDataPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -662,7 +662,7 @@ func (client Client) ListByResourceGroupPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -775,7 +775,7 @@ func (client Client) ListBySubscriptionPreparer(ctx context.Context) (*http.Requ
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -888,7 +888,7 @@ func (client Client) ListKeysPreparer(ctx context.Context, resourceGroupName str
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -924,17 +924,18 @@ func (client Client) ListKeysResponder(resp *http.Response) (result AccessKeys, 
 // resourceGroupName - the name of the resource group.
 // name - the name of the Redis cache.
 // history - how many minutes in past to look for upgrade notifications
-func (client Client) ListUpgradeNotifications(ctx context.Context, resourceGroupName string, name string, history float64) (result NotificationListResponse, err error) {
+func (client Client) ListUpgradeNotifications(ctx context.Context, resourceGroupName string, name string, history float64) (result NotificationListResponsePage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/Client.ListUpgradeNotifications")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.nlr.Response.Response != nil {
+				sc = result.nlr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	result.fn = client.listUpgradeNotificationsNextResults
 	req, err := client.ListUpgradeNotificationsPreparer(ctx, resourceGroupName, name, history)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.Client", "ListUpgradeNotifications", nil, "Failure preparing request")
@@ -943,14 +944,18 @@ func (client Client) ListUpgradeNotifications(ctx context.Context, resourceGroup
 
 	resp, err := client.ListUpgradeNotificationsSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.nlr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "redis.Client", "ListUpgradeNotifications", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListUpgradeNotificationsResponder(resp)
+	result.nlr, err = client.ListUpgradeNotificationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.Client", "ListUpgradeNotifications", resp, "Failure responding to request")
+		return
+	}
+	if result.nlr.hasNextLink() && result.nlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 		return
 	}
 
@@ -965,7 +970,7 @@ func (client Client) ListUpgradeNotificationsPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 		"history":     autorest.Encode("query", history),
@@ -994,6 +999,43 @@ func (client Client) ListUpgradeNotificationsResponder(resp *http.Response) (res
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listUpgradeNotificationsNextResults retrieves the next set of results, if any.
+func (client Client) listUpgradeNotificationsNextResults(ctx context.Context, lastResults NotificationListResponse) (result NotificationListResponse, err error) {
+	req, err := lastResults.notificationListResponsePreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "redis.Client", "listUpgradeNotificationsNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListUpgradeNotificationsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "redis.Client", "listUpgradeNotificationsNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListUpgradeNotificationsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "redis.Client", "listUpgradeNotificationsNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListUpgradeNotificationsComplete enumerates all values, automatically crossing page boundaries as required.
+func (client Client) ListUpgradeNotificationsComplete(ctx context.Context, resourceGroupName string, name string, history float64) (result NotificationListResponseIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/Client.ListUpgradeNotifications")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListUpgradeNotifications(ctx, resourceGroupName, name, history)
 	return
 }
 
@@ -1043,7 +1085,7 @@ func (client Client) RegenerateKeyPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1122,7 +1164,7 @@ func (client Client) UpdatePreparer(ctx context.Context, resourceGroupName strin
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -37,7 +37,7 @@ func NewFirewallRulesClientWithBaseURI(baseURI string, subscriptionID string) Fi
 // cacheName - the name of the Redis cache.
 // ruleName - the name of the firewall rule.
 // parameters - parameters supplied to the create or update redis firewall rule operation.
-func (client FirewallRulesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, cacheName string, ruleName string, parameters FirewallRuleCreateParameters) (result FirewallRule, err error) {
+func (client FirewallRulesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, cacheName string, ruleName string, parameters FirewallRule) (result FirewallRule, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/FirewallRulesClient.CreateOrUpdate")
 		defer func() {
@@ -80,7 +80,7 @@ func (client FirewallRulesClient) CreateOrUpdate(ctx context.Context, resourceGr
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client FirewallRulesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, cacheName string, ruleName string, parameters FirewallRuleCreateParameters) (*http.Request, error) {
+func (client FirewallRulesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, cacheName string, ruleName string, parameters FirewallRule) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"cacheName":         autorest.Encode("path", cacheName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -88,7 +88,7 @@ func (client FirewallRulesClient) CreateOrUpdatePreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -168,7 +168,7 @@ func (client FirewallRulesClient) DeletePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -245,7 +245,7 @@ func (client FirewallRulesClient) GetPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -326,7 +326,7 @@ func (client FirewallRulesClient) ListPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-01"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

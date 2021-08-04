@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-06-01/redis"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-12-01/redis"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -81,9 +81,9 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(redis.Basic),
-					string(redis.Standard),
-					string(redis.Premium),
+					string(redis.SkuNameBasic),
+					string(redis.SkuNameStandard),
+					string(redis.SkuNamePremium),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -91,11 +91,11 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  redis.OneFullStopZero,
+				Default:  redis.TLSVersionOneFullStopZero,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(redis.OneFullStopZero),
-					string(redis.OneFullStopOne),
-					string(redis.OneFullStopTwo),
+					string(redis.TLSVersionOneFullStopZero),
+					string(redis.TLSVersionOneFullStopOne),
+					string(redis.TLSVersionOneFullStopTwo),
 				}, false),
 			},
 
@@ -289,8 +289,39 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"replicas_per_master": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
+				Computed: true,
 				// Can't make more than 3 replicas in portal, assuming it's a limitation
 				ValidateFunc: validation.IntBetween(1, 3),
+			},
+
+			"replicas_per_primary": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(1, 3),
+			},
+
+			"tenant_settings": {
+				Type:     pluginsdk.TypeMap,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"redis_version": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice([]string{"4", "6"}, false),
+				DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
+					n := strings.Split(old, ".")
+					if len(n) >= 1 {
+						newMajor := n[0]
+						return new == newMajor
+					}
+					return false
+				},
 			},
 
 			"tags": tags.Schema(),
@@ -333,9 +364,9 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("parsing Redis Configuration: %+v", err)
 	}
 
-	publicNetworkAccess := redis.Enabled
+	publicNetworkAccess := redis.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess = redis.Disabled
+		publicNetworkAccess = redis.PublicNetworkAccessDisabled
 	}
 
 	parameters := redis.CreateParameters{
@@ -361,6 +392,18 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if v, ok := d.GetOk("replicas_per_master"); ok {
 		parameters.ReplicasPerMaster = utils.Int32(int32(v.(int)))
+	}
+
+	if v, ok := d.GetOk("replicas_per_primary"); ok {
+		parameters.ReplicasPerPrimary = utils.Int32(int32(v.(int)))
+	}
+
+	if v, ok := d.GetOk("redis_version"); ok {
+		parameters.RedisVersion = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("tenant_settings"); ok {
+		parameters.TenantSettings = expandTenantSettings(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("private_static_ip_address"); ok {
@@ -466,10 +509,28 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
+	if v, ok := d.GetOk("replicas_per_primary"); ok {
+		if d.HasChange("replicas_per_primary") {
+			parameters.ReplicasPerPrimary = utils.Int32(int32(v.(int)))
+		}
+	}
+
+	if v, ok := d.GetOk("redis_version"); ok {
+		if d.HasChange("redis_version") {
+			parameters.RedisVersion = utils.String(v.(string))
+		}
+	}
+
+	if v, ok := d.GetOk("tenant_settings"); ok {
+		if d.HasChange("tenant_settings") {
+			parameters.TenantSettings = expandTenantSettings(v.(map[string]interface{}))
+		}
+	}
+
 	if d.HasChange("public_network_access_enabled") {
-		publicNetworkAccess := redis.Enabled
+		publicNetworkAccess := redis.PublicNetworkAccessEnabled
 		if !d.Get("public_network_access_enabled").(bool) {
-			publicNetworkAccess = redis.Disabled
+			publicNetworkAccess = redis.PublicNetworkAccessDisabled
 		}
 		parameters.PublicNetworkAccess = publicNetworkAccess
 	}
@@ -585,8 +646,11 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		d.Set("subnet_id", subnetId)
 
-		d.Set("public_network_access_enabled", props.PublicNetworkAccess == redis.Enabled)
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == redis.PublicNetworkAccessEnabled)
 		d.Set("replicas_per_master", props.ReplicasPerMaster)
+		d.Set("replicas_per_primary", props.ReplicasPerPrimary)
+		d.Set("redis_version", props.RedisVersion)
+		d.Set("tenant_settings", flattenTenantSettings(props.TenantSettings))
 	}
 
 	redisConfiguration, err := flattenRedisConfiguration(resp.RedisConfiguration)
@@ -774,6 +838,26 @@ func expandRedisPatchSchedule(d *pluginsdk.ResourceData) *redis.PatchSchedule {
 	return &schedule
 }
 
+func expandTenantSettings(input map[string]interface{}) map[string]*string {
+	output := make(map[string]*string, len(input))
+
+	for i, v := range input {
+		output[i] = utils.String(v.(string))
+	}
+	return output
+}
+
+func flattenTenantSettings(input map[string]*string) map[string]*string {
+	output := make(map[string]*string, len(input))
+
+	for i, v := range input {
+		if v == nil {
+			continue
+		}
+		output[i] = v
+	}
+	return output
+}
 func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) {
 	outputs := make(map[string]interface{}, len(input))
 

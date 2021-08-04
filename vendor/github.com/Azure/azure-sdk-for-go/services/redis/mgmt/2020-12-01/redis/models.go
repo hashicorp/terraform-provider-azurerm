@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-06-01/redis"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-12-01/redis"
 
 // AccessKeys redis cache access keys.
 type AccessKeys struct {
@@ -35,6 +35,24 @@ func (ak AccessKeys) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// AzureEntityResource the resource model definition for an Azure Resource Manager resource with an etag.
+type AzureEntityResource struct {
+	// Etag - READ-ONLY; Resource Etag.
+	Etag *string `json:"etag,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AzureEntityResource.
+func (aer AzureEntityResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // CheckNameAvailabilityParameters parameters body to pass for resource name availability check.
 type CheckNameAvailabilityParameters struct {
 	// Name - Resource name.
@@ -47,17 +65,21 @@ type CheckNameAvailabilityParameters struct {
 type CommonProperties struct {
 	// RedisConfiguration - All Redis Settings. Few possible keys: rdb-backup-enabled,rdb-storage-connection-string,rdb-backup-frequency,maxmemory-delta,maxmemory-policy,notify-keyspace-events,maxmemory-samples,slowlog-log-slower-than,slowlog-max-len,list-max-ziplist-entries,list-max-ziplist-value,hash-max-ziplist-entries,hash-max-ziplist-value,set-max-intset-entries,zset-max-ziplist-entries,zset-max-ziplist-value etc.
 	RedisConfiguration map[string]*string `json:"redisConfiguration"`
+	// RedisVersion - Redis version. Only major version will be used in PUT/PATCH request with current valid values: (4, 6)
+	RedisVersion *string `json:"redisVersion,omitempty"`
 	// EnableNonSslPort - Specifies whether the non-ssl Redis server port (6379) is enabled.
 	EnableNonSslPort *bool `json:"enableNonSslPort,omitempty"`
-	// ReplicasPerMaster - The number of replicas to be created per master.
+	// ReplicasPerMaster - The number of replicas to be created per primary.
 	ReplicasPerMaster *int32 `json:"replicasPerMaster,omitempty"`
+	// ReplicasPerPrimary - The number of replicas to be created per primary.
+	ReplicasPerPrimary *int32 `json:"replicasPerPrimary,omitempty"`
 	// TenantSettings - A dictionary of tenant settings
 	TenantSettings map[string]*string `json:"tenantSettings"`
 	// ShardCount - The number of shards to be created on a Premium Cluster Cache.
 	ShardCount *int32 `json:"shardCount,omitempty"`
-	// MinimumTLSVersion - Optional: requires clients to use a specified TLS version (or higher) to connect (e,g, '1.0', '1.1', '1.2'). Possible values include: 'OneFullStopZero', 'OneFullStopOne', 'OneFullStopTwo'
+	// MinimumTLSVersion - Optional: requires clients to use a specified TLS version (or higher) to connect (e,g, '1.0', '1.1', '1.2'). Possible values include: 'TLSVersionOneFullStopZero', 'TLSVersionOneFullStopOne', 'TLSVersionOneFullStopTwo'
 	MinimumTLSVersion TLSVersion `json:"minimumTlsVersion,omitempty"`
-	// PublicNetworkAccess - Whether or not public endpoint access is allowed for this cache.  Value is optional but if passed in, must be 'Enabled' or 'Disabled'. If 'Disabled', private endpoints are the exclusive access method. Default value is 'Enabled'. Possible values include: 'Enabled', 'Disabled'
+	// PublicNetworkAccess - Whether or not public endpoint access is allowed for this cache.  Value is optional but if passed in, must be 'Enabled' or 'Disabled'. If 'Disabled', private endpoints are the exclusive access method. Default value is 'Enabled'. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
 	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
@@ -67,11 +89,17 @@ func (cp CommonProperties) MarshalJSON() ([]byte, error) {
 	if cp.RedisConfiguration != nil {
 		objectMap["redisConfiguration"] = cp.RedisConfiguration
 	}
+	if cp.RedisVersion != nil {
+		objectMap["redisVersion"] = cp.RedisVersion
+	}
 	if cp.EnableNonSslPort != nil {
 		objectMap["enableNonSslPort"] = cp.EnableNonSslPort
 	}
 	if cp.ReplicasPerMaster != nil {
 		objectMap["replicasPerMaster"] = cp.ReplicasPerMaster
+	}
+	if cp.ReplicasPerPrimary != nil {
+		objectMap["replicasPerPrimary"] = cp.ReplicasPerPrimary
 	}
 	if cp.TenantSettings != nil {
 		objectMap["tenantSettings"] = cp.TenantSettings
@@ -221,17 +249,21 @@ type CreateProperties struct {
 	StaticIP *string `json:"staticIP,omitempty"`
 	// RedisConfiguration - All Redis Settings. Few possible keys: rdb-backup-enabled,rdb-storage-connection-string,rdb-backup-frequency,maxmemory-delta,maxmemory-policy,notify-keyspace-events,maxmemory-samples,slowlog-log-slower-than,slowlog-max-len,list-max-ziplist-entries,list-max-ziplist-value,hash-max-ziplist-entries,hash-max-ziplist-value,set-max-intset-entries,zset-max-ziplist-entries,zset-max-ziplist-value etc.
 	RedisConfiguration map[string]*string `json:"redisConfiguration"`
+	// RedisVersion - Redis version. Only major version will be used in PUT/PATCH request with current valid values: (4, 6)
+	RedisVersion *string `json:"redisVersion,omitempty"`
 	// EnableNonSslPort - Specifies whether the non-ssl Redis server port (6379) is enabled.
 	EnableNonSslPort *bool `json:"enableNonSslPort,omitempty"`
-	// ReplicasPerMaster - The number of replicas to be created per master.
+	// ReplicasPerMaster - The number of replicas to be created per primary.
 	ReplicasPerMaster *int32 `json:"replicasPerMaster,omitempty"`
+	// ReplicasPerPrimary - The number of replicas to be created per primary.
+	ReplicasPerPrimary *int32 `json:"replicasPerPrimary,omitempty"`
 	// TenantSettings - A dictionary of tenant settings
 	TenantSettings map[string]*string `json:"tenantSettings"`
 	// ShardCount - The number of shards to be created on a Premium Cluster Cache.
 	ShardCount *int32 `json:"shardCount,omitempty"`
-	// MinimumTLSVersion - Optional: requires clients to use a specified TLS version (or higher) to connect (e,g, '1.0', '1.1', '1.2'). Possible values include: 'OneFullStopZero', 'OneFullStopOne', 'OneFullStopTwo'
+	// MinimumTLSVersion - Optional: requires clients to use a specified TLS version (or higher) to connect (e,g, '1.0', '1.1', '1.2'). Possible values include: 'TLSVersionOneFullStopZero', 'TLSVersionOneFullStopOne', 'TLSVersionOneFullStopTwo'
 	MinimumTLSVersion TLSVersion `json:"minimumTlsVersion,omitempty"`
-	// PublicNetworkAccess - Whether or not public endpoint access is allowed for this cache.  Value is optional but if passed in, must be 'Enabled' or 'Disabled'. If 'Disabled', private endpoints are the exclusive access method. Default value is 'Enabled'. Possible values include: 'Enabled', 'Disabled'
+	// PublicNetworkAccess - Whether or not public endpoint access is allowed for this cache.  Value is optional but if passed in, must be 'Enabled' or 'Disabled'. If 'Disabled', private endpoints are the exclusive access method. Default value is 'Enabled'. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
 	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
@@ -250,11 +282,17 @@ func (cp CreateProperties) MarshalJSON() ([]byte, error) {
 	if cp.RedisConfiguration != nil {
 		objectMap["redisConfiguration"] = cp.RedisConfiguration
 	}
+	if cp.RedisVersion != nil {
+		objectMap["redisVersion"] = cp.RedisVersion
+	}
 	if cp.EnableNonSslPort != nil {
 		objectMap["enableNonSslPort"] = cp.EnableNonSslPort
 	}
 	if cp.ReplicasPerMaster != nil {
 		objectMap["replicasPerMaster"] = cp.ReplicasPerMaster
+	}
+	if cp.ReplicasPerPrimary != nil {
+		objectMap["replicasPerPrimary"] = cp.ReplicasPerPrimary
 	}
 	if cp.TenantSettings != nil {
 		objectMap["tenantSettings"] = cp.TenantSettings
@@ -400,11 +438,11 @@ type FirewallRule struct {
 	autorest.Response `json:"-"`
 	// FirewallRuleProperties - redis cache firewall rule properties
 	*FirewallRuleProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource ID.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -468,10 +506,17 @@ func (fr *FirewallRule) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// FirewallRuleCreateParameters parameters required for creating a firewall rule on redis cache.
+// FirewallRuleCreateParameters parameters required for creating a firewall rule on redis cache. (Note, you
+// can just use the FirewallRule type instead now.)
 type FirewallRuleCreateParameters struct {
-	// FirewallRuleProperties - Properties required to create a firewall rule .
+	// FirewallRuleProperties - redis cache firewall rule properties
 	*FirewallRuleProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for FirewallRuleCreateParameters.
@@ -500,6 +545,33 @@ func (frcp *FirewallRuleCreateParameters) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				frcp.FirewallRuleProperties = &firewallRuleProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				frcp.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				frcp.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				frcp.Type = &typeVar
 			}
 		}
 	}
@@ -750,8 +822,10 @@ type InstanceDetails struct {
 	Zone *string `json:"zone,omitempty"`
 	// ShardID - READ-ONLY; If clustering is enabled, the Shard ID of Redis Instance
 	ShardID *int32 `json:"shardId,omitempty"`
-	// IsMaster - READ-ONLY; Specifies whether the instance is a master node.
+	// IsMaster - READ-ONLY; Specifies whether the instance is a primary node.
 	IsMaster *bool `json:"isMaster,omitempty"`
+	// IsPrimary - READ-ONLY; Specifies whether the instance is a primary node.
+	IsPrimary *bool `json:"isPrimary,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for InstanceDetails.
@@ -896,11 +970,11 @@ type LinkedServerWithProperties struct {
 	autorest.Response `json:"-"`
 	// LinkedServerProperties - Properties of the linked server.
 	*LinkedServerProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource ID.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1319,6 +1393,156 @@ func (nlr NotificationListResponse) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// NotificationListResponseIterator provides access to a complete listing of UpgradeNotification values.
+type NotificationListResponseIterator struct {
+	i    int
+	page NotificationListResponsePage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *NotificationListResponseIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/NotificationListResponseIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *NotificationListResponseIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter NotificationListResponseIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter NotificationListResponseIterator) Response() NotificationListResponse {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter NotificationListResponseIterator) Value() UpgradeNotification {
+	if !iter.page.NotDone() {
+		return UpgradeNotification{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the NotificationListResponseIterator type.
+func NewNotificationListResponseIterator(page NotificationListResponsePage) NotificationListResponseIterator {
+	return NotificationListResponseIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (nlr NotificationListResponse) IsEmpty() bool {
+	return nlr.Value == nil || len(*nlr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (nlr NotificationListResponse) hasNextLink() bool {
+	return nlr.NextLink != nil && len(*nlr.NextLink) != 0
+}
+
+// notificationListResponsePreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (nlr NotificationListResponse) notificationListResponsePreparer(ctx context.Context) (*http.Request, error) {
+	if !nlr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(nlr.NextLink)))
+}
+
+// NotificationListResponsePage contains a page of UpgradeNotification values.
+type NotificationListResponsePage struct {
+	fn  func(context.Context, NotificationListResponse) (NotificationListResponse, error)
+	nlr NotificationListResponse
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *NotificationListResponsePage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/NotificationListResponsePage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.nlr)
+		if err != nil {
+			return err
+		}
+		page.nlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *NotificationListResponsePage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page NotificationListResponsePage) NotDone() bool {
+	return !page.nlr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page NotificationListResponsePage) Response() NotificationListResponse {
+	return page.nlr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page NotificationListResponsePage) Values() []UpgradeNotification {
+	if page.nlr.IsEmpty() {
+		return nil
+	}
+	return *page.nlr.Value
+}
+
+// Creates a new instance of the NotificationListResponsePage type.
+func NewNotificationListResponsePage(cur NotificationListResponse, getNextPage func(context.Context, NotificationListResponse) (NotificationListResponse, error)) NotificationListResponsePage {
+	return NotificationListResponsePage{
+		fn:  getNextPage,
+		nlr: cur,
+	}
+}
+
 // Operation REST API operation
 type Operation struct {
 	// Name - Operation name: {provider}/{resource}/{operation}
@@ -1513,11 +1737,11 @@ type PatchSchedule struct {
 	autorest.Response `json:"-"`
 	// ScheduleEntries - List of patch schedules for a Redis cache.
 	*ScheduleEntries `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource ID.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1766,11 +1990,11 @@ type PrivateEndpointConnection struct {
 	autorest.Response `json:"-"`
 	// PrivateEndpointConnectionProperties - Resource properties.
 	*PrivateEndpointConnectionProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource ID.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1848,7 +2072,7 @@ type PrivateEndpointConnectionProperties struct {
 	PrivateEndpoint *PrivateEndpoint `json:"privateEndpoint,omitempty"`
 	// PrivateLinkServiceConnectionState - A collection of information about the state of the connection between service consumer and provider.
 	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
-	// ProvisioningState - The provisioning state of the private endpoint connection resource. Possible values include: 'Succeeded', 'Creating', 'Deleting', 'Failed'
+	// ProvisioningState - The provisioning state of the private endpoint connection resource. Possible values include: 'PrivateEndpointConnectionProvisioningStateSucceeded', 'PrivateEndpointConnectionProvisioningStateCreating', 'PrivateEndpointConnectionProvisioningStateDeleting', 'PrivateEndpointConnectionProvisioningStateFailed'
 	ProvisioningState PrivateEndpointConnectionProvisioningState `json:"provisioningState,omitempty"`
 }
 
@@ -1899,11 +2123,11 @@ func (future *PrivateEndpointConnectionsPutFuture) result(client PrivateEndpoint
 type PrivateLinkResource struct {
 	// PrivateLinkResourceProperties - Resource properties.
 	*PrivateLinkResourceProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource ID.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1996,7 +2220,7 @@ func (plrp PrivateLinkResourceProperties) MarshalJSON() ([]byte, error) {
 // PrivateLinkServiceConnectionState a collection of information about the state of the connection between
 // service consumer and provider.
 type PrivateLinkServiceConnectionState struct {
-	// Status - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service. Possible values include: 'Pending', 'Approved', 'Rejected'
+	// Status - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service. Possible values include: 'PrivateEndpointServiceConnectionStatusPending', 'PrivateEndpointServiceConnectionStatusApproved', 'PrivateEndpointServiceConnectionStatusRejected'
 	Status PrivateEndpointServiceConnectionStatus `json:"status,omitempty"`
 	// Description - The reason for approval/rejection of the connection.
 	Description *string `json:"description,omitempty"`
@@ -2006,8 +2230,6 @@ type PrivateLinkServiceConnectionState struct {
 
 // Properties properties of the redis cache.
 type Properties struct {
-	// RedisVersion - READ-ONLY; Redis version.
-	RedisVersion *string `json:"redisVersion,omitempty"`
 	// ProvisioningState - READ-ONLY; Redis instance provisioning status. Possible values include: 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateDisabled', 'ProvisioningStateFailed', 'ProvisioningStateLinking', 'ProvisioningStateProvisioning', 'ProvisioningStateRecoveringScaleFailure', 'ProvisioningStateScaling', 'ProvisioningStateSucceeded', 'ProvisioningStateUnlinking', 'ProvisioningStateUnprovisioning', 'ProvisioningStateUpdating'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// HostName - READ-ONLY; Redis host name.
@@ -2032,17 +2254,21 @@ type Properties struct {
 	StaticIP *string `json:"staticIP,omitempty"`
 	// RedisConfiguration - All Redis Settings. Few possible keys: rdb-backup-enabled,rdb-storage-connection-string,rdb-backup-frequency,maxmemory-delta,maxmemory-policy,notify-keyspace-events,maxmemory-samples,slowlog-log-slower-than,slowlog-max-len,list-max-ziplist-entries,list-max-ziplist-value,hash-max-ziplist-entries,hash-max-ziplist-value,set-max-intset-entries,zset-max-ziplist-entries,zset-max-ziplist-value etc.
 	RedisConfiguration map[string]*string `json:"redisConfiguration"`
+	// RedisVersion - Redis version. Only major version will be used in PUT/PATCH request with current valid values: (4, 6)
+	RedisVersion *string `json:"redisVersion,omitempty"`
 	// EnableNonSslPort - Specifies whether the non-ssl Redis server port (6379) is enabled.
 	EnableNonSslPort *bool `json:"enableNonSslPort,omitempty"`
-	// ReplicasPerMaster - The number of replicas to be created per master.
+	// ReplicasPerMaster - The number of replicas to be created per primary.
 	ReplicasPerMaster *int32 `json:"replicasPerMaster,omitempty"`
+	// ReplicasPerPrimary - The number of replicas to be created per primary.
+	ReplicasPerPrimary *int32 `json:"replicasPerPrimary,omitempty"`
 	// TenantSettings - A dictionary of tenant settings
 	TenantSettings map[string]*string `json:"tenantSettings"`
 	// ShardCount - The number of shards to be created on a Premium Cluster Cache.
 	ShardCount *int32 `json:"shardCount,omitempty"`
-	// MinimumTLSVersion - Optional: requires clients to use a specified TLS version (or higher) to connect (e,g, '1.0', '1.1', '1.2'). Possible values include: 'OneFullStopZero', 'OneFullStopOne', 'OneFullStopTwo'
+	// MinimumTLSVersion - Optional: requires clients to use a specified TLS version (or higher) to connect (e,g, '1.0', '1.1', '1.2'). Possible values include: 'TLSVersionOneFullStopZero', 'TLSVersionOneFullStopOne', 'TLSVersionOneFullStopTwo'
 	MinimumTLSVersion TLSVersion `json:"minimumTlsVersion,omitempty"`
-	// PublicNetworkAccess - Whether or not public endpoint access is allowed for this cache.  Value is optional but if passed in, must be 'Enabled' or 'Disabled'. If 'Disabled', private endpoints are the exclusive access method. Default value is 'Enabled'. Possible values include: 'Enabled', 'Disabled'
+	// PublicNetworkAccess - Whether or not public endpoint access is allowed for this cache.  Value is optional but if passed in, must be 'Enabled' or 'Disabled'. If 'Disabled', private endpoints are the exclusive access method. Default value is 'Enabled'. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
 	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
@@ -2061,11 +2287,17 @@ func (p Properties) MarshalJSON() ([]byte, error) {
 	if p.RedisConfiguration != nil {
 		objectMap["redisConfiguration"] = p.RedisConfiguration
 	}
+	if p.RedisVersion != nil {
+		objectMap["redisVersion"] = p.RedisVersion
+	}
 	if p.EnableNonSslPort != nil {
 		objectMap["enableNonSslPort"] = p.EnableNonSslPort
 	}
 	if p.ReplicasPerMaster != nil {
 		objectMap["replicasPerMaster"] = p.ReplicasPerMaster
+	}
+	if p.ReplicasPerPrimary != nil {
+		objectMap["replicasPerPrimary"] = p.ReplicasPerPrimary
 	}
 	if p.TenantSettings != nil {
 		objectMap["tenantSettings"] = p.TenantSettings
@@ -2082,14 +2314,14 @@ func (p Properties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
-// required location and tags
+// ProxyResource the resource model definition for a Azure Resource Manager proxy resource. It will not
+// have tags and a location
 type ProxyResource struct {
-	// ID - READ-ONLY; Resource ID.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2101,7 +2333,7 @@ func (pr ProxyResource) MarshalJSON() ([]byte, error) {
 
 // RebootParameters specifies which Redis node(s) to reboot.
 type RebootParameters struct {
-	// RebootType - Which Redis node(s) to reboot. Depending on this value data loss is possible. Possible values include: 'PrimaryNode', 'SecondaryNode', 'AllNodes'
+	// RebootType - Which Redis node(s) to reboot. Depending on this value data loss is possible. Possible values include: 'RebootTypePrimaryNode', 'RebootTypeSecondaryNode', 'RebootTypeAllNodes'
 	RebootType RebootType `json:"rebootType,omitempty"`
 	// ShardID - If clustering is enabled, the ID of the shard to be rebooted.
 	ShardID *int32 `json:"shardId,omitempty"`
@@ -2111,17 +2343,17 @@ type RebootParameters struct {
 
 // RegenerateKeyParameters specifies which Redis access keys to reset.
 type RegenerateKeyParameters struct {
-	// KeyType - The Redis access key to regenerate. Possible values include: 'Primary', 'Secondary'
+	// KeyType - The Redis access key to regenerate. Possible values include: 'KeyTypePrimary', 'KeyTypeSecondary'
 	KeyType KeyType `json:"keyType,omitempty"`
 }
 
-// Resource the Resource definition.
+// Resource common fields that are returned in the response for all Azure Resource Manager resources
 type Resource struct {
-	// ID - READ-ONLY; Resource ID.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2142,11 +2374,11 @@ type ResourceType struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Resource ID.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2254,7 +2486,7 @@ type ScheduleEntries struct {
 
 // ScheduleEntry patch schedule entry for a Premium Redis Cache.
 type ScheduleEntry struct {
-	// DayOfWeek - Day of the week when a cache can be patched. Possible values include: 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Everyday', 'Weekend'
+	// DayOfWeek - Day of the week when a cache can be patched. Possible values include: 'DayOfWeekMonday', 'DayOfWeekTuesday', 'DayOfWeekWednesday', 'DayOfWeekThursday', 'DayOfWeekFriday', 'DayOfWeekSaturday', 'DayOfWeekSunday', 'DayOfWeekEveryday', 'DayOfWeekWeekend'
 	DayOfWeek DayOfWeek `json:"dayOfWeek,omitempty"`
 	// StartHourUtc - Start hour after which cache patching can start.
 	StartHourUtc *int32 `json:"startHourUtc,omitempty"`
@@ -2264,25 +2496,26 @@ type ScheduleEntry struct {
 
 // Sku SKU parameters supplied to the create Redis operation.
 type Sku struct {
-	// Name - The type of Redis cache to deploy. Valid values: (Basic, Standard, Premium). Possible values include: 'Basic', 'Standard', 'Premium'
+	// Name - The type of Redis cache to deploy. Valid values: (Basic, Standard, Premium). Possible values include: 'SkuNameBasic', 'SkuNameStandard', 'SkuNamePremium'
 	Name SkuName `json:"name,omitempty"`
-	// Family - The SKU family to use. Valid values: (C, P). (C = Basic/Standard, P = Premium). Possible values include: 'C', 'P'
+	// Family - The SKU family to use. Valid values: (C, P). (C = Basic/Standard, P = Premium). Possible values include: 'SkuFamilyC', 'SkuFamilyP'
 	Family SkuFamily `json:"family,omitempty"`
 	// Capacity - The size of the Redis cache to deploy. Valid values: for C (Basic/Standard) family (0, 1, 2, 3, 4, 5, 6), for P (Premium) family (1, 2, 3, 4).
 	Capacity *int32 `json:"capacity,omitempty"`
 }
 
-// TrackedResource the resource model definition for a ARM tracked top level resource
+// TrackedResource the resource model definition for an Azure Resource Manager tracked top level resource
+// which has 'tags' and a 'location'
 type TrackedResource struct {
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
 	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Resource ID.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2357,17 +2590,21 @@ type UpdateProperties struct {
 	Sku *Sku `json:"sku,omitempty"`
 	// RedisConfiguration - All Redis Settings. Few possible keys: rdb-backup-enabled,rdb-storage-connection-string,rdb-backup-frequency,maxmemory-delta,maxmemory-policy,notify-keyspace-events,maxmemory-samples,slowlog-log-slower-than,slowlog-max-len,list-max-ziplist-entries,list-max-ziplist-value,hash-max-ziplist-entries,hash-max-ziplist-value,set-max-intset-entries,zset-max-ziplist-entries,zset-max-ziplist-value etc.
 	RedisConfiguration map[string]*string `json:"redisConfiguration"`
+	// RedisVersion - Redis version. Only major version will be used in PUT/PATCH request with current valid values: (4, 6)
+	RedisVersion *string `json:"redisVersion,omitempty"`
 	// EnableNonSslPort - Specifies whether the non-ssl Redis server port (6379) is enabled.
 	EnableNonSslPort *bool `json:"enableNonSslPort,omitempty"`
-	// ReplicasPerMaster - The number of replicas to be created per master.
+	// ReplicasPerMaster - The number of replicas to be created per primary.
 	ReplicasPerMaster *int32 `json:"replicasPerMaster,omitempty"`
+	// ReplicasPerPrimary - The number of replicas to be created per primary.
+	ReplicasPerPrimary *int32 `json:"replicasPerPrimary,omitempty"`
 	// TenantSettings - A dictionary of tenant settings
 	TenantSettings map[string]*string `json:"tenantSettings"`
 	// ShardCount - The number of shards to be created on a Premium Cluster Cache.
 	ShardCount *int32 `json:"shardCount,omitempty"`
-	// MinimumTLSVersion - Optional: requires clients to use a specified TLS version (or higher) to connect (e,g, '1.0', '1.1', '1.2'). Possible values include: 'OneFullStopZero', 'OneFullStopOne', 'OneFullStopTwo'
+	// MinimumTLSVersion - Optional: requires clients to use a specified TLS version (or higher) to connect (e,g, '1.0', '1.1', '1.2'). Possible values include: 'TLSVersionOneFullStopZero', 'TLSVersionOneFullStopOne', 'TLSVersionOneFullStopTwo'
 	MinimumTLSVersion TLSVersion `json:"minimumTlsVersion,omitempty"`
-	// PublicNetworkAccess - Whether or not public endpoint access is allowed for this cache.  Value is optional but if passed in, must be 'Enabled' or 'Disabled'. If 'Disabled', private endpoints are the exclusive access method. Default value is 'Enabled'. Possible values include: 'Enabled', 'Disabled'
+	// PublicNetworkAccess - Whether or not public endpoint access is allowed for this cache.  Value is optional but if passed in, must be 'Enabled' or 'Disabled'. If 'Disabled', private endpoints are the exclusive access method. Default value is 'Enabled'. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
 	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
@@ -2380,11 +2617,17 @@ func (up UpdateProperties) MarshalJSON() ([]byte, error) {
 	if up.RedisConfiguration != nil {
 		objectMap["redisConfiguration"] = up.RedisConfiguration
 	}
+	if up.RedisVersion != nil {
+		objectMap["redisVersion"] = up.RedisVersion
+	}
 	if up.EnableNonSslPort != nil {
 		objectMap["enableNonSslPort"] = up.EnableNonSslPort
 	}
 	if up.ReplicasPerMaster != nil {
 		objectMap["replicasPerMaster"] = up.ReplicasPerMaster
+	}
+	if up.ReplicasPerPrimary != nil {
+		objectMap["replicasPerPrimary"] = up.ReplicasPerPrimary
 	}
 	if up.TenantSettings != nil {
 		objectMap["tenantSettings"] = up.TenantSettings

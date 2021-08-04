@@ -10,44 +10,44 @@ package redis
 type DayOfWeek string
 
 const (
-	// Everyday ...
-	Everyday DayOfWeek = "Everyday"
-	// Friday ...
-	Friday DayOfWeek = "Friday"
-	// Monday ...
-	Monday DayOfWeek = "Monday"
-	// Saturday ...
-	Saturday DayOfWeek = "Saturday"
-	// Sunday ...
-	Sunday DayOfWeek = "Sunday"
-	// Thursday ...
-	Thursday DayOfWeek = "Thursday"
-	// Tuesday ...
-	Tuesday DayOfWeek = "Tuesday"
-	// Wednesday ...
-	Wednesday DayOfWeek = "Wednesday"
-	// Weekend ...
-	Weekend DayOfWeek = "Weekend"
+	// DayOfWeekEveryday ...
+	DayOfWeekEveryday DayOfWeek = "Everyday"
+	// DayOfWeekFriday ...
+	DayOfWeekFriday DayOfWeek = "Friday"
+	// DayOfWeekMonday ...
+	DayOfWeekMonday DayOfWeek = "Monday"
+	// DayOfWeekSaturday ...
+	DayOfWeekSaturday DayOfWeek = "Saturday"
+	// DayOfWeekSunday ...
+	DayOfWeekSunday DayOfWeek = "Sunday"
+	// DayOfWeekThursday ...
+	DayOfWeekThursday DayOfWeek = "Thursday"
+	// DayOfWeekTuesday ...
+	DayOfWeekTuesday DayOfWeek = "Tuesday"
+	// DayOfWeekWednesday ...
+	DayOfWeekWednesday DayOfWeek = "Wednesday"
+	// DayOfWeekWeekend ...
+	DayOfWeekWeekend DayOfWeek = "Weekend"
 )
 
 // PossibleDayOfWeekValues returns an array of possible values for the DayOfWeek const type.
 func PossibleDayOfWeekValues() []DayOfWeek {
-	return []DayOfWeek{Everyday, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday, Weekend}
+	return []DayOfWeek{DayOfWeekEveryday, DayOfWeekFriday, DayOfWeekMonday, DayOfWeekSaturday, DayOfWeekSunday, DayOfWeekThursday, DayOfWeekTuesday, DayOfWeekWednesday, DayOfWeekWeekend}
 }
 
 // KeyType enumerates the values for key type.
 type KeyType string
 
 const (
-	// Primary ...
-	Primary KeyType = "Primary"
-	// Secondary ...
-	Secondary KeyType = "Secondary"
+	// KeyTypePrimary ...
+	KeyTypePrimary KeyType = "Primary"
+	// KeyTypeSecondary ...
+	KeyTypeSecondary KeyType = "Secondary"
 )
 
 // PossibleKeyTypeValues returns an array of possible values for the KeyType const type.
 func PossibleKeyTypeValues() []KeyType {
-	return []KeyType{Primary, Secondary}
+	return []KeyType{KeyTypePrimary, KeyTypeSecondary}
 }
 
 // PrivateEndpointConnectionProvisioningState enumerates the values for private endpoint connection
@@ -55,36 +55,36 @@ func PossibleKeyTypeValues() []KeyType {
 type PrivateEndpointConnectionProvisioningState string
 
 const (
-	// Creating ...
-	Creating PrivateEndpointConnectionProvisioningState = "Creating"
-	// Deleting ...
-	Deleting PrivateEndpointConnectionProvisioningState = "Deleting"
-	// Failed ...
-	Failed PrivateEndpointConnectionProvisioningState = "Failed"
-	// Succeeded ...
-	Succeeded PrivateEndpointConnectionProvisioningState = "Succeeded"
+	// PrivateEndpointConnectionProvisioningStateCreating ...
+	PrivateEndpointConnectionProvisioningStateCreating PrivateEndpointConnectionProvisioningState = "Creating"
+	// PrivateEndpointConnectionProvisioningStateDeleting ...
+	PrivateEndpointConnectionProvisioningStateDeleting PrivateEndpointConnectionProvisioningState = "Deleting"
+	// PrivateEndpointConnectionProvisioningStateFailed ...
+	PrivateEndpointConnectionProvisioningStateFailed PrivateEndpointConnectionProvisioningState = "Failed"
+	// PrivateEndpointConnectionProvisioningStateSucceeded ...
+	PrivateEndpointConnectionProvisioningStateSucceeded PrivateEndpointConnectionProvisioningState = "Succeeded"
 )
 
 // PossiblePrivateEndpointConnectionProvisioningStateValues returns an array of possible values for the PrivateEndpointConnectionProvisioningState const type.
 func PossiblePrivateEndpointConnectionProvisioningStateValues() []PrivateEndpointConnectionProvisioningState {
-	return []PrivateEndpointConnectionProvisioningState{Creating, Deleting, Failed, Succeeded}
+	return []PrivateEndpointConnectionProvisioningState{PrivateEndpointConnectionProvisioningStateCreating, PrivateEndpointConnectionProvisioningStateDeleting, PrivateEndpointConnectionProvisioningStateFailed, PrivateEndpointConnectionProvisioningStateSucceeded}
 }
 
 // PrivateEndpointServiceConnectionStatus enumerates the values for private endpoint service connection status.
 type PrivateEndpointServiceConnectionStatus string
 
 const (
-	// Approved ...
-	Approved PrivateEndpointServiceConnectionStatus = "Approved"
-	// Pending ...
-	Pending PrivateEndpointServiceConnectionStatus = "Pending"
-	// Rejected ...
-	Rejected PrivateEndpointServiceConnectionStatus = "Rejected"
+	// PrivateEndpointServiceConnectionStatusApproved ...
+	PrivateEndpointServiceConnectionStatusApproved PrivateEndpointServiceConnectionStatus = "Approved"
+	// PrivateEndpointServiceConnectionStatusPending ...
+	PrivateEndpointServiceConnectionStatusPending PrivateEndpointServiceConnectionStatus = "Pending"
+	// PrivateEndpointServiceConnectionStatusRejected ...
+	PrivateEndpointServiceConnectionStatusRejected PrivateEndpointServiceConnectionStatus = "Rejected"
 )
 
 // PossiblePrivateEndpointServiceConnectionStatusValues returns an array of possible values for the PrivateEndpointServiceConnectionStatus const type.
 func PossiblePrivateEndpointServiceConnectionStatusValues() []PrivateEndpointServiceConnectionStatus {
-	return []PrivateEndpointServiceConnectionStatus{Approved, Pending, Rejected}
+	return []PrivateEndpointServiceConnectionStatus{PrivateEndpointServiceConnectionStatusApproved, PrivateEndpointServiceConnectionStatusPending, PrivateEndpointServiceConnectionStatusRejected}
 }
 
 // ProvisioningState enumerates the values for provisioning state.
@@ -126,32 +126,32 @@ func PossibleProvisioningStateValues() []ProvisioningState {
 type PublicNetworkAccess string
 
 const (
-	// Disabled ...
-	Disabled PublicNetworkAccess = "Disabled"
-	// Enabled ...
-	Enabled PublicNetworkAccess = "Enabled"
+	// PublicNetworkAccessDisabled ...
+	PublicNetworkAccessDisabled PublicNetworkAccess = "Disabled"
+	// PublicNetworkAccessEnabled ...
+	PublicNetworkAccessEnabled PublicNetworkAccess = "Enabled"
 )
 
 // PossiblePublicNetworkAccessValues returns an array of possible values for the PublicNetworkAccess const type.
 func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
-	return []PublicNetworkAccess{Disabled, Enabled}
+	return []PublicNetworkAccess{PublicNetworkAccessDisabled, PublicNetworkAccessEnabled}
 }
 
 // RebootType enumerates the values for reboot type.
 type RebootType string
 
 const (
-	// AllNodes ...
-	AllNodes RebootType = "AllNodes"
-	// PrimaryNode ...
-	PrimaryNode RebootType = "PrimaryNode"
-	// SecondaryNode ...
-	SecondaryNode RebootType = "SecondaryNode"
+	// RebootTypeAllNodes ...
+	RebootTypeAllNodes RebootType = "AllNodes"
+	// RebootTypePrimaryNode ...
+	RebootTypePrimaryNode RebootType = "PrimaryNode"
+	// RebootTypeSecondaryNode ...
+	RebootTypeSecondaryNode RebootType = "SecondaryNode"
 )
 
 // PossibleRebootTypeValues returns an array of possible values for the RebootType const type.
 func PossibleRebootTypeValues() []RebootType {
-	return []RebootType{AllNodes, PrimaryNode, SecondaryNode}
+	return []RebootType{RebootTypeAllNodes, RebootTypePrimaryNode, RebootTypeSecondaryNode}
 }
 
 // ReplicationRole enumerates the values for replication role.
@@ -173,47 +173,47 @@ func PossibleReplicationRoleValues() []ReplicationRole {
 type SkuFamily string
 
 const (
-	// C ...
-	C SkuFamily = "C"
-	// P ...
-	P SkuFamily = "P"
+	// SkuFamilyC ...
+	SkuFamilyC SkuFamily = "C"
+	// SkuFamilyP ...
+	SkuFamilyP SkuFamily = "P"
 )
 
 // PossibleSkuFamilyValues returns an array of possible values for the SkuFamily const type.
 func PossibleSkuFamilyValues() []SkuFamily {
-	return []SkuFamily{C, P}
+	return []SkuFamily{SkuFamilyC, SkuFamilyP}
 }
 
 // SkuName enumerates the values for sku name.
 type SkuName string
 
 const (
-	// Basic ...
-	Basic SkuName = "Basic"
-	// Premium ...
-	Premium SkuName = "Premium"
-	// Standard ...
-	Standard SkuName = "Standard"
+	// SkuNameBasic ...
+	SkuNameBasic SkuName = "Basic"
+	// SkuNamePremium ...
+	SkuNamePremium SkuName = "Premium"
+	// SkuNameStandard ...
+	SkuNameStandard SkuName = "Standard"
 )
 
 // PossibleSkuNameValues returns an array of possible values for the SkuName const type.
 func PossibleSkuNameValues() []SkuName {
-	return []SkuName{Basic, Premium, Standard}
+	return []SkuName{SkuNameBasic, SkuNamePremium, SkuNameStandard}
 }
 
 // TLSVersion enumerates the values for tls version.
 type TLSVersion string
 
 const (
-	// OneFullStopOne ...
-	OneFullStopOne TLSVersion = "1.1"
-	// OneFullStopTwo ...
-	OneFullStopTwo TLSVersion = "1.2"
-	// OneFullStopZero ...
-	OneFullStopZero TLSVersion = "1.0"
+	// TLSVersionOneFullStopOne ...
+	TLSVersionOneFullStopOne TLSVersion = "1.1"
+	// TLSVersionOneFullStopTwo ...
+	TLSVersionOneFullStopTwo TLSVersion = "1.2"
+	// TLSVersionOneFullStopZero ...
+	TLSVersionOneFullStopZero TLSVersion = "1.0"
 )
 
 // PossibleTLSVersionValues returns an array of possible values for the TLSVersion const type.
 func PossibleTLSVersionValues() []TLSVersion {
-	return []TLSVersion{OneFullStopOne, OneFullStopTwo, OneFullStopZero}
+	return []TLSVersion{TLSVersionOneFullStopOne, TLSVersionOneFullStopTwo, TLSVersionOneFullStopZero}
 }
