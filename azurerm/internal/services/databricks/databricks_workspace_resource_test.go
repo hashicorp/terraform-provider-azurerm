@@ -600,7 +600,7 @@ resource "azurerm_databricks_workspace" "test" {
     machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   }
 }
-`, data.RandomInteger, "eastus2", sku, data.RandomString)
+`, data.RandomInteger, data.Locations.Secondary, sku, data.RandomString)
 }
 
 func (DatabricksWorkspaceResource) privateLink(data acceptance.TestData) string {
@@ -742,7 +742,7 @@ resource "azurerm_private_dns_cname_record" "test" {
   ttl                 = 300
   record              = "eastus2-c2.azuredatabricks.net"
 }
-`, data.RandomInteger, "eastus2")
+`, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (DatabricksWorkspaceResource) secureClusterConnectivity(data acceptance.TestData) string {
@@ -1040,7 +1040,7 @@ resource "azurerm_databricks_workspace" "test" {
   sku                         = "premium"
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
-  managed_services_key_vault_key_id = azurerm_key_vault_key.test.id
+  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
 
   tags = {
     Environment = "Production"
@@ -1135,8 +1135,8 @@ resource "azurerm_databricks_workspace" "test" {
   sku                         = "premium"
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
-  customer_managed_key_enabled      = true
-  managed_services_key_vault_key_id = azurerm_key_vault_key.test.id
+  customer_managed_key_enabled          = true
+  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
 
   tags = {
     Environment = "Production"
@@ -1326,10 +1326,10 @@ resource "azurerm_databricks_workspace" "test" {
   sku                         = "premium"
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
-  customer_managed_key_enabled          = true
-  managed_services_key_vault_key_id     = azurerm_key_vault_key.test.id
-  public_network_access_enabled         = false
-  network_security_group_rules_required = "NoAzureDatabricksRules"
+  customer_managed_key_enabled              = true
+  managed_services_cmk_key_vault_key_id     = azurerm_key_vault_key.test.id
+  public_network_access_enabled             = false
+  network_security_group_rules_required     = "NoAzureDatabricksRules"
 
   custom_parameters {
     no_public_ip        = true
@@ -1459,5 +1459,5 @@ resource "azurerm_private_dns_cname_record" "test" {
   ttl                 = 300
   record              = "eastus2-c2.azuredatabricks.net"
 }
-`, data.RandomInteger, "eastus2", data.RandomString, databricksPrincipalID)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID)
 }

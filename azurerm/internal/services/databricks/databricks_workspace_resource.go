@@ -82,7 +82,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"managed_services_key_vault_key_id": {
+			"managed_services_cmk_key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -273,7 +273,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			_, publicNetworkAccess := d.GetChange("public_network_access_enabled")
 			_, requireNsgRules := d.GetChange("network_security_group_rules_required")
 			_, backendPool := d.GetChange("load_balancer_backend_address_pool_id")
-			_, managedServicesCMK := d.GetChange("managed_services_key_vault_key_id")
+			_, managedServicesCMK := d.GetChange("managed_services_cmk_key_vault_key_id")
 
 			oldSku, newSku := d.GetChange("sku")
 
@@ -300,7 +300,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			}
 
 			if (customerEncryptionEnabled.(bool) || infrastructureEncryptionEnabled.(bool) || managedServicesCMK.(string) != "") && !strings.EqualFold("premium", newSku.(string)) {
-				return fmt.Errorf("'customer_managed_key_enabled', 'infrastructure_encryption_enabled' and 'managed_services_key_vault_key_id' are only available with a 'premium' workspace 'sku', got %q", newSku)
+				return fmt.Errorf("'customer_managed_key_enabled', 'infrastructure_encryption_enabled' and 'managed_services_cmk_key_vault_key_id' are only available with a 'premium' workspace 'sku', got %q", newSku)
 			}
 
 			return nil
@@ -405,7 +405,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	// Set up customer-managed keys for managed services encryption (e.g. notebook)
 	encrypt := &databricks.WorkspacePropertiesEncryption{}
-	keyIdRaw := d.Get("managed_services_key_vault_key_id").(string)
+	keyIdRaw := d.Get("managed_services_cmk_key_vault_key_id").(string)
 	if keyIdRaw != "" {
 		key, err := keyVaultParse.ParseNestedItemID(keyIdRaw)
 		if err != nil {
@@ -498,7 +498,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if encrypt != nil && keyIdRaw != "" {
-		d.Set("managed_services_key_vault_key_id", keyIdRaw)
+		d.Set("managed_services_cmk_key_vault_key_id", keyIdRaw)
 	}
 
 	return resourceDatabricksWorkspaceRead(d, meta)
@@ -611,7 +611,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 	if encryptKeyVaultURI != "" {
 		key, err := keyVaultParse.NewNestedItemID(encryptKeyVaultURI, "keys", encryptKeyName, encryptKeyVersion)
 		if err == nil {
-			d.Set("managed_services_key_vault_key_id", key.ID())
+			d.Set("managed_services_cmk_key_vault_key_id", key.ID())
 		}
 	}
 

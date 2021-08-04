@@ -93,10 +93,10 @@ resource "azurerm_databricks_workspace" "example" {
   sku                         = "premium"
   managed_resource_group_name = "${var.prefix}-DBW-managed-private-endpoint-ms-dbfscmk"
 
-  customer_managed_key_enabled          = true
-  managed_services_key_vault_key_id     = azurerm_key_vault_key.example.id
-  public_network_access_enabled         = false
-  network_security_group_rules_required = "NoAzureDatabricksRules"
+  customer_managed_key_enabled              = true
+  managed_services_cmk_key_vault_key_id     = azurerm_key_vault_key.example.id
+  public_network_access_enabled             = false
+  network_security_group_rules_required     = "NoAzureDatabricksRules"
 
   custom_parameters {
     no_public_ip        = true
