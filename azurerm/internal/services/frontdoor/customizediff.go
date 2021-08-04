@@ -175,7 +175,7 @@ func frontDoorSettings(d *pluginsdk.ResourceDiff) error {
 
 			// cacheQueryParameters cannot be set when cacheQueryParameterStripDirective is set to StripNone or StripAll
 			if cacheEnabled && (strings.TrimSpace(cacheQueryParameterStripDirective) == "StripNone" || strings.TrimSpace(cacheQueryParameterStripDirective) == "StripAll") && strings.TrimSpace(cacheQueryParameters) != "" {
-				return fmt.Errorf(`"cache_query_parameters" cannot be set when "cache_query_parameter_strip_directive" (%s) is set to "StripNone" or "StripAll"`, cacheQueryParameterStripDirective)				
+				return fmt.Errorf(`"cache_query_parameters" cannot be set when "cache_query_parameter_strip_directive" (%s) is set to "StripNone" or "StripAll"`, cacheQueryParameterStripDirective)
 			}
 		}
 
