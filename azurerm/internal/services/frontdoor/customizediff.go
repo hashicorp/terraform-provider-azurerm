@@ -169,8 +169,13 @@ func frontDoorSettings(d *pluginsdk.ResourceDiff) error {
 			}
 
 			// cacheQueryParameters cannot be empty when cacheEnabled is true and cacheQueryParameterStripDirective is other than StripAllExcept or StripOnly
-			if cacheEnabled && (strings.TrimSpace(cacheQueryParameterStripDirective) != "StripAllExcept" && strings.TrimSpace(cacheQueryParameterStripDirective) != "StripOnly") && strings.TrimSpace(cacheQueryParameters) == "" {
+			if cacheEnabled && (strings.TrimSpace(cacheQueryParameterStripDirective) == "StripAllExcept" || strings.TrimSpace(cacheQueryParameterStripDirective) == "StripOnly") && strings.TrimSpace(cacheQueryParameters) == "" {
 				return fmt.Errorf(`"cache_query_parameters" cannot be empty when "cache_query_parameter_strip_directive" (%s) is set to "StripAllExcept" or "StripOnly"`, cacheQueryParameterStripDirective)
+			}
+
+			// cacheQueryParameters cannot be set when cacheQueryParameterStripDirective is set to StripNone or StripAll
+			if cacheEnabled && (strings.TrimSpace(cacheQueryParameterStripDirective) == "StripNone" || strings.TrimSpace(cacheQueryParameterStripDirective) == "StripAll") && strings.TrimSpace(cacheQueryParameters) != "" {
+				return fmt.Errorf(`"cache_query_parameters" cannot be set when "cache_query_parameter_strip_directive" (%s) is set to "StripNone" or "StripAll"`, cacheQueryParameterStripDirective)				
 			}
 		}
 
