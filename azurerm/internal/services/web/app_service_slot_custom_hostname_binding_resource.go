@@ -57,6 +57,7 @@ func resourceAppServiceSlotCustomHostnameBinding() *pluginsdk.Resource {
 					string(web.SslStateIPBasedEnabled),
 					string(web.SslStateSniEnabled),
 				}, false),
+				RequiredWith: []string{"thumbprint"},
 			},
 
 			"thumbprint": {
@@ -65,6 +66,7 @@ func resourceAppServiceSlotCustomHostnameBinding() *pluginsdk.Resource {
 				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				RequiredWith: []string{"ssl_state"},
 			},
 
 			"virtual_ip": {
@@ -116,18 +118,10 @@ func resourceAppServiceSlotCustomHostnameBindingCreate(d *pluginsdk.ResourceData
 	}
 
 	if sslState != "" {
-		if thumbprint == "" {
-			return fmt.Errorf("`thumbprint` must be specified when `ssl_state` is set")
-		}
-
 		properties.HostNameBindingProperties.SslState = web.SslState(sslState)
 	}
 
 	if thumbprint != "" {
-		if sslState == "" {
-			return fmt.Errorf("`ssl_state` must be specified when `thumbprint` is set")
-		}
-
 		properties.HostNameBindingProperties.Thumbprint = utils.String(thumbprint)
 	}
 
@@ -135,15 +129,7 @@ func resourceAppServiceSlotCustomHostnameBindingCreate(d *pluginsdk.ResourceData
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	read, err := client.GetHostNameBindingSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, id.HostNameBindingName)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("read %s: %+v", id, err)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceAppServiceSlotCustomHostnameBindingRead(d, meta)
 }
