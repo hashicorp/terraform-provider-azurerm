@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * PowerBI: refactoring to use an Embedded SDK [GH-12787]
 * `azurerm_api_management_api_diagnostic` - support for the `operation_name_format` property [GH-12782]
 * `azurerm_databricks_workspace` - support for private link endpoint [GH-12543]
+* `azurerm_databricks_workspace` - add support for `Customer Managed Keys for Managed Services` [GH-12799]
 * `azurerm_kubernetes_cluster` - support for the `local_account_disabled` property [GH-12386]
 * `azurerm_logic_app_workflow` - support for the `workflow_parameters` [GH-12314]
 * `azurerm_public_ip_resource` - support for sku_tier property [GH-12775]
