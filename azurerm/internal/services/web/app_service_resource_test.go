@@ -1871,12 +1871,9 @@ func TestAccAppService_AcrManageIdentityCredentials(t *testing.T) {
 			Config: r.AcrUseManagedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("site_config.0.acr_use_managed_identity_creds").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -1889,9 +1886,9 @@ func TestAccAppService_AcrUserAssignedIdentity(t *testing.T) {
 			Config: r.AcrUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.acr_user_managed_identity_id").MatchesRegex(validate.UUIDRegExp),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
