@@ -26,6 +26,7 @@ BUG FIXES:
 
 * `azurerm_app_service_active_slot` - fix 404 not found on read for slot [GH-12792]
 * `azurerm_linux_virtual_machine_scale_set` - fix crash in checking for latest image [GH-12808]
+* `azurerm_local_network_gateway` - fixing a crash where the `LocalNetworkAddressSpace` block was nil [GH-12822]
 * `azurerm_postgresql_database` - fixing a crash in the Azure SDK [GH-12823]
 * `azurerm_virtual_machine_extension` - changing the `publisher` property now creates a new resource [GH-12790]
 
