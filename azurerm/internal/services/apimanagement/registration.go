@@ -1,6 +1,7 @@
 package apimanagement
 
 import (
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
@@ -72,5 +73,15 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_api_management_redis_cache":                 resourceApiManagementRedisCache(),
 		"azurerm_api_management_subscription":                resourceApiManagementSubscription(),
 		"azurerm_api_management_user":                        resourceApiManagementUser(),
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		ApiManagementNotificationRecipientEmailResource{},
 	}
 }
