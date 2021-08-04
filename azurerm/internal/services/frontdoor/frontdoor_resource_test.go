@@ -189,7 +189,7 @@ func TestAccFrontDoor_EnableDisableCache(t *testing.T) {
 				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression").HasValue("false"),
 				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive").HasValue("StripAllExcept"),
 				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameters").HasValue("width,height"),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_duration").HasValue("P0Y6M0DT0H0M0S"),
+				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_duration").HasValue("P90D"),
 			),
 		},
 		data.ImportStep("explicit_resource_order"),
@@ -860,7 +860,7 @@ resource "azurerm_frontdoor" "test" {
 
       cache_query_parameter_strip_directive = "StripAllExcept"
 
-      cache_duration = "P6M"
+      cache_duration = "P90D"
 
       cache_query_parameters = "width,height"
     }
