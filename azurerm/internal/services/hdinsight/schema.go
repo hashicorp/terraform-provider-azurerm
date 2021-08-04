@@ -7,7 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
 	"github.com/hashicorp/go-getter/helper/url"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/validate"
@@ -250,19 +249,10 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"aadds_resource_id": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-				},
-
-				"cluster_users_group_dns": {
-					Type:     pluginsdk.TypeSet,
-					Required: true,
-					ForceNew: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"domain_name": {
@@ -283,6 +273,7 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
+					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
@@ -303,9 +294,20 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 					ValidateFunc: msiValidate.UserAssignedIdentityID,
 				},
 
+				"cluster_users_group_dns": {
+					Type:     pluginsdk.TypeSet,
+					Optional: true,
+					ForceNew: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+
 				"organizational_unit_dn": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					Computed:     true,
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
@@ -1108,14 +1110,17 @@ func ExpandHDInsightSecurityProfile(input []interface{}) *hdinsight.SecurityProf
 	v := input[0].(map[string]interface{})
 
 	result := hdinsight.SecurityProfile{
-		DirectoryType:        hdinsight.DirectoryTypeActiveDirectory,
-		Domain:               utils.String(v["domain_name"].(string)),
-		LdapsUrls:            utils.ExpandStringSlice(v["ldaps_urls"].(*schema.Set).List()),
-		DomainUsername:       utils.String(v["domain_username"].(string)),
-		DomainUserPassword:   utils.String(v["domain_user_password"].(string)),
-		ClusterUsersGroupDNS: utils.ExpandStringSlice(v["cluster_users_group_dns"].(*schema.Set).List()),
-		AaddsResourceID:      utils.String(v["aadds_resource_id"].(string)),
-		MsiResourceID:        utils.String(v["msi_resource_id"].(string)),
+		DirectoryType:      hdinsight.DirectoryTypeActiveDirectory,
+		Domain:             utils.String(v["domain_name"].(string)),
+		LdapsUrls:          utils.ExpandStringSlice(v["ldaps_urls"].(*pluginsdk.Set).List()),
+		DomainUsername:     utils.String(v["domain_username"].(string)),
+		DomainUserPassword: utils.String(v["domain_user_password"].(string)),
+		AaddsResourceID:    utils.String(v["aadds_resource_id"].(string)),
+		MsiResourceID:      utils.String(v["msi_resource_id"].(string)),
+	}
+
+	if clusterUsersGroupDNS := v["cluster_users_group_dns"].(*pluginsdk.Set).List(); len(clusterUsersGroupDNS) != 0 {
+		result.ClusterUsersGroupDNS = utils.ExpandStringSlice(clusterUsersGroupDNS)
 	}
 
 	if organizationalUnitDN := v["organizational_unit_dn"].(string); organizationalUnitDN != "" {
@@ -1332,11 +1337,6 @@ func flattenHDInsightSecurityProfile(input *hdinsight.SecurityProfile) []interfa
 		domainUsername = *input.DomainUsername
 	}
 
-	var domainUserPassword string
-	if input.DomainUserPassword != nil {
-		domainUserPassword = *input.DomainUserPassword
-	}
-
 	var msiResourceId string
 	if input.MsiResourceID != nil {
 		msiResourceId = *input.MsiResourceID
@@ -1353,7 +1353,6 @@ func flattenHDInsightSecurityProfile(input *hdinsight.SecurityProfile) []interfa
 			"cluster_users_group_dns": utils.FlattenStringSlice(input.ClusterUsersGroupDNS),
 			"domain_name":             domain,
 			"domain_username":         domainUsername,
-			"domain_user_password":    domainUserPassword,
 			"ldaps_urls":              utils.FlattenStringSlice(input.LdapsUrls),
 			"msi_resource_id":         msiResourceId,
 			"organizational_unit_dn":  organizationalUnitDN,
