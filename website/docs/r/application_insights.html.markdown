@@ -106,8 +106,6 @@ The following attributes are exported:
 
 * `instrumentation_key` - The Instrumentation Key for this Application Insights component. (Sensitive)
 
-* `workspace_id` - The ID of the Log Analytics workspace component associated with the Application Insights component
-
 * `connection_string` - The Connection String for this Application Insights component. (Sensitive)
 
 ## Timeouts
