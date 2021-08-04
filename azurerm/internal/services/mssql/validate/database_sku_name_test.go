@@ -39,6 +39,11 @@ func TestDatabaseSkuName(t *testing.T) {
 			valid: true,
 		},
 		{
+			name:  "Valid Fsv2",
+			input: "GP_Fsv2_10",
+			valid: true,
+		},
+		{
 			name:  "Valid HS",
 			input: "HS_Gen5_2",
 			valid: true,
@@ -64,8 +69,18 @@ func TestDatabaseSkuName(t *testing.T) {
 			valid: true,
 		},
 		{
+			name:  "Valid Free",
+			input: "Free",
+			valid: true,
+		},
+		{
 			name:  "Valid Basic",
 			input: "Basic",
+			valid: true,
+		},
+		{
+			name:  "Valid ElasticPool",
+			input: "ElasticPool",
 			valid: true,
 		},
 		{
