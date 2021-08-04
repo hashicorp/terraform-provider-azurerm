@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2020-05-01/signalr"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/sdk/signalr"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -105,24 +105,36 @@ func TestAccSignalRServiceNetworkACL_updateMultiplePrivateEndpoints(t *testing.T
 }
 
 func (r SignalRServiceNetworkACLResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ServiceID(state.ID)
+	id, err := signalr.ParseSignalRID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.SignalR.Client.Get(ctx, id.ResourceGroup, id.SignalRName)
+	resp, err := clients.SignalR.Client.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	requestTypes := signalr.PossibleRequestTypeValues()
-	requestTypes = append(requestTypes, "Trace")
+	isDefaultConfiguration := false
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if acls := props.NetworkACLs; acls != nil {
+				hasDefaultAction := false
+				if acls.DefaultAction != nil {
+					hasDefaultAction = *acls.DefaultAction == signalr.ACLActionDeny
+				}
 
-	if resp.Properties != nil && resp.Properties.NetworkACLs != nil && resp.Properties.NetworkACLs.DefaultAction == signalr.Deny && resp.Properties.NetworkACLs.PublicNetwork != nil && len(*resp.Properties.NetworkACLs.PublicNetwork.Allow) == len(requestTypes) {
-		return utils.Bool(false), nil
+				hasDefaultMatches := false
+				if acls.PublicNetwork != nil && acls.PublicNetwork.Allow != nil {
+					hasDefaultMatches = len(*acls.PublicNetwork.Allow) == 4
+				}
+
+				isDefaultConfiguration = hasDefaultAction && hasDefaultMatches
+			}
+		}
 	}
 
-	return utils.Bool(true), nil
+	return utils.Bool(!isDefaultConfiguration), nil
 }
 
 func (r SignalRServiceNetworkACLResource) basic(data acceptance.TestData) string {

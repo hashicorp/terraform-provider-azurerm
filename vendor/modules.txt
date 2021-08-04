@@ -116,7 +116,6 @@ github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptio
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources
 github.com/Azure/azure-sdk-for-go/services/search/mgmt/2020-03-13/search
 github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus
-github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2020-05-01/signalr
 github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-01-01/storage
 github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache
 github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync
