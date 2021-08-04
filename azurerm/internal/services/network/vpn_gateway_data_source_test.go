@@ -11,26 +11,28 @@ import (
 type VPNGatewayDataSource struct {
 }
 
-func TestAccVPNGatewayDataSource_bgpSettings(t *testing.T) {
+func TestAccVPNGatewayDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_vpn_gateway", "test")
 	r := VPNGatewayDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.bgpSettings(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").Exists(),
-				check.That(data.ResourceName).Key("bgp_settings.asn").HasValue("65515"),
-				check.That(data.ResourceName).Key("bgp_settings.peer_weight").HasValue("0"),
-				check.That(data.ResourceName).Key("bgp_settings.instance_0_bgp_peering_address.custom_ips.0").HasValue("169.254.21.10"),
-				check.That(data.ResourceName).Key("bgp_settings.instance_1_bgp_peering_address.custom_ips.0").HasValue("169.254.21.10"),
+				check.That(data.ResourceName).Key("bgp_settings.0.asn").HasValue("65515"),
+				check.That(data.ResourceName).Key("bgp_settings.0.peer_weight").HasValue("0"),
+				check.That(data.ResourceName).Key("bgp_settings.0.instance_0_bgp_peering_address.0.custom_ips.0").HasValue("169.254.21.5"),
+				check.That(data.ResourceName).Key("bgp_settings.0.instance_1_bgp_peering_address.0.custom_ips.0").HasValue("169.254.21.10"),
+				check.That(data.ResourceName).Key("bgp_settings.0.instance_1_bgp_peering_address.0.tunnel_ips.0").Exists(),
+				check.That(data.ResourceName).Key("bgp_settings.0.instance_1_bgp_peering_address.0.default_ips.0").Exists(),
+				check.That(data.ResourceName).Key("bgp_settings.0.instance_1_bgp_peering_address.0.ip_configuration_id").Exists(),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 
-func (r VPNGatewayDataSource) bgpSettings(data acceptance.TestData) string {
+func (r VPNGatewayDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

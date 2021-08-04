@@ -166,6 +166,10 @@ func dataSourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error retrieving VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	if resp.ID != nil {
+		d.SetId(*resp.ID)
+	}
+
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
