@@ -54,10 +54,8 @@ resource "azurerm_app_service_slot" "example" {
 }
 
 resource "azurerm_app_service_slot_custom_hostname_binding" "example" {
+  app_service_slot_id = azurerm_app_service_slot.example.id
   hostname            = "www.mywebsite.com"
-  app_service_name    = azurerm_app_service.example.name
-  app_service_slot    = azurerm_app_service_slot.example.name
-  resource_group_name = azurerm_resource_group.example.name
 }
 ```
 
@@ -65,15 +63,11 @@ resource "azurerm_app_service_slot_custom_hostname_binding" "example" {
 
 The following arguments are supported:
 
+* `app_service_slot_id` - (Required) The ID of the App Service Slot. Changing this forces a new resource to be created.
+
 * `hostname` - (Required) Specifies the Custom Hostname to use for the App Service, example `www.example.com`. Changing this forces a new resource to be created.
 
 ~> **NOTE:** A CNAME needs to be configured from this Hostname to the Azure Website - otherwise Azure will reject the Hostname Binding.
-
-* `app_service_name` - (Required) The name of the App Service. Changing this forces a new resource to be created.
-
-* `app_service_slot` - (Required) The name of the App Service Slot in which to add the Custom Hostname Binding. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in which the App Service exists. Changing this forces a new resource to be created.
 
 * `ssl_state` - (Optional) The SSL type. Possible values are `IpBasedEnabled` and `SniEnabled`. Changing this forces a new resource to be created.
 

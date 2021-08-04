@@ -127,12 +127,12 @@ func (r AppServiceSlotCustomHostnameBindingResource) Exists(ctx context.Context,
 		return nil, err
 	}
 
-	resp, err := clients.Web.AppServicesClient.GetHostNameBindingSlot(ctx, id.ResourceGroup, id.AppServiceName, id.AppServiceSlot, id.Name)
+	resp, err := clients.Web.AppServicesClient.GetHostNameBindingSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, id.HostNameBindingName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving App Service Custom Hostname Binding %q (App Service %q / Slot %q / Resource Group %q): %+v", id.Name, id.AppServiceName, id.AppServiceSlot, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving App Service Custom Hostname Binding %q (App Service %q / Slot %q / Resource Group %q): %+v", id.HostNameBindingName, id.SiteName, id.SlotName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.HostNameBindingProperties != nil), nil
@@ -176,10 +176,8 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 resource "azurerm_app_service_slot_custom_hostname_binding" "test" {
+  app_service_slot_id = azurerm_app_service_slot.test.id
   hostname            = "%s"
-  app_service_name    = azurerm_app_service.test.name
-  app_service_slot    = azurerm_app_service_slot.test.name
-  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, appServiceName, domain)
 }
@@ -189,10 +187,8 @@ func (r AppServiceSlotCustomHostnameBindingResource) requiresImport(data accepta
 %s
 
 resource "azurerm_app_service_slot_custom_hostname_binding" "import" {
+  app_service_slot_id = azurerm_app_service_slot.test.id
   hostname            = azurerm_app_service_custom_hostname_binding.test.name
-  app_service_name    = azurerm_app_service_custom_hostname_binding.test.app_service_name
-  app_service_slot    = azurerm_app_service_custom_hostname_binding.test.app_service_slot
-  resource_group_name = azurerm_app_service_custom_hostname_binding.test.resource_group_name
 }
 `, r.basicConfig(data, appServiceName, domain))
 }
@@ -202,10 +198,8 @@ func (r AppServiceSlotCustomHostnameBindingResource) multipleConfig(data accepta
 %s
 
 resource "azurerm_app_service_slot_custom_hostname_binding" "test2" {
+  app_service_slot_id = azurerm_app_service_slot.test.id
   hostname            = "%s"
-  app_service_name    = azurerm_app_service.test.name
-  app_service_slot    = azurerm_app_service_slot.test.name
-  resource_group_name = azurerm_resource_group.test.name
 }
 `, r.basicConfig(data, appServiceName, domain), altDomain)
 }
@@ -312,10 +306,8 @@ resource "azurerm_app_service_certificate" "test" {
 }
 
 resource "azurerm_app_service_slot_custom_hostname_binding" "test" {
+  app_service_slot_id = azurerm_app_service_slot.test.id
   hostname            = "%s"
-  app_service_name    = azurerm_app_service.test.name
-  app_service_slot    = azurerm_app_service_slot.test.name
-  resource_group_name = azurerm_resource_group.test.name
   ssl_state           = "SniEnabled"
   thumbprint          = azurerm_app_service_certificate.test.thumbprint
 }
