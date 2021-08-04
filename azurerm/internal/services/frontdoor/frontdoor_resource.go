@@ -1206,11 +1206,19 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId par
 			cacheQueryParameters = ""
 		}
 
+		// Making sure that duration is empty when cacheDuration is empty
+		var duration *string
+		if cacheDuration == "" {
+			duration = nil
+		} else {
+			duration = utils.String(cacheDuration)
+		}
+
 		forwardingConfiguration.CacheConfiguration = &frontdoor.CacheConfiguration{
 			DynamicCompression:           dynamicCompression,
 			QueryParameterStripDirective: frontdoor.Query(cacheQueryParameterStripDirective),
 			QueryParameters:              utils.String(cacheQueryParameters),
-			CacheDuration:                utils.String(cacheDuration),
+			CacheDuration:                duration,
 		}
 	}
 
