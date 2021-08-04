@@ -385,8 +385,16 @@ func resourceArmSignalRServiceDelete(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+	// @tombuildsstuff: we can't use DeleteThenPoll here since the API returns a 404 on the Future in time
+	future, err := client.Delete(ctx, *id)
+	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	if err := future.Poller.PollUntilDone(); err != nil {
+		if !response.WasNotFound(future.Poller.HttpResponse) {
+			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+		}
 	}
 
 	return nil
