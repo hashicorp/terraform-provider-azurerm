@@ -509,18 +509,14 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
 	automaticRepairsPolicy := ExpandOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 
-	skuName, capacity, err := azure.SplitOrchestratedVirtualMachineScaleSetSku(d.Get("sku_name").(string))
+	sku, err := azure.ExpandOrchestratedVirtualMachineScaleSetSku(d.Get("sku_name").(string))
 	if err != nil {
 		return fmt.Errorf("expanding 'sku_name': %+v", err)
 	}
 
 	props := compute.VirtualMachineScaleSet{
 		Location: utils.String(location),
-		Sku: &compute.Sku{
-			Name:     utils.String(skuName),
-			Capacity: utils.Int64(int64(capacity)),
-			Tier:     utils.String("Standard"),
-		},
+		Sku:      sku,
 		Identity: identity,
 		Plan:     plan,
 		Tags:     tags.Expand(t),
@@ -845,19 +841,17 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		update.Plan = expandPlan(planRaw)
 	}
 
-	if d.HasChange("sku") || d.HasChange("instances") {
+	if d.HasChange("sku_name") {
 		// in-case ignore_changes is being used, since both fields are required
 		// look up the current values and override them as needed
 		sku := existing.Sku
 
-		if d.HasChange("sku") {
+		if d.HasChange("sku_name") {
 			updateInstances = true
-
-			sku.Name = utils.String(d.Get("sku").(string))
-		}
-
-		if d.HasChange("instances") {
-			sku.Capacity = utils.Int64(int64(d.Get("instances").(int)))
+			sku, err = azure.ExpandOrchestratedVirtualMachineScaleSetSku(d.Get("sku").(string))
+			if err != nil {
+				return err
+			}
 		}
 
 		update.Sku = sku
@@ -923,15 +917,13 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	var skuName *string
-	var instances int
 	if resp.Sku != nil {
-		skuName = resp.Sku.Name
-		if resp.Sku.Capacity != nil {
-			instances = int(*resp.Sku.Capacity)
+		skuName, err = azure.FlattenOrchestratedVirtualMachineScaleSetSku(resp.Sku)
+		if err != nil || skuName == nil {
+			return fmt.Errorf("setting `sku_name`: %+v", err)
 		}
 	}
-	d.Set("instances", instances)
-	d.Set("sku", skuName)
+	d.Set("sku_name", skuName)
 
 	identity, err := FlattenOrchestratedVirtualMachineScaleSetIdentity(resp.Identity)
 	if err != nil {
