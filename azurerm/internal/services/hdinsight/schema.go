@@ -283,7 +283,7 @@ func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
 					ForceNew: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validate.HDInsightClusterLdapsUrls,
 					},
 				},
 
