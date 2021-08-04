@@ -332,16 +332,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"maintenance_config": {
+			"maintenance_window": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"maintenance_allowed": {
+						"allowed": {
 							Type:         pluginsdk.TypeSet,
 							Optional:     true,
-							AtLeastOneOf: []string{"maintenance_config.0.maintenance_allowed", "maintenance_config.0.maintenance_not_allowed_window"},
+							AtLeastOneOf: []string{"maintenance_window.0.allowed", "maintenance_window.0.not_allowed"},
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"day": {
@@ -358,7 +358,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										}, false),
 									},
 
-									"hour_slots": {
+									"hours": {
 										Type:     pluginsdk.TypeSet,
 										Required: true,
 										MinItems: 1,
@@ -371,10 +371,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							},
 						},
 
-						"maintenance_not_allowed_window": {
+						"not_allowed": {
 							Type:         pluginsdk.TypeSet,
 							Optional:     true,
-							AtLeastOneOf: []string{"maintenance_config.0.maintenance_allowed", "maintenance_config.0.maintenance_not_allowed_window"},
+							AtLeastOneOf: []string{"maintenance_window.0.allowed", "maintenance_window.0.not_allowed"},
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"end": {
@@ -1055,7 +1055,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("cannot read ID for Managed Kubernetes Cluster %q (Resource Group %q)", name, resGroup)
 	}
 
-	if maintenanceConfigRaw, ok := d.GetOk("maintenance_config"); ok {
+	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window"); ok {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 		parameters := containerservice.MaintenanceConfiguration{
 			MaintenanceConfigurationProperties: expandKubernetesClusterMaintenanceConfiguration(maintenanceConfigRaw.([]interface{})),
@@ -1409,10 +1409,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		log.Printf("[DEBUG] Updated Default Node Pool.")
 	}
 
-	if d.HasChange("maintenance_config") {
+	if d.HasChange("maintenance_window") {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 		parameters := containerservice.MaintenanceConfiguration{
-			MaintenanceConfigurationProperties: expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_config").([]interface{})),
+			MaintenanceConfigurationProperties: expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window").([]interface{})),
 		}
 		if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, "default", parameters); err != nil {
 			return fmt.Errorf("creating/updating Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
@@ -1581,7 +1581,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 	maintenanceConfigurationsClient := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 	configResp, _ := maintenanceConfigurationsClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName, "default")
 	if props := configResp.MaintenanceConfigurationProperties; props != nil {
-		d.Set("maintenance_config", flattenKubernetesClusterMaintenanceConfiguration(props))
+		d.Set("maintenance_window", flattenKubernetesClusterMaintenanceConfiguration(props))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -1597,7 +1597,7 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	if _, ok := d.GetOk("maintenance_config"); ok {
+	if _, ok := d.GetOk("maintenance_window"); ok {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 		if _, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName, "default"); err != nil {
 			return fmt.Errorf("deleting Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
@@ -2458,8 +2458,8 @@ func expandKubernetesClusterMaintenanceConfiguration(input []interface{}) *conta
 	}
 	value := input[0].(map[string]interface{})
 	return &containerservice.MaintenanceConfigurationProperties{
-		NotAllowedTime: expandKubernetesClusterMaintenanceConfigurationTimeSpans(value["maintenance_not_allowed_window"].(*pluginsdk.Set).List()),
-		TimeInWeek:     expandKubernetesClusterMaintenanceConfigurationTimeInWeeks(value["maintenance_allowed"].(*pluginsdk.Set).List()),
+		NotAllowedTime: expandKubernetesClusterMaintenanceConfigurationTimeSpans(value["not_allowed"].(*pluginsdk.Set).List()),
+		TimeInWeek:     expandKubernetesClusterMaintenanceConfigurationTimeInWeeks(value["allowed"].(*pluginsdk.Set).List()),
 	}
 }
 
@@ -2483,7 +2483,7 @@ func expandKubernetesClusterMaintenanceConfigurationTimeInWeeks(input []interfac
 		v := item.(map[string]interface{})
 		results = append(results, containerservice.TimeInWeek{
 			Day:       containerservice.WeekDay(v["day"].(string)),
-			HourSlots: utils.ExpandInt32Slice(v["hour_slots"].(*pluginsdk.Set).List()),
+			HourSlots: utils.ExpandInt32Slice(v["hours"].(*pluginsdk.Set).List()),
 		})
 	}
 	return &results
@@ -2495,8 +2495,8 @@ func flattenKubernetesClusterMaintenanceConfiguration(input *containerservice.Ma
 		return results
 	}
 	results = append(results, map[string]interface{}{
-		"maintenance_not_allowed_window": flattenKubernetesClusterMaintenanceConfigurationTimeSpans(input.NotAllowedTime),
-		"maintenance_allowed":            flattenKubernetesClusterMaintenanceConfigurationTimeInWeeks(input.TimeInWeek),
+		"not_allowed": flattenKubernetesClusterMaintenanceConfigurationTimeSpans(input.NotAllowedTime),
+		"allowed":     flattenKubernetesClusterMaintenanceConfigurationTimeInWeeks(input.TimeInWeek),
 	})
 	return results
 }
@@ -2532,8 +2532,8 @@ func flattenKubernetesClusterMaintenanceConfigurationTimeInWeeks(input *[]contai
 
 	for _, item := range *input {
 		results = append(results, map[string]interface{}{
-			"day":        string(item.Day),
-			"hour_slots": utils.FlattenInt32Slice(item.HourSlots),
+			"day":   string(item.Day),
+			"hours": utils.FlattenInt32Slice(item.HourSlots),
 		})
 	}
 	return results

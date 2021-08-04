@@ -1702,10 +1702,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
-  maintenance_config {
-    maintenance_allowed {
-      day        = "Monday"
-      hour_slots = [1, 2]
+  maintenance_window {
+    allowed {
+      day   = "Monday"
+      hours = [1, 2]
     }
   }
 }
@@ -1736,22 +1736,22 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
-  maintenance_config {
-    maintenance_not_allowed_window {
+  maintenance_window {
+    not_allowed {
       end   = "2021-11-30T12:00:00Z"
       start = "2021-11-26T03:00:00Z"
     }
-    maintenance_not_allowed_window {
+    not_allowed {
       end   = "2021-12-30T12:00:00Z"
       start = "2021-12-26T03:00:00Z"
     }
-    maintenance_allowed {
-      day        = "Monday"
-      hour_slots = [1, 2]
+    allowed {
+      day   = "Monday"
+      hours = [1, 2]
     }
-    maintenance_allowed {
-      day        = "Sunday"
-      hour_slots = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+    allowed {
+      day   = "Sunday"
+      hours = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
     }
   }
 }
