@@ -32,6 +32,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source `azurerm_ssh_public_key` - normalising the SSH Public Key [GH-12800]
 * `azurerm_api_management_api_subscription` - fixing the default scope to be `/apis` rather than `all_apis` as required by the latest API [GH-12829]
 * `azurerm_app_service_active_slot` - fix 404 not found on read for slot [GH-12792]
 * `azurerm_linux_virtual_machine_scale_set` - fix crash in checking for latest image [GH-12808]
