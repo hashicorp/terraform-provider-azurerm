@@ -41,6 +41,7 @@ BUG FIXES:
 * `azurerm_api_management_api_subscription` - fixing the default scope to be `/apis` rather than `all_apis` as required by the latest API [GH-12829]
 * `azurerm_app_service_active_slot` - fix 404 not found on read for slot [GH-12792]
 * `azurerm_linux_virtual_machine_scale_set` - fix crash in checking for latest image [GH-12808]
+* `azurerm_kubernetes_cluster` - corrently valudate the `net_ipv4_ip_local_port_range_max` property [GH-12859]
 * `azurerm_local_network_gateway` - fixing a crash where the `LocalNetworkAddressSpace` block was nil [GH-12822]
 * `azurerm_notification_hub_authorization_rule` - switching to use an ID Formatter [GH-12845]
 * `azurerm_notification_hub` - switching to use an ID Formatter [GH-12845]
@@ -50,7 +51,6 @@ BUG FIXES:
 * `azurerm_resource_group_template_deployment` - fixing deletion of nested items when using non-top level items [GH-12421]
 * `azurerm_subscription_template_deployment` - fixing deletion of nested items when using non-top level items [GH-12421]
 * `azurerm_virtual_machine_extension` - changing the `publisher` property now creates a new resource [GH-12790]
-
 
 ## 2.70.0 (July 30, 2021)
 
