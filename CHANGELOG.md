@@ -28,6 +28,7 @@ ENHANCEMENTS:
 * `azurerm_public_ip_resource` - support for sku_tier property [GH-12775]
 * `azurerm_redis_cache` - support for the `replicas_per_primary`, `redis_version`, and `tenant_settings` properties and blocks [GH-12820]
 * `azurerm_redis_enterprise_cluster` - this can now be provisioned in `Canada Central` [GH-12842]
+* `azurerm_static_site` - support `Standard` SKU [GH-12510]
 
 BUG FIXES:
 
