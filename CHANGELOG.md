@@ -42,6 +42,8 @@ BUG FIXES:
 * `azurerm_notification_hub_namespace` - switching to use an ID Formatter [GH-12845]
 * `azurerm_postgresql_database` - fixing a crash in the Azure SDK [GH-12823]
 * `azurerm_private_dns_zone` - fixing a crash during deletion [GH-12824]
+* `azurerm_resource_group_template_deployment` - fixing deletion of nested items when using non-top level items [GH-12421]
+* `azurerm_subscription_template_deployment` - fixing deletion of nested items when using non-top level items [GH-12421]
 * `azurerm_virtual_machine_extension` - changing the `publisher` property now creates a new resource [GH-12790]
 
 
