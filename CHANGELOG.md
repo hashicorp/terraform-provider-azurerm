@@ -23,6 +23,7 @@ ENHANCEMENTS:
 * `azurerm_application_insights` - support for the `workspace_id` property [GH-12818]
 * `azurerm_databricks_workspace` - support for private link endpoint [GH-12543]
 * `azurerm_databricks_workspace` - add support for `Customer Managed Keys for Managed Services` [GH-12799]
+* `azurerm_data_factory_linked_service_data_lake_storage_gen2` - don't send a secure connection string when using a managed identity [GH-12359]
 * `azurerm_function_app` - support for the `elastic_instance_minimum`, `app_scale_limit`, and `runtime_scale_monitoring_enabled` properties [GH-12741]
 * `azurerm_kubernetes_cluster` - support for the `local_account_disabled` property [GH-12386]
 * `azurerm_kubernetes_cluster` - support for the `maintenance_window` block [GH-12762]
