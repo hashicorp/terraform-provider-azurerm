@@ -234,6 +234,12 @@ The following arguments are supported:
 
 * `auto_swap_slot_name` - (Optional) The name of the slot to automatically swap to during deployment
 
+* `acr_use_managed_identity_credentials` - (Optional) Are Managed Identity Credential used for Azure Container Registry pull
+
+* `acr_user_managed_identity_client_id` - (Optional) If using User Managed Identity, the User Managed Identity Client Id
+
+~> **NOTE:** When using User Managed Identity with Azure Container Registry the Identity will need to have the [ACRPull role assigned](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity#example-1-access-with-a-user-assigned-identity) 
+
 ---
 
 A `cors` block supports the following:
