@@ -29,6 +29,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - the field `automatic_channel_upgrade` can now be set to `node-image` [GH-12667]
 * `azurerm_logic_app_workflow` - support for the `workflow_parameters` [GH-12314]
 * `azurerm_mssql_database` - support for the `Free` and `FSV2` SKU's [GH-12835]
+* `azurerm_network_security_group` - the `protocol` property now supports `Ah` and `Esp` values [GH-12865]
 * `azurerm_public_ip_resource` - support for sku_tier property [GH-12775]
 * `azurerm_redis_cache` - support for the `replicas_per_primary`, `redis_version`, and `tenant_settings` properties and blocks [GH-12820]
 * `azurerm_redis_enterprise_cluster` - this can now be provisioned in `Canada Central` [GH-12842]
