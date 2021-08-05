@@ -113,7 +113,7 @@ resource "azurerm_static_site" "test" {
     environment = "acceptance"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger) // TODO - Put back to primary when support ticket is resolved
 }
 
 func (r StaticSiteResource) basicUpdate(data acceptance.TestData) string {
@@ -139,7 +139,7 @@ resource "azurerm_static_site" "test" {
     updated     = "true"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger) // TODO - Put back to primary when support ticket is resolved
 }
 
 func (r StaticSiteResource) requiresImport(data acceptance.TestData) string {
