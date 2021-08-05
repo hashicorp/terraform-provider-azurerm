@@ -435,7 +435,7 @@ func schemaNodePoolSysctlConfig() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(1024, 60999),
+					ValidateFunc: validation.IntBetween(32768, 65000),
 				},
 
 				"net_ipv4_neigh_default_gc_thresh1": {
