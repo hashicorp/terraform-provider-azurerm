@@ -21,6 +21,7 @@ ENHANCEMENTS:
 * `azurerm_databricks_workspace` - support for private link endpoint [GH-12543]
 * `azurerm_databricks_workspace` - add support for `Customer Managed Keys for Managed Services` [GH-12799]
 * `azurerm_kubernetes_cluster` - support for the `local_account_disabled` property [GH-12386]
+* `azurerm_kubernetes_cluster` - support for the `maintenance_window` block [GH-12762]
 * `azurerm_kubernetes_cluster` - the field `automatic_channel_upgrade` can now be set to `node-image` [GH-12667]
 * `azurerm_logic_app_workflow` - support for the `workflow_parameters` [GH-12314]
 * `azurerm_mssql_database` - support for the `Free` and `FSV2` SKU's [GH-12835]
