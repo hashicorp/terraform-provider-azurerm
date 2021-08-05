@@ -63,6 +63,11 @@ func dataSourceApplicationInsights() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"workspace_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": {
 				Type:     pluginsdk.TypeMap,
 				Computed: true,
@@ -104,6 +109,12 @@ func dataSourceArmApplicationInsightsRead(d *pluginsdk.ResourceData, meta interf
 			retentionInDays = int(*props.RetentionInDays)
 		}
 		d.Set("retention_in_days", retentionInDays)
+
+		workspaceId := ""
+		if props.WorkspaceResourceID != nil {
+			workspaceId = *props.WorkspaceResourceID
+		}
+		d.Set("workspace_id", workspaceId)
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }

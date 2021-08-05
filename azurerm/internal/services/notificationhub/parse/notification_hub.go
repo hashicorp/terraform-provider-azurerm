@@ -73,3 +73,59 @@ func NotificationHubID(input string) (*NotificationHubId, error) {
 
 	return &resourceId, nil
 }
+
+// NotificationHubIDInsensitively parses an NotificationHub ID into an NotificationHubId struct, insensitively
+// This should only be used to parse an ID for rewriting, the NotificationHubID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func NotificationHubIDInsensitively(input string) (*NotificationHubId, error) {
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := NotificationHubId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'namespaces' segment
+	namespacesKey := "namespaces"
+	for key := range id.Path {
+		if strings.EqualFold(key, namespacesKey) {
+			namespacesKey = key
+			break
+		}
+	}
+	if resourceId.NamespaceName, err = id.PopSegment(namespacesKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'notificationHubs' segment
+	notificationHubsKey := "notificationHubs"
+	for key := range id.Path {
+		if strings.EqualFold(key, notificationHubsKey) {
+			notificationHubsKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(notificationHubsKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}

@@ -56,9 +56,9 @@ func dataSourceSshPublicKeyRead(d *pluginsdk.ResourceData, meta interface{}) err
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: SSH Public Key %q (Resource Group %q) was not found", name, resGroup)
+			return fmt.Errorf("SSH Public Key %q (Resource Group %q) was not found", name, resGroup)
 		}
-		return fmt.Errorf("[ERROR] Error making Read request on Azure SSH Public Key %q (Resource Group %q): %s", name, resGroup, err)
+		return fmt.Errorf("making Read request on Azure SSH Public Key %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -66,9 +66,14 @@ func dataSourceSshPublicKeyRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 
-	if props := resp.SSHPublicKeyResourceProperties; props != nil {
-		d.Set("public_key", props.PublicKey)
+	var publicKey *string
+	if props := resp.SSHPublicKeyResourceProperties; props.PublicKey != nil {
+		publicKey, err = utils.NormalizeSSHKey(*props.PublicKey)
+		if err != nil {
+			return fmt.Errorf("normalising public key: %+v", err)
+		}
 	}
+	d.Set("public_key", publicKey)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

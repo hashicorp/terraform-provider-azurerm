@@ -51,17 +51,23 @@ func resourceStaticSite() *pluginsdk.Resource {
 			"location": azure.SchemaLocation(),
 
 			"sku_tier": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      "Free",
-				ValidateFunc: validation.StringInSlice([]string{"Free"}, false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  "Free",
+				ValidateFunc: validation.StringInSlice([]string{
+					"Free",
+					"Standard",
+				}, false),
 			},
 
 			"sku_size": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      "Free",
-				ValidateFunc: validation.StringInSlice([]string{"Free"}, false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  "Free",
+				ValidateFunc: validation.StringInSlice([]string{
+					"Free",
+					"Standard",
+				}, false),
 			},
 
 			"default_host_name": {

@@ -113,7 +113,7 @@ resource "azurerm_static_site" "test" {
     environment = "acceptance"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger) // TODO - Put back to primary when support ticket is resolved
 }
 
 func (r StaticSiteResource) basicUpdate(data acceptance.TestData) string {
@@ -131,13 +131,15 @@ resource "azurerm_static_site" "test" {
   name                = "acctestSS-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku_size            = "Standard"
+  sku_tier            = "Standard"
 
   tags = {
     environment = "acceptance"
     updated     = "true"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger) // TODO - Put back to primary when support ticket is resolved
 }
 
 func (r StaticSiteResource) requiresImport(data acceptance.TestData) string {

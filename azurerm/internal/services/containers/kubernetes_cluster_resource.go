@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -329,6 +330,71 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"local_account_disabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+			},
+
+			"maintenance_window": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"allowed": {
+							Type:         pluginsdk.TypeSet,
+							Optional:     true,
+							AtLeastOneOf: []string{"maintenance_window.0.allowed", "maintenance_window.0.not_allowed"},
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"day": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(containerservice.WeekDaySunday),
+											string(containerservice.WeekDayMonday),
+											string(containerservice.WeekDayTuesday),
+											string(containerservice.WeekDayWednesday),
+											string(containerservice.WeekDayThursday),
+											string(containerservice.WeekDayFriday),
+											string(containerservice.WeekDaySaturday),
+										}, false),
+									},
+
+									"hours": {
+										Type:     pluginsdk.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeInt,
+											ValidateFunc: validation.IntBetween(0, 23),
+										},
+									},
+								},
+							},
+						},
+
+						"not_allowed": {
+							Type:         pluginsdk.TypeSet,
+							Optional:     true,
+							AtLeastOneOf: []string{"maintenance_window.0.allowed", "maintenance_window.0.not_allowed"},
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"end": {
+										Type:             pluginsdk.TypeString,
+										Required:         true,
+										DiffSuppressFunc: suppress.RFC3339Time,
+										ValidateFunc:     validation.IsRFC3339Time,
+									},
+
+									"start": {
+										Type:             pluginsdk.TypeString,
+										Required:         true,
+										DiffSuppressFunc: suppress.RFC3339Time,
+										ValidateFunc:     validation.IsRFC3339Time,
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 
 			"network_profile": {
@@ -703,6 +769,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 					string(containerservice.UpgradeChannelPatch),
 					string(containerservice.UpgradeChannelRapid),
 					string(containerservice.UpgradeChannelStable),
+					string(containerservice.UpgradeChannelNodeImage),
 				}, false),
 			},
 
@@ -987,6 +1054,16 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	if read.ID == nil {
 		return fmt.Errorf("cannot read ID for Managed Kubernetes Cluster %q (Resource Group %q)", name, resGroup)
+	}
+
+	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window"); ok {
+		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		parameters := containerservice.MaintenanceConfiguration{
+			MaintenanceConfigurationProperties: expandKubernetesClusterMaintenanceConfiguration(maintenanceConfigRaw.([]interface{})),
+		}
+		if _, err := client.CreateOrUpdate(ctx, resGroup, name, "default", parameters); err != nil {
+			return fmt.Errorf("creating/updating maintenance config for Managed Kubernetes Cluster %q (Resource Group %q)", name, resGroup)
+		}
 	}
 
 	d.SetId(*read.ID)
@@ -1333,6 +1410,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		log.Printf("[DEBUG] Updated Default Node Pool.")
 	}
 
+	if d.HasChange("maintenance_window") {
+		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		parameters := containerservice.MaintenanceConfiguration{
+			MaintenanceConfigurationProperties: expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window").([]interface{})),
+		}
+		if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, "default", parameters); err != nil {
+			return fmt.Errorf("creating/updating Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+		}
+	}
+
 	d.Partial(false)
 
 	return resourceKubernetesClusterRead(d, meta)
@@ -1492,6 +1579,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("setting `kube_config`: %+v", err)
 	}
 
+	maintenanceConfigurationsClient := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+	configResp, _ := maintenanceConfigurationsClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName, "default")
+	if props := configResp.MaintenanceConfigurationProperties; props != nil {
+		d.Set("maintenance_window", flattenKubernetesClusterMaintenanceConfiguration(props))
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -1503,6 +1596,13 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	if _, ok := d.GetOk("maintenance_window"); ok {
+		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		if _, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName, "default"); err != nil {
+			return fmt.Errorf("deleting Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+		}
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName)
@@ -2351,4 +2451,91 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 		SkipNodesWithLocalStorage:     utils.String(strconv.FormatBool(skipNodesWithLocalStorage)),
 		SkipNodesWithSystemPods:       utils.String(strconv.FormatBool(skipNodesWithSystemPods)),
 	}
+}
+
+func expandKubernetesClusterMaintenanceConfiguration(input []interface{}) *containerservice.MaintenanceConfigurationProperties {
+	if len(input) == 0 {
+		return nil
+	}
+	value := input[0].(map[string]interface{})
+	return &containerservice.MaintenanceConfigurationProperties{
+		NotAllowedTime: expandKubernetesClusterMaintenanceConfigurationTimeSpans(value["not_allowed"].(*pluginsdk.Set).List()),
+		TimeInWeek:     expandKubernetesClusterMaintenanceConfigurationTimeInWeeks(value["allowed"].(*pluginsdk.Set).List()),
+	}
+}
+
+func expandKubernetesClusterMaintenanceConfigurationTimeSpans(input []interface{}) *[]containerservice.TimeSpan {
+	results := make([]containerservice.TimeSpan, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		start, _ := time.Parse(time.RFC3339, v["start"].(string))
+		end, _ := time.Parse(time.RFC3339, v["end"].(string))
+		results = append(results, containerservice.TimeSpan{
+			Start: &date.Time{Time: start},
+			End:   &date.Time{Time: end},
+		})
+	}
+	return &results
+}
+
+func expandKubernetesClusterMaintenanceConfigurationTimeInWeeks(input []interface{}) *[]containerservice.TimeInWeek {
+	results := make([]containerservice.TimeInWeek, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		results = append(results, containerservice.TimeInWeek{
+			Day:       containerservice.WeekDay(v["day"].(string)),
+			HourSlots: utils.ExpandInt32Slice(v["hours"].(*pluginsdk.Set).List()),
+		})
+	}
+	return &results
+}
+
+func flattenKubernetesClusterMaintenanceConfiguration(input *containerservice.MaintenanceConfigurationProperties) interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+	results = append(results, map[string]interface{}{
+		"not_allowed": flattenKubernetesClusterMaintenanceConfigurationTimeSpans(input.NotAllowedTime),
+		"allowed":     flattenKubernetesClusterMaintenanceConfigurationTimeInWeeks(input.TimeInWeek),
+	})
+	return results
+}
+
+func flattenKubernetesClusterMaintenanceConfigurationTimeSpans(input *[]containerservice.TimeSpan) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var end string
+		if item.End != nil {
+			end = item.End.Format(time.RFC3339)
+		}
+		var start string
+		if item.Start != nil {
+			start = item.Start.Format(time.RFC3339)
+		}
+		results = append(results, map[string]interface{}{
+			"end":   end,
+			"start": start,
+		})
+	}
+	return results
+}
+
+func flattenKubernetesClusterMaintenanceConfigurationTimeInWeeks(input *[]containerservice.TimeInWeek) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		results = append(results, map[string]interface{}{
+			"day":   string(item.Day),
+			"hours": utils.FlattenInt32Slice(item.HourSlots),
+		})
+	}
+	return results
 }
