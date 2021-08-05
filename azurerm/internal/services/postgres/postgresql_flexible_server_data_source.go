@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
+	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresqlflexibleservers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
@@ -64,8 +64,9 @@ func dataSourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"cmk_enabled": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:       pluginsdk.TypeString,
+				Computed:   true,
+				Deprecated: "This attribute has been removed from the API and will be removed in version 3.0 of the provider.",
 			},
 
 			"fqdn": {
@@ -106,21 +107,27 @@ func dataSourceArmPostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta i
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+
+	// `cmk_enabled` has been removed from API since 2021-06-01
+	// and should be removed in version 3.0 of the provider.
+	d.Set("cmk_enabled", "")
+
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
-		d.Set("storage_mb", props.StorageProfile.StorageMB)
 		d.Set("version", props.Version)
-		d.Set("cmk_enabled", props.ByokEnforcement)
 		d.Set("fqdn", props.FullyQualifiedDomainName)
-		d.Set("public_network_access_enabled", props.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
 
-		if props.DelegatedSubnetArguments != nil {
-			d.Set("delegated_subnet_id", props.DelegatedSubnetArguments.SubnetArmResourceID)
+		if storage := props.Storage; storage != nil && storage.StorageSizeGB != nil {
+			d.Set("storage_mb", (*props.Storage.StorageSizeGB * 1024))
 		}
 
-		if storage := props.StorageProfile; storage != nil {
-			d.Set("storage_mb", storage.StorageMB)
-			d.Set("backup_retention_days", storage.BackupRetentionDays)
+		if backup := props.Backup; backup != nil {
+			d.Set("backup_retention_days", props.Backup.BackupRetentionDays)
+		}
+
+		if network := props.Network; network != nil {
+			d.Set("delegated_subnet_id", network.DelegatedSubnetResourceID)
+			d.Set("public_network_access_enabled", network.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
 		}
 	}
 

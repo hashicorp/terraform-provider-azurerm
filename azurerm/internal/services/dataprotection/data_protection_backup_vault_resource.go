@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,34 +14,34 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dataprotection/legacysdk/dataprotection"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dataprotection/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataProtectionBackupVault() *schema.Resource {
-	return &schema.Resource{
+func resourceDataProtectionBackupVault() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDataProtectionBackupVaultCreate,
 		Read:   resourceDataProtectionBackupVaultRead,
 		Update: resourceDataProtectionBackupVaultUpdate,
 		Delete: resourceDataProtectionBackupVaultDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.BackupVaultID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
@@ -56,7 +55,7 @@ func resourceDataProtectionBackupVault() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"datastore_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -67,7 +66,7 @@ func resourceDataProtectionBackupVault() *schema.Resource {
 			},
 
 			"redundancy": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -82,7 +81,7 @@ func resourceDataProtectionBackupVault() *schema.Resource {
 		},
 	}
 }
-func resourceDataProtectionBackupVaultCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataProtection.BackupVaultClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -128,7 +127,7 @@ func resourceDataProtectionBackupVaultCreate(d *schema.ResourceData, meta interf
 	return resourceDataProtectionBackupVaultRead(d, meta)
 }
 
-func resourceDataProtectionBackupVaultRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataProtection.BackupVaultClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -162,7 +161,7 @@ func resourceDataProtectionBackupVaultRead(d *schema.ResourceData, meta interfac
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceDataProtectionBackupVaultUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataProtection.BackupVaultClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,7 +190,7 @@ func resourceDataProtectionBackupVaultUpdate(d *schema.ResourceData, meta interf
 	return resourceDataProtectionBackupVaultRead(d, meta)
 }
 
-func resourceDataProtectionBackupVaultDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataProtection.BackupVaultClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -213,7 +212,7 @@ func resourceDataProtectionBackupVaultDelete(d *schema.ResourceData, meta interf
 func expandBackupVaultDppIdentityDetails(input []interface{}) *dataprotection.DppIdentityDetails {
 	config, _ := identity.SystemAssigned{}.Expand(input)
 	return &dataprotection.DppIdentityDetails{
-		Type: utils.String(config.Type),
+		Type: utils.String(string(config.Type)),
 	}
 }
 
@@ -221,7 +220,7 @@ func flattenBackupVaultDppIdentityDetails(input *dataprotection.DppIdentityDetai
 	var config *identity.ExpandedConfig
 	if input != nil {
 		config = &identity.ExpandedConfig{
-			Type:        *input.Type,
+			Type:        identity.Type(*input.Type),
 			PrincipalId: input.PrincipalID,
 			TenantId:    input.TenantID,
 		}

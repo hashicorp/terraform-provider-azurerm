@@ -28,6 +28,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_storage_container":                  dataSourceStorageContainer(),
 		"azurerm_storage_encryption_scope":           dataSourceStorageEncryptionScope(),
 		"azurerm_storage_management_policy":          dataSourceStorageManagementPolicy(),
+		"azurerm_storage_share":                      dataSourceStorageShare(),
 		"azurerm_storage_sync":                       dataSourceStorageSync(),
 		"azurerm_storage_sync_group":                 dataSourceStorageSyncGroup(),
 		"azurerm_storage_table_entity":               dataSourceStorageTableEntity(),

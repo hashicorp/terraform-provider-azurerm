@@ -11,14 +11,18 @@ type Client struct {
 	ApiPoliciesClient          *apimanagement.APIPolicyClient
 	ApiOperationsClient        *apimanagement.APIOperationClient
 	ApiOperationPoliciesClient *apimanagement.APIOperationPolicyClient
+	ApiReleasesClient          *apimanagement.APIReleaseClient
 	ApiSchemasClient           *apimanagement.APISchemaClient
 	ApiVersionSetClient        *apimanagement.APIVersionSetClient
 	AuthorizationServersClient *apimanagement.AuthorizationServerClient
 	BackendClient              *apimanagement.BackendClient
+	CacheClient                *apimanagement.CacheClient
 	CertificatesClient         *apimanagement.CertificateClient
 	DiagnosticClient           *apimanagement.DiagnosticClient
 	DeletedServicesClient      *apimanagement.DeletedServicesClient
 	EmailTemplateClient        *apimanagement.EmailTemplateClient
+	GatewayClient              *apimanagement.GatewayClient
+	GatewayApisClient          *apimanagement.GatewayAPIClient
 	GroupClient                *apimanagement.GroupClient
 	GroupUsersClient           *apimanagement.GroupUserClient
 	IdentityProviderClient     *apimanagement.IdentityProviderClient
@@ -34,6 +38,7 @@ type Client struct {
 	SignInClient               *apimanagement.SignInSettingsClient
 	SignUpClient               *apimanagement.SignUpSettingsClient
 	SubscriptionsClient        *apimanagement.SubscriptionClient
+	TagClient                  *apimanagement.TagClient
 	TenantAccessClient         *apimanagement.TenantAccessClient
 	UsersClient                *apimanagement.UserClient
 }
@@ -54,6 +59,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	apiOperationPoliciesClient := apimanagement.NewAPIOperationPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiOperationPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
+	apiReleasesClient := apimanagement.NewAPIReleaseClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&apiReleasesClient.Client, o.ResourceManagerAuthorizer)
+
 	apiSchemasClient := apimanagement.NewAPISchemaClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiSchemasClient.Client, o.ResourceManagerAuthorizer)
 
@@ -66,6 +74,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	backendClient := apimanagement.NewBackendClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&backendClient.Client, o.ResourceManagerAuthorizer)
 
+	cacheClient := apimanagement.NewCacheClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&cacheClient.Client, o.ResourceManagerAuthorizer)
+
 	certificatesClient := apimanagement.NewCertificateClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&certificatesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -77,6 +88,12 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	emailTemplateClient := apimanagement.NewEmailTemplateClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&emailTemplateClient.Client, o.ResourceManagerAuthorizer)
+
+	gatewayClient := apimanagement.NewGatewayClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&gatewayClient.Client, o.ResourceManagerAuthorizer)
+
+	gatewayApisClient := apimanagement.NewGatewayAPIClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&gatewayApisClient.Client, o.ResourceManagerAuthorizer)
 
 	groupClient := apimanagement.NewGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&groupClient.Client, o.ResourceManagerAuthorizer)
@@ -123,6 +140,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	subscriptionsClient := apimanagement.NewSubscriptionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&subscriptionsClient.Client, o.ResourceManagerAuthorizer)
 
+	tagClient := apimanagement.NewTagClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&tagClient.Client, o.ResourceManagerAuthorizer)
+
 	tenantAccessClient := apimanagement.NewTenantAccessClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&tenantAccessClient.Client, o.ResourceManagerAuthorizer)
 
@@ -135,14 +155,18 @@ func NewClient(o *common.ClientOptions) *Client {
 		ApiPoliciesClient:          &apiPoliciesClient,
 		ApiOperationsClient:        &apiOperationsClient,
 		ApiOperationPoliciesClient: &apiOperationPoliciesClient,
+		ApiReleasesClient:          &apiReleasesClient,
 		ApiSchemasClient:           &apiSchemasClient,
 		ApiVersionSetClient:        &apiVersionSetClient,
 		AuthorizationServersClient: &authorizationServersClient,
 		BackendClient:              &backendClient,
+		CacheClient:                &cacheClient,
 		CertificatesClient:         &certificatesClient,
 		DiagnosticClient:           &diagnosticClient,
 		DeletedServicesClient:      &deletedServicesClient,
 		EmailTemplateClient:        &emailTemplateClient,
+		GatewayClient:              &gatewayClient,
+		GatewayApisClient:          &gatewayApisClient,
 		GroupClient:                &groupClient,
 		GroupUsersClient:           &groupUsersClient,
 		IdentityProviderClient:     &identityProviderClient,
@@ -158,6 +182,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		SignInClient:               &signInClient,
 		SignUpClient:               &signUpClient,
 		SubscriptionsClient:        &subscriptionsClient,
+		TagClient:                  &tagClient,
 		TenantAccessClient:         &tenantAccessClient,
 		UsersClient:                &usersClient,
 	}

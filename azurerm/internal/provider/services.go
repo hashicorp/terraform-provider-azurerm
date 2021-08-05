@@ -36,6 +36,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/domainservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall"
@@ -101,8 +102,10 @@ import (
 
 func SupportedTypedServices() []sdk.TypedServiceRegistration {
 	return []sdk.TypedServiceRegistration{
+		batch.Registration{},
 		eventhub.Registration{},
 		loadbalancer.Registration{},
+		policy.Registration{},
 		resource.Registration{},
 		web.Registration{},
 	}
@@ -145,6 +148,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		devtestlabs.Registration{},
 		digitaltwins.Registration{},
 		dns.Registration{},
+		domainservices.Registration{},
 		eventgrid.Registration{},
 		eventhub.Registration{},
 		firewall.Registration{},

@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -24,6 +25,8 @@ func resourceDataFactoryIntegrationRuntimeManaged() *pluginsdk.Resource {
 		Delete: resourceDataFactoryIntegrationRuntimeManagedDelete,
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
+
+		DeprecationMessage: features.DeprecatedInThreePointOh("The resource 'azurerm_data_factory_integration_runtime_managed' has been superseded by the 'azurerm_data_factory_integration_runtime_azure_ssis'."),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -394,7 +397,7 @@ func expandDataFactoryIntegrationRuntimeManagedSsisProperties(d *pluginsdk.Resou
 		if adminPassword := catalogInfo["administrator_password"]; adminPassword.(string) != "" {
 			ssisProperties.CatalogInfo.CatalogAdminPassword = &datafactory.SecureString{
 				Value: utils.String(adminPassword.(string)),
-				Type:  datafactory.TypeTypeSecureString,
+				Type:  datafactory.TypeSecureString,
 			}
 		}
 	}
@@ -404,7 +407,7 @@ func expandDataFactoryIntegrationRuntimeManagedSsisProperties(d *pluginsdk.Resou
 
 		sasToken := &datafactory.SecureString{
 			Value: utils.String(customSetupScript["sas_token"].(string)),
-			Type:  datafactory.TypeTypeSecureString,
+			Type:  datafactory.TypeSecureString,
 		}
 
 		ssisProperties.CustomSetupScriptProperties = &datafactory.IntegrationRuntimeCustomSetupScriptProperties{

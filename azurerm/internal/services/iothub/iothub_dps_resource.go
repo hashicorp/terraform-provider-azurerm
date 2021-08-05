@@ -122,7 +122,13 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 
 			"allocation_policy": {
 				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Optional: true,
+				Default:  string(iothub.Hashed),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(iothub.Hashed),
+					string(iothub.GeoLatency),
+					string(iothub.Static),
+				}, false),
 			},
 
 			"device_provisioning_host_name": {
@@ -171,7 +177,8 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Name:     utils.String(name),
 		Sku:      expandIoTHubDPSSku(d),
 		Properties: &iothub.IotDpsPropertiesDescription{
-			IotHubs: expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
+			IotHubs:          expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
+			AllocationPolicy: d.Get("allocation_policy").(iothub.AllocationPolicy),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -281,7 +288,7 @@ func waitForIotHubDPSToBeDeleted(ctx context.Context, client *iothub.IotDpsResou
 		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for IoT Device Provisioning Service %q (Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
 	}
 

@@ -14,13 +14,18 @@ var kubernetesOtherTests = map[string]func(t *testing.T){
 	"basicVMSS":                         testAccKubernetesCluster_basicVMSS,
 	"requiresImport":                    testAccKubernetesCluster_requiresImport,
 	"criticalAddonsTaint":               testAccKubernetesCluster_criticalAddonsTaint,
+	"kubeletAndLinuxOSConfig":           testAccKubernetesCluster_kubeletAndLinuxOSConfig,
+	"kubeletAndLinuxOSConfig_partial":   testAccKubernetesCluster_kubeletAndLinuxOSConfigPartial,
 	"linuxProfile":                      testAccKubernetesCluster_linuxProfile,
 	"nodeLabels":                        testAccKubernetesCluster_nodeLabels,
 	"nodeResourceGroup":                 testAccKubernetesCluster_nodeResourceGroup,
+	"nodePoolOther":                     testAccKubernetesCluster_nodePoolOther,
 	"paidSku":                           testAccKubernetesCluster_paidSku,
 	"upgradeConfig":                     testAccKubernetesCluster_upgrade,
 	"tags":                              testAccKubernetesCluster_tags,
 	"windowsProfile":                    testAccKubernetesCluster_windowsProfile,
+	"windowsProfileLicense":             testAccKubernetesCluster_windowsProfileLicense,
+	"updateWindowsProfileLicense":       TestAccKubernetesCluster_updateWindowsProfileLicense,
 	"outboundTypeLoadBalancer":          testAccKubernetesCluster_outboundTypeLoadBalancer,
 	"privateClusterOn":                  testAccKubernetesCluster_privateClusterOn,
 	"privateClusterOff":                 testAccKubernetesCluster_privateClusterOff,
@@ -171,6 +176,46 @@ func testAccKubernetesCluster_criticalAddonsTaint(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_kubeletAndLinuxOSConfig(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_kubeletAndLinuxOSConfig(t)
+}
+
+func testAccKubernetesCluster_kubeletAndLinuxOSConfig(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.kubeletAndLinuxOSConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_kubeletAndLinuxOSConfigPartial(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_kubeletAndLinuxOSConfigPartial(t)
+}
+
+func testAccKubernetesCluster_kubeletAndLinuxOSConfigPartial(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.kubeletAndLinuxOSConfigPartial(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_linuxProfile(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccKubernetesCluster_linuxProfile(t)
@@ -255,6 +300,26 @@ func testAccKubernetesCluster_nodeResourceGroup(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_nodePoolOther(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_nodePoolOther(t)
+}
+
+func testAccKubernetesCluster_nodePoolOther(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodePoolOther(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_upgradeSkuTier(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccKubernetesCluster_upgradeSkuTier(t)
@@ -274,6 +339,13 @@ func testAccKubernetesCluster_upgradeSkuTier(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.paidSkuConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.freeSkuConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -387,6 +459,62 @@ func testAccKubernetesCluster_windowsProfile(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_windowsProfileLicense(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_windowsProfileLicense(t)
+}
+
+func testAccKubernetesCluster_windowsProfileLicense(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windowsProfileLicense(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"windows_profile.0.admin_password",
+		),
+	})
+}
+
+func TestAccKubernetesCluster_updateWindowsProfileLicense(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_updateWindowsProfileLicense(t)
+}
+
+func testAccKubernetesCluster_updateWindowsProfileLicense(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windowsProfileConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("windows_profile.0.admin_password"),
+		{
+			Config: r.windowsProfileLicense(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("windows_profile.0.admin_password"),
+		{
+			Config: r.windowsProfileConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("windows_profile.0.admin_password"),
+	})
+}
+
 func TestAccKubernetesCluster_diskEncryption(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccKubernetesCluster_diskEncryption(t)
@@ -435,6 +563,15 @@ func testAccKubernetesCluster_upgradeChannel(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("patch"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "node-image"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("node-image"),
 			),
 		},
 		data.ImportStep(),
@@ -774,6 +911,131 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
+func (KubernetesClusterResource) kubeletAndLinuxOSConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    kubelet_config {
+      cpu_manager_policy        = "static"
+      cpu_cfs_quota_enabled     = true
+      cpu_cfs_quota_period      = "10ms"
+      image_gc_high_threshold   = 90
+      image_gc_low_threshold    = 70
+      topology_manager_policy   = "best-effort"
+      allowed_unsafe_sysctls    = ["kernel.msg*", "net.core.somaxconn"]
+      container_log_max_size_mb = 100
+      container_log_max_line    = 100000
+      pod_max_pid               = 12345
+    }
+
+    linux_os_config {
+      transparent_huge_page_enabled = "always"
+      transparent_huge_page_defrag  = "always"
+      swap_file_size_mb             = 300
+
+      sysctl_config {
+        fs_aio_max_nr                      = 65536
+        fs_file_max                        = 100000
+        fs_inotify_max_user_watches        = 1000000
+        fs_nr_open                         = 1048576
+        kernel_threads_max                 = 200000
+        net_core_netdev_max_backlog        = 1800
+        net_core_optmem_max                = 30000
+        net_core_rmem_max                  = 300000
+        net_core_rmem_default              = 300000
+        net_core_somaxconn                 = 5000
+        net_core_wmem_default              = 300000
+        net_core_wmem_max                  = 300000
+        net_ipv4_ip_local_port_range_min   = 32768
+        net_ipv4_ip_local_port_range_max   = 60000
+        net_ipv4_neigh_default_gc_thresh1  = 128
+        net_ipv4_neigh_default_gc_thresh2  = 512
+        net_ipv4_neigh_default_gc_thresh3  = 1024
+        net_ipv4_tcp_fin_timeout           = 60
+        net_ipv4_tcp_keepalive_probes      = 9
+        net_ipv4_tcp_keepalive_time        = 6000
+        net_ipv4_tcp_max_syn_backlog       = 2048
+        net_ipv4_tcp_max_tw_buckets        = 100000
+        net_ipv4_tcp_tw_reuse              = true
+        net_ipv4_tcp_keepalive_intvl       = 70
+        net_netfilter_nf_conntrack_buckets = 65536
+        net_netfilter_nf_conntrack_max     = 200000
+        vm_max_map_count                   = 65536
+        vm_swappiness                      = 45
+        vm_vfs_cache_pressure              = 80
+      }
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) kubeletAndLinuxOSConfigPartial(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    kubelet_config {
+      cpu_manager_policy    = "static"
+      cpu_cfs_quota_enabled = true
+      cpu_cfs_quota_period  = "10ms"
+    }
+
+    linux_os_config {
+      transparent_huge_page_enabled = "always"
+
+      sysctl_config {
+        fs_aio_max_nr               = 65536
+        fs_file_max                 = 100000
+        fs_inotify_max_user_watches = 1000000
+      }
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
 func (KubernetesClusterResource) linuxProfileConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -877,10 +1139,39 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func (KubernetesClusterResource) nodePoolOther(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name              = "default"
+    node_count        = 1
+    vm_size           = "Standard_DS2_v2"
+    fips_enabled      = true
+    kubelet_disk_type = "OS"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
 func (KubernetesClusterResource) paidSkuConfig(data acceptance.TestData) string {
-	// @tombuildsstuff (2020-05-29) - this is only supported in a handful of regions
-	// 								  whilst in Preview - hard-coding for now
-	location := "westus2" // TODO: data.Locations.Primary
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -908,13 +1199,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, location, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) freeSkuConfig(data acceptance.TestData) string {
-	// @tombuildsstuff (2020-05-29) - this is only supported in a handful of regions
-	// 								  whilst in Preview - hard-coding for now
-	location := "westus2" // TODO: data.Locations.Primary
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -941,7 +1229,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, location, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) tagsConfig(data acceptance.TestData) string {
@@ -1079,6 +1367,59 @@ resource "azurerm_kubernetes_cluster" "test" {
   windows_profile {
     admin_username = "azureuser"
     admin_password = "P@55W0rd1234!h@2h1C0rP"
+  }
+
+  # the default node pool /has/ to be Linux agents - Windows agents can be added via the node pools resource
+  default_node_pool {
+    name       = "np"
+    node_count = 3
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin     = "azure"
+    network_policy     = "azure"
+    dns_service_ip     = "10.10.0.10"
+    docker_bridge_cidr = "172.18.0.1/16"
+    service_cidr       = "10.10.0.0/16"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) windowsProfileLicense(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  windows_profile {
+    admin_username = "azureuser"
+    admin_password = "P@55W0rd1234!h@2h1C0rP"
+    license        = "Windows_Server"
   }
 
   # the default node pool /has/ to be Linux agents - Windows agents can be added via the node pools resource

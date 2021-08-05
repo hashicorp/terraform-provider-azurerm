@@ -63,6 +63,8 @@ func (client VirtualHubIPConfigurationClient) CreateOrUpdate(ctx context.Context
 								Chain: []validation.Constraint{{Target: "parameters.HubIPConfigurationPropertiesFormat.PublicIPAddress.PublicIPAddressPropertiesFormat.IPConfiguration.IPConfigurationPropertiesFormat", Name: validation.Null, Rule: false,
 									Chain: []validation.Constraint{{Target: "parameters.HubIPConfigurationPropertiesFormat.PublicIPAddress.PublicIPAddressPropertiesFormat.IPConfiguration.IPConfigurationPropertiesFormat.PublicIPAddress", Name: validation.Null, Rule: false, Chain: nil}}},
 								}},
+								{Target: "parameters.HubIPConfigurationPropertiesFormat.PublicIPAddress.PublicIPAddressPropertiesFormat.ServicePublicIPAddress", Name: validation.Null, Rule: false, Chain: nil},
+								{Target: "parameters.HubIPConfigurationPropertiesFormat.PublicIPAddress.PublicIPAddressPropertiesFormat.LinkedPublicIPAddress", Name: validation.Null, Rule: false, Chain: nil},
 							}},
 					}},
 				}}}}}); err != nil {

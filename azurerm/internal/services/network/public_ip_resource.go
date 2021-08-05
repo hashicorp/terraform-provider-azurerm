@@ -103,6 +103,17 @@ func resourcePublicIp() *pluginsdk.Resource {
 				}, true),
 			},
 
+			"sku_tier": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(network.PublicIPAddressSkuTierRegional),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.PublicIPAddressSkuTierGlobal),
+					string(network.PublicIPAddressSkuTierRegional),
+				}, false),
+			},
+
 			"idle_timeout_in_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -193,6 +204,7 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
+	sku_tier := d.Get("sku_tier").(string)
 	t := d.Get("tags").(map[string]interface{})
 	// Default to Zone-Redundant - Legacy behaviour TODO - Switch to `No-Zone` in 3.0 to match service?
 	zones := &[]string{"1", "2"}
@@ -223,6 +235,17 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("Availability Zones are not available on the `Basic` SKU")
 		}
 		zones = &[]string{}
+
+		if strings.EqualFold(sku_tier, "Global") {
+			return fmt.Errorf("Global` SKU tier is not available on the `Basic` SKU")
+		}
+	}
+
+	if strings.EqualFold(sku_tier, "Global") {
+		if zonesSet && len(*zones) > 0 {
+			return fmt.Errorf("Availability Zones are not available on the `Global` SKU tier")
+		}
+		zones = &[]string{}
 	}
 
 	idleTimeout := d.Get("idle_timeout_in_minutes").(int)
@@ -240,6 +263,7 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		Location: &location,
 		Sku: &network.PublicIPAddressSku{
 			Name: network.PublicIPAddressSkuName(sku),
+			Tier: network.PublicIPAddressSkuTier(sku_tier),
 		},
 		PublicIPAddressPropertiesFormat: &network.PublicIPAddressPropertiesFormat{
 			PublicIPAllocationMethod: network.IPAllocationMethod(ipAllocationMethod),
@@ -345,6 +369,7 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
+		d.Set("sku_tier", string(sku.Tier))
 	}
 
 	if props := resp.PublicIPAddressPropertiesFormat; props != nil {

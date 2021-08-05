@@ -19,7 +19,7 @@ data "azurerm_cosmosdb_account" "example" {
 }
 
 output "cosmosdb_account_endpoint" {
-  value = data.azurerm_cosmosdb_account.jobs.endpoint
+  value = data.azurerm_cosmosdb_account.example.endpoint
 }
 ```
 

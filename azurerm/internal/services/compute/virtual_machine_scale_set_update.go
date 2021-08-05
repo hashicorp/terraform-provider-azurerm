@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/client"
@@ -47,7 +48,9 @@ func (metadata virtualMachineScaleSetUpdateMetaData) performUpdate(ctx context.C
 		upgradeMode := metadata.Existing.VirtualMachineScaleSetProperties.UpgradePolicy.Mode
 
 		if userWantsToRollInstances {
-			if upgradeMode == compute.Automatic {
+			// If the updated image version is not "latest" and upgrade mode is automatic then azure will roll the instances automatically.
+			// Calling upgradeInstancesForAutomaticUpgradePolicy() in this case will cause an error.
+			if upgradeMode == compute.Automatic && isUsingLatestImage(update) {
 				if err := metadata.upgradeInstancesForAutomaticUpgradePolicy(ctx); err != nil {
 					return err
 				}
@@ -86,7 +89,7 @@ func (metadata virtualMachineScaleSetUpdateMetaData) updateVmss(ctx context.Cont
 	log.Printf("[DEBUG] Updating %s Virtual Machine Scale Set %q (Resource Group %q)..", metadata.OSType, id.Name, id.ResourceGroup)
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)
 	if err != nil {
-		return fmt.Errorf("Error updating L%sinux Virtual Machine Scale Set %q (Resource Group %q): %+v", metadata.OSType, id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error updating %s Virtual Machine Scale Set %q (Resource Group %q): %+v", metadata.OSType, id.Name, id.ResourceGroup, err)
 	}
 
 	log.Printf("[DEBUG] Waiting for update of %s Virtual Machine Scale Set %q (Resource Group %q)..", metadata.OSType, id.Name, id.ResourceGroup)
@@ -182,4 +185,16 @@ func (metadata virtualMachineScaleSetUpdateMetaData) upgradeInstancesForManualUp
 
 	log.Printf("[DEBUG] Rolled the VM Instances for %s Virtual Machine Scale Set %q (Resource Group %q).", metadata.OSType, id.Name, id.ResourceGroup)
 	return nil
+}
+
+func isUsingLatestImage(update compute.VirtualMachineScaleSetUpdate) bool {
+	if update.VirtualMachineProfile.StorageProfile == nil ||
+		update.VirtualMachineProfile.StorageProfile.ImageReference == nil ||
+		update.VirtualMachineProfile.StorageProfile.ImageReference.Version == nil {
+		return false
+	}
+	if strings.EqualFold(*update.VirtualMachineProfile.StorageProfile.ImageReference.Version, "latest") {
+		return true
+	}
+	return false
 }

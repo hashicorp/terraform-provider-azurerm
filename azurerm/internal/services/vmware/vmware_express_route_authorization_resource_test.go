@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/authorizations"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -48,18 +49,18 @@ func TestAccVmwareExpressRouteAuthorization_requiresImport(t *testing.T) {
 	})
 }
 
-func (VmwareExpressRouteAuthorizationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.ExpressRouteAuthorizationID(state.ID)
+func (VmwareExpressRouteAuthorizationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := authorizations.ParseAuthorizationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Vmware.AuthorizationClient.Get(ctx, id.ResourceGroup, id.PrivateCloudName, id.AuthorizationName)
+	resp, err := clients.Vmware.AuthorizationClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %q: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ExpressRouteAuthorizationProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r VmwareExpressRouteAuthorizationResource) basic(data acceptance.TestData) string {

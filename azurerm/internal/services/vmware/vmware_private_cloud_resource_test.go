@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/privateclouds"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -99,17 +100,17 @@ func TestAccVmwarePrivateCloud_update(t *testing.T) {
 }
 
 func (VmwarePrivateCloudResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PrivateCloudID(state.ID)
+	id, err := privateclouds.ParsePrivateCloudID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Vmware.PrivateCloudClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Vmware.PrivateCloudClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Vmware Private Cloud %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.PrivateCloudProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (VmwarePrivateCloudResource) template(data acceptance.TestData) string {

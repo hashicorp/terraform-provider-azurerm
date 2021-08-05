@@ -2,12 +2,17 @@ package features
 
 type UserFeatures struct {
 	ApiManagement          ApiManagementFeatures
+	CognitiveAccount       CognitiveAccountFeatures
 	VirtualMachine         VirtualMachineFeatures
 	VirtualMachineScaleSet VirtualMachineScaleSetFeatures
 	KeyVault               KeyVaultFeatures
 	Network                NetworkFeatures
 	TemplateDeployment     TemplateDeploymentFeatures
 	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
+}
+
+type CognitiveAccountFeatures struct {
+	PurgeSoftDeleteOnDestroy bool
 }
 
 type VirtualMachineFeatures struct {

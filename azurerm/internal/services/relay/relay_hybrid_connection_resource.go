@@ -6,16 +6,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/sdk/hybridconnections"
+
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmRelayHybridConnection() *pluginsdk.Resource {
@@ -25,7 +24,7 @@ func resourceArmRelayHybridConnection() *pluginsdk.Resource {
 		Update: resourceArmRelayHybridConnectionCreateUpdate,
 		Delete: resourceArmRelayHybridConnectionDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.HybridConnectionID(id)
+			_, err := hybridconnections.ParseHybridConnectionID(id)
 			return err
 		}),
 
@@ -76,35 +75,35 @@ func resourceArmRelayHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, met
 
 	log.Printf("[INFO] preparing arguments for Relay Hybrid Connection creation.")
 
-	resourceId := parse.NewHybridConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("relay_namespace_name").(string), d.Get("name").(string))
+	id := hybridconnections.NewHybridConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("relay_namespace_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Hybrid Connection %q (Namespace %q / Resource Group %q): %+v", resourceId.Name, resourceId.NamespaceName, resourceId.ResourceGroup, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_relay_hybrid_connection", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_relay_hybrid_connection", id.ID())
 		}
 	}
 
 	requireClientAuthorization := d.Get("requires_client_authorization").(bool)
 	userMetadata := d.Get("user_metadata").(string)
 
-	parameters := relay.HybridConnection{
-		HybridConnectionProperties: &relay.HybridConnectionProperties{
+	parameters := hybridconnections.HybridConnection{
+		Properties: &hybridconnections.HybridConnectionProperties{
 			RequiresClientAuthorization: &requireClientAuthorization,
 			UserMetadata:                &userMetadata,
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.Name, parameters); err != nil {
-		return fmt.Errorf("creating/updating Hybrid Connection %q (Namespace %q Resource Group %q): %+v", resourceId.Name, resourceId.NamespaceName, resourceId.ResourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating/updating Hybrid Connection %q (Namespace %q Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 	return resourceArmRelayHybridConnectionRead(d, meta)
 }
 
@@ -113,28 +112,30 @@ func resourceArmRelayHybridConnectionRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HybridConnectionID(d.Id())
+	id, err := hybridconnections.ParseHybridConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Hybrid Connection %q (Namespace %q / Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("relay_namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if props := resp.HybridConnectionProperties; props != nil {
-		d.Set("requires_client_authorization", props.RequiresClientAuthorization)
-		d.Set("user_metadata", props.UserMetadata)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("requires_client_authorization", props.RequiresClientAuthorization)
+			d.Set("user_metadata", props.UserMetadata)
+		}
 	}
 
 	return nil
@@ -145,45 +146,41 @@ func resourceArmRelayHybridConnectionDelete(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HybridConnectionID(d.Id())
+	id, err := hybridconnections.ParseHybridConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	rc, err := client.Delete(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
-	if err != nil {
-		if response.WasNotFound(rc.Response) {
-			return nil
-		}
-
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Hybrid Connection %q (Namespace %q / Resource Group %q): %+v", id.NamespaceName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
-	log.Printf("[INFO] Waiting for Hybrid Connection %q (Namespace %q / Resource Group %q) to be deleted", id.Name, id.NamespaceName, id.ResourceGroup)
+	// we can't make use of the Future here due to a bug where 404 isn't tracked as Successful
+	log.Printf("[INFO] Waiting for %s to be deleted", *id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Pending"},
 		Target:     []string{"Deleted"},
-		Refresh:    hybridConnectionDeleteRefreshFunc(ctx, client, id.ResourceGroup, id.NamespaceName, id.Name),
+		Refresh:    hybridConnectionDeleteRefreshFunc(ctx, client, *id),
 		MinTimeout: 15 * time.Second,
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("waiting for Relay Hybrid Connection %q (Namespace %q Resource Group %q) to be deleted: %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func hybridConnectionDeleteRefreshFunc(ctx context.Context, client *relay.HybridConnectionsClient, resourceGroupName string, relayNamespace string, name string) pluginsdk.StateRefreshFunc {
+func hybridConnectionDeleteRefreshFunc(ctx context.Context, client *hybridconnections.HybridConnectionsClient, id hybridconnections.HybridConnectionId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroupName, relayNamespace, name)
+		res, err := client.Get(ctx, id)
 		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
+			if response.WasNotFound(res.HttpResponse) {
 				return res, "Deleted", nil
 			}
 
-			return nil, "Error", fmt.Errorf("Error issuing read request in relayNamespaceDeleteRefreshFunc to Relay Hybrid Connection %q (Namespace %q Resource Group %q): %s", name, relayNamespace, resourceGroupName, err)
+			return nil, "Error", fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
 		return res, "Pending", nil

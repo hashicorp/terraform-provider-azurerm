@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -104,6 +104,25 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerservice.ScaleSetEvictionPolicyDelete),
 					string(containerservice.ScaleSetEvictionPolicyDeallocate),
+				}, false),
+			},
+
+			"kubelet_config": schemaNodePoolKubeletConfig(),
+
+			"linux_os_config": schemaNodePoolLinuxOSConfig(),
+
+			"fips_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
+			"kubelet_disk_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.KubeletDiskTypeOS),
 				}, false),
 			},
 
@@ -304,7 +323,9 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	profile := containerservice.ManagedClusterAgentPoolProfileProperties{
 		OsType:                 containerservice.OSType(osType),
 		EnableAutoScaling:      utils.Bool(enableAutoScaling),
+		EnableFIPS:             utils.Bool(d.Get("fips_enabled").(bool)),
 		EnableNodePublicIP:     utils.Bool(d.Get("enable_node_public_ip").(bool)),
+		KubeletDiskType:        containerservice.KubeletDiskType(d.Get("kubelet_disk_type").(string)),
 		Mode:                   mode,
 		ScaleSetPriority:       containerservice.ScaleSetPriority(priority),
 		Tags:                   tags.Expand(t),
@@ -405,6 +426,21 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		}
 	} else if minCount > 0 || maxCount > 0 {
 		return fmt.Errorf("`max_count` and `min_count` must be set to `null` when enable_auto_scaling is set to `false`")
+	}
+
+	if kubeletConfig := d.Get("kubelet_config").([]interface{}); len(kubeletConfig) > 0 {
+		profile.KubeletConfig = expandAgentPoolKubeletConfig(kubeletConfig)
+	}
+
+	if linuxOSConfig := d.Get("linux_os_config").([]interface{}); len(linuxOSConfig) > 0 {
+		if osType != string(containerservice.OSTypeLinux) {
+			return fmt.Errorf("`linux_os_config` can only be configured when `os_type` is set to `linux`")
+		}
+		linuxOSConfig, err := expandAgentPoolLinuxOSConfig(linuxOSConfig)
+		if err != nil {
+			return err
+		}
+		profile.LinuxOSConfig = linuxOSConfig
 	}
 
 	parameters := containerservice.AgentPool{
@@ -628,12 +664,26 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("enable_auto_scaling", props.EnableAutoScaling)
 		d.Set("enable_node_public_ip", props.EnableNodePublicIP)
 		d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
+		d.Set("fips_enabled", props.EnableFIPS)
+		d.Set("kubelet_disk_type", string(props.KubeletDiskType))
 
 		evictionPolicy := ""
 		if props.ScaleSetEvictionPolicy != "" {
 			evictionPolicy = string(props.ScaleSetEvictionPolicy)
 		}
 		d.Set("eviction_policy", evictionPolicy)
+
+		if err := d.Set("kubelet_config", flattenAgentPoolKubeletConfig(props.KubeletConfig)); err != nil {
+			return fmt.Errorf("setting `kubelet_config`: %+v", err)
+		}
+
+		linuxOSConfig, err := flattenAgentPoolLinuxOSConfig(props.LinuxOSConfig)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("linux_os_config", linuxOSConfig); err != nil {
+			return fmt.Errorf("setting `linux_os_config`: %+v", err)
+		}
 
 		maxCount := 0
 		if props.MaxCount != nil {

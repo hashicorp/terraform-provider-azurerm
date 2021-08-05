@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
-	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2020-04-01/machinelearningservices"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-04-01/machinelearningservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -65,11 +65,11 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(machinelearningservices.FastProd),
+				Default:  string(machinelearningservices.ClusterPurposeFastProd),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(machinelearningservices.DevTest),
-					string(machinelearningservices.FastProd),
-					string(machinelearningservices.DenseProd),
+					string(machinelearningservices.ClusterPurposeDevTest),
+					string(machinelearningservices.ClusterPurposeFastProd),
+					string(machinelearningservices.ClusterPurposeDenseProd),
 				}, false),
 			},
 
@@ -250,7 +250,7 @@ func resourceAksInferenceClusterDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	future, err := mlComputeClient.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName, machinelearningservices.Detach)
+	future, err := mlComputeClient.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName, machinelearningservices.UnderlyingResourceActionDetach)
 	if err != nil {
 		return fmt.Errorf("deleting Inference Cluster %q in workspace %q (Resource Group %q): %+v",
 			id.ComputeName, id.WorkspaceName, id.ResourceGroup, err)

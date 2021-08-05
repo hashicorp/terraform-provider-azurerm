@@ -121,6 +121,46 @@ func TestAccApiManagement_complete(t *testing.T) {
 	})
 }
 
+func TestAccApiManagement_completeUpdateAdditionalLocations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("certificate", // not returned from API, sensitive
+			"hostname_configuration.0.portal.0.certificate",                    // not returned from API, sensitive
+			"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
+			"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive
+			"hostname_configuration.0.developer_portal.0.certificate_password", // not returned from API, sensitive
+			"hostname_configuration.0.proxy.0.certificate",                     // not returned from API, sensitive
+			"hostname_configuration.0.proxy.0.certificate_password",            // not returned from API, sensitive
+			"hostname_configuration.0.proxy.1.certificate",                     // not returned from API, sensitive
+			"hostname_configuration.0.proxy.1.certificate_password",            // not returned from API, sensitive
+		),
+		{
+			Config: r.completeUpdateAdditionalLocations(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("certificate", // not returned from API, sensitive
+			"hostname_configuration.0.portal.0.certificate",                    // not returned from API, sensitive
+			"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
+			"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive
+			"hostname_configuration.0.developer_portal.0.certificate_password", // not returned from API, sensitive
+			"hostname_configuration.0.proxy.0.certificate",                     // not returned from API, sensitive
+			"hostname_configuration.0.proxy.0.certificate_password",            // not returned from API, sensitive
+			"hostname_configuration.0.proxy.1.certificate",                     // not returned from API, sensitive
+			"hostname_configuration.0.proxy.1.certificate_password",            // not returned from API, sensitive
+		),
+	})
+}
+
 func TestAccApiManagement_signInSignUpSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
@@ -282,6 +322,100 @@ func TestAccApiManagement_consumption(t *testing.T) {
 	r := ApiManagementResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_clientCertificate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.consumptionClientCertificateEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.consumptionClientCertificateDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_gatewayDiabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleLocations(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.gatewayDiabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleLocations(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_minApiVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.consumptionMinApiVersion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.consumptionMinApiVersionUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.consumption(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -895,7 +1029,127 @@ resource "azurerm_api_management" "test" {
     }
   }
 
-  sku_name = "Premium_1"
+  sku_name = "Premium_2"
+
+  zones = [1, 2]
+
+  tags = {
+    "Acceptance" = "Test"
+  }
+
+  location            = azurerm_resource_group.test1.location
+  resource_group_name = azurerm_resource_group.test1.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.Locations.Ternary, data.RandomInteger)
+}
+
+func (ApiManagementResource) completeUpdateAdditionalLocations(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test1" {
+  name     = "acctestRG-api1-%d"
+  location = "%s"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG-api2-%d"
+  location = "%s"
+}
+
+resource "azurerm_resource_group" "test3" {
+  name     = "acctestRG-api3-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                      = "acctestAM-%d"
+  publisher_name            = "pub1"
+  publisher_email           = "pub1@email.com"
+  notification_sender_email = "notification@email.com"
+
+  additional_location {
+    location = azurerm_resource_group.test2.location
+  }
+
+  certificate {
+    encoded_certificate  = filebase64("testdata/api_management_api_test.pfx")
+    certificate_password = "terraform"
+    store_name           = "CertificateAuthority"
+  }
+
+  certificate {
+    encoded_certificate  = filebase64("testdata/api_management_api_test.pfx")
+    certificate_password = "terraform"
+    store_name           = "Root"
+  }
+
+  certificate {
+    encoded_certificate = filebase64("testdata/api_management_api_test.cer")
+    store_name          = "Root"
+  }
+
+  certificate {
+    encoded_certificate = filebase64("testdata/api_management_api_test.cer")
+    store_name          = "CertificateAuthority"
+  }
+
+  protocols {
+    enable_http2 = true
+  }
+
+  security {
+    enable_backend_tls11                                = true
+    enable_backend_ssl30                                = true
+    enable_backend_tls10                                = true
+    enable_frontend_ssl30                               = true
+    enable_frontend_tls10                               = true
+    enable_frontend_tls11                               = true
+    tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled = true
+    tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled = true
+    tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled   = true
+    tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled   = true
+    tls_rsa_with_aes128_cbc_sha256_ciphers_enabled      = true
+    tls_rsa_with_aes128_cbc_sha_ciphers_enabled         = true
+    tls_rsa_with_aes128_gcm_sha256_ciphers_enabled      = true
+    tls_rsa_with_aes256_cbc_sha256_ciphers_enabled      = true
+    tls_rsa_with_aes256_cbc_sha_ciphers_enabled         = true
+    triple_des_ciphers_enabled                          = true
+  }
+
+  hostname_configuration {
+    proxy {
+      host_name                    = "api.terraform.io"
+      certificate                  = filebase64("testdata/api_management_api_test.pfx")
+      certificate_password         = "terraform"
+      default_ssl_binding          = true
+      negotiate_client_certificate = false
+    }
+
+    proxy {
+      host_name                    = "api2.terraform.io"
+      certificate                  = filebase64("testdata/api_management_api2_test.pfx")
+      certificate_password         = "terraform"
+      negotiate_client_certificate = true
+    }
+
+    portal {
+      host_name            = "portal.terraform.io"
+      certificate          = filebase64("testdata/api_management_portal_test.pfx")
+      certificate_password = "terraform"
+    }
+
+    developer_portal {
+      host_name   = "developer-portal.terraform.io"
+      certificate = filebase64("testdata/api_management_developer_portal_test.pfx")
+    }
+  }
+
+  sku_name = "Premium_2"
+
+  zones = [1, 2]
 
   tags = {
     "Acceptance" = "Test"
@@ -1442,6 +1696,149 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
   sku_name            = "Consumption_0"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) consumptionClientCertificateEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                       = "acctestAM-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  publisher_name             = "pub1"
+  publisher_email            = "pub1@email.com"
+  sku_name                   = "Consumption_0"
+  client_certificate_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) consumptionClientCertificateDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                       = "acctestAM-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  publisher_name             = "pub1"
+  publisher_email            = "pub1@email.com"
+  sku_name                   = "Consumption_0"
+  client_certificate_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) multipleLocations(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Premium_1"
+  additional_location {
+    location = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
+}
+
+func (ApiManagementResource) gatewayDiabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Premium_1"
+  gateway_disabled    = true
+  additional_location {
+    location = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
+}
+
+func (ApiManagementResource) consumptionMinApiVersion(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Consumption_0"
+  min_api_version     = "2019-12-01"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) consumptionMinApiVersionUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Consumption_0"
+  min_api_version     = "2020-12-01"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

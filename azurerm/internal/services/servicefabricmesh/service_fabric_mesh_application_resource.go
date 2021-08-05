@@ -190,7 +190,7 @@ func resourceServiceFabricMeshApplicationCreateUpdate(d *pluginsdk.ResourceData,
 		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Service Fabric Mesh Application %q (Resource Group %q) to become available: %+v", name, resourceGroup, err)
 	}
 

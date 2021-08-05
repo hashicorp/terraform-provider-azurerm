@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/sdk/namespaces"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -78,17 +78,17 @@ func TestAccRelayNamespace_complete(t *testing.T) {
 }
 
 func (t RelayNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NamespaceID(state.ID)
+	id, err := namespaces.ParseNamespaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Relay.NamespacesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Relay.NamespacesClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Relay Namespace (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.NamespaceProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (RelayNamespaceResource) basic(data acceptance.TestData) string {

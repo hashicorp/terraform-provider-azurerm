@@ -549,6 +549,93 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"share_properties": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"cors_rule": schemaStorageAccountCorsRule(true),
+
+						"retention_policy": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"days": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      7,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
+
+						"smb": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"versions": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"SMB2.1",
+												"SMB3.0",
+												"SMB3.1.1",
+											}, false),
+										},
+									},
+
+									"authentication_types": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"NTLMv2",
+												"Kerberos",
+											}, false),
+										},
+									},
+
+									"kerberos_ticket_encryption_type": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"RC4-HMAC",
+												"AES-256",
+											}, false),
+										},
+									},
+
+									"channel_encryption_type": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"AES-128-CCM",
+												"AES-128-GCM",
+												"AES-256-GCM",
+											}, false),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			//lintignore:XS003
 			"static_website": {
 				Type:     pluginsdk.TypeList,
@@ -751,27 +838,43 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 		},
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-			if d.HasChange("account_kind") {
-				accountKind, changedKind := d.GetChange("account_kind")
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+				if d.HasChange("account_kind") {
+					accountKind, changedKind := d.GetChange("account_kind")
 
-				if accountKind != string(storage.Storage) && changedKind != string(storage.StorageV2) {
-					log.Printf("[DEBUG] recreate storage account, could't be migrated from %s to %s", accountKind, changedKind)
-					d.ForceNew("account_kind")
-				} else {
-					log.Printf("[DEBUG] storage account can be upgraded from %s to %s", accountKind, changedKind)
+					if accountKind != string(storage.Storage) && changedKind != string(storage.StorageV2) {
+						log.Printf("[DEBUG] recreate storage account, could't be migrated from %s to %s", accountKind, changedKind)
+						d.ForceNew("account_kind")
+					} else {
+						log.Printf("[DEBUG] storage account can be upgraded from %s to %s", accountKind, changedKind)
+					}
 				}
-			}
 
-			if d.HasChange("large_file_share_enabled") {
-				lfsEnabled, changedEnabled := d.GetChange("large_file_share_enabled")
-				if lfsEnabled.(bool) && !changedEnabled.(bool) {
-					return fmt.Errorf("`large_file_share_enabled` cannot be disabled once it's been enabled")
+				if d.HasChange("large_file_share_enabled") {
+					lfsEnabled, changedEnabled := d.GetChange("large_file_share_enabled")
+					if lfsEnabled.(bool) && !changedEnabled.(bool) {
+						return fmt.Errorf("`large_file_share_enabled` cannot be disabled once it's been enabled")
+					}
 				}
-			}
+				return nil
+			}),
+			pluginsdk.ForceNewIfChange("account_replication_type", func(ctx context.Context, old, new, meta interface{}) bool {
+				newAccRep := strings.ToUpper(new.(string))
 
-			return nil
-		}),
+				switch strings.ToUpper(old.(string)) {
+				case "LRS", "GRS", "RAGRS":
+					if newAccRep == "GZRS" || newAccRep == "RAGZRS" || newAccRep == "ZRS" {
+						return true
+					}
+				case "ZRS", "GZRS", "RAGZRS":
+					if newAccRep == "LRS" || newAccRep == "GRS" || newAccRep == "RAGRS" {
+						return true
+					}
+				}
+				return false
+			}),
+		),
 	}
 }
 
@@ -834,13 +937,13 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		},
 	}
 
-	// For all Clouds except Public and USGovernmentCloud, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
+	// For all Clouds except Public, China, and USGovernmentCloud, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
 	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
 	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
 	// USGovernmentCloud allow_blob_public_access and min_tls_version allowed as of issue 9128
 	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/9128
-	if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name {
-		if allowBlobPublicAccess && minimumTLSVersion != string(storage.TLS10) {
+	if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
+		if allowBlobPublicAccess || minimumTLSVersion != string(storage.TLS10) {
 			return fmt.Errorf(`"allow_blob_public_access" and "min_tls_version" are not supported for a Storage Account located in %q`, envName)
 		}
 	} else {
@@ -990,6 +1093,20 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if err = queueClient.UpdateServiceProperties(ctx, account.ResourceGroup, storageAccountName, queueProperties); err != nil {
 			return fmt.Errorf("updating Queue Properties for Storage Account %q: %+v", storageAccountName, err)
+		}
+	}
+
+	if val, ok := d.GetOk("share_properties"); ok {
+		// BlobStorage does not support file share settings
+		// FileStorage Premium is supported
+		if accountKind == string(storage.FileStorage) || accountKind != string(storage.BlobStorage) && accountKind != string(storage.BlockBlobStorage) && accountTier != string(storage.Premium) {
+			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
+
+			if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, expandShareProperties(val.([]interface{}))); err != nil {
+				return fmt.Errorf("updating Azure Storage Account `share_properties` %q: %+v", storageAccountName, err)
+			}
+		} else {
+			return fmt.Errorf("`share_properties` aren't supported for Blob Storage / Block Blob / StorageV2 Premium Storage accounts")
 		}
 	}
 
@@ -1160,11 +1277,11 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("min_tls_version") {
 		minimumTLSVersion := d.Get("min_tls_version").(string)
 
-		// For all Clouds except Public and USGovernmentCloud, don't specify "min_tls_version" in request body.
+		// For all Clouds except Public, China, and USGovernmentCloud, don't specify "min_tls_version" in request body.
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
 		// USGovernmentCloud "min_tls_version" allowed as of issue 9128
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/9128
-		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name {
+		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
 			if minimumTLSVersion != string(storage.TLS10) {
 				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, envName)
 			}
@@ -1184,11 +1301,11 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("allow_blob_public_access") {
 		allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
 
-		// For all Clouds except Public and USGovernmentCloud, don't specify "allow_blob_public_access" in request body.
+		// For all Clouds except Public, China, and USGovernmentCloud, don't specify "allow_blob_public_access" in request body.
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
 		// USGovernmentCloud "allow_blob_public_access" allowed as of issue 9128
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/9128
-		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name {
+		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
 			if allowBlobPublicAccess {
 				return fmt.Errorf(`"allow_blob_public_access" is not supported for a Storage Account located in %q`, envName)
 			}
@@ -1347,6 +1464,20 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	if d.HasChange("share_properties") {
+		// BlobStorage, BlockBlobStorage does not support file share settings
+		// FileStorage Premium is supported
+		if accountKind == string(storage.FileStorage) || accountKind != string(storage.BlobStorage) && accountKind != string(storage.BlockBlobStorage) && accountTier != string(storage.Premium) {
+			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
+
+			if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, expandShareProperties(d.Get("share_properties").([]interface{}))); err != nil {
+				return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", storageAccountName, err)
+			}
+		} else {
+			return fmt.Errorf("`share_properties` aren't supported for Blob Storage /Block Blob /StorageV2 Premium Storage accounts")
+		}
+	}
+
 	if d.HasChange("static_website") {
 		// static website only supported on StorageV2 and BlockBlobStorage
 		if accountKind != string(storage.StorageV2) && accountKind != string(storage.BlockBlobStorage) {
@@ -1448,13 +1579,13 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("nfsv3_enabled", props.EnableNfsV3)
 		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
-		// For all Clouds except Public and USGovernmentCloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
+		// For all Clouds except Public, China, and USGovernmentCloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
 		// USGovernmentCloud "min_tls_version" allowed as of issue 9128
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/9128
 		envName := meta.(*clients.Client).Account.Environment.Name
-		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name {
+		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
 			d.Set("min_tls_version", string(storage.TLS10))
 		} else {
 			// For storage account created using old API, the response of GET call will not return "min_tls_version", either.
@@ -1559,6 +1690,22 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
 			return fmt.Errorf("Error setting `blob_properties `for AzureRM Storage Account %q: %+v", name, err)
+		}
+	}
+
+	fileServiceClient := storageClient.FileServicesClient
+
+	// FileStorage does not support blob kind, FileStorage Premium is supported
+	if resp.Kind == storage.FileStorage || resp.Kind != storage.BlobStorage && resp.Kind != storage.BlockBlobStorage && resp.Sku != nil && resp.Sku.Tier != storage.Premium {
+		shareProps, err := fileServiceClient.GetServiceProperties(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(shareProps.Response) {
+				return fmt.Errorf("reading share properties for AzureRM Storage Account %q: %+v", name, err)
+			}
+		}
+
+		if err := d.Set("share_properties", flattenShareProperties(shareProps)); err != nil {
+			return fmt.Errorf("setting `share_properties `for AzureRM Storage Account %q: %+v", name, err)
 		}
 	}
 
@@ -1935,6 +2082,55 @@ func expandBlobPropertiesCors(input []interface{}) *storage.CorsRules {
 	blobCorsRules.CorsRules = &corsRules
 
 	return &blobCorsRules
+}
+
+func expandShareProperties(input []interface{}) storage.FileServiceProperties {
+	props := storage.FileServiceProperties{
+		FileServicePropertiesProperties: &storage.FileServicePropertiesProperties{
+			Cors: &storage.CorsRules{
+				CorsRules: &[]storage.CorsRule{},
+			},
+			ShareDeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
+				Enabled: utils.Bool(false),
+			},
+		},
+	}
+
+	if len(input) == 0 || input[0] == nil {
+		return props
+	}
+
+	v := input[0].(map[string]interface{})
+
+	props.FileServicePropertiesProperties.ShareDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v["retention_policy"].([]interface{}), false)
+
+	props.FileServicePropertiesProperties.Cors = expandBlobPropertiesCors(v["cors_rule"].([]interface{}))
+
+	props.ProtocolSettings = &storage.ProtocolSettings{
+		Smb: expandSharePropertiesSMB(v["smb"].([]interface{})),
+	}
+
+	return props
+}
+
+func expandSharePropertiesSMB(input []interface{}) *storage.SmbSetting {
+	if len(input) == 0 || input[0] == nil {
+		return &storage.SmbSetting{
+			Versions:                 utils.String(""),
+			AuthenticationMethods:    utils.String(""),
+			KerberosTicketEncryption: utils.String(""),
+			ChannelEncryption:        utils.String(""),
+		}
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &storage.SmbSetting{
+		Versions:                 utils.ExpandStringSliceWithDelimiter(v["versions"].(*pluginsdk.Set).List(), ";"),
+		AuthenticationMethods:    utils.ExpandStringSliceWithDelimiter(v["authentication_types"].(*pluginsdk.Set).List(), ";"),
+		KerberosTicketEncryption: utils.ExpandStringSliceWithDelimiter(v["kerberos_ticket_encryption_type"].(*pluginsdk.Set).List(), ";"),
+		ChannelEncryption:        utils.ExpandStringSliceWithDelimiter(v["channel_encryption_type"].(*pluginsdk.Set).List(), ";"),
+	}
 }
 
 func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties, error) {
@@ -2452,6 +2648,77 @@ func flattenCorsProperty(input string) []interface{} {
 	}
 
 	return results
+}
+
+func flattenShareProperties(input storage.FileServiceProperties) []interface{} {
+	if input.FileServicePropertiesProperties == nil {
+		return []interface{}{}
+	}
+
+	flattenedCorsRules := make([]interface{}, 0)
+	if corsRules := input.FileServicePropertiesProperties.Cors; corsRules != nil {
+		flattenedCorsRules = flattenBlobPropertiesCorsRule(corsRules)
+	}
+
+	flattenedDeletePolicy := make([]interface{}, 0)
+	if deletePolicy := input.FileServicePropertiesProperties.ShareDeleteRetentionPolicy; deletePolicy != nil {
+		flattenedDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(deletePolicy)
+	}
+
+	flattenedSMB := make([]interface{}, 0)
+	if protocol := input.FileServicePropertiesProperties.ProtocolSettings; protocol != nil {
+		flattenedSMB = flattenedSharePropertiesSMB(protocol.Smb)
+	}
+
+	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 && len(flattenedSMB) == 0 {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"cors_rule":        flattenedCorsRules,
+			"retention_policy": flattenedDeletePolicy,
+			"smb":              flattenedSMB,
+		},
+	}
+}
+
+func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	versions := []interface{}{}
+	if input.Versions != nil {
+		versions = utils.FlattenStringSliceWithDelimiter(input.Versions, ";")
+	}
+
+	authenticationMethods := []interface{}{}
+	if input.AuthenticationMethods != nil {
+		authenticationMethods = utils.FlattenStringSliceWithDelimiter(input.AuthenticationMethods, ";")
+	}
+
+	kerberosTicketEncryption := []interface{}{}
+	if input.KerberosTicketEncryption != nil {
+		kerberosTicketEncryption = utils.FlattenStringSliceWithDelimiter(input.KerberosTicketEncryption, ";")
+	}
+
+	channelEncryption := []interface{}{}
+	if input.ChannelEncryption != nil {
+		channelEncryption = utils.FlattenStringSliceWithDelimiter(input.ChannelEncryption, ";")
+	}
+
+	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"versions":                        versions,
+			"authentication_types":            authenticationMethods,
+			"kerberos_ticket_encryption_type": kerberosTicketEncryption,
+			"channel_encryption_type":         channelEncryption,
+		},
+	}
 }
 
 func flattenStaticWebsiteProperties(input accounts.GetServicePropertiesResult) []interface{} {
