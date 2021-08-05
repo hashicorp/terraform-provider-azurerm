@@ -3,6 +3,8 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
@@ -10,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"testing"
 )
 
 type ApiManagementNotificationRecipientEmailResource struct{}
@@ -57,9 +58,11 @@ func (ApiManagementNotificationRecipientEmailResource) Exists(ctx context.Contex
 			return nil, fmt.Errorf("retrieving Api Management Notification Recipient Email %q (Resource Group %q): %+v", id.RecipientEmailName, id.ResourceGroup, err)
 		}
 	}
-	for _, existing := range *emails.Value {
-		if existing.RecipientEmailContractProperties != nil && existing.RecipientEmailContractProperties.Email != nil && *existing.RecipientEmailContractProperties.Email == id.RecipientEmailName {
-			return utils.Bool(true), nil
+	if emails.Value != nil {
+		for _, existing := range *emails.Value {
+			if existing.RecipientEmailContractProperties != nil && existing.RecipientEmailContractProperties.Email != nil && *existing.RecipientEmailContractProperties.Email == id.RecipientEmailName {
+				return utils.Bool(true), nil
+			}
 		}
 	}
 	return utils.Bool(false), nil

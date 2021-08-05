@@ -3,6 +3,8 @@ package apimanagement
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
@@ -11,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"time"
 )
 
 type ApiManagementNotificationRecipientEmailModel struct {
@@ -95,9 +96,11 @@ func (r ApiManagementNotificationRecipientEmailResource) Create() sdk.ResourceFu
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			for _, existing := range *emails.Value {
-				if existing.RecipientEmailContractProperties != nil && existing.RecipientEmailContractProperties.Email != nil && *existing.RecipientEmailContractProperties.Email == model.Email {
-					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if emails.Value != nil {
+				for _, existing := range *emails.Value {
+					if existing.RecipientEmailContractProperties != nil && existing.RecipientEmailContractProperties.Email != nil && *existing.RecipientEmailContractProperties.Email == model.Email {
+						return metadata.ResourceRequiresImport(r.ResourceType(), id)
+					}
 				}
 			}
 
@@ -132,9 +135,11 @@ func (r ApiManagementNotificationRecipientEmailResource) Read() sdk.ResourceFunc
 			}
 
 			found := false
-			for _, existing := range *emails.Value {
-				if existing.RecipientEmailContractProperties != nil && existing.RecipientEmailContractProperties.Email != nil && *existing.RecipientEmailContractProperties.Email == id.RecipientEmailName {
-					found = true
+			if emails.Value != nil {
+				for _, existing := range *emails.Value {
+					if existing.RecipientEmailContractProperties != nil && existing.RecipientEmailContractProperties.Email != nil && *existing.RecipientEmailContractProperties.Email == id.RecipientEmailName {
+						found = true
+					}
 				}
 			}
 			if !found {
