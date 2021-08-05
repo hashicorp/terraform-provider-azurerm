@@ -52,8 +52,10 @@ func TestExpandFeatures(t *testing.T) {
 			Name: "Complete Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
-					ApiManagement: features.ApiManagementFeatures{
-						PurgeSoftDeleteOnDestroy: false,
+					"api_management": []interface{}{
+						map[string]interface{}{
+							"purge_soft_delete_on_destroy": true,
+						},
 					},
 					"cognitive_account": []interface{}{
 						map[string]interface{}{
@@ -178,10 +180,8 @@ func TestExpandFeatures(t *testing.T) {
 				},
 			},
 			Expected: features.UserFeatures{
-				"api_management": []interface{}{
-					map[string]interface{}{
-						"purge_soft_delete_on_destroy": false,
-					},
+				ApiManagement: features.ApiManagementFeatures{
+					PurgeSoftDeleteOnDestroy: false,
 				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: false,
