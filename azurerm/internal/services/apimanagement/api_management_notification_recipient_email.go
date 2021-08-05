@@ -89,7 +89,7 @@ func (r ApiManagementNotificationRecipientEmailResource) Create() sdk.ResourceFu
 
 			id := parse.NewNotificationRecipientEmailID(subscriptionId, apiManagementId.ResourceGroup, apiManagementId.ServiceName, model.NotificationName, model.Email)
 
-			//CheckEntityExists can not be used, it returns autorest error
+			// CheckEntityExists can not be used, it returns autorest error
 			emails, err := client.ListByNotification(ctx, id.ResourceGroup, id.ServiceName, apimanagement.NotificationName(id.NotificationName))
 			if err != nil {
 				if !utils.ResponseWasNotFound(emails.Response) {
@@ -126,7 +126,7 @@ func (r ApiManagementNotificationRecipientEmailResource) Read() sdk.ResourceFunc
 				return err
 			}
 
-			//CheckEntityExists can not be used, it returns autorest error
+			// CheckEntityExists can not be used, it returns autorest error
 			emails, err := client.ListByNotification(ctx, id.ResourceGroup, id.ServiceName, apimanagement.NotificationName(id.NotificationName))
 			if err != nil {
 				if !utils.ResponseWasNotFound(emails.Response) {
