@@ -1,4 +1,4 @@
-// Package insights implements the Azure ARM Insights service API version 2015-05-01.
+// Package insights implements the Azure ARM Insights service API version .
 //
 // Composite Swagger for Application Insights Management Client
 package insights

@@ -17,7 +17,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
 
 // Annotation annotation associated with an application insights resource.
 type Annotation struct {
@@ -72,6 +72,8 @@ type ApplicationInsightsComponent struct {
 	autorest.Response `json:"-"`
 	// Kind - The kind of application that this component refers to, used to customize UI. This value is a freeform string, values should typically be one of the following: web, ios, other, store, java, phone.
 	Kind *string `json:"kind,omitempty"`
+	// Etag - Resource etag
+	Etag *string `json:"etag,omitempty"`
 	// ApplicationInsightsComponentProperties - Properties that define an Application Insights component resource.
 	*ApplicationInsightsComponentProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Azure resource Id
@@ -91,6 +93,9 @@ func (aic ApplicationInsightsComponent) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if aic.Kind != nil {
 		objectMap["kind"] = aic.Kind
+	}
+	if aic.Etag != nil {
+		objectMap["etag"] = aic.Etag
 	}
 	if aic.ApplicationInsightsComponentProperties != nil {
 		objectMap["properties"] = aic.ApplicationInsightsComponentProperties
@@ -121,6 +126,15 @@ func (aic *ApplicationInsightsComponent) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				aic.Kind = &kind
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				aic.Etag = &etag
 			}
 		case "properties":
 			if v != nil {
@@ -196,7 +210,7 @@ type ApplicationInsightsComponentAnalyticsItem struct {
 	Version *string `json:"Version,omitempty"`
 	// Scope - Enum indicating if this item definition is owned by a specific user or is shared between all users with access to the Application Insights component. Possible values include: 'ItemScopeShared', 'ItemScopeUser'
 	Scope ItemScope `json:"Scope,omitempty"`
-	// Type - Enum indicating the type of the Analytics item. Possible values include: 'Query', 'Function', 'Folder', 'Recent'
+	// Type - Enum indicating the type of the Analytics item. Possible values include: 'ItemTypeQuery', 'ItemTypeFunction', 'ItemTypeFolder', 'ItemTypeRecent'
 	Type ItemType `json:"Type,omitempty"`
 	// TimeCreated - READ-ONLY; Date and time in UTC when this item was created.
 	TimeCreated *string `json:"TimeCreated,omitempty"`
@@ -427,7 +441,7 @@ type ApplicationInsightsComponentFavorite struct {
 	Version *string `json:"Version,omitempty"`
 	// FavoriteID - READ-ONLY; Internally assigned unique id of the favorite definition.
 	FavoriteID *string `json:"FavoriteId,omitempty"`
-	// FavoriteType - Enum indicating if this favorite definition is owned by a specific user or is shared between all users with access to the Application Insights component. Possible values include: 'Shared', 'User'
+	// FavoriteType - Enum indicating if this favorite definition is owned by a specific user or is shared between all users with access to the Application Insights component. Possible values include: 'FavoriteTypeShared', 'FavoriteTypeUser'
 	FavoriteType FavoriteType `json:"FavoriteType,omitempty"`
 	// SourceType - The source of the favorite definition.
 	SourceType *string `json:"SourceType,omitempty"`
@@ -772,11 +786,13 @@ type ApplicationInsightsComponentProperties struct {
 	ApplicationID *string `json:"ApplicationId,omitempty"`
 	// AppID - READ-ONLY; Application Insights Unique ID for your Application.
 	AppID *string `json:"AppId,omitempty"`
-	// ApplicationType - Type of application being monitored. Possible values include: 'Web', 'Other'
+	// Name - READ-ONLY; Application name.
+	Name *string `json:"Name,omitempty"`
+	// ApplicationType - Type of application being monitored. Possible values include: 'ApplicationTypeWeb', 'ApplicationTypeOther'
 	ApplicationType ApplicationType `json:"Application_Type,omitempty"`
-	// FlowType - Used by the Application Insights system to determine what kind of flow this component was created by. This is to be set to 'Bluefield' when creating/updating a component via the REST API. Possible values include: 'Bluefield'
+	// FlowType - Used by the Application Insights system to determine what kind of flow this component was created by. This is to be set to 'Bluefield' when creating/updating a component via the REST API. Possible values include: 'FlowTypeBluefield'
 	FlowType FlowType `json:"Flow_Type,omitempty"`
-	// RequestSource - Describes what tool created this Application Insights component. Customers using this API should set this to the default 'rest'. Possible values include: 'Rest'
+	// RequestSource - Describes what tool created this Application Insights component. Customers using this API should set this to the default 'rest'. Possible values include: 'RequestSourceRest'
 	RequestSource RequestSource `json:"Request_Source,omitempty"`
 	// InstrumentationKey - READ-ONLY; Application Insights Instrumentation key. A read-only value that applications can use to identify the destination for all telemetry sent to Azure Application Insights. This value will be supplied upon construction of each new Application Insights component.
 	InstrumentationKey *string `json:"InstrumentationKey,omitempty"`
@@ -800,10 +816,22 @@ type ApplicationInsightsComponentProperties struct {
 	DisableIPMasking *bool `json:"DisableIpMasking,omitempty"`
 	// ImmediatePurgeDataOn30Days - Purge data immediately after 30 days.
 	ImmediatePurgeDataOn30Days *bool `json:"ImmediatePurgeDataOn30Days,omitempty"`
+	// WorkspaceResourceID - Resource Id of the log analytics workspace which the data will be ingested to. This property is required to create an application with this API version. Applications from older versions will not have this property.
+	WorkspaceResourceID *string `json:"WorkspaceResourceId,omitempty"`
+	// LaMigrationDate - READ-ONLY; The date which the component got migrated to LA, in ISO 8601 format.
+	LaMigrationDate *date.Time `json:"LaMigrationDate,omitempty"`
 	// PrivateLinkScopedResources - READ-ONLY; List of linked private link scope resources.
 	PrivateLinkScopedResources *[]PrivateLinkScopedResource `json:"PrivateLinkScopedResources,omitempty"`
-	// IngestionMode - Indicates the flow of the ingestion. Possible values include: 'ApplicationInsights', 'ApplicationInsightsWithDiagnosticSettings', 'LogAnalytics'
+	// PublicNetworkAccessForIngestion - The network access type for accessing Application Insights ingestion. Possible values include: 'PublicNetworkAccessTypeEnabled', 'PublicNetworkAccessTypeDisabled'
+	PublicNetworkAccessForIngestion PublicNetworkAccessType `json:"publicNetworkAccessForIngestion,omitempty"`
+	// PublicNetworkAccessForQuery - The network access type for accessing Application Insights query. Possible values include: 'PublicNetworkAccessTypeEnabled', 'PublicNetworkAccessTypeDisabled'
+	PublicNetworkAccessForQuery PublicNetworkAccessType `json:"publicNetworkAccessForQuery,omitempty"`
+	// IngestionMode - Indicates the flow of the ingestion. Possible values include: 'IngestionModeApplicationInsights', 'IngestionModeApplicationInsightsWithDiagnosticSettings', 'IngestionModeLogAnalytics'
 	IngestionMode IngestionMode `json:"IngestionMode,omitempty"`
+	// DisableLocalAuth - Disable Non-AAD based Auth.
+	DisableLocalAuth *bool `json:"DisableLocalAuth,omitempty"`
+	// ForceCustomerStorageForProfiler - Force users to create their own storage account for profiler and debugger.
+	ForceCustomerStorageForProfiler *bool `json:"ForceCustomerStorageForProfiler,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ApplicationInsightsComponentProperties.
@@ -833,8 +861,23 @@ func (aicp ApplicationInsightsComponentProperties) MarshalJSON() ([]byte, error)
 	if aicp.ImmediatePurgeDataOn30Days != nil {
 		objectMap["ImmediatePurgeDataOn30Days"] = aicp.ImmediatePurgeDataOn30Days
 	}
+	if aicp.WorkspaceResourceID != nil {
+		objectMap["WorkspaceResourceId"] = aicp.WorkspaceResourceID
+	}
+	if aicp.PublicNetworkAccessForIngestion != "" {
+		objectMap["publicNetworkAccessForIngestion"] = aicp.PublicNetworkAccessForIngestion
+	}
+	if aicp.PublicNetworkAccessForQuery != "" {
+		objectMap["publicNetworkAccessForQuery"] = aicp.PublicNetworkAccessForQuery
+	}
 	if aicp.IngestionMode != "" {
 		objectMap["IngestionMode"] = aicp.IngestionMode
+	}
+	if aicp.DisableLocalAuth != nil {
+		objectMap["DisableLocalAuth"] = aicp.DisableLocalAuth
+	}
+	if aicp.ForceCustomerStorageForProfiler != nil {
+		objectMap["ForceCustomerStorageForProfiler"] = aicp.ForceCustomerStorageForProfiler
 	}
 	return json.Marshal(objectMap)
 }
@@ -909,7 +952,7 @@ type ComponentPurgeResponse struct {
 // ComponentPurgeStatusResponse response containing status for a specific purge operation.
 type ComponentPurgeStatusResponse struct {
 	autorest.Response `json:"-"`
-	// Status - Status of the operation represented by the requested Id. Possible values include: 'Pending', 'Completed'
+	// Status - Status of the operation represented by the requested Id. Possible values include: 'PurgeStatePending', 'PurgeStateCompleted'
 	Status PurgeState `json:"status,omitempty"`
 }
 
@@ -956,6 +999,27 @@ type ErrorResponse struct {
 	Code *string `json:"code,omitempty"`
 	// Message - Error message indicating why the operation failed.
 	Message *string `json:"message,omitempty"`
+}
+
+// ErrorResponseComponents ...
+type ErrorResponseComponents struct {
+	// Error - Error response indicates Insights service is not able to process the incoming request. The reason is provided in the error message.
+	Error *ErrorResponseComponentsError `json:"error,omitempty"`
+}
+
+// ErrorResponseComponentsError error response indicates Insights service is not able to process the
+// incoming request. The reason is provided in the error message.
+type ErrorResponseComponentsError struct {
+	// Code - READ-ONLY; Error code.
+	Code *string `json:"code,omitempty"`
+	// Message - READ-ONLY; Error message indicating why the operation failed.
+	Message *string `json:"message,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorResponseComponentsError.
+func (erc ErrorResponseComponentsError) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // InnerError inner error
@@ -1437,7 +1501,7 @@ func (tr TagsResource) MarshalJSON() ([]byte, error) {
 // WebTest an Application Insights web test definition.
 type WebTest struct {
 	autorest.Response `json:"-"`
-	// Kind - The kind of web test that this web test watches. Choices are ping and multistep. Possible values include: 'Ping', 'Multistep'
+	// Kind - The kind of web test that this web test watches. Choices are ping and multistep. Possible values include: 'WebTestKindPing', 'WebTestKindMultistep'
 	Kind WebTestKind `json:"kind,omitempty"`
 	// WebTestProperties - Metadata describing a web test for an Azure resource.
 	*WebTestProperties `json:"properties,omitempty"`
@@ -1729,7 +1793,7 @@ type WebTestProperties struct {
 	Frequency *int32 `json:"Frequency,omitempty"`
 	// Timeout - Seconds until this WebTest will timeout and fail. Default value is 30.
 	Timeout *int32 `json:"Timeout,omitempty"`
-	// WebTestKind - The kind of web test this is, valid choices are ping and multistep. Possible values include: 'Ping', 'Multistep'
+	// WebTestKind - The kind of web test this is, valid choices are ping and multistep. Possible values include: 'WebTestKindPing', 'WebTestKindMultistep'
 	WebTestKind WebTestKind `json:"Kind,omitempty"`
 	// RetryEnabled - Allow for retries should this WebTest fail.
 	RetryEnabled *bool `json:"RetryEnabled,omitempty"`

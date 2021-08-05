@@ -15,30 +15,30 @@ import (
 	"net/http"
 )
 
-// ComponentAvailableFeaturesClient is the composite Swagger for Application Insights Management Client
-type ComponentAvailableFeaturesClient struct {
+// ComponentFeatureCapabilitiesClient is the composite Swagger for Application Insights Management Client
+type ComponentFeatureCapabilitiesClient struct {
 	BaseClient
 }
 
-// NewComponentAvailableFeaturesClient creates an instance of the ComponentAvailableFeaturesClient client.
-func NewComponentAvailableFeaturesClient(subscriptionID string) ComponentAvailableFeaturesClient {
-	return NewComponentAvailableFeaturesClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewComponentFeatureCapabilitiesClient creates an instance of the ComponentFeatureCapabilitiesClient client.
+func NewComponentFeatureCapabilitiesClient(subscriptionID string) ComponentFeatureCapabilitiesClient {
+	return NewComponentFeatureCapabilitiesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewComponentAvailableFeaturesClientWithBaseURI creates an instance of the ComponentAvailableFeaturesClient client
-// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
-// clouds, Azure stack).
-func NewComponentAvailableFeaturesClientWithBaseURI(baseURI string, subscriptionID string) ComponentAvailableFeaturesClient {
-	return ComponentAvailableFeaturesClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewComponentFeatureCapabilitiesClientWithBaseURI creates an instance of the ComponentFeatureCapabilitiesClient
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
+func NewComponentFeatureCapabilitiesClientWithBaseURI(baseURI string, subscriptionID string) ComponentFeatureCapabilitiesClient {
+	return ComponentFeatureCapabilitiesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Get returns all available features of the application insights component.
+// Get returns feature capabilities of the application insights component.
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the Application Insights component resource.
-func (client ComponentAvailableFeaturesClient) Get(ctx context.Context, resourceGroupName string, resourceName string) (result ApplicationInsightsComponentAvailableFeatures, err error) {
+func (client ComponentFeatureCapabilitiesClient) Get(ctx context.Context, resourceGroupName string, resourceName string) (result ApplicationInsightsComponentFeatureCapabilities, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ComponentAvailableFeaturesClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ComponentFeatureCapabilitiesClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -50,29 +50,28 @@ func (client ComponentAvailableFeaturesClient) Get(ctx context.Context, resource
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("insights.ComponentAvailableFeaturesClient", "Get", err.Error())
+		return result, validation.NewError("insights.ComponentFeatureCapabilitiesClient", "Get", err.Error())
 	}
 
 	req, err := client.GetPreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.ComponentAvailableFeaturesClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "insights.ComponentFeatureCapabilitiesClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "insights.ComponentAvailableFeaturesClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "insights.ComponentFeatureCapabilitiesClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.ComponentAvailableFeaturesClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "insights.ComponentFeatureCapabilitiesClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -80,7 +79,7 @@ func (client ComponentAvailableFeaturesClient) Get(ctx context.Context, resource
 }
 
 // GetPreparer prepares the Get request.
-func (client ComponentAvailableFeaturesClient) GetPreparer(ctx context.Context, resourceGroupName string, resourceName string) (*http.Request, error) {
+func (client ComponentFeatureCapabilitiesClient) GetPreparer(ctx context.Context, resourceGroupName string, resourceName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"resourceName":      autorest.Encode("path", resourceName),
@@ -95,20 +94,20 @@ func (client ComponentAvailableFeaturesClient) GetPreparer(ctx context.Context, 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/components/{resourceName}/getavailablebillingfeatures", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/components/{resourceName}/featurecapabilities", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client ComponentAvailableFeaturesClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client ComponentFeatureCapabilitiesClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client ComponentAvailableFeaturesClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentAvailableFeatures, err error) {
+func (client ComponentFeatureCapabilitiesClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentFeatureCapabilities, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

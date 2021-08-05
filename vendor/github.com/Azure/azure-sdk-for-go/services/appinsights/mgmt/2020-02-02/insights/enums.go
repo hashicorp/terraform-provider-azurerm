@@ -10,15 +10,15 @@ package insights
 type ApplicationType string
 
 const (
-	// Other ...
-	Other ApplicationType = "other"
-	// Web ...
-	Web ApplicationType = "web"
+	// ApplicationTypeOther ...
+	ApplicationTypeOther ApplicationType = "other"
+	// ApplicationTypeWeb ...
+	ApplicationTypeWeb ApplicationType = "web"
 )
 
 // PossibleApplicationTypeValues returns an array of possible values for the ApplicationType const type.
 func PossibleApplicationTypeValues() []ApplicationType {
-	return []ApplicationType{Other, Web}
+	return []ApplicationType{ApplicationTypeOther, ApplicationTypeWeb}
 }
 
 // CategoryType enumerates the values for category type.
@@ -44,72 +44,72 @@ func PossibleCategoryTypeValues() []CategoryType {
 type FavoriteSourceType string
 
 const (
-	// Events ...
-	Events FavoriteSourceType = "events"
-	// Funnel ...
-	Funnel FavoriteSourceType = "funnel"
-	// Impact ...
-	Impact FavoriteSourceType = "impact"
-	// Notebook ...
-	Notebook FavoriteSourceType = "notebook"
-	// Retention ...
-	Retention FavoriteSourceType = "retention"
-	// Segmentation ...
-	Segmentation FavoriteSourceType = "segmentation"
-	// Sessions ...
-	Sessions FavoriteSourceType = "sessions"
-	// Userflows ...
-	Userflows FavoriteSourceType = "userflows"
+	// FavoriteSourceTypeEvents ...
+	FavoriteSourceTypeEvents FavoriteSourceType = "events"
+	// FavoriteSourceTypeFunnel ...
+	FavoriteSourceTypeFunnel FavoriteSourceType = "funnel"
+	// FavoriteSourceTypeImpact ...
+	FavoriteSourceTypeImpact FavoriteSourceType = "impact"
+	// FavoriteSourceTypeNotebook ...
+	FavoriteSourceTypeNotebook FavoriteSourceType = "notebook"
+	// FavoriteSourceTypeRetention ...
+	FavoriteSourceTypeRetention FavoriteSourceType = "retention"
+	// FavoriteSourceTypeSegmentation ...
+	FavoriteSourceTypeSegmentation FavoriteSourceType = "segmentation"
+	// FavoriteSourceTypeSessions ...
+	FavoriteSourceTypeSessions FavoriteSourceType = "sessions"
+	// FavoriteSourceTypeUserflows ...
+	FavoriteSourceTypeUserflows FavoriteSourceType = "userflows"
 )
 
 // PossibleFavoriteSourceTypeValues returns an array of possible values for the FavoriteSourceType const type.
 func PossibleFavoriteSourceTypeValues() []FavoriteSourceType {
-	return []FavoriteSourceType{Events, Funnel, Impact, Notebook, Retention, Segmentation, Sessions, Userflows}
+	return []FavoriteSourceType{FavoriteSourceTypeEvents, FavoriteSourceTypeFunnel, FavoriteSourceTypeImpact, FavoriteSourceTypeNotebook, FavoriteSourceTypeRetention, FavoriteSourceTypeSegmentation, FavoriteSourceTypeSessions, FavoriteSourceTypeUserflows}
 }
 
 // FavoriteType enumerates the values for favorite type.
 type FavoriteType string
 
 const (
-	// Shared ...
-	Shared FavoriteType = "shared"
-	// User ...
-	User FavoriteType = "user"
+	// FavoriteTypeShared ...
+	FavoriteTypeShared FavoriteType = "shared"
+	// FavoriteTypeUser ...
+	FavoriteTypeUser FavoriteType = "user"
 )
 
 // PossibleFavoriteTypeValues returns an array of possible values for the FavoriteType const type.
 func PossibleFavoriteTypeValues() []FavoriteType {
-	return []FavoriteType{Shared, User}
+	return []FavoriteType{FavoriteTypeShared, FavoriteTypeUser}
 }
 
 // FlowType enumerates the values for flow type.
 type FlowType string
 
 const (
-	// Bluefield ...
-	Bluefield FlowType = "Bluefield"
+	// FlowTypeBluefield ...
+	FlowTypeBluefield FlowType = "Bluefield"
 )
 
 // PossibleFlowTypeValues returns an array of possible values for the FlowType const type.
 func PossibleFlowTypeValues() []FlowType {
-	return []FlowType{Bluefield}
+	return []FlowType{FlowTypeBluefield}
 }
 
 // IngestionMode enumerates the values for ingestion mode.
 type IngestionMode string
 
 const (
-	// ApplicationInsights ...
-	ApplicationInsights IngestionMode = "ApplicationInsights"
-	// ApplicationInsightsWithDiagnosticSettings ...
-	ApplicationInsightsWithDiagnosticSettings IngestionMode = "ApplicationInsightsWithDiagnosticSettings"
-	// LogAnalytics ...
-	LogAnalytics IngestionMode = "LogAnalytics"
+	// IngestionModeApplicationInsights ...
+	IngestionModeApplicationInsights IngestionMode = "ApplicationInsights"
+	// IngestionModeApplicationInsightsWithDiagnosticSettings ...
+	IngestionModeApplicationInsightsWithDiagnosticSettings IngestionMode = "ApplicationInsightsWithDiagnosticSettings"
+	// IngestionModeLogAnalytics ...
+	IngestionModeLogAnalytics IngestionMode = "LogAnalytics"
 )
 
 // PossibleIngestionModeValues returns an array of possible values for the IngestionMode const type.
 func PossibleIngestionModeValues() []IngestionMode {
-	return []IngestionMode{ApplicationInsights, ApplicationInsightsWithDiagnosticSettings, LogAnalytics}
+	return []IngestionMode{IngestionModeApplicationInsights, IngestionModeApplicationInsightsWithDiagnosticSettings, IngestionModeLogAnalytics}
 }
 
 // ItemScope enumerates the values for item scope.
@@ -131,34 +131,34 @@ func PossibleItemScopeValues() []ItemScope {
 type ItemScopePath string
 
 const (
-	// AnalyticsItems ...
-	AnalyticsItems ItemScopePath = "analyticsItems"
-	// MyanalyticsItems ...
-	MyanalyticsItems ItemScopePath = "myanalyticsItems"
+	// ItemScopePathAnalyticsItems ...
+	ItemScopePathAnalyticsItems ItemScopePath = "analyticsItems"
+	// ItemScopePathMyanalyticsItems ...
+	ItemScopePathMyanalyticsItems ItemScopePath = "myanalyticsItems"
 )
 
 // PossibleItemScopePathValues returns an array of possible values for the ItemScopePath const type.
 func PossibleItemScopePathValues() []ItemScopePath {
-	return []ItemScopePath{AnalyticsItems, MyanalyticsItems}
+	return []ItemScopePath{ItemScopePathAnalyticsItems, ItemScopePathMyanalyticsItems}
 }
 
 // ItemType enumerates the values for item type.
 type ItemType string
 
 const (
-	// Folder ...
-	Folder ItemType = "folder"
-	// Function ...
-	Function ItemType = "function"
-	// Query ...
-	Query ItemType = "query"
-	// Recent ...
-	Recent ItemType = "recent"
+	// ItemTypeFolder ...
+	ItemTypeFolder ItemType = "folder"
+	// ItemTypeFunction ...
+	ItemTypeFunction ItemType = "function"
+	// ItemTypeQuery ...
+	ItemTypeQuery ItemType = "query"
+	// ItemTypeRecent ...
+	ItemTypeRecent ItemType = "recent"
 )
 
 // PossibleItemTypeValues returns an array of possible values for the ItemType const type.
 func PossibleItemTypeValues() []ItemType {
-	return []ItemType{Folder, Function, Query, Recent}
+	return []ItemType{ItemTypeFolder, ItemTypeFunction, ItemTypeQuery, ItemTypeRecent}
 }
 
 // ItemTypeParameter enumerates the values for item type parameter.
@@ -182,32 +182,47 @@ func PossibleItemTypeParameterValues() []ItemTypeParameter {
 	return []ItemTypeParameter{ItemTypeParameterFolder, ItemTypeParameterFunction, ItemTypeParameterNone, ItemTypeParameterQuery, ItemTypeParameterRecent}
 }
 
+// PublicNetworkAccessType enumerates the values for public network access type.
+type PublicNetworkAccessType string
+
+const (
+	// PublicNetworkAccessTypeDisabled Disables public connectivity to Application Insights through public DNS.
+	PublicNetworkAccessTypeDisabled PublicNetworkAccessType = "Disabled"
+	// PublicNetworkAccessTypeEnabled Enables connectivity to Application Insights through public DNS.
+	PublicNetworkAccessTypeEnabled PublicNetworkAccessType = "Enabled"
+)
+
+// PossiblePublicNetworkAccessTypeValues returns an array of possible values for the PublicNetworkAccessType const type.
+func PossiblePublicNetworkAccessTypeValues() []PublicNetworkAccessType {
+	return []PublicNetworkAccessType{PublicNetworkAccessTypeDisabled, PublicNetworkAccessTypeEnabled}
+}
+
 // PurgeState enumerates the values for purge state.
 type PurgeState string
 
 const (
-	// Completed ...
-	Completed PurgeState = "completed"
-	// Pending ...
-	Pending PurgeState = "pending"
+	// PurgeStateCompleted ...
+	PurgeStateCompleted PurgeState = "completed"
+	// PurgeStatePending ...
+	PurgeStatePending PurgeState = "pending"
 )
 
 // PossiblePurgeStateValues returns an array of possible values for the PurgeState const type.
 func PossiblePurgeStateValues() []PurgeState {
-	return []PurgeState{Completed, Pending}
+	return []PurgeState{PurgeStateCompleted, PurgeStatePending}
 }
 
 // RequestSource enumerates the values for request source.
 type RequestSource string
 
 const (
-	// Rest ...
-	Rest RequestSource = "rest"
+	// RequestSourceRest ...
+	RequestSourceRest RequestSource = "rest"
 )
 
 // PossibleRequestSourceValues returns an array of possible values for the RequestSource const type.
 func PossibleRequestSourceValues() []RequestSource {
-	return []RequestSource{Rest}
+	return []RequestSource{RequestSourceRest}
 }
 
 // SharedTypeKind enumerates the values for shared type kind.
@@ -229,13 +244,13 @@ func PossibleSharedTypeKindValues() []SharedTypeKind {
 type WebTestKind string
 
 const (
-	// Multistep ...
-	Multistep WebTestKind = "multistep"
-	// Ping ...
-	Ping WebTestKind = "ping"
+	// WebTestKindMultistep ...
+	WebTestKindMultistep WebTestKind = "multistep"
+	// WebTestKindPing ...
+	WebTestKindPing WebTestKind = "ping"
 )
 
 // PossibleWebTestKindValues returns an array of possible values for the WebTestKind const type.
 func PossibleWebTestKindValues() []WebTestKind {
-	return []WebTestKind{Multistep, Ping}
+	return []WebTestKind{WebTestKindMultistep, WebTestKindPing}
 }
