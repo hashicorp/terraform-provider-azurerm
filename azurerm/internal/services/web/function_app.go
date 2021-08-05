@@ -131,6 +131,26 @@ func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice([]string{"1.8", "11"}, false),
 				},
+
+				"elastic_instance_minimum": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntBetween(0, 20),
+				},
+
+				"app_scale_limit": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntAtLeast(0),
+				},
+
+				"runtime_scale_monitoring_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
 			},
 		},
 	}
@@ -211,6 +231,21 @@ func schemaFunctionAppDataSourceSiteConfig() *pluginsdk.Schema {
 
 				"java_version": {
 					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"elastic_instance_minimum": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"app_scale_limit": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"runtime_scale_monitoring_enabled": {
+					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 			},
@@ -409,6 +444,18 @@ func expandFunctionAppSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig, err
 		siteConfig.JavaVersion = utils.String(v.(string))
 	}
 
+	if v, ok := config["elastic_instance_minimum"]; ok {
+		siteConfig.MinimumElasticInstanceCount = utils.Int32(int32(v.(int)))
+	}
+
+	if v, ok := config["app_scale_limit"]; ok {
+		siteConfig.FunctionAppScaleLimit = utils.Int32(int32(v.(int)))
+	}
+
+	if v, ok := config["runtime_scale_monitoring_enabled"]; ok {
+		siteConfig.FunctionsRuntimeScaleMonitoringEnabled = utils.Bool(v.(bool))
+	}
+
 	return siteConfig, nil
 }
 
@@ -469,6 +516,18 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.JavaVersion != nil {
 		result["java_version"] = *input.JavaVersion
+	}
+
+	if input.MinimumElasticInstanceCount != nil {
+		result["elastic_instance_minimum"] = *input.MinimumElasticInstanceCount
+	}
+
+	if input.FunctionAppScaleLimit != nil {
+		result["app_scale_limit"] = *input.FunctionAppScaleLimit
+	}
+
+	if input.FunctionsRuntimeScaleMonitoringEnabled != nil {
+		result["runtime_scale_monitoring_enabled"] = *input.FunctionsRuntimeScaleMonitoringEnabled
 	}
 
 	results = append(results, result)
