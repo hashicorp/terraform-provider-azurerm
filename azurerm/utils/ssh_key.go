@@ -1,15 +1,13 @@
-package compute
+package utils
 
 import (
 	"fmt"
 	"strings"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// NormaliseSSHKey attempts to remove invalid formatting and line breaks that can be present in some cases
+// NormalizeSSHKey attempts to remove invalid formatting and line breaks that can be present in some cases
 // when querying the Azure APIs
-func NormaliseSSHKey(input string) (*string, error) {
+func NormalizeSSHKey(input string) (*string, error) {
 	if input == "" {
 		return nil, fmt.Errorf("empty string supplied")
 	}
@@ -26,5 +24,5 @@ func NormaliseSSHKey(input string) (*string, error) {
 
 	normalised := strings.Join(lines, "")
 
-	return utils.String(normalised), nil
+	return String(normalised), nil
 }
