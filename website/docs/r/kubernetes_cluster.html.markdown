@@ -106,6 +106,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `linux_profile` - (Optional) A `linux_profile` block as defined below.
 
+* `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
+
 * `network_profile` - (Optional) A `network_profile` block as defined below.
 
 -> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
@@ -439,6 +441,30 @@ A `linux_profile` block supports the following:
 * `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
 
 * `ssh_key` - (Required) An `ssh_key` block. Only one is currently allowed. Changing this forces a new resource to be created.
+
+---
+
+A `maintenance_window` block supports the following:
+
+* `allowed` - (Optional) One or more `allowed` block as defined below.
+
+* `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
+
+---
+
+An `allowed` block exports the following:
+
+* `day` - (Required) A day in a week. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
+
+* `hours` - (Required) An array of hour slots in a day. Possible values are between `0` and `23`.
+
+---
+
+An `not_allowed` block exports the following:
+
+* `end` - (Required) The end of a time span, formatted as an RFC3339 string.
+
+* `start` - (Required) The start of a time span, formatted as an RFC3339 string.
 
 ---
 

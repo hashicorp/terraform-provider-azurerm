@@ -597,6 +597,80 @@ func testAccKubernetesCluster_upgradeChannel(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_basicMaintenanceConfig(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_basicMaintenanceConfig(t)
+}
+
+func testAccKubernetesCluster_basicMaintenanceConfig(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicMaintenanceConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_completeMaintenanceConfig(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_completeMaintenanceConfig(t)
+}
+
+func testAccKubernetesCluster_completeMaintenanceConfig(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeMaintenanceConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_updateMaintenanceConfig(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_updateMaintenanceConfig(t)
+}
+
+func testAccKubernetesCluster_updateMaintenanceConfig(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicMaintenanceConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeMaintenanceConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicMaintenanceConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (KubernetesClusterResource) basicAvailabilitySetConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1611,4 +1685,84 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, upgradeChannel)
+}
+
+func (KubernetesClusterResource) basicMaintenanceConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  maintenance_window {
+    allowed {
+      day   = "Monday"
+      hours = [1, 2]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) completeMaintenanceConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  maintenance_window {
+    not_allowed {
+      end   = "2021-11-30T12:00:00Z"
+      start = "2021-11-26T03:00:00Z"
+    }
+    not_allowed {
+      end   = "2021-12-30T12:00:00Z"
+      start = "2021-12-26T03:00:00Z"
+    }
+    allowed {
+      day   = "Monday"
+      hours = [1, 2]
+    }
+    allowed {
+      day   = "Sunday"
+      hours = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
