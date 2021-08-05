@@ -36,7 +36,51 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "example" {
   resource_group_name = azurerm_resource_group.example.name
   data_factory_name   = azurerm_data_factory.example.name
   connection_string   = data.azurerm_storage_account.example.primary_connection_string
+}
+```
 
+## Example Usage with SAS Uri and SAS token.
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "example"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "example"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_data_factory_linked_service_key_vault" "test" {
+  name                = "linkkv"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  key_vault_id        = azurerm_key_vault.test.id
+}
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name                = "example"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+
+  sas_uri = "https://storageaccountname.blob.core.windows.net"
+  sas_token {
+    linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
+    secret_name         = "secret"
+  }
 }
 ```
 
@@ -65,6 +109,16 @@ The following supported arguments are specific to Azure Blob Storage Linked Serv
 * `connection_string` - (Optional) The connection string. Conflicts with `sas_uri` and `service_endpoint`.
 
 * `sas_uri` - (Optional) The SAS URI. Conflicts with `connection_string` and `service_endpoint`.
+
+---
+
+A `sas_token` - (Optional) The SAS Token block is compatible with `sas_uri` and supports the following:
+
+* `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores the sas token.
+
+---
 
 * `service_endpoint` - (Optional) The Service Endpoint. Conflicts with `connection_string` and `sas_uri`. Required with `use_managed_identity`.
 
