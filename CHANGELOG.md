@@ -10,12 +10,14 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: upgrading to `v56.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-12781]
+* dependencies: updating `appinsights` to use API Version `2020-02-02` [GH-12818]
 * dependencies: updating `containerservice` to use API Version `2021-05-1` [GH-12747]
 * dependencies: updating `machinelearning` to use API Version `2021-04-01` [GH-12804]
 * dependencies: updating `databricks` to use API Version `2021-04-01-preview` [GH-12543]
 * PowerBI: refactoring to use an Embedded SDK [GH-12787]
 * SignalR: refactoring to use an Embedded SDK [GH-12785]
 * `azurerm_api_management_api_diagnostic` - support for the `operation_name_format` property [GH-12782]
+* `azurerm_application_insights` - support for the `workspace_id` property [GH-12818]
 * `azurerm_databricks_workspace` - support for private link endpoint [GH-12543]
 * `azurerm_databricks_workspace` - add support for `Customer Managed Keys for Managed Services` [GH-12799]
 * `azurerm_kubernetes_cluster` - support for the `local_account_disabled` property [GH-12386]
