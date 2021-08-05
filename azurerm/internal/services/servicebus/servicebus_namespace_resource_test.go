@@ -6,14 +6,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type ServiceBusNamespaceResource struct {
@@ -22,10 +20,10 @@ type ServiceBusNamespaceResource struct {
 func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,10 +35,10 @@ func TestAccAzureRMServiceBusNamespace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,18 +49,18 @@ func TestAccAzureRMServiceBusNamespace_requiresImport(t *testing.T) {
 func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestMatchResourceAttr(
+				acceptance.TestMatchResourceAttr(
 					data.ResourceName, "default_primary_connection_string", regexp.MustCompile("Endpoint=.+")),
-				resource.TestMatchResourceAttr(
+				acceptance.TestMatchResourceAttr(
 					data.ResourceName, "default_secondary_connection_string", regexp.MustCompile("Endpoint=.+")),
-				resource.TestMatchResourceAttr(
+				acceptance.TestMatchResourceAttr(
 					data.ResourceName, "default_primary_key", regexp.MustCompile(".+")),
-				resource.TestMatchResourceAttr(
+				acceptance.TestMatchResourceAttr(
 					data.ResourceName, "default_secondary_key", regexp.MustCompile(".+")),
 			),
 		},
@@ -73,10 +71,10 @@ func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.NonStandardCasing(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -92,10 +90,10 @@ func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.premium(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -106,7 +104,7 @@ func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 func TestAccAzureRMServiceBusNamespace_basicCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.basicCapacity(data),
 			ExpectError: regexp.MustCompile("Service Bus SKU \"Basic\" only supports `capacity` of 0"),
@@ -117,7 +115,7 @@ func TestAccAzureRMServiceBusNamespace_basicCapacity(t *testing.T) {
 func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.premiumCapacity(data),
 			ExpectError: regexp.MustCompile("Service Bus SKU \"Premium\" only supports `capacity` of 1, 2, 4, 8 or 16"),
@@ -128,10 +126,10 @@ func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
 func TestAccAzureRMServiceBusNamespace_zoneRedundant(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.zoneRedundant(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone_redundant").HasValue("true"),
 			),
@@ -140,7 +138,7 @@ func TestAccAzureRMServiceBusNamespace_zoneRedundant(t *testing.T) {
 	})
 }
 
-func (t ServiceBusNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t ServiceBusNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.NamespaceID(state.ID)
 	if err != nil {
 		return nil, err

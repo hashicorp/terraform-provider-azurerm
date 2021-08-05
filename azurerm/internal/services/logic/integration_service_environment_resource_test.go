@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccIntegrationServiceEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
@@ -47,10 +46,10 @@ func TestAccIntegrationServiceEnvironment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
@@ -74,10 +73,10 @@ func TestAccIntegrationServiceEnvironment_developer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.developer(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
@@ -101,10 +100,10 @@ func TestAccIntegrationServiceEnvironment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
@@ -122,7 +121,7 @@ func TestAccIntegrationServiceEnvironment_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.skuName(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
@@ -140,7 +139,7 @@ func TestAccIntegrationServiceEnvironment_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
@@ -162,10 +161,10 @@ func TestAccIntegrationServiceEnvironment_update(t *testing.T) {
 func TestAccIntegrationServiceEnvironment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
@@ -185,7 +184,7 @@ func TestAccIntegrationServiceEnvironment_requiresImport(t *testing.T) {
 	})
 }
 
-func (IntegrationServiceEnvironmentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (IntegrationServiceEnvironmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.IntegrationServiceEnvironmentID(state.ID)
 	if err != nil {
 		return nil, err

@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -18,8 +17,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceAppServiceVirtualNetworkSwiftConnection() *schema.Resource {
-	return &schema.Resource{
+func resourceAppServiceVirtualNetworkSwiftConnection() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate,
 		Read:   resourceAppServiceVirtualNetworkSwiftConnectionRead,
 		Update: resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate,
@@ -27,22 +26,22 @@ func resourceAppServiceVirtualNetworkSwiftConnection() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"app_service_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 			"subnet_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
@@ -50,7 +49,7 @@ func resourceAppServiceVirtualNetworkSwiftConnection() *schema.Resource {
 	}
 }
 
-func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -102,7 +101,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *schema.Resou
 			SubnetResourceID: utils.String(d.Get("subnet_id").(string)),
 		},
 	}
-	if _, err = client.CreateOrUpdateSwiftVirtualNetworkConnection(ctx, resourceGroup, name, connectionEnvelope); err != nil {
+	if _, err = client.CreateOrUpdateSwiftVirtualNetworkConnectionWithCheck(ctx, resourceGroup, name, connectionEnvelope); err != nil {
 		return fmt.Errorf("Error creating/updating App Service VNet association between %q (Resource Group %q) and Virtual Network %q: %s", name, resourceGroup, virtualNetworkName, err)
 	}
 
@@ -115,7 +114,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *schema.Resou
 	return resourceAppServiceVirtualNetworkSwiftConnectionRead(d, meta)
 }
 
-func resourceAppServiceVirtualNetworkSwiftConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceVirtualNetworkSwiftConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,7 +155,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionRead(d *schema.ResourceData,
 	return nil
 }
 
-func resourceAppServiceVirtualNetworkSwiftConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceVirtualNetworkSwiftConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

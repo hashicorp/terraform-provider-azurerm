@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -17,19 +16,19 @@ func TestAccDataSourceSharedImageVersions_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_versions", "test")
 	r := SharedImageVersionsDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
 			Config:  SharedImageVersionResource{}.setup(data),
 			Destroy: false,
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("images.0.managed_image_id").Exists(),
 				check.That(data.ResourceName).Key("images.0.target_region.#").HasValue("1"),
 				check.That(data.ResourceName).Key("images.0.target_region.0.storage_account_type").HasValue("Standard_LRS"),
@@ -42,12 +41,12 @@ func TestAccDataSourceSharedImageVersions_tagsFilterError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_versions", "test")
 	r := SharedImageVersionsDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
 			Config:  SharedImageVersionResource{}.setup(data),
 			Destroy: false,
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
@@ -62,19 +61,19 @@ func TestAccDataSourceSharedImageVersions_tagsFilterError(t *testing.T) {
 func TestAccDataSourceSharedImageVersions_tagsFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_versions", "test")
 	r := SharedImageVersionsDataSource{}
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
 			Config:  SharedImageVersionResource{}.setup(data),
 			Destroy: false,
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
 			Config: r.tagsFilter(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("images.#").HasValue("1"),
 			),
 		},

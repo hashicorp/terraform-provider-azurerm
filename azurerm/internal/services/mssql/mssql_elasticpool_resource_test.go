@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +19,10 @@ func TestAccMsSqlElasticPool_basicDTU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MsSqlElasticPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicDTU(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +34,10 @@ func TestAccMsSqlElasticPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MsSqlElasticPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicDTU(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +49,10 @@ func TestAccMsSqlElasticPool_standardDTU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MsSqlElasticPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standardDTU(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -66,13 +64,13 @@ func TestAccMsSqlElasticPool_premiumDTUZoneRedundant(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MsSqlElasticPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.premiumDTUZoneRedundant(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "PremiumPool"),
-				resource.TestCheckResourceAttr(data.ResourceName, "zone_redundant", "true"),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "PremiumPool"),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "zone_redundant", "true"),
 			),
 		},
 		data.ImportStep("max_size_gb"),
@@ -83,10 +81,10 @@ func TestAccMsSqlElasticPool_basicVCore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MsSqlElasticPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicVCore(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -98,10 +96,10 @@ func TestAccMsSqlElasticPool_basicVCoreMaxSizeBytes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MsSqlElasticPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicVCoreMaxSizeBytes(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -113,17 +111,17 @@ func TestAccMsSqlElasticPool_resizeDTU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MsSqlElasticPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standardDTU(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("max_size_gb"),
 		{
 			Config: r.resizeDTU(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -135,17 +133,17 @@ func TestAccMsSqlElasticPool_resizeVCore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MsSqlElasticPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicVCore(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("max_size_gb"),
 		{
 			Config: r.resizeVCore(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -157,27 +155,27 @@ func TestAccMsSqlElasticPool_licenseType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MsSqlElasticPoolResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.licenseType(data, "LicenseIncluded"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr(data.ResourceName, "license_type", "LicenseIncluded"),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "license_type", "LicenseIncluded"),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.licenseType(data, "BasePrice"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func (MsSqlElasticPoolResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (MsSqlElasticPoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ElasticPoolID(state.ID)
 	if err != nil {
 		return nil, err

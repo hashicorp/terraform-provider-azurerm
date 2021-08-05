@@ -605,6 +605,12 @@ type ErrorDefinition struct {
 	Details *[]ErrorDefinition `json:"details,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ErrorDefinition.
+func (ed ErrorDefinition) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ErrorResponse error response.
 type ErrorResponse struct {
 	// Error - The error details.

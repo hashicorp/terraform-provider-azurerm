@@ -7,8 +7,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 var _ pluginsdk.StateUpgrade = CdnProfileV0ToV1{}
@@ -16,36 +14,36 @@ var _ pluginsdk.StateUpgrade = CdnProfileV0ToV1{}
 type CdnProfileV0ToV1 struct{}
 
 func (CdnProfileV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	return map[string]*schema.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"location": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"resource_group_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"sku": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"tags": {
-			Type:     schema.TypeMap,
+			Type:     pluginsdk.TypeMap,
 			Optional: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
 		},
 	}

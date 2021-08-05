@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccIotHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 	r := IotHubResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,17 +35,17 @@ func TestAccIotHub_ipFilterRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 	r := IotHubResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ipFilterRules(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.ipFilterRulesUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -58,10 +57,10 @@ func TestAccIotHub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 	r := IotHubResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -76,10 +75,10 @@ func TestAccIotHub_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 	r := IotHubResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standard(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -91,10 +90,10 @@ func TestAccIotHub_customRoutes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 	r := IotHubResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.customRoutes(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("endpoint.#").HasValue("2"),
 				check.That(data.ResourceName).Key("endpoint.0.type").HasValue("AzureIotHub.StorageContainer"),
@@ -110,10 +109,10 @@ func TestAccIotHub_enrichments(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 	r := IotHubResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.enrichments(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("endpoint.#").HasValue("2"),
 				check.That(data.ResourceName).Key("endpoint.0.type").HasValue("AzureIotHub.StorageContainer"),
 				check.That(data.ResourceName).Key("endpoint.1.type").HasValue("AzureIotHub.EventHub"),
@@ -129,17 +128,17 @@ func TestAccIotHub_removeEndpointsAndRoutes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 	r := IotHubResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.customRoutes(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.removeEndpointsAndRoutes(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -151,10 +150,10 @@ func TestAccIotHub_fileUpload(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 	r := IotHubResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.fileUpload(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("file_upload.#").HasValue("1"),
 				check.That(data.ResourceName).Key("file_upload.0.lock_duration").HasValue("PT5M"),
@@ -168,10 +167,10 @@ func TestAccIotHub_withDifferentEndpointResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 	r := IotHubResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withDifferentEndpointResourceGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -183,10 +182,10 @@ func TestAccIotHub_fallbackRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 	r := IotHubResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.fallbackRoute(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("fallback_route.0.source").HasValue("DeviceMessages"),
 				check.That(data.ResourceName).Key("fallback_route.0.endpoint_names.#").HasValue("1"),
@@ -201,31 +200,31 @@ func TestAccIotHub_publicAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 	r := IotHubResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.publicAccessEnabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.publicAccessDisabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -237,10 +236,10 @@ func TestAccIotHub_minTLSVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 	r := IotHubResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.minTLSVersion(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -248,7 +247,7 @@ func TestAccIotHub_minTLSVersion(t *testing.T) {
 	})
 }
 
-func (t IotHubResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t IotHubResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.IotHubID(state.ID)
 	if err != nil {
 		return nil, err

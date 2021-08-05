@@ -140,6 +140,8 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
 
+~> **NOTE:** The values for `AzureWebJobsStorage` and `FUNCTIONS_EXTENSION_VERSION` will be filled by other input arguments and shouldn't be configured separately. `AzureWebJobsStorage` is filled based on `storage_account_name` and `storage_account_access_key`. `FUNCTIONS_EXTENSION_VERSION` is filled based on `version`.
+
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
 * `connection_string` - (Optional) An `connection_string` block as defined below.
@@ -418,6 +420,8 @@ The `identity` block exports the following:
 * `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this App Service.
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
+
+-> You can access the Principal ID via `azurerm_app_service.example.identity.0.principal_id` and the Tenant ID via `azurerm_app_service.example.identity.0.tenant_id`
 
 ---
 

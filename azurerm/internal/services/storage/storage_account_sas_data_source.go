@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/storage"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 )
 
 const (
@@ -18,51 +19,60 @@ const (
 
 // This is an ACCOUNT SAS : https://docs.microsoft.com/en-us/rest/api/storageservices/Constructing-an-Account-SAS
 // not Service SAS
-func dataSourceStorageAccountSharedAccessSignature() *schema.Resource {
-	return &schema.Resource{
+func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceStorageAccountSasRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Required:  true,
 				Sensitive: true,
 			},
 
 			"https_only": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
+			"ip_addresses": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.Any(
+					validation.IsIPv4Address,
+					validation.IsIPv4Range,
+				),
+			},
+
 			"signed_version": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  sasSignedVersion,
 			},
 
 			"resource_types": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"service": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 
 						"container": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 
 						"object": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 					},
@@ -70,28 +80,28 @@ func dataSourceStorageAccountSharedAccessSignature() *schema.Resource {
 			},
 
 			"services": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"blob": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 
 						"queue": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 
 						"table": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 
 						"file": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 					},
@@ -100,61 +110,61 @@ func dataSourceStorageAccountSharedAccessSignature() *schema.Resource {
 
 			// Always in UTC and must be ISO-8601 format
 			"start": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ISO8601DateTime,
 			},
 
 			// Always in UTC and must be ISO-8601 format
 			"expiry": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ISO8601DateTime,
 			},
 
 			"permissions": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"read": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 
 						"write": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 
 						"delete": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 
 						"list": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 
 						"add": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 
 						"create": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 
 						"update": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 
 						"process": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
 					},
@@ -162,7 +172,7 @@ func dataSourceStorageAccountSharedAccessSignature() *schema.Resource {
 			},
 
 			"sas": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
@@ -170,9 +180,10 @@ func dataSourceStorageAccountSharedAccessSignature() *schema.Resource {
 	}
 }
 
-func dataSourceStorageAccountSasRead(d *schema.ResourceData, _ interface{}) error {
+func dataSourceStorageAccountSasRead(d *pluginsdk.ResourceData, _ interface{}) error {
 	connString := d.Get("connection_string").(string)
 	httpsOnly := d.Get("https_only").(bool)
+	ipAddresses := d.Get("ip_addresses").(string)
 	signedVersion := d.Get("signed_version").(string)
 	resourceTypesIface := d.Get("resource_types").([]interface{})
 	servicesIface := d.Get("services").([]interface{})
@@ -200,10 +211,9 @@ func dataSourceStorageAccountSasRead(d *schema.ResourceData, _ interface{}) erro
 	if httpsOnly {
 		signedProtocol = "https"
 	}
-	signedIp := ""
 
 	sasToken, err := storage.ComputeAccountSASToken(accountName, accountKey, permissions, services, resourceTypes,
-		start, expiry, signedProtocol, signedIp, signedVersion)
+		start, expiry, signedProtocol, ipAddresses, signedVersion)
 	if err != nil {
 		return err
 	}

@@ -8,9 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-02-01/containerservice"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -25,12 +24,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceKubernetesCluster() *schema.Resource {
-	return &schema.Resource{
+func resourceKubernetesCluster() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceKubernetesClusterCreate,
 		Read:   resourceKubernetesClusterRead,
 		Update: resourceKubernetesClusterUpdate,
@@ -42,22 +42,22 @@ func resourceKubernetesCluster() *schema.Resource {
 		}),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
-			// Downgrade from Paid to Free is not supported and requires rebuild to apply
-			pluginsdk.ForceNewIfChange("sku_tier", func(ctx context.Context, old, new, meta interface{}) bool {
-				return new == "Free"
+			// Migration of `identity` to `service_principal` is not allowed, the other way around is
+			pluginsdk.ForceNewIfChange("service_principal.0.client_id", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old == "msi" || old == ""
 			}),
 		),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(90 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(90 * time.Minute),
-			Delete: schema.DefaultTimeout(90 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -68,7 +68,7 @@ func resourceKubernetesCluster() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"dns_prefix": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
@@ -76,14 +76,14 @@ func resourceKubernetesCluster() *schema.Resource {
 			},
 
 			"dns_prefix_private_cluster": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
 			},
 
 			"kubernetes_version": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -95,119 +95,119 @@ func resourceKubernetesCluster() *schema.Resource {
 			"addon_profile": schemaKubernetesAddOnProfiles(),
 
 			"api_server_authorized_ip_ranges": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validate.CIDR,
 				},
 			},
 
 			"auto_scaler_profile": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"balance_similar_node_groups": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 						"expander": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.LeastWaste),
-								string(containerservice.MostPods),
-								string(containerservice.Priority),
-								string(containerservice.Random),
+								string(containerservice.ExpanderLeastWaste),
+								string(containerservice.ExpanderMostPods),
+								string(containerservice.ExpanderPriority),
+								string(containerservice.ExpanderRandom),
 							}, false),
 						},
 						"max_graceful_termination_sec": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
 						"max_node_provisioning_time": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "15m",
 							ValidateFunc: containerValidate.Duration,
 						},
 						"max_unready_nodes": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      3,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 						"max_unready_percentage": {
-							Type:         schema.TypeFloat,
+							Type:         pluginsdk.TypeFloat,
 							Optional:     true,
 							Default:      45,
 							ValidateFunc: validation.FloatBetween(0, 100),
 						},
 						"new_pod_scale_up_delay": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
 						"scan_interval": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
 						"scale_down_delay_after_add": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
 						"scale_down_delay_after_delete": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
 						"scale_down_delay_after_failure": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
 						"scale_down_unneeded": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
 						"scale_down_unready": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
 						"scale_down_utilization_threshold": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
 						"empty_bulk_delete_max": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
 						"skip_nodes_with_local_storage": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
 						"skip_nodes_with_system_pods": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
@@ -216,44 +216,43 @@ func resourceKubernetesCluster() *schema.Resource {
 			},
 
 			"disk_encryption_set_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: computeValidate.DiskEncryptionSetID,
 			},
 
 			"enable_pod_security_policy": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
 			"identity": {
-				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				ExactlyOneOf: []string{"identity", "service_principal"},
+				MaxItems:     1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.ResourceIdentityTypeSystemAssigned),
 								string(containerservice.ResourceIdentityTypeUserAssigned),
 							}, false),
 						},
 						"user_assigned_identity_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							ValidateFunc: msivalidate.UserAssignedIdentityID,
 							Optional:     true,
 						},
 						"principal_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"tenant_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -261,48 +260,62 @@ func resourceKubernetesCluster() *schema.Resource {
 			},
 
 			"kubelet_identity": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"client_id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							RequiredWith: []string{"kubelet_identity.0.object_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.user_assigned_identity_id"},
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"object_id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.user_assigned_identity_id", "identity.0.user_assigned_identity_id"},
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"user_assigned_identity_id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							RequiredWith: []string{"kubelet_identity.0.client_id", "kubelet_identity.0.object_id", "identity.0.user_assigned_identity_id"},
+							ValidateFunc: msivalidate.UserAssignedIdentityID,
 						},
 					},
 				},
 			},
 
 			"linux_profile": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"admin_username": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: containerValidate.KubernetesAdminUserName,
 						},
 						"ssh_key": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							ForceNew: true,
 							MaxItems: 1,
 
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"key_data": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -314,26 +327,96 @@ func resourceKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"local_account_disabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"maintenance_window": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"allowed": {
+							Type:         pluginsdk.TypeSet,
+							Optional:     true,
+							AtLeastOneOf: []string{"maintenance_window.0.allowed", "maintenance_window.0.not_allowed"},
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"day": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(containerservice.WeekDaySunday),
+											string(containerservice.WeekDayMonday),
+											string(containerservice.WeekDayTuesday),
+											string(containerservice.WeekDayWednesday),
+											string(containerservice.WeekDayThursday),
+											string(containerservice.WeekDayFriday),
+											string(containerservice.WeekDaySaturday),
+										}, false),
+									},
+
+									"hours": {
+										Type:     pluginsdk.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeInt,
+											ValidateFunc: validation.IntBetween(0, 23),
+										},
+									},
+								},
+							},
+						},
+
+						"not_allowed": {
+							Type:         pluginsdk.TypeSet,
+							Optional:     true,
+							AtLeastOneOf: []string{"maintenance_window.0.allowed", "maintenance_window.0.not_allowed"},
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"end": {
+										Type:             pluginsdk.TypeString,
+										Required:         true,
+										DiffSuppressFunc: suppress.RFC3339Time,
+										ValidateFunc:     validation.IsRFC3339Time,
+									},
+
+									"start": {
+										Type:             pluginsdk.TypeString,
+										Required:         true,
+										DiffSuppressFunc: suppress.RFC3339Time,
+										ValidateFunc:     validation.IsRFC3339Time,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"network_profile": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"network_plugin": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.Azure),
-								string(containerservice.Kubenet),
+								string(containerservice.NetworkPluginAzure),
+								string(containerservice.NetworkPluginKubenet),
 							}, false),
 						},
 
 						"network_mode": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 							ForceNew: true,
@@ -341,13 +424,13 @@ func resourceKubernetesCluster() *schema.Resource {
 								// https://github.com/Azure/AKS/issues/1954#issuecomment-759306712
 								// Transparent is already the default and only option for CNI
 								// Bridge is only kept for backward compatibility
-								string(containerservice.Bridge),
-								string(containerservice.Transparent),
+								string(containerservice.NetworkModeBridge),
+								string(containerservice.NetworkModeTransparent),
 							}, false),
 						},
 
 						"network_policy": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 							ForceNew: true,
@@ -358,7 +441,7 @@ func resourceKubernetesCluster() *schema.Resource {
 						},
 
 						"dns_service_ip": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
@@ -366,7 +449,7 @@ func resourceKubernetesCluster() *schema.Resource {
 						},
 
 						"docker_bridge_cidr": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
@@ -374,7 +457,7 @@ func resourceKubernetesCluster() *schema.Resource {
 						},
 
 						"pod_cidr": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
@@ -382,7 +465,7 @@ func resourceKubernetesCluster() *schema.Resource {
 						},
 
 						"service_cidr": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
@@ -390,84 +473,84 @@ func resourceKubernetesCluster() *schema.Resource {
 						},
 
 						"load_balancer_sku": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(containerservice.Standard),
+							Default:  string(containerservice.LoadBalancerSkuStandard),
 							ForceNew: true,
 							// TODO: fix the casing in the Swagger
 							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.Basic),
-								string(containerservice.Standard),
+								string(containerservice.LoadBalancerSkuBasic),
+								string(containerservice.LoadBalancerSkuStandard),
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"outbound_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ForceNew: true,
-							Default:  string(containerservice.LoadBalancer),
+							Default:  string(containerservice.OutboundTypeLoadBalancer),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.LoadBalancer),
-								string(containerservice.UserDefinedRouting),
+								string(containerservice.OutboundTypeLoadBalancer),
+								string(containerservice.OutboundTypeUserDefinedRouting),
 							}, false),
 						},
 
 						"load_balancer_profile": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							MaxItems: 1,
 							ForceNew: true,
 							Optional: true,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"outbound_ports_allocated": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Optional:     true,
 										Default:      0,
 										ValidateFunc: validation.IntBetween(0, 64000),
 									},
 									"idle_timeout_in_minutes": {
-										Type:         schema.TypeInt,
+										Type:         pluginsdk.TypeInt,
 										Optional:     true,
 										Default:      30,
 										ValidateFunc: validation.IntBetween(4, 120),
 									},
 									"managed_outbound_ip_count": {
-										Type:          schema.TypeInt,
+										Type:          pluginsdk.TypeInt,
 										Optional:      true,
 										Computed:      true,
 										ValidateFunc:  validation.IntBetween(1, 100),
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 									},
 									"outbound_ip_prefix_ids": {
-										Type:          schema.TypeSet,
+										Type:          pluginsdk.TypeSet,
 										Optional:      true,
 										Computed:      true,
-										ConfigMode:    schema.SchemaConfigModeAttr,
+										ConfigMode:    pluginsdk.SchemaConfigModeAttr,
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: azure.ValidateResourceID,
 										},
 									},
 									"outbound_ip_address_ids": {
-										Type:          schema.TypeSet,
+										Type:          pluginsdk.TypeSet,
 										Optional:      true,
 										Computed:      true,
-										ConfigMode:    schema.SchemaConfigModeAttr,
+										ConfigMode:    pluginsdk.SchemaConfigModeAttr,
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"},
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: azure.ValidateResourceID,
 										},
 									},
 									"effective_outbound_ips": {
-										Type:       schema.TypeSet,
+										Type:       pluginsdk.TypeSet,
 										Computed:   true,
-										ConfigMode: schema.SchemaConfigModeAttr,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										ConfigMode: pluginsdk.SchemaConfigModeAttr,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 										},
 									},
 								},
@@ -478,19 +561,19 @@ func resourceKubernetesCluster() *schema.Resource {
 			},
 
 			"node_resource_group": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
 			},
 
 			"private_fqdn": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"private_link_enabled": {
-				Type:          schema.TypeBool,
+				Type:          pluginsdk.TypeBool,
 				Optional:      true,
 				ForceNew:      true,
 				Computed:      true,
@@ -499,7 +582,7 @@ func resourceKubernetesCluster() *schema.Resource {
 			},
 
 			"private_cluster_enabled": {
-				Type:          schema.TypeBool,
+				Type:          pluginsdk.TypeBool,
 				Optional:      true,
 				ForceNew:      true,
 				Computed:      true, // TODO -- remove this when deprecation resolves
@@ -507,7 +590,7 @@ func resourceKubernetesCluster() *schema.Resource {
 			},
 
 			"private_dns_zone_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true, // a Private Cluster is `System` by default even if unspecified
 				ForceNew: true,
@@ -521,25 +604,25 @@ func resourceKubernetesCluster() *schema.Resource {
 			},
 
 			"role_based_access_control": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"enabled": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 							ForceNew: true,
 						},
 						"azure_active_directory": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"client_app_id": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsUUID,
 										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
@@ -549,7 +632,7 @@ func resourceKubernetesCluster() *schema.Resource {
 									},
 
 									"server_app_id": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsUUID,
 										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
@@ -559,7 +642,7 @@ func resourceKubernetesCluster() *schema.Resource {
 									},
 
 									"server_app_secret": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -570,7 +653,7 @@ func resourceKubernetesCluster() *schema.Resource {
 									},
 
 									"tenant_id": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Optional: true,
 										Computed: true,
 										// OrEmpty since this can be sourced from the client config if it's not specified
@@ -582,7 +665,7 @@ func resourceKubernetesCluster() *schema.Resource {
 									},
 
 									"managed": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Optional: true,
 										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
 											"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
@@ -591,19 +674,16 @@ func resourceKubernetesCluster() *schema.Resource {
 									},
 
 									"azure_rbac_enabled": {
-										Type:     schema.TypeBool,
+										Type:     pluginsdk.TypeBool,
 										Optional: true,
-										// ForceNew can be removed after GA:
-										// https://docs.microsoft.com/en-us/azure/aks/manage-azure-rbac#limitations
-										ForceNew: true,
 									},
 
 									"admin_group_object_ids": {
-										Type:       schema.TypeSet,
+										Type:       pluginsdk.TypeSet,
 										Optional:   true,
-										ConfigMode: schema.SchemaConfigModeAttr,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										ConfigMode: pluginsdk.SchemaConfigModeAttr,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.IsUUID,
 										},
 										AtLeastOneOf: []string{"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
@@ -619,19 +699,20 @@ func resourceKubernetesCluster() *schema.Resource {
 			},
 
 			"service_principal": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				ExactlyOneOf: []string{"identity", "service_principal"},
+				MaxItems:     1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"client_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: containerValidate.ClientID,
 						},
 
 						"client_secret": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -641,90 +722,93 @@ func resourceKubernetesCluster() *schema.Resource {
 			},
 
 			"sku_tier": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
-				// @tombuildsstuff (2020-05-29) - Preview limitations:
-				//  * Currently, there is no way to remove Uptime SLA from an AKS cluster after creation with it enabled.
-				//  * Private clusters aren't currently supported.
-				// @jackofallops (2020-07-21) - Update:
-				//  * sku_tier can now be upgraded in place, downgrade requires rebuild
-				Default: string(containerservice.Free),
+				Default:  string(containerservice.ManagedClusterSKUTierFree),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containerservice.Free),
-					string(containerservice.Paid),
+					string(containerservice.ManagedClusterSKUTierFree),
+					string(containerservice.ManagedClusterSKUTierPaid),
 				}, false),
 			},
 
 			"tags": tags.Schema(),
 
 			"windows_profile": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"admin_username": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
 						"admin_password": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringLenBetween(8, 123),
+						},
+						"license": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerservice.LicenseTypeWindowsServer),
+							}, false),
 						},
 					},
 				},
 			},
 
 			"automatic_channel_upgrade": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerservice.UpgradeChannelPatch),
 					string(containerservice.UpgradeChannelRapid),
 					string(containerservice.UpgradeChannelStable),
+					string(containerservice.UpgradeChannelNodeImage),
 				}, false),
 			},
 
 			// Computed
 			"fqdn": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"kube_admin_config": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"host": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"username": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"password": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 						"client_certificate": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 						"client_key": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 						"cluster_ca_certificate": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
@@ -733,41 +817,41 @@ func resourceKubernetesCluster() *schema.Resource {
 			},
 
 			"kube_admin_config_raw": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"kube_config": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"host": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"username": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"password": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 						"client_certificate": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 						"client_key": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
 						"cluster_ca_certificate": {
-							Type:      schema.TypeString,
+							Type:      pluginsdk.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
@@ -776,7 +860,7 @@ func resourceKubernetesCluster() *schema.Resource {
 			},
 
 			"kube_config_raw": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
@@ -784,7 +868,7 @@ func resourceKubernetesCluster() *schema.Resource {
 	}
 }
 
-func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	env := meta.(*clients.Client).Containers.Environment
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -848,7 +932,7 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 	windowsProfileRaw := d.Get("windows_profile").([]interface{})
 	windowsProfile := expandKubernetesClusterWindowsProfile(windowsProfileRaw)
 
-	apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*schema.Set).List()
+	apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*pluginsdk.Set).List()
 	apiServerAuthorizedIPRanges := utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw)
 
 	enablePrivateCluster := false
@@ -897,6 +981,7 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 			WindowsProfile:         windowsProfile,
 			NetworkProfile:         networkProfile,
 			NodeResourceGroup:      utils.String(nodeResourceGroup),
+			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -908,6 +993,7 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
+	kubernetesClusterIdentityRaw := d.Get("kubelet_identity").([]interface{})
 	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
 
 	if len(managedClusterIdentityRaw) == 0 && len(servicePrincipalProfileRaw) == 0 {
@@ -919,6 +1005,9 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 		parameters.ManagedClusterProperties.ServicePrincipalProfile = &containerservice.ManagedClusterServicePrincipalProfile{
 			ClientID: utils.String("msi"),
 		}
+	}
+	if len(kubernetesClusterIdentityRaw) > 0 {
+		parameters.ManagedClusterProperties.IdentityProfile = expandKubernetesClusterIdentityProfile(kubernetesClusterIdentityRaw)
 	}
 
 	servicePrincipalSet := false
@@ -967,12 +1056,22 @@ func resourceKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("cannot read ID for Managed Kubernetes Cluster %q (Resource Group %q)", name, resGroup)
 	}
 
+	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window"); ok {
+		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		parameters := containerservice.MaintenanceConfiguration{
+			MaintenanceConfigurationProperties: expandKubernetesClusterMaintenanceConfiguration(maintenanceConfigRaw.([]interface{})),
+		}
+		if _, err := client.CreateOrUpdate(ctx, resGroup, name, "default", parameters); err != nil {
+			return fmt.Errorf("creating/updating maintenance config for Managed Kubernetes Cluster %q (Resource Group %q)", name, resGroup)
+		}
+	}
+
 	d.SetId(*read.ID)
 
 	return resourceKubernetesClusterRead(d, meta)
 }
 
-func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	containersClient := meta.(*clients.Client).Containers
 	nodePoolsClient := containersClient.AgentPoolsClient
 	clusterClient := containersClient.KubernetesClustersClient
@@ -1011,7 +1110,7 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("service_principal") {
+	if d.HasChange("service_principal") && !d.HasChange("identity") {
 		log.Printf("[DEBUG] Updating the Service Principal for Kubernetes Cluster %q (Resource Group %q)..", id.ManagedClusterName, id.ResourceGroup)
 		servicePrincipals := d.Get("service_principal").([]interface{})
 		// we'll be rotating the Service Principal - removing the SP block is handled by the validate function
@@ -1100,7 +1199,7 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if d.HasChange("api_server_authorized_ip_ranges") {
 		updateCluster = true
-		apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*schema.Set).List()
+		apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*pluginsdk.Set).List()
 
 		enablePrivateCluster := false
 		if v, ok := d.GetOk("private_link_enabled"); ok {
@@ -1135,6 +1234,11 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 		linuxProfileRaw := d.Get("linux_profile").([]interface{})
 		linuxProfile := expandKubernetesClusterLinuxProfile(linuxProfileRaw)
 		existing.ManagedClusterProperties.LinuxProfile = linuxProfile
+	}
+
+	if d.HasChange("local_account_disabled") {
+		updateCluster = true
+		existing.ManagedClusterProperties.DisableLocalAccounts = utils.Bool(d.Get("local_account_disabled").(bool))
 	}
 
 	if d.HasChange("network_profile") {
@@ -1306,12 +1410,22 @@ func resourceKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) e
 		log.Printf("[DEBUG] Updated Default Node Pool.")
 	}
 
+	if d.HasChange("maintenance_window") {
+		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		parameters := containerservice.MaintenanceConfiguration{
+			MaintenanceConfigurationProperties: expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window").([]interface{})),
+		}
+		if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, "default", parameters); err != nil {
+			return fmt.Errorf("creating/updating Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+		}
+	}
+
 	d.Partial(false)
 
 	return resourceKubernetesClusterRead(d, meta)
 }
 
-func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1343,7 +1457,7 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	skuTier := string(containerservice.Free)
+	skuTier := string(containerservice.ManagedClusterSKUTierFree)
 	if resp.Sku != nil && resp.Sku.Tier != "" {
 		skuTier = string(resp.Sku.Tier)
 	}
@@ -1358,6 +1472,7 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
+		d.Set("local_account_disabled", props.DisableLocalAccounts)
 
 		upgradeChannel := ""
 		if profile := props.AutoUpgradeProfile; profile != nil && profile.UpgradeChannel != containerservice.UpgradeChannelNone {
@@ -1431,8 +1546,8 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `windows_profile`: %+v", err)
 		}
 
-		// adminProfile is only available for RBAC enabled clusters with AAD
-		if props.AadProfile != nil {
+		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
+		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
 			adminProfile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.ManagedClusterName, "clusterAdmin")
 			if err != nil {
 				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ManagedClusterName, id.ResourceGroup, err)
@@ -1464,10 +1579,16 @@ func resourceKubernetesClusterRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("setting `kube_config`: %+v", err)
 	}
 
+	maintenanceConfigurationsClient := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+	configResp, _ := maintenanceConfigurationsClient.Get(ctx, id.ResourceGroup, id.ManagedClusterName, "default")
+	if props := configResp.MaintenanceConfigurationProperties; props != nil {
+		d.Set("maintenance_window", flattenKubernetesClusterMaintenanceConfiguration(props))
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1475,6 +1596,13 @@ func resourceKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) e
 	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	if _, ok := d.GetOk("maintenance_window"); ok {
+		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		if _, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName, "default"); err != nil {
+			return fmt.Errorf("deleting Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+		}
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName)
@@ -1542,6 +1670,25 @@ func expandKubernetesClusterLinuxProfile(input []interface{}) *containerservice.
 			},
 		},
 	}
+}
+
+func expandKubernetesClusterIdentityProfile(input []interface{}) map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue {
+	identityProfile := make(map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue)
+	if len(input) == 0 || input[0] == nil {
+		return identityProfile
+	}
+
+	values := input[0].(map[string]interface{})
+
+	if containerservice.ResourceIdentityType(values["user_assigned_identity_id"].(string)) != "" {
+		identityProfile["kubeletidentity"] = &containerservice.ManagedClusterPropertiesIdentityProfileValue{
+			ResourceID: utils.String(values["user_assigned_identity_id"].(string)),
+			ClientID:   utils.String(values["client_id"].(string)),
+			ObjectID:   utils.String(values["object_id"].(string)),
+		}
+	}
+
+	return identityProfile
 }
 
 func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservice.ManagedClusterPropertiesIdentityProfileValue) ([]interface{}, error) {
@@ -1621,18 +1768,19 @@ func expandKubernetesClusterWindowsProfile(input []interface{}) *containerservic
 
 	config := input[0].(map[string]interface{})
 
-	adminUsername := config["admin_username"].(string)
-	adminPassword := config["admin_password"].(string)
-
-	profile := containerservice.ManagedClusterWindowsProfile{
-		AdminUsername: &adminUsername,
-		AdminPassword: &adminPassword,
+	license := containerservice.LicenseTypeNone
+	if v := config["license"].(string); v != "" {
+		license = containerservice.LicenseType(v)
 	}
 
-	return &profile
+	return &containerservice.ManagedClusterWindowsProfile{
+		AdminUsername: utils.String(config["admin_username"].(string)),
+		AdminPassword: utils.String(config["admin_password"].(string)),
+		LicenseType:   license,
+	}
 }
 
-func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClusterWindowsProfile, d *schema.ResourceData) []interface{} {
+func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClusterWindowsProfile, d *pluginsdk.ResourceData) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
@@ -1648,10 +1796,16 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 		adminPassword = v.(string)
 	}
 
+	license := ""
+	if profile.LicenseType != containerservice.LicenseTypeNone {
+		license = string(profile.LicenseType)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"admin_password": adminPassword,
 			"admin_username": adminUsername,
+			"license":        license,
 		},
 	}
 }
@@ -1751,7 +1905,7 @@ func idsToResourceReferences(set interface{}) *[]containerservice.ResourceRefere
 		return nil
 	}
 
-	s := set.(*schema.Set)
+	s := set.(*pluginsdk.Set)
 	results := make([]containerservice.ResourceReference, 0)
 
 	for _, element := range s.List() {
@@ -1882,7 +2036,7 @@ func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, provider
 		tenantId := azureAdRaw["tenant_id"].(string)
 		managed := azureAdRaw["managed"].(bool)
 		azureRbacEnabled := azureAdRaw["azure_rbac_enabled"].(bool)
-		adminGroupObjectIdsRaw := azureAdRaw["admin_group_object_ids"].(*schema.Set).List()
+		adminGroupObjectIdsRaw := azureAdRaw["admin_group_object_ids"].(*pluginsdk.Set).List()
 		adminGroupObjectIds := utils.ExpandStringSlice(adminGroupObjectIdsRaw)
 
 		if tenantId == "" {
@@ -1951,7 +2105,7 @@ func expandKubernetesClusterManagedClusterIdentity(input []interface{}) *contain
 	}
 }
 
-func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.ManagedClusterProperties, d *schema.ResourceData) []interface{} {
+func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.ManagedClusterProperties, d *pluginsdk.ResourceData) []interface{} {
 	rbacEnabled := false
 	if input.EnableRBAC != nil {
 		rbacEnabled = *input.EnableRBAC
@@ -2004,7 +2158,7 @@ func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.Mana
 		}
 
 		results = append(results, map[string]interface{}{
-			"admin_group_object_ids": schema.NewSet(schema.HashString, adminGroupObjectIds),
+			"admin_group_object_ids": pluginsdk.NewSet(pluginsdk.HashString, adminGroupObjectIds),
 			"client_app_id":          clientAppId,
 			"managed":                managed,
 			"server_app_id":          serverAppId,
@@ -2022,7 +2176,7 @@ func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.Mana
 	}
 }
 
-func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerservice.ManagedClusterServicePrincipalProfile, d *schema.ResourceData) []interface{} {
+func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerservice.ManagedClusterServicePrincipalProfile, d *pluginsdk.ResourceData) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
@@ -2041,10 +2195,10 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerse
 	if sp, ok := d.GetOk("service_principal"); ok {
 		var val []interface{}
 
-		// prior to 1.34 this was a *schema.Set, now it's a List - try both
+		// prior to 1.34 this was a *pluginsdk.Set, now it's a List - try both
 		if v, ok := sp.([]interface{}); ok {
 			val = v
-		} else if v, ok := sp.(*schema.Set); ok {
+		} else if v, ok := sp.(*pluginsdk.Set); ok {
 			val = v.List()
 		}
 
@@ -2297,4 +2451,91 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 		SkipNodesWithLocalStorage:     utils.String(strconv.FormatBool(skipNodesWithLocalStorage)),
 		SkipNodesWithSystemPods:       utils.String(strconv.FormatBool(skipNodesWithSystemPods)),
 	}
+}
+
+func expandKubernetesClusterMaintenanceConfiguration(input []interface{}) *containerservice.MaintenanceConfigurationProperties {
+	if len(input) == 0 {
+		return nil
+	}
+	value := input[0].(map[string]interface{})
+	return &containerservice.MaintenanceConfigurationProperties{
+		NotAllowedTime: expandKubernetesClusterMaintenanceConfigurationTimeSpans(value["not_allowed"].(*pluginsdk.Set).List()),
+		TimeInWeek:     expandKubernetesClusterMaintenanceConfigurationTimeInWeeks(value["allowed"].(*pluginsdk.Set).List()),
+	}
+}
+
+func expandKubernetesClusterMaintenanceConfigurationTimeSpans(input []interface{}) *[]containerservice.TimeSpan {
+	results := make([]containerservice.TimeSpan, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		start, _ := time.Parse(time.RFC3339, v["start"].(string))
+		end, _ := time.Parse(time.RFC3339, v["end"].(string))
+		results = append(results, containerservice.TimeSpan{
+			Start: &date.Time{Time: start},
+			End:   &date.Time{Time: end},
+		})
+	}
+	return &results
+}
+
+func expandKubernetesClusterMaintenanceConfigurationTimeInWeeks(input []interface{}) *[]containerservice.TimeInWeek {
+	results := make([]containerservice.TimeInWeek, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		results = append(results, containerservice.TimeInWeek{
+			Day:       containerservice.WeekDay(v["day"].(string)),
+			HourSlots: utils.ExpandInt32Slice(v["hours"].(*pluginsdk.Set).List()),
+		})
+	}
+	return &results
+}
+
+func flattenKubernetesClusterMaintenanceConfiguration(input *containerservice.MaintenanceConfigurationProperties) interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+	results = append(results, map[string]interface{}{
+		"not_allowed": flattenKubernetesClusterMaintenanceConfigurationTimeSpans(input.NotAllowedTime),
+		"allowed":     flattenKubernetesClusterMaintenanceConfigurationTimeInWeeks(input.TimeInWeek),
+	})
+	return results
+}
+
+func flattenKubernetesClusterMaintenanceConfigurationTimeSpans(input *[]containerservice.TimeSpan) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var end string
+		if item.End != nil {
+			end = item.End.Format(time.RFC3339)
+		}
+		var start string
+		if item.Start != nil {
+			start = item.Start.Format(time.RFC3339)
+		}
+		results = append(results, map[string]interface{}{
+			"end":   end,
+			"start": start,
+		})
+	}
+	return results
+}
+
+func flattenKubernetesClusterMaintenanceConfigurationTimeInWeeks(input *[]containerservice.TimeInWeek) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		results = append(results, map[string]interface{}{
+			"day":   string(item.Day),
+			"hours": utils.FlattenInt32Slice(item.HourSlots),
+		})
+	}
+	return results
 }

@@ -1,0 +1,4 @@
+bug:
+  - 'panic:'
+crash:
+  - 'panic:'

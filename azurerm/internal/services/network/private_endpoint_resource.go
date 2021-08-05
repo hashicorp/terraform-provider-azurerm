@@ -7,26 +7,28 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	mariaDBParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/parse"
+	mysqlParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	postgresqlParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	privateDnsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
 	privateDnsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourcePrivateEndpoint() *schema.Resource {
-	return &schema.Resource{
+func resourcePrivateEndpoint() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourcePrivateEndpointCreate,
 		Read:   resourcePrivateEndpointRead,
 		Update: resourcePrivateEndpointUpdate,
@@ -36,16 +38,16 @@ func resourcePrivateEndpoint() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.PrivateLinkName,
@@ -56,32 +58,32 @@ func resourcePrivateEndpoint() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"subnet_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"private_dns_zone_group": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.PrivateLinkName,
 						},
 						"private_dns_zone_ids": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: privateDnsValidate.PrivateDnsZoneID,
 							},
 						},
@@ -90,52 +92,52 @@ func resourcePrivateEndpoint() *schema.Resource {
 			},
 
 			"private_service_connection": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: validate.PrivateLinkName,
 						},
 						"is_manual_connection": {
-							Type:     schema.TypeBool,
+							Type:     pluginsdk.TypeBool,
 							Required: true,
 							ForceNew: true,
 						},
 						"private_connection_resource_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 							ExactlyOneOf: []string{"private_service_connection.0.private_connection_resource_alias", "private_service_connection.0.private_connection_resource_id"},
 						},
 						"private_connection_resource_alias": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validate.PrivateConnectionResourceAlias,
 							ExactlyOneOf: []string{"private_service_connection.0.private_connection_resource_alias", "private_service_connection.0.private_connection_resource_id"},
 						},
 						"subresource_names": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							ForceNew: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validate.PrivateLinkSubResourceName,
 							},
 						},
 						"request_message": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringLenBetween(1, 140),
 						},
 						"private_ip_address": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
@@ -143,19 +145,19 @@ func resourcePrivateEndpoint() *schema.Resource {
 			},
 
 			"custom_dns_configs": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"fqdn": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"ip_addresses": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 					},
@@ -163,48 +165,48 @@ func resourcePrivateEndpoint() *schema.Resource {
 			},
 
 			"private_dns_zone_configs": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"private_dns_zone_id": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"record_sets": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 									"type": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 									"fqdn": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 									"ttl": {
-										Type:     schema.TypeInt,
+										Type:     pluginsdk.TypeInt,
 										Computed: true,
 									},
 									"ip_addresses": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Computed: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 										},
 									},
 								},
@@ -219,7 +221,7 @@ func resourcePrivateEndpoint() *schema.Resource {
 	}
 }
 
-func resourcePrivateEndpointCreate(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
 	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -287,7 +289,7 @@ func resourcePrivateEndpointCreate(d *schema.ResourceData, meta interface{}) err
 	return resourcePrivateEndpointRead(d, meta)
 }
 
-func resourcePrivateEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
 	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -380,7 +382,7 @@ func resourcePrivateEndpointUpdate(d *schema.ResourceData, meta interface{}) err
 	return resourcePrivateEndpointRead(d, meta)
 }
 
-func resourcePrivateEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
 	nicsClient := meta.(*clients.Client).Network.InterfacesClient
 	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
@@ -463,7 +465,7 @@ func resourcePrivateEndpointRead(d *schema.ResourceData, meta interface{}) error
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourcePrivateEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
 	dnsZoneGroupsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -582,6 +584,23 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 			if strings.HasSuffix(privateConnectionId, ".azure.privatelinkservice") {
 				attrs["private_connection_resource_alias"] = privateConnectionId
 			} else {
+				// There is a bug from service, the PE created from portal could be with the connection id for postgresql server "Microsoft.DBForPostgreSQL" instead of "Microsoft.DBforPostgreSQL"
+				// and for Mysql and MariaDB
+				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbforpostgresql") {
+					if serverId, err := postgresqlParse.ServerID(privateConnectionId); err == nil {
+						privateConnectionId = serverId.ID()
+					}
+				}
+				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformysql") {
+					if serverId, err := mysqlParse.ServerID(privateConnectionId); err == nil {
+						privateConnectionId = serverId.ID()
+					}
+				}
+				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformariadb") {
+					if serverId, err := mariaDBParse.ServerID(privateConnectionId); err == nil {
+						privateConnectionId = serverId.ID()
+					}
+				}
 				attrs["private_connection_resource_id"] = privateConnectionId
 			}
 
@@ -622,6 +641,23 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 			if strings.HasSuffix(privateConnectionId, ".azure.privatelinkservice") {
 				attrs["private_connection_resource_alias"] = privateConnectionId
 			} else {
+				// There is a bug from service, the PE created from portal could be with the connection id for postgresql server "Microsoft.DBForPostgreSQL" instead of "Microsoft.DBforPostgreSQL"
+				// and for Mysql and MariaDB
+				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbforpostgresql") {
+					if serverId, err := postgresqlParse.ServerID(privateConnectionId); err == nil {
+						privateConnectionId = serverId.ID()
+					}
+				}
+				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformysql") {
+					if serverId, err := mysqlParse.ServerID(privateConnectionId); err == nil {
+						privateConnectionId = serverId.ID()
+					}
+				}
+				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformariadb") {
+					if serverId, err := mariaDBParse.ServerID(privateConnectionId); err == nil {
+						privateConnectionId = serverId.ID()
+					}
+				}
 				attrs["private_connection_resource_id"] = privateConnectionId
 			}
 
@@ -832,7 +868,7 @@ func flattenPrivateDnsZoneGroupRecordSets(input *[]network.RecordSet) []interfac
 	return output
 }
 
-func validatePrivateEndpointSettings(d *schema.ResourceData) error {
+func validatePrivateEndpointSettings(d *pluginsdk.ResourceData) error {
 	privateServiceConnections := d.Get("private_service_connection").([]interface{})
 
 	for _, psc := range privateServiceConnections {

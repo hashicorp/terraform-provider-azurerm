@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,7 +23,7 @@ func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName str
 
 // Because the password isn't returned from the api in the connection string, we'll check all
 // but the password string and return true if they match.
-func azureRmDataFactoryLinkedServiceConnectionStringDiff(_, old string, new string, _ *schema.ResourceData) bool {
+func azureRmDataFactoryLinkedServiceConnectionStringDiff(_, old string, new string, _ *pluginsdk.ResourceData) bool {
 	oldSplit := strings.Split(strings.ToLower(old), ";")
 	newSplit := strings.Split(strings.ToLower(new), ";")
 
@@ -214,11 +214,11 @@ func serializeDataFactoryPipelineActivities(activities *[]datafactory.BasicActiv
 	return string(activitiesJson), nil
 }
 
-func suppressJsonOrderingDifference(_, old, new string, _ *schema.ResourceData) bool {
+func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
 }
 
-func expandAzureKeyVaultPassword(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
+func expandAzureKeyVaultSecretReference(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -234,7 +234,25 @@ func expandAzureKeyVaultPassword(input []interface{}) *datafactory.AzureKeyVault
 	}
 }
 
-func flattenAzureKeyVaultPassword(secretReference *datafactory.AzureKeyVaultSecretReference) []interface{} {
+func flattenAzureKeyVaultConnectionString(input map[string]interface{}) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	parameters := make(map[string]interface{})
+
+	if v, ok := input["store"].(map[string]interface{}); ok {
+		if v != nil {
+			parameters["linked_service_name"] = v["referenceName"].(string)
+		}
+	}
+
+	parameters["secret_name"] = input["secretName"]
+
+	return []interface{}{parameters}
+}
+
+func flattenAzureKeyVaultSecretReference(secretReference *datafactory.AzureKeyVaultSecretReference) []interface{} {
 	if secretReference == nil {
 		return nil
 	}
@@ -252,7 +270,7 @@ func flattenAzureKeyVaultPassword(secretReference *datafactory.AzureKeyVaultSecr
 	return []interface{}{parameters}
 }
 
-func expandDataFactoryDatasetLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
+func expandDataFactoryDatasetLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
 	if _, ok := d.GetOk("http_server_location"); ok {
 		return expandDataFactoryDatasetHttpServerLocation(d)
 	}
@@ -261,34 +279,83 @@ func expandDataFactoryDatasetLocation(d *schema.ResourceData) datafactory.BasicD
 		return expandDataFactoryDatasetAzureBlobStorageLocation(d)
 	}
 
+	if _, ok := d.GetOk("azure_blob_fs_location"); ok {
+		return expandDataFactoryDatasetAzureBlobFSLocation(d)
+	}
+
+	if _, ok := d.GetOk("sftp_server_location"); ok {
+		return expandDataFactoryDatasetSFTPServerLocation(d)
+	}
+
 	return nil
 }
 
-func expandDataFactoryDatasetHttpServerLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
-	props := d.Get("http_server_location").([]interface{})[0].(map[string]interface{})
-	relativeUrl := props["relative_url"].(string)
-	path := props["path"].(string)
-	filename := props["filename"].(string)
+func expandDataFactoryDatasetSFTPServerLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
+	sftpServerLocations := d.Get("sftp_server_location").([]interface{})
+	if len(sftpServerLocations) == 0 || sftpServerLocations[0] == nil {
+		return nil
+	}
+
+	props := sftpServerLocations[0].(map[string]interface{})
+
+	sftpServerLocation := datafactory.SftpLocation{
+		FolderPath: props["path"].(string),
+		FileName:   props["filename"].(string),
+	}
+	return sftpServerLocation
+}
+
+func expandDataFactoryDatasetHttpServerLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
+	httpServerLocations := d.Get("http_server_location").([]interface{})
+	if len(httpServerLocations) == 0 || httpServerLocations[0] == nil {
+		return nil
+	}
+
+	props := httpServerLocations[0].(map[string]interface{})
 
 	httpServerLocation := datafactory.HTTPServerLocation{
-		RelativeURL: relativeUrl,
-		FolderPath:  path,
-		FileName:    filename,
+		RelativeURL: props["relative_url"].(string),
+		FolderPath:  props["path"].(string),
+		FileName:    props["filename"].(string),
 	}
 	return httpServerLocation
 }
 
-func expandDataFactoryDatasetAzureBlobStorageLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
-	props := d.Get("azure_blob_storage_location").([]interface{})[0].(map[string]interface{})
-	container := props["container"].(string)
-	path := props["path"].(string)
-	filename := props["filename"].(string)
+func expandDataFactoryDatasetAzureBlobStorageLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
+	azureBlobStorageLocations := d.Get("azure_blob_storage_location").([]interface{})
+	if len(azureBlobStorageLocations) == 0 || azureBlobStorageLocations[0] == nil {
+		return nil
+	}
+
+	props := azureBlobStorageLocations[0].(map[string]interface{})
 
 	blobStorageLocation := datafactory.AzureBlobStorageLocation{
-		Container:  container,
-		FolderPath: path,
-		FileName:   filename,
+		Container:  props["container"].(string),
+		FolderPath: props["path"].(string),
+		FileName:   props["filename"].(string),
 	}
+	return blobStorageLocation
+}
+
+func expandDataFactoryDatasetAzureBlobFSLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
+	azureBlobFsLocations := d.Get("azure_blob_fs_location").([]interface{})
+	if len(azureBlobFsLocations) == 0 || azureBlobFsLocations[0] == nil {
+		return nil
+	}
+
+	props := azureBlobFsLocations[0].(map[string]interface{})
+
+	blobStorageLocation := datafactory.AzureBlobFSLocation{
+		FileSystem: props["file_system"].(string),
+		Type:       datafactory.TypeBasicDatasetLocationTypeAzureBlobFSLocation,
+	}
+	if path := props["path"].(string); len(path) > 0 {
+		blobStorageLocation.FolderPath = path
+	}
+	if filename := props["filename"].(string); len(filename) > 0 {
+		blobStorageLocation.FileName = filename
+	}
+
 	return blobStorageLocation
 }
 
@@ -328,4 +395,127 @@ func flattenDataFactoryDatasetAzureBlobStorageLocation(input *datafactory.AzureB
 	}
 
 	return []interface{}{result}
+}
+
+func flattenDataFactoryDatasetAzureBlobFSLocation(input *datafactory.AzureBlobFSLocation) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	fileSystem, path, fileName := "", "", ""
+	if input.FileSystem != nil {
+		if v, ok := input.FileSystem.(string); ok {
+			fileSystem = v
+		}
+	}
+	if input.FolderPath != nil {
+		if v, ok := input.FolderPath.(string); ok {
+			path = v
+		}
+	}
+	if input.FileName != nil {
+		if v, ok := input.FileName.(string); ok {
+			fileName = v
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"file_system": fileSystem,
+			"path":        path,
+			"filename":    fileName,
+		},
+	}
+}
+func flattenDataFactoryDatasetSFTPLocation(input *datafactory.SftpLocation) []interface{} {
+	if input == nil {
+		return nil
+	}
+	result := make(map[string]interface{})
+
+	if input.FolderPath != nil {
+		result["path"] = input.FolderPath
+	}
+	if input.FileName != nil {
+		result["filename"] = input.FileName
+	}
+
+	return []interface{}{result}
+}
+
+func flattenDataFactoryDatasetCompression(input datafactory.BasicDatasetCompression) []interface{} {
+	if input == nil {
+		return nil
+	}
+	result := make(map[string]interface{})
+
+	if compression, ok := input.AsDatasetBZip2Compression(); ok {
+		result["type"] = compression.Type
+	}
+	if compression, ok := input.AsDatasetDeflateCompression(); ok {
+		result["type"] = compression.Type
+	}
+	if compression, ok := input.AsDatasetGZipCompression(); ok {
+		result["type"] = compression.Type
+		result["level"] = compression.Level
+	}
+	if compression, ok := input.AsDatasetTarCompression(); ok {
+		result["type"] = compression.Type
+	}
+	if compression, ok := input.AsDatasetTarGZipCompression(); ok {
+		result["type"] = compression.Type
+		result["level"] = compression.Level
+	}
+	if compression, ok := input.AsDatasetZipDeflateCompression(); ok {
+		result["type"] = compression.Type
+		result["level"] = compression.Level
+	}
+
+	return []interface{}{result}
+}
+
+func expandDataFactoryDatasetCompression(d *pluginsdk.ResourceData) datafactory.BasicDatasetCompression {
+	compression := d.Get("compression").([]interface{})
+	if len(compression) == 0 || compression[0] == nil {
+		return nil
+	}
+	props := compression[0].(map[string]interface{})
+	level := props["level"].(string)
+	compressionType := props["type"].(string)
+
+	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeBZip2 {
+		return datafactory.DatasetBZip2Compression{
+			Type: datafactory.TypeBasicDatasetCompression(compressionType),
+		}
+	}
+	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeDeflate {
+		return datafactory.DatasetDeflateCompression{
+			Type: datafactory.TypeBasicDatasetCompression(compressionType),
+		}
+	}
+	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeGZip {
+		return datafactory.DatasetGZipCompression{
+			Type:  datafactory.TypeBasicDatasetCompression(compressionType),
+			Level: level,
+		}
+	}
+	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeTar {
+		return datafactory.DatasetTarCompression{
+			Type: datafactory.TypeBasicDatasetCompression(compressionType),
+		}
+	}
+	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeTarGZip {
+		return datafactory.DatasetTarGZipCompression{
+			Type:  datafactory.TypeBasicDatasetCompression(compressionType),
+			Level: level,
+		}
+	}
+	if datafactory.TypeBasicDatasetCompression(compressionType) == datafactory.TypeBasicDatasetCompressionTypeZipDeflate {
+		return datafactory.DatasetZipDeflateCompression{
+			Type:  datafactory.TypeBasicDatasetCompression(compressionType),
+			Level: level,
+		}
+	}
+
+	return nil
 }

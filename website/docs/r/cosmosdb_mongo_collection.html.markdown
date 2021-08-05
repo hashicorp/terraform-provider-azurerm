@@ -45,6 +45,7 @@ The following arguments are supported:
 * `database_name` - (Required) The name of the Cosmos DB Mongo Database in which the Cosmos DB Mongo Collection is created. Changing this forces a new resource to be created.
 * `default_ttl_seconds` - (Required) The default Time To Live in seconds. If the value is `-1` or `0`, items are not automatically expired.
 * `shard_key` - (Required) The name of the key to partition on for sharding. There must not be any other unique index keys.
+* `analytical_storage_ttl` - (Optional) The default time to live of Analytical Storage for this Mongo Collection. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
 * `index` - (Optional) One or more `index` blocks as defined below.
 * `throughput` - (Optional) The throughput of the MongoDB collection (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 * `autoscale_settings` - (Optional) An `autoscale_settings` block as defined below. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply. Requires `shard_key` to be set.

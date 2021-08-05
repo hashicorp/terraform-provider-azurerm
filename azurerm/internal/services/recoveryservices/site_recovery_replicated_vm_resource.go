@@ -2,29 +2,27 @@ package recoveryservices
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceSiteRecoveryReplicatedVM() *schema.Resource {
-	return &schema.Resource{
+func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSiteRecoveryReplicatedItemCreate,
 		Read:   resourceSiteRecoveryReplicatedItemRead,
 		Update: resourceSiteRecoveryReplicatedItemUpdate,
@@ -32,16 +30,16 @@ func resourceSiteRecoveryReplicatedVM() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(120 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(80 * time.Minute),
-			Delete: schema.DefaultTimeout(80 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(120 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(80 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(80 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -49,101 +47,101 @@ func resourceSiteRecoveryReplicatedVM() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.RecoveryServicesVaultName,
 			},
 			"source_recovery_fabric_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"source_vm_id": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"target_recovery_fabric_id": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"recovery_replication_policy_id": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"source_recovery_protection_container_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"target_recovery_protection_container_id": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"target_resource_group_id": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"target_availability_set_id": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"target_network_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Computed:     true,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 			"managed_disk": {
-				Type:       schema.TypeSet,
-				ConfigMode: schema.SchemaConfigModeAttr,
+				Type:       pluginsdk.TypeSet,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				ForceNew:   true,
 				Set:        resourceSiteRecoveryReplicatedVMDiskHash,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"disk_id": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							ForceNew:         true,
 							ValidateFunc:     validation.StringIsNotEmpty,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"staging_storage_account_id": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							ForceNew:         true,
 							ValidateFunc:     azure.ValidateResourceID,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"target_resource_group_id": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							ForceNew:         true,
 							ValidateFunc:     azure.ValidateResourceID,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"target_disk_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -155,7 +153,7 @@ func resourceSiteRecoveryReplicatedVM() *schema.Resource {
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"target_replica_disk_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -166,12 +164,19 @@ func resourceSiteRecoveryReplicatedVM() *schema.Resource {
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
+						"target_disk_encryption_set_id": {
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							ForceNew:         true,
+							ValidateFunc:     azure.ValidateResourceID,
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
 					},
 				},
 			},
 			"network_interface": {
-				Type:       schema.TypeSet,
-				ConfigMode: schema.SchemaConfigModeAttr,
+				Type:       pluginsdk.TypeSet,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Computed:   true,
 				Optional:   true,
 				Elem:       networkInterfaceResource(),
@@ -180,29 +185,29 @@ func resourceSiteRecoveryReplicatedVM() *schema.Resource {
 	}
 }
 
-func networkInterfaceResource() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
+func networkInterfaceResource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
 			"source_network_interface_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Computed:     true,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 			"target_static_ip": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"target_subnet_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"recovery_public_ip_address_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     false,
 				ValidateFunc: azure.ValidateResourceID,
@@ -211,7 +216,7 @@ func networkInterfaceResource() *schema.Resource {
 	}
 }
 
-func resourceSiteRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
@@ -248,13 +253,14 @@ func resourceSiteRecoveryReplicatedItemCreate(d *schema.ResourceData, meta inter
 
 	managedDisks := []siterecovery.A2AVMManagedDiskInputDetails{}
 
-	for _, raw := range d.Get("managed_disk").(*schema.Set).List() {
+	for _, raw := range d.Get("managed_disk").(*pluginsdk.Set).List() {
 		diskInput := raw.(map[string]interface{})
 		diskId := diskInput["disk_id"].(string)
 		primaryStagingAzureStorageAccountID := diskInput["staging_storage_account_id"].(string)
 		recoveryResourceGroupId := diskInput["target_resource_group_id"].(string)
 		targetReplicaDiskType := diskInput["target_replica_disk_type"].(string)
 		targetDiskType := diskInput["target_disk_type"].(string)
+		targetEncryptionDiskSetID := diskInput["target_disk_encryption_set_id"].(string)
 
 		managedDisks = append(managedDisks, siterecovery.A2AVMManagedDiskInputDetails{
 			DiskID:                              &diskId,
@@ -262,6 +268,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *schema.ResourceData, meta inter
 			RecoveryResourceGroupID:             &recoveryResourceGroupId,
 			RecoveryReplicaDiskAccountType:      &targetReplicaDiskType,
 			RecoveryTargetDiskAccountType:       &targetDiskType,
+			RecoveryDiskEncryptionSetID:         &targetEncryptionDiskSetID,
 		})
 	}
 
@@ -297,13 +304,16 @@ func resourceSiteRecoveryReplicatedItemCreate(d *schema.ResourceData, meta inter
 	return resourceSiteRecoveryReplicatedItemUpdate(d, meta)
 }
 
-func resourceSiteRecoveryReplicatedItemUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
 
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	// We are only allowed to update the configuration once the VM is fully protected
-	state, err := waitForReplicationToBeHealthy(d, meta)
+	state, err := waitForReplicationToBeHealthy(ctx, d, meta)
 	if err != nil {
 		return err
 	}
@@ -321,11 +331,8 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *schema.ResourceData, meta inter
 		targetAvailabilitySetID = nil
 	}
 
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
 	vmNics := []siterecovery.VMNicInputDetails{}
-	for _, raw := range d.Get("network_interface").(*schema.Set).List() {
+	for _, raw := range d.Get("network_interface").(*pluginsdk.Set).List() {
 		vmNicInput := raw.(map[string]interface{})
 		sourceNicId := vmNicInput["source_network_interface_id"].(string)
 		targetStaticIp := vmNicInput["target_static_ip"].(string)
@@ -345,7 +352,7 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *schema.ResourceData, meta inter
 	}
 
 	managedDisks := []siterecovery.A2AVMManagedDiskUpdateDetails{}
-	for _, raw := range d.Get("managed_disk").(*schema.Set).List() {
+	for _, raw := range d.Get("managed_disk").(*pluginsdk.Set).List() {
 		diskInput := raw.(map[string]interface{})
 		diskId := diskInput["disk_id"].(string)
 		targetReplicaDiskType := diskInput["target_replica_disk_type"].(string)
@@ -407,7 +414,7 @@ func findNicId(state *siterecovery.ReplicationProtectedItem, sourceNicId string)
 	return nil
 }
 
-func resourceSiteRecoveryReplicatedItemRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -450,15 +457,45 @@ func resourceSiteRecoveryReplicatedItemRead(d *schema.ResourceData, meta interfa
 			disksOutput := make([]interface{}, 0)
 			for _, disk := range *a2aDetails.ProtectedManagedDisks {
 				diskOutput := make(map[string]interface{})
-				diskOutput["disk_id"] = *disk.DiskID
-				diskOutput["staging_storage_account_id"] = *disk.PrimaryStagingAzureStorageAccountID
-				diskOutput["target_resource_group_id"] = *disk.RecoveryResourceGroupID
-				diskOutput["target_replica_disk_type"] = *disk.RecoveryReplicaDiskAccountType
-				diskOutput["target_disk_type"] = *disk.RecoveryTargetDiskAccountType
+				diskId := ""
+				if disk.DiskID != nil {
+					diskId = *disk.DiskID
+				}
+				diskOutput["disk_id"] = diskId
+
+				primaryStagingAzureStorageAccountID := ""
+				if disk.PrimaryStagingAzureStorageAccountID != nil {
+					primaryStagingAzureStorageAccountID = *disk.PrimaryStagingAzureStorageAccountID
+				}
+				diskOutput["staging_storage_account_id"] = primaryStagingAzureStorageAccountID
+
+				recoveryResourceGroupID := ""
+				if disk.RecoveryResourceGroupID != nil {
+					recoveryResourceGroupID = *disk.RecoveryResourceGroupID
+				}
+				diskOutput["target_resource_group_id"] = recoveryResourceGroupID
+
+				recoveryReplicaDiskAccountType := ""
+				if disk.RecoveryReplicaDiskAccountType != nil {
+					recoveryReplicaDiskAccountType = *disk.RecoveryReplicaDiskAccountType
+				}
+				diskOutput["target_replica_disk_type"] = recoveryReplicaDiskAccountType
+
+				recoveryTargetDiskAccountType := ""
+				if disk.RecoveryTargetDiskAccountType != nil {
+					recoveryTargetDiskAccountType = *disk.RecoveryTargetDiskAccountType
+				}
+				diskOutput["target_disk_type"] = recoveryTargetDiskAccountType
+
+				recoveryEncryptionSetId := ""
+				if disk.RecoveryDiskEncryptionSetID != nil {
+					recoveryEncryptionSetId = *disk.RecoveryDiskEncryptionSetID
+				}
+				diskOutput["target_disk_encryption_set_id"] = recoveryEncryptionSetId
 
 				disksOutput = append(disksOutput, diskOutput)
 			}
-			d.Set("managed_disk", schema.NewSet(resourceSiteRecoveryReplicatedVMDiskHash, disksOutput))
+			d.Set("managed_disk", pluginsdk.NewSet(resourceSiteRecoveryReplicatedVMDiskHash, disksOutput))
 		}
 
 		if a2aDetails.VMNics != nil {
@@ -479,14 +516,14 @@ func resourceSiteRecoveryReplicatedItemRead(d *schema.ResourceData, meta interfa
 				}
 				nicsOutput = append(nicsOutput, nicOutput)
 			}
-			d.Set("network_interface", schema.NewSet(schema.HashResource(networkInterfaceResource()), nicsOutput))
+			d.Set("network_interface", pluginsdk.NewSet(pluginsdk.HashResource(networkInterfaceResource()), nicsOutput))
 		}
 	}
 
 	return nil
 }
 
-func resourceSiteRecoveryReplicatedItemDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicatedItemDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -528,20 +565,20 @@ func resourceSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 		}
 	}
 
-	return schema.HashString(buf.String())
+	return pluginsdk.HashString(buf.String())
 }
 
-func waitForReplicationToBeHealthy(d *schema.ResourceData, meta interface{}) (*siterecovery.ReplicationProtectedItem, error) {
+func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (*siterecovery.ReplicationProtectedItem, error) {
 	log.Printf("Waiting for Site Recover to replicate VM.")
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Target:       []string{"Protected"},
 		Refresh:      waitForReplicationToBeHealthyRefreshFunc(d, meta),
 		PollInterval: time.Minute,
 	}
 
-	stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 
-	result, err := stateConf.WaitForState()
+	result, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Error waiting for site recovery to replicate vm: %+v", err)
 	}
@@ -554,7 +591,7 @@ func waitForReplicationToBeHealthy(d *schema.ResourceData, meta interface{}) (*s
 	}
 }
 
-func waitForReplicationToBeHealthyRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
+func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta interface{}) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		id, err := azure.ParseAzureResourceID(d.Id())
 		if err != nil {

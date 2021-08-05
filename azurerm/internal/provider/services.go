@@ -19,6 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/communication"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement"
@@ -28,12 +29,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dataprotection"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/domainservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall"
@@ -99,9 +102,12 @@ import (
 
 func SupportedTypedServices() []sdk.TypedServiceRegistration {
 	return []sdk.TypedServiceRegistration{
+		batch.Registration{},
 		eventhub.Registration{},
 		loadbalancer.Registration{},
+		policy.Registration{},
 		resource.Registration{},
+		web.Registration{},
 	}
 }
 
@@ -126,6 +132,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		communication.Registration{},
 		compute.Registration{},
 		containers.Registration{},
+		consumption.Registration{},
 		cosmos.Registration{},
 		costmanagement.Registration{},
 		customproviders.Registration{},
@@ -134,12 +141,14 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		datalake.Registration{},
 		databasemigration.Registration{},
 		databoxedge.Registration{},
+		dataprotection.Registration{},
 		datashare.Registration{},
 		desktopvirtualization.Registration{},
 		devspace.Registration{},
 		devtestlabs.Registration{},
 		digitaltwins.Registration{},
 		dns.Registration{},
+		domainservices.Registration{},
 		eventgrid.Registration{},
 		eventhub.Registration{},
 		firewall.Registration{},

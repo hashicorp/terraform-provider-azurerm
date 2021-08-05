@@ -269,7 +269,7 @@ func (client ClustersClient) ExecuteScriptActionsSender(req *http.Request) (futu
 func (client ClustersClient) ExecuteScriptActionsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -342,6 +342,84 @@ func (client ClustersClient) GetSender(req *http.Request) (*http.Response, error
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client ClustersClient) GetResponder(resp *http.Response) (result Cluster, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetAzureAsyncOperationStatus the the async operation status.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
+// operationID - the long running operation id.
+func (client ClustersClient) GetAzureAsyncOperationStatus(ctx context.Context, resourceGroupName string, clusterName string, operationID string) (result AsyncOperationResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.GetAzureAsyncOperationStatus")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetAzureAsyncOperationStatusPreparer(ctx, resourceGroupName, clusterName, operationID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "GetAzureAsyncOperationStatus", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetAzureAsyncOperationStatusSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "GetAzureAsyncOperationStatus", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetAzureAsyncOperationStatusResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "GetAzureAsyncOperationStatus", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetAzureAsyncOperationStatusPreparer prepares the GetAzureAsyncOperationStatus request.
+func (client ClustersClient) GetAzureAsyncOperationStatusPreparer(ctx context.Context, resourceGroupName string, clusterName string, operationID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"operationId":       autorest.Encode("path", operationID),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HDInsight/clusters/{clusterName}/azureasyncoperations/{operationId}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetAzureAsyncOperationStatusSender sends the GetAzureAsyncOperationStatus request. The method will close the
+// http.Response Body if it receives an error.
+func (client ClustersClient) GetAzureAsyncOperationStatusSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetAzureAsyncOperationStatusResponder handles the response to the GetAzureAsyncOperationStatus request. The method always
+// closes the http.Response Body.
+func (client ClustersClient) GetAzureAsyncOperationStatusResponder(resp *http.Response) (result AsyncOperationResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -1049,6 +1127,86 @@ func (client ClustersClient) UpdateGatewaySettingsSender(req *http.Request) (fut
 // UpdateGatewaySettingsResponder handles the response to the UpdateGatewaySettings request. The method always
 // closes the http.Response Body.
 func (client ClustersClient) UpdateGatewaySettingsResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// UpdateIdentityCertificate updates the cluster identity certificate.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
+// parameters - the cluster configurations.
+func (client ClustersClient) UpdateIdentityCertificate(ctx context.Context, resourceGroupName string, clusterName string, parameters UpdateClusterIdentityCertificateParameters) (result ClustersUpdateIdentityCertificateFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.UpdateIdentityCertificate")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.UpdateIdentityCertificatePreparer(ctx, resourceGroupName, clusterName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "UpdateIdentityCertificate", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.UpdateIdentityCertificateSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "UpdateIdentityCertificate", nil, "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// UpdateIdentityCertificatePreparer prepares the UpdateIdentityCertificate request.
+func (client ClustersClient) UpdateIdentityCertificatePreparer(ctx context.Context, resourceGroupName string, clusterName string, parameters UpdateClusterIdentityCertificateParameters) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HDInsight/clusters/{clusterName}/updateClusterIdentityCertificate", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateIdentityCertificateSender sends the UpdateIdentityCertificate request. The method will close the
+// http.Response Body if it receives an error.
+func (client ClustersClient) UpdateIdentityCertificateSender(req *http.Request) (future ClustersUpdateIdentityCertificateFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// UpdateIdentityCertificateResponder handles the response to the UpdateIdentityCertificate request. The method always
+// closes the http.Response Body.
+func (client ClustersClient) UpdateIdentityCertificateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),

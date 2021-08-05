@@ -6,11 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	commonValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -20,14 +17,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var VPNGatewayResourceName = "azurerm_vpn_gateway"
 
-func resourceVPNGateway() *schema.Resource {
-	return &schema.Resource{
+func resourceVPNGateway() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceVPNGatewayCreate,
 		Read:   resourceVPNGatewayRead,
 		Update: resourceVPNGatewayUpdate,
@@ -35,16 +33,16 @@ func resourceVPNGateway() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(90 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(90 * time.Minute),
-			Delete: schema.DefaultTimeout(90 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -55,70 +53,70 @@ func resourceVPNGateway() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"virtual_hub_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.VirtualHubID,
 			},
 
 			"bgp_settings": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"asn": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 							ForceNew: true,
 						},
 
 						"peer_weight": {
-							Type:     schema.TypeInt,
+							Type:     pluginsdk.TypeInt,
 							Required: true,
 							ForceNew: true,
 						},
 
 						"bgp_peering_address": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
 						"instance_0_bgp_peering_address": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Computed: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"custom_ips": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Required: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: commonValidate.IPv4Address,
 										},
 									},
 
 									"ip_configuration_id": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 
 									"default_ips": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Computed: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 										},
 									},
 
 									"tunnel_ips": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Computed: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 										},
 									},
 								},
@@ -126,39 +124,39 @@ func resourceVPNGateway() *schema.Resource {
 						},
 
 						"instance_1_bgp_peering_address": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Computed: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"custom_ips": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Required: true,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
 											ValidateFunc: commonValidate.IPv4Address,
 										},
 									},
 
 									"ip_configuration_id": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
 
 									"default_ips": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Computed: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 										},
 									},
 
 									"tunnel_ips": {
-										Type:     schema.TypeSet,
+										Type:     pluginsdk.TypeSet,
 										Computed: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
 										},
 									},
 								},
@@ -169,7 +167,7 @@ func resourceVPNGateway() *schema.Resource {
 			},
 
 			"scale_unit": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      1,
 				ValidateFunc: validation.IntAtLeast(0),
@@ -180,7 +178,7 @@ func resourceVPNGateway() *schema.Resource {
 	}
 }
 
-func resourceVPNGatewayCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -241,11 +239,11 @@ func resourceVPNGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 		if len(input0) > 0 || len(input1) > 0 {
 			if len(input0) > 0 {
 				val := input0[0].(map[string]interface{})
-				(*resp.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses)[0].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*schema.Set).List())
+				(*resp.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses)[0].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 			}
 			if len(input1) > 0 {
 				val := input1[0].(map[string]interface{})
-				(*resp.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*schema.Set).List())
+				(*resp.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 			}
 			if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, resp); err != nil {
 				return fmt.Errorf("creating VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -261,7 +259,7 @@ func resourceVPNGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 	return resourceVPNGatewayRead(d, meta)
 }
 
-func resourceVPNGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -291,13 +289,13 @@ func resourceVPNGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
 		if d.HasChange("bgp_settings.0.instance_0_bgp_peering_address") {
 			if input := val["instance_0_bgp_peering_address"].([]interface{}); len(input) > 0 {
 				val := input[0].(map[string]interface{})
-				(*existing.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses)[0].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*schema.Set).List())
+				(*existing.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses)[0].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 			}
 		}
 		if d.HasChange("bgp_settings.0.instance_1_bgp_peering_address") {
 			if input := val["instance_1_bgp_peering_address"].([]interface{}); len(input) > 0 {
 				val := input[0].(map[string]interface{})
-				(*existing.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*schema.Set).List())
+				(*existing.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 			}
 		}
 	}
@@ -312,7 +310,7 @@ func resourceVPNGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceVPNGatewayRead(d, meta)
 }
 
-func resourceVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -360,7 +358,7 @@ func resourceVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVPNGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -391,9 +389,9 @@ func resourceVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func waitForCompletion(d *schema.ResourceData, ctx context.Context, client *network.VpnGatewaysClient, resourceGroup, name string) error {
+func waitForCompletion(d *pluginsdk.ResourceData, ctx context.Context, client *network.VpnGatewaysClient, resourceGroup, name string) error {
 	log.Printf("[DEBUG] Waiting for Virtual Hub %q (Resource Group %q) to become available", name, resourceGroup)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"pending"},
 		Target:                    []string{"available"},
 		Refresh:                   vpnGatewayWaitForCreatedRefreshFunc(ctx, client, resourceGroup, name),
@@ -403,12 +401,12 @@ func waitForCompletion(d *schema.ResourceData, ctx context.Context, client *netw
 	}
 
 	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 	} else {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for creation of Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -482,7 +480,7 @@ func flattenVPNGatewayIPConfigurationBgpPeeringAddress(input network.IPConfigura
 	}
 }
 
-func vpnGatewayWaitForCreatedRefreshFunc(ctx context.Context, client *network.VpnGatewaysClient, resourceGroup, name string) resource.StateRefreshFunc {
+func vpnGatewayWaitForCreatedRefreshFunc(ctx context.Context, client *network.VpnGatewaysClient, resourceGroup, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if VPN Gateway %q (Resource Group %q) has finished provisioning..", name, resourceGroup)
 
@@ -499,10 +497,10 @@ func vpnGatewayWaitForCreatedRefreshFunc(ctx context.Context, client *network.Vp
 
 		log.Printf("[DEBUG] VPN Gateway %q (Resource Group %q) is %q..", name, resourceGroup, string(resp.VpnGatewayProperties.ProvisioningState))
 		switch resp.VpnGatewayProperties.ProvisioningState {
-		case network.Succeeded:
+		case network.ProvisioningStateSucceeded:
 			return "available", "available", nil
 
-		case network.Failed:
+		case network.ProvisioningStateFailed:
 			return "error", "error", fmt.Errorf("VPN Gateway %q (Resource Group %q) is in provisioningState `Failed`", name, resourceGroup)
 
 		default:

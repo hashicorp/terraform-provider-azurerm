@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccMonitorAutoScaleSetting_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
 	r := MonitorAutoScaleSettingResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("profile.#").HasValue("1"),
@@ -32,7 +31,7 @@ func TestAccMonitorAutoScaleSetting_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("profile.0.rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("profile.0.rule.0.metric_trigger.0.time_aggregation").HasValue("Last"),
 				check.That(data.ResourceName).Key("notification.#").HasValue("0"),
-				resource.TestCheckNoResourceAttr(data.ResourceName, "tags.$type"),
+				acceptance.TestCheckNoResourceAttr(data.ResourceName, "tags.$type"),
 			),
 		},
 		data.ImportStep(),
@@ -43,10 +42,10 @@ func TestAccMonitorAutoScaleSetting_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
 	r := MonitorAutoScaleSettingResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -61,10 +60,10 @@ func TestAccMonitorAutoScaleSetting_multipleProfiles(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
 	r := MonitorAutoScaleSettingResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleProfiles(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("profile.#").HasValue("2"),
@@ -79,10 +78,10 @@ func TestAccMonitorAutoScaleSetting_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
 	r := MonitorAutoScaleSettingResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.capacity(data, 1, 3, 2),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("profile.#").HasValue("1"),
@@ -93,7 +92,7 @@ func TestAccMonitorAutoScaleSetting_update(t *testing.T) {
 		},
 		{
 			Config: r.capacity(data, 2, 4, 3),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("profile.#").HasValue("1"),
@@ -104,7 +103,7 @@ func TestAccMonitorAutoScaleSetting_update(t *testing.T) {
 		},
 		{
 			Config: r.capacity(data, 2, 45, 3),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("profile.#").HasValue("1"),
@@ -120,10 +119,10 @@ func TestAccMonitorAutoScaleSetting_multipleRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
 	r := MonitorAutoScaleSettingResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("profile.#").HasValue("1"),
@@ -135,7 +134,7 @@ func TestAccMonitorAutoScaleSetting_multipleRules(t *testing.T) {
 		},
 		{
 			Config: r.multipleRules(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("profile.#").HasValue("1"),
@@ -153,10 +152,10 @@ func TestAccMonitorAutoScaleSetting_customEmails(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
 	r := MonitorAutoScaleSettingResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.email(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("notification.#").HasValue("1"),
 				check.That(data.ResourceName).Key("notification.0.email.#").HasValue("1"),
@@ -166,7 +165,7 @@ func TestAccMonitorAutoScaleSetting_customEmails(t *testing.T) {
 		},
 		{
 			Config: r.emailUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("notification.#").HasValue("1"),
 				check.That(data.ResourceName).Key("notification.0.email.#").HasValue("1"),
@@ -182,10 +181,10 @@ func TestAccMonitorAutoScaleSetting_recurrence(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
 	r := MonitorAutoScaleSettingResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.recurrence(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("profile.#").HasValue("1"),
@@ -202,10 +201,10 @@ func TestAccMonitorAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
 	r := MonitorAutoScaleSettingResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.recurrence(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("notification.#").HasValue("1"),
 				check.That(data.ResourceName).Key("profile.0.recurrence.0.days.#").HasValue("3"),
@@ -218,7 +217,7 @@ func TestAccMonitorAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 		},
 		{
 			Config: r.recurrenceUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("profile.0.recurrence.#").HasValue("1"),
 				check.That(data.ResourceName).Key("profile.0.recurrence.0.days.#").HasValue("3"),
@@ -236,10 +235,10 @@ func TestAccMonitorAutoScaleSetting_fixedDate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
 	r := MonitorAutoScaleSettingResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.fixedDate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("profile.#").HasValue("1"),
@@ -256,31 +255,31 @@ func TestAccAzureRMMonitorAutoScaleSetting_multipleRulesDimensions(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
 	r := MonitorAutoScaleSettingResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleRules(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.multipleRulesDimensions(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.multipleRulesDimensionsUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.multipleRules(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -288,7 +287,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_multipleRulesDimensions(t *testing.T)
 	})
 }
 
-func (t MonitorAutoScaleSettingResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t MonitorAutoScaleSettingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

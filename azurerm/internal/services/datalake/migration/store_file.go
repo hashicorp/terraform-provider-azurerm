@@ -6,8 +6,6 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 var _ pluginsdk.StateUpgrade = StoreFileV0ToV1{}
@@ -15,21 +13,21 @@ var _ pluginsdk.StateUpgrade = StoreFileV0ToV1{}
 type StoreFileV0ToV1 struct{}
 
 func (StoreFileV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	return map[string]*schema.Schema{
+	return map[string]*pluginsdk.Schema{
 		"account_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"remote_file_path": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"local_file_path": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},

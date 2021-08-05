@@ -7,14 +7,12 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,17 +27,17 @@ func TestAccDataLakeStoreVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_virtual_network_rule", "test")
 	r := DataLakeStoreVirtualNetworkRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.withUpdates(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +49,10 @@ func TestAccDataLakeStoreVirtualNetworkRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_virtual_network_rule", "test")
 	r := DataLakeStoreVirtualNetworkRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -75,17 +73,17 @@ func TestAccDataLakeStoreVirtualNetworkRule_switchSubnets(t *testing.T) {
 	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", data.RandomInteger, data.RandomInteger))  // subnet 1 but not 2
 	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", data.RandomInteger, data.RandomInteger)) // subnet 2 but not 1
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.subnetSwitchPre(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").MatchesRegex(preConfigRegex),
 			),
 		},
 		{
 			Config: r.subnetSwitchPost(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet_id").MatchesRegex(postConfigRegex),
 			),
@@ -100,7 +98,7 @@ func TestAccDataLakeStoreVirtualNetworkRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_virtual_network_rule", "test")
 	r := DataLakeStoreVirtualNetworkRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -119,10 +117,10 @@ func TestAccDataLakeStoreVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	resourceName3 := "azurerm_data_lake_store_virtual_network_rule.rule3"
 	r := DataLakeStoreVirtualNetworkRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleSubnets(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(resourceName2).ExistsInAzure(r),
 				check.That(resourceName3).ExistsInAzure(r),
@@ -159,7 +157,7 @@ func TestResourceAzureRMDataLakeStoreVirtualNetworkRule_invalidNameValidation(t 
 		},
 		// Cannot be more than 64 characters (1 case - ensure starts with a letter)
 		{
-			Value:    fmt.Sprintf("v%s", acctest.RandString(64)),
+			Value:    fmt.Sprintf("v%s", acceptance.RandString(64)),
 			ErrCount: 1,
 		},
 		// Cannot be empty (1 case)
@@ -287,7 +285,7 @@ func TestResourceAzureRMDataLakeStoreVirtualNetworkRule_validNameValidation(t *t
 		},
 		// Test exactly 64 characters
 		{
-			Value:    fmt.Sprintf("v%s", acctest.RandString(63)),
+			Value:    fmt.Sprintf("v%s", acceptance.RandString(63)),
 			ErrCount: 0,
 		},
 	}
@@ -301,7 +299,7 @@ func TestResourceAzureRMDataLakeStoreVirtualNetworkRule_validNameValidation(t *t
 	}
 }
 
-func (r DataLakeStoreVirtualNetworkRuleResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r DataLakeStoreVirtualNetworkRuleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -316,7 +314,7 @@ func (r DataLakeStoreVirtualNetworkRuleResource) Exists(ctx context.Context, cli
 	return utils.Bool(true), nil
 }
 
-func (r DataLakeStoreVirtualNetworkRuleResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r DataLakeStoreVirtualNetworkRuleResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err

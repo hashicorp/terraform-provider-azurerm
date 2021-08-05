@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/sdk/managedidentity"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
 	r := UserAssignedIdentityResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("principal_id").MatchesRegex(validate.UUIDRegExp),
 				check.That(data.ResourceName).Key("client_id").MatchesRegex(validate.UUIDRegExp),
@@ -39,10 +38,10 @@ func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
 	r := UserAssignedIdentityResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("principal_id").MatchesRegex(validate.UUIDRegExp),
 				check.That(data.ResourceName).Key("client_id").MatchesRegex(validate.UUIDRegExp),
@@ -53,18 +52,18 @@ func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 	})
 }
 
-func (r UserAssignedIdentityResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.UserAssignedIdentityID(state.ID)
+func (r UserAssignedIdentityResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := managedidentity.ParseUserAssignedIdentitiesID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.MSI.UserAssignedIdentitiesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.MSI.UserAssignedIdentitiesClient.UserAssignedIdentitiesGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving User Assigned Identity %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.UserAssignedIdentityProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r UserAssignedIdentityResource) basic(data acceptance.TestData) string {

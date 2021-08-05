@@ -1,7 +1,8 @@
 package web
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
@@ -19,8 +20,8 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_app_service":                   dataSourceAppService(),
 		"azurerm_app_service_certificate_order": dataSourceAppServiceCertificateOrder(),
 		"azurerm_app_service_environment":       dataSourceAppServiceEnvironment(),
@@ -32,8 +33,8 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_app_service_active_slot":                           resourceAppServiceActiveSlot(),
 		"azurerm_app_service_certificate":                           resourceAppServiceCertificate(),
 		"azurerm_app_service_certificate_order":                     resourceAppServiceCertificateOrder(),
@@ -50,5 +51,18 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_app_service":                                       resourceAppService(),
 		"azurerm_function_app":                                      resourceFunctionApp(),
 		"azurerm_function_app_slot":                                 resourceFunctionAppSlot(),
+		"azurerm_static_site":                                       resourceStaticSite(),
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{
+		AppServiceEnvironmentV3DataSource{},
+	}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		AppServiceEnvironmentV3Resource{},
 	}
 }

@@ -6,15 +6,21 @@ import (
 )
 
 type Client struct {
-	DatasetClient             *datafactory.DatasetsClient
-	FactoriesClient           *datafactory.FactoriesClient
-	IntegrationRuntimesClient *datafactory.IntegrationRuntimesClient
-	LinkedServiceClient       *datafactory.LinkedServicesClient
-	PipelinesClient           *datafactory.PipelinesClient
-	TriggersClient            *datafactory.TriggersClient
+	DataFlowClient                *datafactory.DataFlowsClient
+	DatasetClient                 *datafactory.DatasetsClient
+	FactoriesClient               *datafactory.FactoriesClient
+	IntegrationRuntimesClient     *datafactory.IntegrationRuntimesClient
+	LinkedServiceClient           *datafactory.LinkedServicesClient
+	ManagedPrivateEndpointsClient *datafactory.ManagedPrivateEndpointsClient
+	ManagedVirtualNetworksClient  *datafactory.ManagedVirtualNetworksClient
+	PipelinesClient               *datafactory.PipelinesClient
+	TriggersClient                *datafactory.TriggersClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	dataFlowClient := datafactory.NewDataFlowsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&dataFlowClient.Client, o.ResourceManagerAuthorizer)
+
 	DatasetClient := datafactory.NewDatasetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DatasetClient.Client, o.ResourceManagerAuthorizer)
 
@@ -27,6 +33,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	LinkedServiceClient := datafactory.NewLinkedServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LinkedServiceClient.Client, o.ResourceManagerAuthorizer)
 
+	ManagedPrivateEndpointsClient := datafactory.NewManagedPrivateEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ManagedPrivateEndpointsClient.Client, o.ResourceManagerAuthorizer)
+
+	ManagedVirtualNetworksClient := datafactory.NewManagedVirtualNetworksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ManagedVirtualNetworksClient.Client, o.ResourceManagerAuthorizer)
+
 	PipelinesClient := datafactory.NewPipelinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&PipelinesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -34,11 +46,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&TriggersClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		DatasetClient:             &DatasetClient,
-		FactoriesClient:           &FactoriesClient,
-		IntegrationRuntimesClient: &IntegrationRuntimesClient,
-		LinkedServiceClient:       &LinkedServiceClient,
-		PipelinesClient:           &PipelinesClient,
-		TriggersClient:            &TriggersClient,
+		DataFlowClient:                &dataFlowClient,
+		DatasetClient:                 &DatasetClient,
+		FactoriesClient:               &FactoriesClient,
+		IntegrationRuntimesClient:     &IntegrationRuntimesClient,
+		LinkedServiceClient:           &LinkedServiceClient,
+		ManagedPrivateEndpointsClient: &ManagedPrivateEndpointsClient,
+		ManagedVirtualNetworksClient:  &ManagedVirtualNetworksClient,
+		PipelinesClient:               &PipelinesClient,
+		TriggersClient:                &TriggersClient,
 	}
 }

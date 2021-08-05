@@ -2,50 +2,50 @@ package helper
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func LongTermRetentionPolicySchema() *schema.Schema {
+func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 	atLeastOneOf := []string{"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
 		"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",
 	}
-	return &schema.Schema{
-		Type:     schema.TypeList,
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format.
 				"weekly_retention": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validate.ValidateLongTermRetentionPoliciesIsoFormat,
+					ValidateFunc: validate.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
 				// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
 				"monthly_retention": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validate.ValidateLongTermRetentionPoliciesIsoFormat,
+					ValidateFunc: validate.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
 				// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
 				"yearly_retention": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validate.ValidateLongTermRetentionPoliciesIsoFormat,
+					ValidateFunc: validate.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
 				// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
 				"week_of_year": {
-					Type:         schema.TypeInt,
+					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(1, 52),
@@ -56,16 +56,16 @@ func LongTermRetentionPolicySchema() *schema.Schema {
 	}
 }
 
-func ShortTermRetentionPolicySchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true,
 		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"retention_days": {
-					Type:         schema.TypeInt,
+					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(7, 35),
 				},
@@ -85,7 +85,7 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *sql.LongTermRetentionPo
 		WeeklyRetention:  utils.String("PT0S"),
 		MonthlyRetention: utils.String("PT0S"),
 		YearlyRetention:  utils.String("PT0S"),
-		WeekOfYear:       utils.Int32(0),
+		WeekOfYear:       utils.Int32(1),
 	}
 
 	if v, ok := longTermRetentionPolicy["weekly_retention"]; ok {
@@ -107,7 +107,7 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *sql.LongTermRetentionPo
 	return &longTermPolicyProperties
 }
 
-func FlattenLongTermRetentionPolicy(longTermRetentionPolicy *sql.BackupLongTermRetentionPolicy, d *schema.ResourceData) []interface{} {
+func FlattenLongTermRetentionPolicy(longTermRetentionPolicy *sql.BackupLongTermRetentionPolicy, d *pluginsdk.ResourceData) []interface{} {
 	if longTermRetentionPolicy == nil {
 		return []interface{}{}
 	}
@@ -122,7 +122,7 @@ func FlattenLongTermRetentionPolicy(longTermRetentionPolicy *sql.BackupLongTermR
 		weeklyRetention = *longTermRetentionPolicy.WeeklyRetention
 	}
 
-	weekOfYear := int32(0)
+	weekOfYear := int32(1)
 	if longTermRetentionPolicy.WeekOfYear != nil {
 		weekOfYear = *longTermRetentionPolicy.WeekOfYear
 	}
@@ -160,7 +160,7 @@ func ExpandShortTermRetentionPolicy(input []interface{}) *sql.BackupShortTermRet
 	return &shortTermPolicyProperties
 }
 
-func FlattenShortTermRetentionPolicy(shortTermRetentionPolicy *sql.BackupShortTermRetentionPolicy, d *schema.ResourceData) []interface{} {
+func FlattenShortTermRetentionPolicy(shortTermRetentionPolicy *sql.BackupShortTermRetentionPolicy, d *pluginsdk.ResourceData) []interface{} {
 	if shortTermRetentionPolicy == nil {
 		return []interface{}{}
 	}

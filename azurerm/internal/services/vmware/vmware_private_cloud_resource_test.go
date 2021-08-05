@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/privateclouds"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +21,10 @@ func TestAccVmwarePrivateCloud_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vmware_private_cloud", "test")
 	r := VmwarePrivateCloudResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +36,10 @@ func TestAccVmwarePrivateCloud_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vmware_private_cloud", "test")
 	r := VmwarePrivateCloudResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +51,10 @@ func TestAccVmwarePrivateCloud_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vmware_private_cloud", "test")
 	r := VmwarePrivateCloudResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -67,31 +67,31 @@ func TestAccVmwarePrivateCloud_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vmware_private_cloud", "test")
 	r := VmwarePrivateCloudResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("nsxt_password", "vcenter_password"),
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("nsxt_password", "vcenter_password"),
 		{
 			Config: r.update2(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("nsxt_password", "vcenter_password"),
 		{
 			Config: r.update3(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -99,18 +99,18 @@ func TestAccVmwarePrivateCloud_update(t *testing.T) {
 	})
 }
 
-func (VmwarePrivateCloudResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.PrivateCloudID(state.ID)
+func (VmwarePrivateCloudResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := privateclouds.ParsePrivateCloudID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Vmware.PrivateCloudClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Vmware.PrivateCloudClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Vmware Private Cloud %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.PrivateCloudProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (VmwarePrivateCloudResource) template(data acceptance.TestData) string {

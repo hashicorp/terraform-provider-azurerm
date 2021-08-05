@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccApiManagementLogger_basicEventHub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 	r := ApiManagementLoggerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicEventHub(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("buffered").HasValue("true"),
 				check.That(data.ResourceName).Key("eventhub.#").HasValue("1"),
@@ -45,10 +44,10 @@ func TestAccApiManagementLogger_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 	r := ApiManagementLoggerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicEventHub(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("buffered").HasValue("true"),
 				check.That(data.ResourceName).Key("eventhub.#").HasValue("1"),
@@ -64,10 +63,10 @@ func TestAccApiManagementLogger_basicApplicationInsights(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 	r := ApiManagementLoggerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicApplicationInsights(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("buffered").HasValue("true"),
 				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
@@ -79,7 +78,7 @@ func TestAccApiManagementLogger_basicApplicationInsights(t *testing.T) {
 			ResourceName:            data.ResourceName,
 			ImportState:             true,
 			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.instrumentation_key"},
+			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.instrumentation_key", "application_insights.0.%"},
 		},
 	})
 }
@@ -88,10 +87,10 @@ func TestAccApiManagementLogger_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 	r := ApiManagementLoggerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, "Logger from Terraform test", "false"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("description").HasValue("Logger from Terraform test"),
 				check.That(data.ResourceName).Key("buffered").HasValue("false"),
@@ -105,7 +104,7 @@ func TestAccApiManagementLogger_complete(t *testing.T) {
 			ResourceName:            data.ResourceName,
 			ImportState:             true,
 			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.instrumentation_key"},
+			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.instrumentation_key", "application_insights.0.%"},
 		},
 	})
 }
@@ -114,10 +113,10 @@ func TestAccApiManagementLogger_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 	r := ApiManagementLoggerResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicApplicationInsights(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("buffered").HasValue("true"),
 				check.That(data.ResourceName).Key("description").HasValue(""),
@@ -128,7 +127,7 @@ func TestAccApiManagementLogger_update(t *testing.T) {
 		},
 		{
 			Config: r.basicEventHub(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("buffered").HasValue("true"),
 				check.That(data.ResourceName).Key("description").HasValue(""),
@@ -139,7 +138,7 @@ func TestAccApiManagementLogger_update(t *testing.T) {
 		},
 		{
 			Config: r.complete(data, "Logger from Terraform test", "false"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("buffered").HasValue("false"),
 				check.That(data.ResourceName).Key("description").HasValue("Logger from Terraform test"),
@@ -150,7 +149,7 @@ func TestAccApiManagementLogger_update(t *testing.T) {
 		},
 		{
 			Config: r.complete(data, "Logger from Terraform update test", "true"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("buffered").HasValue("true"),
 				check.That(data.ResourceName).Key("description").HasValue("Logger from Terraform update test"),
@@ -161,7 +160,7 @@ func TestAccApiManagementLogger_update(t *testing.T) {
 		},
 		{
 			Config: r.complete(data, "Logger from Terraform test", "false"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("buffered").HasValue("false"),
 				check.That(data.ResourceName).Key("description").HasValue("Logger from Terraform test"),
@@ -172,7 +171,7 @@ func TestAccApiManagementLogger_update(t *testing.T) {
 		},
 		{
 			Config: r.basicEventHub(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("buffered").HasValue("true"),
 				check.That(data.ResourceName).Key("description").HasValue(""),
@@ -184,7 +183,7 @@ func TestAccApiManagementLogger_update(t *testing.T) {
 	})
 }
 
-func (ApiManagementLoggerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ApiManagementLoggerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -234,7 +233,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Developer_1"
+  sku_name = "Consumption_0"
 }
 
 resource "azurerm_api_management_logger" "test" {
@@ -292,7 +291,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Developer_1"
+  sku_name = "Consumption_0"
 }
 
 resource "azurerm_api_management_logger" "test" {
@@ -332,7 +331,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Developer_1"
+  sku_name = "Consumption_0"
 }
 
 resource "azurerm_api_management_logger" "test" {

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,10 +19,10 @@ func TestAccStreamingPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_policy", "test")
 	r := StreamingPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Policy-1"),
 			),
 		},
@@ -35,10 +34,10 @@ func TestAccStreamingPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_policy", "test")
 	r := StreamingPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Policy-1"),
 			),
 		},
@@ -50,10 +49,10 @@ func TestAccStreamingPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_policy", "test")
 	r := StreamingPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("common_encryption_cenc.#").HasValue("1"),
 				check.That(data.ResourceName).Key("common_encryption_cbcs.#").HasValue("1"),
 			),
@@ -66,17 +65,17 @@ func TestAccStreamingPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_policy", "test")
 	r := StreamingPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Policy-1"),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("common_encryption_cenc.#").HasValue("1"),
 				check.That(data.ResourceName).Key("common_encryption_cbcs.#").HasValue("1"),
 			),
@@ -84,7 +83,7 @@ func TestAccStreamingPolicy_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeAggregateTestCheckFunc(
+			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Policy-1"),
 			),
 		},
@@ -92,7 +91,7 @@ func TestAccStreamingPolicy_update(t *testing.T) {
 	})
 }
 
-func (StreamingPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (StreamingPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.StreamingPolicyID(state.ID)
 	if err != nil {
 		return nil, err

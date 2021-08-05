@@ -8,19 +8,18 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/managedservices"
 	frsUUID "github.com/gofrs/uuid"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceLighthouseDefinition() *schema.Resource {
-	return &schema.Resource{
+func resourceLighthouseDefinition() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceLighthouseDefinitionCreateUpdate,
 		Read:   resourceLighthouseDefinitionRead,
 		Update: resourceLighthouseDefinitionCreateUpdate,
@@ -28,63 +27,64 @@ func resourceLighthouseDefinition() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"managing_tenant_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"scope": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SubscriptionID,
 			},
 
 			"authorization": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"principal_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsUUID,
 						},
 
 						"role_definition_id": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsUUID,
 						},
 
 						"principal_display_name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"delegated_role_definition_ids": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.IsUUID,
 							},
 						},
@@ -93,22 +93,55 @@ func resourceLighthouseDefinition() *schema.Resource {
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"lighthouse_definition_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
+
+			"plan": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"publisher": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"product": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"version": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
 		},
 	}
 }
 
-func resourceLighthouseDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.DefinitionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,11 +175,12 @@ func resourceLighthouseDefinitionCreateUpdate(d *schema.ResourceData, meta inter
 			return tf.ImportAsExistsError("azurerm_lighthouse_definition", *existing.ID)
 		}
 	}
-	authorizations, err := expandLighthouseDefinitionAuthorization(d.Get("authorization").(*schema.Set).List())
+	authorizations, err := expandLighthouseDefinitionAuthorization(d.Get("authorization").(*pluginsdk.Set).List())
 	if err != nil {
 		return err
 	}
 	parameters := managedservices.RegistrationDefinition{
+		Plan: expandLighthouseDefinitionPlan(d.Get("plan").([]interface{})),
 		Properties: &managedservices.RegistrationDefinitionProperties{
 			Description:                utils.String(d.Get("description").(string)),
 			Authorizations:             authorizations,
@@ -173,7 +207,7 @@ func resourceLighthouseDefinitionCreateUpdate(d *schema.ResourceData, meta inter
 	return resourceLighthouseDefinitionRead(d, meta)
 }
 
-func resourceLighthouseDefinitionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.DefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,6 +231,10 @@ func resourceLighthouseDefinitionRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("lighthouse_definition_id", resp.Name)
 	d.Set("scope", id.Scope)
 
+	if err := d.Set("plan", flattenLighthouseDefinitionPlan(resp.Plan)); err != nil {
+		return fmt.Errorf("setting `plan`: %+v", err)
+	}
+
 	if props := resp.Properties; props != nil {
 		if err := d.Set("authorization", flattenLighthouseDefinitionAuthorization(props.Authorizations)); err != nil {
 			return fmt.Errorf("setting `authorization`: %+v", err)
@@ -209,7 +247,7 @@ func resourceLighthouseDefinitionRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceLighthouseDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLighthouseDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.DefinitionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -274,7 +312,7 @@ func expandLighthouseDefinitionAuthorization(input []interface{}) (*[]managedser
 	results := make([]managedservices.Authorization, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		delegatedRoleDefinitionIds, err := expandLighthouseDefinitionAuthorizationDelegatedRoleDefinitionIds(v["delegated_role_definition_ids"].(*schema.Set).List())
+		delegatedRoleDefinitionIds, err := expandLighthouseDefinitionAuthorizationDelegatedRoleDefinitionIds(v["delegated_role_definition_ids"].(*pluginsdk.Set).List())
 		if err != nil {
 			return nil, err
 		}
@@ -299,4 +337,44 @@ func expandLighthouseDefinitionAuthorizationDelegatedRoleDefinitionIds(input []i
 		result = append(result, id)
 	}
 	return &result, nil
+}
+
+func expandLighthouseDefinitionPlan(input []interface{}) *managedservices.Plan {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	raw := input[0].(map[string]interface{})
+	return &managedservices.Plan{
+		Name:      utils.String(raw["name"].(string)),
+		Publisher: utils.String(raw["publisher"].(string)),
+		Product:   utils.String(raw["product"].(string)),
+		Version:   utils.String(raw["version"].(string)),
+	}
+}
+
+func flattenLighthouseDefinitionPlan(input *managedservices.Plan) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	var name, publisher, product, version string
+	if input.Name != nil {
+		name = *input.Name
+	}
+	if input.Publisher != nil {
+		publisher = *input.Publisher
+	}
+	if input.Product != nil {
+		product = *input.Product
+	}
+	if input.Version != nil {
+		version = *input.Version
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"name":      name,
+			"publisher": publisher,
+			"product":   product,
+			"version":   version,
+		},
+	}
 }

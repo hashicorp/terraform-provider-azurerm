@@ -8,8 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -18,12 +16,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceKeyVaultManagedHardwareSecurityModule() *schema.Resource {
-	return &schema.Resource{
+func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmKeyVaultManagedHardwareSecurityModuleCreate,
 		Read:   resourceArmKeyVaultManagedHardwareSecurityModuleRead,
 		Delete: resourceArmKeyVaultManagedHardwareSecurityModuleDelete,
@@ -33,15 +32,15 @@ func resourceKeyVaultManagedHardwareSecurityModule() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ManagedHardwareSecurityModuleName,
@@ -52,7 +51,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -61,30 +60,30 @@ func resourceKeyVaultManagedHardwareSecurityModule() *schema.Resource {
 			},
 
 			"admin_object_ids": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
 				ForceNew: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.IsUUID,
 				},
 			},
 
 			"tenant_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"purge_protection_enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
 			},
 
 			"soft_delete_retention_days": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
 				Default:      90,
@@ -92,7 +91,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *schema.Resource {
 			},
 
 			"hsm_uri": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -102,7 +101,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *schema.Resource {
 	}
 }
 
-func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.ManagedHsmClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -127,7 +126,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *schema.ResourceDa
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: &keyvault.ManagedHsmProperties{
 			TenantID:                  &tenantId,
-			InitialAdminObjectIds:     utils.ExpandStringSlice(d.Get("admin_object_ids").(*schema.Set).List()),
+			InitialAdminObjectIds:     utils.ExpandStringSlice(d.Get("admin_object_ids").(*pluginsdk.Set).List()),
 			CreateMode:                keyvault.CreateModeDefault,
 			EnableSoftDelete:          utils.Bool(true),
 			SoftDeleteRetentionInDays: utils.Int32(int32(d.Get("soft_delete_retention_days").(int))),
@@ -153,7 +152,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *schema.ResourceDa
 	return resourceArmKeyVaultManagedHardwareSecurityModuleRead(d, meta)
 }
 
-func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.ManagedHsmClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -199,7 +198,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *schema.ResourceData
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.ManagedHsmClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

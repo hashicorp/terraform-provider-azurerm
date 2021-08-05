@@ -7,8 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicefabricmesh/mgmt/2018-09-01-preview/servicefabricmesh"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,12 +14,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabricmesh/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceServiceFabricMeshLocalNetwork() *schema.Resource {
-	return &schema.Resource{
+func resourceServiceFabricMeshLocalNetwork() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceServiceFabricMeshLocalNetworkCreateUpdate,
 		Read:   resourceServiceFabricMeshLocalNetworkRead,
 		Update: resourceServiceFabricMeshLocalNetworkCreateUpdate,
@@ -33,16 +32,16 @@ func resourceServiceFabricMeshLocalNetwork() *schema.Resource {
 
 		DeprecationMessage: deprecationMessage("azurerm_service_fabric_mesh_local_network"),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -54,13 +53,13 @@ func resourceServiceFabricMeshLocalNetwork() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"network_address_prefix": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"description": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -70,7 +69,7 @@ func resourceServiceFabricMeshLocalNetwork() *schema.Resource {
 	}
 }
 
-func resourceServiceFabricMeshLocalNetworkCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshLocalNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.NetworkClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,7 +120,7 @@ func resourceServiceFabricMeshLocalNetworkCreateUpdate(d *schema.ResourceData, m
 	return resourceServiceFabricMeshLocalNetworkRead(d, meta)
 }
 
-func resourceServiceFabricMeshLocalNetworkRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshLocalNetworkRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.NetworkClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,7 +155,7 @@ func resourceServiceFabricMeshLocalNetworkRead(d *schema.ResourceData, meta inte
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceServiceFabricMeshLocalNetworkDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshLocalNetworkDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.NetworkClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -6,12 +6,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,10 +22,10 @@ func TestAccAzureRMExpressRoutePort_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("link1.0.id").Exists(),
 				check.That(data.ResourceName).Key("link1.0.router_name").Exists(),
@@ -56,10 +55,10 @@ func TestAccAzureRMExpressRoutePort_adminState(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.adminState(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -71,10 +70,10 @@ func TestAccAzureRMExpressRoutePort_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -86,10 +85,10 @@ func TestAccAzureRMExpressRoutePort_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.userAssignedIdentity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -101,10 +100,10 @@ func TestAccAzureRMExpressRoutePort_linkCipher(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.linkCipher(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -112,7 +111,7 @@ func TestAccAzureRMExpressRoutePort_linkCipher(t *testing.T) {
 	})
 }
 
-func (r ExpressRoutePortResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r ExpressRoutePortResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Network.ExpressRoutePortsClient
 
 	id, err := parse.ExpressRoutePortID(state.ID)

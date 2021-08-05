@@ -7,30 +7,29 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataShare() *schema.Resource {
-	return &schema.Resource{
+func resourceDataShare() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDataShareCreateUpdate,
 		Read:   resourceDataShareRead,
 		Update: resourceDataShareCreateUpdate,
 		Delete: resourceDataShareDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -38,23 +37,23 @@ func resourceDataShare() *schema.Resource {
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ShareName(),
 			},
 
 			"account_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AccountID,
 			},
 
 			"kind": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -64,24 +63,24 @@ func resourceDataShare() *schema.Resource {
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"snapshot_schedule": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.SnapshotScheduleName(),
 						},
 
 						"recurrence": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(datashare.Day),
@@ -90,7 +89,7 @@ func resourceDataShare() *schema.Resource {
 						},
 
 						"start_time": {
-							Type:             schema.TypeString,
+							Type:             pluginsdk.TypeString,
 							Required:         true,
 							ValidateFunc:     validation.IsRFC3339Time,
 							DiffSuppressFunc: suppress.RFC3339Time,
@@ -100,14 +99,14 @@ func resourceDataShare() *schema.Resource {
 			},
 
 			"terms": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 		},
 	}
 }
 
-func resourceDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient
@@ -173,7 +172,7 @@ func resourceDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	return resourceDataShareRead(d, meta)
 }
 
-func resourceDataShareRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient
@@ -228,7 +227,7 @@ func resourceDataShareRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceDataShareDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
 	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

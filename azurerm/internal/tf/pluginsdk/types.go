@@ -1,9 +1,11 @@
 package pluginsdk
 
-import "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-type Set = schema.Set
-type SchemaSetFunc = schema.SchemaSetFunc
+type (
+	Set           = schema.Set
+	SchemaSetFunc = schema.SchemaSetFunc
+)
 
 // NewSet is a convenience method for creating a new set with the given
 // items.

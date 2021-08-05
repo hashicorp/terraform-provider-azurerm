@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -16,100 +15,100 @@ var _ pluginsdk.StateUpgrade = DnsZoneV0ToV1{}
 type DnsZoneV0ToV1 struct{}
 
 func (DnsZoneV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	return map[string]*schema.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"resource_group_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"number_of_record_sets": {
-			Type:     schema.TypeInt,
+			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
 
 		"max_number_of_record_sets": {
-			Type:     schema.TypeInt,
+			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
 
 		"name_servers": {
-			Type:     schema.TypeSet,
+			Type:     pluginsdk.TypeSet,
 			Computed: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
-			Set:      schema.HashString,
+			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			Set:      pluginsdk.HashString,
 		},
 
 		"soa_record": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"email": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 
 					"host_name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 
 					"expire_time": {
-						Type:     schema.TypeInt,
+						Type:     pluginsdk.TypeInt,
 						Optional: true,
 						Default:  2419200,
 					},
 
 					"minimum_ttl": {
-						Type:     schema.TypeInt,
+						Type:     pluginsdk.TypeInt,
 						Optional: true,
 						Default:  300,
 					},
 
 					"refresh_time": {
-						Type:     schema.TypeInt,
+						Type:     pluginsdk.TypeInt,
 						Optional: true,
 						Default:  3600,
 					},
 
 					"retry_time": {
-						Type:     schema.TypeInt,
+						Type:     pluginsdk.TypeInt,
 						Optional: true,
 						Default:  300,
 					},
 
 					"serial_number": {
-						Type:     schema.TypeInt,
+						Type:     pluginsdk.TypeInt,
 						Optional: true,
 						Default:  1,
 					},
 
 					"ttl": {
-						Type:     schema.TypeInt,
+						Type:     pluginsdk.TypeInt,
 						Optional: true,
 						Default:  3600,
 					},
 
 					"tags": {
-						Type:     schema.TypeMap,
+						Type:     pluginsdk.TypeMap,
 						Optional: true,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"fqdn": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 				},
@@ -117,10 +116,10 @@ func (DnsZoneV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": {
-			Type:     schema.TypeMap,
+			Type:     pluginsdk.TypeMap,
 			Optional: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
 		},
 	}

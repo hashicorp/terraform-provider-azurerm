@@ -6,7 +6,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -73,157 +72,157 @@ func (FrontDoorUpgradeV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 }
 
 func frontDoorSchemaForV0AndV1() map[string]*pluginsdk.Schema {
-	return map[string]*schema.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"cname": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
 		"header_frontdoor_id": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
 		"friendly_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
 
 		"load_balancer_enabled": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
 		"enforce_backend_pools_certificate_name_check": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Required: true,
 		},
 
 		"backend_pools_send_receive_timeout_seconds": {
-			Type:     schema.TypeInt,
+			Type:     pluginsdk.TypeInt,
 			Optional: true,
 		},
 
 		"location": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Computed: true,
 		},
 
 		"resource_group_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
 
 		"routing_rule": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			MaxItems: 100,
 			Required: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"id": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 					"name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"enabled": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
 					"accepted_protocols": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Required: true,
 						MaxItems: 2,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 					"patterns_to_match": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Required: true,
 						MaxItems: 25,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 					"frontend_endpoints": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Required: true,
 						MaxItems: 100,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 					"redirect_configuration": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"custom_fragment": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 								"custom_host": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 								"custom_path": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 								"custom_query_string": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 								"redirect_protocol": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 								"redirect_type": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 							},
 						},
 					},
 					"forwarding_configuration": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"backend_pool_name": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 								"cache_enabled": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 								},
 								"cache_use_dynamic_compression": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 								},
 								"cache_query_parameter_strip_directive": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 								"custom_forwarding_path": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 								"forwarding_protocol": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 							},
@@ -234,29 +233,29 @@ func frontDoorSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 		},
 
 		"backend_pool_load_balancing": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			MaxItems: 5000,
 			Required: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"id": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 					"name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"sample_size": {
-						Type:     schema.TypeInt,
+						Type:     pluginsdk.TypeInt,
 						Optional: true,
 					},
 					"successful_samples_required": {
-						Type:     schema.TypeInt,
+						Type:     pluginsdk.TypeInt,
 						Optional: true,
 					},
 					"additional_latency_milliseconds": {
-						Type:     schema.TypeInt,
+						Type:     pluginsdk.TypeInt,
 						Optional: true,
 					},
 				},
@@ -264,37 +263,37 @@ func frontDoorSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 		},
 
 		"backend_pool_health_probe": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			MaxItems: 5000,
 			Required: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"id": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 					"name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"enabled": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
 					"path": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 					"protocol": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 					"probe_method": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 					"interval_in_seconds": {
-						Type:     schema.TypeInt,
+						Type:     pluginsdk.TypeInt,
 						Optional: true,
 					},
 				},
@@ -302,63 +301,63 @@ func frontDoorSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 		},
 
 		"backend_pool": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			MaxItems: 50,
 			Required: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"backend": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						MaxItems: 100,
 						Required: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"enabled": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  true,
 								},
 								"address": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 								"http_port": {
-									Type:     schema.TypeInt,
+									Type:     pluginsdk.TypeInt,
 									Required: true,
 								},
 								"https_port": {
-									Type:     schema.TypeInt,
+									Type:     pluginsdk.TypeInt,
 									Required: true,
 								},
 								"weight": {
-									Type:     schema.TypeInt,
+									Type:     pluginsdk.TypeInt,
 									Optional: true,
 								},
 								"priority": {
-									Type:     schema.TypeInt,
+									Type:     pluginsdk.TypeInt,
 									Optional: true,
 								},
 								"host_header": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 							},
 						},
 					},
 					"id": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 					"name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"health_probe_name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"load_balancing_name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 				},
@@ -366,74 +365,74 @@ func frontDoorSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 		},
 
 		"frontend_endpoint": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			MaxItems: 100,
 			Required: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"id": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 					"name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"host_name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"session_affinity_enabled": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
 					"session_affinity_ttl_seconds": {
-						Type:     schema.TypeInt,
+						Type:     pluginsdk.TypeInt,
 						Optional: true,
 					},
 					"custom_https_provisioning_enabled": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Computed: true,
 					},
 					"web_application_firewall_policy_link_id": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 					//lintignore:XS003
 					"custom_https_configuration": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Computed: true,
 						MaxItems: 1,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"certificate_source": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 								"minimum_tls_version": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
 								"provisioning_state": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
 								"provisioning_substate": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
 								"azure_key_vault_certificate_secret_name": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 								"azure_key_vault_certificate_secret_version": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 								"azure_key_vault_certificate_vault_id": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 							},
@@ -444,10 +443,10 @@ func frontDoorSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": {
-			Type:     schema.TypeMap,
+			Type:     pluginsdk.TypeMap,
 			Optional: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
 		},
 	}

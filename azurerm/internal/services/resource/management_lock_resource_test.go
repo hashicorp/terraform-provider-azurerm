@@ -6,12 +6,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	azureResource "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccManagementLock_resourceGroupReadOnlyBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 	r := ManagementLockResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.resourceGroupReadOnlyBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,10 +36,10 @@ func TestAccManagementLock_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 	r := ManagementLockResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.resourceGroupReadOnlyBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -52,10 +51,10 @@ func TestAccManagementLock_resourceGroupReadOnlyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 	r := ManagementLockResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.resourceGroupReadOnlyComplete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -67,10 +66,10 @@ func TestAccManagementLock_resourceGroupCanNotDeleteBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 	r := ManagementLockResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.resourceGroupCanNotDeleteBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -82,10 +81,10 @@ func TestAccManagementLock_resourceGroupCanNotDeleteComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 	r := ManagementLockResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.resourceGroupCanNotDeleteComplete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -97,10 +96,10 @@ func TestAccManagementLock_publicIPReadOnlyBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 	r := ManagementLockResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.publicIPReadOnlyBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -112,10 +111,10 @@ func TestAccManagementLock_publicIPCanNotDeleteBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 	r := ManagementLockResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.publicIPCanNotDeleteBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -132,10 +131,10 @@ func TestAccManagementLock_subscriptionReadOnlyBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 	r := ManagementLockResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.subscriptionReadOnlyBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -152,10 +151,10 @@ func TestAccManagementLock_subscriptionCanNotDeleteBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 	r := ManagementLockResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.subscriptionCanNotDeleteBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -163,7 +162,7 @@ func TestAccManagementLock_subscriptionCanNotDeleteBasic(t *testing.T) {
 	})
 }
 
-func (t ManagementLockResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t ManagementLockResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azureResource.ParseAzureRMLockId(state.ID)
 	if err != nil {
 		return nil, err

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/sdk/namespaces"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccRelayNamespace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")
 	r := RelayNamespaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("metric_id").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
@@ -42,10 +41,10 @@ func TestAccRelayNamespace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")
 	r := RelayNamespaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("metric_id").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
@@ -62,10 +61,10 @@ func TestAccRelayNamespace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")
 	r := RelayNamespaceResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("metric_id").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
@@ -78,18 +77,18 @@ func TestAccRelayNamespace_complete(t *testing.T) {
 	})
 }
 
-func (t RelayNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.NamespaceID(state.ID)
+func (t RelayNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := namespaces.ParseNamespaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Relay.NamespacesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Relay.NamespacesClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Relay Namespace (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.NamespaceProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (RelayNamespaceResource) basic(data acceptance.TestData) string {

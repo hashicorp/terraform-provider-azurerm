@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +20,10 @@ func TestAccServiceBusSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 	r := ServiceBusSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,10 +35,10 @@ func TestAccServiceBusSubscription_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 	r := ServiceBusSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -52,12 +50,12 @@ func TestAccServiceBusSubscription_defaultTtl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 	r := ServiceBusSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withDefaultTtl(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr("azurerm_servicebus_subscription.test", "default_message_ttl", "PT1H"),
+				acceptance.TestCheckResourceAttr("azurerm_servicebus_subscription.test", "default_message_ttl", "PT1H"),
 			),
 		},
 		data.ImportStep(),
@@ -68,16 +66,16 @@ func TestAccServiceBusSubscription_updateEnableBatched(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 	r := ServiceBusSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.updateEnableBatched(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("enable_batched_operations").HasValue("true"),
 			),
 		},
@@ -89,16 +87,16 @@ func TestAccServiceBusSubscription_updateRequiresSession(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 	r := ServiceBusSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.updateRequiresSession(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("requires_session").HasValue("true"),
 			),
 		},
@@ -112,16 +110,16 @@ func TestAccServiceBusSubscription_updateForwardTo(t *testing.T) {
 
 	expectedValue := fmt.Sprintf("acctestservicebustopic-forward_to-%d", data.RandomInteger)
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.updateForwardTo(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("forward_to").HasValue(expectedValue),
 			),
 		},
@@ -135,16 +133,16 @@ func TestAccServiceBusSubscription_updateForwardDeadLetteredMessagesTo(t *testin
 
 	expectedValue := fmt.Sprintf("acctestservicebustopic-forward_dl_messages_to-%d", data.RandomInteger)
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.updateForwardDeadLetteredMessagesTo(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("forward_dead_lettered_messages_to").HasValue(expectedValue),
 			),
 		},
@@ -156,16 +154,16 @@ func TestAccServiceBusSubscription_updateDeadLetteringOnFilterEvaluationExceptio
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 	r := ServiceBusSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.updateDeadLetteringOnFilterEvaluationExceptions(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -177,36 +175,36 @@ func TestAccServiceBusSubscription_status(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 	r := ServiceBusSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("status").HasValue("Active"),
 			),
 		},
 		{
 			Config: r.status(data, "Disabled"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("status").HasValue("Disabled"),
 			),
 		},
 		{
 			Config: r.status(data, "ReceiveDisabled"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("status").HasValue("ReceiveDisabled"),
 			),
 		},
 		{
 			Config: r.status(data, "Active"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("status").HasValue("Active"),
 			),
 		},
 	})
 }
 
-func (t ServiceBusSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t ServiceBusSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SubscriptionID(state.ID)
 	if err != nil {
 		return nil, err

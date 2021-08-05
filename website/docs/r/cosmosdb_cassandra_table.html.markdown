@@ -78,6 +78,10 @@ The following arguments are supported:
 
 * `throughput` - (Optional) The throughput of Cassandra KeySpace (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
+* `default_ttl` - (Optional) Time to live of the Cosmos DB Cassandra table. Possible values are at least `-1`. `-1` means the Cassandra table never expires.
+
+* `analytical_storage_ttl` - (Optional) Time to live of the Analytical Storage. Possible values are at least `-1`. `-1` means the Analytical Storage never expires. Changing this forces a new resource to be created.
+
 ~> **Note:** throughput has a maximum value of `1000000` unless a higher limit is requested via Azure Support
 
 * `autoscale_settings` - (Optional) An `autoscale_settings` block as defined below. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.

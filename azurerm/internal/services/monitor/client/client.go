@@ -1,6 +1,7 @@
 package client
 
 import (
+	"github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad"
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
 	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
@@ -8,6 +9,9 @@ import (
 )
 
 type Client struct {
+	// AAD
+	AADDiagnosticSettingsClient *aad.DiagnosticSettingsClient
+
 	// Autoscale Settings
 	AutoscaleSettingsClient *classic.AutoscaleSettingsClient
 
@@ -27,6 +31,9 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	AADDiagnosticSettingsClient := aad.NewDiagnosticSettingsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&AADDiagnosticSettingsClient.Client, o.ResourceManagerAuthorizer)
+
 	AutoscaleSettingsClient := classic.NewAutoscaleSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&AutoscaleSettingsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -61,6 +68,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&ScheduledQueryRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		AADDiagnosticSettingsClient:      &AADDiagnosticSettingsClient,
 		AutoscaleSettingsClient:          &AutoscaleSettingsClient,
 		ActionRulesClient:                &ActionRulesClient,
 		SmartDetectorAlertRulesClient:    &SmartDetectorAlertRulesClient,

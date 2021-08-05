@@ -107,6 +107,84 @@ func (client ScriptActionsClient) DeleteResponder(resp *http.Response) (result a
 	return
 }
 
+// GetExecutionAsyncOperationStatus gets the async operation status of execution operation.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
+// operationID - the long running operation id.
+func (client ScriptActionsClient) GetExecutionAsyncOperationStatus(ctx context.Context, resourceGroupName string, clusterName string, operationID string) (result AsyncOperationResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ScriptActionsClient.GetExecutionAsyncOperationStatus")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetExecutionAsyncOperationStatusPreparer(ctx, resourceGroupName, clusterName, operationID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ScriptActionsClient", "GetExecutionAsyncOperationStatus", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetExecutionAsyncOperationStatusSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "hdinsight.ScriptActionsClient", "GetExecutionAsyncOperationStatus", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetExecutionAsyncOperationStatusResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ScriptActionsClient", "GetExecutionAsyncOperationStatus", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetExecutionAsyncOperationStatusPreparer prepares the GetExecutionAsyncOperationStatus request.
+func (client ScriptActionsClient) GetExecutionAsyncOperationStatusPreparer(ctx context.Context, resourceGroupName string, clusterName string, operationID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"operationId":       autorest.Encode("path", operationID),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HDInsight/clusters/{clusterName}/executeScriptActions/azureasyncoperations/{operationId}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetExecutionAsyncOperationStatusSender sends the GetExecutionAsyncOperationStatus request. The method will close the
+// http.Response Body if it receives an error.
+func (client ScriptActionsClient) GetExecutionAsyncOperationStatusSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetExecutionAsyncOperationStatusResponder handles the response to the GetExecutionAsyncOperationStatus request. The method always
+// closes the http.Response Body.
+func (client ScriptActionsClient) GetExecutionAsyncOperationStatusResponder(resp *http.Response) (result AsyncOperationResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // GetExecutionDetail gets the script execution detail for the given script execution ID.
 // Parameters:
 // resourceGroupName - the name of the resource group.

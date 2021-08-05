@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -50,10 +49,10 @@ func TestAccDevTestVirtualNetwork_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
 	r := DevTestVirtualNetworkResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
@@ -66,10 +65,10 @@ func TestAccDevTestVirtualNetwork_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
 	r := DevTestVirtualNetworkResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
@@ -85,10 +84,10 @@ func TestAccDevTestVirtualNetwork_subnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
 	r := DevTestVirtualNetworkResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.subnets(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet.#").HasValue("1"),
 				check.That(data.ResourceName).Key("subnet.0.use_public_ip_address").HasValue("Deny"),
@@ -100,7 +99,7 @@ func TestAccDevTestVirtualNetwork_subnet(t *testing.T) {
 	})
 }
 
-func (DevTestVirtualNetworkResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (DevTestVirtualNetworkResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

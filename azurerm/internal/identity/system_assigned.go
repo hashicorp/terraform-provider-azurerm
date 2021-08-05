@@ -26,7 +26,7 @@ func (s SystemAssigned) Flatten(input *ExpandedConfig) []interface{} {
 		return []interface{}{}
 	}
 
-	var coalesce = func(input *string) string {
+	coalesce := func(input *string) string {
 		if input == nil {
 			return ""
 		}
@@ -44,7 +44,7 @@ func (s SystemAssigned) Flatten(input *ExpandedConfig) []interface{} {
 }
 
 func (s SystemAssigned) Schema() *pluginsdk.Schema {
-	//lintignore:XS003
+	// lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -55,7 +55,7 @@ func (s SystemAssigned) Schema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						systemAssigned,
+						string(systemAssigned),
 					}, false),
 				},
 				"principal_id": {

@@ -1,7 +1,7 @@
 package databricks
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
@@ -19,15 +19,17 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
-		"azurerm_databricks_workspace": dataSourceDatabricksWorkspace(),
+func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
+		"azurerm_databricks_workspace":                             dataSourceDatabricksWorkspace(),
+		"azurerm_databricks_workspace_private_endpoint_connection": dataSourceDatabricksWorkspacePrivateEndpointConnection(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
-		"azurerm_databricks_workspace": resourceDatabricksWorkspace(),
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
+		"azurerm_databricks_workspace":                      resourceDatabricksWorkspace(),
+		"azurerm_databricks_workspace_customer_managed_key": resourceDatabricksWorkspaceCustomerManagedKey(),
 	}
 }

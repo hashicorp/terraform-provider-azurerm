@@ -28,7 +28,6 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_table" "example" {
   name                 = "myexampletable"
-  resource_group_name  = azurerm_resource_group.example.name
   storage_account_name = azurerm_storage_account.example.name
 }
 

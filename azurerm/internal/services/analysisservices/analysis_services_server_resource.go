@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/sdk/servers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -37,7 +37,7 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ServerID(id)
+			_, err := servers.ParseServerID(id)
 			return err
 		}),
 
@@ -74,7 +74,9 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			"admin_users": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
 			},
 
 			"enable_power_bi_service": {
@@ -138,41 +140,32 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
 
-	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := servers.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		server, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
+		server, err := client.GetDetails(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(server.Response) {
+			if !response.WasNotFound(server.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(server.Response) {
+		if !response.WasNotFound(server.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_analysis_services_server", id.ID())
 		}
 	}
 
-	sku := d.Get("sku").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-
 	serverProperties := expandAnalysisServicesServerProperties(d)
-
-	t := d.Get("tags").(map[string]interface{})
-
-	analysisServicesServer := analysisservices.Server{
-		Location:         &location,
-		Sku:              &analysisservices.ResourceSku{Name: &sku},
-		ServerProperties: serverProperties,
-		Tags:             tags.Expand(t),
+	analysisServicesServer := servers.AnalysisServicesServer{
+		Location: azure.NormalizeLocation(d.Get("location").(string)),
+		Sku: servers.ResourceSku{
+			Name: d.Get("sku").(string),
+		},
+		Properties: serverProperties,
+		Tags:       expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.Name, analysisServicesServer)
-	if err != nil {
+	if err := client.CreateThenPoll(ctx, id, analysisServicesServer); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -184,50 +177,59 @@ func resourceAnalysisServicesServerRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServerID(d.Id())
+	id, err := servers.ParseServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	server, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
+	server, err := client.GetDetails(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(server.Response) {
+		if response.WasNotFound(server.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(server.Location))
 
-	if server.Sku != nil {
-		d.Set("sku", server.Sku.Name)
+	if model := server.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		d.Set("sku", model.Sku.Name)
+
+		if props := model.Properties; props != nil {
+			adminUsers := make([]string, 0)
+			if props.AsAdministrators != nil && props.AsAdministrators.Members != nil {
+				adminUsers = *props.AsAdministrators.Members
+			}
+			d.Set("admin_users", adminUsers)
+
+			enablePowerBi, fwRules := flattenAnalysisServicesServerFirewallSettings(props)
+			d.Set("enable_power_bi_service", enablePowerBi)
+			if err := d.Set("ipv4_firewall_rule", fwRules); err != nil {
+				return fmt.Errorf("setting `ipv4_firewall_rule`: %s", err)
+			}
+
+			connectionMode := ""
+			if props.QuerypoolConnectionMode != nil {
+				connectionMode = string(*props.QuerypoolConnectionMode)
+			}
+			d.Set("querypool_connection_mode", connectionMode)
+			d.Set("server_full_name", props.ServerFullName)
+
+			if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
+				d.Set("backup_blob_container_uri", containerUri)
+			}
+		}
+
+		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			return err
+		}
 	}
 
-	if serverProps := server.ServerProperties; serverProps != nil {
-		if serverProps.AsAdministrators == nil {
-			d.Set("admin_users", []string{})
-		} else {
-			d.Set("admin_users", serverProps.AsAdministrators.Members)
-		}
-
-		enablePowerBi, fwRules := flattenAnalysisServicesServerFirewallSettings(serverProps)
-		d.Set("enable_power_bi_service", enablePowerBi)
-		if err := d.Set("ipv4_firewall_rule", fwRules); err != nil {
-			return fmt.Errorf("Error setting `ipv4_firewall_rule`: %s", err)
-		}
-
-		d.Set("querypool_connection_mode", string(serverProps.QuerypoolConnectionMode))
-		d.Set("server_full_name", serverProps.ServerFullName)
-
-		if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
-			d.Set("backup_blob_container_uri", containerUri)
-		}
-	}
-
-	return tags.FlattenAndSet(d, server.Tags)
+	return nil
 }
 
 func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -237,30 +239,33 @@ func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interf
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server update.")
 
-	id, err := parse.ServerID(d.Id())
+	id, err := servers.ParseServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	serverResp, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
+	serverResp, err := client.GetDetails(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-
-	if serverResp.State != analysisservices.StateSucceeded && serverResp.State != analysisservices.StatePaused {
-		return fmt.Errorf("Error updating Analysis Services Server %q (Resource Group %q): State must be either Succeeded or Paused but got %q", id.Name, id.ResourceGroup, serverResp.State)
+	if serverResp.Model == nil {
+		return fmt.Errorf("retrieving %s: response model was nil", *id)
 	}
-
-	isPaused := serverResp.State == analysisservices.StatePaused
+	if serverResp.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: properties was nil", *id)
+	}
+	if serverResp.Model.Properties.State == nil {
+		return fmt.Errorf("retrieving %s: state was nil", *id)
+	}
+	state := *serverResp.Model.Properties.State
+	if state != servers.StateSucceeded && state != servers.StatePaused {
+		return fmt.Errorf("updating %s: State must be either Succeeded or Paused but got %q", *id, string(state))
+	}
+	isPaused := state == servers.StatePaused
 
 	if isPaused {
-		resumeFuture, err := client.Resume(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return fmt.Errorf("Error starting Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-		}
-
-		if err = resumeFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for Analysis Services Server starting completion %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		if err := client.ResumeThenPoll(ctx, *id); err != nil {
+			return fmt.Errorf("starting %s: %+v", *id, err)
 		}
 	}
 
@@ -268,29 +273,21 @@ func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interf
 	sku := d.Get("sku").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	analysisServicesServer := analysisservices.ServerUpdateParameters{
-		Sku:                     &analysisservices.ResourceSku{Name: &sku},
-		Tags:                    tags.Expand(t),
-		ServerMutableProperties: serverProperties,
+	analysisServicesServer := servers.AnalysisServicesServerUpdateParameters{
+		Sku: &servers.ResourceSku{
+			Name: sku,
+		},
+		Tags:       expandTags(t),
+		Properties: serverProperties,
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.Name, analysisServicesServer)
-	if err != nil {
-		return fmt.Errorf("Error creating Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if err := client.UpdateThenPoll(ctx, *id, analysisServicesServer); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	if isPaused {
-		suspendFuture, err := client.Suspend(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return fmt.Errorf("Error re-pausing Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-		}
-
-		if err = suspendFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for Analysis Services Server pausing completion %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		if err := client.SuspendThenPoll(ctx, *id); err != nil {
+			return fmt.Errorf("re-pausing %s: %+v", *id, err)
 		}
 	}
 
@@ -302,58 +299,59 @@ func resourceAnalysisServicesServerDelete(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServerID(d.Id())
+	id, err := servers.ParseServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("Error deleting Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandAnalysisServicesServerProperties(d *pluginsdk.ResourceData) *analysisservices.ServerProperties {
+func expandAnalysisServicesServerProperties(d *pluginsdk.ResourceData) *servers.AnalysisServicesServerProperties {
 	adminUsers := expandAnalysisServicesServerAdminUsers(d)
 
-	serverProperties := analysisservices.ServerProperties{AsAdministrators: adminUsers}
+	serverProperties := servers.AnalysisServicesServerProperties{
+		AsAdministrators: adminUsers,
+	}
 
-	serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
+	serverProperties.IpV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
 
 	if querypoolConnectionMode, ok := d.GetOk("querypool_connection_mode"); ok {
-		serverProperties.QuerypoolConnectionMode = analysisservices.ConnectionMode(querypoolConnectionMode.(string))
+		connectionMode := servers.ConnectionMode(querypoolConnectionMode.(string))
+		serverProperties.QuerypoolConnectionMode = &connectionMode
 	}
 
 	if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
-		serverProperties.BackupBlobContainerURI = utils.String(containerUri.(string))
+		serverProperties.BackupBlobContainerUri = utils.String(containerUri.(string))
 	}
 
 	return &serverProperties
 }
 
-func expandAnalysisServicesServerMutableProperties(d *pluginsdk.ResourceData) *analysisservices.ServerMutableProperties {
+func expandAnalysisServicesServerMutableProperties(d *pluginsdk.ResourceData) *servers.AnalysisServicesServerMutableProperties {
 	adminUsers := expandAnalysisServicesServerAdminUsers(d)
 
-	serverProperties := analysisservices.ServerMutableProperties{AsAdministrators: adminUsers}
+	serverProperties := servers.AnalysisServicesServerMutableProperties{
+		AsAdministrators: adminUsers,
+	}
 
-	serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
+	serverProperties.IpV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
 
-	serverProperties.QuerypoolConnectionMode = analysisservices.ConnectionMode(d.Get("querypool_connection_mode").(string))
+	connectionMode := servers.ConnectionMode(d.Get("querypool_connection_mode").(string))
+	serverProperties.QuerypoolConnectionMode = &connectionMode
 
 	if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
-		serverProperties.BackupBlobContainerURI = utils.String(containerUri.(string))
+		serverProperties.BackupBlobContainerUri = utils.String(containerUri.(string))
 	}
 
 	return &serverProperties
 }
 
-func expandAnalysisServicesServerAdminUsers(d *pluginsdk.ResourceData) *analysisservices.ServerAdministrators {
+func expandAnalysisServicesServerAdminUsers(d *pluginsdk.ResourceData) *servers.ServerAdministrators {
 	adminUsers := d.Get("admin_users").(*pluginsdk.Set)
 	members := make([]string, 0)
 
@@ -363,20 +361,22 @@ func expandAnalysisServicesServerAdminUsers(d *pluginsdk.ResourceData) *analysis
 		}
 	}
 
-	return &analysisservices.ServerAdministrators{Members: &members}
+	return &servers.ServerAdministrators{
+		Members: &members,
+	}
 }
 
-func expandAnalysisServicesServerFirewallSettings(d *pluginsdk.ResourceData) *analysisservices.IPv4FirewallSettings {
-	firewallSettings := analysisservices.IPv4FirewallSettings{
+func expandAnalysisServicesServerFirewallSettings(d *pluginsdk.ResourceData) *servers.IPv4FirewallSettings {
+	firewallSettings := servers.IPv4FirewallSettings{
 		EnablePowerBIService: utils.Bool(d.Get("enable_power_bi_service").(bool)),
 	}
 
 	firewallRules := d.Get("ipv4_firewall_rule").(*pluginsdk.Set).List()
 
-	fwRules := make([]analysisservices.IPv4FirewallRule, len(firewallRules))
+	fwRules := make([]servers.IPv4FirewallRule, len(firewallRules))
 	for i, v := range firewallRules {
 		fwRule := v.(map[string]interface{})
-		fwRules[i] = analysisservices.IPv4FirewallRule{
+		fwRules[i] = servers.IPv4FirewallRule{
 			FirewallRuleName: utils.String(fwRule["name"].(string)),
 			RangeStart:       utils.String(fwRule["range_start"].(string)),
 			RangeEnd:         utils.String(fwRule["range_end"].(string)),
@@ -387,12 +387,12 @@ func expandAnalysisServicesServerFirewallSettings(d *pluginsdk.ResourceData) *an
 	return &firewallSettings
 }
 
-func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisservices.ServerProperties) (*bool, *pluginsdk.Set) {
-	if serverProperties == nil || serverProperties.IPV4FirewallSettings == nil {
+func flattenAnalysisServicesServerFirewallSettings(serverProperties *servers.AnalysisServicesServerProperties) (*bool, *pluginsdk.Set) {
+	if serverProperties == nil || serverProperties.IpV4FirewallSettings == nil {
 		return utils.Bool(false), pluginsdk.NewSet(hashAnalysisServicesServerIpv4FirewallRule, make([]interface{}, 0))
 	}
 
-	firewallSettings := serverProperties.IPV4FirewallSettings
+	firewallSettings := serverProperties.IpV4FirewallSettings
 
 	enablePowerBi := utils.Bool(false)
 	if firewallSettings.EnablePowerBIService != nil {

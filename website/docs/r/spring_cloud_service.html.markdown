@@ -158,6 +158,22 @@ The following attributes are exported:
 
 * `outbound_public_ip_addresses` - A list of the outbound Public IP Addresses used by this Spring Cloud Service.
 
+* `required_network_traffic_rules` - A list of `required_network_traffic_rules` blocks as defined below.
+
+---
+
+The `required_network_traffic_rules` supports the following:
+
+* `direction` - The direction of required traffic. Possible values are `Inbound`, `Outbound`.
+
+* `fqdns` - The FQDN list of required traffic.
+
+* `ips` - The ip list of required traffic.
+
+* `port` - The port of required traffic.
+
+* `protocol` - The protocol of required traffic.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

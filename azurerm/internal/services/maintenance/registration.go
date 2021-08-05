@@ -1,7 +1,7 @@
 package maintenance
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
@@ -16,16 +16,17 @@ func (r Registration) WebsiteCategories() []string {
 	}
 }
 
-func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_maintenance_configuration": dataSourceMaintenanceConfiguration(),
 	}
 }
 
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
-		"azurerm_maintenance_assignment_dedicated_host":  resourceArmMaintenanceAssignmentDedicatedHost(),
-		"azurerm_maintenance_assignment_virtual_machine": resourceArmMaintenanceAssignmentVirtualMachine(),
-		"azurerm_maintenance_configuration":              resourceArmMaintenanceConfiguration(),
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
+		"azurerm_maintenance_assignment_dedicated_host":            resourceArmMaintenanceAssignmentDedicatedHost(),
+		"azurerm_maintenance_assignment_virtual_machine":           resourceArmMaintenanceAssignmentVirtualMachine(),
+		"azurerm_maintenance_assignment_virtual_machine_scale_set": resourceArmMaintenanceAssignmentVirtualMachineScaleSet(),
+		"azurerm_maintenance_configuration":                        resourceArmMaintenanceConfiguration(),
 	}
 }

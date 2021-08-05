@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -36,7 +35,7 @@ var kubernetesDataSourceTests = map[string]func(t *testing.T){
 	"autoscalingNoAvailabilityZones":                   testAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones,
 	"autoscalingWithAvailabilityZones":                 testAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones,
 	"nodeLabels":                                       testAccDataSourceKubernetesCluster_nodeLabels,
-	"enableNodePublicIP":                               testAccDataSourceKubernetesCluster_enableNodePublicIP,
+	"nodePublicIP":                                     testAccDataSourceKubernetesCluster_nodePublicIP,
 	"privateCluster":                                   testAccDataSourceKubernetesCluster_privateCluster,
 }
 
@@ -49,10 +48,10 @@ func testAccDataSourceKubernetesCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
 				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
@@ -82,10 +81,10 @@ func TestAccDataSourceKubernetesCluster_privateCluster(t *testing.T) {
 func testAccDataSourceKubernetesCluster_privateCluster(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: KubernetesClusterResource{}.privateClusterConfig(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("private_fqdn").Exists(),
 				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
 			),
@@ -103,10 +102,10 @@ func testAccDataSourceKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.roleBasedAccessControlConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
 				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("0"),
@@ -129,10 +128,10 @@ func testAccDataSourceKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) 
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	tenantId := os.Getenv("ARM_TENANT_ID")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.roleBasedAccessControlAADConfig(data, clientId, clientSecret, tenantId),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
 				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("1"),
@@ -155,10 +154,10 @@ func testAccDataSourceKubernetesCluster_internalNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.internalNetworkConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
 			),
 		},
@@ -174,10 +173,10 @@ func testAccDataSourceKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.advancedNetworkingAzureConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
@@ -198,10 +197,10 @@ func testAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *t
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.advancedNetworkingAzureCalicoPolicyConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
@@ -224,10 +223,10 @@ func testAccDataSourceKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *test
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.advancedNetworkingAzureNPMPolicyConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("azure"),
@@ -250,10 +249,10 @@ func testAccDataSourceKubernetesCluster_advancedNetworkingAzureComplete(t *testi
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.advancedNetworkingAzureCompleteConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
@@ -274,10 +273,10 @@ func testAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicyCompl
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.advancedNetworkingAzureCalicoPolicyCompleteConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
@@ -300,10 +299,10 @@ func testAccDataSourceKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.advancedNetworkingAzureNPMPolicyCompleteConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("azure"),
@@ -326,10 +325,10 @@ func testAccDataSourceKubernetesCluster_advancedNetworkingKubenet(t *testing.T) 
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.advancedNetworkingKubenetConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
@@ -350,10 +349,10 @@ func testAccDataSourceKubernetesCluster_advancedNetworkingKubenetComplete(t *tes
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.advancedNetworkingKubenetCompleteConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
@@ -374,10 +373,10 @@ func testAccDataSourceKubernetesCluster_addOnProfileOMS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.addOnProfileOMSConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.oms_agent.0.enabled").HasValue("true"),
@@ -399,10 +398,10 @@ func testAccDataSourceKubernetesCluster_addOnProfileKubeDashboard(t *testing.T) 
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.addOnProfileKubeDashboardConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.kube_dashboard.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.kube_dashboard.0.enabled").HasValue("false"),
@@ -420,10 +419,10 @@ func testAccDataSourceKubernetesCluster_addOnProfileAzurePolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.addOnProfileAzurePolicyConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.azure_policy.0.enabled").HasValue("true"),
 			),
@@ -440,10 +439,10 @@ func testAccDataSourceKubernetesCluster_addOnProfileRouting(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.addOnProfileRoutingConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.http_application_routing.0.enabled").HasValue("true"),
@@ -462,10 +461,10 @@ func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewayApp
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.addOnProfileIngressApplicationGatewayAppGatewayConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("true"),
@@ -474,6 +473,9 @@ func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewayApp
 				),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_cidr").IsEmpty(),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.subnet_id").IsEmpty(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.ingress_application_gateway_identity.0.client_id").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.ingress_application_gateway_identity.0.object_id").Exists(),
+				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.ingress_application_gateway_identity.0.user_assigned_identity_id").Exists(),
 			),
 		},
 	})
@@ -488,10 +490,10 @@ func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySub
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.addOnProfileIngressApplicationGatewaySubnetCIDRConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("true"),
@@ -512,10 +514,10 @@ func testAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewaySub
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.addOnProfileIngressApplicationGatewaySubnetIdConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("addon_profile.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.#").HasValue("1"),
 				check.That(data.ResourceName).Key("addon_profile.0.ingress_application_gateway.0.enabled").HasValue("true"),
@@ -535,15 +537,15 @@ func testAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t *testin
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.autoScalingNoAvailabilityZonesConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.min_count").HasValue("1"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.max_count").HasValue("2"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.type").HasValue("VirtualMachineScaleSets"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.enable_auto_scaling").HasValue("true"),
-				resource.TestCheckNoResourceAttr(data.ResourceName, "agent_pool_profile.0.availability_zones"),
+				acceptance.TestCheckNoResourceAttr(data.ResourceName, "agent_pool_profile.0.availability_zones"),
 			),
 		},
 	})
@@ -558,10 +560,10 @@ func testAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones(t *test
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.autoScalingWithAvailabilityZonesConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.min_count").HasValue("1"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.max_count").HasValue("2"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.type").HasValue("VirtualMachineScaleSets"),
@@ -584,30 +586,31 @@ func testAccDataSourceKubernetesCluster_nodeLabels(t *testing.T) {
 	r := KubernetesClusterDataSource{}
 	labels := map[string]string{"key": "value"}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.nodeLabelsConfig(data, labels),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.node_labels.key").HasValue("value"),
 			),
 		},
 	})
 }
 
-func TestAccDataSourceKubernetesCluster_enableNodePublicIP(t *testing.T) {
+func TestAccDataSourceKubernetesCluster_nodePublicIP(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceKubernetesCluster_enableNodePublicIP(t)
+	testAccDataSourceKubernetesCluster_nodePublicIP(t)
 }
 
-func testAccDataSourceKubernetesCluster_enableNodePublicIP(t *testing.T) {
+func testAccDataSourceKubernetesCluster_nodePublicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.enableNodePublicIPConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Config: r.nodePublicIPConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.enable_node_public_ip").HasValue("true"),
+				check.That(data.ResourceName).Key("agent_pool_profile.0.node_public_ip_prefix_id").Exists(),
 			),
 		},
 	})
@@ -855,7 +858,7 @@ data "azurerm_kubernetes_cluster" "test" {
 `, KubernetesClusterResource{}.nodeLabelsConfig(data, labels))
 }
 
-func (KubernetesClusterDataSource) enableNodePublicIPConfig(data acceptance.TestData) string {
+func (KubernetesClusterDataSource) nodePublicIPConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -863,5 +866,5 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = azurerm_kubernetes_cluster.test.name
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, KubernetesClusterResource{}.enableNodePublicIPConfig(data, true))
+`, KubernetesClusterResource{}.nodePublicIPPrefixConfig(data))
 }

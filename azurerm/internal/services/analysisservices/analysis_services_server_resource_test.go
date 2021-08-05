@@ -7,17 +7,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/sdk/servers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type AnalysisServicesServerResource struct {
-}
+type AnalysisServicesServerResource struct{}
 
 func TestAccAnalysisServicesServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
@@ -195,7 +193,7 @@ func TestAccAzureRMAnalysisServicesServer_suspended(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.suspend),
-				data.CheckWithClient(r.checkState(analysisservices.StatePaused)),
+				data.CheckWithClient(r.checkState(servers.StatePaused)),
 			),
 		},
 		data.ImportStep(),
@@ -204,7 +202,7 @@ func TestAccAzureRMAnalysisServicesServer_suspended(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue("B2"),
-				data.CheckWithClient(r.checkState(analysisservices.StatePaused)),
+				data.CheckWithClient(r.checkState(servers.StatePaused)),
 			),
 		},
 		data.ImportStep(),
@@ -499,56 +497,55 @@ resource "azurerm_analysis_services_server" "test" {
 }
 
 func (t AnalysisServicesServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ServerID(state.ID)
+	id, err := servers.ParseServerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.AnalysisServices.ServerClient.GetDetails(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.AnalysisServices.ServerClient.GetDetails(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Analysis Services Server %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ServerProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (t AnalysisServicesServerResource) suspend(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	client := clients.AnalysisServices.ServerClient
 
-	id, err := parse.ServerID(state.ID)
+	id, err := servers.ParseServerID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	suspendFuture, err := client.Suspend(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("suspending Analysis Services Server %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	err = suspendFuture.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return fmt.Errorf("Wait for Suspend on Analysis Services Server %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+	if err := client.SuspendThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("suspending %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func (t AnalysisServicesServerResource) checkState(serverState analysisservices.State) acceptance.ClientCheckFunc {
+func (t AnalysisServicesServerResource) checkState(expectedState servers.State) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		client := clients.AnalysisServices.ServerClient
 
-		id, err := parse.ServerID(state.ID)
+		id, err := servers.ParseServerID(state.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
+		resp, err := client.GetDetails(ctx, *id)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on analysisServicesServerClient: %+v", err)
+			return fmt.Errorf("retrieving %s to check the state: %+v", *id, err)
 		}
 
-		if resp.State != serverState {
-			return fmt.Errorf("Unexpected state. Expected %s but is %s", serverState, resp.State)
+		actualState := ""
+		if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.State != nil {
+			actualState = string(*resp.Model.Properties.State)
+		}
+
+		if actualState != string(expectedState) {
+			return fmt.Errorf("Unexpected state. Expected %s but is %s", string(expectedState), actualState)
 		}
 
 		return nil

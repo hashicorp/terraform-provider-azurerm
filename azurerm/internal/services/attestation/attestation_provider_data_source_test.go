@@ -5,8 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -16,12 +14,12 @@ type AttestationProviderDataSource struct {
 
 func TestAccAttestationProviderDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_attestation_provider", "test")
-	randStr := strings.ToLower(acctest.RandString(10))
+	randStr := strings.ToLower(acceptance.RandString(10))
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: AttestationProviderDataSource{}.basic(data, randStr),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(AttestationProviderResource{}),
 			),
 		},

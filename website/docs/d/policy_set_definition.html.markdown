@@ -80,7 +80,7 @@ An `policy_definition_group` block exports the following:
 
 * `description` - The description of this policy definition group.
 
-* `additional_metadata_id` - The ID of a resource that contains additional metadata about this policy definition group.
+* `additional_metadata_resource_id` - The ID of a resource that contains additional metadata about this policy definition group.
 
 ## Timeouts
 

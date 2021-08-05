@@ -7,20 +7,19 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDataFactoryTriggerSchedule() *schema.Resource {
-	return &schema.Resource{
+func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDataFactoryTriggerScheduleCreateUpdate,
 		Read:   resourceDataFactoryTriggerScheduleRead,
 		Update: resourceDataFactoryTriggerScheduleCreateUpdate,
@@ -28,16 +27,16 @@ func resourceDataFactoryTriggerSchedule() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
@@ -48,7 +47,7 @@ func resourceDataFactoryTriggerSchedule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"data_factory_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryName(),
@@ -58,7 +57,7 @@ func resourceDataFactoryTriggerSchedule() *schema.Resource {
 			// An issue has been filed in the SDK for the timezone attribute that doesn't seem to work
 			// https://github.com/Azure/azure-sdk-for-go/issues/6244
 			"start_time": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
@@ -69,51 +68,51 @@ func resourceDataFactoryTriggerSchedule() *schema.Resource {
 			// An issue has been filed in the SDK for the timezone attribute that doesn't seem to work
 			// https://github.com/Azure/azure-sdk-for-go/issues/6244
 			"end_time": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
 				ValidateFunc:     validation.IsRFC3339Time, // times in the past just start immediately
 			},
 
 			"frequency": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(datafactory.Minute),
+				Default:  string(datafactory.RecurrenceFrequencyMinute),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(datafactory.Minute),
-					string(datafactory.Hour),
-					string(datafactory.Day),
-					string(datafactory.Week),
-					string(datafactory.Month),
+					string(datafactory.RecurrenceFrequencyMinute),
+					string(datafactory.RecurrenceFrequencyHour),
+					string(datafactory.RecurrenceFrequencyDay),
+					string(datafactory.RecurrenceFrequencyWeek),
+					string(datafactory.RecurrenceFrequencyMonth),
 				}, false),
 			},
 
 			"interval": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      1,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"pipeline_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
 			},
 
 			"pipeline_parameters": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"annotations": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
@@ -121,7 +120,7 @@ func resourceDataFactoryTriggerSchedule() *schema.Resource {
 	}
 }
 
-func resourceDataFactoryTriggerScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerScheduleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -206,7 +205,7 @@ func resourceDataFactoryTriggerScheduleCreateUpdate(d *schema.ResourceData, meta
 	return resourceDataFactoryTriggerScheduleRead(d, meta)
 }
 
-func resourceDataFactoryTriggerScheduleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -234,7 +233,7 @@ func resourceDataFactoryTriggerScheduleRead(d *schema.ResourceData, meta interfa
 
 	scheduleTriggerProps, ok := resp.Properties.AsScheduleTrigger()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Trigger Schedule %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", triggerName, dataFactoryName, id.ResourceGroup, datafactory.TypeScheduleTrigger, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Trigger Schedule %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", triggerName, dataFactoryName, id.ResourceGroup, datafactory.TypeBasicTriggerTypeScheduleTrigger, *resp.Type)
 	}
 
 	if scheduleTriggerProps != nil {
@@ -268,7 +267,7 @@ func resourceDataFactoryTriggerScheduleRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceDataFactoryTriggerScheduleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerScheduleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

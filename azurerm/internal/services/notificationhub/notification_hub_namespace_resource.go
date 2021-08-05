@@ -7,11 +7,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub/migration"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -19,14 +20,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var notificationHubNamespaceResourceName = "azurerm_notification_hub_namespace"
 
-func resourceNotificationHubNamespace() *schema.Resource {
-	return &schema.Resource{
+func resourceNotificationHubNamespace() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceNotificationHubNamespaceCreateUpdate,
 		Read:   resourceNotificationHubNamespaceRead,
 		Update: resourceNotificationHubNamespaceCreateUpdate,
@@ -36,16 +38,21 @@ func resourceNotificationHubNamespace() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.NotificationHubNamespaceResourceV0ToV1{},
+		}),
+
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -55,7 +62,7 @@ func resourceNotificationHubNamespace() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(notificationhubs.Basic),
@@ -65,13 +72,13 @@ func resourceNotificationHubNamespace() *schema.Resource {
 			},
 
 			"enabled": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
 			"namespace_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(notificationhubs.Messaging),
@@ -83,88 +90,74 @@ func resourceNotificationHubNamespace() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"servicebus_endpoint": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNotificationHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NotificationHubs.NamespacesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	sku := notificationhubs.Sku{
-		Name: notificationhubs.SkuName(d.Get("sku_name").(string)),
-	}
-
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	namespaceType := d.Get("namespace_type").(string)
-	enabled := d.Get("enabled").(bool)
-
+	id := parse.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Notification Hub Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_notification_hub_namespace", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_notification_hub_namespace", id.ID())
 		}
 	}
 
+	location := location.Normalize(d.Get("location").(string))
 	parameters := notificationhubs.NamespaceCreateOrUpdateParameters{
 		Location: utils.String(location),
-		Sku:      &sku,
+		Sku: &notificationhubs.Sku{
+			Name: notificationhubs.SkuName(d.Get("sku_name").(string)),
+		},
 		NamespaceProperties: &notificationhubs.NamespaceProperties{
 			Region:        utils.String(location),
-			NamespaceType: notificationhubs.NamespaceType(namespaceType),
-			Enabled:       utils.Bool(enabled),
+			NamespaceType: notificationhubs.NamespaceType(d.Get("namespace_type").(string)),
+			Enabled:       utils.Bool(d.Get("enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("Error creating/updating Notification Hub Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for Notification Hub Namespace %q (Resource Group %q) to be created", name, resourceGroup)
-	stateConf := &resource.StateChangeConf{
+	log.Printf("[DEBUG] Waiting for %s to be created..", id)
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
-		Refresh:                   notificationHubNamespaceStateRefreshFunc(ctx, client, resourceGroup, name),
+		Refresh:                   notificationHubNamespaceStateRefreshFunc(ctx, client, id),
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
 
 	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 	} else {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Notification Hub %q (Resource Group %q) to finish replicating: %s", name, resourceGroup, err)
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %ss to finish replicating: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Notification Hub Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Notification Hub Namespace %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceNotificationHubNamespaceRead(d, meta)
 }
 
-func resourceNotificationHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NotificationHubs.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -177,27 +170,23 @@ func resourceNotificationHubNamespaceRead(d *schema.ResourceData, meta interface
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Notification Hub Namespace %q (Resource Group %q) was not found - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Notification Hub Namespace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if sku := resp.Sku; sku != nil {
-		if err := d.Set("sku_name", string(sku.Name)); err != nil {
-			return fmt.Errorf("Error setting 'sku_name': %+v", err)
-		}
-	} else {
-		return fmt.Errorf("Error making Read request on Notification Hub Namespace %q (Resource Group %q): Unable to retrieve 'sku' value", id.Name, id.ResourceGroup)
+	skuName := ""
+	if resp.Sku != nil {
+		skuName = string(resp.Sku.Name)
 	}
+	d.Set("sku_name", skuName)
 
 	if props := resp.NamespaceProperties; props != nil {
 		d.Set("enabled", props.Enabled)
@@ -208,7 +197,7 @@ func resourceNotificationHubNamespaceRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceNotificationHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNotificationHubNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NotificationHubs.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -228,49 +217,48 @@ func resourceNotificationHubNamespaceDelete(d *schema.ResourceData, meta interfa
 	// the future returned from the Delete method is broken 50% of the time - let's poll ourselves for now
 	// Related Bug: https://github.com/Azure/azure-sdk-for-go/issues/2254
 	log.Printf("[DEBUG] Waiting for Notification Hub Namespace %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{"200", "202"},
 		Target:  []string{"404"},
-		Refresh: notificationHubNamespaceDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
-		Timeout: d.Timeout(schema.TimeoutDelete),
+		Refresh: notificationHubNamespaceDeleteStateRefreshFunc(ctx, client, *id),
+		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("Error waiting for Notification Hub %q (Resource Group %q) to be deleted: %s", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client *notificationhubs.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client *notificationhubs.NamespacesClient, id parse.NamespaceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroupName, name)
+		res, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if utils.ResponseWasNotFound(res.Response) {
 				return nil, "404", nil
 			}
 
-			return nil, "", fmt.Errorf("Error retrieving Notification Hub Namespace %q (Resource Group %q): %s", name, resourceGroupName, err)
+			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil
 	}
 }
 
-func notificationHubNamespaceDeleteStateRefreshFunc(ctx context.Context, client *notificationhubs.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+func notificationHubNamespaceDeleteStateRefreshFunc(ctx context.Context, client *notificationhubs.NamespacesClient, id parse.NamespaceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroupName, name)
+		res, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(res.Response) {
-				return nil, "", fmt.Errorf("Error retrieving Notification Hub Namespace %q (Resource Group %q): %s", name, resourceGroupName, err)
+				return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 		}
 
 		// Note: this exists as the Delete API only seems to work some of the time
 		// in this case we're going to try triggering the Deletion again, in-case it didn't work prior to this attepmpt
 		// Upstream Bug: https://github.com/Azure/azure-sdk-for-go/issues/2254
-
-		if _, err := client.Delete(ctx, resourceGroupName, name); err != nil {
-			log.Printf("Error reissuing Notification Hub Namespace %q delete request (Resource Group %q): %+v", name, resourceGroupName, err)
+		if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+			log.Printf("re-issuing deletion request for %s: %+v", id, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil

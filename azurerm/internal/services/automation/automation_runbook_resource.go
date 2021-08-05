@@ -9,8 +9,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/gofrs/uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -19,12 +17,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceAutomationRunbook() *schema.Resource {
-	return &schema.Resource{
+func resourceAutomationRunbook() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAutomationRunbookCreateUpdate,
 		Read:   resourceAutomationRunbookRead,
 		Update: resourceAutomationRunbookCreateUpdate,
@@ -33,23 +32,23 @@ func resourceAutomationRunbook() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.RunbookName(),
 			},
 
 			"automation_account_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AutomationAccount(),
@@ -60,7 +59,7 @@ func resourceAutomationRunbook() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"runbook_type": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -75,22 +74,22 @@ func resourceAutomationRunbook() *schema.Resource {
 			},
 
 			"log_progress": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Required: true,
 			},
 
 			"log_verbose": {
-				Type:     schema.TypeBool,
+				Type:     pluginsdk.TypeBool,
 				Required: true,
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"content": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				AtLeastOneOf: []string{"content", "publish_content_link"},
@@ -100,34 +99,34 @@ func resourceAutomationRunbook() *schema.Resource {
 			"job_schedule": helper.JobScheduleSchema(),
 
 			"publish_content_link": {
-				Type:         schema.TypeList,
+				Type:         pluginsdk.TypeList,
 				Optional:     true,
 				MaxItems:     1,
 				AtLeastOneOf: []string{"content", "publish_content_link"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"uri": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
 
 						"version": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"hash": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"algorithm": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 									"value": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 								},
@@ -142,7 +141,7 @@ func resourceAutomationRunbook() *schema.Resource {
 	}
 }
 
-func resourceAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.RunbookClient
 	jsClient := meta.(*clients.Client).Automation.JobScheduleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -244,7 +243,7 @@ func resourceAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("job_schedule"); ok {
-		jsMap, err := helper.ExpandAutomationJobSchedule(v.(*schema.Set).List(), name)
+		jsMap, err := helper.ExpandAutomationJobSchedule(v.(*pluginsdk.Set).List(), name)
 		if err != nil {
 			return err
 		}
@@ -258,7 +257,7 @@ func resourceAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interfac
 	return resourceAutomationRunbookRead(d, meta)
 }
 
-func resourceAutomationRunbookRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.RunbookClient
 	jsClient := meta.(*clients.Client).Automation.JobScheduleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -347,7 +346,7 @@ func resourceAutomationRunbookRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceAutomationRunbookDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationRunbookDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.RunbookClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

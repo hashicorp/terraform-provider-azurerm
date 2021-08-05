@@ -6,12 +6,11 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccDnsPtrRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ptr_record", "test")
 	r := DnsPtrRecordResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 			),
@@ -38,10 +37,10 @@ func TestAccDnsPtrRecord_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ptr_record", "test")
 	r := DnsPtrRecordResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -56,10 +55,10 @@ func TestAccDnsPtrRecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ptr_record", "test")
 	r := DnsPtrRecordResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("records.#").HasValue("2"),
 			),
@@ -67,7 +66,7 @@ func TestAccDnsPtrRecord_updateRecords(t *testing.T) {
 
 		{
 			Config: r.updateRecords(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("records.#").HasValue("3"),
 			),
@@ -79,10 +78,10 @@ func TestAccDnsPtrRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ptr_record", "test")
 	r := DnsPtrRecordResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 			),
@@ -90,7 +89,7 @@ func TestAccDnsPtrRecord_withTags(t *testing.T) {
 
 		{
 			Config: r.withTagsUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
@@ -99,7 +98,7 @@ func TestAccDnsPtrRecord_withTags(t *testing.T) {
 	})
 }
 
-func (DnsPtrRecordResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (DnsPtrRecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PtrRecordID(state.ID)
 	if err != nil {
 		return nil, err

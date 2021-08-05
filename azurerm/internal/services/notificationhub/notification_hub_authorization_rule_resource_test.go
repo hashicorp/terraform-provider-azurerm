@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,10 +19,10 @@ type NotificationHubAuthorizationRuleResource struct {
 func TestAccNotificationHubAuthorizationRule_listen(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_authorization_rule", "test")
 	r := NotificationHubAuthorizationRuleResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.listen(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("manage").HasValue("false"),
 				check.That(data.ResourceName).Key("send").HasValue("false"),
@@ -39,10 +38,10 @@ func TestAccNotificationHubAuthorizationRule_listen(t *testing.T) {
 func TestAccNotificationHubAuthorizationRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_authorization_rule", "test")
 	r := NotificationHubAuthorizationRuleResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.listen(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("manage").HasValue("false"),
 				check.That(data.ResourceName).Key("send").HasValue("false"),
@@ -58,10 +57,10 @@ func TestAccNotificationHubAuthorizationRule_requiresImport(t *testing.T) {
 func TestAccNotificationHubAuthorizationRule_manage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_authorization_rule", "test")
 	r := NotificationHubAuthorizationRuleResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.manage(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("manage").HasValue("true"),
 				check.That(data.ResourceName).Key("send").HasValue("true"),
@@ -77,10 +76,10 @@ func TestAccNotificationHubAuthorizationRule_manage(t *testing.T) {
 func TestAccNotificationHubAuthorizationRule_send(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_authorization_rule", "test")
 	r := NotificationHubAuthorizationRuleResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.send(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("manage").HasValue("false"),
 				check.That(data.ResourceName).Key("send").HasValue("true"),
@@ -99,10 +98,10 @@ func TestAccNotificationHubAuthorizationRule_multi(t *testing.T) {
 	resourceTwoName := "azurerm_notification_hub_authorization_rule.test2"
 	resourceThreeName := "azurerm_notification_hub_authorization_rule.test3"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multi(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("manage").HasValue("false"),
 				check.That(data.ResourceName).Key("send").HasValue("true"),
@@ -132,10 +131,10 @@ func TestAccNotificationHubAuthorizationRule_multi(t *testing.T) {
 func TestAccNotificationHubAuthorizationRule_updated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_authorization_rule", "test")
 	r := NotificationHubAuthorizationRuleResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.listen(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("manage").HasValue("false"),
 				check.That(data.ResourceName).Key("send").HasValue("false"),
@@ -146,7 +145,7 @@ func TestAccNotificationHubAuthorizationRule_updated(t *testing.T) {
 		},
 		{
 			Config: r.manage(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("manage").HasValue("true"),
 				check.That(data.ResourceName).Key("send").HasValue("true"),
@@ -158,7 +157,7 @@ func TestAccNotificationHubAuthorizationRule_updated(t *testing.T) {
 	})
 }
 
-func (NotificationHubAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (NotificationHubAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.NotificationHubAuthorizationRuleID(state.ID)
 	if err != nil {
 		return nil, err

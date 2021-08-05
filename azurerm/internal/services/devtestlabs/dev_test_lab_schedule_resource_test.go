@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
 	r := DevTestLabScheduleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.autoShutdownBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("status").HasValue("Disabled"),
 				check.That(data.ResourceName).Key("notification_settings.#").HasValue("1"),
@@ -36,7 +35,7 @@ func TestAccDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.autoShutdownBasicUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("status").HasValue("Enabled"),
 				check.That(data.ResourceName).Key("notification_settings.#").HasValue("1"),
@@ -54,10 +53,10 @@ func TestAccDevTestLabSchedule_autoStartupBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
 	r := DevTestLabScheduleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.autoStartupBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("status").HasValue("Disabled"),
 				check.That(data.ResourceName).Key("weekly_recurrence.#").HasValue("1"),
@@ -69,7 +68,7 @@ func TestAccDevTestLabSchedule_autoStartupBasic(t *testing.T) {
 		data.ImportStep("task_type"),
 		{
 			Config: r.autoStartupBasicUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("status").HasValue("Enabled"),
 				check.That(data.ResourceName).Key("weekly_recurrence.#").HasValue("1"),
@@ -86,10 +85,10 @@ func TestAccDevTestLabSchedule_concurrent(t *testing.T) {
 	r := DevTestLabScheduleResource{}
 	secondResourceName := "azurerm_dev_test_schedule.test2"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.concurrent(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(secondResourceName).ExistsInAzure(r),
 			),
@@ -97,7 +96,7 @@ func TestAccDevTestLabSchedule_concurrent(t *testing.T) {
 	})
 }
 
-func (DevTestLabScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (DevTestLabScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

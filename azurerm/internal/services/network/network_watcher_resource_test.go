@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,6 +20,11 @@ func TestAccNetworkWatcher(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being happy about provisioning one per region at once
 	// (which our test suite can't easily workaround)
+
+	// NOTE: Normally these tests can be separated to its own test cases, rather than this big composite one, since
+	// we are not calling the `t.Parallel()` for each sub-test. However, currently nightly test are using the jen20/teamcity-go-test
+	// which will invoke a `go test` for each test function, which effectively making them to be in parallel, even if they are intended
+	// to be run in sequential.
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
 			"basic":          testAccNetworkWatcher_basic,
@@ -53,6 +57,8 @@ func TestAccNetworkWatcher(t *testing.T) {
 			"httpConfiguration":              testAccNetworkConnectionMonitor_httpConfiguration,
 			"icmpConfiguration":              testAccNetworkConnectionMonitor_icmpConfiguration,
 			"bothAddressAndVirtualMachineId": testAccNetworkConnectionMonitor_withAddressAndVirtualMachineId,
+			"endpointType":                   testAccNetworkConnectionMonitor_endpointDeprecated,
+			"updateEndpoint":                 testAccNetworkConnectionMonitor_updateEndpointIPAddressAndCoverageLevel,
 		},
 		"PacketCapture": {
 			"localDisk":                  testAccNetworkPacketCapture_localDisk,
@@ -68,7 +74,10 @@ func TestAccNetworkWatcher(t *testing.T) {
 			"retentionPolicy":      testAccNetworkWatcherFlowLog_retentionPolicy,
 			"updateStorageAccount": testAccNetworkWatcherFlowLog_updateStorageAccount,
 			"trafficAnalytics":     testAccNetworkWatcherFlowLog_trafficAnalytics,
+			"long_name":            testAccNetworkWatcherFlowLog_longName,
 			"version":              testAccNetworkWatcherFlowLog_version,
+			"location":             testAccNetworkWatcherFlowLog_location,
+			"tags":                 testAccNetworkWatcherFlowLog_tags,
 		},
 	}
 
@@ -89,10 +98,10 @@ func testAccNetworkWatcher_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -103,10 +112,10 @@ func testAccNetworkWatcher_basic(t *testing.T) {
 func testAccNetworkWatcher_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -120,10 +129,10 @@ func testAccNetworkWatcher_requiresImport(t *testing.T) {
 func testAccNetworkWatcher_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -135,16 +144,16 @@ func testAccNetworkWatcher_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.completeConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -155,7 +164,7 @@ func testAccNetworkWatcher_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basicConfig,
 			TestResource: r,
@@ -163,7 +172,7 @@ func testAccNetworkWatcher_disappears(t *testing.T) {
 	})
 }
 
-func (t NetworkWatcherResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t NetworkWatcherResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.NetworkWatcherID(state.ID)
 	if err != nil {
 		return nil, err
@@ -177,7 +186,7 @@ func (t NetworkWatcherResource) Exists(ctx context.Context, clients *clients.Cli
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (NetworkWatcherResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (NetworkWatcherResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.NetworkWatcherID(state.ID)
 	if err != nil {
 		return nil, err

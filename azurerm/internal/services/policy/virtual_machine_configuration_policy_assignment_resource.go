@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/guestconfiguration/mgmt/2020-06-25/guestconfiguration"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,33 +13,36 @@ import (
 	computeParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceVirtualMachineConfigurationPolicyAssignment() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate,
-		Read:   resourceVirtualMachineConfigurationPolicyAssignmentRead,
-		Update: resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate,
-		Delete: resourceVirtualMachineConfigurationPolicyAssignmentDelete,
+// TODO: Remove in 3.0
+func resourceVirtualMachineConfigurationPolicyAssignment() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		DeprecationMessage: "`azurerm_virtual_machine_configuration_policy_assignment` resource is deprecated in favor of `azurerm_policy_virtual_machine_configuration_assignment` and will be removed in v3.0 of the AzureRM Provider",
+		Create:             resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate,
+		Read:               resourceVirtualMachineConfigurationPolicyAssignmentRead,
+		Update:             resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate,
+		Delete:             resourceVirtualMachineConfigurationPolicyAssignmentDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.VirtualMachineConfigurationPolicyAssignmentID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -49,37 +50,37 @@ func resourceVirtualMachineConfigurationPolicyAssignment() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"virtual_machine_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: computeValidate.VirtualMachineID,
 			},
 
 			"configuration": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"parameter": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"value": {
-										Type:     schema.TypeString,
+										Type:     pluginsdk.TypeString,
 										Required: true,
 									},
 								},
@@ -87,7 +88,7 @@ func resourceVirtualMachineConfigurationPolicyAssignment() *schema.Resource {
 						},
 
 						"version": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 					},
@@ -97,7 +98,7 @@ func resourceVirtualMachineConfigurationPolicyAssignment() *schema.Resource {
 	}
 }
 
-func resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -126,7 +127,7 @@ func resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate(d *schema.R
 		Name:     utils.String(d.Get("name").(string)),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &guestconfiguration.AssignmentProperties{
-			GuestConfiguration: expandGuestConfigurationAssignment(d.Get("configuration").([]interface{})),
+			GuestConfiguration: expandGuestConfigAssignment(d.Get("configuration").([]interface{})),
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, id.GuestConfigurationAssignmentName, parameter, id.ResourceGroup, id.VirtualMachineName); err != nil {
@@ -138,7 +139,7 @@ func resourceVirtualMachineConfigurationPolicyAssignmentCreateUpdate(d *schema.R
 	return resourceVirtualMachineConfigurationPolicyAssignmentRead(d, meta)
 }
 
-func resourceVirtualMachineConfigurationPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineConfigurationPolicyAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -165,14 +166,14 @@ func resourceVirtualMachineConfigurationPolicyAssignmentRead(d *schema.ResourceD
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
-		if err := d.Set("configuration", flattenGuestConfigurationAssignment(props.GuestConfiguration)); err != nil {
+		if err := d.Set("configuration", flattenGuestConfigAssignment(props.GuestConfiguration)); err != nil {
 			return fmt.Errorf("setting `configuration`: %+v", err)
 		}
 	}
 	return nil
 }
 
-func resourceVirtualMachineConfigurationPolicyAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualMachineConfigurationPolicyAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,7 +190,7 @@ func resourceVirtualMachineConfigurationPolicyAssignmentDelete(d *schema.Resourc
 	return nil
 }
 
-func expandGuestConfigurationAssignment(input []interface{}) *guestconfiguration.Navigation {
+func expandGuestConfigAssignment(input []interface{}) *guestconfiguration.Navigation {
 	if len(input) == 0 {
 		return nil
 	}
@@ -197,11 +198,11 @@ func expandGuestConfigurationAssignment(input []interface{}) *guestconfiguration
 	return &guestconfiguration.Navigation{
 		Name:                   utils.String(v["name"].(string)),
 		Version:                utils.String(v["version"].(string)),
-		ConfigurationParameter: expandGuestConfigurationAssignmentConfigurationParameters(v["parameter"].(*schema.Set).List()),
+		ConfigurationParameter: expandGuestConfigAssignmentConfigurationParameters(v["parameter"].(*pluginsdk.Set).List()),
 	}
 }
 
-func expandGuestConfigurationAssignmentConfigurationParameters(input []interface{}) *[]guestconfiguration.ConfigurationParameter {
+func expandGuestConfigAssignmentConfigurationParameters(input []interface{}) *[]guestconfiguration.ConfigurationParameter {
 	results := make([]guestconfiguration.ConfigurationParameter, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
@@ -213,7 +214,7 @@ func expandGuestConfigurationAssignmentConfigurationParameters(input []interface
 	return &results
 }
 
-func flattenGuestConfigurationAssignment(input *guestconfiguration.Navigation) []interface{} {
+func flattenGuestConfigAssignment(input *guestconfiguration.Navigation) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -229,13 +230,13 @@ func flattenGuestConfigurationAssignment(input *guestconfiguration.Navigation) [
 	return []interface{}{
 		map[string]interface{}{
 			"name":      name,
-			"parameter": flattenGuestConfigurationAssignmentConfigurationParameters(input.ConfigurationParameter),
+			"parameter": flattenGuestConfigAssignmentConfigurationParameters(input.ConfigurationParameter),
 			"version":   version,
 		},
 	}
 }
 
-func flattenGuestConfigurationAssignmentConfigurationParameters(input *[]guestconfiguration.ConfigurationParameter) []interface{} {
+func flattenGuestConfigAssignmentConfigurationParameters(input *[]guestconfiguration.ConfigurationParameter) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

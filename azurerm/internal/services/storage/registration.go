@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
@@ -19,8 +19,8 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_storage_account_blob_container_sas": dataSourceStorageAccountBlobContainerSharedAccessSignature(),
 		"azurerm_storage_account_sas":                dataSourceStorageAccountSharedAccessSignature(),
 		"azurerm_storage_account":                    dataSourceStorageAccount(),
@@ -28,6 +28,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_storage_container":                  dataSourceStorageContainer(),
 		"azurerm_storage_encryption_scope":           dataSourceStorageEncryptionScope(),
 		"azurerm_storage_management_policy":          dataSourceStorageManagementPolicy(),
+		"azurerm_storage_share":                      dataSourceStorageShare(),
 		"azurerm_storage_sync":                       dataSourceStorageSync(),
 		"azurerm_storage_sync_group":                 dataSourceStorageSyncGroup(),
 		"azurerm_storage_table_entity":               dataSourceStorageTableEntity(),
@@ -35,8 +36,8 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
 		"azurerm_storage_account":                      resourceStorageAccount(),
 		"azurerm_storage_account_customer_managed_key": resourceStorageAccountCustomerManagedKey(),
 		"azurerm_storage_account_network_rules":        resourceStorageAccountNetworkRules(),
@@ -47,6 +48,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_storage_data_lake_gen2_filesystem":    resourceStorageDataLakeGen2FileSystem(),
 		"azurerm_storage_data_lake_gen2_path":          resourceStorageDataLakeGen2Path(),
 		"azurerm_storage_management_policy":            resourceStorageManagementPolicy(),
+		"azurerm_storage_object_replication":           resourceStorageObjectReplication(),
 		"azurerm_storage_queue":                        resourceStorageQueue(),
 		"azurerm_storage_share":                        resourceStorageShare(),
 		"azurerm_storage_share_file":                   resourceStorageShareFile(),

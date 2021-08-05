@@ -7,25 +7,25 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func SSHKeysSchema(isVirtualMachine bool) *schema.Schema {
+func SSHKeysSchema(isVirtualMachine bool) *pluginsdk.Schema {
 	// the SSH Keys for a Virtual Machine cannot be changed once provisioned:
 	// Code="PropertyChangeNotAllowed" Message="Changing property 'linuxConfiguration.ssh.publicKeys' is not allowed."
 
-	return &schema.Schema{
-		Type:     schema.TypeSet,
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		ForceNew: isVirtualMachine,
 		Set:      SSHKeySchemaHash,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"public_key": {
-					Type:             schema.TypeString,
+					Type:             pluginsdk.TypeString,
 					Required:         true,
 					ForceNew:         isVirtualMachine,
 					ValidateFunc:     validate.SSHKey,
@@ -33,7 +33,7 @@ func SSHKeysSchema(isVirtualMachine bool) *schema.Schema {
 				},
 
 				"username": {
-					Type:         schema.TypeString,
+					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     isVirtualMachine,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -114,20 +114,20 @@ func parseUsernameFromAuthorizedKeysPath(input string) *string {
 	return nil
 }
 
-func SSHKeyDiffSuppress(_, old, new string, _ *schema.ResourceData) bool {
-	oldNormalised, err := NormaliseSSHKey(old)
+func SSHKeyDiffSuppress(_, old, new string, _ *pluginsdk.ResourceData) bool {
+	oldNormalized, err := utils.NormalizeSSHKey(old)
 	if err != nil {
 		log.Printf("[DEBUG] error normalising ssh key %q: %+v", old, err)
 		return false
 	}
 
-	newNormalised, err := NormaliseSSHKey(new)
+	newNormalized, err := utils.NormalizeSSHKey(new)
 	if err != nil {
 		log.Printf("[DEBUG] error normalising ssh key %q: %+v", new, err)
 		return false
 	}
 
-	if *oldNormalised == *newNormalised {
+	if *oldNormalized == *newNormalized {
 		return true
 	}
 
@@ -138,7 +138,7 @@ func SSHKeySchemaHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		normalisedKey, err := NormaliseSSHKey(m["public_key"].(string))
+		normalisedKey, err := utils.NormalizeSSHKey(m["public_key"].(string))
 		if err != nil {
 			log.Printf("[DEBUG] error normalising ssh key %q: %+v", m["public_key"].(string), err)
 		}
@@ -146,5 +146,5 @@ func SSHKeySchemaHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s", m["username"]))
 	}
 
-	return schema.HashString(buf.String())
+	return pluginsdk.HashString(buf.String())
 }

@@ -6,11 +6,10 @@ import (
 	"log"
 	"time"
 
-	relayMngt "github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/sdk/namespaces"
+
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -20,12 +19,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceAppServiceHybridConnection() *schema.Resource {
-	return &schema.Resource{
+func resourceAppServiceHybridConnection() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceAppServiceHybridConnectionCreateUpdate,
 		Read:   resourceAppServiceHybridConnectionRead,
 		Update: resourceAppServiceHybridConnectionCreateUpdate,
@@ -36,16 +36,16 @@ func resourceAppServiceHybridConnection() *schema.Resource {
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"app_service_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AppServiceName,
@@ -54,53 +54,53 @@ func resourceAppServiceHybridConnection() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"relay_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: relayValidate.HybridConnectionID,
 			},
 
 			"hostname": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"port": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: azValidate.PortNumberOrZero,
 			},
 
 			"send_key_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "RootManageSharedAccessKey",
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"namespace_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"relay_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"service_bus_namespace": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"service_bus_suffix": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"send_key_value": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Sensitive: true,
 				Computed:  true,
 			},
@@ -108,7 +108,7 @@ func resourceAppServiceHybridConnection() *schema.Resource {
 	}
 }
 
-func resourceAppServiceHybridConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,7 +161,7 @@ func resourceAppServiceHybridConnectionCreateUpdate(d *schema.ResourceData, meta
 	return resourceAppServiceHybridConnectionRead(d, meta)
 }
 
-func resourceAppServiceHybridConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceHybridConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,23 +196,26 @@ func resourceAppServiceHybridConnectionRead(d *schema.ResourceData, meta interfa
 
 	// key values are not returned in the response, so we get the primary key from the relay namespace ListKeys func
 	if resp.ServiceBusNamespace != nil && resp.SendKeyName != nil {
-		relayNSClient := meta.(*clients.Client).Relay.NamespacesClient
-		relayNamespaceRG, err := findRelayNamespace(relayNSClient, ctx, *resp.ServiceBusNamespace)
+		relayNamespacesClient := meta.(*clients.Client).Relay.NamespacesClient
+		relayNamespaceRG, err := findRelayNamespace(ctx, relayNamespacesClient, id.SubscriptionId, *resp.ServiceBusNamespace)
 		if err != nil {
 			return err
 		}
-		accessKeys, err := relayNSClient.ListKeys(ctx, relayNamespaceRG, *resp.ServiceBusNamespace, *resp.SendKeyName)
+		authRuleId := namespaces.NewAuthorizationRuleID(id.SubscriptionId, *relayNamespaceRG, *resp.ServiceBusNamespace, *resp.SendKeyName)
+		accessKeys, err := relayNamespacesClient.ListKeys(ctx, authRuleId)
 		if err != nil {
 			return fmt.Errorf("unable to List Access Keys for Namespace %q (Resource Group %q): %+v", *resp.ServiceBusNamespace, id.ResourceGroup, err)
-		} else {
-			d.Set("send_key_value", accessKeys.PrimaryKey)
+		}
+
+		if model := accessKeys.Model; model != nil {
+			d.Set("send_key_value", model.PrimaryKey)
 		}
 	}
 
 	return nil
 }
 
-func resourceAppServiceHybridConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceHybridConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -232,31 +235,28 @@ func resourceAppServiceHybridConnectionDelete(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func findRelayNamespace(client *relayMngt.NamespacesClient, ctx context.Context, name string) (string, error) {
-	relayNSIterator, err := client.ListComplete(ctx)
+func findRelayNamespace(ctx context.Context, client *namespaces.NamespacesClient, subscriptionId, name string) (*string, error) {
+	subId := namespaces.NewSubscriptionID(subscriptionId)
+	relayNSIterator, err := client.ListComplete(ctx, subId)
 	if err != nil {
-		return "", fmt.Errorf("listing Relay Namespaces: %+v", err)
+		return nil, fmt.Errorf("listing Relay Namespaces: %+v", err)
 	}
 
-	var found *relayMngt.Namespace
-	for relayNSIterator.NotDone() {
-		namespace := relayNSIterator.Value()
-		if namespace.Name != nil && *namespace.Name == name {
-			found = &namespace
+	var found *namespaces.RelayNamespace
+	for _, item := range relayNSIterator.Items {
+		if item.Name != nil && *item.Name == name {
+			found = &item
 			break
 		}
-		if err := relayNSIterator.NextWithContext(ctx); err != nil {
-			return "", fmt.Errorf("listing Relay Namespaces: %+v", err)
-		}
 	}
 
-	if found == nil || found.ID == nil {
-		return "", fmt.Errorf("could not find Relay Namespace with name: %q", name)
+	if found == nil || found.Id == nil {
+		return nil, fmt.Errorf("could not find Relay Namespace with name: %q", name)
 	}
 
-	id, err := relayParse.NamespaceID(*found.ID)
+	id, err := namespaces.ParseNamespaceID(*found.Id)
 	if err != nil {
-		return "", fmt.Errorf("relay Namespace id not valid: %+v", err)
+		return nil, fmt.Errorf("relay Namespace id not valid: %+v", err)
 	}
-	return id.ResourceGroup, nil
+	return &id.ResourceGroup, nil
 }

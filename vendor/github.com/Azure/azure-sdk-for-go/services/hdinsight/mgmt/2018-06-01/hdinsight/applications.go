@@ -270,6 +270,86 @@ func (client ApplicationsClient) GetResponder(resp *http.Response) (result Appli
 	return
 }
 
+// GetAzureAsyncOperationStatus gets the async operation status.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
+// applicationName - the constant value for the application name.
+// operationID - the long running operation id.
+func (client ApplicationsClient) GetAzureAsyncOperationStatus(ctx context.Context, resourceGroupName string, clusterName string, applicationName string, operationID string) (result AsyncOperationResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationsClient.GetAzureAsyncOperationStatus")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetAzureAsyncOperationStatusPreparer(ctx, resourceGroupName, clusterName, applicationName, operationID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ApplicationsClient", "GetAzureAsyncOperationStatus", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetAzureAsyncOperationStatusSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "hdinsight.ApplicationsClient", "GetAzureAsyncOperationStatus", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetAzureAsyncOperationStatusResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ApplicationsClient", "GetAzureAsyncOperationStatus", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetAzureAsyncOperationStatusPreparer prepares the GetAzureAsyncOperationStatus request.
+func (client ApplicationsClient) GetAzureAsyncOperationStatusPreparer(ctx context.Context, resourceGroupName string, clusterName string, applicationName string, operationID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"applicationName":   autorest.Encode("path", applicationName),
+		"clusterName":       autorest.Encode("path", clusterName),
+		"operationId":       autorest.Encode("path", operationID),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HDInsight/clusters/{clusterName}/applications/{applicationName}/azureasyncoperations/{operationId}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetAzureAsyncOperationStatusSender sends the GetAzureAsyncOperationStatus request. The method will close the
+// http.Response Body if it receives an error.
+func (client ApplicationsClient) GetAzureAsyncOperationStatusSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetAzureAsyncOperationStatusResponder handles the response to the GetAzureAsyncOperationStatus request. The method always
+// closes the http.Response Body.
+func (client ApplicationsClient) GetAzureAsyncOperationStatusResponder(resp *http.Response) (result AsyncOperationResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // ListByCluster lists all of the applications for the HDInsight cluster.
 // Parameters:
 // resourceGroupName - the name of the resource group.

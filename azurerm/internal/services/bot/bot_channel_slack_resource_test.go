@@ -6,13 +6,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,10 +25,10 @@ func testAccBotChannelSlack_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
 	r := BotChannelSlackResource{}
 
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -44,17 +43,17 @@ func testAccBotChannelSlack_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
 	r := BotChannelSlackResource{}
 
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("client_secret", "verification_token", "landing_page_url"),
 		{
 			Config: r.basicUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -62,7 +61,7 @@ func testAccBotChannelSlack_update(t *testing.T) {
 	})
 }
 
-func (t BotChannelSlackResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t BotChannelSlackResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.BotChannelID(state.ID)
 	if err != nil {
 		return nil, err

@@ -1,4 +1,5 @@
 API Management
+Active Directory Domain Services
 Advisor
 Analysis Services
 App Configuration
@@ -17,6 +18,7 @@ CDN
 Cognitive Services
 Communication
 Compute
+Consumption
 Container
 CosmosDB (DocumentDB)
 Cost Management
@@ -26,6 +28,7 @@ Data Explorer
 Data Factory
 Data Lake
 Data Share
+DataProtection
 Database
 Database Migration
 Databox Edge

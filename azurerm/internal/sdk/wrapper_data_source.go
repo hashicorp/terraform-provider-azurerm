@@ -1,11 +1,11 @@
 package sdk
 
 import (
+	"context"
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // DataSourceWrapper is a wrapper for converting a DataSource implementation
@@ -19,38 +19,42 @@ type DataSourceWrapper struct {
 func NewDataSourceWrapper(dataSource DataSource) DataSourceWrapper {
 	return DataSourceWrapper{
 		dataSource: dataSource,
-		logger:     ConsoleLogger{},
+		logger:     &DiagnosticsLogger{},
 	}
 }
 
 // DataSource returns the Terraform Plugin SDK type for this DataSource implementation
-func (rw *DataSourceWrapper) DataSource() (*schema.Resource, error) {
-	resourceSchema, err := combineSchema(rw.dataSource.Arguments(), rw.dataSource.Attributes())
+func (dw *DataSourceWrapper) DataSource() (*schema.Resource, error) {
+	resourceSchema, err := combineSchema(dw.dataSource.Arguments(), dw.dataSource.Attributes())
 	if err != nil {
 		return nil, fmt.Errorf("building Schema: %+v", err)
 	}
 
-	modelObj := rw.dataSource.ModelObject()
-	if err := ValidateModelObject(&modelObj); err != nil {
-		return nil, fmt.Errorf("validating model for %q: %+v", rw.dataSource.ResourceType(), err)
+	modelObj := dw.dataSource.ModelObject()
+	if modelObj != nil {
+		if err := ValidateModelObject(&modelObj); err != nil {
+			return nil, fmt.Errorf("validating model for %q: %+v", dw.dataSource.ResourceType(), err)
+		}
 	}
 
-	var d = func(duration time.Duration) *time.Duration {
+	d := func(duration time.Duration) *time.Duration {
 		return &duration
 	}
 
 	resource := schema.Resource{
 		Schema: *resourceSchema,
-		Read: func(d *schema.ResourceData, meta interface{}) error {
-			ctx, metaData := runArgs(d, meta, rw.logger)
-			wrappedCtx, cancel := timeouts.ForRead(ctx, d)
-			defer cancel()
-			return rw.dataSource.Read().Func(wrappedCtx, metaData)
-		},
+		ReadContext: dw.diagnosticsWrapper(func(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+			metaData := runArgs(d, meta, dw.logger)
+			return dw.dataSource.Read().Func(ctx, metaData)
+		}),
 		Timeouts: &schema.ResourceTimeout{
-			Read: d(rw.dataSource.Read().Timeout),
+			Read: d(dw.dataSource.Read().Timeout),
 		},
 	}
 
 	return &resource, nil
+}
+
+func (dw *DataSourceWrapper) diagnosticsWrapper(in func(ctx context.Context, d *schema.ResourceData, meta interface{}) error) schema.ReadContextFunc {
+	return diagnosticsWrapper(in, dw.logger)
 }

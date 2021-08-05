@@ -6,7 +6,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -18,130 +17,130 @@ var _ pluginsdk.StateUpgrade = WebApplicationFirewallPolicyV0ToV1{}
 type WebApplicationFirewallPolicyV0ToV1 struct{}
 
 func (WebApplicationFirewallPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	return map[string]*schema.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"location": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
 
 		"resource_group_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
 
 		"enabled": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
 		"mode": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
 
 		"redirect_url": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
 
 		"custom_block_response_status_code": {
-			Type:     schema.TypeInt,
+			Type:     pluginsdk.TypeInt,
 			Optional: true,
 		},
 
 		"custom_block_response_body": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
 
 		"custom_rule": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			MaxItems: 100,
 			Optional: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 
 					"enabled": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
 
 					"priority": {
-						Type:     schema.TypeInt,
+						Type:     pluginsdk.TypeInt,
 						Optional: true,
 					},
 
 					"type": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 
 					"rate_limit_duration_in_minutes": {
-						Type:     schema.TypeInt,
+						Type:     pluginsdk.TypeInt,
 						Optional: true,
 					},
 
 					"rate_limit_threshold": {
-						Type:     schema.TypeInt,
+						Type:     pluginsdk.TypeInt,
 						Optional: true,
 					},
 
 					"action": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 
 					"match_condition": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 100,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"match_variable": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"match_values": {
-									Type:     schema.TypeList,
+									Type:     pluginsdk.TypeList,
 									Required: true,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 
 								"operator": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"selector": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
 
 								"negation_condition": {
-									Type:     schema.TypeBool,
+									Type:     pluginsdk.TypeBool,
 									Optional: true,
 									Default:  false,
 								},
 
 								"transforms": {
-									Type:     schema.TypeList,
+									Type:     pluginsdk.TypeList,
 									Optional: true,
 									MaxItems: 5,
-									Elem: &schema.Schema{
-										Type: schema.TypeString,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
 									},
 								},
 							},
@@ -152,37 +151,37 @@ func (WebApplicationFirewallPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema 
 		},
 
 		"managed_rule": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			MaxItems: 100,
 			Optional: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"type": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 
 					"version": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 
 					"exclusion": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						MaxItems: 100,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"match_variable": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 								"operator": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 								"selector": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 							},
@@ -190,32 +189,32 @@ func (WebApplicationFirewallPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema 
 					},
 
 					"override": {
-						Type:     schema.TypeList,
+						Type:     pluginsdk.TypeList,
 						MaxItems: 100,
 						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"rule_group_name": {
-									Type:     schema.TypeString,
+									Type:     pluginsdk.TypeString,
 									Required: true,
 								},
 
 								"exclusion": {
-									Type:     schema.TypeList,
+									Type:     pluginsdk.TypeList,
 									MaxItems: 100,
 									Optional: true,
-									Elem: &schema.Resource{
-										Schema: map[string]*schema.Schema{
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
 											"match_variable": {
-												Type:     schema.TypeString,
+												Type:     pluginsdk.TypeString,
 												Required: true,
 											},
 											"operator": {
-												Type:     schema.TypeString,
+												Type:     pluginsdk.TypeString,
 												Required: true,
 											},
 											"selector": {
-												Type:     schema.TypeString,
+												Type:     pluginsdk.TypeString,
 												Required: true,
 											},
 										},
@@ -223,37 +222,37 @@ func (WebApplicationFirewallPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema 
 								},
 
 								"rule": {
-									Type:     schema.TypeList,
+									Type:     pluginsdk.TypeList,
 									MaxItems: 1000,
 									Optional: true,
-									Elem: &schema.Resource{
-										Schema: map[string]*schema.Schema{
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
 											"rule_id": {
-												Type:     schema.TypeString,
+												Type:     pluginsdk.TypeString,
 												Required: true,
 											},
 
 											"enabled": {
-												Type:     schema.TypeBool,
+												Type:     pluginsdk.TypeBool,
 												Optional: true,
 											},
 
 											"exclusion": {
-												Type:     schema.TypeList,
+												Type:     pluginsdk.TypeList,
 												MaxItems: 100,
 												Optional: true,
-												Elem: &schema.Resource{
-													Schema: map[string]*schema.Schema{
+												Elem: &pluginsdk.Resource{
+													Schema: map[string]*pluginsdk.Schema{
 														"match_variable": {
-															Type:     schema.TypeString,
+															Type:     pluginsdk.TypeString,
 															Required: true,
 														},
 														"operator": {
-															Type:     schema.TypeString,
+															Type:     pluginsdk.TypeString,
 															Required: true,
 														},
 														"selector": {
-															Type:     schema.TypeString,
+															Type:     pluginsdk.TypeString,
 															Required: true,
 														},
 													},
@@ -261,7 +260,7 @@ func (WebApplicationFirewallPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema 
 											},
 
 											"action": {
-												Type:     schema.TypeString,
+												Type:     pluginsdk.TypeString,
 												Required: true,
 											},
 										},
@@ -275,10 +274,10 @@ func (WebApplicationFirewallPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema 
 		},
 
 		"frontend_endpoint_ids": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Computed: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
 		},
 

@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,12 +14,13 @@ import (
 	iothubValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceIotHubEndpointStorageContainer() *schema.Resource {
-	return &schema.Resource{
+func resourceIotHubEndpointStorageContainer() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceIotHubEndpointStorageContainerCreateUpdate,
 		Read:   resourceIotHubEndpointStorageContainerRead,
 		Update: resourceIotHubEndpointStorageContainerCreateUpdate,
@@ -29,16 +28,16 @@ func resourceIotHubEndpointStorageContainer() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: iothubValidate.IoTHubEndpointName,
@@ -47,42 +46,42 @@ func resourceIotHubEndpointStorageContainer() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"iothub_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: iothubValidate.IoTHubName,
 			},
 
 			"container_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.StorageContainerName,
 			},
 
 			"file_name_format": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  false,
 			},
 
 			"batch_frequency_in_seconds": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      300,
 				ValidateFunc: validation.IntBetween(60, 720),
 			},
 
 			"max_chunk_size_in_bytes": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      314572800,
 				ValidateFunc: validation.IntBetween(10485760, 524288000),
 			},
 
 			"connection_string": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 					accountKeyRegex := regexp.MustCompile("AccountKey=[^;]+")
 
 					maskedNew := accountKeyRegex.ReplaceAllString(new, "AccountKey=****")
@@ -92,7 +91,7 @@ func resourceIotHubEndpointStorageContainer() *schema.Resource {
 			},
 
 			"encoding": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(devices.Avro),
@@ -104,7 +103,7 @@ func resourceIotHubEndpointStorageContainer() *schema.Resource {
 	}
 }
 
-func resourceIotHubEndpointStorageContainerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -200,7 +199,7 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *schema.ResourceData, 
 	return resourceIotHubEndpointStorageContainerRead(d, meta)
 }
 
-func resourceIotHubEndpointStorageContainerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -245,7 +244,7 @@ func resourceIotHubEndpointStorageContainerRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceIotHubEndpointStorageContainerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointStorageContainerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

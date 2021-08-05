@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/sdk/clusters"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +21,10 @@ func TestAccVmwareCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vmware_cluster", "test")
 	r := VmwareClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cluster_number").Exists(),
 				check.That(data.ResourceName).Key("hosts.#").Exists(),
@@ -38,10 +38,10 @@ func TestAccVmwareCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vmware_cluster", "test")
 	r := VmwareClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -53,10 +53,10 @@ func TestAccVmwareCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vmware_cluster", "test")
 	r := VmwareClusterResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cluster_number").Exists(),
 				check.That(data.ResourceName).Key("hosts.#").Exists(),
@@ -65,7 +65,7 @@ func TestAccVmwareCluster_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cluster_number").Exists(),
 				check.That(data.ResourceName).Key("hosts.#").Exists(),
@@ -74,7 +74,7 @@ func TestAccVmwareCluster_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cluster_number").Exists(),
 				check.That(data.ResourceName).Key("hosts.#").Exists(),
@@ -84,18 +84,18 @@ func TestAccVmwareCluster_update(t *testing.T) {
 	})
 }
 
-func (VmwareClusterResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.ClusterID(state.ID)
+func (VmwareClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := clusters.ParseClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Vmware.ClusterClient.Get(ctx, id.ResourceGroup, id.PrivateCloudName, id.Name)
+	resp, err := clients.Vmware.ClusterClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Vmware Cluster %q (resource group: %q / Private Cloud Name: %q): %+v", id.Name, id.ResourceGroup, id.PrivateCloudName, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ClusterProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r VmwareClusterResource) basic(data acceptance.TestData) string {

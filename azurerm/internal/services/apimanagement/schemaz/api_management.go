@@ -5,25 +5,25 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // not in service package as migrate package required this
 
-func SchemaApiManagementName() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaApiManagementName() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ForceNew:     true,
 		ValidateFunc: validate.ApiManagementServiceName,
 	}
 }
 
-func SchemaApiManagementDataSourceName() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaApiManagementDataSourceName() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ValidateFunc: validate.ApiManagementServiceName,
 	}
@@ -31,9 +31,9 @@ func SchemaApiManagementDataSourceName() *schema.Schema {
 
 // SchemaApiManagementChildName returns the Schema for the identifier
 // used by resources within nested under the API Management Service resource
-func SchemaApiManagementChildName() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaApiManagementChildName() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ForceNew:     true,
 		ValidateFunc: validate.ApiManagementChildName,
@@ -42,9 +42,9 @@ func SchemaApiManagementChildName() *schema.Schema {
 
 // SchemaApiManagementChildName returns the Schema for the identifier
 // used by resources within nested under the API Management Service resource
-func SchemaApiManagementApiName() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaApiManagementApiName() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ForceNew:     true,
 		ValidateFunc: validate.ApiManagementApiName,
@@ -53,56 +53,56 @@ func SchemaApiManagementApiName() *schema.Schema {
 
 // SchemaApiManagementChildDataSourceName returns the Schema for the identifier
 // used by resources within nested under the API Management Service resource
-func SchemaApiManagementChildDataSourceName() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaApiManagementChildDataSourceName() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ValidateFunc: validate.ApiManagementChildName,
 	}
 }
 
-func SchemaApiManagementUserName() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaApiManagementUserName() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ForceNew:     true,
 		ValidateFunc: validate.ApiManagementUserName,
 	}
 }
 
-func SchemaApiManagementUserDataSourceName() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
+func SchemaApiManagementUserDataSourceName() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ValidateFunc: validate.ApiManagementUserName,
 	}
 }
 
-func SchemaApiManagementOperationRepresentation() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"content_type": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 				},
 
 				"form_parameter": SchemaApiManagementOperationParameterContract(),
 
 				"sample": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
 
 				"schema_id": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
 
 				"type_name": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
 			},
@@ -110,19 +110,19 @@ func SchemaApiManagementOperationRepresentation() *schema.Schema {
 	}
 }
 
-func ExpandApiManagementOperationRepresentation(input []interface{}) (*[]apimanagement.RepresentationContract, error) {
+func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*[]apimanagement.RepresentationContract, error) {
 	if len(input) == 0 {
 		return &[]apimanagement.RepresentationContract{}, nil
 	}
 
 	outputs := make([]apimanagement.RepresentationContract, 0)
 
-	for _, v := range input {
+	for i, v := range input {
 		vs := v.(map[string]interface{})
 
 		contentType := vs["content_type"].(string)
 		formParametersRaw := vs["form_parameter"].([]interface{})
-		formParameters := ExpandApiManagementOperationParameterContract(formParametersRaw)
+		formParameters := ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.%d.form_parameter", schemaPath, i), formParametersRaw)
 		sample := vs["sample"].(string)
 		schemaId := vs["schema_id"].(string)
 		typeName := vs["type_name"].(string)
@@ -193,70 +193,76 @@ func FlattenApiManagementOperationRepresentation(input *[]apimanagement.Represen
 	return outputs
 }
 
-func SchemaApiManagementOperationParameterContract() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func SchemaApiManagementOperationParameterContract() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"name": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 				},
 				"required": {
-					Type:     schema.TypeBool,
+					Type:     pluginsdk.TypeBool,
 					Required: true,
 				},
 
 				"description": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
 				"type": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 				},
 				"default_value": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
 				"values": {
-					Type:     schema.TypeSet,
+					Type:     pluginsdk.TypeSet,
 					Optional: true,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
 					},
-					Set: schema.HashString,
+					Set: pluginsdk.HashString,
 				},
 			},
 		},
 	}
 }
 
-func ExpandApiManagementOperationParameterContract(input []interface{}) *[]apimanagement.ParameterContract {
+func ExpandApiManagementOperationParameterContract(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) *[]apimanagement.ParameterContract {
 	if len(input) == 0 {
 		return &[]apimanagement.ParameterContract{}
 	}
 
 	outputs := make([]apimanagement.ParameterContract, 0)
 
-	for _, v := range input {
+	for i, v := range input {
 		vs := v.(map[string]interface{})
 
 		name := vs["name"].(string)
 		description := vs["description"].(string)
 		paramType := vs["type"].(string)
-		defaultValue := vs["default_value"].(string)
 		required := vs["required"].(bool)
-		valuesRaw := vs["values"].(*schema.Set).List()
+		valuesRaw := vs["values"].(*pluginsdk.Set).List()
 
 		output := apimanagement.ParameterContract{
 			Name:         utils.String(name),
 			Description:  utils.String(description),
 			Type:         utils.String(paramType),
 			Required:     utils.Bool(required),
-			DefaultValue: utils.String(defaultValue),
+			DefaultValue: nil,
 			Values:       utils.ExpandStringSlice(valuesRaw),
+		}
+
+		// DefaultValue must be included in Values, else it returns error
+		// when DefaultValue is unset, we need to set it nil
+		// "" is a valid DefaultValue
+		if v, ok := d.GetOk(fmt.Sprintf("%s.%d.default_value", schemaPath, i)); ok {
+			output.DefaultValue = utils.String(v.(string))
 		}
 		outputs = append(outputs, output)
 	}
@@ -293,7 +299,7 @@ func FlattenApiManagementOperationParameterContract(input *[]apimanagement.Param
 			output["default_value"] = *v.DefaultValue
 		}
 
-		output["values"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(v.Values))
+		output["values"] = pluginsdk.NewSet(pluginsdk.HashString, utils.FlattenStringSlice(v.Values))
 
 		outputs = append(outputs, output)
 	}

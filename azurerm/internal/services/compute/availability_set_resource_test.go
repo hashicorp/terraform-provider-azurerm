@@ -6,12 +6,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccAvailabilitySet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 	r := AvailabilitySetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("platform_update_domain_count").HasValue("5"),
 				check.That(data.ResourceName).Key("platform_fault_domain_count").HasValue("3"),
@@ -39,10 +38,10 @@ func TestAccAvailabilitySet_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 	r := AvailabilitySetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("platform_update_domain_count").HasValue("5"),
 				check.That(data.ResourceName).Key("platform_fault_domain_count").HasValue("3"),
@@ -59,7 +58,7 @@ func TestAccAvailabilitySet_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 	r := AvailabilitySetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -71,10 +70,10 @@ func TestAccAvailabilitySet_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 	r := AvailabilitySetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
@@ -83,7 +82,7 @@ func TestAccAvailabilitySet_withTags(t *testing.T) {
 		},
 		{
 			Config: r.withUpdatedTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
@@ -97,10 +96,10 @@ func TestAccAvailabilitySet_withPPG(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 	r := AvailabilitySetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withPPG(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("proximity_placement_group_id").Exists(),
 			),
@@ -113,10 +112,10 @@ func TestAccAvailabilitySet_withDomainCounts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 	r := AvailabilitySetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withDomainCounts(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("platform_update_domain_count").HasValue("3"),
 				check.That(data.ResourceName).Key("platform_fault_domain_count").HasValue("3"),
@@ -130,10 +129,10 @@ func TestAccAvailabilitySet_unmanaged(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 	r := AvailabilitySetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.unmanaged(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("managed").HasValue("false"),
 			),
@@ -142,7 +141,7 @@ func TestAccAvailabilitySet_unmanaged(t *testing.T) {
 	})
 }
 
-func (AvailabilitySetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (AvailabilitySetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AvailabilitySetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -156,7 +155,7 @@ func (AvailabilitySetResource) Exists(ctx context.Context, clients *clients.Clie
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (AvailabilitySetResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (AvailabilitySetResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AvailabilitySetID(state.ID)
 	if err != nil {
 		return nil, err

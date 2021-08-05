@@ -6,44 +6,39 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/sdk/namespaces"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceRelayNamespace() *schema.Resource {
-	return &schema.Resource{
+func resourceRelayNamespace() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceRelayNamespaceCreateUpdate,
 		Read:   resourceRelayNamespaceRead,
 		Update: resourceRelayNamespaceCreateUpdate,
 		Delete: resourceRelayNamespaceDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.NamespaceID(id)
+			_, err := namespaces.ParseNamespaceID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringLenBetween(6, 50),
@@ -54,38 +49,38 @@ func resourceRelayNamespace() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(relay.Standard),
+					string(namespaces.SkuNameStandard),
 				}, false),
 			},
 
 			"metric_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"primary_connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_connection_string": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"primary_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_key": {
-				Type:      schema.TypeString,
+				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
@@ -95,7 +90,7 @@ func resourceRelayNamespace() *schema.Resource {
 	}
 }
 
-func resourceRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRelayNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Relay.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -103,137 +98,134 @@ func resourceRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	log.Printf("[INFO] preparing arguments for Relay Namespace create/update.")
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
-	expandedTags := tags.Expand(t)
-
-	resourceId := parse.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Relay Namespace %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_relay_namespace", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_relay_namespace", id.ID())
 		}
 	}
 
-	parameters := relay.Namespace{
-		Location: utils.String(location),
-		Sku: &relay.Sku{
-			Name: utils.String(d.Get("sku_name").(string)),
-			Tier: relay.SkuTier(d.Get("sku_name").(string)),
+	skuTier := namespaces.SkuTier(d.Get("sku_name").(string))
+	parameters := namespaces.RelayNamespace{
+		Location: azure.NormalizeLocation(d.Get("location").(string)),
+		Sku: &namespaces.Sku{
+			Name: namespaces.SkuName(d.Get("sku_name").(string)),
+			Tier: &skuTier,
 		},
-		NamespaceProperties: &relay.NamespaceProperties{},
-		Tags:                expandedTags,
+		Properties: &namespaces.RelayNamespaceProperties{},
+		Tags:       expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.Name, parameters)
-	if err != nil {
-		return fmt.Errorf("creating/updating Relay Namespace %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of Relay Namespace %q (Resource Group %q) creation: %+v", resourceId.Name, resourceId.ResourceGroup, err)
-	}
-
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 	return resourceRelayNamespaceRead(d, meta)
 }
 
-func resourceRelayNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRelayNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Relay.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NamespaceID(d.Id())
+	id, err := namespaces.ParseNamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Relay Namespace %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name, "RootManageSharedAccessKey")
+	authRuleId := namespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.Name, "RootManageSharedAccessKey")
+	keysResp, err := client.ListKeys(ctx, authRuleId)
 	if err != nil {
-		return fmt.Errorf("listing keys for Relay Namespace %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("listing keys for %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", sku.Name)
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
 
-	if props := resp.NamespaceProperties; props != nil {
-		d.Set("metric_id", props.MetricID)
-	}
-
-	d.Set("primary_connection_string", keysResp.PrimaryConnectionString)
-	d.Set("primary_key", keysResp.PrimaryKey)
-	d.Set("secondary_connection_string", keysResp.SecondaryConnectionString)
-	d.Set("secondary_key", keysResp.SecondaryKey)
-
-	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-func resourceRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Relay.NamespacesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.NamespaceID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
+		if sku := model.Sku; sku != nil {
+			d.Set("sku_name", sku.Name)
 		}
 
-		return fmt.Errorf("")
+		if props := model.Properties; props != nil {
+			d.Set("metric_id", props.MetricId)
+		}
+
+		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			return err
+		}
 	}
 
-	// we can't make use of the Future here due to a bug where 404 isn't tracked as Successful
-	log.Printf("[DEBUG] Waiting for Relay Namespace %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"Pending"},
-		Target:     []string{"Deleted"},
-		Refresh:    relayNamespaceDeleteRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
-		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(schema.TimeoutDelete),
-	}
-
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Relay Namespace %q (Resource Group %q) to be deleted: %s", id.Name, id.ResourceGroup, err)
+	if model := keysResp.Model; model != nil {
+		d.Set("primary_connection_string", model.PrimaryConnectionString)
+		d.Set("primary_key", model.PrimaryKey)
+		d.Set("secondary_connection_string", model.SecondaryConnectionString)
+		d.Set("secondary_key", model.SecondaryKey)
 	}
 
 	return nil
 }
 
-func relayNamespaceDeleteRefreshFunc(ctx context.Context, client *relay.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+func resourceRelayNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Relay.NamespacesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := namespaces.ParseNamespaceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	// we can't make use of the Future here due to a bug where 404 isn't tracked as Successful
+	log.Printf("[DEBUG] Waiting for Relay Namespace %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{"Pending"},
+		Target:     []string{"Deleted"},
+		Refresh:    relayNamespaceDeleteRefreshFunc(ctx, client, *id),
+		MinTimeout: 15 * time.Second,
+		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+	}
+
+	return nil
+}
+
+func relayNamespaceDeleteRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroupName, name)
+		res, err := client.Get(ctx, id)
 		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
+			if response.WasNotFound(res.HttpResponse) {
 				return res, "Deleted", nil
 			}
 
-			return nil, "Error", fmt.Errorf("Error issuing read request in relayNamespaceDeleteRefreshFunc to Relay Namespace %q (Resource Group %q): %s", name, resourceGroupName, err)
+			return nil, "Error", fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
 		return res, "Pending", nil

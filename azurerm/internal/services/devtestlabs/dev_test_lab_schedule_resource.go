@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,12 +13,13 @@ import (
 	devTestValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDevTestLabSchedules() *schema.Resource {
-	return &schema.Resource{
+func resourceDevTestLabSchedules() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDevTestLabSchedulesCreateUpdate,
 		Read:   resourceDevTestLabSchedulesRead,
 		Update: resourceDevTestLabSchedulesCreateUpdate,
@@ -28,16 +27,16 @@ func resourceDevTestLabSchedules() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -50,14 +49,14 @@ func resourceDevTestLabSchedules() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"lab_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: devTestValidate.DevTestLabName(),
 			},
 
 			"status": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  dtl.EnableStatusDisabled,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -67,18 +66,18 @@ func resourceDevTestLabSchedules() *schema.Resource {
 			},
 
 			"task_type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"weekly_recurrence": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"time": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringMatch(
 								regexp.MustCompile("^(0[0-9]|1[0-9]|2[0-3]|[0-9])[0-5][0-9]$"),
@@ -87,10 +86,10 @@ func resourceDevTestLabSchedules() *schema.Resource {
 						},
 
 						"week_days": {
-							Type:     schema.TypeList,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
 									"Monday",
 									"Tuesday",
@@ -107,13 +106,13 @@ func resourceDevTestLabSchedules() *schema.Resource {
 			},
 
 			"daily_recurrence": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"time": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringMatch(
 								regexp.MustCompile("^(0[0-9]|1[0-9]|2[0-3]|[0-9])[0-5][0-9]$"),
@@ -125,13 +124,13 @@ func resourceDevTestLabSchedules() *schema.Resource {
 			},
 
 			"hourly_recurrence": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"minute": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(0, 59),
 						},
@@ -140,19 +139,19 @@ func resourceDevTestLabSchedules() *schema.Resource {
 			},
 
 			"time_zone_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: computeValidate.VirtualMachineTimeZoneCaseInsensitive(),
 			},
 
 			"notification_settings": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"status": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  dtl.NotificationStatusDisabled,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -161,12 +160,12 @@ func resourceDevTestLabSchedules() *schema.Resource {
 							}, false),
 						},
 						"time_in_minutes": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 						},
 						"webhook_url": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 					},
@@ -178,7 +177,7 @@ func resourceDevTestLabSchedules() *schema.Resource {
 	}
 }
 
-func resourceDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDevTestLabSchedulesCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.LabSchedulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -265,7 +264,7 @@ func resourceDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta interf
 	return resourceDevTestLabSchedulesRead(d, meta)
 }
 
-func resourceDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDevTestLabSchedulesRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.LabSchedulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -320,7 +319,7 @@ func resourceDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceDevTestLabSchedulesDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDevTestLabSchedulesDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMExtensionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -425,7 +424,7 @@ func flattenAzureRmDevTestLabScheduleRecurrenceHourly(hourlyRecurrence *dtl.Hour
 	return []interface{}{result}
 }
 
-func expandDevTestScheduleNotificationSettings(d *schema.ResourceData) *dtl.NotificationSettings {
+func expandDevTestScheduleNotificationSettings(d *pluginsdk.ResourceData) *dtl.NotificationSettings {
 	notificationSettingsConfigs := d.Get("notification_settings").([]interface{})
 	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]interface{})
 	webhookUrl := notificationSettingsConfig["webhook_url"].(string)

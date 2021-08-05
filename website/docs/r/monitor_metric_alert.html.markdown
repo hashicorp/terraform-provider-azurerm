@@ -146,7 +146,7 @@ A `application_insights_web_test_location_availability_criteria` block supports 
 A `dimension` block supports the following:
 
 * `name` - (Required) One of the dimension names.
-* `operator` - (Required) The dimension operator. Possible values are `Include` and `Exclude`.
+* `operator` - (Required) The dimension operator. Possible values are `Include`, `Exclude` and `StartsWith`.
 * `values` - (Required) The list of dimension values.
 
 ## Attributes Reference

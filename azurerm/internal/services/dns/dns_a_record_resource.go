@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -17,27 +16,27 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDnsARecord() *schema.Resource {
-	return &schema.Resource{
+func resourceDnsARecord() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceDnsARecordCreateUpdate,
 		Read:   resourceDnsARecordRead,
 		Update: resourceDnsARecordCreateUpdate,
 		Delete: resourceDnsARecordDelete,
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ARecordID(id)
 			return err
 		}),
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -45,30 +44,30 @@ func resourceDnsARecord() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"zone_name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
 			"records": {
-				Type:          schema.TypeSet,
+				Type:          pluginsdk.TypeSet,
 				Optional:      true,
-				Elem:          &schema.Schema{Type: schema.TypeString},
-				Set:           schema.HashString,
+				Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:           pluginsdk.HashString,
 				ConflictsWith: []string{"target_resource_id"},
 			},
 
 			"ttl": {
-				Type:     schema.TypeInt,
+				Type:     pluginsdk.TypeInt,
 				Required: true,
 			},
 
 			"fqdn": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"target_resource_id": {
-				Type:          schema.TypeString,
+				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ValidateFunc:  azure.ValidateResourceID,
 				ConflictsWith: []string{"records"},
@@ -81,7 +80,7 @@ func resourceDnsARecord() *schema.Resource {
 	}
 }
 
-func resourceDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsARecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -109,7 +108,7 @@ func resourceDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{}) er
 	ttl := int64(d.Get("ttl").(int))
 	t := d.Get("tags").(map[string]interface{})
 	targetResourceId := d.Get("target_resource_id").(string)
-	recordsRaw := d.Get("records").(*schema.Set).List()
+	recordsRaw := d.Get("records").(*pluginsdk.Set).List()
 
 	parameters := dns.RecordSet{
 		Name: &name,
@@ -141,7 +140,7 @@ func resourceDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{}) er
 	return resourceDnsARecordRead(d, meta)
 }
 
-func resourceDnsARecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsARecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,7 +179,7 @@ func resourceDnsARecordRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceDnsARecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsARecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

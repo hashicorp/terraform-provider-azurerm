@@ -6,20 +6,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/migration"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/migration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *schema.Resource {
-	return &schema.Resource{
+func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate,
 		Read:   resourceNetworkInterfaceApplicationSecurityGroupAssociationRead,
 		Delete: resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete,
@@ -31,23 +29,23 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *schema.Resou
 			0: migration.NetworkInterfaceApplicationSecurityGroupAssociationV0ToV1{},
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"network_interface_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"application_security_group_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
@@ -56,7 +54,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *schema.Resou
 	}
 }
 
-func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -120,7 +118,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *schema
 	return resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d, meta)
 }
 
-func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -175,7 +173,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *schema.R
 	return nil
 }
 
-func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

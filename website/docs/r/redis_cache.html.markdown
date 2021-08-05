@@ -69,6 +69,18 @@ The following arguments are supported:
 
 * `redis_configuration` - (Optional) A `redis_configuration` as defined below - with some limitations by SKU - defaults/details are shown below.
 
+* `replicas_per_master` - (Optional) Amount of replicas to create per master for this Redis Cache.
+
+~> **Note:** Configuring the number of replicas per master is only available when using the Premium SKU and cannot be used in conjunction with shards.
+
+* `replicas_per_primary` - (Optional) Amount of replicas to create per primary for this Redis Cache. If both `replicas_per_primary` and `replicas_per_master` are set, they need to be equal.
+
+* `redis_version` - (Optional) Redis version. Only major version needed. Valid values: `4`, `6`. 
+
+~> **Note:** Redis 6 does not support `shard_count`.
+
+* `tenant_settings` - (Optional) A mapping of tenant settings to assign to the resource.
+
 * `shard_count` - (Optional) *Only available when using the Premium SKU* The number of Shards to create on the Redis Cluster.
 
 * `subnet_id` - (Optional) *Only available when using the Premium SKU* The ID of the Subnet within which the Redis Cache should be deployed. This Subnet must only contain Azure Cache for Redis instances without any other type of resources. Changing this forces a new resource to be created.
@@ -82,6 +94,20 @@ The following arguments are supported:
 ---
 
 A `redis_configuration` block supports the following:
+
+* `aof_backup_enabled` - (Optional) Enable or disable AOF persistence for this Redis Cache.
+* `aof_storage_connection_string_0` - (Optional) First Storage Account connection string for AOF persistence.
+* `aof_storage_connection_string_1` - (Optional) Second Storage Account connection string for AOF persistence.
+
+Example usage:
+
+```hcl
+redis_configuration {
+  aof_backup_enabled              = true
+  aof_storage_connection_string_0 = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.nc-cruks-storage-account.primary_blob_endpoint};AccountName=${azurerm_storage_account.mystorageaccount.name};AccountKey=${azurerm_storage_account.mystorageaccount.primary_access_key}"
+  aof_storage_connection_string_1 = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.mystorageaccount.primary_blob_endpoint};AccountName=${azurerm_storage_account.mystorageaccount.name};AccountKey=${azurerm_storage_account.mystorageaccount.secondary_access_key}"
+}
+```
 
 * `enable_authentication` - (Optional) If set to `false`, the Redis instance will be accessible without authentication. Defaults to `true`.
 
@@ -141,6 +167,8 @@ A `patch_schedule` block supports the following:
 * `start_hour_utc` - (Optional) the Start Hour for maintenance in UTC - possible values range from `0 - 23`.
 
 ~> **Note:** The Patch Window lasts for `5` hours from the `start_hour_utc`.
+
+* `maintenance_window` - (Optional) The ISO 8601 timespan which specifies the amount of time the Redis Cache can be updated. Defaults to `PT5H`.
 
 ## Attributes Reference
 

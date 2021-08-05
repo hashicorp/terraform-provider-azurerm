@@ -9,12 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -25,10 +24,10 @@ func TestAccTemplateDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 	r := TemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicMultiple(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -39,10 +38,10 @@ func TestAccTemplateDeployment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 	r := TemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicMultiple(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -54,7 +53,7 @@ func TestAccTemplateDeployment_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 	r := TemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basicSingle,
 			TestResource: r,
@@ -66,10 +65,10 @@ func TestAccTemplateDeployment_nestedTemplate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 	r := TemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nestedTemplate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -80,12 +79,12 @@ func TestAccTemplateDeployment_withParams(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 	r := TemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withParams(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.testOutput", "Output Value"),
+				acceptance.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.testOutput", "Output Value"),
 			),
 		},
 	})
@@ -95,12 +94,12 @@ func TestAccTemplateDeployment_withParamsBody(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 	r := TemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withParamsBody(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.testOutput", "Output Value"),
+				acceptance.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.testOutput", "Output Value"),
 			),
 		},
 	})
@@ -110,20 +109,20 @@ func TestAccTemplateDeployment_withOutputs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 	r := TemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withOutputs(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				resource.TestCheckOutput("tfIntOutput", "-123"),
-				resource.TestCheckOutput("tfStringOutput", "Standard_GRS"),
+				acceptance.TestCheckOutput("tfIntOutput", "-123"),
+				acceptance.TestCheckOutput("tfStringOutput", "Standard_GRS"),
 
 				// these values *should* be 'true' and 'false' but,
 				// due to a bug in the way terraform represents bools at various times these are for now 0 and 1
 				// see https://github.com/hashicorp/terraform/issues/13512#issuecomment-295389523
 				// at a later date these may return the expected 'true' / 'false' and should be changed back
-				resource.TestCheckOutput("tfFalseOutput", "false"),
-				resource.TestCheckOutput("tfTrueOutput", "true"),
+				acceptance.TestCheckOutput("tfFalseOutput", "false"),
+				acceptance.TestCheckOutput("tfTrueOutput", "true"),
 				check.That(data.ResourceName).Key("outputs.stringOutput").HasValue("Standard_GRS"),
 			),
 		},
@@ -134,7 +133,7 @@ func TestAccTemplateDeployment_withError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 	r := TemplateDeploymentResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.withError(data),
 			ExpectError: regexp.MustCompile("Error waiting for deployment"),
@@ -142,7 +141,7 @@ func TestAccTemplateDeployment_withError(t *testing.T) {
 	})
 }
 
-func (t TemplateDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t TemplateDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -161,7 +160,7 @@ func (t TemplateDeploymentResource) Exists(ctx context.Context, clients *clients
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (r TemplateDeploymentResource) Destroy(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r TemplateDeploymentResource) Destroy(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Resource.DeploymentsClient
 
 	id, err := azure.ParseAzureResourceID(state.ID)
@@ -180,7 +179,7 @@ func (r TemplateDeploymentResource) Destroy(ctx context.Context, clients *client
 
 	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
 	log.Printf("[DEBUG] Waiting for Template Deployment (%q in Resource Group %q) to be deleted", name, id.ResourceGroup)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &acceptance.StateChangeConf{
 		Pending: []string{"200"},
 		Target:  []string{"404"},
 		Timeout: 40 * time.Minute,
@@ -200,7 +199,7 @@ func (r TemplateDeploymentResource) Destroy(ctx context.Context, clients *client
 		},
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return nil, fmt.Errorf("waiting for Template Deployment %q to be deleted: %+v", id, err)
 	}
 

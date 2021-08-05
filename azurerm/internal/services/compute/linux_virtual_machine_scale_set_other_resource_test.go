@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
@@ -14,11 +13,11 @@ func TestAccLinuxVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// Enabled
 			Config: r.otherBootDiagnostics(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -28,7 +27,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
 		{
 			// Removed
 			Config: r.otherBootDiagnosticsDisabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -38,7 +37,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
 		{
 			// Enabled
 			Config: r.otherBootDiagnostics(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -52,11 +51,11 @@ func TestAccLinuxVirtualMachineScaleSet_otherBootDiagnosticsManaged(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// Enabled
 			Config: r.otherBootDiagnosticsManaged(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -66,7 +65,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherBootDiagnosticsManaged(t *testing.T
 		{
 			// Removed
 			Config: r.otherBootDiagnosticsDisabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -76,7 +75,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherBootDiagnosticsManaged(t *testing.T
 		{
 			// Enabled
 			Config: r.otherBootDiagnosticsManaged(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -90,10 +89,10 @@ func TestAccLinuxVirtualMachineScaleSet_otherComputerNamePrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherComputerNamePrefix(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -107,7 +106,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherComputerNamePrefixInvalid(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.otherComputerNamePrefixInvalid(data),
 			ExpectError: regexp.MustCompile("unable to assume default computer name prefix"),
@@ -119,10 +118,10 @@ func TestAccLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherCustomData(data, "/bin/bash"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -132,7 +131,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 		),
 		{
 			Config: r.otherCustomData(data, "/bin/zsh"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -143,7 +142,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 		{
 			// removed
 			Config: r.authPassword(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -154,14 +153,31 @@ func TestAccLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachineScaleSet_otherForceDelete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherForceDelete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+	})
+}
+
 func TestAccLinuxVirtualMachineScaleSet_otherPrioritySpotDeallocate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherPrioritySpot(data, "Deallocate"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -175,10 +191,10 @@ func TestAccLinuxVirtualMachineScaleSet_otherPrioritySpotDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherPrioritySpot(data, "Delete"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -192,11 +208,11 @@ func TestAccLinuxVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// expensive, but guarantees this test will pass
 			Config: r.otherPrioritySpotMaxBidPrice(data, "0.5000"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -205,7 +221,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(t *testing.
 		),
 		{
 			Config: r.otherPrioritySpotMaxBidPrice(data, "-1"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -219,10 +235,10 @@ func TestAccLinuxVirtualMachineScaleSet_otherPriorityRegular(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherPriorityRegular(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -236,10 +252,10 @@ func TestAccLinuxVirtualMachineScaleSet_otherRequiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.authPassword(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -254,10 +270,10 @@ func TestAccLinuxVirtualMachineScaleSet_otherSecret(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherSecret(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -267,7 +283,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherSecret(t *testing.T) {
 		{
 			// update
 			Config: r.otherSecretUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -278,7 +294,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherSecret(t *testing.T) {
 		{
 			// removed
 			Config: r.otherSecretRemoved(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -292,10 +308,10 @@ func TestAccLinuxVirtualMachineScaleSet_otherTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -305,7 +321,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherTags(t *testing.T) {
 		{
 			// add one
 			Config: r.otherTagsUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -315,7 +331,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherTags(t *testing.T) {
 		{
 			// remove all
 			Config: r.authPassword(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -329,10 +345,10 @@ func TestAccLinuxVirtualMachineScaleSet_otherVMAgent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherVMAgent(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -346,10 +362,10 @@ func TestAccLinuxVirtualMachineScaleSet_otherVMAgentDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherVMAgent(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -363,16 +379,16 @@ func TestAccLinuxVirtualMachineScaleSet_updateHealthProbe(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.updateLoadBalancerHealthProbeSKUBasic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
 			Config: r.updateLoadBalancerHealthProbeSKUStandard(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -383,10 +399,10 @@ func TestAccLinuxVirtualMachineScaleSet_otherScaleInPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherScaleInPolicy(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scale_in_policy").HasValue("Default"),
 			),
@@ -401,11 +417,11 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminateNotification(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// turn terminate notification on
 		{
 			Config: r.otherTerminateNotification(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("terminate_notification.#").HasValue("1"),
 				check.That(data.ResourceName).Key("terminate_notification.0.enabled").HasValue("true"),
@@ -417,7 +433,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminateNotification(t *testing.T)
 		// turn terminate notification off
 		{
 			Config: r.otherTerminateNotification(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("terminate_notification.#").HasValue("1"),
 				check.That(data.ResourceName).Key("terminate_notification.0.enabled").HasValue("false"),
@@ -429,7 +445,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminateNotification(t *testing.T)
 		// turn terminate notification on again
 		{
 			Config: r.otherTerminateNotification(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("terminate_notification.#").HasValue("1"),
 				check.That(data.ResourceName).Key("terminate_notification.0.enabled").HasValue("true"),
@@ -445,11 +461,11 @@ func TestAccLinuxVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		// turn automatic repair on
 		{
 			Config: r.otherAutomaticRepairsPolicy(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -459,7 +475,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing.T
 		// turn automatic repair off
 		{
 			Config: r.otherAutomaticRepairsPolicy(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -469,7 +485,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing.T
 		// turn automatic repair on again
 		{
 			Config: r.otherAutomaticRepairsPolicy(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -483,10 +499,10 @@ func TestAccLinuxVirtualMachineScaleSet_otherUpgradeMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherUpgradeMode(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -500,15 +516,14 @@ func TestAccLinuxVirtualMachineScaleSet_otherEncryptionAtHost(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherEncryptionAtHost(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -516,31 +531,28 @@ func TestAccLinuxVirtualMachineScaleSet_otherEncryptionAtHostUpdate(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherEncryptionAtHost(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.otherEncryptionAtHost(data, false),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 		{
 			Config: r.otherEncryptionAtHost(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -548,15 +560,14 @@ func TestAccLinuxVirtualMachineScaleSet_otherEncryptionAtHostWithCMK(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherEncryptionAtHostWithCMK(data, true),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -564,15 +575,14 @@ func TestAccLinuxVirtualMachineScaleSet_otherPlatformFaultDomainCount(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherPlatformFaultDomainCount(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
-		data.ImportStep("admin_password", "extension"),
+		data.ImportStep("admin_password", "extension.0.protected_settings"),
 	})
 }
 
@@ -580,10 +590,10 @@ func TestAccLinuxVirtualMachineScaleSet_otherRollingUpgradePolicyUpdate(t *testi
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherRollingUpgradePolicyUpdate(data, 10, 10, 10, "PT0S"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -592,7 +602,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherRollingUpgradePolicyUpdate(t *testi
 		),
 		{
 			Config: r.otherRollingUpgradePolicyUpdate(data, 20, 20, 20, "PT1S"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -606,10 +616,10 @@ func TestAccLinuxVirtualMachineScaleSet_otherHealthProbeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.otherHealthProbe(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -618,7 +628,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherHealthProbeUpdate(t *testing.T) {
 		),
 		{
 			Config: r.otherHealthProbeUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -904,6 +914,55 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, customData)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) otherForceDelete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    virtual_machine_scale_set {
+      force_delete = true
+    }
+  }
+}
+
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherPrioritySpot(data acceptance.TestData, evictionPolicy string) string {

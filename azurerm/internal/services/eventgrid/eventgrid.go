@@ -1,34 +1,34 @@
 package eventgrid
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func eventSubscriptionPublicNetworkAccessEnabled() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeBool,
+func eventSubscriptionPublicNetworkAccessEnabled() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
 		Optional: true,
 		Default:  true,
 	}
 }
 
-func eventSubscriptionInboundIPRule() *schema.Schema {
-	return &schema.Schema{
-		Type:       schema.TypeList,
+func eventSubscriptionInboundIPRule() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:       pluginsdk.TypeList,
 		Optional:   true,
 		MaxItems:   128,
-		ConfigMode: schema.SchemaConfigModeAttr,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+		ConfigMode: pluginsdk.SchemaConfigModeAttr,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
 				"ip_mask": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Required: true,
 				},
 				"action": {
-					Type:     schema.TypeString,
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Default:  string(eventgrid.Allow),
 					ValidateFunc: validation.StringInSlice([]string{
@@ -40,7 +40,7 @@ func eventSubscriptionInboundIPRule() *schema.Schema {
 	}
 }
 
-func expandPublicNetworkAccess(d *schema.ResourceData) eventgrid.PublicNetworkAccess {
+func expandPublicNetworkAccess(d *pluginsdk.ResourceData) eventgrid.PublicNetworkAccess {
 	if v, ok := d.GetOk("public_network_access_enabled"); ok {
 		enabled := eventgrid.Disabled
 		if v.(bool) {
@@ -51,7 +51,7 @@ func expandPublicNetworkAccess(d *schema.ResourceData) eventgrid.PublicNetworkAc
 	return eventgrid.Disabled
 }
 
-func expandInboundIPRules(d *schema.ResourceData) *[]eventgrid.InboundIPRule {
+func expandInboundIPRules(d *pluginsdk.ResourceData) *[]eventgrid.InboundIPRule {
 	inboundIPRuleList := d.Get("inbound_ip_rule").([]interface{})
 	if len(inboundIPRuleList) == 0 {
 		return nil

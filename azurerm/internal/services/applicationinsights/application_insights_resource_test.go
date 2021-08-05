@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccApplicationInsights_basicWeb(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "web"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("web"),
 			),
@@ -37,10 +36,10 @@ func TestAccApplicationInsights_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "web"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("web"),
 			),
@@ -56,10 +55,10 @@ func TestAccApplicationInsights_basicJava(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "java"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("java"),
 			),
@@ -72,10 +71,10 @@ func TestAccApplicationInsights_basicMobileCenter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "MobileCenter"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("MobileCenter"),
 			),
@@ -88,10 +87,10 @@ func TestAccApplicationInsights_basicOther(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "other"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("other"),
 			),
@@ -104,10 +103,10 @@ func TestAccApplicationInsights_basicPhone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "phone"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("phone"),
 			),
@@ -120,10 +119,10 @@ func TestAccApplicationInsights_basicStore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "store"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("store"),
 			),
@@ -136,10 +135,10 @@ func TestAccApplicationInsights_basiciOS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "ios"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("ios"),
 			),
@@ -148,7 +147,23 @@ func TestAccApplicationInsights_basiciOS(t *testing.T) {
 	})
 }
 
-func (t AppInsightsResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func TestAccApplicationInsights_basicWorkspaceMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
+	r := AppInsightsResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic_workspace_mode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("workspace_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (t AppInsightsResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ComponentID(state.ID)
 	if err != nil {
 		return nil, err
@@ -166,10 +181,10 @@ func TestAccApplicationInsights_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 	r := AppInsightsResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, "web"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("application_type").HasValue("web"),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("120"),
@@ -202,6 +217,35 @@ resource "azurerm_application_insights" "test" {
   application_type    = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, applicationType)
+}
+
+func (AppInsightsResource) basic_workspace_mode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appinsights-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_log_analytics_workspace.test.id
+  application_type    = "web"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (AppInsightsResource) requiresImport(data acceptance.TestData, applicationType string) string {

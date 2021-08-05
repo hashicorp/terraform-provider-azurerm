@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
@@ -15,15 +14,17 @@ type StorageAccountSasDataSource struct{}
 
 func TestAccDataSourceStorageAccountSas_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_account_sas", "test")
+	ipAddresses := "10.0.0.1-10.0.0.4"
 	utcNow := time.Now().UTC()
 	startDate := utcNow.Format(time.RFC3339)
 	endDate := utcNow.Add(time.Hour * 24).Format(time.RFC3339)
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: StorageAccountSasDataSource{}.basic(data, startDate, endDate),
-			Check: resource.ComposeTestCheckFunc(
+			Config: StorageAccountSasDataSource{}.basic(data, startDate, endDate, ipAddresses),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("https_only").HasValue("true"),
+				check.That(data.ResourceName).Key("ip_addresses").HasValue(ipAddresses),
 				check.That(data.ResourceName).Key("signed_version").HasValue("2019-10-10"),
 				check.That(data.ResourceName).Key("start").HasValue(startDate),
 				check.That(data.ResourceName).Key("expiry").HasValue(endDate),
@@ -33,7 +34,7 @@ func TestAccDataSourceStorageAccountSas_basic(t *testing.T) {
 	})
 }
 
-func (d StorageAccountSasDataSource) basic(data acceptance.TestData, startDate string, endDate string) string {
+func (d StorageAccountSasDataSource) basic(data acceptance.TestData, startDate string, endDate string, ipAddresses string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -60,6 +61,7 @@ resource "azurerm_storage_account" "test" {
 data "azurerm_storage_account_sas" "test" {
   connection_string = azurerm_storage_account.test.primary_connection_string
   https_only        = true
+  ip_addresses      = "%s"
   signed_version    = "2019-10-10"
 
   resource_types {
@@ -89,7 +91,7 @@ data "azurerm_storage_account_sas" "test" {
     process = false
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, startDate, endDate)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, ipAddresses, startDate, endDate)
 }
 
 func TestAccDataSourceStorageAccountSas_resourceTypesString(t *testing.T) {

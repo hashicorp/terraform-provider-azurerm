@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/types"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,10 +22,10 @@ type BackendAddressPoolAddressResourceTests struct{}
 func TestAccBackendAddressPoolAddressBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test")
 	r := BackendAddressPoolAddressResourceTests{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -37,10 +36,10 @@ func TestAccBackendAddressPoolAddressBasic(t *testing.T) {
 func TestAccBackendAddressPoolAddressRequiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test")
 	r := BackendAddressPoolAddressResourceTests{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,7 +50,7 @@ func TestAccBackendAddressPoolAddressRequiresImport(t *testing.T) {
 func TestAccBackendAddressPoolAddressDisappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test")
 	r := BackendAddressPoolAddressResourceTests{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -62,17 +61,17 @@ func TestAccBackendAddressPoolAddressDisappears(t *testing.T) {
 func TestAccBackendAddressPoolAddressUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool_address", "test")
 	r := BackendAddressPoolAddressResourceTests{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -80,7 +79,7 @@ func TestAccBackendAddressPoolAddressUpdate(t *testing.T) {
 	})
 }
 
-func (BackendAddressPoolAddressResourceTests) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (BackendAddressPoolAddressResourceTests) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.BackendAddressPoolAddressID(state.ID)
 	if err != nil {
 		return nil, err
@@ -108,7 +107,7 @@ func (BackendAddressPoolAddressResourceTests) Exists(ctx context.Context, client
 	return utils.Bool(false), nil
 }
 
-func (BackendAddressPoolAddressResourceTests) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (BackendAddressPoolAddressResourceTests) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.BackendAddressPoolAddressID(state.ID)
 	if err != nil {
 		return nil, err
@@ -150,7 +149,7 @@ func (BackendAddressPoolAddressResourceTests) Destroy(ctx context.Context, clien
 
 // nolint unused - for future use
 func (BackendAddressPoolAddressResourceTests) backendAddressPoolHasAddresses(expected int) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := parse.LoadBalancerBackendAddressPoolID(state.ID)
 		if err != nil {
 			return err

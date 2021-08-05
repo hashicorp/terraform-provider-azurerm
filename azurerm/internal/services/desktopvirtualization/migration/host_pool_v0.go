@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -16,9 +15,9 @@ var _ pluginsdk.StateUpgrade = HostPoolV0ToV1{}
 type HostPoolV0ToV1 struct{}
 
 func (HostPoolV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	return map[string]*schema.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
@@ -28,70 +27,70 @@ func (HostPoolV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
 		"type": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"load_balancer_type": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
 		"friendly_name": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
 
 		"description": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
 
 		"validate_environment": {
-			Type:     schema.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
 
 		"personal_desktop_assignment_type": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
 		},
 
 		"maximum_sessions_allowed": {
-			Type:     schema.TypeInt,
+			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			Default:  999999,
 		},
 
 		"preferred_app_group_type": {
-			Type:        schema.TypeString,
+			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			ForceNew:    true,
 			Description: "Preferred App Group type to display",
 		},
 
 		"registration_info": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"expiration_date": {
-						Type:     schema.TypeString,
+						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 
 					"reset_token": {
-						Type:     schema.TypeBool,
+						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
 
 					"token": {
-						Type:      schema.TypeString,
+						Type:      pluginsdk.TypeString,
 						Sensitive: true,
 						Computed:  true,
 					},

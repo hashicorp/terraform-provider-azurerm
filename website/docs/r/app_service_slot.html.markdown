@@ -421,7 +421,19 @@ The following attributes are exported:
 
 * `default_site_hostname` - The Default Hostname associated with the App Service Slot - such as `mysite.azurewebsites.net`
 
-* `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
+* `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service slot.
+
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this App Service slot.
+
+---
+
+A `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this App Service slot.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service slot.
+
+-> You can access the Principal ID via `azurerm_app_service_slot.example.identity.0.principal_id` and the Tenant ID via `azurerm_app_service_slot.example.identity.0.tenant_id`
 
 ---
 

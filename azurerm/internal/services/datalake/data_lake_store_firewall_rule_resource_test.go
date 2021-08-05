@@ -6,12 +6,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,10 +23,10 @@ func TestAccDataLakeStoreFirewallRule_basic(t *testing.T) {
 	startIP := "1.1.1.1"
 	endIP := "2.2.2.2"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, startIP, endIP),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("start_ip_address").HasValue(startIP),
 				check.That(data.ResourceName).Key("end_ip_address").HasValue(endIP),
@@ -45,10 +44,10 @@ func TestAccDataLakeStoreFirewallRule_requiresImport(t *testing.T) {
 	startIP := "1.1.1.1"
 	endIP := "2.2.2.2"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, startIP, endIP),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -63,10 +62,10 @@ func TestAccDataLakeStoreFirewallRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_firewall_rule", "test")
 	r := DataLakeStoreFirewallRuleResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "1.1.1.1", "2.2.2.2"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("start_ip_address").HasValue("1.1.1.1"),
 				check.That(data.ResourceName).Key("end_ip_address").HasValue("2.2.2.2"),
@@ -74,7 +73,7 @@ func TestAccDataLakeStoreFirewallRule_update(t *testing.T) {
 		},
 		{
 			Config: r.basic(data, "2.2.2.2", "3.3.3.3"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("start_ip_address").HasValue("2.2.2.2"),
 				check.That(data.ResourceName).Key("end_ip_address").HasValue("3.3.3.3"),
@@ -88,10 +87,10 @@ func TestAccDataLakeStoreFirewallRule_azureServices(t *testing.T) {
 	r := DataLakeStoreFirewallRuleResource{}
 	azureServicesIP := "0.0.0.0"
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, azureServicesIP, azureServicesIP),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("start_ip_address").HasValue(azureServicesIP),
 				check.That(data.ResourceName).Key("end_ip_address").HasValue(azureServicesIP),
@@ -101,7 +100,7 @@ func TestAccDataLakeStoreFirewallRule_azureServices(t *testing.T) {
 	})
 }
 
-func (t DataLakeStoreFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t DataLakeStoreFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

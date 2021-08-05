@@ -5,27 +5,27 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceSshPublicKey() *schema.Resource {
-	return &schema.Resource{
+func dataSourceSshPublicKey() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Read: dataSourceSshPublicKeyRead,
 
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 
 			"name": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile("^[-a-zA-Z0-9(_)]{1,128}$"),
@@ -36,7 +36,7 @@ func dataSourceSshPublicKey() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"public_key": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -45,7 +45,7 @@ func dataSourceSshPublicKey() *schema.Resource {
 	}
 }
 
-func dataSourceSshPublicKeyRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSshPublicKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SSHPublicKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -56,9 +56,9 @@ func dataSourceSshPublicKeyRead(d *schema.ResourceData, meta interface{}) error 
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: SSH Public Key %q (Resource Group %q) was not found", name, resGroup)
+			return fmt.Errorf("SSH Public Key %q (Resource Group %q) was not found", name, resGroup)
 		}
-		return fmt.Errorf("[ERROR] Error making Read request on Azure SSH Public Key %q (Resource Group %q): %s", name, resGroup, err)
+		return fmt.Errorf("making Read request on Azure SSH Public Key %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -66,9 +66,14 @@ func dataSourceSshPublicKeyRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 
-	if props := resp.SSHPublicKeyResourceProperties; props != nil {
-		d.Set("public_key", props.PublicKey)
+	var publicKey *string
+	if props := resp.SSHPublicKeyResourceProperties; props.PublicKey != nil {
+		publicKey, err = utils.NormalizeSSHKey(*props.PublicKey)
+		if err != nil {
+			return fmt.Errorf("normalising public key: %+v", err)
+		}
 	}
+	d.Set("public_key", publicKey)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

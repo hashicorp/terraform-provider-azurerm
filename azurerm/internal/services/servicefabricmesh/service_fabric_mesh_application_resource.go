@@ -8,9 +8,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicefabricmesh/mgmt/2018-09-01-preview/servicefabricmesh"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -18,12 +15,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabricmesh/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceServiceFabricMeshApplication() *schema.Resource {
-	return &schema.Resource{
+func resourceServiceFabricMeshApplication() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceServiceFabricMeshApplicationCreateUpdate,
 		Read:   resourceServiceFabricMeshApplicationRead,
 		Update: resourceServiceFabricMeshApplicationCreateUpdate,
@@ -35,16 +33,16 @@ func resourceServiceFabricMeshApplication() *schema.Resource {
 
 		DeprecationMessage: deprecationMessage("azurerm_service_fabric_mesh"),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(90 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(90 * time.Minute),
-			Delete: schema.DefaultTimeout(90 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -56,17 +54,17 @@ func resourceServiceFabricMeshApplication() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"service": {
-				Type:     schema.TypeSet,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"os_type": {
-							Type:     schema.TypeString,
+							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(servicefabricmesh.Linux),
@@ -74,39 +72,39 @@ func resourceServiceFabricMeshApplication() *schema.Resource {
 							}, false),
 						},
 						"code_package": {
-							Type:     schema.TypeSet,
+							Type:     pluginsdk.TypeSet,
 							Required: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"image_name": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"resources": {
-										Type:     schema.TypeList,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
 												"requests": {
-													Type:     schema.TypeList,
+													Type:     pluginsdk.TypeList,
 													Required: true,
 													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
 															"memory": {
-																Type:         schema.TypeFloat,
+																Type:         pluginsdk.TypeFloat,
 																Required:     true,
 																ValidateFunc: validation.FloatAtLeast(0),
 															},
 															"cpu": {
-																Type:         schema.TypeFloat,
+																Type:         pluginsdk.TypeFloat,
 																Required:     true,
 																ValidateFunc: validation.FloatAtLeast(0),
 															},
@@ -114,18 +112,18 @@ func resourceServiceFabricMeshApplication() *schema.Resource {
 													},
 												},
 												"limits": {
-													Type:     schema.TypeList,
+													Type:     pluginsdk.TypeList,
 													Optional: true,
 													MaxItems: 1,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
 															"memory": {
-																Type:         schema.TypeFloat,
+																Type:         pluginsdk.TypeFloat,
 																Required:     true,
 																ValidateFunc: validation.FloatAtLeast(0),
 															},
 															"cpu": {
-																Type:         schema.TypeFloat,
+																Type:         pluginsdk.TypeFloat,
 																Required:     true,
 																ValidateFunc: validation.FloatAtLeast(0),
 															},
@@ -147,7 +145,7 @@ func resourceServiceFabricMeshApplication() *schema.Resource {
 	}
 }
 
-func resourceServiceFabricMeshApplicationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshApplicationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.ApplicationClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,7 +170,7 @@ func resourceServiceFabricMeshApplicationCreateUpdate(d *schema.ResourceData, me
 
 	parameters := servicefabricmesh.ApplicationResourceDescription{
 		ApplicationResourceProperties: &servicefabricmesh.ApplicationResourceProperties{
-			Services: expandServiceFabricMeshApplicationServices(d.Get("service").(*schema.Set).List()),
+			Services: expandServiceFabricMeshApplicationServices(d.Get("service").(*pluginsdk.Set).List()),
 		},
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
@@ -183,16 +181,16 @@ func resourceServiceFabricMeshApplicationCreateUpdate(d *schema.ResourceData, me
 	}
 
 	log.Printf("[DEBUG] Waiting for Service Fabric Mesh Application %q (Resource Group %q) to finish creating", name, resourceGroup)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{string(servicefabricmesh.Creating), string(servicefabricmesh.Upgrading), string(servicefabricmesh.Deleting)},
 		Target:                    []string{string(servicefabricmesh.Ready)},
 		Refresh:                   serviceFabricMeshApplicationCreateRefreshFunc(ctx, client, resourceGroup, name),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
-		Timeout:                   d.Timeout(schema.TimeoutCreate),
+		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Service Fabric Mesh Application %q (Resource Group %q) to become available: %+v", name, resourceGroup, err)
 	}
 
@@ -206,7 +204,7 @@ func resourceServiceFabricMeshApplicationCreateUpdate(d *schema.ResourceData, me
 	return resourceServiceFabricMeshApplicationRead(d, meta)
 }
 
-func resourceServiceFabricMeshApplicationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshApplicationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.ApplicationClient
 	serviceClient := meta.(*clients.Client).ServiceFabricMesh.ServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -249,7 +247,7 @@ func resourceServiceFabricMeshApplicationRead(d *schema.ResourceData, meta inter
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceServiceFabricMeshApplicationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshApplicationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.ApplicationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -282,7 +280,7 @@ func expandServiceFabricMeshApplicationServices(input []interface{}) *[]servicef
 			Name: utils.String(config["name"].(string)),
 			ServiceResourceProperties: &servicefabricmesh.ServiceResourceProperties{
 				OsType:       servicefabricmesh.OperatingSystemType(config["os_type"].(string)),
-				CodePackages: expandServiceFabricMeshCodePackages(config["code_package"].(*schema.Set).List()),
+				CodePackages: expandServiceFabricMeshCodePackages(config["code_package"].(*pluginsdk.Set).List()),
 			},
 		})
 	}
@@ -432,7 +430,7 @@ func flattenServiceFabricMeshApplicationCodePackageResourceLimits(input *service
 	return result
 }
 
-func serviceFabricMeshApplicationCreateRefreshFunc(ctx context.Context, client *servicefabricmesh.ApplicationClient, resourceGroup string, name string) resource.StateRefreshFunc {
+func serviceFabricMeshApplicationCreateRefreshFunc(ctx context.Context, client *servicefabricmesh.ApplicationClient, resourceGroup string, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {

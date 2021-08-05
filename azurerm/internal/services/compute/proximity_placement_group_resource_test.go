@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
-
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,10 +21,10 @@ func TestAccProximityPlacementGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
 	r := ProximityPlacementGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -38,10 +36,10 @@ func TestAccProximityPlacementGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
 	r := ProximityPlacementGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -56,7 +54,7 @@ func TestAccProximityPlacementGroup_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
 	r := ProximityPlacementGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
 			Config:       r.basic,
 			TestResource: r,
@@ -68,10 +66,10 @@ func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
 	r := ProximityPlacementGroupResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
@@ -80,7 +78,7 @@ func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 		},
 		{
 			Config: r.withUpdatedTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
@@ -90,7 +88,7 @@ func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 	})
 }
 
-func (t ProximityPlacementGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t ProximityPlacementGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ProximityPlacementGroupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -104,7 +102,7 @@ func (t ProximityPlacementGroupResource) Exists(ctx context.Context, clients *cl
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (ProximityPlacementGroupResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (ProximityPlacementGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ProximityPlacementGroupID(state.ID)
 	if err != nil {
 		return nil, err

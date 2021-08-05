@@ -6,12 +6,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,10 +21,10 @@ func TestAccDataLakeStore_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
 	r := DataLakeStoreResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tier").HasValue("Consumption"),
 				check.That(data.ResourceName).Key("encryption_state").HasValue("Enabled"),
@@ -40,10 +39,10 @@ func TestAccDataLakeStore_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
 	r := DataLakeStoreResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -58,10 +57,10 @@ func TestAccDataLakeStore_tier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
 	r := DataLakeStoreResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tier(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tier").HasValue("Commitment_1TB"),
 			),
@@ -74,10 +73,10 @@ func TestAccDataLakeStore_encryptionDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
 	r := DataLakeStoreResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.encryptionDisabled(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("encryption_state").HasValue("Disabled"),
 				check.That(data.ResourceName).Key("encryption_type").HasValue(""),
@@ -91,10 +90,10 @@ func TestAccDataLakeStore_firewallUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
 	r := DataLakeStoreResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.firewall(data, "Enabled", "Enabled"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("firewall_state").HasValue("Enabled"),
 				check.That(data.ResourceName).Key("firewall_allow_azure_ips").HasValue("Enabled"),
@@ -102,7 +101,7 @@ func TestAccDataLakeStore_firewallUpdate(t *testing.T) {
 		},
 		{
 			Config: r.firewall(data, "Enabled", "Disabled"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("firewall_state").HasValue("Enabled"),
 				check.That(data.ResourceName).Key("firewall_allow_azure_ips").HasValue("Disabled"),
@@ -110,7 +109,7 @@ func TestAccDataLakeStore_firewallUpdate(t *testing.T) {
 		},
 		{
 			Config: r.firewall(data, "Disabled", "Enabled"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("firewall_state").HasValue("Disabled"),
 				check.That(data.ResourceName).Key("firewall_allow_azure_ips").HasValue("Enabled"),
@@ -118,7 +117,7 @@ func TestAccDataLakeStore_firewallUpdate(t *testing.T) {
 		},
 		{
 			Config: r.firewall(data, "Disabled", "Disabled"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("firewall_state").HasValue("Disabled"),
 				check.That(data.ResourceName).Key("firewall_allow_azure_ips").HasValue("Disabled"),
@@ -131,17 +130,17 @@ func TestAccDataLakeStore_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
 	r := DataLakeStoreResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 			),
 		},
 		{
 			Config: r.withTagsUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
@@ -150,7 +149,7 @@ func TestAccDataLakeStore_withTags(t *testing.T) {
 	})
 }
 
-func (t DataLakeStoreResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t DataLakeStoreResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

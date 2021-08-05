@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/sdk/hybridconnections"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +21,10 @@ func TestAccRelayHybridConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection", "test")
 	r := RelayHybridConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("requires_client_authorization").Exists(),
 			),
@@ -37,10 +37,10 @@ func TestAccRelayHybridConnection_full(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection", "test")
 	r := RelayHybridConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.full(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("requires_client_authorization").Exists(),
 				check.That(data.ResourceName).Key("user_metadata").HasValue("metadatatest"),
@@ -54,17 +54,17 @@ func TestAccRelayHybridConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection", "test")
 	r := RelayHybridConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("requires_client_authorization").Exists(),
 			),
 		},
 		{
 			Config: r.update(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("requires_client_authorization").HasValue("false"),
 				check.That(data.ResourceName).Key("user_metadata").HasValue("metadataupdated"),
 			),
@@ -76,10 +76,10 @@ func TestAccRelayHybridConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection", "test")
 	r := RelayHybridConnectionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("requires_client_authorization").Exists(),
 			),
@@ -88,18 +88,18 @@ func TestAccRelayHybridConnection_requiresImport(t *testing.T) {
 	})
 }
 
-func (t RelayHybridConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.HybridConnectionID(state.ID)
+func (t RelayHybridConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := hybridconnections.ParseHybridConnectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Relay.HybridConnectionsClient.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
+	resp, err := clients.Relay.HybridConnectionsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Relay Hybrid Connection (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.HybridConnectionProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (RelayHybridConnectionResource) basic(data acceptance.TestData) string {

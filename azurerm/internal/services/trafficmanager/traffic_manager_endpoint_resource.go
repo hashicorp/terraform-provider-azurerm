@@ -5,9 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-08-01/trafficmanager"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -16,14 +14,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // TODO: split and deprecate this resource prior to 3.0
 
-func resourceArmTrafficManagerEndpoint() *schema.Resource {
-	return &schema.Resource{
+func resourceArmTrafficManagerEndpoint() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceArmTrafficManagerEndpointCreateUpdate,
 		Read:   resourceArmTrafficManagerEndpointRead,
 		Update: resourceArmTrafficManagerEndpointCreateUpdate,
@@ -31,23 +30,23 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 		// TODO: replace this with an importer which validates the ID during import
 		Importer: pluginsdk.DefaultImporter(),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"profile_name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -56,7 +55,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"type": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -67,19 +66,19 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 			},
 
 			"target": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				// when targeting an Azure resource the FQDN of that resource will be set as the target
 				Computed: true,
 			},
 
 			"target_resource_id": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"endpoint_status": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -90,14 +89,14 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 			},
 
 			"weight": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
 			"priority": {
-				Type:         schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 1000),
@@ -105,42 +104,54 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 
 			// when targeting an Azure resource the location of that resource will be set on the endpoint
 			"endpoint_location": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
 				StateFunc:        location.StateFunc,
 				DiffSuppressFunc: location.DiffSuppressFunc,
 			},
 
+			// TODO 3.0: rename this to `minimum_child_endpoints` to align with the other twos below.
 			"min_child_endpoints": {
-				Type:     schema.TypeInt,
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
+
+			"minimum_required_child_endpoints_ipv4": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+			},
+
+			"minimum_required_child_endpoints_ipv6": {
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 			},
 
 			"geo_mappings": {
-				Type:     schema.TypeList,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:     pluginsdk.TypeList,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Optional: true,
 			},
 
 			"endpoint_monitor_status": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"custom_header": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				ForceNew: true,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.NoZeroValues,
 						},
 						"value": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.NoZeroValues,
 						},
@@ -149,23 +160,23 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 			},
 
 			"subnet": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				ForceNew: true,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
 						"first": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.IPv4Address,
 						},
 						"last": {
-							Type:         schema.TypeString,
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validate.IPv4Address,
 						},
 						"scope": {
-							Type:         schema.TypeInt,
+							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(0, 32),
 						},
@@ -176,7 +187,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 	}
 }
 
-func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTrafficManagerEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -222,7 +233,7 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta 
 	return resourceArmTrafficManagerEndpointRead(d, meta)
 }
 
-func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTrafficManagerEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -254,7 +265,10 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 		d.Set("priority", props.Priority)
 		d.Set("endpoint_location", props.EndpointLocation)
 		d.Set("endpoint_monitor_status", props.EndpointMonitorStatus)
+
 		d.Set("min_child_endpoints", props.MinChildEndpoints)
+		d.Set("minimum_required_child_endpoints_ipv4", props.MinChildEndpointsIPv4)
+		d.Set("minimum_required_child_endpoints_ipv6", props.MinChildEndpointsIPv6)
 		d.Set("geo_mappings", props.GeoMapping)
 		if err := d.Set("subnet", flattenAzureRMTrafficManagerEndpointSubnetConfig(props.Subnets)); err != nil {
 			return fmt.Errorf("setting `subnet`: %s", err)
@@ -266,7 +280,7 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTrafficManagerEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -286,7 +300,7 @@ func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmanager.EndpointProperties {
+func getArmTrafficManagerEndpointProperties(d *pluginsdk.ResourceData) *trafficmanager.EndpointProperties {
 	target := d.Get("target").(string)
 	status := d.Get("endpoint_status").(string)
 
@@ -324,9 +338,19 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 		endpointProps.Priority = utils.Int64(int64(priority))
 	}
 
-	if minChildEndpoints := d.Get("min_child_endpoints").(int); minChildEndpoints != 0 {
-		mci64 := int64(minChildEndpoints)
-		endpointProps.MinChildEndpoints = &mci64
+	minChildEndpoints := d.Get("min_child_endpoints").(int)
+	if minChildEndpoints > 0 {
+		endpointProps.MinChildEndpoints = utils.Int64(int64(minChildEndpoints))
+	}
+
+	minChildEndpointsIPv4 := d.Get("minimum_required_child_endpoints_ipv4").(int)
+	if minChildEndpointsIPv4 > 0 {
+		endpointProps.MinChildEndpointsIPv4 = utils.Int64(int64(minChildEndpointsIPv4))
+	}
+
+	minChildEndpointsIPv6 := d.Get("minimum_required_child_endpoints_ipv6").(int)
+	if minChildEndpointsIPv6 > 0 {
+		endpointProps.MinChildEndpointsIPv6 = utils.Int64(int64(minChildEndpointsIPv6))
 	}
 
 	subnetSlice := make([]trafficmanager.EndpointPropertiesSubnetsItem, 0)

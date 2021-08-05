@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 /*
@@ -35,7 +35,7 @@ func TestVirtualNetworkRuleInvalidNameValidation(t *testing.T) {
 		},
 		// Cannot be more than 64 characters (1 case - ensure starts with a letter)
 		{
-			Value:    fmt.Sprintf("v%s", acctest.RandString(64)),
+			Value:    fmt.Sprintf("v%s", acceptance.RandString(64)),
 			ErrCount: 1,
 		},
 		// Cannot be empty (1 case)
@@ -163,7 +163,7 @@ func TestVirtualNetworkRuleValidNameValidation(t *testing.T) {
 		},
 		// Test exactly 64 characters
 		{
-			Value:    fmt.Sprintf("v%s", acctest.RandString(63)),
+			Value:    fmt.Sprintf("v%s", acceptance.RandString(63)),
 			ErrCount: 0,
 		},
 	}
