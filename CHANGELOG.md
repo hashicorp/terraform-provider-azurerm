@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_databricks_workspace_private_endpoint_connection` [GH-12543]
+* **New Resource:** `azurerm_api_management_tag` [GH-12535]
 * **New Resource:** `azurerm_bot_channel_line` [GH-12746]
 * **New Resource:** `azurerm_cdn_endpoint_custom_domain` [GH-12496]
 * **New Resource:** `azurerm_data_factory_data_flow` [GH-12588]
