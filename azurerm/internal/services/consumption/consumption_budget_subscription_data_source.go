@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/consumption/parse"
+	subscriptionParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 )
 
@@ -19,18 +20,18 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 }
 
 func resourceArmConsumptionBudgetSubscriptionDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	subscriptionId := parse.NewConsumptionBudgetSubscriptionID(d.Get("subscription_id").(string), d.Get("name").(string))
+	name := d.Get("name").(string)
+	subscriptionID := subscriptionParse.NewSubscriptionId(d.Get("subscription_id").(string))
 
-	err := resourceArmConsumptionBudgetRead(d, meta, d.Get("subscription_id").(string), d.Get("name").(string))
+	err := resourceArmConsumptionBudgetRead(d, meta, subscriptionID.ID(), name)
 
 	if err != nil {
-		return fmt.Errorf("error making read request on Azure Consumption Budget %q for scope %q: %+v", d.Get("name").(string), subscriptionId.ID(), err)
+		return fmt.Errorf("error making read request on Azure Consumption Budget %q for scope %q: %+v", d.Get("name").(string), subscriptionID.ID(), err)
 	}
 
-	d.SetId(parse.NewConsumptionBudgetSubscriptionID(subscriptionId.SubscriptionId, d.Get("name").(string)).ID())
+	d.SetId(parse.NewConsumptionBudgetSubscriptionID(subscriptionID.SubscriptionID, d.Get("name").(string)).ID())
 
-	// The scope of a Resource Group consumption budget is the Resource Group ID
-	d.Set("resource_group_id", d.Get("resource_group_id").(string))
+	// The scope of a Subscription budget resource is the Subscription budget ID
 	d.Set("subscription_id", d.Get("subscription_id").(string))
 
 	return nil
