@@ -62,41 +62,42 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeBool,
 				Optional:      true,
 				Default:       false,
-				ConflictsWith: []string{"service_principal_key", "service_principal_id", "storage_account_key"},
-				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "storage_account_key", "use_managed_identity"},
+				ConflictsWith: []string{"service_principal_key", "service_principal_id", "storage_account_key", "tenant"},
+				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "tenant", "storage_account_key", "use_managed_identity"},
 			},
 
 			"service_principal_id": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ValidateFunc:  validation.IsUUID,
-				RequiredWith:  []string{"service_principal_key"},
+				RequiredWith:  []string{"service_principal_key", "tenant"},
 				ConflictsWith: []string{"storage_account_key", "use_managed_identity"},
-				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "storage_account_key", "use_managed_identity"},
+				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "tenant", "storage_account_key", "use_managed_identity"},
 			},
 
 			"service_principal_key": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ValidateFunc:  validation.StringIsNotEmpty,
-				RequiredWith:  []string{"service_principal_id"},
+				RequiredWith:  []string{"service_principal_id", "tenant"},
 				ConflictsWith: []string{"storage_account_key", "use_managed_identity"},
-				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "storage_account_key", "use_managed_identity"},
+				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "tenant", "storage_account_key", "use_managed_identity"},
 			},
 
 			"storage_account_key": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				ConflictsWith: []string{"service_principal_id", "service_principal_key", "use_managed_identity"},
-				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "storage_account_key", "use_managed_identity"},
+				ConflictsWith: []string{"service_principal_id", "service_principal_key", "use_managed_identity", "tenant"},
+				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "tenant", "storage_account_key", "use_managed_identity"},
 			},
 
 			"tenant": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ValidateFunc:  validation.StringIsNotEmpty,
-				RequiredWith:  []string{"service_principal_id"},
+				RequiredWith:  []string{"service_principal_id", "service_principal_key"},
 				ConflictsWith: []string{"storage_account_key", "use_managed_identity"},
+				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "tenant", "storage_account_key", "use_managed_identity"},
 			},
 
 			"description": {
@@ -269,6 +270,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2Read(d *pluginsdk.Resour
 
 	if dataLakeStorageGen2.ServicePrincipalID != nil {
 		d.Set("service_principal_id", dataLakeStorageGen2.ServicePrincipalID)
+		d.Set("use_managed_identity", false)
 	}
 
 	if dataLakeStorageGen2.URL != nil {
