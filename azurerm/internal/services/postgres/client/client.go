@@ -13,6 +13,7 @@ type Client struct {
 	FlexibleServersClient               *postgresqlflexibleservers.ServersClient
 	FlexibleServersConfigurationsClient *postgresqlflexibleservers.ConfigurationsClient
 	FlexibleServerFirewallRuleClient    *postgresqlflexibleservers.FirewallRulesClient
+	FlexibleServerDatabaseClient        *postgresqlflexibleservers.DatabasesClient
 	ServersClient                       *postgresql.ServersClient
 	ServerKeysClient                    *postgresql.ServerKeysClient
 	ServerSecurityAlertPoliciesClient   *postgresql.ServerSecurityAlertPoliciesClient
@@ -52,8 +53,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	flexibleServersClient := postgresqlflexibleservers.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&flexibleServersClient.Client, o.ResourceManagerAuthorizer)
 
-	FlexibleServerFirewallRuleClient := postgresqlflexibleservers.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&FlexibleServerFirewallRuleClient.Client, o.ResourceManagerAuthorizer)
+	flexibleServerFirewallRuleClient := postgresqlflexibleservers.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&flexibleServerFirewallRuleClient.Client, o.ResourceManagerAuthorizer)
+
+	flexibleServerDatabaseClient := postgresqlflexibleservers.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&flexibleServerDatabaseClient.Client, o.ResourceManagerAuthorizer)
 
 	flexibleServerConfigurationsClient := postgresqlflexibleservers.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&flexibleServerConfigurationsClient.Client, o.ResourceManagerAuthorizer)
@@ -64,7 +68,8 @@ func NewClient(o *common.ClientOptions) *Client {
 		FirewallRulesClient:                 &firewallRulesClient,
 		FlexibleServersConfigurationsClient: &flexibleServerConfigurationsClient,
 		FlexibleServersClient:               &flexibleServersClient,
-		FlexibleServerFirewallRuleClient:    &FlexibleServerFirewallRuleClient,
+		FlexibleServerFirewallRuleClient:    &flexibleServerFirewallRuleClient,
+		FlexibleServerDatabaseClient:        &flexibleServerDatabaseClient,
 		ServersClient:                       &serversClient,
 		ServerKeysClient:                    &serverKeysClient,
 		ServerSecurityAlertPoliciesClient:   &serverSecurityAlertPoliciesClient,

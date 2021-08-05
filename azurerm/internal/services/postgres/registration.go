@@ -39,5 +39,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_postgresql_flexible_server":                resourcePostgresqlFlexibleServer(),
 		"azurerm_postgresql_flexible_server_firewall_rule":  resourcePostgresqlFlexibleServerFirewallRule(),
 		"azurerm_postgresql_flexible_server_configuration":  resourcePostgresqlFlexibleServerConfiguration(),
+		"azurerm_postgresql_flexible_server_database":       resourcePostgresqlFlexibleServerDatabase(),
 	}
 }
