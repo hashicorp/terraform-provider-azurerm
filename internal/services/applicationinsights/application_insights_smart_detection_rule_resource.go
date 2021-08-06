@@ -194,7 +194,7 @@ func smartDetectionRuleNameDiff(_, old string, new string, _ *pluginsdk.Resource
 }
 
 func convertUiNameToApiName(uiName interface{}) string {
-	var apiName string
+	apiName := uiName.(string)
 	switch uiName.(string) {
 	case "Slow page load time":
 		apiName = "slowpageloadtime"
