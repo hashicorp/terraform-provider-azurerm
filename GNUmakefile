@@ -49,8 +49,8 @@ terrafmt:
 	@find . | egrep html.markdown | sort | while read f; do terrafmt fmt $$f; done
 
 generate:
-	go generate ./azurerm/internal/services/...
-	go generate ./azurerm/internal/provider/
+	go generate ./internal/services/...
+	go generate ./internal/provider/
 
 goimports:
 	@echo "==> Fixing imports code with goimports..."
@@ -102,7 +102,7 @@ testacc: fmtcheck
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 
 acctests: fmtcheck
-	TF_ACC=1 go test -v ./azurerm/internal/services/$(SERVICE) $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
+	TF_ACC=1 go test -v ./internal/services/$(SERVICE) $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 
 debugacc: fmtcheck
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
