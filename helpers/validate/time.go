@@ -5,8 +5,8 @@ import (
 	"time"
 
 	iso8601 "github.com/btubbs/datetime"
-	"github.com/rickb777/date/period"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/rickb777/date/period"
 )
 
 func ISO8601Duration(i interface{}, k string) (warnings []string, errors []error) {

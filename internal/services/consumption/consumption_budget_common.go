@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption"
-	"github.com/shopspring/decimal"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/shopspring/decimal"
 )
 
 func resourceArmConsumptionBudgetRead(d *pluginsdk.ResourceData, meta interface{}, scope, name string) error {

@@ -6,9 +6,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/shopspring/decimal"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/shopspring/decimal"
 )
 
 // expand and flatten
