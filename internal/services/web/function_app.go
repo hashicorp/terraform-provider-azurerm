@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -151,6 +152,18 @@ func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Default:  false,
 				},
+
+				"dotnet_framework_version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  "v4.0",
+					ValidateFunc: validation.StringInSlice([]string{
+						"v4.0",
+						"v5.0",
+						"v6.0",
+					}, true),
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
 			},
 		},
 	}
@@ -246,6 +259,11 @@ func schemaFunctionAppDataSourceSiteConfig() *pluginsdk.Schema {
 
 				"runtime_scale_monitoring_enabled": {
 					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"dotnet_framework_version": {
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 			},
@@ -456,6 +474,10 @@ func expandFunctionAppSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig, err
 		siteConfig.FunctionsRuntimeScaleMonitoringEnabled = utils.Bool(v.(bool))
 	}
 
+	if v, ok := config["dotnet_framework_version"]; ok {
+		siteConfig.NetFrameworkVersion = utils.String(v.(string))
+	}
+
 	return siteConfig, nil
 }
 
@@ -528,6 +550,10 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.FunctionsRuntimeScaleMonitoringEnabled != nil {
 		result["runtime_scale_monitoring_enabled"] = *input.FunctionsRuntimeScaleMonitoringEnabled
+	}
+
+	if input.NetFrameworkVersion != nil {
+		result["dotnet_framework_version"] = *input.NetFrameworkVersion
 	}
 
 	results = append(results, result)
