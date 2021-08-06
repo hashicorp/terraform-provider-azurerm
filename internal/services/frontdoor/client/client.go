@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-05-01/frontdoor"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
