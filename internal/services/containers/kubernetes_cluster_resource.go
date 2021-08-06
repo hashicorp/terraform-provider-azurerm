@@ -1165,7 +1165,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			props.EnableRBAC = utils.Bool(rbacEnabled)
 
 			// Reset AAD profile is only possible if not managed
-			if props.AadProfile.Managed == nil || !*props.AadProfile.Managed {
+			if props.AadProfile == nil || props.AadProfile.Managed == nil || !*props.AadProfile.Managed {
 				log.Printf("[DEBUG] Updating the RBAC AAD profile")
 				future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.ManagedClusterName, *props.AadProfile)
 				if err != nil {
@@ -2017,7 +2017,7 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 
 func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, providerTenantId string) (bool, *containerservice.ManagedClusterAADProfile, error) {
 	if len(input) == 0 {
-		return false, &containerservice.ManagedClusterAADProfile{}, nil
+		return false, nil, nil
 	}
 
 	val := input[0].(map[string]interface{})
