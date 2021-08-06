@@ -2017,7 +2017,7 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 
 func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, providerTenantId string) (bool, *containerservice.ManagedClusterAADProfile, error) {
 	if len(input) == 0 {
-		return false, nil, nil
+		return false, &containerservice.ManagedClusterAADProfile{}, nil
 	}
 
 	val := input[0].(map[string]interface{})
