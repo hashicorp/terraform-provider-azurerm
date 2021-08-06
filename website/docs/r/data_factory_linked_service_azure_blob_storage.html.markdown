@@ -39,10 +39,10 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "example" {
 }
 ```
 
-## Example Usage with SAS Uri and SAS token.
+## Example Usage with SAS Uri and SAS Token.
 
 ```hcl
-resource "azurerm_resource_group" "example" {
+resource "azurerm_resource_group" "test" {
   name     = "example-resources"
   location = "West Europe"
 }
