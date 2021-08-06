@@ -69,7 +69,7 @@ Elements of `security_rule` support:
 
 * `description` - (Optional) A description for this rule. Restricted to 140 characters.
 
-* `protocol` - (Required) Network protocol this rule applies to. Can be `Tcp`, `Udp`, `Icmp`, or `*` to match all.
+* `protocol` - (Required) Network protocol this rule applies to. Possible values include `Tcp`, `Udp`, `Icmp`, `Esp`, `Ah` or `*` (which matches all).
 
 * `source_port_range` - (Optional) Source Port or Range. Integer or range between `0` and `65535` or `*` to match any. This is required if `source_port_ranges` is not specified.
 

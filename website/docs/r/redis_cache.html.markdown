@@ -13,7 +13,7 @@ Manages a Redis Cache.
 
 ## Example Usage
 
-This example provisions a Standard Redis Cache. Other examples of the `azurerm_redis_cache` resource can be found in [the `./examples/redis-cache` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/redis-cache)
+This example provisions a Standard Redis Cache. Other examples of the `azurerm_redis_cache` resource can be found in [the `./examples/redis-cache` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/redis-cache)
 
 ```hcl
 resource "azurerm_resource_group" "example" {
