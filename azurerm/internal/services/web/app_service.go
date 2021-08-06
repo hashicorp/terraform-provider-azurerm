@@ -303,6 +303,7 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 						"v2.0",
 						"v4.0",
 						"v5.0",
+						"v6.0",
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
