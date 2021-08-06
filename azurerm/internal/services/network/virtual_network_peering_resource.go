@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -226,7 +226,7 @@ func retryVnetPeeringsClientCreateUpdate(d *pluginsdk.ResourceData, resGroup str
 		ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
-		future, err := vnetPeeringsClient.CreateOrUpdate(ctx, resGroup, vnetName, name, peer)
+		future, err := vnetPeeringsClient.CreateOrUpdate(ctx, resGroup, vnetName, name, peer, network.SyncRemoteAddressSpaceTrue)
 		if err != nil {
 			if utils.ResponseErrorIsRetryable(err) {
 				return pluginsdk.RetryableError(err)
