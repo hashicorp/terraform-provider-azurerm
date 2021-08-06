@@ -316,7 +316,7 @@ func resourceDataFactoryTriggerTumblingWindowRead(d *pluginsdk.ResourceData, met
 
 	trigger, ok := resp.Properties.AsTumblingWindowTrigger()
 	if !ok {
-		return fmt.Errorf("classifiying %s: Expected: %q", id, datafactory.TypeBasicTriggerTypeTumblingWindowTrigger)
+		return fmt.Errorf("Error classifying %s: Expected: %q", id, datafactory.TypeBasicTriggerTypeTumblingWindowTrigger)
 	}
 
 	d.Set("name", id.Name)

@@ -203,7 +203,7 @@ func resourceDataFactoryLinkedServiceAzureFunctionRead(d *pluginsdk.ResourceData
 
 	azureFunction, ok := resp.Properties.AsAzureFunctionLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureFunction, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureFunction, *resp.Type)
 	}
 
 	d.Set("url", azureFunction.AzureFunctionLinkedServiceTypeProperties.FunctionAppURL)

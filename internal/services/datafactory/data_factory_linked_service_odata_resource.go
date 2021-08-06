@@ -233,7 +233,7 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *pluginsdk.ResourceData, met
 
 	odata, ok := resp.Properties.AsODataLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service OData %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeOData, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Linked Service OData %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeOData, *resp.Type)
 	}
 
 	props := odata.ODataLinkedServiceTypeProperties

@@ -208,7 +208,7 @@ func resourceDataFactoryLinkedServiceKeyVaultRead(d *pluginsdk.ResourceData, met
 
 	keyVault, ok := resp.Properties.AsAzureKeyVaultLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Key Vault %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureKeyVault, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Linked Service Key Vault %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureKeyVault, *resp.Type)
 	}
 
 	d.Set("additional_properties", keyVault.AdditionalProperties)

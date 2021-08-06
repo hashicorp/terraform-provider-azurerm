@@ -237,7 +237,7 @@ func resourceDataFactoryLinkedServiceWebRead(d *pluginsdk.ResourceData, meta int
 
 	web, ok := resp.Properties.AsWebLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Web %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeWeb, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Linked Service Web %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeWeb, *resp.Type)
 	}
 
 	isWebPropertiesLoaded := false

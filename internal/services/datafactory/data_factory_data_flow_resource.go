@@ -183,7 +183,7 @@ func resourceDataFactoryDataFlowRead(d *pluginsdk.ResourceData, meta interface{}
 
 	mappingDataFlow, ok := resp.Properties.AsMappingDataFlow()
 	if !ok {
-		return fmt.Errorf("classifying type of %s: Expected: %q", id, datafactory.TypeBasicDataFlowTypeMappingDataFlow)
+		return fmt.Errorf("Error classifying type of %s: Expected: %q", id, datafactory.TypeBasicDataFlowTypeMappingDataFlow)
 	}
 
 	d.Set("name", id.Name)

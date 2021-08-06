@@ -261,7 +261,7 @@ func resourceDataFactoryDatasetMySQLRead(d *pluginsdk.ResourceData, meta interfa
 
 	mysqlTable, ok := resp.Properties.AsRelationalTableDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset MySQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypeMySQLTable, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Dataset MySQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypeMySQLTable, *resp.Type)
 	}
 
 	d.Set("additional_properties", mysqlTable.AdditionalProperties)

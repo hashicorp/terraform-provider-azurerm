@@ -249,7 +249,7 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 
 	sftp, ok := resp.Properties.AsSftpServerLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service SFTP %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeSftp, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Linked Service SFTP %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeSftp, *resp.Type)
 	}
 
 	d.Set("authentication_type", sftp.AuthenticationType)
