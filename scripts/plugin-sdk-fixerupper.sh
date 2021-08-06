@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 PACKAGE_NAME="$1"
-SERVICE_DIRECTORY="./azurerm/internal/services/$PACKAGE_NAME"
+SERVICE_DIRECTORY="./internal/services/$PACKAGE_NAME"
 
 function updateTests {
   echo "Updating Tests.."
