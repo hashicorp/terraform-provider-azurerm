@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * SignalR: refactoring to use an Embedded SDK [GH-12785]
 * `azurerm_api_management_api_diagnostic` - support for the `operation_name_format` property [GH-12782]
 * `azurerm_app_service` - support for the acr_use_managed_identity_credentials and acr_user_managed_identity_client_id properties [GH-12745]
+* `azurerm_app_service` - support `v6.0` for the `dotnet_framework_version` property [GH-12788]
 * `azurerm_application_insights` - support for the `workspace_id` property [GH-12818]
 * `azurerm_databricks_workspace` - support for private link endpoint [GH-12543]
 * `azurerm_databricks_workspace` - add support for `Customer Managed Keys for Managed Services` [GH-12799]
