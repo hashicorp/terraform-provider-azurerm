@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -215,9 +214,7 @@ func resourceDataProtectionBackupInstanceDiskDelete(d *schema.ResourceData, meta
 
 	future, err := client.Delete(ctx, id.BackupVaultName, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
+
 		return fmt.Errorf("deleting DataProtection BackupInstance (%q): %+v", id, err)
 	}
 

@@ -203,9 +203,6 @@ func resourceVirtualWanDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		// deleted outside of Terraform
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 
 		return fmt.Errorf("deleting Virtual WAN %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
