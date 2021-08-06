@@ -98,7 +98,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web"
 )
 
-//go:generate go run ../tools/generator-services/main.go -path=../../../
+//go:generate go run ../tools/generator-services/main.go -path=../../
 
 func SupportedTypedServices() []sdk.TypedServiceRegistration {
 	return []sdk.TypedServiceRegistration{

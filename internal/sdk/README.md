@@ -4,7 +4,7 @@ This package is a prototype for creating strongly-typed Data Sources and Resourc
 
 ## Should I use this package to build resources?
 
-Not at this time - please use Terraform's Plugin SDK instead - reference examples can be found in `./azurerm/internal/services/notificationhub`.
+Not at this time - please use Terraform's Plugin SDK instead - reference examples can be found in `./internal/services/notificationhub`.
 
 More documentation for this package will ship in the future when this is ready for general use.
 
@@ -30,13 +30,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/internal/location"
-	"github.com/terraform-providers/terraform-provider-azurerm/internal/sdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/internal/services/resource/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/internal/services/resource/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ResourceGroup struct {
