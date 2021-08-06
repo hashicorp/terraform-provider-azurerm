@@ -13,7 +13,7 @@
             </allowed-headers>
         </cors>
         <send-request mode="new" response-variable-name="getCertResponse" timeout="10" ignore-error="false">
-            <set-url>https://github.com/terraform-providers/terraform-provider-azurerm</set-url>
+            <set-url>https://github.com/hashicorp/terraform-provider-azurerm</set-url>
             <set-method>GET</set-method>
             <set-header name="Authorization" exists-action="override">
                 <value>@(context.Request.Headers.GetValueOrDefault("Authorization",""))</value>
