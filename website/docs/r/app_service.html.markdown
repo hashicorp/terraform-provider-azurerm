@@ -15,7 +15,7 @@ Manages an App Service (within an App Service Plan).
 
 ## Example Usage
 
-This example provisions a Windows App Service. Other examples of the `azurerm_app_service` resource can be found in [the `./examples/app-service` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/app-service)
+This example provisions a Windows App Service. Other examples of the `azurerm_app_service` resource can be found in [the `./examples/app-service` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/app-service)
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -227,7 +227,7 @@ A `site_config` block supports the following:
 
 * `windows_fx_version` - (Optional) The Windows Docker container image (`DOCKER|<user/image:tag>`)
 
-Additional examples of how to run Containers via the `azurerm_app_service` resource can be found in [the `./examples/app-service` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/app-service).
+Additional examples of how to run Containers via the `azurerm_app_service` resource can be found in [the `./examples/app-service` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/app-service).
 
 * `managed_pipeline_mode` - (Optional) The Managed Pipeline Mode. Possible values are `Integrated` and `Classic`. Defaults to `Integrated`.
 
