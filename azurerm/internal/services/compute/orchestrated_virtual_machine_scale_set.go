@@ -8,58 +8,93 @@ import (
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/base64"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func OrchestratedVirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk.Schema {
+func OrchestratedVirtualMachineScaleSetOSProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				// NOTE: requires registration to use:
-				// $ az feature show --namespace Microsoft.Compute --name UltraSSDWithVMSS
-				// $ az provider register -n Microsoft.Compute
-				"ultra_ssd_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-					ForceNew: true,
-				},
+				"windows_configuration": OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema(),
+				"linux_configuration":   OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema(),
 			},
 		},
 	}
 }
 
-func ExpandOrchestratedVirtualMachineScaleSetAdditionalCapabilities(input []interface{}) *compute.AdditionalCapabilities {
-	capabilities := compute.AdditionalCapabilities{}
+func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"admin_username": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 
-	if len(input) > 0 {
-		raw := input[0].(map[string]interface{})
+				"admin_password": {
+					Type:             pluginsdk.TypeString,
+					Required:         true,
+					ForceNew:         true,
+					Sensitive:        true,
+					DiffSuppressFunc: adminPasswordDiffSuppressFunc,
+					ValidateFunc:     validation.StringIsNotEmpty,
+				},
 
-		capabilities.UltraSSDEnabled = utils.Bool(raw["ultra_ssd_enabled"].(bool))
+				"computer_name_prefix":        OrchestratedVirtualMachineScaleSetComputerPrefixWindowsSchema(),
+				"custom_data":                 base64.OptionalSchema(false),
+				"additional_unattend_content": additionalUnattendContentSchema(),
+
+				"enable_automatic_updates": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
+
+				"provision_vm_agent": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+					ForceNew: true,
+				},
+
+				"secret":         windowsSecretSchema(),
+				"winrm_listener": winRmListenerSchema(),
+			},
+		},
 	}
-
-	return &capabilities
 }
 
-func FlattenOrchestratedVirtualMachineScaleSetAdditionalCapabilities(input *compute.AdditionalCapabilities) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
+func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"admin_ssh_key":        SSHKeysSchema(false),
+				"computer_name_prefix": OrchestratedVirtualMachineScaleSetComputerPrefixLinuxSchema(),
+				"custom_data":          base64.OptionalSchema(false),
 
-	ultraSsdEnabled := false
+				"provision_vm_agent": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+					ForceNew: true,
+				},
 
-	if input.UltraSSDEnabled != nil {
-		ultraSsdEnabled = *input.UltraSSDEnabled
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"ultra_ssd_enabled": ultraSsdEnabled,
+				"secret": linuxSecretSchema(),
+			},
 		},
 	}
 }
@@ -285,13 +320,6 @@ func orchestratedVirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema
 					Set:      pluginsdk.HashString,
 				},
 
-				"load_balancer_inbound_nat_rules_ids": {
-					Type:     pluginsdk.TypeSet,
-					Optional: true,
-					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-					Set:      pluginsdk.HashString,
-				},
-
 				"primary": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -348,14 +376,6 @@ func orchestratedVirtualMachineScaleSetIPConfigurationSchemaForDataSource() *plu
 				},
 
 				"load_balancer_backend_address_pool_ids": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-
-				"load_balancer_inbound_nat_rules_ids": {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &pluginsdk.Schema{
@@ -546,9 +566,6 @@ func expandOrchestratedVirtualMachineScaleSetIPConfiguration(raw map[string]inte
 	loadBalancerBackendAddressPoolIdsRaw := raw["load_balancer_backend_address_pool_ids"].(*pluginsdk.Set).List()
 	loadBalancerBackendAddressPoolIds := expandIDsToSubResources(loadBalancerBackendAddressPoolIdsRaw)
 
-	loadBalancerInboundNatPoolIdsRaw := raw["load_balancer_inbound_nat_rules_ids"].(*pluginsdk.Set).List()
-	loadBalancerInboundNatPoolIds := expandIDsToSubResources(loadBalancerInboundNatPoolIdsRaw)
-
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
 	if primary && version == compute.IPv6 {
@@ -563,7 +580,6 @@ func expandOrchestratedVirtualMachineScaleSetIPConfiguration(raw map[string]inte
 			ApplicationGatewayBackendAddressPools: applicationGatewayBackendAddressPoolIds,
 			ApplicationSecurityGroups:             applicationSecurityGroupIds,
 			LoadBalancerBackendAddressPools:       loadBalancerBackendAddressPoolIds,
-			LoadBalancerInboundNatPools:           loadBalancerInboundNatPoolIds,
 		},
 	}
 
@@ -676,9 +692,6 @@ func expandOrchestratedVirtualMachineScaleSetIPConfigurationUpdate(raw map[strin
 	loadBalancerBackendAddressPoolIdsRaw := raw["load_balancer_backend_address_pool_ids"].(*pluginsdk.Set).List()
 	loadBalancerBackendAddressPoolIds := expandIDsToSubResources(loadBalancerBackendAddressPoolIdsRaw)
 
-	loadBalancerInboundNatPoolIdsRaw := raw["load_balancer_inbound_nat_rules_ids"].(*pluginsdk.Set).List()
-	loadBalancerInboundNatPoolIds := expandIDsToSubResources(loadBalancerInboundNatPoolIdsRaw)
-
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
 
@@ -694,7 +707,6 @@ func expandOrchestratedVirtualMachineScaleSetIPConfigurationUpdate(raw map[strin
 			ApplicationGatewayBackendAddressPools: applicationGatewayBackendAddressPoolIds,
 			ApplicationSecurityGroups:             applicationSecurityGroupIds,
 			LoadBalancerBackendAddressPools:       loadBalancerBackendAddressPoolIds,
-			LoadBalancerInboundNatPools:           loadBalancerInboundNatPoolIds,
 		},
 	}
 
@@ -809,7 +821,6 @@ func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input compute.Virt
 	applicationGatewayBackendAddressPoolIds := flattenSubResourcesToIDs(input.ApplicationGatewayBackendAddressPools)
 	applicationSecurityGroupIds := flattenSubResourcesToIDs(input.ApplicationSecurityGroups)
 	loadBalancerBackendAddressPoolIds := flattenSubResourcesToIDs(input.LoadBalancerBackendAddressPools)
-	loadBalancerInboundNatRuleIds := flattenSubResourcesToIDs(input.LoadBalancerInboundNatPools)
 
 	return map[string]interface{}{
 		"name":              name,
@@ -820,7 +831,6 @@ func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input compute.Virt
 		"application_gateway_backend_address_pool_ids": applicationGatewayBackendAddressPoolIds,
 		"application_security_group_ids":               applicationSecurityGroupIds,
 		"load_balancer_backend_address_pool_ids":       loadBalancerBackendAddressPoolIds,
-		"load_balancer_inbound_nat_rules_ids":          loadBalancerInboundNatRuleIds,
 	}
 }
 
@@ -867,6 +877,30 @@ func FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input compute.Virt
 		"idle_timeout_in_minutes": idleTimeoutInMinutes,
 		"ip_tag":                  ipTags,
 		"public_ip_prefix_id":     publicIPPrefixId,
+	}
+}
+
+func OrchestratedVirtualMachineScaleSetComputerPrefixWindowsSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeString,
+		Optional: true,
+
+		// Computed since we reuse the VM name if one's not specified
+		Computed:     true,
+		ForceNew:     true,
+		ValidateFunc: validate.WindowsComputerNamePrefix,
+	}
+}
+
+func OrchestratedVirtualMachineScaleSetComputerPrefixLinuxSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeString,
+		Optional: true,
+
+		// Computed since we reuse the VM name if one's not specified
+		Computed:     true,
+		ForceNew:     true,
+		ValidateFunc: validate.LinuxComputerNamePrefix,
 	}
 }
 
@@ -1227,142 +1261,6 @@ func FlattenOrchestratedVirtualMachineScaleSetOSDisk(input *compute.VirtualMachi
 			"storage_account_type":      storageAccountType,
 			"write_accelerator_enabled": writeAcceleratorEnabled,
 			"disk_encryption_set_id":    diskEncryptionSetId,
-		},
-	}
-}
-
-func OrchestratedVirtualMachineScaleSetAutomatedOSUpgradePolicySchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				// TODO: should these be optional + defaulted?
-				"disable_automatic_rollback": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
-				},
-				"enable_automatic_os_upgrade": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
-				},
-			},
-		},
-	}
-}
-
-func ExpandOrchestratedVirtualMachineScaleSetAutomaticUpgradePolicy(input []interface{}) *compute.AutomaticOSUpgradePolicy {
-	if len(input) == 0 {
-		return nil
-	}
-
-	raw := input[0].(map[string]interface{})
-	return &compute.AutomaticOSUpgradePolicy{
-		DisableAutomaticRollback: utils.Bool(raw["disable_automatic_rollback"].(bool)),
-		EnableAutomaticOSUpgrade: utils.Bool(raw["enable_automatic_os_upgrade"].(bool)),
-	}
-}
-
-func FlattenOrchestratedVirtualMachineScaleSetAutomaticOSUpgradePolicy(input *compute.AutomaticOSUpgradePolicy) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	disableAutomaticRollback := false
-	if input.DisableAutomaticRollback != nil {
-		disableAutomaticRollback = *input.DisableAutomaticRollback
-	}
-
-	enableAutomaticOSUpgrade := false
-	if input.EnableAutomaticOSUpgrade != nil {
-		enableAutomaticOSUpgrade = *input.EnableAutomaticOSUpgrade
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"disable_automatic_rollback":  disableAutomaticRollback,
-			"enable_automatic_os_upgrade": enableAutomaticOSUpgrade,
-		},
-	}
-}
-
-func OrchestratedVirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		ForceNew: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"max_batch_instance_percent": {
-					Type:     pluginsdk.TypeInt,
-					Required: true,
-				},
-				"max_unhealthy_instance_percent": {
-					Type:     pluginsdk.TypeInt,
-					Required: true,
-				},
-				"max_unhealthy_upgraded_instance_percent": {
-					Type:     pluginsdk.TypeInt,
-					Required: true,
-				},
-				"pause_time_between_batches": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: azValidate.ISO8601Duration,
-				},
-			},
-		},
-	}
-}
-
-func ExpandOrchestratedVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}) *compute.RollingUpgradePolicy {
-	if len(input) == 0 {
-		return nil
-	}
-
-	raw := input[0].(map[string]interface{})
-
-	return &compute.RollingUpgradePolicy{
-		MaxBatchInstancePercent:             utils.Int32(int32(raw["max_batch_instance_percent"].(int))),
-		MaxUnhealthyInstancePercent:         utils.Int32(int32(raw["max_unhealthy_instance_percent"].(int))),
-		MaxUnhealthyUpgradedInstancePercent: utils.Int32(int32(raw["max_unhealthy_upgraded_instance_percent"].(int))),
-		PauseTimeBetweenBatches:             utils.String(raw["pause_time_between_batches"].(string)),
-	}
-}
-
-func FlattenOrchestratedVirtualMachineScaleSetRollingUpgradePolicy(input *compute.RollingUpgradePolicy) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	maxBatchInstancePercent := 0
-	if input.MaxBatchInstancePercent != nil {
-		maxBatchInstancePercent = int(*input.MaxBatchInstancePercent)
-	}
-
-	maxUnhealthyInstancePercent := 0
-	if input.MaxUnhealthyInstancePercent != nil {
-		maxUnhealthyInstancePercent = int(*input.MaxUnhealthyInstancePercent)
-	}
-
-	maxUnhealthyUpgradedInstancePercent := 0
-	if input.MaxUnhealthyUpgradedInstancePercent != nil {
-		maxUnhealthyUpgradedInstancePercent = int(*input.MaxUnhealthyUpgradedInstancePercent)
-	}
-
-	pauseTimeBetweenBatches := ""
-	if input.PauseTimeBetweenBatches != nil {
-		pauseTimeBetweenBatches = *input.PauseTimeBetweenBatches
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"max_batch_instance_percent":              maxBatchInstancePercent,
-			"max_unhealthy_instance_percent":          maxUnhealthyInstancePercent,
-			"max_unhealthy_upgraded_instance_percent": maxUnhealthyUpgradedInstancePercent,
-			"pause_time_between_batches":              pauseTimeBetweenBatches,
 		},
 	}
 }

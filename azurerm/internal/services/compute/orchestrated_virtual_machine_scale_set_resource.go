@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/base64"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -56,23 +55,6 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			// Required
-			"admin_username": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"admin_password": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				Sensitive:        true,
-				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
-				ValidateFunc:     validation.StringIsNotEmpty,
-			},
-
 			"network_interface": OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema(),
 
 			"os_disk": OrchestratedVirtualMachineScaleSetOSDiskSchema(),
@@ -86,43 +68,14 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateOrchestratedVirtualMachineScaleSetSku,
 			},
 
+			"os_profile": OrchestratedVirtualMachineScaleSetOSProfileSchema(),
+
 			// Optional
-			"additional_capabilities": OrchestratedVirtualMachineScaleSetAdditionalCapabilitiesSchema(),
-
-			"additional_unattend_content": additionalUnattendContentSchema(),
-
-			"automatic_os_upgrade_policy": OrchestratedVirtualMachineScaleSetAutomatedOSUpgradePolicySchema(),
-
 			"automatic_instance_repair": OrchestratedVirtualMachineScaleSetAutomaticRepairsPolicySchema(),
 
 			"boot_diagnostics": bootDiagnosticsSchema(),
 
-			"computer_name_prefix": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-
-				// Computed since we reuse the VM name if one's not specified
-				Computed: true,
-				ForceNew: true,
-
-				ValidateFunc: computeValidate.WindowsComputerNamePrefix,
-			},
-
-			"custom_data": base64.OptionalSchema(false),
-
 			"data_disk": OrchestratedVirtualMachineScaleSetDataDiskSchema(),
-
-			"do_not_run_extensions_on_overprovisioned_machines": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"enable_automatic_updates": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
 
 			"encryption_at_host_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -149,12 +102,6 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
-			"health_probe_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-
 			"identity": OrchestratedVirtualMachineScaleSetIdentitySchema(),
 
 			"license_type": {
@@ -179,12 +126,6 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional:     true,
 				Default:      -1,
 				ValidateFunc: computeValidate.SpotMaxPrice,
-			},
-
-			"overprovision": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
 			},
 
 			"plan": planSchema(),
@@ -223,10 +164,6 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			"rolling_upgrade_policy": OrchestratedVirtualMachineScaleSetRollingUpgradePolicySchema(),
-
-			"secret": windowsSecretSchema(),
-
 			"single_placement_group": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -247,18 +184,6 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				ValidateFunc: computeValidate.VirtualMachineTimeZone(),
 			},
 
-			"upgrade_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(compute.Manual),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Automatic),
-					string(compute.Manual),
-					string(compute.Rolling),
-				}, false),
-			},
-
 			"winrm_listener": winRmListenerSchema(),
 
 			"zone_balance": {
@@ -266,17 +191,6 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				Default:  false,
-			},
-
-			"scale_in_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(compute.Default),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Default),
-					string(compute.NewestVM),
-					string(compute.OldestVM),
-				}, false),
 			},
 
 			"terminate_notification": OrchestratedVirtualMachineScaleSetTerminateNotificationSchema(),
@@ -318,9 +232,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
-	additionalCapabilities := ExpandVirtualMachineScaleSetAdditionalCapabilities(additionalCapabilitiesRaw)
-
+	// TODO: Pull this from the Win Config section
 	additionalUnattendContentRaw := d.Get("additional_unattend_content").([]interface{})
 	additionalUnattendContent := expandAdditionalUnattendContent(additionalUnattendContentRaw)
 
@@ -328,7 +240,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	bootDiagnostics := expandBootDiagnostics(bootDiagnosticsRaw)
 
 	dataDisksRaw := d.Get("data_disk").([]interface{})
-	ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
+	ultraSSDEnabled := false // Currently not supported in orchestrated VMSS
 	dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw, ultraSSDEnabled)
 	if err != nil {
 		return fmt.Errorf("expanding `data_disk`: %+v", err)
@@ -359,35 +271,19 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		return err
 	}
 
-	healthProbeId := d.Get("health_probe_id").(string)
-	upgradeMode := compute.UpgradeMode(d.Get("upgrade_mode").(string))
-	automaticOSUpgradePolicyRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
-	automaticOSUpgradePolicy := ExpandOrchestratedVirtualMachineScaleSetAutomaticUpgradePolicy(automaticOSUpgradePolicyRaw)
-	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
-	rollingUpgradePolicy := ExpandOrchestratedVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw)
-
-	if upgradeMode != compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 {
-		return fmt.Errorf("An `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic`")
-	}
-
-	shouldHaveRollingUpgradePolicy := upgradeMode == compute.Automatic || upgradeMode == compute.Rolling
-	if !shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) > 0 {
-		return fmt.Errorf("A `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to %q", string(upgradeMode))
-	}
-	shouldHaveRollingUpgradePolicy = upgradeMode == compute.Rolling
-	if shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) == 0 {
-		return fmt.Errorf("A `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
-	}
-
 	winRmListenersRaw := d.Get("winrm_listener").(*pluginsdk.Set).List()
 	winRmListeners := expandWinRMListener(winRmListenersRaw)
 
+	// TODO: Pull this value from the os profile section
+	// there is on in win and linux configs
 	secretsRaw := d.Get("secret").([]interface{})
 	secrets := expandWindowsSecrets(secretsRaw)
 
 	zonesRaw := d.Get("zones").([]interface{})
 	zones := azure.ExpandZones(zonesRaw)
 
+	// TODO: Pull this value from the os profile section
+	// there is on in win and linux configs
 	var computerNamePrefix string
 	if v, ok := d.GetOk("computer_name_prefix"); ok && len(v.(string)) > 0 {
 		computerNamePrefix = v.(string)
@@ -402,19 +298,9 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	networkProfile := &compute.VirtualMachineScaleSetNetworkProfile{
 		NetworkInterfaceConfigurations: networkInterfaces,
 	}
-	if healthProbeId != "" {
-		networkProfile.HealthProbe = &compute.APIEntityReference{
-			ID: utils.String(healthProbeId),
-		}
-	}
 
 	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
-	upgradePolicy := compute.UpgradePolicy{
-		Mode:                     upgradeMode,
-		AutomaticOSUpgradePolicy: automaticOSUpgradePolicy,
-		RollingUpgradePolicy:     rollingUpgradePolicy,
-	}
-
+	// TODO: Make two blocks here one for win one for linux
 	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
 		Priority: priority,
 		OsProfile: &compute.VirtualMachineScaleSetOSProfile{
@@ -436,9 +322,8 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		},
 	}
 
-	hasHealthExtension := false
 	if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
-		virtualMachineProfile.ExtensionProfile, hasHealthExtension, err = expandOrchestratedVirtualMachineScaleSetExtensions(vmExtensionsRaw.(*pluginsdk.Set).List())
+		virtualMachineProfile.ExtensionProfile, _, err = expandOrchestratedVirtualMachineScaleSetExtensions(vmExtensionsRaw.(*pluginsdk.Set).List())
 		if err != nil {
 			return err
 		}
@@ -451,12 +336,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(v.(string))
 	}
 
-	// otherwise the service return the error:
-	// Rolling Upgrade mode is not supported for this Virtual Machine Scale Set because a health probe or health extension was not provided.
-	if upgradeMode == compute.Rolling && (healthProbeId == "" && !hasHealthExtension) {
-		return fmt.Errorf("`health_probe_id` must be set or a health extension must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
-	}
-
+	// TODO: Move this to get from Windows Config Section
 	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
 	virtualMachineProfile.OsProfile.WindowsConfiguration.EnableAutomaticUpdates = utils.Bool(enableAutomaticUpdates)
 
@@ -489,6 +369,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		return fmt.Errorf("An `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
+	// TODO: Move this the the Win Config section
 	if len(additionalUnattendContentRaw) > 0 {
 		virtualMachineProfile.OsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
 	}
@@ -505,7 +386,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
 	}
 
-	scaleInPolicy := d.Get("scale_in_policy").(string)
 	automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
 	automaticRepairsPolicy := ExpandOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 
@@ -521,20 +401,13 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		Plan:     plan,
 		Tags:     tags.Expand(t),
 		VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
-			AdditionalCapabilities:                 additionalCapabilities,
-			AutomaticRepairsPolicy:                 automaticRepairsPolicy,
-			DoNotRunExtensionsOnOverprovisionedVMs: utils.Bool(d.Get("do_not_run_extensions_on_overprovisioned_machines").(bool)),
-			Overprovision:                          utils.Bool(d.Get("overprovision").(bool)),
-			SinglePlacementGroup:                   utils.Bool(d.Get("single_placement_group").(bool)),
-			VirtualMachineProfile:                  &virtualMachineProfile,
-			UpgradePolicy:                          &upgradePolicy,
+			AutomaticRepairsPolicy: automaticRepairsPolicy,
+			SinglePlacementGroup:   utils.Bool(d.Get("single_placement_group").(bool)),
+			VirtualMachineProfile:  &virtualMachineProfile,
 			// OrchestrationMode needs to be hardcoded to Uniform, for the
 			// standard VMSS resource, since virtualMachineProfile is now supported
 			// in both VMSS and Orchestrated VMSS...
-			OrchestrationMode: compute.Uniform,
-			ScaleInPolicy: &compute.ScaleInPolicy{
-				Rules: &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)},
-			},
+			OrchestrationMode: compute.Flexible,
 		},
 		Zones: zones,
 	}
@@ -619,41 +492,15 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				ImageReference: existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.ImageReference,
 			},
 		},
+		// Currently not suppored in orchestrated VMSS
 		// if an upgrade policy's been configured previously (which it will have) it must be threaded through
 		// this doesn't matter for Manual - but breaks when updating anything on a Automatic and Rolling Mode Scale Set
-		UpgradePolicy: existing.VirtualMachineScaleSetProperties.UpgradePolicy,
+		// UpgradePolicy: existing.VirtualMachineScaleSetProperties.UpgradePolicy,
 	}
 	update := compute.VirtualMachineScaleSetUpdate{}
 
-	upgradeMode := compute.UpgradeMode(d.Get("upgrade_mode").(string))
-	// first try and pull this from existing vm, which covers no changes being made to this block
-	automaticOSUpgradeIsEnabled := false
-	if policy := existing.VirtualMachineScaleSetProperties.UpgradePolicy; policy != nil {
-		if policy.AutomaticOSUpgradePolicy != nil && policy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade != nil {
-			automaticOSUpgradeIsEnabled = *policy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade
-		}
-	}
-	if d.HasChange("automatic_os_upgrade_policy") || d.HasChange("rolling_upgrade_policy") {
-		upgradePolicy := compute.UpgradePolicy{
-			Mode: upgradeMode,
-		}
-
-		if d.HasChange("automatic_os_upgrade_policy") {
-			automaticRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
-			upgradePolicy.AutomaticOSUpgradePolicy = ExpandOrchestratedVirtualMachineScaleSetAutomaticUpgradePolicy(automaticRaw)
-
-			// however if this block has been changed then we need to pull it
-			// we can guarantee this always has a value since it'll have been expanded and thus is safe to de-ref
-			automaticOSUpgradeIsEnabled = *upgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade
-		}
-
-		if d.HasChange("rolling_upgrade_policy") {
-			rollingRaw := d.Get("rolling_upgrade_policy").([]interface{})
-			upgradePolicy.RollingUpgradePolicy = ExpandOrchestratedVirtualMachineScaleSetRollingUpgradePolicy(rollingRaw)
-		}
-
-		updateProps.UpgradePolicy = &upgradePolicy
-	}
+	// Currently not supported in orchestrated VMSS
+	// automaticOSUpgradeIsEnabled := false
 
 	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
 	if d.HasChange("max_bid_price") {
@@ -670,6 +517,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		updateProps.SinglePlacementGroup = utils.Bool(d.Get("single_placement_group").(bool))
 	}
 
+	// TODO: Move this to Win Config update section
 	if d.HasChange("enable_automatic_updates") ||
 		d.HasChange("custom_data") ||
 		d.HasChange("provision_vm_agent") ||
@@ -681,10 +529,6 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			windowsConfig := compute.WindowsConfiguration{}
 
 			if d.HasChange("enable_automatic_updates") {
-				if upgradeMode == compute.Automatic {
-					return fmt.Errorf("`enable_automatic_updates` cannot be changed for when `upgrade_mode` is `Automatic`")
-				}
-
 				windowsConfig.EnableAutomaticUpdates = utils.Bool(d.Get("enable_automatic_updates").(bool))
 			}
 
@@ -725,7 +569,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		}
 
 		if d.HasChange("data_disk") {
-			ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
+			ultraSSDEnabled := false // Currently not supported in orchestrated vmss
 			dataDisks, err := ExpandOrchestratedVirtualMachineScaleSetDataDisk(d.Get("data_disk").([]interface{}), ultraSSDEnabled)
 			if err != nil {
 				return fmt.Errorf("expanding `data_disk`: %+v", err)
@@ -770,13 +614,6 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		updateProps.VirtualMachineProfile.NetworkProfile = &compute.VirtualMachineScaleSetUpdateNetworkProfile{
 			NetworkInterfaceConfigurations: networkInterfaces,
 		}
-
-		healthProbeId := d.Get("health_probe_id").(string)
-		if healthProbeId != "" {
-			updateProps.VirtualMachineProfile.NetworkProfile.HealthProbe = &compute.APIEntityReference{
-				ID: utils.String(healthProbeId),
-			}
-		}
 	}
 
 	if d.HasChange("boot_diagnostics") {
@@ -784,18 +621,6 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 		bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
 		updateProps.VirtualMachineProfile.DiagnosticsProfile = expandBootDiagnostics(bootDiagnosticsRaw)
-	}
-
-	if d.HasChange("do_not_run_extensions_on_overprovisioned_machines") {
-		v := d.Get("do_not_run_extensions_on_overprovisioned_machines").(bool)
-		updateProps.DoNotRunExtensionsOnOverprovisionedVMs = utils.Bool(v)
-	}
-
-	if d.HasChange("scale_in_policy") {
-		scaleInPolicy := d.Get("scale_in_policy").(string)
-		updateProps.ScaleInPolicy = &compute.ScaleInPolicy{
-			Rules: &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)},
-		}
 	}
 
 	if d.HasChange("terminate_notification") {
@@ -874,8 +699,8 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	update.VirtualMachineScaleSetUpdateProperties = &updateProps
 
+	// TODO: Make this two sections one windows one linux
 	metaData := virtualMachineScaleSetUpdateMetaData{
-		AutomaticOSUpgradeIsEnabled:  automaticOSUpgradeIsEnabled,
 		CanRollInstancesWhenRequired: meta.(*clients.Client).Features.VirtualMachineScaleSet.RollInstancesWhenRequired,
 		UpdateInstances:              updateInstances,
 		Client:                       meta.(*clients.Client).Compute,
@@ -942,16 +767,10 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 	}
 	props := *resp.VirtualMachineScaleSetProperties
 
-	if err := d.Set("additional_capabilities", FlattenOrchestratedVirtualMachineScaleSetAdditionalCapabilities(props.AdditionalCapabilities)); err != nil {
-		return fmt.Errorf("setting `additional_capabilities`: %+v", props.AdditionalCapabilities)
-	}
-
 	if err := d.Set("automatic_instance_repair", FlattenOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(props.AutomaticRepairsPolicy)); err != nil {
 		return fmt.Errorf("setting `automatic_instance_repair`: %+v", err)
 	}
 
-	d.Set("do_not_run_extensions_on_overprovisioned_machines", props.DoNotRunExtensionsOnOverprovisionedVMs)
-	d.Set("overprovision", props.Overprovision)
 	d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
 	proximityPlacementGroupId := ""
 	if props.ProximityPlacementGroup != nil && props.ProximityPlacementGroup.ID != nil {
@@ -961,30 +780,6 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 	d.Set("single_placement_group", props.SinglePlacementGroup)
 	d.Set("unique_id", props.UniqueID)
 	d.Set("zone_balance", props.ZoneBalance)
-
-	var upgradeMode compute.UpgradeMode
-	if policy := props.UpgradePolicy; policy != nil {
-		upgradeMode = policy.Mode
-		d.Set("upgrade_mode", string(policy.Mode))
-
-		flattenedAutomatic := FlattenOrchestratedVirtualMachineScaleSetAutomaticOSUpgradePolicy(policy.AutomaticOSUpgradePolicy)
-		if err := d.Set("automatic_os_upgrade_policy", flattenedAutomatic); err != nil {
-			return fmt.Errorf("setting `automatic_os_upgrade_policy`: %+v", err)
-		}
-
-		flattenedRolling := FlattenOrchestratedVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)
-		if err := d.Set("rolling_upgrade_policy", flattenedRolling); err != nil {
-			return fmt.Errorf("setting `rolling_upgrade_policy`: %+v", err)
-		}
-	}
-
-	rule := string(compute.Default)
-	if props.ScaleInPolicy != nil {
-		if rules := props.ScaleInPolicy.Rules; rules != nil && len(*rules) > 0 {
-			rule = string((*rules)[0])
-		}
-	}
-	d.Set("scale_in_policy", rule)
 
 	if profile := props.VirtualMachineProfile; profile != nil {
 		if err := d.Set("boot_diagnostics", flattenBootDiagnostics(profile.DiagnosticsProfile)); err != nil {
@@ -1043,18 +838,6 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 					return fmt.Errorf("setting `additional_unattend_content`: %+v", err)
 				}
 
-				enableAutomaticUpdates := false
-				if windows.EnableAutomaticUpdates != nil {
-					enableAutomaticUpdates = *windows.EnableAutomaticUpdates
-				}
-
-				// the API requires this is set to 'true' on submission (since it's now required for Windows VMSS's with
-				// an Automatic Upgrade Mode configured) however it actually returns false from the API..
-				// after a bunch of testing the least bad option appears to be not to set this if it's an Automatic Upgrade Mode
-				if upgradeMode != compute.Automatic {
-					d.Set("enable_automatic_updates", enableAutomaticUpdates)
-				}
-
 				d.Set("provision_vm_agent", windows.ProvisionVMAgent)
 				d.Set("timezone", windows.TimeZone)
 
@@ -1069,12 +852,6 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			if err := d.Set("network_interface", flattenedNics); err != nil {
 				return fmt.Errorf("setting `network_interface`: %+v", err)
 			}
-
-			healthProbeId := ""
-			if nwProfile.HealthProbe != nil && nwProfile.HealthProbe.ID != nil {
-				healthProbeId = *nwProfile.HealthProbe.ID
-			}
-			d.Set("health_probe_id", healthProbeId)
 		}
 
 		if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
