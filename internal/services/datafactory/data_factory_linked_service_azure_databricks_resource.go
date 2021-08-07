@@ -453,7 +453,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 
 	databricks, ok := resp.Properties.AsAzureDatabricksLinkedService()
 	if !ok {
-		return fmt.Errorf("classifiying Data Factory Linked Service Databricks %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureDatabricks, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Linked Service Databricks %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureDatabricks, *resp.Type)
 	}
 
 	// Check the properties and verify if authentication is set to MSI

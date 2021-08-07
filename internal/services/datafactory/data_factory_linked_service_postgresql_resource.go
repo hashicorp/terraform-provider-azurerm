@@ -203,7 +203,7 @@ func resourceDataFactoryLinkedServicePostgreSQLRead(d *pluginsdk.ResourceData, m
 
 	postgresql, ok := resp.Properties.AsPostgreSQLLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service PostgreSQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypePostgreSQL, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Linked Service PostgreSQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypePostgreSQL, *resp.Type)
 	}
 
 	d.Set("additional_properties", postgresql.AdditionalProperties)

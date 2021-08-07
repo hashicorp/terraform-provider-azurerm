@@ -261,7 +261,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2Read(d *pluginsdk.Resour
 	dataLakeStorageGen2, ok := resp.Properties.AsAzureBlobFSLinkedService()
 
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service Data Lake Storage Gen2 %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureBlobFS, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Linked Service Data Lake Storage Gen2 %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureBlobFS, *resp.Type)
 	}
 
 	if dataLakeStorageGen2.Tenant != nil {

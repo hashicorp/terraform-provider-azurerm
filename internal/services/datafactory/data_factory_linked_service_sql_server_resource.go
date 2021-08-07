@@ -250,7 +250,7 @@ func resourceDataFactoryLinkedServiceSQLServerRead(d *pluginsdk.ResourceData, me
 
 	sqlServer, ok := resp.Properties.AsSQLServerLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service SQL Server %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeSQLServer, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Linked Service SQL Server %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeSQLServer, *resp.Type)
 	}
 
 	d.Set("additional_properties", sqlServer.AdditionalProperties)

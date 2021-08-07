@@ -261,7 +261,7 @@ func resourceDataFactoryDatasetPostgreSQLRead(d *pluginsdk.ResourceData, meta in
 
 	postgresqlTable, ok := resp.Properties.AsRelationalTableDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset PostgreSQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypePostgreSQLTable, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Dataset PostgreSQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypePostgreSQLTable, *resp.Type)
 	}
 
 	d.Set("additional_properties", postgresqlTable.AdditionalProperties)

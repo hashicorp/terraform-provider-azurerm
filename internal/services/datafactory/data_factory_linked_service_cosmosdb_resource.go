@@ -242,7 +242,7 @@ func resourceDataFactoryLinkedServiceCosmosDbRead(d *pluginsdk.ResourceData, met
 
 	cosmosdb, ok := resp.Properties.AsCosmosDbLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeCosmosDb, *resp.Type)
+		return fmt.Errorf("Error classifying Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeCosmosDb, *resp.Type)
 	}
 
 	d.Set("additional_properties", cosmosdb.AdditionalProperties)
