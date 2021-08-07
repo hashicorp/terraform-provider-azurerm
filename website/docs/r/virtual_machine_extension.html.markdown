@@ -133,8 +133,7 @@ The following arguments are supported:
 
 * `virtual_machine_id` - (Required) The ID of the Virtual Machine. Changing this forces a new resource to be created
 
-* `publisher` - (Required) The publisher of the extension, available publishers
-    can be found by using the Azure CLI.
+* `publisher` - (Required) The publisher of the extension, available publishers can be found by using the Azure CLI. Changing this forces a new resource to be created.
 
 * `type` - (Required) The type of extension, available types for a publisher can
     be found using the Azure CLI.

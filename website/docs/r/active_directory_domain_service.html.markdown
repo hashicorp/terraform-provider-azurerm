@@ -96,7 +96,7 @@ resource azurerm_subnet_network_security_group_association "deploy" {
 }
 
 resource "azuread_group" "dc_admins" {
-  name = "AAD DC Administrators"
+  display_name = "AAD DC Administrators"
 }
 
 resource "azuread_user" "admin" {
@@ -129,7 +129,6 @@ resource "azurerm_active_directory_domain_service" "example" {
   filtered_sync_enabled = false
 
   initial_replica_set {
-    location  = azurerm_virtual_network.deploy.location
     subnet_id = azurerm_subnet.deploy.id
   }
 
