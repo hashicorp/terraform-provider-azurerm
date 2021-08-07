@@ -323,7 +323,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
-		virtualMachineProfile.ExtensionProfile, _, err = expandOrchestratedVirtualMachineScaleSetExtensions(vmExtensionsRaw.(*pluginsdk.Set).List())
+		virtualMachineProfile.ExtensionProfile, err = expandOrchestratedVirtualMachineScaleSetExtensions(vmExtensionsRaw.(*pluginsdk.Set).List())
 		if err != nil {
 			return err
 		}
@@ -685,7 +685,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 	if d.HasChanges("extension", "extensions_time_budget") {
 		updateInstances = true
 
-		extensionProfile, _, err := expandOrchestratedVirtualMachineScaleSetExtensions(d.Get("extension").(*pluginsdk.Set).List())
+		extensionProfile, err := expandOrchestratedVirtualMachineScaleSetExtensions(d.Get("extension").(*pluginsdk.Set).List())
 		if err != nil {
 			return err
 		}

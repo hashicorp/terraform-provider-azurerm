@@ -464,53 +464,6 @@ func orchestratedVirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema
 	}
 }
 
-func orchestratedVirtualMachineScaleSetPublicIPAddressSchemaForDataSource() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"domain_name_label": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"idle_timeout_in_minutes": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
-				},
-
-				"ip_tag": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"tag": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-							"type": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-						},
-					},
-				},
-
-				"public_ip_prefix_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
 func ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(input []interface{}) (*[]compute.VirtualMachineScaleSetNetworkConfiguration, error) {
 	output := make([]compute.VirtualMachineScaleSetNetworkConfiguration, 0)
 
@@ -1454,10 +1407,10 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfile *compute.VirtualMachineScaleSetExtensionProfile, hasHealthExtension bool, err error) {
+func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfile *compute.VirtualMachineScaleSetExtensionProfile, err error) {
 	extensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
 	if len(input) == 0 {
-		return nil, false, nil
+		return nil, nil
 	}
 
 	extensions := make([]compute.VirtualMachineScaleSetExtension, 0)
@@ -1476,9 +1429,10 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["provision_after_extensions"].([]interface{})),
 		}
 
-		if extensionType == "ApplicationHealthLinux" || extensionType == "ApplicationHealthWindows" {
-			hasHealthExtension = true
-		}
+		// Leaving this here as it is going to be in the GA API
+		// if extensionType == "ApplicationHealthLinux" || extensionType == "ApplicationHealthWindows" {
+		// 	hasHealthExtension = true
+		// }
 
 		if forceUpdateTag := extensionRaw["force_update_tag"]; forceUpdateTag != nil {
 			extensionProps.ForceUpdateTag = utils.String(forceUpdateTag.(string))
@@ -1487,7 +1441,7 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 		if val, ok := extensionRaw["settings"]; ok && val.(string) != "" {
 			settings, err := pluginsdk.ExpandJsonFromString(val.(string))
 			if err != nil {
-				return nil, false, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
+				return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
 			}
 			extensionProps.Settings = settings
 		}
@@ -1495,7 +1449,7 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
 			protectedSettings, err := pluginsdk.ExpandJsonFromString(val.(string))
 			if err != nil {
-				return nil, false, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
+				return nil, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
 			}
 			extensionProps.ProtectedSettings = protectedSettings
 		}
@@ -1505,7 +1459,7 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 	}
 	extensionProfile.Extensions = &extensions
 
-	return extensionProfile, hasHealthExtension, nil
+	return extensionProfile, nil
 }
 
 func flattenOrchestratedVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *pluginsdk.ResourceData) ([]map[string]interface{}, error) {
