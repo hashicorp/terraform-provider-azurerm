@@ -62,7 +62,7 @@ func dataSourceKubernetesServiceVersionsRead(d *pluginsdk.ResourceData, meta int
 		if utils.ResponseWasNotFound(listResp.Response) {
 			return fmt.Errorf("Error: No Kubernetes Service versions found for location %q", location)
 		}
-		return fmt.Errorf("Error retrieving Kubernetes Versions in %q: %+v", location, err)
+		return fmt.Errorf("retrieving Kubernetes Versions in %q: %+v", location, err)
 	}
 
 	lv, err := version.NewVersion("0.0.0")

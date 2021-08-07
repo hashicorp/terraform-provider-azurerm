@@ -249,7 +249,7 @@ func resourceDataFactoryTriggerBlobEventRead(d *pluginsdk.ResourceData, meta int
 
 	blobEventsTrigger, ok := resp.Properties.AsBlobEventsTrigger()
 	if !ok {
-		return fmt.Errorf("Error classifying %s: Expected: %q", id, datafactory.TypeBasicTriggerTypeBlobEventsTrigger)
+		return fmt.Errorf("classifying %s: Expected: %q", id, datafactory.TypeBasicTriggerTypeBlobEventsTrigger)
 	}
 
 	d.Set("name", id.Name)

@@ -54,7 +54,7 @@ func dataSourceCdnProfileRead(d *pluginsdk.ResourceData, meta interface{}) error
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: CDN Profile %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error making Read request on Azure CDN Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure CDN Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	id, err := parse.ProfileID(*resp.ID)

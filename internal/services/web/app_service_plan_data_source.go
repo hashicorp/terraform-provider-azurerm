@@ -101,7 +101,7 @@ func AppServicePlanDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on App Service Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on App Service Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if utils.ResponseWasNotFound(resp.Response) {
@@ -137,7 +137,7 @@ func AppServicePlanDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if err := d.Set("sku", flattenAppServicePlanSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
+		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

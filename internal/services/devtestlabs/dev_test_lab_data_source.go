@@ -86,7 +86,7 @@ func dataSourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error
 			return fmt.Errorf("DevTest Lab %q was not found in Resource Group %q", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*read.ID)

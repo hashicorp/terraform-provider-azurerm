@@ -72,7 +72,7 @@ func resourceIotHubDPSCertificateCreateUpdate(d *pluginsdk.ResourceData, meta in
 		existing, err := client.Get(ctx, name, resourceGroup, iotDPSName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
 			}
 		}
 
@@ -86,12 +86,12 @@ func resourceIotHubDPSCertificateCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, iotDPSName, name, certificate, ""); err != nil {
-		return fmt.Errorf("Error creating/updating IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
+		return fmt.Errorf("creating/updating IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, name, resourceGroup, iotDPSName, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
+		return fmt.Errorf("retrieving IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
@@ -122,7 +122,7 @@ func resourceIotHubDPSCertificateRead(d *pluginsdk.ResourceData, meta interface{
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
+		return fmt.Errorf("retrieving IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -151,16 +151,16 @@ func resourceIotHubDPSCertificateDelete(d *pluginsdk.ResourceData, meta interfac
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
 		}
-		return fmt.Errorf("Error retrieving IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
+		return fmt.Errorf("retrieving IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
 	}
 
 	if resp.Etag == nil {
-		return fmt.Errorf("Error deleting IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q) because Etag is nil", name, iotDPSName, resourceGroup)
+		return fmt.Errorf("deleting IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q) because Etag is nil", name, iotDPSName, resourceGroup)
 	}
 
 	// TODO address this delete call if https://github.com/Azure/azure-rest-api-specs/pull/6311 get's merged
 	if _, err := client.Delete(ctx, resourceGroup, *resp.Etag, iotDPSName, name, "", nil, nil, iothub.ServerAuthentication, nil, nil, nil, ""); err != nil {
-		return fmt.Errorf("Error deleting IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
+		return fmt.Errorf("deleting IoT Device Provisioning Service Certificate %q (Device Provisioning Service %q / Resource Group %q): %+v", name, iotDPSName, resourceGroup, err)
 	}
 	return nil
 }

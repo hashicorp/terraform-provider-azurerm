@@ -160,7 +160,7 @@ func resourcePacketCaptureCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	existing, err := client.Get(ctx, resourceGroup, watcherName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Packet Capture %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing Packet Capture %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
 	}
 
@@ -186,16 +186,16 @@ func resourcePacketCaptureCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	future, err := client.Create(ctx, resourceGroup, watcherName, name, properties)
 	if err != nil {
-		return fmt.Errorf("Error creating Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("creating Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, watcherName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("retrieving Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -225,7 +225,7 @@ func resourcePacketCaptureRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Packet Capture %q (Watcher %q / Resource Group %q) %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("reading Packet Capture %q (Watcher %q / Resource Group %q) %+v", name, watcherName, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -240,12 +240,12 @@ func resourcePacketCaptureRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 		location := flattenPacketCaptureStorageLocation(props.StorageLocation)
 		if err := d.Set("storage_location", location); err != nil {
-			return fmt.Errorf("Error setting `storage_location`: %+v", err)
+			return fmt.Errorf("setting `storage_location`: %+v", err)
 		}
 
 		filters := flattenPacketCaptureFilters(props.Filters)
 		if err := d.Set("filter", filters); err != nil {
-			return fmt.Errorf("Error setting `filter`: %+v", err)
+			return fmt.Errorf("setting `filter`: %+v", err)
 		}
 	}
 
@@ -272,7 +272,7 @@ func resourcePacketCaptureDelete(d *pluginsdk.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("deleting Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -280,7 +280,7 @@ func resourcePacketCaptureDelete(d *pluginsdk.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("Error waiting for the deletion of Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
 	}
 
 	return nil
@@ -289,7 +289,7 @@ func resourcePacketCaptureDelete(d *pluginsdk.ResourceData, meta interface{}) er
 func expandPacketCaptureStorageLocation(d *pluginsdk.ResourceData) (*network.PacketCaptureStorageLocation, error) {
 	locations := d.Get("storage_location").([]interface{})
 	if len(locations) == 0 {
-		return nil, fmt.Errorf("Error expandng `storage_location`: not found")
+		return nil, fmt.Errorf("expandng `storage_location`: not found")
 	}
 
 	location := locations[0].(map[string]interface{})

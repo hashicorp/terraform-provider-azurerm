@@ -131,11 +131,11 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: NetApp Volume %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error reading NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Error retrieving NetApp Volume %q (Resource Group %q): ID was nil or empty", name, resourceGroup)
+		return fmt.Errorf("retrieving NetApp Volume %q (Resource Group %q): ID was nil or empty", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)

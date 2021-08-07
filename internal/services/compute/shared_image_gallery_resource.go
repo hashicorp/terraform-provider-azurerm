@@ -80,7 +80,7 @@ func resourceSharedImageGalleryCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Shared Image Gallery %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Shared Image Gallery %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -99,16 +99,16 @@ func resourceSharedImageGalleryCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, gallery)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Shared Image Gallery %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating Shared Image Gallery %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation/update of Shared Image Gallery %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of Shared Image Gallery %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Shared Image Gallery %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Shared Image Gallery %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -138,7 +138,7 @@ func resourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Shared Image Gallery %q (Resource Group %q): %+v", id.GalleryName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Shared Image Gallery %q (Resource Group %q): %+v", id.GalleryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.GalleryName)
@@ -174,12 +174,12 @@ func resourceSharedImageGalleryDelete(d *pluginsdk.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Shared Image Gallery %q (Resource Group %q): %+v", id.GalleryName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Shared Image Gallery %q (Resource Group %q): %+v", id.GalleryName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for the deletion of Shared Image Gallery %q (Resource Group %q): %+v", id.GalleryName, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for the deletion of Shared Image Gallery %q (Resource Group %q): %+v", id.GalleryName, id.ResourceGroup, err)
 		}
 	}
 

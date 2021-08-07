@@ -160,7 +160,7 @@ func resourcePrivateLinkServiceCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Private Link Service %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Private Link Service %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -194,10 +194,10 @@ func resourcePrivateLinkServiceCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	// we can't rely on the use of the Future here due to the resource being successfully completed but now the service is applying those values.
@@ -217,13 +217,13 @@ func resourcePrivateLinkServiceCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for Private Link Service %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
+		return fmt.Errorf("waiting for Private Link Service %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
 	}
 
 	// TODO: switch over to using an ID parser
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("API returns a nil/empty id on Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -253,7 +253,7 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -269,7 +269,7 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 			autoApprovalSub = utils.FlattenStringSlice(autoApproval.Subscriptions)
 		}
 		if err := d.Set("auto_approval_subscription_ids", autoApprovalSub); err != nil {
-			return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
+			return fmt.Errorf("setting `auto_approval_subscription_ids`: %+v", err)
 		}
 
 		var subscriptions []interface{}
@@ -277,15 +277,15 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 			subscriptions = utils.FlattenStringSlice(visibility.Subscriptions)
 		}
 		if err := d.Set("visibility_subscription_ids", subscriptions); err != nil {
-			return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
+			return fmt.Errorf("setting `visibility_subscription_ids`: %+v", err)
 		}
 
 		if err := d.Set("nat_ip_configuration", flattenPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
-			return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
+			return fmt.Errorf("setting `nat_ip_configuration`: %+v", err)
 		}
 
 		if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
-			return fmt.Errorf("Error setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
+			return fmt.Errorf("setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
 		}
 	}
 
@@ -309,12 +309,12 @@ func resourcePrivateLinkServiceDelete(d *pluginsdk.ResourceData, meta interface{
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deletion of Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for deletion of Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -447,7 +447,7 @@ func privateLinkServiceWaitForReadyRefreshFunc(ctx context.Context, client *netw
 				return res, "Pending", nil
 			}
 
-			return nil, "Error", fmt.Errorf("Error issuing read request in privateLinkServiceWaitForReadyRefreshFunc %q (Resource Group %q): %s", name, resourceGroupName, err)
+			return nil, "Error", fmt.Errorf("issuing read request in privateLinkServiceWaitForReadyRefreshFunc %q (Resource Group %q): %s", name, resourceGroupName, err)
 		}
 		if props := res.PrivateLinkServiceProperties; props != nil {
 			if state := props.ProvisioningState; state != "" {

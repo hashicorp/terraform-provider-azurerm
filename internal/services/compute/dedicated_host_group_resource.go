@@ -83,7 +83,7 @@ func resourceDedicatedHostGroupCreate(d *pluginsdk.ResourceData, meta interface{
 		existing, err := client.Get(ctx, resourceGroupName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
+				return fmt.Errorf("checking for present of existing Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -111,12 +111,12 @@ func resourceDedicatedHostGroupCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters); err != nil {
-		return fmt.Errorf("Error creating Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("creating Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroupName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("retrieving Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read Dedicated Host Group %q (Resource Group %q) ID", name, resourceGroupName)
@@ -145,7 +145,7 @@ func resourceDedicatedHostGroupRead(d *pluginsdk.ResourceData, meta interface{})
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("reading Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
 	d.Set("name", name)
@@ -181,7 +181,7 @@ func resourceDedicatedHostGroupUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if _, err := client.Update(ctx, resourceGroupName, name, parameters); err != nil {
-		return fmt.Errorf("Error updating Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("updating Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
 	return resourceDedicatedHostGroupRead(d, meta)
@@ -200,7 +200,7 @@ func resourceDedicatedHostGroupDelete(d *pluginsdk.ResourceData, meta interface{
 	name := id.Path["hostGroups"]
 
 	if _, err := client.Delete(ctx, resourceGroup, name); err != nil {
-		return fmt.Errorf("Error deleting Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil

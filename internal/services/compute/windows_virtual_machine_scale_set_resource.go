@@ -307,7 +307,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	exists, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(exists.Response) {
-			return fmt.Errorf("Error checking for existing Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for existing Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -337,13 +337,13 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	identityRaw := d.Get("identity").([]interface{})
 	identity, err := ExpandVirtualMachineScaleSetIdentity(identityRaw)
 	if err != nil {
-		return fmt.Errorf("Error expanding `identity`: %+v", err)
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	networkInterfacesRaw := d.Get("network_interface").([]interface{})
 	networkInterfaces, err := ExpandVirtualMachineScaleSetNetworkInterface(networkInterfacesRaw)
 	if err != nil {
-		return fmt.Errorf("Error expanding `network_interface`: %+v", err)
+		return fmt.Errorf("expanding `network_interface`: %+v", err)
 	}
 
 	osDiskRaw := d.Get("os_disk").([]interface{})
@@ -557,23 +557,23 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	log.Printf("[DEBUG] Creating Windows Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props)
 	if err != nil {
-		return fmt.Errorf("Error creating Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	log.Printf("[DEBUG] Waiting for Windows Virtual Machine Scale Set %q (Resource Group %q) to be created..", name, resourceGroup)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	log.Printf("[DEBUG] Virtual Machine Scale Set %q (Resource Group %q) was created", name, resourceGroup)
 
 	log.Printf("[DEBUG] Retrieving Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Error retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): ID was nil", name, resourceGroup)
+		return fmt.Errorf("retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): ID was nil", name, resourceGroup)
 	}
 	d.SetId(*resp.ID)
 
@@ -595,16 +595,16 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 	// retrieve
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if existing.VirtualMachineScaleSetProperties == nil {
-		return fmt.Errorf("Error retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+		return fmt.Errorf("retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 	}
 	if existing.VirtualMachineScaleSetProperties.VirtualMachineProfile == nil {
-		return fmt.Errorf("Error retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile` was nil", id.Name, id.ResourceGroup)
+		return fmt.Errorf("retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile` was nil", id.Name, id.ResourceGroup)
 	}
 	if existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile == nil {
-		return fmt.Errorf("Error retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile,storageProfile` was nil", id.Name, id.ResourceGroup)
+		return fmt.Errorf("retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile,storageProfile` was nil", id.Name, id.ResourceGroup)
 	}
 
 	updateProps := compute.VirtualMachineScaleSetUpdateProperties{
@@ -761,7 +761,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		networkInterfacesRaw := d.Get("network_interface").([]interface{})
 		networkInterfaces, err := ExpandVirtualMachineScaleSetNetworkInterfaceUpdate(networkInterfacesRaw)
 		if err != nil {
-			return fmt.Errorf("Error expanding `network_interface`: %+v", err)
+			return fmt.Errorf("expanding `network_interface`: %+v", err)
 		}
 
 		updateProps.VirtualMachineProfile.NetworkProfile = &compute.VirtualMachineScaleSetUpdateNetworkProfile{
@@ -827,7 +827,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		identityRaw := d.Get("identity").([]interface{})
 		identity, err := ExpandVirtualMachineScaleSetIdentity(identityRaw)
 		if err != nil {
-			return fmt.Errorf("Error expanding `identity`: %+v", err)
+			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 
 		update.Identity = identity
@@ -908,7 +908,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -933,24 +933,24 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if err := d.Set("plan", flattenPlan(resp.Plan)); err != nil {
-		return fmt.Errorf("Error setting `plan`: %+v", err)
+		return fmt.Errorf("setting `plan`: %+v", err)
 	}
 
 	if resp.VirtualMachineScaleSetProperties == nil {
-		return fmt.Errorf("Error retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+		return fmt.Errorf("retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 	}
 	props := *resp.VirtualMachineScaleSetProperties
 
 	if err := d.Set("additional_capabilities", FlattenVirtualMachineScaleSetAdditionalCapabilities(props.AdditionalCapabilities)); err != nil {
-		return fmt.Errorf("Error setting `additional_capabilities`: %+v", props.AdditionalCapabilities)
+		return fmt.Errorf("setting `additional_capabilities`: %+v", props.AdditionalCapabilities)
 	}
 
 	if err := d.Set("automatic_instance_repair", FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(props.AutomaticRepairsPolicy)); err != nil {
-		return fmt.Errorf("Error setting `automatic_instance_repair`: %+v", err)
+		return fmt.Errorf("setting `automatic_instance_repair`: %+v", err)
 	}
 
 	d.Set("do_not_run_extensions_on_overprovisioned_machines", props.DoNotRunExtensionsOnOverprovisionedVMs)
@@ -972,12 +972,12 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 
 		flattenedAutomatic := FlattenVirtualMachineScaleSetAutomaticOSUpgradePolicy(policy.AutomaticOSUpgradePolicy)
 		if err := d.Set("automatic_os_upgrade_policy", flattenedAutomatic); err != nil {
-			return fmt.Errorf("Error setting `automatic_os_upgrade_policy`: %+v", err)
+			return fmt.Errorf("setting `automatic_os_upgrade_policy`: %+v", err)
 		}
 
 		flattenedRolling := FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)
 		if err := d.Set("rolling_upgrade_policy", flattenedRolling); err != nil {
-			return fmt.Errorf("Error setting `rolling_upgrade_policy`: %+v", err)
+			return fmt.Errorf("setting `rolling_upgrade_policy`: %+v", err)
 		}
 	}
 
@@ -991,7 +991,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 
 	if profile := props.VirtualMachineProfile; profile != nil {
 		if err := d.Set("boot_diagnostics", flattenBootDiagnostics(profile.DiagnosticsProfile)); err != nil {
-			return fmt.Errorf("Error setting `boot_diagnostics`: %+v", err)
+			return fmt.Errorf("setting `boot_diagnostics`: %+v", err)
 		}
 
 		// defaulted since BillingProfile isn't returned if it's unset
@@ -1014,15 +1014,15 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 
 		if storageProfile := profile.StorageProfile; storageProfile != nil {
 			if err := d.Set("os_disk", FlattenVirtualMachineScaleSetOSDisk(storageProfile.OsDisk)); err != nil {
-				return fmt.Errorf("Error setting `os_disk`: %+v", err)
+				return fmt.Errorf("setting `os_disk`: %+v", err)
 			}
 
 			if err := d.Set("data_disk", FlattenVirtualMachineScaleSetDataDisk(storageProfile.DataDisks)); err != nil {
-				return fmt.Errorf("Error setting `data_disk`: %+v", err)
+				return fmt.Errorf("setting `data_disk`: %+v", err)
 			}
 
 			if err := d.Set("source_image_reference", flattenSourceImageReference(storageProfile.ImageReference)); err != nil {
-				return fmt.Errorf("Error setting `source_image_reference`: %+v", err)
+				return fmt.Errorf("setting `source_image_reference`: %+v", err)
 			}
 
 			var storageImageId string
@@ -1038,12 +1038,12 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 			d.Set("computer_name_prefix", osProfile.ComputerNamePrefix)
 
 			if err := d.Set("secret", flattenWindowsSecrets(osProfile.Secrets)); err != nil {
-				return fmt.Errorf("Error setting `secret`: %+v", err)
+				return fmt.Errorf("setting `secret`: %+v", err)
 			}
 
 			if windows := osProfile.WindowsConfiguration; windows != nil {
 				if err := d.Set("additional_unattend_content", flattenAdditionalUnattendContent(windows.AdditionalUnattendContent, d)); err != nil {
-					return fmt.Errorf("Error setting `additional_unattend_content`: %+v", err)
+					return fmt.Errorf("setting `additional_unattend_content`: %+v", err)
 				}
 
 				enableAutomaticUpdates := false
@@ -1062,7 +1062,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 				d.Set("timezone", windows.TimeZone)
 
 				if err := d.Set("winrm_listener", flattenWinRMListener(windows.WinRM)); err != nil {
-					return fmt.Errorf("Error setting `winrm_listener`: %+v", err)
+					return fmt.Errorf("setting `winrm_listener`: %+v", err)
 				}
 			}
 		}
@@ -1070,7 +1070,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		if nwProfile := profile.NetworkProfile; nwProfile != nil {
 			flattenedNics := FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
 			if err := d.Set("network_interface", flattenedNics); err != nil {
-				return fmt.Errorf("Error setting `network_interface`: %+v", err)
+				return fmt.Errorf("setting `network_interface`: %+v", err)
 			}
 
 			healthProbeId := ""
@@ -1082,7 +1082,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 
 		if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
 			if err := d.Set("terminate_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
-				return fmt.Errorf("Error setting `terminate_notification`: %+v", err)
+				return fmt.Errorf("setting `terminate_notification`: %+v", err)
 			}
 		}
 
@@ -1106,7 +1106,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	if err := d.Set("zones", resp.Zones); err != nil {
-		return fmt.Errorf("Error setting `zones`: %+v", err)
+		return fmt.Errorf("setting `zones`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -1128,7 +1128,7 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	// Sometimes VMSS's aren't fully deleted when the `Delete` call returns - as such we'll try to scale the cluster
@@ -1146,13 +1146,13 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta
 		}
 		future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)
 		if err != nil {
-			return fmt.Errorf("Error updating number of instances in Windows Virtual Machine Scale Set %q (Resource Group %q) to scale to 0: %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("updating number of instances in Windows Virtual Machine Scale Set %q (Resource Group %q) to scale to 0: %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		log.Printf("[DEBUG] Waiting for scaling of instances to 0 prior to deletion - this helps avoids networking issues within Azure")
 		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
-			return fmt.Errorf("Error waiting for number of instances in Windows Virtual Machine Scale Set %q (Resource Group %q) to scale to 0: %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for number of instances in Windows Virtual Machine Scale Set %q (Resource Group %q) to scale to 0: %+v", id.Name, id.ResourceGroup, err)
 		}
 		log.Printf("[DEBUG] Scaled instances to 0 prior to deletion - this helps avoids networking issues within Azure")
 	} else {
@@ -1166,12 +1166,12 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta
 	var forceDeletion *bool = nil
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeletion)
 	if err != nil {
-		return fmt.Errorf("Error deleting Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	log.Printf("[DEBUG] Waiting for deletion of Windows Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	log.Printf("[DEBUG] Deleted Windows Virtual Machine Scale Set %q (Resource Group %q).", id.Name, id.ResourceGroup)
 

@@ -134,7 +134,7 @@ func dataSourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Express Route Circuit %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error making Read request on the Express Route Circuit %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on the Express Route Circuit %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -154,7 +154,7 @@ func dataSourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface
 
 		if serviceProviderProperties := flattenExpressRouteCircuitServiceProviderProperties(properties.ServiceProviderProperties); serviceProviderProperties != nil {
 			if err := d.Set("service_provider_properties", serviceProviderProperties); err != nil {
-				return fmt.Errorf("Error setting `service_provider_properties`: %+v", err)
+				return fmt.Errorf("setting `service_provider_properties`: %+v", err)
 			}
 		}
 	}
@@ -162,7 +162,7 @@ func dataSourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface
 	if resp.Sku != nil {
 		sku := flattenExpressRouteCircuitSku(resp.Sku)
 		if err := d.Set("sku", sku); err != nil {
-			return fmt.Errorf("Error setting `sku`: %+v", err)
+			return fmt.Errorf("setting `sku`: %+v", err)
 		}
 	}
 

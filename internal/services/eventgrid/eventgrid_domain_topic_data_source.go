@@ -53,7 +53,7 @@ func dataSourceEventGridDomainTopicRead(d *pluginsdk.ResourceData, meta interfac
 			return fmt.Errorf("Error: EventGrid Domain Topic %s (Resource Group %s) was not found: %+v", name, resourceGroup, err)
 		}
 
-		return fmt.Errorf("Error making Read request on EventGrid Domain Topic '%s': %+v", name, err)
+		return fmt.Errorf("making Read request on EventGrid Domain Topic '%s': %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)

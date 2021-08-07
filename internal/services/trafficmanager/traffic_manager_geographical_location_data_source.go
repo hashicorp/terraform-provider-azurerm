@@ -37,7 +37,7 @@ func dataSourceArmTrafficManagerGeographicalLocationRead(d *pluginsdk.ResourceDa
 
 	results, err := client.GetDefault(ctx)
 	if err != nil {
-		return fmt.Errorf("Error loading Traffic Manager Geographical Hierarchies: %+v", err)
+		return fmt.Errorf("loading Traffic Manager Geographical Hierarchies: %+v", err)
 	}
 
 	name := d.Get("name").(string)

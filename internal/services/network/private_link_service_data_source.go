@@ -108,7 +108,7 @@ func dataSourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Private Link Service %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error reading Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read ID for Private Link Service %q (Resource Group %q)", name, resourceGroup)
@@ -124,23 +124,23 @@ func dataSourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{
 
 		if autoApproval := props.AutoApproval; autoApproval != nil {
 			if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(autoApproval.Subscriptions)); err != nil {
-				return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
+				return fmt.Errorf("setting `auto_approval_subscription_ids`: %+v", err)
 			}
 		}
 		if visibility := props.Visibility; visibility != nil {
 			if err := d.Set("visibility_subscription_ids", utils.FlattenStringSlice(visibility.Subscriptions)); err != nil {
-				return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
+				return fmt.Errorf("setting `visibility_subscription_ids`: %+v", err)
 			}
 		}
 
 		if props.IPConfigurations != nil {
 			if err := d.Set("nat_ip_configuration", flattenPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
-				return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
+				return fmt.Errorf("setting `nat_ip_configuration`: %+v", err)
 			}
 		}
 		if props.LoadBalancerFrontendIPConfigurations != nil {
 			if err := d.Set("load_balancer_frontend_ip_configuration_ids", dataSourceFlattenPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
-				return fmt.Errorf("Error setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
+				return fmt.Errorf("setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
 			}
 		}
 	}

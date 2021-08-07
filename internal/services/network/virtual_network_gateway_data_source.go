@@ -244,7 +244,7 @@ func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("Virtual Network Gateway %q (Resource Group %q) was not found", name, resGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("making Read request on AzureRM Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -277,17 +277,17 @@ func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if err := d.Set("ip_configuration", flattenVirtualNetworkGatewayDataSourceIPConfigurations(gw.IPConfigurations)); err != nil {
-			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
+			return fmt.Errorf("setting `ip_configuration`: %+v", err)
 		}
 
 		vpnConfigFlat := flattenVirtualNetworkGatewayDataSourceVpnClientConfig(gw.VpnClientConfiguration)
 		if err := d.Set("vpn_client_configuration", vpnConfigFlat); err != nil {
-			return fmt.Errorf("Error setting `vpn_client_configuration`: %+v", err)
+			return fmt.Errorf("setting `vpn_client_configuration`: %+v", err)
 		}
 
 		bgpSettingsFlat := flattenVirtualNetworkGatewayDataSourceBgpSettings(gw.BgpSettings)
 		if err := d.Set("bgp_settings", bgpSettingsFlat); err != nil {
-			return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
+			return fmt.Errorf("setting `bgp_settings`: %+v", err)
 		}
 
 		if err := d.Set("custom_route", flattenVirtualNetworkGatewayAddressSpace(gw.CustomRoutes)); err != nil {

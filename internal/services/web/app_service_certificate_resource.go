@@ -149,7 +149,7 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing App Service Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing App Service Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -190,7 +190,7 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 		keyVaultId, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultBaseUrl)
 		if err != nil {
-			return fmt.Errorf("Error retrieving the Resource ID for the Key Vault at URL %q: %s", keyVaultBaseUrl, err)
+			return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %s", keyVaultBaseUrl, err)
 		}
 		if keyVaultId == nil {
 			return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultBaseUrl)
@@ -201,12 +201,12 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, certificate); err != nil {
-		return fmt.Errorf("Error creating/updating App Service Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating App Service Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving App Service Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("retrieving App Service Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read App Service Certificate %q (Resource Group %q) ID", name, resourceGroup)
@@ -234,7 +234,7 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on App Service Certificate %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on App Service Certificate %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -276,7 +276,7 @@ func resourceAppServiceCertificateDelete(d *pluginsdk.ResourceData, meta interfa
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting App Service Certificate %q (Resource Group %q): %s)", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("deleting App Service Certificate %q (Resource Group %q): %s)", id.Name, id.ResourceGroup, err)
 		}
 	}
 

@@ -69,7 +69,7 @@ func dataSourceDedicatedHostGroupRead(d *pluginsdk.ResourceData, meta interface{
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Dedicated Host Group %q (Resource Group %q) was not found", name, resourceGroupName)
 		}
-		return fmt.Errorf("Error reading Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("reading Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
 	d.SetId(*resp.ID)

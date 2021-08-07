@@ -143,7 +143,7 @@ func resourceSharedImageVersionCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		existing, err := client.Get(ctx, resourceGroup, galleryName, imageName, imageVersion, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
 			}
 		}
 
@@ -180,16 +180,16 @@ func resourceSharedImageVersionCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, galleryName, imageName, imageVersion, version)
 	if err != nil {
-		return fmt.Errorf("Error creating Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
+		return fmt.Errorf("creating Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the creation of Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
+		return fmt.Errorf("waiting for the creation of Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, galleryName, imageName, imageVersion, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
+		return fmt.Errorf("retrieving Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
 	}
 
 	d.SetId(*read.ID)
@@ -214,7 +214,7 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", id.VersionName, id.ImageName, id.GalleryName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", id.VersionName, id.ImageName, id.GalleryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -231,7 +231,7 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("exclude_from_latest", profile.ExcludeFromLatest)
 
 			if err := d.Set("target_region", flattenSharedImageVersionTargetRegions(profile.TargetRegions)); err != nil {
-				return fmt.Errorf("Error setting `target_region`: %+v", err)
+				return fmt.Errorf("setting `target_region`: %+v", err)
 			}
 		}
 

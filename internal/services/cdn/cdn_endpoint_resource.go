@@ -222,7 +222,7 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	existing, err := endpointsClient.Get(ctx, resourceGroup, profileName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing CDN Endpoint %q (Profile %q / Resource Group %q): %s", name, profileName, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing CDN Endpoint %q (Profile %q / Resource Group %q): %s", name, profileName, resourceGroup, err)
 		}
 	}
 
@@ -284,7 +284,7 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	profile, err := profilesClient.Get(ctx, resourceGroup, profileName)
 	if err != nil {
-		return fmt.Errorf("Error creating CDN Endpoint %q while getting CDN Profile (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
+		return fmt.Errorf("creating CDN Endpoint %q while getting CDN Profile (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
 	if profile.Sku != nil {
@@ -292,7 +292,7 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		deliveryRulesRaw := d.Get("delivery_rule").([]interface{})
 		deliveryPolicy, err := expandArmCdnEndpointDeliveryPolicy(globalDeliveryRulesRaw, deliveryRulesRaw)
 		if err != nil {
-			return fmt.Errorf("Error expanding `global_delivery_rule` or `delivery_rule`: %s", err)
+			return fmt.Errorf("expanding `global_delivery_rule` or `delivery_rule`: %s", err)
 		}
 
 		if profile.Sku.Name != cdn.StandardMicrosoft && len(*deliveryPolicy.Rules) > 0 {
@@ -306,16 +306,16 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	future, err := endpointsClient.Create(ctx, resourceGroup, profileName, name, endpoint)
 	if err != nil {
-		return fmt.Errorf("Error creating CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
+		return fmt.Errorf("creating CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, endpointsClient.Client); err != nil {
-		return fmt.Errorf("Error waiting for CDN Endpoint %q (Profile %q / Resource Group %q) to finish creating: %+v", name, profileName, resourceGroup, err)
+		return fmt.Errorf("waiting for CDN Endpoint %q (Profile %q / Resource Group %q) to finish creating: %+v", name, profileName, resourceGroup, err)
 	}
 
 	read, err := endpointsClient.Get(ctx, resourceGroup, profileName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
+		return fmt.Errorf("retrieving CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
 	id, err := parse.EndpointID(*read.ID)
@@ -388,7 +388,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	profile, err := profilesClient.Get(profileGetCtx, id.ResourceGroup, id.ProfileName)
 	if err != nil {
-		return fmt.Errorf("Error creating CDN Endpoint %q while getting CDN Profile (Profile %q / Resource Group %q): %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
+		return fmt.Errorf("creating CDN Endpoint %q while getting CDN Profile (Profile %q / Resource Group %q): %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
 	}
 
 	if profile.Sku != nil {
@@ -396,7 +396,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		deliveryRulesRaw := d.Get("delivery_rule").([]interface{})
 		deliveryPolicy, err := expandArmCdnEndpointDeliveryPolicy(globalDeliveryRulesRaw, deliveryRulesRaw)
 		if err != nil {
-			return fmt.Errorf("Error expanding `global_delivery_rule` or `delivery_rule`: %s", err)
+			return fmt.Errorf("expanding `global_delivery_rule` or `delivery_rule`: %s", err)
 		}
 
 		if profile.Sku.Name != cdn.StandardMicrosoft && len(*deliveryPolicy.Rules) > 0 {
@@ -410,11 +410,11 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	future, err := endpointsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.Name, endpoint)
 	if err != nil {
-		return fmt.Errorf("Error updating CDN Endpoint %q (Profile %q / Resource Group %q): %s", id.Name, id.ProfileName, id.ResourceGroup, err)
+		return fmt.Errorf("updating CDN Endpoint %q (Profile %q / Resource Group %q): %s", id.Name, id.ProfileName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, endpointsClient.Client); err != nil {
-		return fmt.Errorf("Error waiting for the CDN Endpoint %q (Profile %q / Resource Group %q) to finish updating: %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the CDN Endpoint %q (Profile %q / Resource Group %q) to finish updating: %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
 	}
 
 	return resourceCdnEndpointRead(d, meta)
@@ -439,7 +439,7 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure CDN Endpoint %q (Profile %q / Resource Group %q): %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Azure CDN Endpoint %q (Profile %q / Resource Group %q): %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -468,17 +468,17 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 		contentTypes := flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)
 		if err := d.Set("content_types_to_compress", contentTypes); err != nil {
-			return fmt.Errorf("Error setting `content_types_to_compress`: %+v", err)
+			return fmt.Errorf("setting `content_types_to_compress`: %+v", err)
 		}
 
 		geoFilters := flattenCdnEndpointGeoFilters(props.GeoFilters)
 		if err := d.Set("geo_filter", geoFilters); err != nil {
-			return fmt.Errorf("Error setting `geo_filter`: %+v", err)
+			return fmt.Errorf("setting `geo_filter`: %+v", err)
 		}
 
 		origins := flattenAzureRMCdnEndpointOrigin(props.Origins)
 		if err := d.Set("origin", origins); err != nil {
-			return fmt.Errorf("Error setting `origin`: %+v", err)
+			return fmt.Errorf("setting `origin`: %+v", err)
 		}
 
 		flattenedDeliveryPolicies, err := flattenArmCdnEndpointDeliveryPolicy(props.DeliveryPolicy)
@@ -486,10 +486,10 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return err
 		}
 		if err := d.Set("global_delivery_rule", flattenedDeliveryPolicies.globalDeliveryRules); err != nil {
-			return fmt.Errorf("Error setting `global_delivery_rule`: %+v", err)
+			return fmt.Errorf("setting `global_delivery_rule`: %+v", err)
 		}
 		if err := d.Set("delivery_rule", flattenedDeliveryPolicies.deliveryRules); err != nil {
-			return fmt.Errorf("Error setting `delivery_rule`: %+v", err)
+			return fmt.Errorf("setting `delivery_rule`: %+v", err)
 		}
 	}
 
@@ -508,11 +508,11 @@ func resourceCdnEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting CDN Endpoint %q (Profile %q / Resource Group %q): %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting CDN Endpoint %q (Profile %q / Resource Group %q): %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for CDN Endpoint %q (Profile %q / Resource Group %q) to be deleted: %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for CDN Endpoint %q (Profile %q / Resource Group %q) to be deleted: %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
 	}
 
 	return nil

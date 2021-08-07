@@ -89,7 +89,7 @@ func resourcePostgreSQLFirewallRuleCreate(d *pluginsdk.ResourceData, meta interf
 	existing, err := client.Get(ctx, resGroup, serverName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing PostgreSQL Firewall Rule %s (resource group %s) ID", name, resGroup)
+			return fmt.Errorf("checking for presence of existing PostgreSQL Firewall Rule %s (resource group %s) ID", name, resGroup)
 		}
 	}
 

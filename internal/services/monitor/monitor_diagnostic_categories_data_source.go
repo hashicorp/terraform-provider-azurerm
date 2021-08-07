@@ -56,11 +56,11 @@ func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta i
 	// then retrieve the possible Diagnostics Categories for this Resource
 	categories, err := categoriesClient.List(ctx, resourceId)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Diagnostics Categories for Resource %q: %+v", actualResourceId, err)
+		return fmt.Errorf("retrieving Diagnostics Categories for Resource %q: %+v", actualResourceId, err)
 	}
 
 	if categories.Value == nil {
-		return fmt.Errorf("Error retrieving Diagnostics Categories for Resource %q: `categories.Value` was nil", actualResourceId)
+		return fmt.Errorf("retrieving Diagnostics Categories for Resource %q: `categories.Value` was nil", actualResourceId)
 	}
 
 	d.SetId(actualResourceId)
@@ -87,11 +87,11 @@ func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	if err := d.Set("logs", logs); err != nil {
-		return fmt.Errorf("Error setting `logs`: %+v", err)
+		return fmt.Errorf("setting `logs`: %+v", err)
 	}
 
 	if err := d.Set("metrics", metrics); err != nil {
-		return fmt.Errorf("Error setting `metrics`: %+v", err)
+		return fmt.Errorf("setting `metrics`: %+v", err)
 	}
 
 	return nil

@@ -66,7 +66,7 @@ func resourceSiteRecoveryFabricCreate(d *pluginsdk.ResourceData, meta interface{
 		if err != nil {
 			// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
 			if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasBadRequest(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing site recovery fabric %s (vault %s): %+v", name, vaultName, err)
+				return fmt.Errorf("checking for presence of existing site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 			}
 		}
 
@@ -86,15 +86,15 @@ func resourceSiteRecoveryFabricCreate(d *pluginsdk.ResourceData, meta interface{
 
 	future, err := client.Create(ctx, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating site recovery fabric %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("creating site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error creating site recovery fabric %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("creating site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving site recovery fabric %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("retrieving site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
@@ -122,7 +122,7 @@ func resourceSiteRecoveryFabricRead(d *pluginsdk.ResourceData, meta interface{})
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making read request on site recovery fabric %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("making read request on site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -152,11 +152,11 @@ func resourceSiteRecoveryFabricDelete(d *pluginsdk.ResourceData, meta interface{
 
 	future, err := client.Delete(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting site recovery fabric %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("deleting site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of site recovery fabric %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("waiting for deletion of site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	return nil

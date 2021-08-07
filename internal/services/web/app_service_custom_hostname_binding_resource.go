@@ -98,7 +98,7 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 		existing, err := client.GetHostNameBinding(ctx, resourceGroup, appServiceName, hostname)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Custom Hostname Binding %q (App Service %q / Resource Group %q): %s", hostname, appServiceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Custom Hostname Binding %q (App Service %q / Resource Group %q): %s", hostname, appServiceName, resourceGroup, err)
 			}
 		}
 
@@ -130,12 +130,12 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 	}
 
 	if _, err := client.CreateOrUpdateHostNameBinding(ctx, resourceGroup, appServiceName, hostname, properties); err != nil {
-		return fmt.Errorf("Error creating/updating Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", hostname, appServiceName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", hostname, appServiceName, resourceGroup, err)
 	}
 
 	read, err := client.GetHostNameBinding(ctx, resourceGroup, appServiceName, hostname)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", hostname, appServiceName, resourceGroup, err)
+		return fmt.Errorf("retrieving Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", hostname, appServiceName, resourceGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Hostname Binding %q (App Service %q / Resource Group %q) ID", hostname, appServiceName, resourceGroup)
@@ -163,7 +163,7 @@ func resourceAppServiceCustomHostnameBindingRead(d *pluginsdk.ResourceData, meta
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", id.Name, id.AppServiceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", id.Name, id.AppServiceName, id.ResourceGroup, err)
 	}
 
 	d.Set("hostname", id.Name)
@@ -197,7 +197,7 @@ func resourceAppServiceCustomHostnameBindingDelete(d *pluginsdk.ResourceData, me
 	resp, err := client.DeleteHostNameBinding(ctx, id.ResourceGroup, id.AppServiceName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", id.Name, id.AppServiceName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", id.Name, id.AppServiceName, id.ResourceGroup, err)
 		}
 	}
 

@@ -115,7 +115,7 @@ func dataSourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta i
 
 		window := flattenMaintenanceConfigurationWindow(props.Window)
 		if err := d.Set("window", window); err != nil {
-			return fmt.Errorf("error setting `window`: %+v", err)
+			return fmt.Errorf("setting `window`: %+v", err)
 		}
 	}
 

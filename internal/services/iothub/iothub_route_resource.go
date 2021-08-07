@@ -109,7 +109,7 @@ func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
 	routeName := d.Get("name").(string)
@@ -167,11 +167,11 @@ func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("Error creating/updating IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("creating/updating IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
 	d.SetId(resourceId)
@@ -195,7 +195,7 @@ func resourceIotHubRouteRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
-		return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
 	d.Set("name", routeName)
@@ -245,7 +245,7 @@ func resourceIotHubRouteDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
 	if iothub.Properties == nil || iothub.Properties.Routing == nil {
@@ -270,11 +270,11 @@ func resourceIotHubRouteDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("Error updating IotHub %q (Resource Group %q) with Route %q: %+v", iothubName, resourceGroup, routeName, err)
+		return fmt.Errorf("updating IotHub %q (Resource Group %q) with Route %q: %+v", iothubName, resourceGroup, routeName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for IotHub %q (Resource Group %q) to finish updating Route %q: %+v", iothubName, resourceGroup, routeName, err)
+		return fmt.Errorf("waiting for IotHub %q (Resource Group %q) to finish updating Route %q: %+v", iothubName, resourceGroup, routeName, err)
 	}
 
 	return nil

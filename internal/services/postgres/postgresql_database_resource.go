@@ -84,7 +84,7 @@ func resourcePostgreSQLDatabaseCreate(d *pluginsdk.ResourceData, meta interface{
 	existing, err := client.Get(ctx, resGroup, serverName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing PostgreSQL Database %s (resource group %s) ID", name, resGroup)
+			return fmt.Errorf("checking for presence of existing PostgreSQL Database %s (resource group %s) ID", name, resGroup)
 		}
 	}
 

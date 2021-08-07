@@ -230,17 +230,17 @@ func resourceMediaStreamingPolicyRead(d *pluginsdk.ResourceData, meta interface{
 	if props := resp.StreamingPolicyProperties; props != nil {
 		noEncryption := flattenNoEncryption(resp.NoEncryption)
 		if err := d.Set("no_encryption_enabled_protocols", noEncryption); err != nil {
-			return fmt.Errorf("Error flattening `no_encryption_enabled_protocols`: %s", err)
+			return fmt.Errorf("flattening `no_encryption_enabled_protocols`: %s", err)
 		}
 
 		commonEncryptionCENC := flattenCommonEncryptionCenc(resp.CommonEncryptionCenc)
 		if err := d.Set("common_encryption_cenc", commonEncryptionCENC); err != nil {
-			return fmt.Errorf("Error flattening `common_encryption_cenc`: %s", err)
+			return fmt.Errorf("flattening `common_encryption_cenc`: %s", err)
 		}
 
 		commonEncryptionCBCS := flattenCommonEncryptionCbcs(resp.CommonEncryptionCbcs)
 		if err := d.Set("common_encryption_cbcs", commonEncryptionCBCS); err != nil {
-			return fmt.Errorf("Error flattening `common_encryption_cbcs`: %s", err)
+			return fmt.Errorf("flattening `common_encryption_cbcs`: %s", err)
 		}
 
 		d.Set("default_content_key_policy_name", props.DefaultContentKeyPolicyName)

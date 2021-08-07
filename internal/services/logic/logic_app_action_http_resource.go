@@ -123,7 +123,7 @@ func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	if bodyRaw, ok := d.GetOk("body"); ok {
 		var body map[string]interface{}
 		if err := json.Unmarshal([]byte(bodyRaw.(string)), &body); err != nil {
-			return fmt.Errorf("error unmarshalling JSON for Action %q: %+v", name, err)
+			return fmt.Errorf("unmarshalling JSON for Action %q: %+v", name, err)
 		}
 		inputs["body"] = body
 	}
@@ -183,7 +183,7 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 
 	inputs, ok := v.(map[string]interface{})
 	if !ok {
-		return fmt.Errorf("Error parsing `inputs` for HTTP Action %q (Logic App %q / Resource Group %q)", name, logicAppName, resourceGroup)
+		return fmt.Errorf("parsing `inputs` for HTTP Action %q (Logic App %q / Resource Group %q)", name, logicAppName, resourceGroup)
 	}
 
 	if uri := inputs["uri"]; uri != nil {
@@ -202,7 +202,7 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 			// if user edit workflow in portal, the body becomes json object
 			v, err := json.Marshal(body)
 			if err != nil {
-				return fmt.Errorf("error serializing `body` for Action %q: %+v", name, err)
+				return fmt.Errorf("serializing `body` for Action %q: %+v", name, err)
 			}
 			d.Set("body", string(v))
 		}
@@ -211,7 +211,7 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 	if headers := inputs["headers"]; headers != nil {
 		hv := headers.(map[string]interface{})
 		if err := d.Set("headers", hv); err != nil {
-			return fmt.Errorf("Error setting `headers` for HTTP Action %q: %+v", name, err)
+			return fmt.Errorf("setting `headers` for HTTP Action %q: %+v", name, err)
 		}
 	}
 
@@ -219,10 +219,10 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 	if v != nil {
 		runAfter, ok := v.(map[string]interface{})
 		if !ok {
-			return fmt.Errorf("Error parsing `runAfter` for HTTP Action %q (Logic App %q / Resource Group %q)", name, logicAppName, resourceGroup)
+			return fmt.Errorf("parsing `runAfter` for HTTP Action %q (Logic App %q / Resource Group %q)", name, logicAppName, resourceGroup)
 		}
 		if err := d.Set("run_after", flattenLogicAppActionRunAfter(runAfter)); err != nil {
-			return fmt.Errorf("Error setting `runAfter` for HTTP Action %q: %+v", name, err)
+			return fmt.Errorf("setting `runAfter` for HTTP Action %q: %+v", name, err)
 		}
 	}
 
@@ -241,7 +241,7 @@ func resourceLogicAppActionHTTPDelete(d *pluginsdk.ResourceData, meta interface{
 
 	err = resourceLogicAppActionRemove(d, meta, resourceGroup, logicAppName, name)
 	if err != nil {
-		return fmt.Errorf("Error removing Action %q from Logic App %q (Resource Group %q): %+v", name, logicAppName, resourceGroup, err)
+		return fmt.Errorf("removing Action %q from Logic App %q (Resource Group %q): %+v", name, logicAppName, resourceGroup, err)
 	}
 
 	return nil

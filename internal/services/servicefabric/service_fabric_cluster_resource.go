@@ -552,7 +552,7 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -624,16 +624,16 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	future, err := client.Create(ctx, resourceGroup, name, cluster)
 	if err != nil {
-		return fmt.Errorf("Error creating Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read ID of Service Fabric Cluster %q (Resource Group %q)", name, resourceGroup)
@@ -662,7 +662,7 @@ func resourceServiceFabricClusterRead(d *pluginsdk.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Service Fabric Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Service Fabric Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -681,62 +681,62 @@ func resourceServiceFabricClusterRead(d *pluginsdk.ResourceData, meta interface{
 
 		addOnFeatures := flattenServiceFabricClusterAddOnFeatures(props.AddOnFeatures)
 		if err := d.Set("add_on_features", pluginsdk.NewSet(pluginsdk.HashString, addOnFeatures)); err != nil {
-			return fmt.Errorf("Error setting `add_on_features`: %+v", err)
+			return fmt.Errorf("setting `add_on_features`: %+v", err)
 		}
 
 		azureActiveDirectory := flattenServiceFabricClusterAzureActiveDirectory(props.AzureActiveDirectory)
 		if err := d.Set("azure_active_directory", azureActiveDirectory); err != nil {
-			return fmt.Errorf("Error setting `azure_active_directory`: %+v", err)
+			return fmt.Errorf("setting `azure_active_directory`: %+v", err)
 		}
 
 		certificate := flattenServiceFabricClusterCertificate(props.Certificate)
 		if err := d.Set("certificate", certificate); err != nil {
-			return fmt.Errorf("Error setting `certificate`: %+v", err)
+			return fmt.Errorf("setting `certificate`: %+v", err)
 		}
 
 		certificateCommonNames := flattenServiceFabricClusterCertificateCommonNames(props.CertificateCommonNames)
 		if err := d.Set("certificate_common_names", certificateCommonNames); err != nil {
-			return fmt.Errorf("Error setting `certificate_common_names`: %+v", err)
+			return fmt.Errorf("setting `certificate_common_names`: %+v", err)
 		}
 
 		reverseProxyCertificate := flattenServiceFabricClusterReverseProxyCertificate(props.ReverseProxyCertificate)
 		if err := d.Set("reverse_proxy_certificate", reverseProxyCertificate); err != nil {
-			return fmt.Errorf("Error setting `reverse_proxy_certificate`: %+v", err)
+			return fmt.Errorf("setting `reverse_proxy_certificate`: %+v", err)
 		}
 
 		reverseProxyCertificateCommonNames := flattenServiceFabricClusterCertificateCommonNames(props.ReverseProxyCertificateCommonNames)
 		if err := d.Set("reverse_proxy_certificate_common_names", reverseProxyCertificateCommonNames); err != nil {
-			return fmt.Errorf("Error setting `reverse_proxy_certificate_common_names`: %+v", err)
+			return fmt.Errorf("setting `reverse_proxy_certificate_common_names`: %+v", err)
 		}
 
 		clientCertificateThumbprints := flattenServiceFabricClusterClientCertificateThumbprints(props.ClientCertificateThumbprints)
 		if err := d.Set("client_certificate_thumbprint", clientCertificateThumbprints); err != nil {
-			return fmt.Errorf("Error setting `client_certificate_thumbprint`: %+v", err)
+			return fmt.Errorf("setting `client_certificate_thumbprint`: %+v", err)
 		}
 
 		clientCertificateCommonNames := flattenServiceFabricClusterClientCertificateCommonNames(props.ClientCertificateCommonNames)
 		if err := d.Set("client_certificate_common_name", clientCertificateCommonNames); err != nil {
-			return fmt.Errorf("Error setting `client_certificate_common_name`: %+v", err)
+			return fmt.Errorf("setting `client_certificate_common_name`: %+v", err)
 		}
 
 		diagnostics := flattenServiceFabricClusterDiagnosticsConfig(props.DiagnosticsStorageAccountConfig)
 		if err := d.Set("diagnostics_config", diagnostics); err != nil {
-			return fmt.Errorf("Error setting `diagnostics_config`: %+v", err)
+			return fmt.Errorf("setting `diagnostics_config`: %+v", err)
 		}
 
 		upgradePolicy := flattenServiceFabricClusterUpgradePolicy(props.UpgradeDescription)
 		if err := d.Set("upgrade_policy", upgradePolicy); err != nil {
-			return fmt.Errorf("Error setting `upgrade_description`: %+v", err)
+			return fmt.Errorf("setting `upgrade_description`: %+v", err)
 		}
 
 		fabricSettings := flattenServiceFabricClusterFabricSettings(props.FabricSettings)
 		if err := d.Set("fabric_settings", fabricSettings); err != nil {
-			return fmt.Errorf("Error setting `fabric_settings`: %+v", err)
+			return fmt.Errorf("setting `fabric_settings`: %+v", err)
 		}
 
 		nodeTypes := flattenServiceFabricClusterNodeTypes(props.NodeTypes)
 		if err := d.Set("node_type", nodeTypes); err != nil {
-			return fmt.Errorf("Error setting `node_type`: %+v", err)
+			return fmt.Errorf("setting `node_type`: %+v", err)
 		}
 	}
 
@@ -758,7 +758,7 @@ func resourceServiceFabricClusterDelete(d *pluginsdk.ResourceData, meta interfac
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Service Fabric Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Service Fabric Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 

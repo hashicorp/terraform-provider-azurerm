@@ -103,7 +103,7 @@ func resourceTemplateDeploymentCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Template Deployment %s (resource group %s) %v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Template Deployment %s (resource group %s) %v", name, resourceGroup, err)
 			}
 		}
 
@@ -185,11 +185,11 @@ func resourceTemplateDeploymentCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, deployment)
 	if err != nil {
-		return fmt.Errorf("Error creating deployment: %+v", err)
+		return fmt.Errorf("creating deployment: %+v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deployment: %+v", err)
+		return fmt.Errorf("waiting for deployment: %+v", err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
@@ -226,7 +226,7 @@ func resourceTemplateDeploymentRead(d *pluginsdk.ResourceData, meta interface{})
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure RM Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure RM Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	outputs := make(map[string]string)
@@ -297,7 +297,7 @@ func resourceTemplateDeploymentDelete(d *pluginsdk.ResourceData, meta interface{
 func expandParametersBody(body string) (map[string]interface{}, error) {
 	var parametersBody map[string]interface{}
 	if err := json.Unmarshal([]byte(body), &parametersBody); err != nil {
-		return nil, fmt.Errorf("Error Expanding the parameters_body for Azure RM Template Deployment")
+		return nil, fmt.Errorf("Expanding the parameters_body for Azure RM Template Deployment")
 	}
 	return parametersBody, nil
 }
@@ -305,7 +305,7 @@ func expandParametersBody(body string) (map[string]interface{}, error) {
 func expandTemplateBody(template string) (map[string]interface{}, error) {
 	var templateBody map[string]interface{}
 	if err := json.Unmarshal([]byte(template), &templateBody); err != nil {
-		return nil, fmt.Errorf("Error Expanding the template_body for Azure RM Template Deployment")
+		return nil, fmt.Errorf("Expanding the template_body for Azure RM Template Deployment")
 	}
 	return templateBody, nil
 }
@@ -320,7 +320,7 @@ func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client *resources
 		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
 	}
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for Template Deployment (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for Template Deployment (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
 	}
 
 	return nil
@@ -336,7 +336,7 @@ func templateDeploymentStateStatusCodeRefreshFunc(ctx context.Context, client *r
 			if utils.ResponseWasNotFound(res.Response) {
 				return res, strconv.Itoa(res.StatusCode), nil
 			}
-			return nil, "", fmt.Errorf("Error polling for the status of the Template Deployment %q (RG: %q): %+v", name, resourceGroup, err)
+			return nil, "", fmt.Errorf("polling for the status of the Template Deployment %q (RG: %q): %+v", name, resourceGroup, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil

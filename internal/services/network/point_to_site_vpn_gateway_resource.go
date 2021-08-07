@@ -171,7 +171,7 @@ func resourcePointToSiteVPNGatewayCreateUpdate(d *pluginsdk.ResourceData, meta i
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Point-to-Site VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Point-to-Site VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -210,16 +210,16 @@ func resourcePointToSiteVPNGatewayCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Point-to-Site VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating Point-to-Site VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation/update of Point-to-Site VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of Point-to-Site VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Point-to-Site VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Point-to-Site VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -259,7 +259,7 @@ func resourcePointToSiteVPNGatewayRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("dns_servers", utils.FlattenStringSlice(props.CustomDNSServers))
 		flattenedConfigurations := flattenPointToSiteVPNGatewayConnectionConfiguration(props.P2SConnectionConfigurations)
 		if err := d.Set("connection_configuration", flattenedConfigurations); err != nil {
-			return fmt.Errorf("Error setting `connection_configuration`: %+v", err)
+			return fmt.Errorf("setting `connection_configuration`: %+v", err)
 		}
 
 		scaleUnit := 0
@@ -296,11 +296,11 @@ func resourcePointToSiteVPNGatewayDelete(d *pluginsdk.ResourceData, meta interfa
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.P2sVpnGatewayName)
 	if err != nil {
-		return fmt.Errorf("Error deleting Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.P2sVpnGatewayName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.P2sVpnGatewayName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.P2sVpnGatewayName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Point-to-Site VPN Gateway %q (Resource Group %q): %+v", id.P2sVpnGatewayName, id.ResourceGroup, err)
 	}
 
 	return nil

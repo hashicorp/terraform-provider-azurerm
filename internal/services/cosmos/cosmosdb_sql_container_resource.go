@@ -391,7 +391,7 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 		throughputResp, err := client.GetSQLContainerThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(throughputResp.Response) {
-				return fmt.Errorf("Error reading Throughput on Cosmos SQL Container %s (Account: %q, Database: %q) ID: %v", id.ContainerName, id.DatabaseAccountName, id.SqlDatabaseName, err)
+				return fmt.Errorf("reading Throughput on Cosmos SQL Container %s (Account: %q, Database: %q) ID: %v", id.ContainerName, id.DatabaseAccountName, id.SqlDatabaseName, err)
 			} else {
 				d.Set("throughput", nil)
 				d.Set("autoscale_settings", nil)
@@ -417,13 +417,13 @@ func resourceCosmosDbSQLContainerDelete(d *pluginsdk.ResourceData, meta interfac
 	future, err := client.DeleteSQLContainer(ctx, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Cosmos SQL Container %q (Account: %q): %+v", id.SqlDatabaseName, id.ContainerName, err)
+			return fmt.Errorf("deleting Cosmos SQL Container %q (Account: %q): %+v", id.SqlDatabaseName, id.ContainerName, err)
 		}
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting on delete future for Cosmos SQL Container %q (Account: %q): %+v", id.SqlDatabaseName, id.DatabaseAccountName, err)
+		return fmt.Errorf("waiting on delete future for Cosmos SQL Container %q (Account: %q): %+v", id.SqlDatabaseName, id.DatabaseAccountName, err)
 	}
 
 	return nil

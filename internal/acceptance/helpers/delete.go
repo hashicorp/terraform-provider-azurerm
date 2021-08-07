@@ -28,7 +28,7 @@ func DeleteResourceFunc(client *clients.Client, testResource types.TestResourceV
 		}
 
 		if !*result {
-			return fmt.Errorf("error deleting %q but no error", resourceName)
+			return fmt.Errorf("deleting %q but no error", resourceName)
 		}
 
 		return nil

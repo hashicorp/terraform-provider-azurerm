@@ -183,7 +183,7 @@ func resourceAppServiceCertificateOrderCreateUpdate(d *pluginsdk.ResourceData, m
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing App Service Certificate Order %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing App Service Certificate Order %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -214,7 +214,7 @@ func resourceAppServiceCertificateOrderCreateUpdate(d *pluginsdk.ResourceData, m
 	case "WildCard":
 		properties.ProductType = web.CertificateProductTypeStandardDomainValidatedWildCardSsl
 	default:
-		return fmt.Errorf("Error setting `product_type` for App Service Certificate Order %q (Resource Group %q), either `Standard` or `WildCard`.", name, resourceGroup)
+		return fmt.Errorf("setting `product_type` for App Service Certificate Order %q (Resource Group %q), either `Standard` or `WildCard`.", name, resourceGroup)
 	}
 
 	certificateOrder := web.AppServiceCertificateOrder{
@@ -225,16 +225,16 @@ func resourceAppServiceCertificateOrderCreateUpdate(d *pluginsdk.ResourceData, m
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, certificateOrder)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating App Service Certificate Order %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating App Service Certificate Order %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creating/updating of App Service Certificate Order %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creating/updating of App Service Certificate Order %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving App Service Certificate Order %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("retrieving App Service Certificate Order %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -264,7 +264,7 @@ func resourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta inte
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM App Service Certificate Order %q: %+v", id.Name, err)
+		return fmt.Errorf("making Read request on AzureRM App Service Certificate Order %q: %+v", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -327,7 +327,7 @@ func resourceAppServiceCertificateOrderDelete(d *pluginsdk.ResourceData, meta in
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting App Service Certificate Order %q (Resource Group %q): %s)", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("deleting App Service Certificate Order %q (Resource Group %q): %s)", id.Name, id.ResourceGroup, err)
 		}
 	}
 

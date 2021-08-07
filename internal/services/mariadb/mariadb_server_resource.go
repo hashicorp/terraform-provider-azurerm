@@ -280,7 +280,7 @@ func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing MariaDB Server %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing MariaDB Server %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -295,7 +295,7 @@ func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	sku, err := expandServerSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("error expanding sku_name for MariaDB Server %q (Resource Group %q): %v", name, resourceGroup, err)
+		return fmt.Errorf("expanding sku_name for MariaDB Server %q (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
 	publicAccess := mariadb.PublicNetworkAccessEnumEnabled

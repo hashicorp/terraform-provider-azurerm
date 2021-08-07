@@ -80,12 +80,12 @@ func dataSourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta inte
 			return fmt.Errorf("Error: IotHub %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error loading IotHub Shared Access Policy %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub Shared Access Policy %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
-		return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -97,11 +97,11 @@ func dataSourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta inte
 
 	d.Set("primary_key", accessPolicy.PrimaryKey)
 	if err := d.Set("primary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, name, *accessPolicy.PrimaryKey)); err != nil {
-		return fmt.Errorf("error setting `primary_connection_string`: %v", err)
+		return fmt.Errorf("setting `primary_connection_string`: %v", err)
 	}
 	d.Set("secondary_key", accessPolicy.SecondaryKey)
 	if err := d.Set("secondary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, name, *accessPolicy.SecondaryKey)); err != nil {
-		return fmt.Errorf("error setting `secondary_connection_string`: %v", err)
+		return fmt.Errorf("setting `secondary_connection_string`: %v", err)
 	}
 
 	return nil

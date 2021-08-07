@@ -168,7 +168,7 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing ExpressRoute Circuit %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing ExpressRoute Circuit %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
@@ -192,17 +192,17 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(erc.Response) {
-				return fmt.Errorf("Error checking for presence of existing ExpressRoute Circuit %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing ExpressRoute Circuit %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
 		future, err := client.CreateOrUpdate(ctx, resGroup, name, existing)
 		if err != nil {
-			return fmt.Errorf("Error Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
 		}
 		erc = existing
 	}
@@ -236,11 +236,11 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, erc)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	// API has bug, which appears to be eventually consistent on creation. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10148
@@ -255,12 +255,12 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error for Express Route Circuit %q (Resource Group %q) to be able to be queried: %+v", name, resGroup, err)
+		return fmt.Errorf("for Express Route Circuit %q (Resource Group %q) to be able to be queried: %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error Retrieving ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Retrieving ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read ExpressRouteCircuit %q (resource group %q) ID", name, resGroup)
@@ -278,7 +278,7 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error Parsing Azure Resource ID -: %+v", err)
+		return fmt.Errorf("Parsing Azure Resource ID -: %+v", err)
 	}
 
 	resourceGroup := id.ResourceGroup
@@ -292,7 +292,7 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Express Route Circuit %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Express Route Circuit %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -304,7 +304,7 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 	if resp.Sku != nil {
 		sku := flattenExpressRouteCircuitSku(resp.Sku)
 		if err := d.Set("sku", sku); err != nil {
-			return fmt.Errorf("Error setting `sku`: %+v", err)
+			return fmt.Errorf("setting `sku`: %+v", err)
 		}
 	}
 
@@ -340,7 +340,7 @@ func resourceExpressRouteCircuitDelete(d *pluginsdk.ResourceData, meta interface
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error Parsing Azure Resource ID -: %+v", err)
+		return fmt.Errorf("Parsing Azure Resource ID -: %+v", err)
 	}
 
 	resourceGroup := id.ResourceGroup
@@ -388,7 +388,7 @@ func expressRouteCircuitCreationRefreshFunc(ctx context.Context, client *network
 				return nil, "NotFound", nil
 			}
 
-			return nil, "", fmt.Errorf("Error polling to check if the Express Route Circuit has been created: %+v", err)
+			return nil, "", fmt.Errorf("polling to check if the Express Route Circuit has been created: %+v", err)
 		}
 
 		return res, "Exists", nil

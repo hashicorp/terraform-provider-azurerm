@@ -233,7 +233,7 @@ func resourceDataFactoryDatasetParquetCreateUpdate(d *pluginsdk.ResourceData, me
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Dataset Parquet %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Dataset Parquet %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 			}
 		}
 
@@ -298,7 +298,7 @@ func resourceDataFactoryDatasetParquetCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, dataset, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Dataset Parquet  %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Data Factory Dataset Parquet  %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.SetId(id.ID())
@@ -323,7 +323,7 @@ func resourceDataFactoryDatasetParquetRead(d *pluginsdk.ResourceData, meta inter
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Dataset Parquet %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Dataset Parquet %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -332,7 +332,7 @@ func resourceDataFactoryDatasetParquetRead(d *pluginsdk.ResourceData, meta inter
 
 	parquetTable, ok := resp.Properties.AsParquetDataset()
 	if !ok {
-		return fmt.Errorf("Error classifying Data Factory Dataset Parquet %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicDatasetTypeParquet, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset Parquet %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicDatasetTypeParquet, *resp.Type)
 	}
 
 	d.Set("additional_properties", parquetTable.AdditionalProperties)
@@ -343,12 +343,12 @@ func resourceDataFactoryDatasetParquetRead(d *pluginsdk.ResourceData, meta inter
 
 	parameters := flattenDataFactoryParameters(parquetTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
-		return fmt.Errorf("Error setting `parameters`: %+v", err)
+		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
 	annotations := flattenDataFactoryAnnotations(parquetTable.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
-		return fmt.Errorf("Error setting `annotations`: %+v", err)
+		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
 	if linkedService := parquetTable.LinkedServiceName; linkedService != nil {
@@ -360,12 +360,12 @@ func resourceDataFactoryDatasetParquetRead(d *pluginsdk.ResourceData, meta inter
 	if properties := parquetTable.ParquetDatasetTypeProperties; properties != nil {
 		if httpServerLocation, ok := properties.Location.AsHTTPServerLocation(); ok {
 			if err := d.Set("http_server_location", flattenDataFactoryDatasetHTTPServerLocation(httpServerLocation)); err != nil {
-				return fmt.Errorf("Error setting `http_server_location` for Data Factory Parquet Dataset %s", err)
+				return fmt.Errorf("setting `http_server_location` for Data Factory Parquet Dataset %s", err)
 			}
 		}
 		if azureBlobStorageLocation, ok := properties.Location.AsAzureBlobStorageLocation(); ok {
 			if err := d.Set("azure_blob_storage_location", flattenDataFactoryDatasetAzureBlobStorageLocation(azureBlobStorageLocation)); err != nil {
-				return fmt.Errorf("Error setting `azure_blob_storage_location` for Data Factory Parquet Dataset %s", err)
+				return fmt.Errorf("setting `azure_blob_storage_location` for Data Factory Parquet Dataset %s", err)
 			}
 		}
 
@@ -385,7 +385,7 @@ func resourceDataFactoryDatasetParquetRead(d *pluginsdk.ResourceData, meta inter
 
 	structureColumns := flattenDataFactoryStructureColumns(parquetTable.Structure)
 	if err := d.Set("schema_column", structureColumns); err != nil {
-		return fmt.Errorf("Error setting `schema_column`: %+v", err)
+		return fmt.Errorf("setting `schema_column`: %+v", err)
 	}
 
 	return nil
@@ -404,7 +404,7 @@ func resourceDataFactoryDatasetParquetDelete(d *pluginsdk.ResourceData, meta int
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Dataset Parquet %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Data Factory Dataset Parquet %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
 		}
 	}
 

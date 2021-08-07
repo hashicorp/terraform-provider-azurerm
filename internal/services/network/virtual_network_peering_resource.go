@@ -99,7 +99,7 @@ func resourceVirtualNetworkPeeringCreateUpdate(d *pluginsdk.ResourceData, meta i
 		existing, err := client.Get(ctx, resGroup, vnetName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Peering %q (Virtual Network %q / Resource Group %q): %s", name, vnetName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Peering %q (Virtual Network %q / Resource Group %q): %s", name, vnetName, resGroup, err)
 			}
 		}
 
@@ -152,7 +152,7 @@ func resourceVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta interface
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure virtual network peering %q: %+v", name, err)
+		return fmt.Errorf("making Read request on Azure virtual network peering %q: %+v", name, err)
 	}
 
 	// update appropriate values
@@ -191,11 +191,11 @@ func resourceVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, meta interfa
 
 	future, err := client.Delete(ctx, resGroup, vnetName, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Virtual Network Peering %q (Network %q / RG %q): %+v", name, vnetName, resGroup, err)
+		return fmt.Errorf("deleting Virtual Network Peering %q (Network %q / RG %q): %+v", name, vnetName, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Virtual Network Peering %q (Network %q / RG %q): %+v", name, vnetName, resGroup, err)
+		return fmt.Errorf("waiting for deletion of Virtual Network Peering %q (Network %q / RG %q): %+v", name, vnetName, resGroup, err)
 	}
 
 	return err

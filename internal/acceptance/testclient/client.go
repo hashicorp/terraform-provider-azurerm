@@ -39,7 +39,7 @@ func Build() (*clients.Client, error) {
 		}
 		config, err := builder.Build()
 		if err != nil {
-			return nil, fmt.Errorf("Error building ARM Client: %+v", err)
+			return nil, fmt.Errorf("building ARM Client: %+v", err)
 		}
 
 		clientBuilder := clients.ClientBuilder{

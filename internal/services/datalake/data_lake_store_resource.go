@@ -131,7 +131,7 @@ func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{})
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Lake Store %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Data Lake Store %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -167,16 +167,16 @@ func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.Create(ctx, resourceGroup, name, dateLakeStore)
 	if err != nil {
-		return fmt.Errorf("Error issuing create request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("issuing create request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error creating Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Data Lake Store %s (resource group %s) ID", name, resourceGroup)
@@ -210,11 +210,11 @@ func resourceArmDateLakeStoreUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.Update(ctx, resourceGroup, name, props)
 	if err != nil {
-		return fmt.Errorf("Error issuing update request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("issuing update request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the update of Data Lake Store %q (Resource Group %q) to commplete: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the update of Data Lake Store %q (Resource Group %q) to commplete: %+v", name, resourceGroup, err)
 	}
 
 	return resourceArmDateLakeStoreRead(d, meta)
@@ -240,7 +240,7 @@ func resourceArmDateLakeStoreRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -283,14 +283,14 @@ func resourceArmDateLakeStoreDelete(d *pluginsdk.ResourceData, meta interface{})
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing delete request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("issuing delete request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil

@@ -75,7 +75,7 @@ func resourceExpressRouteCircuitAuthorizationCreate(d *pluginsdk.ResourceData, m
 		existing, err := client.Get(ctx, resourceGroup, circuitName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %s", name, circuitName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %s", name, circuitName, resourceGroup, err)
 			}
 		}
 
@@ -90,16 +90,16 @@ func resourceExpressRouteCircuitAuthorizationCreate(d *pluginsdk.ResourceData, m
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, circuitName, name, properties)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", name, circuitName, resourceGroup, err)
+		return fmt.Errorf("Creating/Updating Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", name, circuitName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for Express Route Circuit Authorization %q (Circuit %q / Resource Group %q) to finish creating/updating: %+v", name, circuitName, resourceGroup, err)
+		return fmt.Errorf("waiting for Express Route Circuit Authorization %q (Circuit %q / Resource Group %q) to finish creating/updating: %+v", name, circuitName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, circuitName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", name, circuitName, resourceGroup, err)
+		return fmt.Errorf("retrieving Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", name, circuitName, resourceGroup, err)
 	}
 
 	d.SetId(*read.ID)
@@ -127,7 +127,7 @@ func resourceExpressRouteCircuitAuthorizationRead(d *pluginsdk.ResourceData, met
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", name, circuitName, resourceGroup, err)
+		return fmt.Errorf("retrieving Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", name, circuitName, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -165,7 +165,7 @@ func resourceExpressRouteCircuitAuthorizationDelete(d *pluginsdk.ResourceData, m
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", name, circuitName, resourceGroup, err)
+		return fmt.Errorf("deleting Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", name, circuitName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -173,7 +173,7 @@ func resourceExpressRouteCircuitAuthorizationDelete(d *pluginsdk.ResourceData, m
 			return nil
 		}
 
-		return fmt.Errorf("Error waiting for Express Route Circuit Authorization %q (Circuit %q / Resource Group %q) to be deleted: %+v", name, circuitName, resourceGroup, err)
+		return fmt.Errorf("waiting for Express Route Circuit Authorization %q (Circuit %q / Resource Group %q) to be deleted: %+v", name, circuitName, resourceGroup, err)
 	}
 
 	return nil

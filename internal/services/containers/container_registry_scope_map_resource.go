@@ -83,7 +83,7 @@ func resourceContainerRegistryScopeMapCreate(d *pluginsdk.ResourceData, meta int
 		existing, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing scope map %q in Container Registry %q (Resource Group %q): %s", name, containerRegistryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing scope map %q in Container Registry %q (Resource Group %q): %s", name, containerRegistryName, resourceGroup, err)
 			}
 		}
 
@@ -104,16 +104,16 @@ func resourceContainerRegistryScopeMapCreate(d *pluginsdk.ResourceData, meta int
 
 	future, err := client.Create(ctx, resourceGroup, containerRegistryName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating scope map %q in Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("creating scope map %q in Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of scope map %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of scope map %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving scope map %q for Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("retrieving scope map %q for Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -146,16 +146,16 @@ func resourceContainerRegistryScopeMapUpdate(d *pluginsdk.ResourceData, meta int
 
 	future, err := client.Update(ctx, resourceGroup, containerRegistryName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error updating scope map %q for Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("updating scope map %q for Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of scope map %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("waiting for update of scope map %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving scope map %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("retrieving scope map %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -186,7 +186,7 @@ func resourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta inter
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on scope map %q in Azure Container Registry %q (Resource Group %q): %+v", id.ScopeMapName, id.RegistryName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on scope map %q in Azure Container Registry %q (Resource Group %q): %+v", id.ScopeMapName, id.RegistryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -213,14 +213,14 @@ func resourceContainerRegistryScopeMapDelete(d *pluginsdk.ResourceData, meta int
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry scope map '%s': %+v", id.ScopeMapName, err)
+		return fmt.Errorf("issuing Azure ARM delete request of Container Registry scope map '%s': %+v", id.ScopeMapName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry scope map '%s': %+v", id.ScopeMapName, err)
+		return fmt.Errorf("issuing Azure ARM delete request of Container Registry scope map '%s': %+v", id.ScopeMapName, err)
 	}
 
 	return nil

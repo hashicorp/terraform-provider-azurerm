@@ -295,7 +295,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 
 		config, err := builder.Build()
 		if err != nil {
-			return nil, diag.FromErr(fmt.Errorf("Error building AzureRM Client: %s", err))
+			return nil, diag.FromErr(fmt.Errorf("building AzureRM Client: %s", err))
 		}
 
 		terraformVersion := p.TerraformVersion

@@ -93,7 +93,7 @@ func (sbu BlobUpload) copy(ctx context.Context) error {
 		MetaData:   sbu.MetaData,
 	}
 	if err := sbu.Client.CopyAndWait(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input, pollingInterval); err != nil {
-		return fmt.Errorf("Error copy/waiting: %s", err)
+		return fmt.Errorf("copy/waiting: %s", err)
 	}
 
 	return nil
@@ -105,7 +105,7 @@ func (sbu BlobUpload) createEmptyAppendBlob(ctx context.Context) error {
 		MetaData:    sbu.MetaData,
 	}
 	if _, err := sbu.Client.PutAppendBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
-		return fmt.Errorf("Error PutAppendBlob: %s", err)
+		return fmt.Errorf("PutAppendBlob: %s", err)
 	}
 
 	return nil
@@ -121,7 +121,7 @@ func (sbu BlobUpload) createEmptyBlockBlob(ctx context.Context) error {
 		MetaData:    sbu.MetaData,
 	}
 	if _, err := sbu.Client.PutBlockBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
-		return fmt.Errorf("Error PutBlockBlob: %s", err)
+		return fmt.Errorf("PutBlockBlob: %s", err)
 	}
 
 	return nil
@@ -130,12 +130,12 @@ func (sbu BlobUpload) createEmptyBlockBlob(ctx context.Context) error {
 func (sbu BlobUpload) uploadBlockBlobFromContent(ctx context.Context) error {
 	tmpFile, err := os.CreateTemp(os.TempDir(), "upload-")
 	if err != nil {
-		return fmt.Errorf("Error creating temporary file: %s", err)
+		return fmt.Errorf("creating temporary file: %s", err)
 	}
 	defer os.Remove(tmpFile.Name())
 
 	if _, err = tmpFile.Write([]byte(sbu.SourceContent)); err != nil {
-		return fmt.Errorf("Error writing Source Content to Temp File: %s", err)
+		return fmt.Errorf("writing Source Content to Temp File: %s", err)
 	}
 	defer tmpFile.Close()
 
@@ -146,7 +146,7 @@ func (sbu BlobUpload) uploadBlockBlobFromContent(ctx context.Context) error {
 func (sbu BlobUpload) uploadBlockBlob(ctx context.Context) error {
 	file, err := os.Open(sbu.Source)
 	if err != nil {
-		return fmt.Errorf("Error opening: %s", err)
+		return fmt.Errorf("opening: %s", err)
 	}
 	defer file.Close()
 
@@ -158,7 +158,7 @@ func (sbu BlobUpload) uploadBlockBlob(ctx context.Context) error {
 		input.ContentMD5 = utils.String(sbu.ContentMD5)
 	}
 	if err := sbu.Client.PutBlockBlobFromFile(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, file, input); err != nil {
-		return fmt.Errorf("Error PutBlockBlobFromFile: %s", err)
+		return fmt.Errorf("PutBlockBlobFromFile: %s", err)
 	}
 
 	return nil
@@ -175,7 +175,7 @@ func (sbu BlobUpload) createEmptyPageBlob(ctx context.Context) error {
 		MetaData:               sbu.MetaData,
 	}
 	if _, err := sbu.Client.PutPageBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
-		return fmt.Errorf("Error PutPageBlob: %s", err)
+		return fmt.Errorf("PutPageBlob: %s", err)
 	}
 
 	return nil
@@ -189,7 +189,7 @@ func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {
 	// determine the details about the file
 	file, err := os.Open(sbu.Source)
 	if err != nil {
-		return fmt.Errorf("Error opening source file for upload %q: %s", sbu.Source, err)
+		return fmt.Errorf("opening source file for upload %q: %s", sbu.Source, err)
 	}
 	defer file.Close()
 
@@ -209,11 +209,11 @@ func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {
 		MetaData:               sbu.MetaData,
 	}
 	if _, err := sbu.Client.PutPageBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
-		return fmt.Errorf("Error PutPageBlob: %s", err)
+		return fmt.Errorf("PutPageBlob: %s", err)
 	}
 
 	if err := sbu.pageUploadFromSource(ctx, file, fileSize); err != nil {
-		return fmt.Errorf("Error creating storage blob on Azure: %s", err)
+		return fmt.Errorf("creating storage blob on Azure: %s", err)
 	}
 
 	return nil
@@ -232,7 +232,7 @@ func (sbu BlobUpload) pageUploadFromSource(ctx context.Context, file io.ReaderAt
 	// first we chunk the file and assign them to 'pages'
 	pageList, err := sbu.storageBlobPageSplit(file, fileSize)
 	if err != nil {
-		return fmt.Errorf("Error splitting source file %q into pages: %s", sbu.Source, err)
+		return fmt.Errorf("splitting source file %q into pages: %s", sbu.Source, err)
 	}
 
 	// finally we upload the contents of said file
@@ -260,7 +260,7 @@ func (sbu BlobUpload) pageUploadFromSource(ctx context.Context, file io.ReaderAt
 	wg.Wait()
 
 	if len(errors) > 0 {
-		return fmt.Errorf("Error while uploading source file %q: %s", sbu.Source, <-errors)
+		return fmt.Errorf("while uploading source file %q: %s", sbu.Source, <-errors)
 	}
 
 	return nil
@@ -342,7 +342,7 @@ func (sbu BlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx blobPa
 
 		chunk := make([]byte, size)
 		if _, err := page.section.Read(chunk); err != nil && err != io.EOF {
-			uploadCtx.errors <- fmt.Errorf("Error reading source file %q at offset %d: %s", sbu.Source, page.offset, err)
+			uploadCtx.errors <- fmt.Errorf("reading source file %q at offset %d: %s", sbu.Source, page.offset, err)
 			uploadCtx.wg.Done()
 			continue
 		}
@@ -354,7 +354,7 @@ func (sbu BlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx blobPa
 		}
 
 		if _, err := sbu.Client.PutPageUpdate(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
-			uploadCtx.errors <- fmt.Errorf("Error writing page at offset %d for file %q: %s", page.offset, sbu.Source, err)
+			uploadCtx.errors <- fmt.Errorf("writing page at offset %d for file %q: %s", page.offset, sbu.Source, err)
 			uploadCtx.wg.Done()
 			continue
 		}
