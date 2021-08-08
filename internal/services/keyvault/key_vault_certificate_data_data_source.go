@@ -214,6 +214,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 	}
 
 	var keyX509 []byte
+	var pemType string = "PRIVATE KEY"
 	if privateKey != nil {
 		switch v := privateKey.(type) {
 		case *ecdsa.PrivateKey:
@@ -223,6 +224,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 			}
 		case *rsa.PrivateKey:
 			keyX509 = x509.MarshalPKCS1PrivateKey(privateKey.(*rsa.PrivateKey))
+			pemType = "RSA PRIVATE KEY"
 		default:
 			return fmt.Errorf("marshalling private key type %+v (%q): key type is not supported", v, id.Name)
 		}
@@ -230,7 +232,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 
 	// Encode Key and PEM
 	keyBlock := &pem.Block{
-		Type:  "PRIVATE KEY",
+		Type:  pemType,
 		Bytes: keyX509,
 	}
 
