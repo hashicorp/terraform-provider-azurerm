@@ -1696,7 +1696,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	fileServiceClient := storageClient.FileServicesClient
 
 	// FileStorage does not support blob kind, FileStorage Premium is supported
-	if resp.Kind == storage.FileStorage || resp.Kind != storage.BlobStorage && resp.Kind != storage.BlockBlobStorage && resp.Sku != nil && resp.Sku.Tier != storage.Premium {
+	if resp.Kind == storage.FileStorage || resp.Kind != storage.BlobStorage && resp.Kind != storage.BlockBlobStorage && resp.Kind != storage.Storag && resp.Sku != nil && resp.Sku.Tier != storage.Premium {
 		shareProps, err := fileServiceClient.GetServiceProperties(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(shareProps.Response) {
