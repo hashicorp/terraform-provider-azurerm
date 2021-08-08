@@ -182,11 +182,11 @@ func TestAccLogicAppTriggerRecurrence_startTimeWithTimeZone(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.startTimeWithTimeZone(data, "2020-01-01T01:02:03Z", "U.S. Eastern Standard Time"),
+			Config: r.startTimeWithTimeZone(data, "2020-01-01T01:02:03Z", "US Eastern Standard Time"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("start_time").HasValue("2020-01-01T01:02:03Z"),
-				check.That(data.ResourceName).Key("time_zone").HasValue("U.S. Eastern Standard Time"),
+				check.That(data.ResourceName).Key("time_zone").HasValue("US Eastern Standard Time"),
 			),
 		},
 		data.ImportStep(),
