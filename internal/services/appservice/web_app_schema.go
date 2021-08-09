@@ -6,16 +6,15 @@ import (
 	"strings"
 	"time"
 
-	msiValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
 	"github.com/Azure/go-autorest/autorest/date"
-	apimValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appservice/helpers"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
+	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SiteConfigWindows struct {
@@ -3528,7 +3527,7 @@ func flattenAppSettings(input web.StringDictionary) map[string]string {
 	appSettings := helpers.FlattenWebStringDictionary(input)
 
 	// Remove the settings the service adds when logging settings are specified.
-	for _, v := range unmanagedSettings {
+	for _, v := range unmanagedSettings { //nolint:typecheck
 		delete(appSettings, v)
 	}
 
