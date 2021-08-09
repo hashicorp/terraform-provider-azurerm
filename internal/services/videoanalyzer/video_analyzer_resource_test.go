@@ -55,7 +55,7 @@ func TestAccVideoAnalyzer_multipleStorageAccounts(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.multipleAccounts(data),
-			ExpectError: regexp.MustCompile("Error running apply"),
+			ExpectError: regexp.MustCompile("Error: Too many list items"),
 		},
 	})
 }
@@ -142,10 +142,6 @@ resource "azurerm_video_analyzer" "import" {
       azurerm_user_assigned_identity.test.id
     ]
   }
-
-  tags = {
-    label = "test"
-  }
 }
 `, template)
 }
@@ -211,6 +207,10 @@ resource "azurerm_video_analyzer" "test" {
     azurerm_role_assignment.contributor,
     azurerm_role_assignment.reader,
   ]
+
+  tags = {
+    label = "test"
+  }
 }
 `, template, data.RandomString)
 }
