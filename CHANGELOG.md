@@ -1,5 +1,9 @@
 ## 2.72.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_video_analyzer` [GH-12665]
+
 BUG FIXES:
 
 * `azurerm_kubernetes_cluster` - prevent nil panic when rbac config is empty [GH-12881]
