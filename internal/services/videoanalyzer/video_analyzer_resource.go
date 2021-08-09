@@ -67,7 +67,7 @@ func resourceVideoAnalyzer() *pluginsdk.Resource {
 							ValidateFunc: storageValidate.StorageAccountID,
 						},
 
-						"identity_id": {
+						"user_assigned_identity_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.UserAssignedIdentityID,
@@ -219,7 +219,7 @@ func expandVideoAnalyzerStorageAccounts(d *pluginsdk.ResourceData) *[]videoanaly
 		{
 			ID: utils.String(storageAccountRaw["id"].(string)),
 			Identity: &videoanalyzer.ResourceIdentity{
-				UserAssignedIdentity: utils.String(storageAccountRaw["identity_id"].(string)),
+				UserAssignedIdentity: utils.String(storageAccountRaw["user_assigned_identity_id"].(string)),
 			},
 		},
 	}
@@ -245,8 +245,8 @@ func flattenVideoAnalyzerStorageAccounts(input *[]videoanalyzer.StorageAccount) 
 		}
 
 		results = append(results, map[string]interface{}{
-			"id":          storageAccountId,
-			"identity_id": userAssignedIdentityId,
+			"id":                        storageAccountId,
+			"user_assigned_identity_id": userAssignedIdentityId,
 		})
 	}
 

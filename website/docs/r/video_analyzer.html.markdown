@@ -51,7 +51,7 @@ resource "azurerm_video_analyzer" "example" {
 
   storage_account {
     id          = azurerm_storage_account.example.id
-    identity_id = azurerm_user_assigned_identity.example.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.example.id
   }
 
   identity {
@@ -94,7 +94,7 @@ A `storage_account` block supports the following:
 
 * `id` - (Required) Specifies the ID of the Storage Account that will be associated with the Video Analyzer instance.
 
-* `identity_id` - (Required) Specifies the User Assigned Identity ID which should be assigned to a access this Storage Account.
+* `user_assigned_identity_id` - (Required) Specifies the User Assigned Identity ID which should be assigned to a access this Storage Account.
 
 ---
 
