@@ -3,7 +3,6 @@ package videoanalyzer_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -45,18 +44,6 @@ func TestAccVideoAnalyzer_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
-	})
-}
-
-func TestAccVideoAnalyzer_multipleStorageAccounts(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_video_analyzer", "test")
-	r := VideoAnalyzerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.multipleAccounts(data),
-			ExpectError: regexp.MustCompile("Error: Too many list items"),
-		},
 	})
 }
 
@@ -144,41 +131,6 @@ resource "azurerm_video_analyzer" "import" {
   }
 }
 `, template)
-}
-
-func (VideoAnalyzerResource) multipleAccounts(data acceptance.TestData) string {
-	template := VideoAnalyzerResource{}.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_video_analyzer" "test" {
-  name                = "acctestva%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  storage_account {
-    id                        = azurerm_storage_account.first.id
-    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
-  }
-
-  storage_account {
-    id                        = azurerm_storage_account.first.id
-    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
-  }
-
-  identity {
-    type = "UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id
-    ]
-  }
-
-  depends_on = [
-    azurerm_role_assignment.contributor,
-    azurerm_role_assignment.reader,
-  ]
-}
-`, template, data.RandomString)
 }
 
 func (r VideoAnalyzerResource) complete(data acceptance.TestData) string {
