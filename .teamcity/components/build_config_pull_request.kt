@@ -21,7 +21,7 @@ class pullRequest(displayName: String, environment: String) {
 
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
-                RunAcceptanceTestsForPullRequest(providerName, packageName)
+                RunAcceptanceTestsForPullRequest(packageName)
             }
 
             failureConditions {
