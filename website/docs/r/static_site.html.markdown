@@ -32,6 +32,10 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Static Web App should exist. Changing this forces a new Static Web App to be created.
 
+* `sku_tier` - (Optional) Specifies the sku tier of the Static Web App. Possible values are "Free" or "Standard". Defaults to "Free".
+
+* `sku_size` - (Optional) Specifies the sku tier of the Static Web App. Possible values are "Free" or "Standard". Defaults to "Free".
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
