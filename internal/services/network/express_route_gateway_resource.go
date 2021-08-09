@@ -77,7 +77,7 @@ func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for present of existing ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 		if resp.ID != nil && *resp.ID != "" {
@@ -107,15 +107,15 @@ func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("Cannot read ExpressRoute Gateway %q (Resource Group %q) ID", name, resourceGroup)
@@ -144,7 +144,7 @@ func resourceExpressRouteGatewayRead(d *pluginsdk.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -187,12 +187,12 @@ func resourceExpressRouteGatewayDelete(d *pluginsdk.ResourceData, meta interface
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for deleting ExpressRoute Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 

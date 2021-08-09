@@ -251,7 +251,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				if strings.HasSuffix(key, "sses") {
 					key = strings.TrimSuffix(key, "sses")
 					key = fmt.Sprintf("%sss", key)
-				} else if strings.HasSuffix(key, "s") {
+				} else {
 					key = strings.TrimSuffix(key, "s")
 				}
 

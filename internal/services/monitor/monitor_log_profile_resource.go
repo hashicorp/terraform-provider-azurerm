@@ -105,7 +105,7 @@ func resourceLogProfileCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Monitor Log Profile %q: %s", name, err)
+				return fmt.Errorf("checking for presence of existing Monitor Log Profile %q: %s", name, err)
 			}
 		}
 
@@ -140,7 +140,7 @@ func resourceLogProfileCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, name, parameters); err != nil {
-		return fmt.Errorf("Error Creating/Updating Log Profile %q: %+v", name, err)
+		return fmt.Errorf("Creating/Updating Log Profile %q: %+v", name, err)
 	}
 
 	log.Printf("[DEBUG] Waiting for Log Profile %q to be provisioned", name)
@@ -158,12 +158,12 @@ func resourceLogProfileCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for Log Profile %q to become available: %s", name, err)
+		return fmt.Errorf("waiting for Log Profile %q to become available: %s", name, err)
 	}
 
 	read, err := client.Get(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Log Profile %q: %+v", name, err)
+		return fmt.Errorf("retrieving Log Profile %q: %+v", name, err)
 	}
 
 	d.SetId(*read.ID)
@@ -178,7 +178,7 @@ func resourceLogProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	name, err := ParseLogProfileNameFromID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing log profile name from ID %s: %s", d.Id(), err)
+		return fmt.Errorf("parsing log profile name from ID %s: %s", d.Id(), err)
 	}
 
 	resp, err := client.Get(ctx, name)
@@ -188,7 +188,7 @@ func resourceLogProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Log Profile %q: %+v", name, err)
+		return fmt.Errorf("making Read request on Azure Log Profile %q: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -198,11 +198,11 @@ func resourceLogProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("categories", props.Categories)
 
 		if err := d.Set("locations", flattenAzureRmLogProfileLocations(props.Locations)); err != nil {
-			return fmt.Errorf("Error setting `locations`: %+v", err)
+			return fmt.Errorf("setting `locations`: %+v", err)
 		}
 
 		if err := d.Set("retention_policy", flattenAzureRmLogProfileRetentionPolicy(props.RetentionPolicy)); err != nil {
-			return fmt.Errorf("Error setting `retention_policy`: %+v", err)
+			return fmt.Errorf("setting `retention_policy`: %+v", err)
 		}
 	}
 
@@ -216,11 +216,11 @@ func resourceLogProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error
 
 	name, err := ParseLogProfileNameFromID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing log profile name from ID %s: %s", d.Id(), err)
+		return fmt.Errorf("parsing log profile name from ID %s: %s", d.Id(), err)
 	}
 
 	if _, err = client.Delete(ctx, name); err != nil {
-		return fmt.Errorf("Error deleting Log Profile %q: %+v", name, err)
+		return fmt.Errorf("deleting Log Profile %q: %+v", name, err)
 	}
 
 	return nil
@@ -311,7 +311,7 @@ func logProfilesCreateRefreshFunc(ctx context.Context, client *insights.LogProfi
 			if utils.ResponseWasNotFound(logProfile.Response) {
 				return nil, "NotFound", nil
 			}
-			return nil, "", fmt.Errorf("Error issuing read request in logProfilesCreateRefreshFunc for Log profile %q: %s", name, err)
+			return nil, "", fmt.Errorf("issuing read request in logProfilesCreateRefreshFunc for Log profile %q: %s", name, err)
 		}
 		return "Available", "Available", nil
 	}

@@ -59,7 +59,7 @@ func dataSourceBackupPolicyVmRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error: Backup Policy %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on Backup Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Backup Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	id := strings.Replace(*protectionPolicy.ID, "Subscriptions", "subscriptions", 1)

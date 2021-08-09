@@ -1,5 +1,10 @@
 ## 2.72.0 (Unreleased)
 
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - prevent nil panic when rbac config is empty [GH-12881]
+* `azurerm_logic_app_trigger_recurrence` - update time zone strings to match API behaviour, and use the timezone even when `start_time` is not specified [GH-12453]
+
 ## 2.71.0 (August 06, 2021)
 
 FEATURES:

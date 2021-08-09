@@ -192,7 +192,7 @@ func resourceNetworkSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, meta in
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Network Security Group %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Network Security Group %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
@@ -206,7 +206,7 @@ func resourceNetworkSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	sgRules, sgErr := expandAzureRmSecurityRules(d)
 	if sgErr != nil {
-		return fmt.Errorf("Error Building list of Network Security Group Rules: %+v", sgErr)
+		return fmt.Errorf("Building list of Network Security Group Rules: %+v", sgErr)
 	}
 
 	locks.ByName(name, networkSecurityGroupResourceName)
@@ -223,11 +223,11 @@ func resourceNetworkSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, sg)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating NSG %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating/updating NSG %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the completion of NSG %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for the completion of NSG %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name, "")
@@ -259,7 +259,7 @@ func resourceNetworkSecurityGroupRead(d *pluginsdk.ResourceData, meta interface{
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Network Security Group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Network Security Group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -271,7 +271,7 @@ func resourceNetworkSecurityGroupRead(d *pluginsdk.ResourceData, meta interface{
 	if props := resp.SecurityGroupPropertiesFormat; props != nil {
 		flattenedRules := flattenNetworkSecurityRules(props.SecurityRules)
 		if err := d.Set("security_rule", flattenedRules); err != nil {
-			return fmt.Errorf("Error setting `security_rule`: %+v", err)
+			return fmt.Errorf("setting `security_rule`: %+v", err)
 		}
 	}
 
@@ -290,11 +290,11 @@ func resourceNetworkSecurityGroupDelete(d *pluginsdk.ResourceData, meta interfac
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Network Security Group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Network Security Group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error deleting Network Security Group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Network Security Group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return err

@@ -64,7 +64,7 @@ func dataSourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Public IP prefix %q was not found in Resource Group %q", name, resourceGroup)
 		}
-		return fmt.Errorf("Error retrieving Public IP Prefix %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Public IP Prefix %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)

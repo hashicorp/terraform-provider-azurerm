@@ -126,7 +126,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 	resp, err := client.Get(ctx, resourceGroup, vmssName, name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error checking for existing Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", name, vmssName, resourceGroup, err)
+			return fmt.Errorf("checking for existing Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", name, vmssName, resourceGroup, err)
 		}
 	}
 
@@ -173,16 +173,16 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, vmssName, name, props)
 	if err != nil {
-		return fmt.Errorf("Error creating Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", name, vmssName, resourceGroup, err)
+		return fmt.Errorf("creating Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", name, vmssName, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", name, vmssName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", name, vmssName, resourceGroup, err)
 	}
 
 	resp, err = client.Get(ctx, resourceGroup, vmssName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", name, vmssName, resourceGroup, err)
+		return fmt.Errorf("retrieving Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", name, vmssName, resourceGroup, err)
 	}
 	d.SetId(*resp.ID)
 
@@ -258,11 +258,11 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, extension)
 	if err != nil {
-		return fmt.Errorf("Error updating Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
 	return resourceVirtualMachineScaleSetExtensionRead(d, meta)
@@ -287,7 +287,7 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.VirtualMachineScaleSetName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, "")
@@ -298,7 +298,7 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.ExtensionName)
@@ -345,11 +345,11 @@ func resourceVirtualMachineScaleSetExtensionDelete(d *pluginsdk.ResourceData, me
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
 	return nil

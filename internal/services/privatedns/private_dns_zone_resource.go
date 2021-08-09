@@ -265,7 +265,7 @@ func resourcePrivateDnsZoneDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	etag := ""
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, etag)
 	if err != nil {
-		return fmt.Errorf("error deleting Private DNS Zone %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Private DNS Zone %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {

@@ -71,7 +71,7 @@ func dataSourceApiManagementGroupRead(d *pluginsdk.ResourceData, meta interface{
 
 	id, err := parse.GroupID(*resp.ID)
 	if err != nil {
-		return fmt.Errorf("Error parsing Group ID %q", *resp.ID)
+		return fmt.Errorf("parsing Group ID %q", *resp.ID)
 	}
 
 	d.SetId(id.ID())

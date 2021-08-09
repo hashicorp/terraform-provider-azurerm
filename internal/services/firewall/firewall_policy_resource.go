@@ -313,7 +313,7 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 			privateIpRanges = utils.FlattenStringSlice(prop.Snat.PrivateRanges)
 		}
 		if err := d.Set("private_ip_ranges", privateIpRanges); err != nil {
-			return fmt.Errorf("Error setting `private_ip_ranges`: %+v", err)
+			return fmt.Errorf("setting `private_ip_ranges`: %+v", err)
 		}
 	}
 

@@ -65,7 +65,7 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{})
 
 	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Container %q: %s", accountName, containerName, err)
+		return fmt.Errorf("retrieving Account %q for Container %q: %s", accountName, containerName, err)
 	}
 	if account == nil {
 		return fmt.Errorf("Unable to locate Account %q for Storage Container %q", accountName, containerName)
@@ -92,7 +92,7 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{})
 	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
 
 	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
-		return fmt.Errorf("Error setting `metadata`: %+v", err)
+		return fmt.Errorf("setting `metadata`: %+v", err)
 	}
 
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)

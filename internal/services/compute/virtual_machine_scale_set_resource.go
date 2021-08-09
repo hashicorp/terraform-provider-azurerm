@@ -803,7 +803,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Virtual Machine Scale Set %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Virtual Machine Scale Set %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
@@ -956,7 +956,7 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Virtual Machine Scale Set %s: %+v", name, err)
+		return fmt.Errorf("making Read request on Azure Virtual Machine Scale Set %s: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)

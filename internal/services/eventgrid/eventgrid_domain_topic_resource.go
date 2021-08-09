@@ -79,7 +79,7 @@ func resourceEventGridDomainTopicCreate(d *pluginsdk.ResourceData, meta interfac
 		existing, err := client.Get(ctx, resourceGroup, domainName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing EventGrid Domain Topic %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing EventGrid Domain Topic %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -90,16 +90,16 @@ func resourceEventGridDomainTopicCreate(d *pluginsdk.ResourceData, meta interfac
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, domainName, name)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating EventGrid Domain Topic %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating EventGrid Domain Topic %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for EventGrid Domain Topic %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
+		return fmt.Errorf("waiting for EventGrid Domain Topic %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, domainName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving EventGrid Domain Topic %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("retrieving EventGrid Domain Topic %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read EventGrid Domain Topic %q (resource group %s) ID", name, resourceGroup)
@@ -128,7 +128,7 @@ func resourceEventGridDomainTopicRead(d *pluginsdk.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on EventGrid Domain Topic %q: %+v", id.TopicName, err)
+		return fmt.Errorf("making Read request on EventGrid Domain Topic %q: %+v", id.TopicName, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -153,14 +153,14 @@ func resourceEventGridDomainTopicDelete(d *pluginsdk.ResourceData, meta interfac
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting EventGrid Domain Topic %q: %+v", id.TopicName, err)
+		return fmt.Errorf("deleting EventGrid Domain Topic %q: %+v", id.TopicName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting EventGrid Domain Topic %q: %+v", id.TopicName, err)
+		return fmt.Errorf("deleting EventGrid Domain Topic %q: %+v", id.TopicName, err)
 	}
 
 	return nil

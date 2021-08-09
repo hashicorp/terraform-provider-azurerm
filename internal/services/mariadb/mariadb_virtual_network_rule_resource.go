@@ -74,7 +74,7 @@ func resourceMariaDbVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, me
 		existing, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 			}
 		}
 
@@ -91,7 +91,7 @@ func resourceMariaDbVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters); err != nil {
-		return fmt.Errorf("Error creating MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+		return fmt.Errorf("creating MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
 	// Wait for the provisioning state to become ready
@@ -110,12 +110,12 @@ func resourceMariaDbVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) to be created or updated: %+v", name, serverName, resourceGroup, err)
+		return fmt.Errorf("waiting for MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) to be created or updated: %+v", name, serverName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+		return fmt.Errorf("retrieving MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -145,7 +145,7 @@ func resourceMariaDbVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta inter
 			return nil
 		}
 
-		return fmt.Errorf("Error reading MariaDb Virtual Network Rule: %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+		return fmt.Errorf("reading MariaDb Virtual Network Rule: %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -179,12 +179,12 @@ func resourceMariaDbVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta int
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+		return fmt.Errorf("deleting MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deletion of MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+			return fmt.Errorf("waiting for deletion of MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 		}
 	}
 
@@ -200,7 +200,7 @@ func mariaDbVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client
 				return nil, "ResponseNotFound", nil
 			}
 
-			return nil, "", fmt.Errorf("Error polling for the state of the MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+			return nil, "", fmt.Errorf("polling for the state of the MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 		}
 
 		if props := resp.VirtualNetworkRuleProperties; props != nil {

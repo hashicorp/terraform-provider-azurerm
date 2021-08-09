@@ -54,7 +54,7 @@ func dataSourceArmClientConfigRead(d *pluginsdk.ResourceData, meta interface{}) 
 		listResult, listErr := spClient.List(ctx, filter)
 
 		if listErr != nil {
-			return fmt.Errorf("Error listing Service Principals: %#v", listErr)
+			return fmt.Errorf("listing Service Principals: %#v", listErr)
 		}
 
 		if listResult.Values() == nil || len(listResult.Values()) != 1 {

@@ -59,7 +59,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	// client declarations:
 	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, *env, builder.SkipProviderRegistration)
 	if err != nil {
-		return nil, fmt.Errorf("Error building account: %+v", err)
+		return nil, fmt.Errorf("building account: %+v", err)
 	}
 
 	client := Client{
@@ -141,7 +141,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	}
 
 	if err := client.Build(ctx, o); err != nil {
-		return nil, fmt.Errorf("error building Client: %+v", err)
+		return nil, fmt.Errorf("building Client: %+v", err)
 	}
 
 	if features.EnhancedValidationEnabled() {

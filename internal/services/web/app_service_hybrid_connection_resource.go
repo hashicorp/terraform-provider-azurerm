@@ -118,7 +118,7 @@ func resourceAppServiceHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, m
 	relayArmURI := d.Get("relay_id").(string)
 	relayId, err := relayParse.HybridConnectionID(relayArmURI)
 	if err != nil {
-		return fmt.Errorf("Error parsing relay ID %q: %s", relayArmURI, err)
+		return fmt.Errorf("parsing relay ID %q: %s", relayArmURI, err)
 	}
 	namespaceName := relayId.NamespaceName
 	relayName := relayId.Name
@@ -127,7 +127,7 @@ func resourceAppServiceHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, m
 		existing, err := client.GetHybridConnection(ctx, resourceGroup, name, namespaceName, relayName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing App Service Hybrid Connection %q (Resource Group %q, Namespace %q, Relay Name %q): %s", name, resourceGroup, namespaceName, relayName, err)
+				return fmt.Errorf("checking for presence of existing App Service Hybrid Connection %q (Resource Group %q, Namespace %q, Relay Name %q): %s", name, resourceGroup, namespaceName, relayName, err)
 			}
 		}
 

@@ -513,7 +513,7 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing IoTHub %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing IoTHub %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -555,7 +555,7 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	storageEndpoints, messagingEndpoints, enableFileUploadNotifications := expandIoTHubFileUpload(d)
 	if err != nil {
-		return fmt.Errorf("Error expanding `file_upload`: %+v", err)
+		return fmt.Errorf("expanding `file_upload`: %+v", err)
 	}
 
 	props := devices.IotHubDescription{
@@ -602,7 +602,7 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, props, ""); err != nil {
-		return fmt.Errorf("Error creating/updating IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	timeout := pluginsdk.TimeoutUpdate
@@ -617,7 +617,7 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
@@ -723,7 +723,7 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 	sku := flattenIoTHubSku(hub.Sku)
 	if err := d.Set("sku", sku); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
+		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 	d.Set("type", hub.Type)
 	return tags.FlattenAndSet(d, hub.Tags)
@@ -778,7 +778,7 @@ func waitForIotHubToBeDeleted(ctx context.Context, client *devices.IotHubResourc
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for IotHub (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for IotHub (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
 	}
 
 	return nil
@@ -815,7 +815,7 @@ func iothubStateStatusCodeRefreshFunc(ctx context.Context, client *devices.IotHu
 			if utils.ResponseWasNotFound(res.Response) {
 				return res, strconv.Itoa(res.StatusCode), nil
 			}
-			return nil, "", fmt.Errorf("Error polling for the status of the IotHub %q (RG: %q): %+v", name, resourceGroup, err)
+			return nil, "", fmt.Errorf("polling for the status of the IotHub %q (RG: %q): %+v", name, resourceGroup, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil

@@ -264,9 +264,9 @@ func resourceArmLoadBalancerNatPoolDelete(d *pluginsdk.ResourceData, meta interf
 		return nil
 	}
 
-	oldNatPools := *loadBalancer.LoadBalancerPropertiesFormat.InboundNatPools
-	newNatPools := append(oldNatPools[:index], oldNatPools[index+1:]...)
-	loadBalancer.LoadBalancerPropertiesFormat.InboundNatPools = &newNatPools
+	natPools := *loadBalancer.LoadBalancerPropertiesFormat.InboundNatPools
+	natPools = append(natPools[:index], natPools[index+1:]...)
+	loadBalancer.LoadBalancerPropertiesFormat.InboundNatPools = &natPools
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
 	if err != nil {

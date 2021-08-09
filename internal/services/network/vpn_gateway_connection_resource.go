@@ -419,7 +419,7 @@ func resourceVpnGatewayConnectionResourceDelete(d *pluginsdk.ResourceData, meta 
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for the deletion of VPN Gateway Connection %q (Resource Group %q / VPN Gateway %q): %+v", id.Name, id.ResourceGroup, id.VpnGatewayName, err)
+			return fmt.Errorf("waiting for the deletion of VPN Gateway Connection %q (Resource Group %q / VPN Gateway %q): %+v", id.Name, id.ResourceGroup, id.VpnGatewayName, err)
 		}
 	}
 

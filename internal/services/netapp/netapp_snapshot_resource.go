@@ -99,7 +99,7 @@ func resourceNetAppSnapshotCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		resp, err := client.Get(ctx, resourceGroup, accountName, poolName, volumeName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for present of existing NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(resp.Response) {
@@ -119,15 +119,15 @@ func resourceNetAppSnapshotCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	future, err := client.Create(ctx, parameters, resourceGroup, accountName, poolName, volumeName, name)
 	if err != nil {
-		return fmt.Errorf("Error creating NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, accountName, poolName, volumeName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("Cannot read NetApp Snapshot %q (Resource Group %q) ID", name, resourceGroup)
@@ -154,7 +154,7 @@ func resourceNetAppSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading NetApp Snapshots %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("reading NetApp Snapshots %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -190,7 +190,7 @@ func resourceNetAppSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName, id.Name); err != nil {
-		return fmt.Errorf("Error deleting NetApp Snapshot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting NetApp Snapshot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	// The resource NetApp Snapshot depends on the resource NetApp Volume.
@@ -210,7 +210,7 @@ func resourceNetAppSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for NetApp Snapshot %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for NetApp Snapshot %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -221,7 +221,7 @@ func netappSnapshotDeleteStateRefreshFunc(ctx context.Context, client *netapp.Sn
 		res, err := client.Get(ctx, resourceGroupName, accountName, poolName, volumeName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(res.Response) {
-				return nil, "", fmt.Errorf("Error retrieving NetApp Snapshot %q (Resource Group %q): %s", name, resourceGroupName, err)
+				return nil, "", fmt.Errorf("retrieving NetApp Snapshot %q (Resource Group %q): %s", name, resourceGroupName, err)
 			}
 		}
 

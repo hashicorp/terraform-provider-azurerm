@@ -404,9 +404,9 @@ func resourceAppServiceEnvironmentRead(d *pluginsdk.ResourceData, meta interface
 	vipInfo, err := client.GetVipInfo(ctx, id.ResourceGroup, id.HostingEnvironmentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(vipInfo.Response) {
-			return fmt.Errorf("Error retrieving VIP info: App Service Environment %q (Resource Group %q) was not found", id.HostingEnvironmentName, id.ResourceGroup)
+			return fmt.Errorf("retrieving VIP info: App Service Environment %q (Resource Group %q) was not found", id.HostingEnvironmentName, id.ResourceGroup)
 		}
-		return fmt.Errorf("Error retrieving VIP info App Service Environment %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving VIP info App Service Environment %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
 	}
 
 	d.Set("internal_ip_address", vipInfo.InternalIPAddress)

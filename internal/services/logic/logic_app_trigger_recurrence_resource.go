@@ -132,11 +132,10 @@ func resourceLogicAppTriggerRecurrenceCreateUpdate(d *pluginsdk.ResourceData, me
 
 	if v, ok := d.GetOk("start_time"); ok {
 		trigger["recurrence"].(map[string]interface{})["startTime"] = v.(string)
+	}
 
-		// time_zone only allowed when start_time is specified
-		if v, ok := d.GetOk("time_zone"); ok {
-			trigger["recurrence"].(map[string]interface{})["timeZone"] = v.(string)
-		}
+	if v, ok := d.GetOk("time_zone"); ok {
+		trigger["recurrence"].(map[string]interface{})["timeZone"] = v.(string)
 	}
 
 	if v, ok := d.GetOk("schedule"); ok {
@@ -180,12 +179,12 @@ func resourceLogicAppTriggerRecurrenceRead(d *pluginsdk.ResourceData, meta inter
 
 	v := trigger["recurrence"]
 	if v == nil {
-		return fmt.Errorf("Error `recurrence` was nil for HTTP Trigger %q (Logic App %q / Resource Group %q)", name, logicAppName, resourceGroup)
+		return fmt.Errorf("`recurrence` was nil for HTTP Trigger %q (Logic App %q / Resource Group %q)", name, logicAppName, resourceGroup)
 	}
 
 	recurrence, ok := v.(map[string]interface{})
 	if !ok {
-		return fmt.Errorf("Error parsing `recurrence` for HTTP Trigger %q (Logic App %q / Resource Group %q)", name, logicAppName, resourceGroup)
+		return fmt.Errorf("parsing `recurrence` for HTTP Trigger %q (Logic App %q / Resource Group %q)", name, logicAppName, resourceGroup)
 	}
 
 	if frequency := recurrence["frequency"]; frequency != nil {
@@ -223,7 +222,7 @@ func resourceLogicAppTriggerRecurrenceDelete(d *pluginsdk.ResourceData, meta int
 
 	err = resourceLogicAppTriggerRemove(d, meta, resourceGroup, logicAppName, name)
 	if err != nil {
-		return fmt.Errorf("Error removing Trigger %q from Logic App %q (Resource Group %q): %+v", name, logicAppName, resourceGroup, err)
+		return fmt.Errorf("removing Trigger %q from Logic App %q (Resource Group %q): %+v", name, logicAppName, resourceGroup, err)
 	}
 
 	return nil

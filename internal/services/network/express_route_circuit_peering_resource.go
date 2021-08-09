@@ -209,7 +209,7 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 		existing, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Peering %q (ExpressRoute Circuit %q / Resource Group %q): %s", peeringType, circuitName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Peering %q (ExpressRoute Circuit %q / Resource Group %q): %s", peeringType, circuitName, resourceGroup, err)
 			}
 		}
 
@@ -308,7 +308,7 @@ func resourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta inte
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Express Route Circuit Peering %q (Circuit %q / Resource Group %q): %+v", peeringType, circuitName, resourceGroup, err)
+		return fmt.Errorf("making Read request on Express Route Circuit Peering %q (Circuit %q / Resource Group %q): %+v", peeringType, circuitName, resourceGroup, err)
 	}
 
 	d.Set("peering_type", peeringType)
@@ -364,14 +364,14 @@ func resourceExpressRouteCircuitPeeringDelete(d *pluginsdk.ResourceData, meta in
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing delete request for Express Route Circuit Peering %q (Circuit %q / Resource Group %q): %+v", peeringType, circuitName, resourceGroup, err)
+		return fmt.Errorf("issuing delete request for Express Route Circuit Peering %q (Circuit %q / Resource Group %q): %+v", peeringType, circuitName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error waiting for Express Route Circuit Peering %q (Circuit %q / Resource Group %q) to be deleted: %+v", peeringType, circuitName, resourceGroup, err)
+		return fmt.Errorf("waiting for Express Route Circuit Peering %q (Circuit %q / Resource Group %q) to be deleted: %+v", peeringType, circuitName, resourceGroup, err)
 	}
 
 	return err

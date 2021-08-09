@@ -612,11 +612,11 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		if alert != nil {
 			future, err := securityClient.CreateOrUpdate(ctx, resourceGroup, name, *alert)
 			if err != nil {
-				return fmt.Errorf("error updataing postgres server security alert policy: %v", err)
+				return fmt.Errorf("updataing postgres server security alert policy: %v", err)
 			}
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("error waiting for creation/update of postgrest server security alert policy (server %q, resource group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("waiting for creation/update of postgrest server security alert policy (server %q, resource group %q): %+v", name, resourceGroup, err)
 			}
 		}
 	}
@@ -765,11 +765,11 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if alert != nil {
 			future, err := securityClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *alert)
 			if err != nil {
-				return fmt.Errorf("error updataing mssql server security alert policy: %v", err)
+				return fmt.Errorf("updataing mssql server security alert policy: %v", err)
 			}
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("error waiting for creation/update of postgrest server security alert policy (server %q, resource group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("waiting for creation/update of postgrest server security alert policy (server %q, resource group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 		}
 	}
@@ -845,7 +845,7 @@ func resourcePostgreSQLServerRead(d *pluginsdk.ResourceData, meta interface{}) e
 	if tier == postgresql.GeneralPurpose || tier == postgresql.MemoryOptimized {
 		secResp, err := securityClient.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil && !utils.ResponseWasNotFound(secResp.Response) {
-			return fmt.Errorf("error making read request to postgres server security alert policy: %+v", err)
+			return fmt.Errorf("making read request to postgres server security alert policy: %+v", err)
 		}
 
 		if !utils.ResponseWasNotFound(secResp.Response) {

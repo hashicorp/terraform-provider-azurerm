@@ -90,7 +90,7 @@ func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Nat Gateway %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error reading Nat Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading Nat Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("Cannot read NAT Gateway %q (Resource Group %q) ID", name, resourceGroup)
@@ -112,16 +112,16 @@ func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("resource_guid", props.ResourceGUID)
 
 		if err := d.Set("public_ip_address_ids", flattenNetworkSubResourceID(props.PublicIPAddresses)); err != nil {
-			return fmt.Errorf("Error setting `public_ip_address_ids`: %+v", err)
+			return fmt.Errorf("setting `public_ip_address_ids`: %+v", err)
 		}
 
 		if err := d.Set("public_ip_prefix_ids", flattenNetworkSubResourceID(props.PublicIPPrefixes)); err != nil {
-			return fmt.Errorf("Error setting `public_ip_prefix_ids`: %+v", err)
+			return fmt.Errorf("setting `public_ip_prefix_ids`: %+v", err)
 		}
 	}
 
 	if err := d.Set("zones", utils.FlattenStringSlice(resp.Zones)); err != nil {
-		return fmt.Errorf("Error setting `zones`: %+v", err)
+		return fmt.Errorf("setting `zones`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

@@ -552,7 +552,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 			}
 
 			if _, err := geoBackupPoliciesClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, geoBackupPolicy); err != nil {
-				return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Geo backup policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+				return fmt.Errorf("issuing create/update request for Sql Server %q (Database %q) Geo backup policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
 			}
 		}
 	}
@@ -583,11 +583,11 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 			longTermRetentionfuture, err := longTermRetentionClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, longTermRetentionPolicy)
 			if err != nil {
-				return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+				return fmt.Errorf("issuing create/update request for Sql Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
 			}
 
 			if err = longTermRetentionfuture.WaitForCompletionRef(ctx, longTermRetentionClient.Client); err != nil {
-				return fmt.Errorf("Error waiting for completion of Create/Update for Sql Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+				return fmt.Errorf("waiting for completion of Create/Update for Sql Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
 			}
 		}
 	}
@@ -604,11 +604,11 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 			shortTermRetentionFuture, err := shortTermRetentionClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, backupShortTermPolicy)
 			if err != nil {
-				return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+				return fmt.Errorf("issuing create/update request for Sql Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
 			}
 
 			if err = shortTermRetentionFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("Error waiting for completion of Create/Update for Sql Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+				return fmt.Errorf("waiting for completion of Create/Update for Sql Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
 			}
 		}
 	}
@@ -697,7 +697,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if !strings.HasPrefix(skuName, "HS") && !strings.HasPrefix(skuName, "DW") {
 		longTermPolicy, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Long Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving Long Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 		}
 		flattenlongTermPolicy := helper.FlattenLongTermRetentionPolicy(&longTermPolicy, d)
 		if err := d.Set("long_term_retention_policy", flattenlongTermPolicy); err != nil {
@@ -706,7 +706,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 		shortTermPolicy, err := shortTermRetentionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Short Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving Short Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 		}
 
 		flattenShortTermPolicy := helper.FlattenShortTermRetentionPolicy(&shortTermPolicy, d)

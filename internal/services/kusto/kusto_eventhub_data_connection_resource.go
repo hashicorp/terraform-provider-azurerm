@@ -151,7 +151,7 @@ func resourceKustoEventHubDataConnectionCreateUpdate(d *pluginsdk.ResourceData, 
 		connectionModel, err := client.Get(ctx, resourceGroup, clusterName, databaseName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(connectionModel.Response) {
-				return fmt.Errorf("Error checking for presence of existing Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %s", name, resourceGroup, clusterName, databaseName, err)
+				return fmt.Errorf("checking for presence of existing Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %s", name, resourceGroup, clusterName, databaseName, err)
 			}
 		}
 
@@ -174,17 +174,17 @@ func resourceKustoEventHubDataConnectionCreateUpdate(d *pluginsdk.ResourceData, 
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, databaseName, name, dataConnection1)
 	if err != nil {
-		return fmt.Errorf("Error creating or updating Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database: %q): %+v", name, resourceGroup, clusterName, databaseName, err)
+		return fmt.Errorf("creating or updating Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database: %q): %+v", name, resourceGroup, clusterName, databaseName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database: %q): %+v", name, resourceGroup, clusterName, databaseName, err)
+		return fmt.Errorf("waiting for completion of Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database: %q): %+v", name, resourceGroup, clusterName, databaseName, err)
 	}
 
 	connectionModel, getDetailsErr := client.Get(ctx, resourceGroup, clusterName, databaseName, name)
 
 	if getDetailsErr != nil {
-		return fmt.Errorf("Error retrieving Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database: %q): %+v", name, resourceGroup, clusterName, databaseName, err)
+		return fmt.Errorf("retrieving Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database: %q): %+v", name, resourceGroup, clusterName, databaseName, err)
 	}
 
 	if dataConnection, ok := connectionModel.Value.(kusto.EventHubDataConnection); ok {
@@ -214,7 +214,7 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
+		return fmt.Errorf("retrieving Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	d.Set("name", id.Name)
@@ -253,11 +253,11 @@ func resourceKustoEventHubDataConnectionDelete(d *pluginsdk.ResourceData, meta i
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
+		return fmt.Errorf("deleting Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
+		return fmt.Errorf("waiting for deletion of Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	return nil

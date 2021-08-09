@@ -9,7 +9,7 @@ import (
 func FirewallSubnetName(v interface{}, k string) (warnings []string, errors []error) {
 	parsed, err := azure.ParseAzureResourceID(v.(string))
 	if err != nil {
-		errors = append(errors, fmt.Errorf("Error parsing Azure Resource ID %q", v.(string)))
+		errors = append(errors, fmt.Errorf("parsing Azure Resource ID %q", v.(string)))
 		return warnings, errors
 	}
 	subnetName := parsed.Path["subnets"]

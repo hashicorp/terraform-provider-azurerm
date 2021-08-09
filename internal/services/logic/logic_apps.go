@@ -111,7 +111,7 @@ func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, resourceGroup, logicAppName, properties); err != nil {
-		return fmt.Errorf("Error updating Logic App Workspace %q (Resource Group %q) for %s %q: %+v", logicAppName, resourceGroup, kind, name, err)
+		return fmt.Errorf("updating Logic App Workspace %q (Resource Group %q) for %s %q: %+v", logicAppName, resourceGroup, kind, name, err)
 	}
 
 	if d.IsNewResource() {
@@ -173,7 +173,7 @@ func resourceLogicAppComponentRemove(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, resourceGroup, logicAppName, properties); err != nil {
-		return fmt.Errorf("Error removing %s %q from Logic App Workspace %q (Resource Group %q): %+v", kind, name, logicAppName, resourceGroup, err)
+		return fmt.Errorf("removing %s %q from Logic App Workspace %q (Resource Group %q): %+v", kind, name, logicAppName, resourceGroup, err)
 	}
 
 	return nil

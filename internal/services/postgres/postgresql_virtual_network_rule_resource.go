@@ -84,7 +84,7 @@ func resourcePostgreSQLVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData,
 		existing, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 			}
 		}
 
@@ -126,12 +126,12 @@ func resourcePostgreSQLVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q) to be created or updated: %+v", name, serverName, resourceGroup, err)
+		return fmt.Errorf("waiting for PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q) to be created or updated: %+v", name, serverName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+		return fmt.Errorf("retrieving PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -211,7 +211,7 @@ func postgreSQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, cli
 				return nil, "ResponseNotFound", nil
 			}
 
-			return nil, "", fmt.Errorf("Error polling for the state of the PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+			return nil, "", fmt.Errorf("polling for the state of the PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 		}
 
 		if props := resp.VirtualNetworkRuleProperties; props != nil {

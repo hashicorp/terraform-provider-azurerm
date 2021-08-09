@@ -69,7 +69,7 @@ func dataSourceBatchCertificateRead(d *pluginsdk.ResourceData, meta interface{})
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Batch certificate %q (Account %q / Resource Group %q) was not found", name, accountName, resourceGroupName)
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Batch certificate %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM Batch certificate %q: %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)

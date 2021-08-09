@@ -71,7 +71,7 @@ func dataSourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return fmt.Errorf("Error: IoT Device Provisioning Service %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)

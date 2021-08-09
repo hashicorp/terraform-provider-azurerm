@@ -181,7 +181,7 @@ func resourceManagedApplicationCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	params, err := expandManagedApplicationParameters(d)
 	if err != nil {
-		return fmt.Errorf("Error expanding `parameters` or `parameter_values`: %+v", err)
+		return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
 	}
 	parameters.Parameters = params
 
@@ -382,7 +382,6 @@ func flattenManagedApplicationParametersOrOutputs(input interface{}) (map[string
 			default:
 				return nil, fmt.Errorf("unexpected parameter type %T", t)
 			}
-
 		}
 	}
 
