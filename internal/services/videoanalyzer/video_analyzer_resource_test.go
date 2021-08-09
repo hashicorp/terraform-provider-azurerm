@@ -102,7 +102,7 @@ resource "azurerm_video_analyzer" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   storage_account {
-    id          = azurerm_storage_account.first.id
+    id                        = azurerm_storage_account.first.id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
@@ -132,7 +132,7 @@ resource "azurerm_video_analyzer" "import" {
   resource_group_name = azurerm_video_analyzer.test.resource_group_name
 
   storage_account {
-    id          = azurerm_storage_account.first.id
+    id                        = azurerm_storage_account.first.id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
@@ -161,12 +161,12 @@ resource "azurerm_video_analyzer" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   storage_account {
-    id          = azurerm_storage_account.first.id
+    id                        = azurerm_storage_account.first.id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
   storage_account {
-    id          = azurerm_storage_account.first.id
+    id                        = azurerm_storage_account.first.id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
@@ -196,7 +196,7 @@ resource "azurerm_video_analyzer" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   storage_account {
-    id          = azurerm_storage_account.first.id
+    id                        = azurerm_storage_account.first.id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
