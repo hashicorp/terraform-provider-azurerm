@@ -589,6 +589,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ConflictsWith: []string{"private_link_enabled"},
 			},
 
+			"private_cluster_public_fqdn_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"private_dns_zone_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -950,6 +956,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	apiAccessProfile := containerservice.ManagedClusterAPIServerAccessProfile{
 		EnablePrivateCluster: &enablePrivateCluster,
 		AuthorizedIPRanges:   apiServerAuthorizedIPRanges,
+	}
+
+	if v, ok := d.GetOk("private_cluster_public_fqdn_enabled"); ok {
+		apiAccessProfile.EnablePrivateClusterPublicFQDN = utils.Bool(v.(bool))
 	}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
@@ -1490,6 +1500,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
 			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
 			d.Set("private_dns_zone_id", accessProfile.PrivateDNSZone)
+			d.Set("private_cluster_public_fqdn_enabled", accessProfile.EnablePrivateClusterPublicFQDN)
 		}
 
 		addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)
