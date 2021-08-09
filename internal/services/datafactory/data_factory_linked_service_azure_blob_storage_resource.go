@@ -68,7 +68,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				ExactlyOneOf: []string{"connection_string", "sas_uri", "service_endpoint"},
 			},
 
-			"sas_token": {
+			"key_vault_sas_token": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -201,7 +201,7 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if v, ok := d.GetOk("sas_uri"); ok {
-		if sasToken, ok := d.GetOk("sas_token"); ok {
+		if sasToken, ok := d.GetOk("key_vault_sas_token"); ok {
 			blobStorageProperties.SasURI = utils.String(v.(string))
 			blobStorageProperties.SasToken = expandAzureKeyVaultSecretReference(sasToken.([]interface{}))
 		} else {

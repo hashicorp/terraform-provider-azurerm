@@ -61,18 +61,18 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_sas_uri(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryLinkedServiceAzureBlobStorage_sas_uri_with_sas_token(t *testing.T) {
+func TestAccDataFactoryLinkedServiceAzureBlobStorage_sas_uri_with_key_vault_sas_token(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
 	r := LinkedServiceAzureBlobStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sas_uri_with_sas_token(data),
+			Config: r.sas_uri_with_key_vault_sas_token(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sas_uri").Exists(),
-				check.That(data.ResourceName).Key("sas_token.0.linked_service_name").HasValue("linkkv"),
-				check.That(data.ResourceName).Key("sas_token.0.secret_name").HasValue("secret"),
+				check.That(data.ResourceName).Key("key_vault_sas_token.0.linked_service_name").HasValue("linkkv"),
+				check.That(data.ResourceName).Key("key_vault_sas_token.0.secret_name").HasValue("secret"),
 			),
 		},
 		data.ImportStep("sas_uri"),
@@ -310,7 +310,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureBlobStorageResource) sas_uri_with_sas_token(data acceptance.TestData) string {
+func (LinkedServiceAzureBlobStorageResource) sas_uri_with_key_vault_sas_token(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -353,7 +353,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   sas_uri             = "https://storageaccountname.blob.core.windows.net"
-  sas_token {
+  key_vault_sas_token {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"
   }
