@@ -100,7 +100,7 @@ func resourceDnsAaaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.AAAA)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing DNS AAAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing DNS AAAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 			}
 		}
 
@@ -136,7 +136,7 @@ func resourceDnsAaaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
 	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.AAAA, parameters, eTag, ifNoneMatch); err != nil {
-		return fmt.Errorf("Error creating/updating DNS AAAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+		return fmt.Errorf("creating/updating DNS AAAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -160,7 +160,7 @@ func resourceDnsAaaaRecordRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS AAAA record %s: %v", id.AAAAName, err)
+		return fmt.Errorf("reading DNS AAAA record %s: %v", id.AAAAName, err)
 	}
 
 	d.Set("name", id.AAAAName)
@@ -171,7 +171,7 @@ func resourceDnsAaaaRecordRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("ttl", resp.TTL)
 
 	if err := d.Set("records", flattenAzureRmDnsAaaaRecords(resp.AaaaRecords)); err != nil {
-		return fmt.Errorf("Error setting `records`: %+v", err)
+		return fmt.Errorf("setting `records`: %+v", err)
 	}
 
 	targetResourceId := ""
@@ -195,7 +195,7 @@ func resourceDnsAaaaRecordDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	resp, err := dnsClient.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.AAAAName, dns.AAAA, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS AAAA Record %s: %+v", id.AAAAName, err)
+		return fmt.Errorf("deleting DNS AAAA Record %s: %+v", id.AAAAName, err)
 	}
 
 	return nil

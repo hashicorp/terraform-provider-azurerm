@@ -49,7 +49,7 @@ func dataSourceApplicationSecurityGroupRead(d *pluginsdk.ResourceData, meta inte
 			return fmt.Errorf("Error: Application Security Group %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on Application Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Application Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)

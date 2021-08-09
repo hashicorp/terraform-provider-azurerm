@@ -79,7 +79,7 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", accountName, name, containerName, err)
+		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", accountName, name, containerName, err)
 	}
 	if account == nil {
 		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
@@ -87,7 +87,7 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	blobsClient, err := storageClient.BlobsClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Blobs Client: %s", err)
+		return fmt.Errorf("building Blobs Client: %s", err)
 	}
 
 	id := blobsClient.GetResourceID(accountName, containerName, name)
@@ -102,7 +102,7 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving properties for Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
+		return fmt.Errorf("retrieving properties for Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
 	}
 
 	d.Set("name", name)
@@ -117,7 +117,7 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if props.ContentMD5 != "" {
 		contentMD5, err = convertBase64ToHexEncoding(props.ContentMD5)
 		if err != nil {
-			return fmt.Errorf("Error in converting hex to base64 encoding for content_md5: %s", err)
+			return fmt.Errorf("in converting hex to base64 encoding for content_md5: %s", err)
 		}
 	}
 	d.Set("content_md5", contentMD5)
@@ -129,7 +129,7 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("url", id)
 
 	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
-		return fmt.Errorf("Error setting `metadata`: %+v", err)
+		return fmt.Errorf("setting `metadata`: %+v", err)
 	}
 
 	return nil

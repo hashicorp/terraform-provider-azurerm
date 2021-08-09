@@ -91,7 +91,7 @@ func resourceMariaDbDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		existing, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Database %q (Server %q / Resource Group %q): %s", name, serverName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Database %q (Server %q / Resource Group %q): %s", name, serverName, resourceGroup, err)
 			}
 		}
 
@@ -112,16 +112,16 @@ func resourceMariaDbDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
 	if err != nil {
-		return fmt.Errorf("error creating MariaDB database %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating MariaDB database %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("error waiting for completion of MariaDB database %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of MariaDB database %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		return fmt.Errorf("error retrieving MariaDB database %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving MariaDB database %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("cannot read MariaDB database %q (Resource Group %q) ID", name, resourceGroup)
@@ -153,7 +153,7 @@ func resourceMariaDbDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("error making read request on Azure MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
+		return fmt.Errorf("making read request on Azure MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -188,11 +188,11 @@ func resourceMariaDbDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("error making delete request on MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
+		return fmt.Errorf("making delete request on MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("error waiting for deletion of MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for deletion of MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
 	}
 
 	return nil

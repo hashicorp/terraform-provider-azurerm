@@ -137,7 +137,7 @@ func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		resp, err := client.Get(ctx, resourceGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for present of existing Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
 			}
 		}
 
@@ -154,7 +154,7 @@ func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	case "datetime":
 		vTime, parseErr := time.Parse(time.RFC3339, d.Get("value").(string))
 		if parseErr != nil {
-			return fmt.Errorf("Error invalid time format: %+v", parseErr)
+			return fmt.Errorf("invalid time format: %+v", parseErr)
 		}
 		value = fmt.Sprintf("\"\\/Date(%d)\\/\"", vTime.UnixNano()/1000000)
 	case "bool":
@@ -178,12 +178,12 @@ func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, name, parameters); err != nil {
-		return fmt.Errorf("Error creating Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
+		return fmt.Errorf("creating Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, accountName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
+		return fmt.Errorf("retrieving Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
 	}
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read Automation %s Variable %q (Automation Account Name %q / Resource Group %q) ID", varType, name, accountName, resourceGroup)
@@ -215,7 +215,7 @@ func resourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{},
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
+		return fmt.Errorf("reading Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -258,7 +258,7 @@ func dataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
+		return fmt.Errorf("reading Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -301,7 +301,7 @@ func resourceAutomationVariableDelete(d *pluginsdk.ResourceData, meta interface{
 	name := id.Path["variables"]
 
 	if _, err := client.Delete(ctx, resourceGroup, accountName, name); err != nil {
-		return fmt.Errorf("Error deleting Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
+		return fmt.Errorf("deleting Automation %s Variable %q (Automation Account Name %q / Resource Group %q): %+v", varType, name, accountName, resourceGroup, err)
 	}
 
 	return nil

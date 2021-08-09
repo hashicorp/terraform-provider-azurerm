@@ -71,7 +71,7 @@ func dataSourceAvailabilitySetRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error: Availability Set %q (Resource Group %q) was not found", name, resGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on Availability Set %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("making Read request on Availability Set %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.SetId(*resp.ID)

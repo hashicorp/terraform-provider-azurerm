@@ -23,7 +23,7 @@ func resourceArmConsumptionBudgetRead(d *pluginsdk.ResourceData, meta interface{
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("error making read request on Azure Consumption Budget %q for scope %q: %+v", name, scope, err)
+		return fmt.Errorf("making read request on Azure Consumption Budget %q for scope %q: %+v", name, scope, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -49,7 +49,7 @@ func resourceArmConsumptionBudgetDelete(d *pluginsdk.ResourceData, meta interfac
 
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("error issuing delete request on Azure Consumption Budget %q for scope %q: %+v", name, scope, err)
+			return fmt.Errorf("issuing delete request on Azure Consumption Budget %q for scope %q: %+v", name, scope, err)
 		}
 	}
 
@@ -67,7 +67,7 @@ func resourceArmConsumptionBudgetCreateUpdate(d *pluginsdk.ResourceData, meta in
 		existing, err := client.Get(ctx, scope, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("error checking for presence of existing Consumption Budget %q for scope %q: %s", name, scope, err)
+				return fmt.Errorf("checking for presence of existing Consumption Budget %q for scope %q: %s", name, scope, err)
 			}
 		}
 
@@ -79,7 +79,7 @@ func resourceArmConsumptionBudgetCreateUpdate(d *pluginsdk.ResourceData, meta in
 	amount := decimal.NewFromFloat(d.Get("amount").(float64))
 	timePeriod, err := ExpandConsumptionBudgetTimePeriod(d.Get("time_period").([]interface{}))
 	if err != nil {
-		return fmt.Errorf("error expanding `time_period`: %+v", err)
+		return fmt.Errorf("expanding `time_period`: %+v", err)
 	}
 
 	// The Consumption Budget API requires the category type field to be set in a budget's properties.

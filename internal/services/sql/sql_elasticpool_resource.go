@@ -114,7 +114,7 @@ func resourceSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		existing, err := client.Get(ctx, resGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing SQL ElasticPool %q (resource group %q, server %q) ID", name, serverName, resGroup)
+				return fmt.Errorf("checking for presence of existing SQL ElasticPool %q (resource group %q, server %q) ID", name, serverName, resGroup)
 			}
 		}
 

@@ -73,7 +73,7 @@ func resourceNetworkDDoSProtectionPlanCreateUpdate(d *pluginsdk.ResourceData, me
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing DDoS Protection Plan %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing DDoS Protection Plan %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -87,7 +87,7 @@ func resourceNetworkDDoSProtectionPlanCreateUpdate(d *pluginsdk.ResourceData, me
 
 	vnetsToLock, err := expandNetworkDDoSProtectionPlanVnetNames(d)
 	if err != nil {
-		return fmt.Errorf("Error extracting names of Virtual Network: %+v", err)
+		return fmt.Errorf("extracting names of Virtual Network: %+v", err)
 	}
 
 	locks.ByName(name, azureNetworkDDoSProtectionPlanResourceName)
@@ -103,16 +103,16 @@ func resourceNetworkDDoSProtectionPlanCreateUpdate(d *pluginsdk.ResourceData, me
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation/update of DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	plan, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if plan.ID == nil {
@@ -144,7 +144,7 @@ func resourceNetworkDDoSProtectionPlanRead(d *pluginsdk.ResourceData, meta inter
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", plan.Name)
@@ -156,7 +156,7 @@ func resourceNetworkDDoSProtectionPlanRead(d *pluginsdk.ResourceData, meta inter
 	if props := plan.DdosProtectionPlanPropertiesFormat; props != nil {
 		vNetIDs := flattenNetworkDDoSProtectionPlanVirtualNetworkIDs(props.VirtualNetworks)
 		if err := d.Set("virtual_network_ids", vNetIDs); err != nil {
-			return fmt.Errorf("Error setting `virtual_network_ids`: %+v", err)
+			return fmt.Errorf("setting `virtual_network_ids`: %+v", err)
 		}
 	}
 
@@ -183,12 +183,12 @@ func resourceNetworkDDoSProtectionPlanDelete(d *pluginsdk.ResourceData, meta int
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	vnetsToLock, err := extractVnetNames(d)
 	if err != nil {
-		return fmt.Errorf("Error extracting names of Virtual Network: %+v", err)
+		return fmt.Errorf("extracting names of Virtual Network: %+v", err)
 	}
 
 	locks.ByName(name, azureNetworkDDoSProtectionPlanResourceName)
@@ -199,11 +199,11 @@ func resourceNetworkDDoSProtectionPlanDelete(d *pluginsdk.ResourceData, meta int
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the deletion of DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return err

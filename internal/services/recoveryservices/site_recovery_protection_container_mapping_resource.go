@@ -94,7 +94,7 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 		existing, err := client.Get(ctx, fabricName, protectionContainerName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing site recovery protection container mapping %s (fabric %s, container %s): %+v", name, fabricName, protectionContainerName, err)
+				return fmt.Errorf("checking for presence of existing site recovery protection container mapping %s (fabric %s, container %s): %+v", name, fabricName, protectionContainerName, err)
 			}
 		}
 
@@ -112,15 +112,15 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 	}
 	future, err := client.Create(ctx, fabricName, protectionContainerName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("creating site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error creating site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("creating site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	resp, err := client.Get(ctx, fabricName, protectionContainerName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("retrieving site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
@@ -150,7 +150,7 @@ func resourceSiteRecoveryContainerMappingRead(d *pluginsdk.ResourceData, meta in
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("making Read request on site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.Set("resource_group_name", resGroup)
@@ -190,11 +190,11 @@ func resourceSiteRecoveryServicesContainerMappingDelete(d *pluginsdk.ResourceDat
 
 	future, err := client.Delete(ctx, fabricName, protectionContainerName, name, input)
 	if err != nil {
-		return fmt.Errorf("Error deleting site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("deleting site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("waiting for deletion of site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	return nil

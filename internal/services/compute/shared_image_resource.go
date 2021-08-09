@@ -174,7 +174,7 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing, err := client.Get(ctx, resourceGroup, galleryName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
 			}
 		}
 
@@ -206,16 +206,16 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, galleryName, name, image)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation/update of Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, galleryName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+		return fmt.Errorf("retrieving Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -245,7 +245,7 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Shared Image %q (Gallery %q / Resource Group %q): %+v", id.ImageName, id.GalleryName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Shared Image %q (Gallery %q / Resource Group %q): %+v", id.ImageName, id.GalleryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.ImageName)
@@ -265,11 +265,11 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("release_note_uri", props.ReleaseNoteURI)
 
 		if err := d.Set("identifier", flattenGalleryImageIdentifier(props.Identifier)); err != nil {
-			return fmt.Errorf("Error setting `identifier`: %+v", err)
+			return fmt.Errorf("setting `identifier`: %+v", err)
 		}
 
 		if err := d.Set("purchase_plan", flattenGalleryImagePurchasePlan(props.PurchasePlan)); err != nil {
-			return fmt.Errorf("Error setting `purchase_plan`: %+v", err)
+			return fmt.Errorf("setting `purchase_plan`: %+v", err)
 		}
 	}
 

@@ -217,7 +217,7 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Healthcare Service %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Healthcare Service %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
@@ -228,7 +228,7 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	cosmosDbConfiguration, err := expandAzureRMhealthcareapisCosmosDbConfiguration(d)
 	if err != nil {
-		return fmt.Errorf("Error expanding cosmosdb_configuration: %+v", err)
+		return fmt.Errorf("expanding cosmosdb_configuration: %+v", err)
 	}
 
 	healthcareServiceDescription := healthcareapis.ServicesDescription{
@@ -252,16 +252,16 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, healthcareServiceDescription)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Healthcare Service %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Creating/Updating Healthcare Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error Creating/Updating Healthcare Service %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Creating/Updating Healthcare Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error Retrieving Healthcare Service %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Retrieving Healthcare Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Healthcare Service %q (resource group %q) ID", name, resGroup)
@@ -290,7 +290,7 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Healthcare Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Healthcare Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -304,7 +304,7 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 	if props := resp.Properties; props != nil {
 		if err := d.Set("access_policy_object_ids", flattenHealthcareAccessPolicies(props.AccessPolicies)); err != nil {
-			return fmt.Errorf("Error setting `access_policy_object_ids`: %+v", err)
+			return fmt.Errorf("setting `access_policy_object_ids`: %+v", err)
 		}
 
 		cosmodDbKeyVaultKeyVersionlessId := ""
@@ -326,11 +326,11 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		if err := d.Set("authentication_configuration", flattenHealthcareAuthConfig(props.AuthenticationConfiguration)); err != nil {
-			return fmt.Errorf("Error setting `authentication_configuration`: %+v", err)
+			return fmt.Errorf("setting `authentication_configuration`: %+v", err)
 		}
 
 		if err := d.Set("cors_configuration", flattenHealthcareCorsConfig(props.CorsConfiguration)); err != nil {
-			return fmt.Errorf("Error setting `cors_configuration`: %+v", err)
+			return fmt.Errorf("setting `cors_configuration`: %+v", err)
 		}
 	}
 
@@ -344,16 +344,16 @@ func resourceHealthcareServiceDelete(d *pluginsdk.ResourceData, meta interface{}
 
 	id, err := parse.ServiceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
+		return fmt.Errorf("Parsing Azure Resource ID: %+v", err)
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Healthcare Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Healthcare Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the deleting Healthcare Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deleting Healthcare Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

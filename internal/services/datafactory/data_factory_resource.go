@@ -378,7 +378,7 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			if enc.VaultBaseURL != nil && enc.KeyName != nil && enc.KeyVersion != nil {
 				versionedKey := fmt.Sprintf("%skeys/%s/%s", *enc.VaultBaseURL, *enc.KeyName, *enc.KeyVersion)
 				if err := d.Set("customer_managed_key_id", versionedKey); err != nil {
-					return fmt.Errorf("Error setting `customer_managed_key_id`: %+v", err)
+					return fmt.Errorf("setting `customer_managed_key_id`: %+v", err)
 				}
 			}
 		}
@@ -393,12 +393,12 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	repoType, repo := flattenDataFactoryRepoConfiguration(&resp)
 	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryVSTSConfiguration {
 		if err := d.Set("vsts_configuration", repo); err != nil {
-			return fmt.Errorf("Error setting `vsts_configuration`: %+v", err)
+			return fmt.Errorf("setting `vsts_configuration`: %+v", err)
 		}
 	}
 	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryGitHubConfiguration {
 		if err := d.Set("github_configuration", repo); err != nil {
-			return fmt.Errorf("Error setting `github_configuration`: %+v", err)
+			return fmt.Errorf("setting `github_configuration`: %+v", err)
 		}
 	}
 	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryRepoConfiguration {
@@ -408,10 +408,10 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	identity, err := flattenDataFactoryIdentity(resp.Identity)
 	if err != nil {
-		return fmt.Errorf("Error flattening `identity`: %+v", err)
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	// This variable isn't returned from the API if it hasn't been passed in first but we know the default is `true`

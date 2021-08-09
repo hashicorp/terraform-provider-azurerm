@@ -150,7 +150,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", id.AccountName, id.Name, err)
+		return fmt.Errorf("retrieving Account %q for Table %q: %s", id.AccountName, id.Name, err)
 	}
 	if account == nil {
 		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.Name, id.AccountName)
@@ -200,7 +200,7 @@ func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", id.AccountName, id.Name, err)
+		return fmt.Errorf("retrieving Account %q for Table %q: %s", id.AccountName, id.Name, err)
 	}
 	if account == nil {
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
@@ -208,7 +208,7 @@ func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 	client, err := storageClient.TablesClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Table Client: %s", err)
+		return fmt.Errorf("building Table Client: %s", err)
 	}
 
 	log.Printf("[INFO] Deleting Table %q in Storage Account %q", id.Name, id.AccountName)

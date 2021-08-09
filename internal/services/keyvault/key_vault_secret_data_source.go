@@ -74,7 +74,7 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, *keyVaultId, err)
+		return fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, *keyVaultId, err)
 	}
 
 	// we always want to get the latest version
@@ -83,7 +83,7 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("KeyVault Secret %q (KeyVault URI %q) does not exist", name, *keyVaultBaseUri)
 		}
-		return fmt.Errorf("Error making Read request on Azure KeyVault Secret %s: %+v", name, err)
+		return fmt.Errorf("making Read request on Azure KeyVault Secret %s: %+v", name, err)
 	}
 
 	// the version may have changed, so parse the updated id

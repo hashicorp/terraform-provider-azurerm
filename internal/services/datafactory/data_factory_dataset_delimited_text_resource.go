@@ -304,7 +304,7 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 			}
 		}
 
@@ -377,12 +377,12 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, dataset, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Dataset DelimitedText  %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Data Factory Dataset DelimitedText  %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
@@ -411,7 +411,7 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -420,7 +420,7 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta
 
 	delimited_textTable, ok := resp.Properties.AsDelimitedTextDataset()
 	if !ok {
-		return fmt.Errorf("Error classifying Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicDatasetTypeDelimitedText, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicDatasetTypeDelimitedText, *resp.Type)
 	}
 
 	d.Set("additional_properties", delimited_textTable.AdditionalProperties)
@@ -431,12 +431,12 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta
 
 	parameters := flattenDataFactoryParameters(delimited_textTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
-		return fmt.Errorf("Error setting `parameters`: %+v", err)
+		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
 	annotations := flattenDataFactoryAnnotations(delimited_textTable.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
-		return fmt.Errorf("Error setting `annotations`: %+v", err)
+		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
 	if linkedService := delimited_textTable.LinkedServiceName; linkedService != nil {
@@ -529,7 +529,7 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta
 
 	structureColumns := flattenDataFactoryStructureColumns(delimited_textTable.Structure)
 	if err := d.Set("schema_column", structureColumns); err != nil {
-		return fmt.Errorf("Error setting `schema_column`: %+v", err)
+		return fmt.Errorf("setting `schema_column`: %+v", err)
 	}
 
 	return nil
@@ -548,7 +548,7 @@ func resourceDataFactoryDatasetDelimitedTextDelete(d *pluginsdk.ResourceData, me
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
 		}
 	}
 

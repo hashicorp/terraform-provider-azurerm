@@ -103,7 +103,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.Re
 		existing, err := client.Get(ctx, resourceGroup, factoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Self-Hosted Integration Runtime %q (Resource Group %q, Data Factory %q): %s", name, resourceGroup, factoryName, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Self-Hosted Integration Runtime %q (Resource Group %q, Data Factory %q): %s", name, resourceGroup, factoryName, err)
 			}
 		}
 
@@ -132,12 +132,12 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.Re
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, factoryName, name, integrationRuntime, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Self-Hosted Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+		return fmt.Errorf("creating/updating Data Factory Self-Hosted Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, factoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Self-Hosted Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+		return fmt.Errorf("retrieving Data Factory Self-Hosted Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
 	}
 
 	if resp.ID == nil {
@@ -169,7 +169,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceDa
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Self-Hosted Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+		return fmt.Errorf("retrieving Data Factory Self-Hosted Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
 	}
 
 	d.Set("name", name)
@@ -179,7 +179,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceDa
 	selfHostedIntegrationRuntime, convertSuccess := resp.Properties.AsSelfHostedIntegrationRuntime()
 
 	if !convertSuccess {
-		return fmt.Errorf("Error converting integration runtime to Self-Hosted integration runtime %q (Resource Group %q, Data Factory %q)", name, resourceGroup, factoryName)
+		return fmt.Errorf("converting integration runtime to Self-Hosted integration runtime %q (Resource Group %q, Data Factory %q)", name, resourceGroup, factoryName)
 	}
 
 	if selfHostedIntegrationRuntime.Description != nil {
@@ -192,7 +192,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceDa
 			rbacAuthorization, _ := linkedInfo.AsLinkedIntegrationRuntimeRbacAuthorization()
 			if rbacAuthorization != nil {
 				if err := d.Set("rbac_authorization", pluginsdk.NewSet(resourceDataFactoryIntegrationRuntimeSelfHostedRbacAuthorizationHash, flattenAzureRmDataFactoryIntegrationRuntimeSelfHostedTypePropertiesRbacAuthorization(rbacAuthorization))); err != nil {
-					return fmt.Errorf("Error setting `rbac_authorization`: %#v", err)
+					return fmt.Errorf("setting `rbac_authorization`: %#v", err)
 				}
 			}
 		}
@@ -206,7 +206,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceDa
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Self-Hosted Integration Runtime %q Auth Keys (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, errKey)
+		return fmt.Errorf("retrieving Data Factory Self-Hosted Integration Runtime %q Auth Keys (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, errKey)
 	}
 
 	d.Set("auth_key_1", respKey.AuthKey1)
@@ -231,7 +231,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedDelete(d *pluginsdk.Resource
 	response, err := client.Delete(ctx, resourceGroup, factoryName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory SelfHosted Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+			return fmt.Errorf("deleting Data Factory SelfHosted Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
 		}
 	}
 	return nil

@@ -59,7 +59,7 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing resource group: %+v", err)
+				return fmt.Errorf("checking for presence of existing resource group: %+v", err)
 			}
 		}
 
@@ -74,12 +74,12 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, name, parameters); err != nil {
-		return fmt.Errorf("Error creating Resource Group %q: %+v", name, err)
+		return fmt.Errorf("creating Resource Group %q: %+v", name, err)
 	}
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Resource Group %q: %+v", name, err)
+		return fmt.Errorf("retrieving Resource Group %q: %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -105,7 +105,7 @@ func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return nil
 		}
 
-		return fmt.Errorf("Error reading resource group: %+v", err)
+		return fmt.Errorf("reading resource group: %+v", err)
 	}
 
 	d.Set("name", resp.Name)
@@ -129,7 +129,7 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Resource Group %q: %+v", id.ResourceGroup, err)
+		return fmt.Errorf("deleting Resource Group %q: %+v", id.ResourceGroup, err)
 	}
 
 	err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
@@ -138,7 +138,7 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Resource Group %q: %+v", id.ResourceGroup, err)
+		return fmt.Errorf("deleting Resource Group %q: %+v", id.ResourceGroup, err)
 	}
 
 	return nil

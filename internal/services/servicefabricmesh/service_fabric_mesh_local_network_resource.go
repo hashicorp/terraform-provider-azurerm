@@ -143,7 +143,7 @@ func resourceServiceFabricMeshLocalNetworkRead(d *pluginsdk.ResourceData, meta i
 
 	props, ok := resp.Properties.AsLocalNetworkResourceProperties()
 	if !ok {
-		return fmt.Errorf("Error classifying Service Fabric Mesh Local Network %q (Resource Group %q): Expected: %q Received: %q", id.Name, id.ResourceGroup, servicefabricmesh.KindNetworkResourceProperties, props.Kind)
+		return fmt.Errorf("classifying Service Fabric Mesh Local Network %q (Resource Group %q): Expected: %q Received: %q", id.Name, id.ResourceGroup, servicefabricmesh.KindNetworkResourceProperties, props.Kind)
 	}
 
 	d.Set("name", resp.Name)

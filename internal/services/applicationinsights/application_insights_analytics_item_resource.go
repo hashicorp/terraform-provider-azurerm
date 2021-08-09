@@ -110,7 +110,7 @@ func resourceApplicationInsightsAnalyticsItemCreateUpdate(d *pluginsdk.ResourceD
 
 	resourceID, err := azure.ParseAzureResourceID(appInsightsID)
 	if err != nil {
-		return fmt.Errorf("Error parsing resource ID: %s", err)
+		return fmt.Errorf("parsing resource ID: %s", err)
 	}
 	resourceGroupName := resourceID.ResourceGroup
 	appInsightsName := resourceID.Path["components"]
@@ -120,7 +120,7 @@ func resourceApplicationInsightsAnalyticsItemCreateUpdate(d *pluginsdk.ResourceD
 	if id != "" {
 		_, _, _, itemID, err = ResourcesArmApplicationInsightsAnalyticsItemParseID(id)
 		if err != nil {
-			return fmt.Errorf("Error parsing Application Insights Analytics Item ID %s: %s", id, err)
+			return fmt.Errorf("parsing Application Insights Analytics Item ID %s: %s", id, err)
 		}
 	}
 
@@ -153,7 +153,7 @@ func resourceApplicationInsightsAnalyticsItemCreateUpdate(d *pluginsdk.ResourceD
 	}
 	result, err := client.Put(ctx, resourceGroupName, appInsightsName, itemScopePath, properties, &overwrite)
 	if err != nil {
-		return fmt.Errorf("Error Putting Application Insights Analytics Item %s (Resource Group %s, App Insights Name: %s): %s", name, resourceGroupName, appInsightsName, err)
+		return fmt.Errorf("Putting Application Insights Analytics Item %s (Resource Group %s, App Insights Name: %s): %s", name, resourceGroupName, appInsightsName, err)
 	}
 
 	// See comments in resourcesArmApplicationInsightsAnalyticsItemParseID method about ID format
@@ -171,12 +171,12 @@ func resourceApplicationInsightsAnalyticsItemRead(d *pluginsdk.ResourceData, met
 	id := d.Id()
 	resourceGroupName, appInsightsName, itemScopePath, itemID, err := ResourcesArmApplicationInsightsAnalyticsItemParseID(id)
 	if err != nil {
-		return fmt.Errorf("Error parsing Application Insights Analytics Item ID %s: %s", id, err)
+		return fmt.Errorf("parsing Application Insights Analytics Item ID %s: %s", id, err)
 	}
 
 	result, err := client.Get(ctx, resourceGroupName, appInsightsName, itemScopePath, itemID, "")
 	if err != nil {
-		return fmt.Errorf("Error Getting Application Insights Analytics Item %s (Resource Group %s, App Insights Name: %s): %s", itemID, resourceGroupName, appInsightsName, err)
+		return fmt.Errorf("Getting Application Insights Analytics Item %s (Resource Group %s, App Insights Name: %s): %s", itemID, resourceGroupName, appInsightsName, err)
 	}
 
 	idSuffix := resourcesArmApplicationInsightsAnalyticsItemGenerateIDSuffix(result.Scope, itemID)
@@ -205,11 +205,11 @@ func resourceApplicationInsightsAnalyticsItemDelete(d *pluginsdk.ResourceData, m
 	id := d.Id()
 	resourceGroupName, appInsightsName, itemScopePath, itemID, err := ResourcesArmApplicationInsightsAnalyticsItemParseID(id)
 	if err != nil {
-		return fmt.Errorf("Error parsing Application Insights Analytics Item ID %s: %s", id, err)
+		return fmt.Errorf("parsing Application Insights Analytics Item ID %s: %s", id, err)
 	}
 
 	if _, err = client.Delete(ctx, resourceGroupName, appInsightsName, itemScopePath, itemID, ""); err != nil {
-		return fmt.Errorf("Error Deleting Application Insights Analytics Item '%s' (Resource Group %s, App Insights Name: %s): %s", itemID, resourceGroupName, appInsightsName, err)
+		return fmt.Errorf("Deleting Application Insights Analytics Item '%s' (Resource Group %s, App Insights Name: %s): %s", itemID, resourceGroupName, appInsightsName, err)
 	}
 
 	return nil
@@ -218,7 +218,7 @@ func resourceApplicationInsightsAnalyticsItemDelete(d *pluginsdk.ResourceData, m
 func ResourcesArmApplicationInsightsAnalyticsItemParseID(id string) (string, string, insights.ItemScopePath, string, error) {
 	resourceID, err := azure.ParseAzureResourceID(id)
 	if err != nil {
-		return "", "", "", "", fmt.Errorf("Error parsing resource ID: %s", err)
+		return "", "", "", "", fmt.Errorf("parsing resource ID: %s", err)
 	}
 	resourceGroupName := resourceID.ResourceGroup
 	appInsightsName := resourceID.Path["components"]

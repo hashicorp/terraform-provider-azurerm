@@ -156,7 +156,7 @@ func FirewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Firewall %q was not found in Resource Group %q", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*read.ID)
@@ -169,7 +169,7 @@ func FirewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if props := read.AzureFirewallPropertiesFormat; props != nil {
 		if err := d.Set("ip_configuration", flattenFirewallIPConfigurations(props.IPConfigurations)); err != nil {
-			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
+			return fmt.Errorf("setting `ip_configuration`: %+v", err)
 		}
 		managementIPConfigs := make([]interface{}, 0)
 		if props.ManagementIPConfiguration != nil {
@@ -178,13 +178,13 @@ func FirewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			})
 		}
 		if err := d.Set("management_ip_configuration", managementIPConfigs); err != nil {
-			return fmt.Errorf("Error setting `management_ip_configuration`: %+v", err)
+			return fmt.Errorf("setting `management_ip_configuration`: %+v", err)
 		}
 
 		d.Set("threat_intel_mode", string(props.ThreatIntelMode))
 
 		if err := d.Set("dns_servers", flattenFirewallDNSServers(props.AdditionalProperties)); err != nil {
-			return fmt.Errorf("Error setting `dns_servers`: %+v", err)
+			return fmt.Errorf("setting `dns_servers`: %+v", err)
 		}
 
 		if policy := props.FirewallPolicy; policy != nil {
@@ -197,12 +197,12 @@ func FirewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if err := d.Set("virtual_hub", flattenFirewallVirtualHubSetting(props)); err != nil {
-			return fmt.Errorf("Error setting `virtual_hub`: %+v", err)
+			return fmt.Errorf("setting `virtual_hub`: %+v", err)
 		}
 	}
 
 	if err := d.Set("zones", azure.FlattenZones(read.Zones)); err != nil {
-		return fmt.Errorf("Error setting `zones`: %+v", err)
+		return fmt.Errorf("setting `zones`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, read.Tags)

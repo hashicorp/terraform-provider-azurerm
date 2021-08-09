@@ -112,7 +112,7 @@ func dataSourceArmStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("Stream Analytics Job %q was not found in Resource Group %q!", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)

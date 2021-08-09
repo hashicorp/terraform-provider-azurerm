@@ -60,7 +60,7 @@ func dataSourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Kusto Cluster %q (Resource Group %q) does not exist", name, resourceGroup)
 		}
-		return fmt.Errorf("Error retrieving Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)

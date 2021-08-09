@@ -383,7 +383,7 @@ func resourceSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing, err := client.Get(ctx, resourceGroup, serverName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+				return fmt.Errorf("checking for presence of existing SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
 			}
 		}
 
@@ -478,11 +478,11 @@ func resourceSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("issuing create/update request for SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("waiting on create/update future for SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
 	}
 
 	if _, ok := d.GetOk("import"); ok {
@@ -502,13 +502,13 @@ func resourceSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	resp, err := client.Get(ctx, resourceGroup, serverName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error issuing get request for SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("issuing get request for SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
 	}
 
 	d.SetId(*resp.ID)
 
 	if _, err = threatClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, *expandArmSqlServerThreatDetectionPolicy(d, location)); err != nil {
-		return fmt.Errorf("Error setting database threat detection policy: %+v", err)
+		return fmt.Errorf("setting database threat detection policy: %+v", err)
 	}
 
 	if createMode != string(sql.CreateModeOnlineSecondary) {
@@ -542,14 +542,14 @@ func resourceSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Sql Database %s: %+v", id.Name, err)
+		return fmt.Errorf("making Read request on Sql Database %s: %+v", id.Name, err)
 	}
 
 	threatClient := meta.(*clients.Client).Sql.DatabaseThreatDetectionPoliciesClient
 	threat, err := threatClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err == nil {
 		if err := d.Set("threat_detection_policy", flattenArmSqlServerThreatDetectionPolicy(d, threat)); err != nil {
-			return fmt.Errorf("Error setting `threat_detection_policy`: %+v", err)
+			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
 		}
 	}
 
@@ -630,7 +630,7 @@ func resourceSqlDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting SQL Database: %+v", err)
+		return fmt.Errorf("deleting SQL Database: %+v", err)
 	}
 
 	return nil

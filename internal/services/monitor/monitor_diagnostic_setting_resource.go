@@ -187,7 +187,7 @@ func resourceMonitorDiagnosticSettingCreateUpdate(d *pluginsdk.ResourceData, met
 		existing, err := client.Get(ctx, actualResourceId, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Monitor Diagnostic Setting %q for Resource %q: %s", name, actualResourceId, err)
+				return fmt.Errorf("checking for presence of existing Monitor Diagnostic Setting %q for Resource %q: %s", name, actualResourceId, err)
 			}
 		}
 
@@ -270,7 +270,7 @@ func resourceMonitorDiagnosticSettingCreateUpdate(d *pluginsdk.ResourceData, met
 	// the Azure SDK prefixes the URI with a `/` such this makes a bad request if we don't trim the `/`
 	targetResourceId := strings.TrimPrefix(actualResourceId, "/")
 	if _, err := client.CreateOrUpdate(ctx, targetResourceId, properties, name); err != nil {
-		return fmt.Errorf("Error creating Monitor Diagnostics Setting %q for Resource %q: %+v", name, actualResourceId, err)
+		return fmt.Errorf("creating Monitor Diagnostics Setting %q for Resource %q: %+v", name, actualResourceId, err)
 	}
 
 	read, err := client.Get(ctx, targetResourceId, name)
@@ -306,7 +306,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, actualResourceId, err)
+		return fmt.Errorf("retrieving Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, actualResourceId, err)
 	}
 
 	d.Set("name", id.Name)
@@ -349,11 +349,11 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("log_analytics_destination_type", resp.LogAnalyticsDestinationType)
 
 	if err := d.Set("log", flattenMonitorDiagnosticLogs(resp.Logs)); err != nil {
-		return fmt.Errorf("Error setting `log`: %+v", err)
+		return fmt.Errorf("setting `log`: %+v", err)
 	}
 
 	if err := d.Set("metric", flattenMonitorDiagnosticMetrics(resp.Metrics)); err != nil {
-		return fmt.Errorf("Error setting `metric`: %+v", err)
+		return fmt.Errorf("setting `metric`: %+v", err)
 	}
 
 	return nil
@@ -373,7 +373,7 @@ func resourceMonitorDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta inte
 	resp, err := client.Delete(ctx, targetResourceId, id.Name)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, targetResourceId, err)
+			return fmt.Errorf("deleting Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, targetResourceId, err)
 		}
 	}
 
@@ -389,7 +389,7 @@ func resourceMonitorDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for Monitor Diagnostic Setting %q for Resource %q to become available: %s", id.Name, id.ResourceID, err)
+		return fmt.Errorf("waiting for Monitor Diagnostic Setting %q for Resource %q to become available: %s", id.Name, id.ResourceID, err)
 	}
 
 	return nil
@@ -402,7 +402,7 @@ func monitorDiagnosticSettingDeletedRefreshFunc(ctx context.Context, client *ins
 			if utils.ResponseWasNotFound(res.Response) {
 				return "NotFound", "NotFound", nil
 			}
-			return nil, "", fmt.Errorf("Error issuing read request in monitorDiagnosticSettingDeletedRefreshFunc: %s", err)
+			return nil, "", fmt.Errorf("issuing read request in monitorDiagnosticSettingDeletedRefreshFunc: %s", err)
 		}
 
 		return res, "Exists", nil

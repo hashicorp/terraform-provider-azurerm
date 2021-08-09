@@ -234,7 +234,7 @@ func resourceDataFactoryLinkedServiceKustoRead(d *pluginsdk.ResourceData, meta i
 
 	linkedService, ok := resp.Properties.AsAzureDataExplorerLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifying %s: Expected: %q", id, datafactory.TypeBasicLinkedServiceTypeAzureDataExplorer)
+		return fmt.Errorf("classifying %s: Expected: %q", id, datafactory.TypeBasicLinkedServiceTypeAzureDataExplorer)
 	}
 
 	d.Set("name", id.Name)

@@ -110,7 +110,7 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 		existing, err := client.Get(ctx, resourceGroup, accountName, jobScheduleUUID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Automation Job Schedule %q (Account %q / Resource Group %q): %s", jobScheduleUUID, accountName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Automation Job Schedule %q (Account %q / Resource Group %q): %s", jobScheduleUUID, accountName, resourceGroup, err)
 			}
 		}
 
@@ -209,7 +209,7 @@ func resourceAutomationJobScheduleRead(d *pluginsdk.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Job Schedule '%s': %+v", jobScheduleUUID, err)
+		return fmt.Errorf("making Read request on AzureRM Automation Job Schedule '%s': %+v", jobScheduleUUID, err)
 	}
 
 	d.Set("job_schedule_id", resp.JobScheduleID)
@@ -251,7 +251,7 @@ func resourceAutomationJobScheduleDelete(d *pluginsdk.ResourceData, meta interfa
 	resp, err := client.Delete(ctx, resourceGroup, accountName, jobScheduleUUID)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error issuing AzureRM delete request for Automation Job Schedule '%s': %+v", jobScheduleUUID, err)
+			return fmt.Errorf("issuing AzureRM delete request for Automation Job Schedule '%s': %+v", jobScheduleUUID, err)
 		}
 	}
 

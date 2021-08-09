@@ -81,7 +81,7 @@ func resourcePostgreSQLAdministratorCreateUpdate(d *pluginsdk.ResourceData, meta
 		existing, err := client.Get(ctx, resGroup, serverName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing PostgreSQL AD Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
+				return fmt.Errorf("checking for presence of existing PostgreSQL AD Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
 			}
 		}
 
@@ -101,16 +101,16 @@ func resourcePostgreSQLAdministratorCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, parameters)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for PostgreSQL AD Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
+		return fmt.Errorf("issuing create/update request for PostgreSQL AD Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for PostgreSQL AD Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
+		return fmt.Errorf("waiting on create/update future for PostgreSQL AD Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
 	}
 
 	resp, err := client.Get(ctx, resGroup, serverName)
 	if err != nil {
-		return fmt.Errorf("Error issuing get request for PostgreSQL AD Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
+		return fmt.Errorf("issuing get request for PostgreSQL AD Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -136,7 +136,7 @@ func resourcePostgreSQLAdministratorRead(d *pluginsdk.ResourceData, meta interfa
 			return nil
 		}
 
-		return fmt.Errorf("Error reading PostgreSQL AD administrator: %+v", err)
+		return fmt.Errorf("reading PostgreSQL AD administrator: %+v", err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)

@@ -463,7 +463,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 					}
 
 					if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-						return fmt.Errorf("Error waiting for Key Vault Secret %q to become available: %s", name, err)
+						return fmt.Errorf("waiting for Key Vault Secret %q to become available: %s", name, err)
 					}
 					log.Printf("[DEBUG] Secret %q recovered with ID: %q", name, *recoveredCertificate.ID)
 				}
@@ -489,7 +489,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("Error waiting for Certificate %q in Vault %q to become available: %s", name, *keyVaultBaseUrl, err)
+			return fmt.Errorf("waiting for Certificate %q in Vault %q to become available: %s", name, *keyVaultBaseUrl, err)
 		}
 	}
 
@@ -507,7 +507,7 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 	return func() (interface{}, string, error) {
 		res, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
 		if err != nil {
-			return nil, "", fmt.Errorf("Error issuing read request in keyVaultCertificateCreationRefreshFunc for Certificate %q in Vault %q: %s", name, keyVaultBaseUrl, err)
+			return nil, "", fmt.Errorf("issuing read request in keyVaultCertificateCreationRefreshFunc for Certificate %q in Vault %q: %s", name, keyVaultBaseUrl, err)
 		}
 
 		if res.Policy != nil &&
@@ -539,7 +539,7 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 
 	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
-		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
 	if keyVaultIdRaw == nil {
 		log.Printf("[DEBUG] Unable to determine the Resource ID for the Key Vault at URL %q - removing from state!", id.KeyVaultBaseUrl)
@@ -570,14 +570,14 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Key Vault Certificate: %+v", err)
+		return fmt.Errorf("reading Key Vault Certificate: %+v", err)
 	}
 
 	d.Set("name", id.Name)
 
 	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy, cert.Cer)
 	if err := d.Set("certificate_policy", certificatePolicy); err != nil {
-		return fmt.Errorf("Error setting Key Vault Certificate Policy: %+v", err)
+		return fmt.Errorf("setting Key Vault Certificate Policy: %+v", err)
 	}
 
 	if err := d.Set("certificate_attribute", flattenKeyVaultCertificateAttribute(cert.Attributes)); err != nil {
@@ -628,7 +628,7 @@ func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta interface
 
 	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
-		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
 	if keyVaultIdRaw == nil {
 		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
@@ -641,7 +641,7 @@ func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta interface
 
 	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
 		log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)

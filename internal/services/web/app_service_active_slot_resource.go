@@ -65,14 +65,14 @@ func resourceAppServiceActiveSlotCreateUpdate(d *pluginsdk.ResourceData, meta in
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("[DEBUG] App Service %q (resource group %q) was not found.", appServiceName, resGroup)
 		}
-		return fmt.Errorf("Error making Read request on AzureRM App Service %q: %+v", appServiceName, err)
+		return fmt.Errorf("making Read request on AzureRM App Service %q: %+v", appServiceName, err)
 	}
 
 	if _, err = client.GetSlot(ctx, resGroup, appServiceName, targetSlot); err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("[DEBUG] App Service Target Active Slot %q/%q (resource group %q) was not found.", appServiceName, targetSlot, resGroup)
 		}
-		return fmt.Errorf("Error making Read request on AzureRM App Service Slot %q/%q: %+v", appServiceName, targetSlot, err)
+		return fmt.Errorf("making Read request on AzureRM App Service Slot %q/%q: %+v", appServiceName, targetSlot, err)
 	}
 
 	cmsSlotEntity := web.CsmSlotEntity{
@@ -82,10 +82,10 @@ func resourceAppServiceActiveSlotCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	future, err := client.SwapSlotWithProduction(ctx, resGroup, appServiceName, cmsSlotEntity)
 	if err != nil {
-		return fmt.Errorf("Error swapping App Service Slot %q/%q: %+v", appServiceName, targetSlot, err)
+		return fmt.Errorf("swapping App Service Slot %q/%q: %+v", appServiceName, targetSlot, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error swapping App Service Slot %q/%q: %+v", appServiceName, targetSlot, err)
+		return fmt.Errorf("swapping App Service Slot %q/%q: %+v", appServiceName, targetSlot, err)
 	}
 	d.SetId(*resp.ID)
 	return resourceAppServiceActiveSlotRead(d, meta)
@@ -108,7 +108,7 @@ func resourceAppServiceActiveSlotRead(d *pluginsdk.ResourceData, meta interface{
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM App Service %q: %+v", id.SiteName, err)
+		return fmt.Errorf("making Read request on AzureRM App Service %q: %+v", id.SiteName, err)
 	}
 
 	if resp.SiteProperties == nil || resp.SiteProperties.SlotSwapStatus == nil {

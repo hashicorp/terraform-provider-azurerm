@@ -280,11 +280,11 @@ func resourceMediaStreamingEndpointCreate(d *pluginsdk.ResourceData, meta interf
 
 	future, err := client.Create(ctx, resourceGroup, accountName, streamingEndpointName, parameters, autoStart)
 	if err != nil {
-		return fmt.Errorf("Error creating Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
+		return fmt.Errorf("creating Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -318,11 +318,11 @@ func resourceMediaStreamingEndpointUpdate(d *pluginsdk.ResourceData, meta interf
 
 		future, err := client.Scale(ctx, id.ResourceGroup, id.MediaserviceName, id.Name, scaleParamaters)
 		if err != nil {
-			return fmt.Errorf("Error scaling units in Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+			return fmt.Errorf("scaling units in Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for scaling of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for scaling of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 		}
 	}
 
@@ -365,11 +365,11 @@ func resourceMediaStreamingEndpointUpdate(d *pluginsdk.ResourceData, meta interf
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.MediaserviceName, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("creating Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for creation of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 	}
 
 	return resourceMediaStreamingEndpointRead(d, meta)
@@ -393,7 +393,7 @@ func resourceMediaStreamingEndpointRead(d *pluginsdk.ResourceData, meta interfac
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -410,7 +410,7 @@ func resourceMediaStreamingEndpointRead(d *pluginsdk.ResourceData, meta interfac
 
 		accessControl := flattenAccessControl(props.AccessControl)
 		if err := d.Set("access_control", accessControl); err != nil {
-			return fmt.Errorf("Error flattening `access_control`: %s", err)
+			return fmt.Errorf("flattening `access_control`: %s", err)
 		}
 
 		d.Set("cdn_enabled", props.CdnEnabled)
@@ -420,7 +420,7 @@ func resourceMediaStreamingEndpointRead(d *pluginsdk.ResourceData, meta interfac
 
 		crossSiteAccessPolicies := flattenCrossSiteAccessPolicies(resp.CrossSiteAccessPolicies)
 		if err := d.Set("cross_site_access_policy", crossSiteAccessPolicies); err != nil {
-			return fmt.Errorf("Error flattening `cross_site_access_policy`: %s", err)
+			return fmt.Errorf("flattening `cross_site_access_policy`: %s", err)
 		}
 
 		d.Set("custom_host_names", props.CustomHostNames)
@@ -466,11 +466,11 @@ func resourceMediaStreamingEndpointDelete(d *pluginsdk.ResourceData, meta interf
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 	}
 
 	return nil

@@ -36,7 +36,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 				Tags: tags.Expand(t),
 			}
 			if _, err := client.Update(ctx, resourceGroup, name, params); err != nil {
-				return fmt.Errorf("Error updating Tags for HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
+				return fmt.Errorf("updating Tags for HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
 			}
 		}
 
@@ -54,11 +54,11 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 
 				future, err := client.Resize(ctx, resourceGroup, name, params)
 				if err != nil {
-					return fmt.Errorf("Error resizing the HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
+					return fmt.Errorf("resizing the HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
 				}
 
 				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("Error waiting for the HDInsight %q Cluster %q (Resource Group %q) to finish resizing: %+v", clusterKind, name, resourceGroup, err)
+					return fmt.Errorf("waiting for the HDInsight %q Cluster %q (Resource Group %q) to finish resizing: %+v", clusterKind, name, resourceGroup, err)
 				}
 			}
 
@@ -71,11 +71,11 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 				future, err := client.UpdateAutoScaleConfiguration(ctx, resourceGroup, name, params)
 
 				if err != nil {
-					return fmt.Errorf("Error changing autoscale of the HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
+					return fmt.Errorf("changing autoscale of the HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
 				}
 
 				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("Error waiting for changing autoscale of the HDInsight %q Cluster %q (Resource Group %q) to finish resizing: %+v", clusterKind, name, resourceGroup, err)
+					return fmt.Errorf("waiting for changing autoscale of the HDInsight %q Cluster %q (Resource Group %q) to finish resizing: %+v", clusterKind, name, resourceGroup, err)
 				}
 			}
 		}
@@ -120,7 +120,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 				}
 
 				if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-					return fmt.Errorf("Error waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
+					return fmt.Errorf("waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
 				}
 			}
 		}
@@ -154,7 +154,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("Error waiting for HDInsight Cluster %q (Resource Group %q) Gateway to be updated: %s", name, resourceGroup, err)
+				return fmt.Errorf("waiting for HDInsight Cluster %q (Resource Group %q) Gateway to be updated: %s", name, resourceGroup, err)
 			}
 		}
 
@@ -178,11 +178,11 @@ func hdinsightClusterDelete(clusterKind string) pluginsdk.DeleteFunc {
 
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Error deleting HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
+			return fmt.Errorf("deleting HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for deletion of HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
+			return fmt.Errorf("waiting for deletion of HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
 		}
 
 		return nil
@@ -203,19 +203,19 @@ func expandHDInsightRoles(input []interface{}, definition hdInsightRoleDefinitio
 	headNodeRaw := v["head_node"].([]interface{})
 	headNode, err := ExpandHDInsightNodeDefinition("headnode", headNodeRaw, definition.HeadNodeDef)
 	if err != nil {
-		return nil, fmt.Errorf("Error expanding `head_node`: %+v", err)
+		return nil, fmt.Errorf("expanding `head_node`: %+v", err)
 	}
 
 	workerNodeRaw := v["worker_node"].([]interface{})
 	workerNode, err := ExpandHDInsightNodeDefinition("workernode", workerNodeRaw, definition.WorkerNodeDef)
 	if err != nil {
-		return nil, fmt.Errorf("Error expanding `worker_node`: %+v", err)
+		return nil, fmt.Errorf("expanding `worker_node`: %+v", err)
 	}
 
 	zookeeperNodeRaw := v["zookeeper_node"].([]interface{})
 	zookeeperNode, err := ExpandHDInsightNodeDefinition("zookeepernode", zookeeperNodeRaw, definition.ZookeeperNodeDef)
 	if err != nil {
-		return nil, fmt.Errorf("Error expanding `zookeeper_node`: %+v", err)
+		return nil, fmt.Errorf("expanding `zookeeper_node`: %+v", err)
 	}
 
 	roles := []hdinsight.Role{
@@ -228,7 +228,7 @@ func expandHDInsightRoles(input []interface{}, definition hdInsightRoleDefinitio
 		edgeNodeRaw := v["edge_node"].([]interface{})
 		edgeNode, err := ExpandHDInsightNodeDefinition("edgenode", edgeNodeRaw, *definition.EdgeNodeDef)
 		if err != nil {
-			return nil, fmt.Errorf("Error expanding `edge_node`: %+v", err)
+			return nil, fmt.Errorf("expanding `edge_node`: %+v", err)
 		}
 		roles = append(roles, *edgeNode)
 	}
@@ -239,7 +239,7 @@ func expandHDInsightRoles(input []interface{}, definition hdInsightRoleDefinitio
 		if len(kafkaManagementNodeRaw) != 0 {
 			kafkaManagementNode, err := ExpandHDInsightNodeDefinition("kafkamanagementnode", kafkaManagementNodeRaw, *definition.KafkaManagementNodeDef)
 			if err != nil {
-				return nil, fmt.Errorf("Error expanding `kafka_management_node`: %+v", err)
+				return nil, fmt.Errorf("expanding `kafka_management_node`: %+v", err)
 			}
 			roles = append(roles, *kafkaManagementNode)
 		}
@@ -324,11 +324,11 @@ func createHDInsightEdgeNodes(ctx context.Context, client *hdinsight.Application
 	}
 	future, err := client.Create(ctx, resourceGroup, name, name, application)
 	if err != nil {
-		return fmt.Errorf("Error creating edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of edge node for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of edge node for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
@@ -337,11 +337,11 @@ func createHDInsightEdgeNodes(ctx context.Context, client *hdinsight.Application
 func deleteHDInsightEdgeNodes(ctx context.Context, client *hdinsight.ApplicationsClient, resourceGroup string, name string) error {
 	future, err := client.Delete(ctx, resourceGroup, name, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for deletion of edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
@@ -424,7 +424,7 @@ func enableHDInsightMonitoring(ctx context.Context, client *hdinsight.Extensions
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for enabling monitor for  HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for enabling monitor for  HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
@@ -437,7 +437,7 @@ func disableHDInsightMonitoring(ctx context.Context, client *hdinsight.Extension
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for disabling monitor for  HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for disabling monitor for  HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil

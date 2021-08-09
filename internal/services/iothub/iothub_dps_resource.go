@@ -163,7 +163,7 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		existing, err := client.Get(ctx, name, resourceGroup)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -185,16 +185,16 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, iotdps)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the completion of the creating/updating of IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the completion of the creating/updating of IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, name, resourceGroup)
 	if err != nil {
-		return fmt.Errorf("Error retrieving IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
@@ -229,7 +229,7 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -239,12 +239,12 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 	sku := flattenIoTHubDPSSku(resp.Sku)
 	if err := d.Set("sku", sku); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
+		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 
 	if props := resp.Properties; props != nil {
 		if err := d.Set("linked_hub", flattenIoTHubDPSLinkedHub(props.IotHubs)); err != nil {
-			return fmt.Errorf("Error setting `linked_hub`: %+v", err)
+			return fmt.Errorf("setting `linked_hub`: %+v", err)
 		}
 
 		d.Set("service_operations_host_name", props.ServiceOperationsHostName)
@@ -271,7 +271,7 @@ func resourceIotHubDPSDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 	future, err := client.Delete(ctx, name, resourceGroup)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("deleting IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -289,7 +289,7 @@ func waitForIotHubDPSToBeDeleted(ctx context.Context, client *iothub.IotDpsResou
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for IoT Device Provisioning Service %q (Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for IoT Device Provisioning Service %q (Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
 	}
 
 	return nil
@@ -305,7 +305,7 @@ func iothubdpsStateStatusCodeRefreshFunc(ctx context.Context, client *iothub.Iot
 			if utils.ResponseWasNotFound(res.Response) {
 				return res, strconv.Itoa(res.StatusCode), nil
 			}
-			return nil, "", fmt.Errorf("Error polling for the status of the IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return nil, "", fmt.Errorf("polling for the status of the IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil

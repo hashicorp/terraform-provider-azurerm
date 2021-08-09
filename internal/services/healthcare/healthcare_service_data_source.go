@@ -132,7 +132,7 @@ func dataSourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("HealthCare Service %q was not found in Resource Group %q", name, resourceGroup)
 		}
-		return fmt.Errorf("Error making Read request on Azure Healthcare Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Healthcare Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -142,7 +142,7 @@ func dataSourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if props := resp.Properties; props != nil {
 		if err := d.Set("access_policy_object_ids", flattenHealthcareAccessPolicies(props.AccessPolicies)); err != nil {
-			return fmt.Errorf("Error setting `access_policy_object_ids`: %+v", err)
+			return fmt.Errorf("setting `access_policy_object_ids`: %+v", err)
 		}
 
 		cosmodDbKeyVaultKeyVersionlessId := ""
@@ -159,11 +159,11 @@ func dataSourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("cosmosdb_throughput", cosmosDbThroughput)
 
 		if err := d.Set("authentication_configuration", flattenHealthcareAuthConfig(props.AuthenticationConfiguration)); err != nil {
-			return fmt.Errorf("Error setting `authentication_configuration`: %+v", err)
+			return fmt.Errorf("setting `authentication_configuration`: %+v", err)
 		}
 
 		if err := d.Set("cors_configuration", flattenHealthcareCorsConfig(props.CorsConfiguration)); err != nil {
-			return fmt.Errorf("Error setting `cors_configuration`: %+v", err)
+			return fmt.Errorf("setting `cors_configuration`: %+v", err)
 		}
 	}
 
