@@ -202,6 +202,30 @@ func TestAccLogicAppTriggerRecurrence_startTimeWithTimeZone(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppTriggerRecurrence_timeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
+	r := LogicAppTriggerRecurrenceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.timeZone(data, "W. Europe Standard Time"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("time_zone").HasValue("W. Europe Standard Time"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.timeZone(data, "US Eastern Standard Time"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("time_zone").HasValue("US Eastern Standard Time"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLogicAppTriggerRecurrence_schedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 	r := LogicAppTriggerRecurrenceResource{}
@@ -314,6 +338,33 @@ resource "azurerm_logic_app_trigger_recurrence" "test" {
   time_zone    = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, startTime, timeZone)
+}
+
+func (LogicAppTriggerRecurrenceResource) timeZone(data acceptance.TestData, timeZone string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                = "acctestlaw-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_logic_app_trigger_recurrence" "test" {
+  name         = "frequency-trigger"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+  frequency    = "Month"
+  interval     = 1
+  time_zone    = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, timeZone)
 }
 
 func (r LogicAppTriggerRecurrenceResource) requiresImport(data acceptance.TestData, frequency string, interval int) string {
