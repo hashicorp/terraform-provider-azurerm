@@ -122,6 +122,10 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `private_dns_zone_id` - (Optional) Either the ID of Private DNS Zone which should be delegated to this Cluster, `System` to have AKS manage this or `None`. In case of `None` you will need to bring your own DNS server and set up resolving, otherwise cluster will have issues after provisioning.
 
+* `private_cluster_public_fqdn_enabled` - (Optional) Specifies whether a Public FQDN for this Private Cluster should be added.
+
+-> **NOTE:** This requires that the Preview Feature `Microsoft.ContainerService/EnablePrivateClusterPublicFQDN` is enabled and the Resource Provider re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/private-clusters#create-a-private-aks-cluster-with-a-public-dns-address) for more information.
+
 -> **NOTE:** If you use BYO DNS Zone, AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - cluster should depend on the role assignment, like in this example:
 
 ```
@@ -346,6 +350,8 @@ A `default_node_pool` block supports the following:
 * `tags` - (Optional) A mapping of tags to assign to the Node Pool.
 
 ~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) until this is fixed in the AKS API.
+
+* `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled. See [the documentation](https://docs.microsoft.com/en-us/azure/aks/use-ultra-disks) for more information.
 
 * `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
 
