@@ -552,7 +552,7 @@ func expandVirtualMachineScaleSetIPConfiguration(raw map[string]interface{}) (*c
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
 	if primary && version == compute.IPv6 {
-		return nil, fmt.Errorf("An IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
+		return nil, fmt.Errorf("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
 	ipConfiguration := compute.VirtualMachineScaleSetIPConfiguration{

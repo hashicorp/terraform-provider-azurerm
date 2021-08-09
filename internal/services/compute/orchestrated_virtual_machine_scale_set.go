@@ -21,6 +21,7 @@ func OrchestratedVirtualMachineScaleSetOSProfileSchema() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				"custom_data":           base64.OptionalSchema(false),
 				"windows_configuration": OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema(),
 				"linux_configuration":   OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema(),
 			},
@@ -51,8 +52,8 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 					ValidateFunc:     validation.StringIsNotEmpty,
 				},
 
-				"computer_name_prefix":        OrchestratedVirtualMachineScaleSetComputerPrefixWindowsSchema(),
-				"custom_data":                 base64.OptionalSchema(false),
+				"computer_name_prefix": OrchestratedVirtualMachineScaleSetComputerPrefixWindowsSchema(),
+
 				"additional_unattend_content": additionalUnattendContentSchema(),
 
 				"enable_automatic_updates": {
@@ -84,7 +85,6 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 			Schema: map[string]*pluginsdk.Schema{
 				"admin_ssh_key":        SSHKeysSchema(false),
 				"computer_name_prefix": OrchestratedVirtualMachineScaleSetComputerPrefixLinuxSchema(),
-				"custom_data":          base64.OptionalSchema(false),
 
 				"provision_vm_agent": {
 					Type:     pluginsdk.TypeBool,
@@ -97,6 +97,32 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 			},
 		},
 	}
+}
+
+func ExpandOrchestratedVirtualMachineScaleSetOSProfile(input []interface{}) (*compute.VirtualMachineScaleSetOSProfile, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	raw := input[0].(map[string]interface{})
+
+	virtualMachineProfile := compute.VirtualMachineScaleSetOSProfile{}
+	windowsConfig := compute.WindowsConfiguration{}
+	linuxConfig := compute.LinuxConfiguration{}
+
+	virtualMachineProfile.CustomData = utils.String(raw["custom_data"].(string))
+	virtualMachineProfile.WindowsConfiguration = &windowsConfig
+	virtualMachineProfile.LinuxConfiguration = &linuxConfig
+
+	return &virtualMachineProfile, nil
+}
+
+func FlattenOrchestratedVirtualMachineScaleSetOSProfile(input *compute.VirtualMachineScaleSetOSProfile) ([]interface{}, error) {
+	if input == nil {
+		return []interface{}{}, nil
+	}
+
+	return []interface{}{}, nil
 }
 
 func OrchestratedVirtualMachineScaleSetIdentitySchema() *pluginsdk.Schema {
@@ -522,7 +548,7 @@ func expandOrchestratedVirtualMachineScaleSetIPConfiguration(raw map[string]inte
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
 	if primary && version == compute.IPv6 {
-		return nil, fmt.Errorf("An IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
+		return nil, fmt.Errorf("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
 	ipConfiguration := compute.VirtualMachineScaleSetIPConfiguration{
@@ -649,7 +675,7 @@ func expandOrchestratedVirtualMachineScaleSetIPConfigurationUpdate(raw map[strin
 	version := compute.IPVersion(raw["version"].(string))
 
 	if primary && version == compute.IPv6 {
-		return nil, fmt.Errorf("An IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
+		return nil, fmt.Errorf("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
 	ipConfiguration := compute.VirtualMachineScaleSetUpdateIPConfiguration{

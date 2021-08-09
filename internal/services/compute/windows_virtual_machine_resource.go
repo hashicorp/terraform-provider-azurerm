@@ -487,12 +487,12 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
 		if params.Priority != compute.Spot {
-			return fmt.Errorf("An `eviction_policy` can only be specified when `priority` is set to `Spot`")
+			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 
 		params.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
 	} else if priority == compute.Spot {
-		return fmt.Errorf("An `eviction_policy` must be specified when `priority` is set to `Spot`")
+		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
 	if v, ok := d.GetOk("license_type"); ok {
@@ -1078,7 +1078,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			log.Printf("[DEBUG] Deallocating Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 			future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
-				return fmt.Errorf("Deallocating Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("deallocating Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -1147,7 +1147,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 
 			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q.", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
 		} else {
-			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
+			return fmt.Errorf("once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
 		}
 	}
 
