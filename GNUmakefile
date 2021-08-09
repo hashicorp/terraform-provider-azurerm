@@ -44,7 +44,7 @@ fmtcheck:
 
 terrafmt:
 	@echo "==> Fixing acceptance test terraform blocks code with terrafmt..."
-	@find azurerm | egrep "_test.go" | sort | while read f; do terrafmt fmt -f $$f; done
+	@find internal | egrep "_test.go" | sort | while read f; do terrafmt fmt -f $$f; done
 	@echo "==> Fixing website terraform blocks code with terrafmt..."
 	@find . | egrep html.markdown | sort | while read f; do terrafmt fmt $$f; done
 

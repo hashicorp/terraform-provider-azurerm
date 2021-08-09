@@ -98,6 +98,7 @@ import (
 	subscription "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/client"
 	synapse "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	trafficManager "github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/client"
+	videoAnalyzer "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/client"
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
 )
@@ -200,6 +201,7 @@ type Client struct {
 	Sql                   *sql.Client
 	Synapse               *synapse.Client
 	TrafficManager        *trafficManager.Client
+	VideoAnalyzer         *videoAnalyzer.Client
 	Vmware                *vmware.Client
 	Web                   *web.Client
 }
@@ -305,6 +307,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Subscription = subscription.NewClient(o)
 	client.Synapse = synapse.NewClient(o)
 	client.TrafficManager = trafficManager.NewClient(o)
+	client.VideoAnalyzer = videoAnalyzer.NewClient(o)
 	client.Vmware = vmware.NewClient(o)
 	client.Web = web.NewClient(o)
 
