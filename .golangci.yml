@@ -2,7 +2,7 @@ run:
   timeout: 40m
   modules-download-mode: vendor
   skip-dirs:
-    - internal/services/*/sdk # Excluding sdk folders as these are externally generated
+    - /sdk/ # Excluding sdk folders as these are externally generated
 
 issues:
   max-per-linter: 0
@@ -31,7 +31,7 @@ linters:
     - varcheck
     - vet
     - vetshadow
-#    - whitespace # Disabled for performance reasons
+    # - whitespace # Disabled for performance reasons - Ignores cache and takes 12+ minutes to run on the repo for _any_ change
 
 linters-settings:
   errcheck:
