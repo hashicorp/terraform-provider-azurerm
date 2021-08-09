@@ -1,5 +1,9 @@
 ## 2.72.0 (Unreleased)
 
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` prevent nil panic when rbac config is empty [GH-12881]
+
 ## 2.71.0 (August 06, 2021)
 
 FEATURES:
