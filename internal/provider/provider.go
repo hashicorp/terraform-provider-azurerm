@@ -321,7 +321,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			CustomCorrelationRequestID: os.Getenv("ARM_CORRELATION_REQUEST_ID"),
 		}
 
-		stopCtx, ok := schema.StopContext(ctx) //nolint:SA1019
+		//lint:ignore SA1019 SDKv2 migration - staticcheck's own linter directives are currently being ignored under golanci-lint
+		stopCtx, ok := schema.StopContext(ctx) //nolint:staticcheck
 		if !ok {
 			stopCtx = ctx
 		}

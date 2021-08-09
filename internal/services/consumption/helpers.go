@@ -206,8 +206,8 @@ func ExpandConsumptionBudgetFilter(i []interface{}) *consumption.BudgetFilter {
 	dimensionsSet := len(dimensions) > 0
 
 	if dimensionsSet && tagsSet {
-		and := append(dimensions, tags...)
-		filter.And = &and
+		dimensions = append(dimensions, tags...)
+		filter.And = &dimensions
 	} else {
 		if dimensionsSet {
 			if len(dimensions) > 1 {

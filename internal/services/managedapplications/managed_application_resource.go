@@ -382,7 +382,6 @@ func flattenManagedApplicationParametersOrOutputs(input interface{}) (map[string
 			default:
 				return nil, fmt.Errorf("unexpected parameter type %T", t)
 			}
-
 		}
 	}
 

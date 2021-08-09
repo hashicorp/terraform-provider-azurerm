@@ -64,7 +64,9 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 			}
 
 			// every Resource has to have a Create, Read & Destroy timeout
-			if resource.Timeouts.Create == nil && resource.Create != nil { //nolint:SA1019
+
+			//lint:ignore SA1019 SDKv2 migration  - staticcheck's own linter directives are currently being ignored under golanci-lint
+			if resource.Timeouts.Create == nil && resource.Create != nil { //nolint:staticcheck
 				t.Fatalf("Resource %q defines a Create method but no Create Timeout", resourceName)
 			}
 			if resource.Timeouts.Delete == nil && resource.Delete != nil {

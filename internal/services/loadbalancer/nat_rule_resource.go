@@ -288,9 +288,9 @@ func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interf
 		return nil
 	}
 
-	oldNatRules := *loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules
-	newNatRules := append(oldNatRules[:index], oldNatRules[index+1:]...)
-	loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules = &newNatRules
+	natRules := *loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules
+	natRules = append(natRules[:index], natRules[index+1:]...)
+	loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules = &natRules
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
 	if err != nil {
