@@ -121,7 +121,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-An example on how to create a dual protocol volume can be found at [`./examples/netapp/volume_dual_protocol` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/netapp/volume_dual_protocol)
+An example on how to create a dual protocol volume can be found at [`./examples/netapp/volume_dual_protocol` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/netapp/volume_dual_protocol)
 
 -> **Note**: It is highly recommended to use the **lifecycle** property as noted in the example since it will prevent an accidental deletion of the volume if the `protocols` argument changes to a different protocol type.
 
@@ -159,7 +159,7 @@ A `data_protection_replication` block is used when enabling the Cross-Region Rep
   
 * `replication_frequency` - (Required) Replication frequency, supported values are '10minutes', 'hourly', 'daily', values are case sensitive.
 
-A full example of the `data_protection_replication` attribute can be found in [the `./examples/netapp/volume_crr` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/netapp/volume_crr)
+A full example of the `data_protection_replication` attribute can be found in [the `./examples/netapp/volume_crr` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/netapp/volume_crr)
 
 -> **NOTE:** `data_protection_replication` Is currently in Preview on an opt-in basis. To use it, please refer to [Cross-region replication of Azure NetApp Files volumes](https://docs.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction).
 

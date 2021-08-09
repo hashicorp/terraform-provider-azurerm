@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 )
 
 func main() {
@@ -21,14 +21,14 @@ func main() {
 	if debugMode {
 		err := plugin.Debug(context.Background(), "registry.terraform.io/hashicorp/azurerm",
 			&plugin.ServeOpts{
-				ProviderFunc: azurerm.Provider,
+				ProviderFunc: provider.AzureProvider,
 			})
 		if err != nil {
 			log.Println(err.Error())
 		}
 	} else {
 		plugin.Serve(&plugin.ServeOpts{
-			ProviderFunc: azurerm.Provider,
+			ProviderFunc: provider.AzureProvider,
 		})
 	}
 }

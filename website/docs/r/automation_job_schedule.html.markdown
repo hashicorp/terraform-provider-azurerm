@@ -12,7 +12,7 @@ Links an Automation Runbook and Schedule.
 
 ## Example Usage
 
-This is an example of just the Job Schedule. A full example of the `azurerm_automation_job_schedule` resource can be found in [the `./examples/automation-account` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/automation-account)
+This is an example of just the Job Schedule. A full example of the `azurerm_automation_job_schedule` resource can be found in [the `./examples/automation-account` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/automation-account)
 
 ```hcl
 resource "azurerm_automation_job_schedule" "example" {
