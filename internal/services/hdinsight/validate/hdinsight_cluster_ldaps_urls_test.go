@@ -8,17 +8,14 @@ func TestHDInsightClusterLdapsUrls(t *testing.T) {
 		expected bool
 	}{
 		{
-			// empty
 			input:    "",
 			expected: false,
 		},
 		{
-			// basic example
 			input:    "ldaps://",
 			expected: true,
 		},
 		{
-			// can't start with an underscore
 			input:    "http://",
 			expected: false,
 		},
