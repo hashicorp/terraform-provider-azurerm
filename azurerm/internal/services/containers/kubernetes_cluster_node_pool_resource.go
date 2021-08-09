@@ -244,6 +244,12 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				ValidateFunc: computeValidate.SpotMaxPrice,
 			},
 
+			"ultra_ssd_enabled": {
+				Type:     pluginsdk.TypeBool,
+				ForceNew: true,
+				Optional: true,
+			},
+
 			"vnet_subnet_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -324,6 +330,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		OsType:                 containerservice.OSType(osType),
 		EnableAutoScaling:      utils.Bool(enableAutoScaling),
 		EnableFIPS:             utils.Bool(d.Get("fips_enabled").(bool)),
+		EnableUltraSSD:         utils.Bool(d.Get("ultra_ssd_enabled").(bool)),
 		EnableNodePublicIP:     utils.Bool(d.Get("enable_node_public_ip").(bool)),
 		KubeletDiskType:        containerservice.KubeletDiskType(d.Get("kubelet_disk_type").(string)),
 		Mode:                   mode,
@@ -665,6 +672,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("enable_node_public_ip", props.EnableNodePublicIP)
 		d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
 		d.Set("fips_enabled", props.EnableFIPS)
+		d.Set("ultra_ssd_enabled", props.EnableUltraSSD)
 		d.Set("kubelet_disk_type", string(props.KubeletDiskType))
 
 		evictionPolicy := ""
