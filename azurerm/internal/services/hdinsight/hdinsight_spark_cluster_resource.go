@@ -71,6 +71,13 @@ func resourceHDInsightSparkCluster() *pluginsdk.Resource {
 
 			"tls_min_version": SchemaHDInsightTls(),
 
+			"encryption_in_transit_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Computed: true,
+			},
+
 			"component_version": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -190,12 +197,17 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		return tf.ImportAsExistsError("azurerm_hdinsight_spark_cluster", *existing.ID)
 	}
 
+	encryptionInTransit := d.Get("encryption_in_transit_enabled").(bool)
+
 	params := hdinsight.ClusterCreateParametersExtended{
 		Location: utils.String(location),
 		Properties: &hdinsight.ClusterCreateProperties{
-			Tier:                   tier,
-			OsType:                 hdinsight.OSTypeLinux,
-			ClusterVersion:         utils.String(clusterVersion),
+			Tier:           tier,
+			OsType:         hdinsight.OSTypeLinux,
+			ClusterVersion: utils.String(clusterVersion),
+			EncryptionInTransitProperties: &hdinsight.EncryptionInTransitProperties{
+				IsEncryptionInTransitEnabled: &encryptionInTransit,
+			},
 			MinSupportedTLSVersion: utils.String(tls),
 			NetworkProperties:      networkProperties,
 			ClusterDefinition: &hdinsight.ClusterDefinition{
@@ -320,6 +332,10 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 			HeadNodeDef:      hdInsightSparkClusterHeadNodeDefinition,
 			WorkerNodeDef:    hdInsightSparkClusterWorkerNodeDefinition,
 			ZookeeperNodeDef: hdInsightSparkClusterZookeeperNodeDefinition,
+		}
+
+		if props.EncryptionInTransitProperties != nil {
+			d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)
 		}
 
 		if props.NetworkProperties != nil {
