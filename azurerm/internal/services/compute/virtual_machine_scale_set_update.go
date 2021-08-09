@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/client"
@@ -49,7 +50,7 @@ func (metadata virtualMachineScaleSetUpdateMetaData) performUpdate(ctx context.C
 		if userWantsToRollInstances {
 			// If the updated image version is not "latest" and upgrade mode is automatic then azure will roll the instances automatically.
 			// Calling upgradeInstancesForAutomaticUpgradePolicy() in this case will cause an error.
-			if upgradeMode == compute.Automatic && *update.VirtualMachineProfile.StorageProfile.ImageReference.Version == "latest" {
+			if upgradeMode == compute.Automatic && isUsingLatestImage(update) {
 				if err := metadata.upgradeInstancesForAutomaticUpgradePolicy(ctx); err != nil {
 					return err
 				}
@@ -184,4 +185,16 @@ func (metadata virtualMachineScaleSetUpdateMetaData) upgradeInstancesForManualUp
 
 	log.Printf("[DEBUG] Rolled the VM Instances for %s Virtual Machine Scale Set %q (Resource Group %q).", metadata.OSType, id.Name, id.ResourceGroup)
 	return nil
+}
+
+func isUsingLatestImage(update compute.VirtualMachineScaleSetUpdate) bool {
+	if update.VirtualMachineProfile.StorageProfile == nil ||
+		update.VirtualMachineProfile.StorageProfile.ImageReference == nil ||
+		update.VirtualMachineProfile.StorageProfile.ImageReference.Version == nil {
+		return false
+	}
+	if strings.EqualFold(*update.VirtualMachineProfile.StorageProfile.ImageReference.Version, "latest") {
+		return true
+	}
+	return false
 }

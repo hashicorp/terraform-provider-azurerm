@@ -31,7 +31,9 @@ func NewForecastsClientWithBaseURI(baseURI string, subscriptionID string) Foreca
 	return ForecastsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// List lists the forecast charges by subscriptionId.
+// List lists the forecast charges for scope defined. Please note that this API is no longer actively under
+// development. We recommend using our new Forecast API moving forward:
+// https://docs.microsoft.com/en-us/rest/api/cost-management/forecast/usage.
 // Parameters:
 // filter - may be used to filter forecasts by properties/usageDate (Utc time), properties/chargeType or
 // properties/grain. The filter supports 'eq', 'lt', 'gt', 'le', 'ge', and 'and'. It does not currently support

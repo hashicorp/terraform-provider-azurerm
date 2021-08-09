@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/validate"
+	msiValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/validation"
@@ -256,27 +257,8 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ResourceIdentityTypeNone),
-								string(network.ResourceIdentityTypeSystemAssigned),
-								string(network.ResourceIdentityTypeSystemAssignedUserAssigned),
 								string(network.ResourceIdentityTypeUserAssigned),
 							}, false),
-						},
-						"user_assigned_managed_identities": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							ForceNew: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"principal_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"client_id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-								},
-							},
 						},
 						"principal_id": {
 							Type:     pluginsdk.TypeString,
@@ -285,6 +267,15 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 						"tenant_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
+						},
+						"identity_ids": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							MinItems: 1,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: msiValidate.UserAssignedIdentityID,
+							},
 						},
 					},
 				},
@@ -311,6 +302,19 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"private_ip_ranges": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+					ValidateFunc: validation.Any(
+						validation.IsCIDR,
+						validation.IsIPv4Address,
+					),
 				},
 			},
 
@@ -358,6 +362,13 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	if v, ok := d.GetOk("sku"); ok {
 		props.FirewallPolicyPropertiesFormat.Sku = &network.FirewallPolicySku{
 			Tier: network.FirewallPolicySkuTier(v.(string)),
+		}
+	}
+
+	if v, ok := d.GetOk("private_ip_ranges"); ok {
+		privateIpRanges := utils.ExpandStringSlice(v.([]interface{}))
+		props.FirewallPolicyPropertiesFormat.Snat = &network.FirewallPolicySNAT{
+			PrivateRanges: privateIpRanges,
 		}
 	}
 
@@ -441,6 +452,14 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("rule_collection_groups", flattenNetworkSubResourceID(prop.RuleCollectionGroups)); err != nil {
 			return fmt.Errorf(`setting "rule_collection_groups": %+v`, err)
 		}
+
+		var privateIpRanges []interface{}
+		if prop.Snat != nil {
+			privateIpRanges = utils.FlattenStringSlice(prop.Snat.PrivateRanges)
+		}
+		if err := d.Set("private_ip_ranges", privateIpRanges); err != nil {
+			return fmt.Errorf("Error setting `private_ip_ranges`: %+v", err)
+		}
 	}
 
 	if err := d.Set("identity", flattenFirewallPolicyIdentity(resp.Identity)); err != nil {
@@ -513,30 +532,30 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *network.Firewa
 
 	raw := input[0].(map[string]interface{})
 
-	signature_overrides := []network.FirewallPolicyIntrusionDetectionSignatureSpecification{}
-	for i, v := range signature_overrides {
-		signature_overrides[i].ID = v.ID
-		signature_overrides[i].Mode = v.Mode
+	signatureOverrides := []network.FirewallPolicyIntrusionDetectionSignatureSpecification{}
+	for i, v := range signatureOverrides {
+		signatureOverrides[i].ID = v.ID
+		signatureOverrides[i].Mode = v.Mode
 	}
 
-	traffic_bypass := []network.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications{}
+	trafficBypass := []network.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications{}
 
-	for i, v := range traffic_bypass {
-		traffic_bypass[i].Name = v.Name
-		traffic_bypass[i].Description = v.Description
-		traffic_bypass[i].Protocol = v.Protocol
-		traffic_bypass[i].SourceAddresses = v.SourceAddresses
-		traffic_bypass[i].DestinationAddresses = v.DestinationAddresses
-		traffic_bypass[i].DestinationPorts = v.DestinationPorts
-		traffic_bypass[i].SourceIPGroups = v.SourceIPGroups
-		traffic_bypass[i].DestinationIPGroups = v.DestinationIPGroups
+	for i, v := range trafficBypass {
+		trafficBypass[i].Name = v.Name
+		trafficBypass[i].Description = v.Description
+		trafficBypass[i].Protocol = v.Protocol
+		trafficBypass[i].SourceAddresses = v.SourceAddresses
+		trafficBypass[i].DestinationAddresses = v.DestinationAddresses
+		trafficBypass[i].DestinationPorts = v.DestinationPorts
+		trafficBypass[i].SourceIPGroups = v.SourceIPGroups
+		trafficBypass[i].DestinationIPGroups = v.DestinationIPGroups
 	}
 
 	return &network.FirewallPolicyIntrusionDetection{
 		Mode: network.FirewallPolicyIntrusionDetectionStateType(raw["mode"].(string)),
 		Configuration: &network.FirewallPolicyIntrusionDetectionConfiguration{
-			SignatureOverrides:    &signature_overrides,
-			BypassTrafficSettings: &traffic_bypass,
+			SignatureOverrides:    &signatureOverrides,
+			BypassTrafficSettings: &trafficBypass,
 		},
 	}
 
