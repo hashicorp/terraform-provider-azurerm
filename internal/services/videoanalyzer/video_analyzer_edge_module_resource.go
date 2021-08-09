@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/videoanalyzer/mgmt/2021-05-01-preview/videoanalyzer"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -99,12 +98,12 @@ func resourceVideoAnalyzerEdgeModuleRead(d *pluginsdk.ResourceData, meta interfa
 	resp, err := client.Get(ctx, id.ResourceGroup, id.VideoAnalyzerName, id.EdgeModuleName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Video Analyzer Edge Module %q was not found in Resource Group %q - removing from state", id.EdgeModuleName, id.ResourceGroup)
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Video Analyzer Edge Module %q (Resource Group %q): %+v", id.EdgeModuleName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.EdgeModuleName)
@@ -124,12 +123,9 @@ func resourceVideoAnalyzerEdgeModuleDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.VideoAnalyzerName, id.EdgeModuleName)
+	_, err = client.Delete(ctx, id.ResourceGroup, id.VideoAnalyzerName, id.EdgeModuleName)
 	if err != nil {
-		if response.WasNotFound(resp.Response) {
-			return nil
-		}
-		return fmt.Errorf("issuing AzureRM delete request for Video Analyzer Edge Module '%s': %+v", id.EdgeModuleName, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
