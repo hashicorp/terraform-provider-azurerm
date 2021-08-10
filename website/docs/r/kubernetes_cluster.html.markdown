@@ -90,7 +90,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `addon_profile` - (Optional) A `addon_profile` block as defined below.
 
-* `api_server_authorized_ip_ranges` - (Optional) The IP ranges to whitelist for incoming traffic to the main nodes.
+* `api_server_authorized_ip_ranges` - (Optional) The IP ranges to allow for incoming traffic to the server nodes.
 
 * `auto_scaler_profile` - (Optional) A `auto_scaler_profile` block as defined below.
 
