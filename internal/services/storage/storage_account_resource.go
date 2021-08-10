@@ -996,9 +996,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			(accountTier == string(storage.Standard) && accountKind == string(storage.StorageV2))) {
 		return fmt.Errorf("`nfsv3_enabled` can only be used with account tier `Standard` and account kind `StorageV2`, or account tier `Premium` and account kind `BlockBlobStorage`")
 	}
-	if nfsV3Enabled && enableHTTPSTrafficOnly {
-		return fmt.Errorf("`nfsv3_enabled` can only be used when `enable_https_traffic_only` is `false`")
-	}
 	if nfsV3Enabled && !isHnsEnabled {
 		return fmt.Errorf("`nfsv3_enabled` can only be used when `is_hns_enabled` is `true`")
 	}
