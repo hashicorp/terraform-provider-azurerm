@@ -173,6 +173,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 				"ultra_ssd_enabled": {
 					Type:     pluginsdk.TypeBool,
 					ForceNew: true,
+					Default:  false,
 					Optional: true,
 				},
 
