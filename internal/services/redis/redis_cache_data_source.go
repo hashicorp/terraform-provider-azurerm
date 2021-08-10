@@ -264,7 +264,7 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("subnet_id", props.SubnetID)
 	}
 
-	redisConfiguration, err := flattenRedisConfiguration(resp.RedisConfiguration)
+	redisConfiguration, err := flattenRedisConfiguration(resp.RedisConfiguration, nil)
 	if err != nil {
 		return fmt.Errorf("flattening `redis_configuration`: %+v", err)
 	}

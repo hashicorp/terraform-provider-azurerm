@@ -650,7 +650,7 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("tenant_settings", flattenTenantSettings(props.TenantSettings))
 	}
 
-	redisConfiguration, err := flattenRedisConfiguration(resp.RedisConfiguration)
+	redisConfiguration, err := flattenRedisConfiguration(resp.RedisConfiguration, d)
 	if err != nil {
 		return fmt.Errorf("flattening `redis_configuration`: %+v", err)
 	}
@@ -855,7 +855,7 @@ func flattenTenantSettings(input map[string]*string) map[string]*string {
 	}
 	return output
 }
-func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) {
+func flattenRedisConfiguration(input map[string]*string, d *pluginsdk.ResourceData) ([]interface{}, error) {
 	outputs := make(map[string]interface{}, len(input))
 
 	if v := input["maxclients"]; v != nil {
@@ -865,8 +865,51 @@ func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) 
 		}
 		outputs["maxclients"] = i
 	}
+
+	if d != nil {
+		if v, ok := d.GetOk("redis_configuration.0.maxmemory_delta"); ok {
+			outputs["maxmemory_delta"] = v.(int)
+		}
+	} else {
+		if v := input["maxmemory-delta"]; v != nil {
+			i, err := strconv.Atoi(*v)
+			if err != nil {
+				return nil, fmt.Errorf("Error parsing `maxmemory-delta` %q: %+v", *v, err)
+			}
+			outputs["maxmemory_delta"] = i
+		}
+	}
+
+	if d != nil {
+		if v, ok := d.GetOk("redis_configuration.0.maxmemory_reserved"); ok {
+			outputs["maxmemory_reserved"] = v.(int)
+		}
+	} else {
+		if v := input["maxmemory-reserved"]; v != nil {
+			i, err := strconv.Atoi(*v)
+			if err != nil {
+				return nil, fmt.Errorf("Error parsing `maxmemory-reserved` %q: %+v", *v, err)
+			}
+			outputs["maxmemory_reserved"] = i
+		}
+	}
+
 	if v := input["maxmemory-policy"]; v != nil {
 		outputs["maxmemory_policy"] = *v
+	}
+
+	if d != nil {
+		if v, ok := d.GetOk("redis_configuration.0.maxfragmentationmemory_reserved"); ok {
+			outputs["maxfragmentationmemory_reserved"] = v.(int)
+		}
+	} else {
+		if v := input["maxfragmentationmemory-reserved"]; v != nil {
+			i, err := strconv.Atoi(*v)
+			if err != nil {
+				return nil, fmt.Errorf("Error parsing `maxfragmentationmemory-reserved` %q: %+v", *v, err)
+			}
+			outputs["maxfragmentationmemory_reserved"] = i
+		}
 	}
 
 	// delta, reserved, enabled, frequency,, count,
