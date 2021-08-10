@@ -36,7 +36,6 @@ type AppServiceEnvironmentV3Model struct {
 	DedicatedHostCount                 int                               `tfschema:"dedicated_host_count"`
 	InternalLoadBalancingMode          string                            `tfschema:"internal_load_balancing_mode"`
 	Location                           string                            `tfschema:"location"`
-	ZoneRedundant                      bool                              `tfschema:"zone_redundant"`
 	DnsSuffix                          string                            `tfschema:"dns_suffix"`
 	IpSSLAddressCount                  int                               `tfschema:"ip_ssl_address_count"`
 	PricingTier                        string                            `tfschema:"pricing_tier"`
@@ -102,16 +101,6 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 			},
 		},
 
-		"dedicated_host_count": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IntBetween(2, 2), // Docs suggest is limited to 2 physical hosts at this time
-			ConflictsWith: []string{
-				"zone_redundant",
-			},
-		},
-
 		"internal_load_balancing_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -122,23 +111,17 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 				string(web.LoadBalancingModeWebPublishing),
 			}, false),
 		},
-
-		"zone_redundant": {
-			Type:     pluginsdk.TypeBool,
-			ForceNew: true,
-			Optional: true,
-			Default:  false,
-			ConflictsWith: []string{
-				"dedicated_host_count",
-			},
-		},
-
 		"tags": tags.ForceNewSchema(),
 	}
 }
 
 func (r AppServiceEnvironmentV3Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"dedicated_host_count": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
 		"dns_suffix": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -257,13 +240,11 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				Kind:     utils.String(KindASEV3),
 				Location: utils.String(vnetLoc),
 				AppServiceEnvironment: &web.AppServiceEnvironment{
-					DedicatedHostCount:        utils.Int32(int32(model.DedicatedHostCount)),
 					ClusterSettings:           expandClusterSettingsModel(model.ClusterSetting),
 					InternalLoadBalancingMode: web.LoadBalancingMode(model.InternalLoadBalancingMode),
 					VirtualNetwork: &web.VirtualNetworkProfile{
 						ID: utils.String(model.SubnetId),
 					},
-					// ZoneRedundant: utils.bool(model.ZoneRedundant) // TODO - blocked on https://github.com/Azure/azure-rest-api-specs/issues/15385
 				},
 				Tags: tags.Expand(model.Tags),
 			}
@@ -343,7 +324,6 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 				model.ClusterSetting = flattenClusterSettingsModel(props.ClusterSettings)
 				model.DnsSuffix = utils.NormalizeNilableString(props.DNSSuffix)
 				model.IpSSLAddressCount = int(utils.NormaliseNilableInt32(existing.IpsslAddressCount))
-				// model.ZoneRedundant = *props.ZoneRedundant
 			}
 
 			existingNetwork, err := client.GetAseV3NetworkingConfiguration(ctx, id.ResourceGroup, id.HostingEnvironmentName)
@@ -357,7 +337,6 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 				model.AllowNewPrivateEndpointConnections = *props.AllowNewPrivateEndpointConnections
 			}
 
-			// Inbound Details
 			inboundNetworkDependencies := &[]AppServiceV3InboundDependencies{}
 			inboundNetworkDependencies, err = flattenInboundNetworkDependencies(ctx, client, id)
 			if err != nil {
