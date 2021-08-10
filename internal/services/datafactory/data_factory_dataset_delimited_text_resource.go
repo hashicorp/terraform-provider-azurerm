@@ -319,16 +319,43 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	delimited_textDatasetProperties := datafactory.DelimitedTextDatasetTypeProperties{
-		Location:         location,
-		ColumnDelimiter:  d.Get("column_delimiter").(string),
-		RowDelimiter:     d.Get("row_delimiter").(string),
-		EncodingName:     d.Get("encoding").(string),
-		QuoteChar:        d.Get("quote_character").(string),
-		EscapeChar:       d.Get("escape_character").(string),
-		FirstRowAsHeader: d.Get("first_row_as_header").(bool),
-		NullValue:        d.Get("null_value").(string),
-		CompressionLevel: d.Get("compression_level").(string),
-		CompressionCodec: d.Get("compression_codec").(string),
+		Location: location,
+	}
+
+	if v, ok := d.GetOk("column_delimiter"); ok {
+		delimited_textDatasetProperties.ColumnDelimiter = v.(string)
+	}
+
+	if v, ok := d.GetOk("row_delimiter"); ok {
+		delimited_textDatasetProperties.RowDelimiter = v.(string)
+	}
+
+	if v, ok := d.GetOk("encoding"); ok {
+		delimited_textDatasetProperties.EncodingName = v.(string)
+	}
+
+	if v, ok := d.GetOk("quote_character"); ok {
+		delimited_textDatasetProperties.QuoteChar = v.(string)
+	}
+
+	if v, ok := d.GetOk("escape_character"); ok {
+		delimited_textDatasetProperties.EscapeChar = v.(string)
+	}
+
+	if v, ok := d.GetOk("first_row_as_header"); ok {
+		delimited_textDatasetProperties.FirstRowAsHeader = v.(bool)
+	}
+
+	if v, ok := d.GetOk("null_value"); ok {
+		delimited_textDatasetProperties.NullValue = v.(string)
+	}
+
+	if v, ok := d.GetOk("compression_level"); ok {
+		delimited_textDatasetProperties.CompressionLevel = v.(string)
+	}
+
+	if v, ok := d.GetOk("compression_codec"); ok {
+		delimited_textDatasetProperties.CompressionCodec = v.(string)
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)

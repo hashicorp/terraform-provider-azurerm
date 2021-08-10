@@ -88,19 +88,20 @@ The following supported locations for a Delimited Text Dataset (exactly one of t
 
 The following supported arguments are specific to Delimited Text Dataset:
 
-* `column_delimiter` - (Required) The column delimiter.
+* `column_delimiter` - (Optional) The column delimiter. Defaults to `,`.
 
-* `row_delimiter` - (Required) The row delimiter.
+* `row_delimiter` - (Optional) The row delimiter. Defaults to any of the following values on read: `\r\n`, `\r`, `\n`, and `\n` or `\r\n` on write by mapping data flow and Copy activity respectively.
 
-* `encoding` - (Required) The encoding format for the file.
 
-* `quote_character` - (Required) The quote character.
+* `encoding` - (Optional) The encoding format for the file.
 
-* `escape_character` - (Required) The escape character.
+* `quote_character` - (Optional) The quote character. Defaults to `"`.
 
-* `first_row_as_header` - (Required) When used as input, treat the first row of data as headers. When used as output, write the headers into the output as the first row of data.
+* `escape_character` - (Optional) The escape character. Defaults to `\`.
 
-* `null_value` - (Required) The null value string.
+* `first_row_as_header` - (Optional) When used as input, treat the first row of data as headers. When used as output, write the headers into the output as the first row of data. Defaults to `false`.
+
+* `null_value` - (Optional) The null value string. Defaults to an empty string.
 
 * `compression_codec` - (Optional) The compression codec used to read/write text files. Valid values are `bzip2`, `gzip`, `deflate`, `ZipDeflate`, `TarGzip`, `Tar`, `snappy`, or `lz4`. Please note these values are case sensitive.
 
