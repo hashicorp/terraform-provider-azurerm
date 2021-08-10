@@ -132,9 +132,9 @@ An `azure_blob_storage_location` block supports the following:
 
 * `container` - (Required) The container on the Azure Blob Storage Account hosting the file.
 
-* `path` - (Required) The folder path to the file.
+* `path` - (Optional) The folder path to the file.
 
-* `filename` - (Required) The filename of the file.
+* `filename` - (Optional) The filename of the file.
 
 ---
 
