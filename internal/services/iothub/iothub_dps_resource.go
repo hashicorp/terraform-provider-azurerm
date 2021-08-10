@@ -178,7 +178,7 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Sku:      expandIoTHubDPSSku(d),
 		Properties: &iothub.IotDpsPropertiesDescription{
 			IotHubs:          expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
-			AllocationPolicy: d.Get("allocation_policy").(iothub.AllocationPolicy),
+			AllocationPolicy: iothub.AllocationPolicy(d.Get("allocation_policy").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -250,7 +250,7 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("service_operations_host_name", props.ServiceOperationsHostName)
 		d.Set("device_provisioning_host_name", props.DeviceProvisioningHostName)
 		d.Set("id_scope", props.IDScope)
-		d.Set("allocation_policy", props.AllocationPolicy)
+		d.Set("allocation_policy", string(props.AllocationPolicy))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
