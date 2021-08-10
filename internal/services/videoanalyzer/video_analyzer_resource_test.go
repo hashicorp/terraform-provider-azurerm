@@ -24,6 +24,7 @@ func TestAccVideoAnalyzer_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_account.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 			),
@@ -40,6 +41,7 @@ func TestAccVideoAnalyzer_requiresImport(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_account.#").HasValue("1"),
 			),
 		},
@@ -55,6 +57,7 @@ func TestAccVideoAnalyzer_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.label").HasValue("test"),
