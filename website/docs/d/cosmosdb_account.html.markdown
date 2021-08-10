@@ -61,7 +61,7 @@ The following attributes are exported:
 
 * `virtual_network_rule` - Subnets that are allowed to access this CosmosDB account.
 
-* `enable_multiple_write_locations` - If multi-main is enabled for this Cosmos DB account.
+* `enable_multiple_write_locations` - If multiple write locations are enabled for this Cosmos DB account.
 
 `consistency_policy` The current consistency Settings for this CosmosDB account with the following properties:
 
