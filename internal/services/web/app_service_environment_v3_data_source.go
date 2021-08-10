@@ -37,7 +37,7 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
-		
+
 		"cluster_setting": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
