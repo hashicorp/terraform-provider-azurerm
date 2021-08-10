@@ -94,7 +94,7 @@ func resourceDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.TXT)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing DNS TXT Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing DNS TXT Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 			}
 		}
 
@@ -118,7 +118,7 @@ func resourceDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
 	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.TXT, parameters, eTag, ifNoneMatch); err != nil {
-		return fmt.Errorf("Error creating/updating DNS TXT Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+		return fmt.Errorf("creating/updating DNS TXT Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -142,7 +142,7 @@ func resourceDnsTxtRecordRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS TXT record %s: %+v", id.TXTName, err)
+		return fmt.Errorf("reading DNS TXT record %s: %+v", id.TXTName, err)
 	}
 
 	d.Set("name", id.TXTName)
@@ -169,7 +169,7 @@ func resourceDnsTxtRecordDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.TXTName, dns.TXT, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS TXT Record %s: %+v", id.TXTName, err)
+		return fmt.Errorf("deleting DNS TXT Record %s: %+v", id.TXTName, err)
 	}
 
 	return nil

@@ -272,7 +272,7 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		existing, err := client.Get(ctx, resourceGroup, accountName, poolName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -320,7 +320,7 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		// Get snapshot ID GUID value
 		parsedSnapshotResourceID, err := parse.SnapshotID(snapshotResourceID)
 		if err != nil {
-			return fmt.Errorf("Error parsing snapshotResourceID %q: %+v", snapshotResourceID, err)
+			return fmt.Errorf("parsing snapshotResourceID %q: %+v", snapshotResourceID, err)
 		}
 
 		snapshotClient := meta.(*clients.Client).NetApp.SnapshotClient
@@ -333,7 +333,7 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 			parsedSnapshotResourceID.Name,
 		)
 		if err != nil {
-			return fmt.Errorf("Error getting snapshot from NetApp Volume %q (Resource Group %q): %+v", parsedSnapshotResourceID.VolumeName, parsedSnapshotResourceID.ResourceGroup, err)
+			return fmt.Errorf("getting snapshot from NetApp Volume %q (Resource Group %q): %+v", parsedSnapshotResourceID.VolumeName, parsedSnapshotResourceID.ResourceGroup, err)
 		}
 		snapshotID = *snapshotResponse.SnapshotID
 
@@ -346,7 +346,7 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 			parsedSnapshotResourceID.VolumeName,
 		)
 		if err != nil {
-			return fmt.Errorf("Error getting source NetApp Volume (snapshot's parent resource) %q (Resource Group %q): %+v", parsedSnapshotResourceID.VolumeName, parsedSnapshotResourceID.ResourceGroup, err)
+			return fmt.Errorf("getting source NetApp Volume (snapshot's parent resource) %q (Resource Group %q): %+v", parsedSnapshotResourceID.VolumeName, parsedSnapshotResourceID.ResourceGroup, err)
 		}
 
 		parsedVolumeID, err := parse.VolumeID(*sourceVolume.ID)
@@ -399,10 +399,10 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	future, err := client.CreateOrUpdate(ctx, parameters, resourceGroup, accountName, poolName, name)
 	if err != nil {
-		return fmt.Errorf("Error creating NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	// Waiting for volume be completely provisioned
@@ -467,7 +467,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading NetApp Volumes %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("reading NetApp Volumes %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -487,7 +487,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
 		}
 		if err := d.Set("export_policy_rule", flattenNetAppVolumeExportPolicyRule(props.ExportPolicy)); err != nil {
-			return fmt.Errorf("Error setting `export_policy_rule`: %+v", err)
+			return fmt.Errorf("setting `export_policy_rule`: %+v", err)
 		}
 		if err := d.Set("mount_ip_addresses", flattenNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
 			return fmt.Errorf("setting `mount_ip_addresses`: %+v", err)
@@ -543,7 +543,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 				})
 
 			if err != nil {
-				return fmt.Errorf("Error deleting replication from NetApp Volume %q (Resource Group %q): %+v", replVolumeID.Name, replVolumeID.ResourceGroup, err)
+				return fmt.Errorf("deleting replication from NetApp Volume %q (Resource Group %q): %+v", replVolumeID.Name, replVolumeID.ResourceGroup, err)
 			}
 
 			// Waiting for replication be in broken state
@@ -555,7 +555,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 		// Deleting replication and waiting for it to fully complete the operation
 		if _, err = client.DeleteReplication(ctx, replVolumeID.ResourceGroup, replVolumeID.NetAppAccountName, replVolumeID.CapacityPoolName, replVolumeID.Name); err != nil {
-			return fmt.Errorf("Error deleting replication from NetApp Volume %q (Resource Group %q): %+v", replVolumeID.Name, replVolumeID.ResourceGroup, err)
+			return fmt.Errorf("deleting replication from NetApp Volume %q (Resource Group %q): %+v", replVolumeID.Name, replVolumeID.ResourceGroup, err)
 		}
 
 		log.Printf("[DEBUG] Waiting for replication on NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted", replVolumeID.Name, replVolumeID.ResourceGroup)
@@ -566,7 +566,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 	// Deleting volume and waiting for it fo fully complete the operation
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name); err != nil {
-		return fmt.Errorf("Error deleting NetApp Volume %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting NetApp Volume %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	log.Printf("[DEBUG] Waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
@@ -589,7 +589,7 @@ func waitForVolumeCreation(ctx context.Context, client *netapp.VolumesClient, id
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting NetApp Volume Provisioning Service %q (Resource Group %q) to complete: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting NetApp Volume Provisioning Service %q (Resource Group %q) to complete: %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -607,7 +607,7 @@ func waitForReplAuthorization(ctx context.Context, client *netapp.VolumesClient,
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for replication authorization NetApp Volume Provisioning Service %q (Resource Group %q) to complete: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for replication authorization NetApp Volume Provisioning Service %q (Resource Group %q) to complete: %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -625,7 +625,7 @@ func waitForReplMirrorState(ctx context.Context, client *netapp.VolumesClient, i
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for NetApp Volume %q (Resource Group %q) to be in %s mirroring state: %+v", id.Name, id.ResourceGroup, desiredState, err)
+		return fmt.Errorf("waiting for NetApp Volume %q (Resource Group %q) to be in %s mirroring state: %+v", id.Name, id.ResourceGroup, desiredState, err)
 	}
 
 	return nil
@@ -643,7 +643,7 @@ func waitForReplicationDeletion(ctx context.Context, client *netapp.VolumesClien
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for NetApp Volume replication %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for NetApp Volume replication %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -661,7 +661,7 @@ func waitForVolumeDeletion(ctx context.Context, client *netapp.VolumesClient, id
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -672,7 +672,7 @@ func netappVolumeStateRefreshFunc(ctx context.Context, client *netapp.VolumesCli
 		res, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(res.Response) {
-				return nil, "", fmt.Errorf("Error retrieving NetApp Volume %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+				return nil, "", fmt.Errorf("retrieving NetApp Volume %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 			}
 		}
 
@@ -696,7 +696,7 @@ func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *
 		res, err := client.ReplicationStatusMethod(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(res.Response) {
-				return nil, "", fmt.Errorf("Error retrieving replication status information from NetApp Volume %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+				return nil, "", fmt.Errorf("retrieving replication status information from NetApp Volume %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 			}
 		}
 
@@ -717,7 +717,7 @@ func netappVolumeReplicationStateRefreshFunc(ctx context.Context, client *netapp
 				// This error can be ignored until a bug is fixed on RP side that it is returning 400 while the replication is in "Deleting" process
 				// TODO: remove this workaround when above bug is fixed
 			} else if !utils.ResponseWasNotFound(res.Response) {
-				return nil, "", fmt.Errorf("Error retrieving replication status from NetApp Volume %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+				return nil, "", fmt.Errorf("retrieving replication status from NetApp Volume %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 			}
 		}
 

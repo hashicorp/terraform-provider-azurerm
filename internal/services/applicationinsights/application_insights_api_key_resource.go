@@ -136,11 +136,11 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 
 	result, err := client.Create(ctx, resGroup, appInsightsName, apiKeyProperties)
 	if err != nil {
-		return fmt.Errorf("Error creating Application Insights API key %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating Application Insights API key %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if result.APIKey == nil {
-		return fmt.Errorf("Error creating Application Insights API key %q (Resource Group %q): got empty API key", name, resGroup)
+		return fmt.Errorf("creating Application Insights API key %q (Resource Group %q): got empty API key", name, resGroup)
 	}
 
 	d.SetId(*result.ID)
@@ -174,7 +174,7 @@ func resourceApplicationInsightsAPIKeyRead(d *pluginsdk.ResourceData, meta inter
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Application Insights API key '%s': %+v", keyID, err)
+		return fmt.Errorf("making Read request on AzureRM Application Insights API key '%s': %+v", keyID, err)
 	}
 
 	d.Set("application_insights_id", fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s", client.SubscriptionID, resGroup, appInsightsName))
@@ -182,11 +182,11 @@ func resourceApplicationInsightsAPIKeyRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("name", result.Name)
 	readProps := flattenApplicationInsightsAPIKeyLinkedProperties(result.LinkedReadProperties)
 	if err := d.Set("read_permissions", readProps); err != nil {
-		return fmt.Errorf("Error flattening `read_permissions `: %s", err)
+		return fmt.Errorf("flattening `read_permissions `: %s", err)
 	}
 	writeProps := flattenApplicationInsightsAPIKeyLinkedProperties(result.LinkedWriteProperties)
 	if err := d.Set("write_permissions", writeProps); err != nil {
-		return fmt.Errorf("Error flattening `write_permissions `: %s", err)
+		return fmt.Errorf("flattening `write_permissions `: %s", err)
 	}
 
 	return nil
@@ -212,7 +212,7 @@ func resourceApplicationInsightsAPIKeyDelete(d *pluginsdk.ResourceData, meta int
 		if utils.ResponseWasNotFound(result.Response) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing AzureRM delete request for Application Insights API key '%s': %+v", keyID, err)
+		return fmt.Errorf("issuing AzureRM delete request for Application Insights API key '%s': %+v", keyID, err)
 	}
 
 	return nil

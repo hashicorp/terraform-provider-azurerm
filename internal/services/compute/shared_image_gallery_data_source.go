@@ -61,7 +61,7 @@ func dataSourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("Shared Image Gallery %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on Shared Image Gallery %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Shared Image Gallery %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)

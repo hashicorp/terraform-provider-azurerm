@@ -76,7 +76,7 @@ func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	existing, err := client.Get(ctx, resourceGroupName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for present of existing Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+			return fmt.Errorf("checking for present of existing Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
 		}
 	}
 	if existing.ID != nil && *existing.ID != "" {

@@ -96,7 +96,7 @@ func resourceDnsARecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.A)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing DNS A Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing DNS A Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 			}
 		}
 
@@ -132,7 +132,7 @@ func resourceDnsARecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
 	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.A, parameters, eTag, ifNoneMatch); err != nil {
-		return fmt.Errorf("Error creating/updating DNS A Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+		return fmt.Errorf("creating/updating DNS A Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -156,7 +156,7 @@ func resourceDnsARecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS A record %s: %+v", id.AName, err)
+		return fmt.Errorf("reading DNS A record %s: %+v", id.AName, err)
 	}
 
 	d.Set("name", id.AName)
@@ -167,7 +167,7 @@ func resourceDnsARecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("ttl", resp.TTL)
 
 	if err := d.Set("records", flattenAzureRmDnsARecords(resp.ARecords)); err != nil {
-		return fmt.Errorf("Error setting `records`: %+v", err)
+		return fmt.Errorf("setting `records`: %+v", err)
 	}
 
 	targetResourceId := ""
@@ -191,7 +191,7 @@ func resourceDnsARecordDelete(d *pluginsdk.ResourceData, meta interface{}) error
 
 	resp, err := dnsClient.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.AName, dns.A, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS A Record %s: %+v", id.AName, err)
+		return fmt.Errorf("deleting DNS A Record %s: %+v", id.AName, err)
 	}
 
 	return nil

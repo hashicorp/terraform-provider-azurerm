@@ -120,7 +120,7 @@ func findPrivateZone(ctx context.Context, client *privatedns.PrivateZonesClient,
 	filter := fmt.Sprintf("resourceType eq 'Microsoft.Network/privateDnsZones' and name eq '%s'", name)
 	privateZones, err := resourcesClient.List(ctx, filter, "", nil)
 	if err != nil {
-		return nil, fmt.Errorf("Error listing Private DNS Zones: %+v", err)
+		return nil, fmt.Errorf("listing Private DNS Zones: %+v", err)
 	}
 
 	if len(privateZones.Values()) > 1 {

@@ -113,7 +113,7 @@ func resourceDnsCaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.CAA)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing DNS CAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing DNS CAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 			}
 		}
 
@@ -137,7 +137,7 @@ func resourceDnsCaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
 	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.CAA, parameters, eTag, ifNoneMatch); err != nil {
-		return fmt.Errorf("Error creating/updating DNS CAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+		return fmt.Errorf("creating/updating DNS CAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -161,7 +161,7 @@ func resourceDnsCaaRecordRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS CAA record %s: %v", id.CAAName, err)
+		return fmt.Errorf("reading DNS CAA record %s: %v", id.CAAName, err)
 	}
 
 	d.Set("name", id.CAAName)
@@ -189,7 +189,7 @@ func resourceDnsCaaRecordDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.CAAName, dns.CAA, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS CAA Record %s: %+v", id.CAAName, err)
+		return fmt.Errorf("deleting DNS CAA Record %s: %+v", id.CAAName, err)
 	}
 
 	return nil

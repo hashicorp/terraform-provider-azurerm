@@ -91,7 +91,7 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error looking up Key %q vault url from id %q: %+v", name, keyVaultId, err)
+		return fmt.Errorf("looking up Key %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
 	resp, err := client.GetKey(ctx, *keyVaultBaseUri, name, "")

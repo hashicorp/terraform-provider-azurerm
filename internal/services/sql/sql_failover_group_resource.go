@@ -149,7 +149,7 @@ func resourceSqlFailoverGroupCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		existing, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing SQL Failover Group %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+				return fmt.Errorf("checking for presence of existing SQL Failover Group %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
 			}
 		}
 
@@ -181,16 +181,16 @@ func resourceSqlFailoverGroupCreateUpdate(d *pluginsdk.ResourceData, meta interf
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for SQL Failover Group %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("issuing create/update request for SQL Failover Group %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for SQL Failover Group %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("waiting on create/update future for SQL Failover Group %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		return fmt.Errorf("Error issuing get request for SQL Failover Group %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("issuing get request for SQL Failover Group %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -240,7 +240,7 @@ func resourceSqlFailoverGroupRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("role", string(props.ReplicationRole))
 
 		if err := d.Set("partner_servers", flattenSqlFailoverGroupPartnerServers(props.PartnerServers)); err != nil {
-			return fmt.Errorf("Error setting `partner_servers`: %+v", err)
+			return fmt.Errorf("setting `partner_servers`: %+v", err)
 		}
 	}
 

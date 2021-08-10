@@ -80,7 +80,7 @@ func resourceStorageTableEntityCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", accountName, tableName, err)
+		return fmt.Errorf("retrieving Account %q for Table %q: %s", accountName, tableName, err)
 	}
 	if account == nil {
 		if d.IsNewResource() {
@@ -94,7 +94,7 @@ func resourceStorageTableEntityCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	client, err := storageClient.TableEntityClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Entity Client: %s", err)
+		return fmt.Errorf("building Entity Client: %s", err)
 	}
 
 	if d.IsNewResource() {
@@ -106,7 +106,7 @@ func resourceStorageTableEntityCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		existing, err := client.Get(ctx, accountName, tableName, input)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", partitionKey, rowKey, tableName, accountName, account.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", partitionKey, rowKey, tableName, accountName, account.ResourceGroup, err)
 			}
 		}
 
@@ -123,7 +123,7 @@ func resourceStorageTableEntityCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if _, err := client.InsertOrMerge(ctx, accountName, tableName, input); err != nil {
-		return fmt.Errorf("Error creating Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %+v", partitionKey, rowKey, tableName, accountName, account.ResourceGroup, err)
+		return fmt.Errorf("creating Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %+v", partitionKey, rowKey, tableName, accountName, account.ResourceGroup, err)
 	}
 
 	resourceID := client.GetResourceID(accountName, tableName, partitionKey, rowKey)
@@ -144,7 +144,7 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", id.AccountName, id.TableName, err)
+		return fmt.Errorf("retrieving Account %q for Table %q: %s", id.AccountName, id.TableName, err)
 	}
 	if account == nil {
 		log.Printf("[WARN] Unable to determine Resource Group for Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
@@ -154,7 +154,7 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 
 	client, err := storageClient.TableEntityClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Table Entity Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building Table Entity Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
 	}
 
 	input := entities.GetEntityInput{
@@ -165,7 +165,7 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 
 	result, err := client.Get(ctx, id.AccountName, id.TableName, input)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("retrieving Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, account.ResourceGroup, err)
 	}
 
 	d.Set("storage_account_name", id.AccountName)
@@ -173,7 +173,7 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 	d.Set("partition_key", id.PartitionKey)
 	d.Set("row_key", id.RowKey)
 	if err := d.Set("entity", flattenEntity(result.Entity)); err != nil {
-		return fmt.Errorf("Error setting `entity` for Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("setting `entity` for Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, account.ResourceGroup, err)
 	}
 
 	return nil
@@ -191,7 +191,7 @@ func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta interface{
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", id.AccountName, id.TableName, err)
+		return fmt.Errorf("retrieving Account %q for Table %q: %s", id.AccountName, id.TableName, err)
 	}
 	if account == nil {
 		return fmt.Errorf("Storage Account %q was not found!", id.AccountName)
@@ -199,7 +199,7 @@ func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta interface{
 
 	client, err := storageClient.TableEntityClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Entity Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building Entity Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
 	}
 
 	input := entities.DeleteEntityInput{
@@ -208,7 +208,7 @@ func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if _, err := client.Delete(ctx, id.AccountName, id.TableName, input); err != nil {
-		return fmt.Errorf("Error deleting Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("deleting Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, account.ResourceGroup, err)
 	}
 
 	return nil

@@ -125,7 +125,7 @@ func (SubnetNetworkSecurityGroupAssociationResource) destroy(ctx context.Context
 	read, err := client.Network.SubnetsClient.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(read.Response) {
-			return fmt.Errorf("Error retrieving Subnet %q (Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving Subnet %q (Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
 		}
 	}
 
@@ -133,10 +133,10 @@ func (SubnetNetworkSecurityGroupAssociationResource) destroy(ctx context.Context
 
 	future, err := client.Network.SubnetsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, read)
 	if err != nil {
-		return fmt.Errorf("Error updating Subnet %q (Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Subnet %q (Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Network.SubnetsClient.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Subnet %q (Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for completion of Subnet %q (Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
 	}
 
 	return nil

@@ -17,7 +17,7 @@ tools:
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.32.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.41.1
 
 build: fmtcheck generate
 	go install
@@ -44,7 +44,7 @@ fmtcheck:
 
 terrafmt:
 	@echo "==> Fixing acceptance test terraform blocks code with terrafmt..."
-	@find azurerm | egrep "_test.go" | sort | while read f; do terrafmt fmt -f $$f; done
+	@find internal | egrep "_test.go" | sort | while read f; do terrafmt fmt -f $$f; done
 	@echo "==> Fixing website terraform blocks code with terrafmt..."
 	@find . | egrep html.markdown | sort | while read f; do terrafmt fmt $$f; done
 

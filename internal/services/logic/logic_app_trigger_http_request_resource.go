@@ -88,7 +88,7 @@ func resourceLogicAppTriggerHttpRequestCreateUpdate(d *pluginsdk.ResourceData, m
 	schemaRaw := d.Get("schema").(string)
 	var schema map[string]interface{}
 	if err := json.Unmarshal([]byte(schemaRaw), &schema); err != nil {
-		return fmt.Errorf("Error unmarshalling JSON from Schema: %+v", err)
+		return fmt.Errorf("unmarshalling JSON from Schema: %+v", err)
 	}
 
 	inputs := map[string]interface{}{
@@ -146,12 +146,12 @@ func resourceLogicAppTriggerHttpRequestRead(d *pluginsdk.ResourceData, meta inte
 
 	v := trigger["inputs"]
 	if v == nil {
-		return fmt.Errorf("Error `inputs` was nil for HTTP Trigger %q (Logic App %q / Resource Group %q)", name, logicAppName, resourceGroup)
+		return fmt.Errorf("`inputs` was nil for HTTP Trigger %q (Logic App %q / Resource Group %q)", name, logicAppName, resourceGroup)
 	}
 
 	inputs, ok := v.(map[string]interface{})
 	if !ok {
-		return fmt.Errorf("Error parsing `inputs` for HTTP Trigger %q (Logic App %q / Resource Group %q)", name, logicAppName, resourceGroup)
+		return fmt.Errorf("parsing `inputs` for HTTP Trigger %q (Logic App %q / Resource Group %q)", name, logicAppName, resourceGroup)
 	}
 
 	if method := inputs["method"]; method != nil {
@@ -165,7 +165,7 @@ func resourceLogicAppTriggerHttpRequestRead(d *pluginsdk.ResourceData, meta inte
 	if schemaRaw := inputs["schema"]; schemaRaw != nil {
 		schema, err := json.Marshal(schemaRaw)
 		if err != nil {
-			return fmt.Errorf("Error serializing the Schema to JSON: %+v", err)
+			return fmt.Errorf("serializing the Schema to JSON: %+v", err)
 		}
 
 		d.Set("schema", string(schema))
@@ -186,7 +186,7 @@ func resourceLogicAppTriggerHttpRequestDelete(d *pluginsdk.ResourceData, meta in
 
 	err = resourceLogicAppTriggerRemove(d, meta, resourceGroup, logicAppName, name)
 	if err != nil {
-		return fmt.Errorf("Error removing Trigger %q from Logic App %q (Resource Group %q): %+v", name, logicAppName, resourceGroup, err)
+		return fmt.Errorf("removing Trigger %q from Logic App %q (Resource Group %q): %+v", name, logicAppName, resourceGroup, err)
 	}
 
 	return nil

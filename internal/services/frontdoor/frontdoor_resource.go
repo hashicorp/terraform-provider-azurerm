@@ -618,10 +618,10 @@ func resourceFrontDoorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("waiting for creation of Front Door %q (Resource Group %q): %+v", frontDoorId.Name, frontDoorId.ResourceGroup, err)
 		}
 
-		d.SetId(frontDoorId.ID())
 		d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId))
 	}
 
+	d.SetId(frontDoorId.ID())
 	return resourceFrontDoorRead(d, meta)
 }
 
@@ -807,18 +807,11 @@ func resourceFrontDoorDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if future.Response() != nil {
-			if response.WasNotFound(future.Response()) {
-				return nil
-			}
-		}
 		return fmt.Errorf("deleting Front Door %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if future.Response() != nil {
-			if !response.WasNotFound(future.Response()) {
-				return fmt.Errorf("waiting for deleting Front Door %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("waiting for deletion of Front Door %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 

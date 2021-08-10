@@ -207,7 +207,7 @@ func resourceSecurityCenterAutomationCreateUpdate(d *pluginsdk.ResourceData, met
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Security Center automation %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Security Center automation %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -243,7 +243,7 @@ func resourceSecurityCenterAutomationCreateUpdate(d *pluginsdk.ResourceData, met
 
 	resp, err := client.CreateOrUpdate(ctx, resourceGroup, name, automation)
 	if err != nil {
-		return fmt.Errorf("Error creating Security Center automation: %+v", err)
+		return fmt.Errorf("creating Security Center automation: %+v", err)
 	}
 
 	// Important steps
@@ -272,7 +272,7 @@ func resourceSecurityCenterAutomationRead(d *pluginsdk.ResourceData, meta interf
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Security Center automation %s: %v", name, err)
+		return fmt.Errorf("reading Security Center automation %s: %v", name, err)
 	}
 
 	d.Set("name", name)
@@ -290,7 +290,7 @@ func resourceSecurityCenterAutomationRead(d *pluginsdk.ResourceData, meta interf
 			return err
 		}
 		if err := d.Set("scopes", flatScopes); err != nil {
-			return fmt.Errorf("Error reading Security Center automation scopes: %+v", err)
+			return fmt.Errorf("reading Security Center automation scopes: %+v", err)
 		}
 
 		flatActions, err := flattenSecurityCenterAutomationActions(properties.Actions, d)
@@ -298,7 +298,7 @@ func resourceSecurityCenterAutomationRead(d *pluginsdk.ResourceData, meta interf
 			return err
 		}
 		if err = d.Set("action", flatActions); err != nil {
-			return fmt.Errorf("Error reading Security Center automation actions: %+v", err)
+			return fmt.Errorf("reading Security Center automation actions: %+v", err)
 		}
 
 		flatSources, err := flattenSecurityCenterAutomationSources(properties.Sources)
@@ -306,7 +306,7 @@ func resourceSecurityCenterAutomationRead(d *pluginsdk.ResourceData, meta interf
 			return err
 		}
 		if err = d.Set("source", flatSources); err != nil {
-			return fmt.Errorf("Error reading Security Center automation sources: %+v", err)
+			return fmt.Errorf("reading Security Center automation sources: %+v", err)
 		}
 	}
 
@@ -332,7 +332,7 @@ func resourceSecurityCenterAutomationDelete(d *pluginsdk.ResourceData, meta inte
 			log.Printf("[DEBUG] Security Center automation was not found: %v", err)
 			return nil
 		}
-		return fmt.Errorf("Error deleting Security Center automation: %+v", err)
+		return fmt.Errorf("deleting Security Center automation: %+v", err)
 	}
 
 	return nil

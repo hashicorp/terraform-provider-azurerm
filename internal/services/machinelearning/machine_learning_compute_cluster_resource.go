@@ -148,7 +148,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	existing, err := mlComputeClient.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("error checking for existing Compute Cluster %q in Workspace %q (Resource Group %q): %s",
+			return fmt.Errorf("checking for existing Compute Cluster %q in Workspace %q (Resource Group %q): %s",
 				name, workspaceID.Name, workspaceID.ResourceGroup, err)
 		}
 	}

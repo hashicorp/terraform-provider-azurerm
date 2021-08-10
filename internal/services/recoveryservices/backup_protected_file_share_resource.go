@@ -102,7 +102,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	filter := "backupManagementType eq 'AzureStorage'"
 	backupProtectableItemsResponse, err := protectableClient.List(ctx, vaultName, resourceGroup, filter, "")
 	if err != nil {
-		return fmt.Errorf("Error checking for protectable fileshares in Recovery Service Vault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
+		return fmt.Errorf("checking for protectable fileshares in Recovery Service Vault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
 	}
 
 	for _, protectableItem := range backupProtectableItemsResponse.Values() {
@@ -122,7 +122,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	if fileShareSystemName == "" {
 		backupProtectedItemsResponse, err := protectedClient.List(ctx, vaultName, resourceGroup, filter, "")
 		if err != nil {
-			return fmt.Errorf("Error checking for protected fileshares in Recovery Service Vault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
+			return fmt.Errorf("checking for protected fileshares in Recovery Service Vault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
 		}
 
 		for _, protectedItem := range backupProtectedItemsResponse.Values() {
@@ -149,7 +149,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 		existing, err2 := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, fileShareSystemName, "")
 		if err2 != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Recovery Service Protected File Share %q (Resource Group %q): %+v", fileShareName, resourceGroup, err2)
+				return fmt.Errorf("checking for presence of existing Recovery Service Protected File Share %q (Resource Group %q): %+v", fileShareName, resourceGroup, err2)
 			}
 		}
 
@@ -170,12 +170,12 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 
 	resp, err := client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, fileShareSystemName, item)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Recovery Service Protected File Share %q (Resource Group %q): %+v", fileShareName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Recovery Service Protected File Share %q (Resource Group %q): %+v", fileShareName, resourceGroup, err)
 	}
 
 	locationURL, err := resp.Response.Location()
 	if err != nil || locationURL == nil {
-		return fmt.Errorf("Error creating/updating Azure File Share backup item %q (Vault %q): Location header missing or empty", containerName, vaultName)
+		return fmt.Errorf("creating/updating Azure File Share backup item %q (Vault %q): Location header missing or empty", containerName, vaultName)
 	}
 
 	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
@@ -193,7 +193,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	resp, err = client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, fileShareSystemName, "")
 
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Azure File Share backup item %q (Vault %q): %+v", fileShareName, vaultName, err)
+		return fmt.Errorf("creating/updating Azure File Share backup item %q (Vault %q): %+v", fileShareName, vaultName, err)
 	}
 
 	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1) // This code is a workaround for this bug https://github.com/Azure/azure-sdk-for-go/issues/2824
@@ -226,7 +226,7 @@ func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta interf
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Recovery Service Protected File Share %q (Vault %q Resource Group %q): %+v", fileShareSystemName, vaultName, resourceGroup, err)
+		return fmt.Errorf("making Read request on Recovery Service Protected File Share %q (Vault %q Resource Group %q): %+v", fileShareSystemName, vaultName, resourceGroup, err)
 	}
 
 	d.Set("resource_group_name", resourceGroup)
@@ -268,13 +268,13 @@ func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta inte
 	resp, err := client.Delete(ctx, vaultName, resourceGroup, "Azure", containerName, fileShareSystemName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error issuing delete request for Recovery Service Protected File Share %q (Resource Group %q): %+v", fileShareSystemName, resourceGroup, err)
+			return fmt.Errorf("issuing delete request for Recovery Service Protected File Share %q (Resource Group %q): %+v", fileShareSystemName, resourceGroup, err)
 		}
 	}
 
 	locationURL, err := resp.Response.Location()
 	if err != nil || locationURL == nil {
-		return fmt.Errorf("Error deleting Azure File Share backups item %s (Vault %s): Location header missing or empty", containerName, vaultName)
+		return fmt.Errorf("deleting Azure File Share backups item %s (Vault %s): Location header missing or empty", containerName, vaultName)
 	}
 
 	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
@@ -320,7 +320,7 @@ func resourceBackupProtectedFileShareCheckOperation(ctx context.Context, client 
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, vaultName, resourceGroup, operationID)
 		if err != nil {
-			return resp, "Error", fmt.Errorf("Error making Read request on Recovery Service Protection Container operation %q (Vault %q in Resource Group %q): %+v", operationID, vaultName, resourceGroup, err)
+			return resp, "Error", fmt.Errorf("making Read request on Recovery Service Protection Container operation %q (Vault %q in Resource Group %q): %+v", operationID, vaultName, resourceGroup, err)
 		}
 
 		if opErr := resp.Error; opErr != nil {

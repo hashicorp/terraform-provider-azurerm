@@ -213,7 +213,7 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 	frequency := d.Get("frequency").(int)
 	timeWindow := d.Get("time_window").(int)
 	if timeWindow < frequency {
-		return fmt.Errorf("Error in parameter values for Scheduled Query Rules %q (Resource Group %q): time_window must be greater than or equal to frequency", name, resourceGroup)
+		return fmt.Errorf("in parameter values for Scheduled Query Rules %q (Resource Group %q): time_window must be greater than or equal to frequency", name, resourceGroup)
 	}
 
 	query := d.Get("query").(string)
@@ -222,7 +222,7 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 		if !(strings.Contains(query, "summarize") &&
 			strings.Contains(query, "AggregatedValue") &&
 			strings.Contains(query, "bin")) {
-			return fmt.Errorf("Error in parameter values for Scheduled Query Rules %q (Resource Group %q): query must contain summarize, AggregatedValue, and bin when metric_trigger is specified", name, resourceGroup)
+			return fmt.Errorf("in parameter values for Scheduled Query Rules %q (Resource Group %q): query must contain summarize, AggregatedValue, and bin when metric_trigger is specified", name, resourceGroup)
 		}
 	}
 
@@ -230,7 +230,7 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Monitor Scheduled Query Rules %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Monitor Scheduled Query Rules %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -267,7 +267,7 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("Error creating or updating Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating or updating Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
@@ -301,7 +301,7 @@ func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error getting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("getting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -322,16 +322,16 @@ func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("Wrong action type in Scheduled Query Rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
 	}
 	if err = d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
-		return fmt.Errorf("Error setting `action`: %+v", err)
+		return fmt.Errorf("setting `action`: %+v", err)
 	}
 	severity, err := strconv.Atoi(string(action.Severity))
 	if err != nil {
-		return fmt.Errorf("Error converting action.Severity %q in query rule %q to int (resource group %q): %+v", action.Severity, name, resourceGroup, err)
+		return fmt.Errorf("converting action.Severity %q in query rule %q to int (resource group %q): %+v", action.Severity, name, resourceGroup, err)
 	}
 	d.Set("severity", severity)
 	d.Set("throttling", action.ThrottlingInMin)
 	if err = d.Set("trigger", flattenAzureRmScheduledQueryRulesAlertTrigger(action.Trigger)); err != nil {
-		return fmt.Errorf("Error setting `trigger`: %+v", err)
+		return fmt.Errorf("setting `trigger`: %+v", err)
 	}
 
 	if schedule := resp.Schedule; schedule != nil {
@@ -373,7 +373,7 @@ func resourceMonitorScheduledQueryRulesAlertDelete(d *pluginsdk.ResourceData, me
 
 	if resp, err := client.Delete(ctx, resourceGroup, name); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("deleting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 		}
 	}
 

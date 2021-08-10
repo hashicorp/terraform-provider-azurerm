@@ -256,7 +256,7 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Key Vault Certificate: %+v", err)
+		return fmt.Errorf("reading Key Vault Certificate: %+v", err)
 	}
 
 	if cert.ID == nil || *cert.ID == "" {
@@ -274,7 +274,7 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 
 	certificatePolicy := flattenKeyVaultCertificatePolicyForDataSource(cert.Policy)
 	if err := d.Set("certificate_policy", certificatePolicy); err != nil {
-		return fmt.Errorf("Error setting Key Vault Certificate Policy: %+v", err)
+		return fmt.Errorf("setting Key Vault Certificate Policy: %+v", err)
 	}
 
 	d.Set("version", id.Version)

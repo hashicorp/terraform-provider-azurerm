@@ -74,7 +74,7 @@ func main() {
 func run(resourceName, brandName string, resourceId *string, isResource bool, websitePath string) error {
 	content, err := getContent(resourceName, brandName, resourceId, isResource)
 	if err != nil {
-		return fmt.Errorf("Error building content: %s", err)
+		return fmt.Errorf("building content: %s", err)
 	}
 
 	return saveContent(resourceName, websitePath, *content, isResource)

@@ -79,7 +79,7 @@ func dataSourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Virtual Wan %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error reading Virtual Wan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading Virtual Wan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
@@ -97,18 +97,18 @@ func dataSourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("allow_branch_to_branch_traffic", props.AllowBranchToBranchTraffic)
 		d.Set("disable_vpn_encryption", props.DisableVpnEncryption)
 		if err := d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory); err != nil {
-			return fmt.Errorf("error setting `office365_local_breakout_category`: %v", err)
+			return fmt.Errorf("setting `office365_local_breakout_category`: %v", err)
 		}
 		d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory)
 		if err := d.Set("sku", props.Type); err != nil {
-			return fmt.Errorf("error setting `sku`: %v", err)
+			return fmt.Errorf("setting `sku`: %v", err)
 		}
 		d.Set("sku", props.Type)
 		if err := d.Set("virtual_hub_ids", flattenVirtualWanProperties(props.VirtualHubs)); err != nil {
-			return fmt.Errorf("error setting `virtual_hubs`: %v", err)
+			return fmt.Errorf("setting `virtual_hubs`: %v", err)
 		}
 		if err := d.Set("vpn_site_ids", flattenVirtualWanProperties(props.VpnSites)); err != nil {
-			return fmt.Errorf("error setting `vpn_sites`: %v", err)
+			return fmt.Errorf("setting `vpn_sites`: %v", err)
 		}
 	}
 

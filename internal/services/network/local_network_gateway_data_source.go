@@ -94,7 +94,7 @@ func dataSourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("Error reading the state of Local Network Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading the state of Local Network Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID != nil {

@@ -154,7 +154,7 @@ func resourceMediaJobCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.TransformName, resourceId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Media Job %q (Media Service account %q) (ResourceGroup %q): %s", resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.Name, err)
+				return fmt.Errorf("checking for presence of existing Media Job %q (Media Service account %q) (ResourceGroup %q): %s", resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.Name, err)
 			}
 		}
 
@@ -228,7 +228,7 @@ func resourceMediaJobRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return err
 		}
 		if err = d.Set("input_asset", inputAsset); err != nil {
-			return fmt.Errorf("Error flattening `input_asset`: %s", err)
+			return fmt.Errorf("flattening `input_asset`: %s", err)
 		}
 
 		outputAssets, err := flattenOutputAssets(props.Outputs)
@@ -236,7 +236,7 @@ func resourceMediaJobRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return err
 		}
 		if err = d.Set("output_asset", outputAssets); err != nil {
-			return fmt.Errorf("Error flattening `output_asset`: %s", err)
+			return fmt.Errorf("flattening `output_asset`: %s", err)
 		}
 	}
 	return nil

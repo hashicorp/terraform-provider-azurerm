@@ -108,7 +108,7 @@ func dataSourceResourcesRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	resources := make([]map[string]interface{}, 0)
 	resourcesResp, err := client.List(ctx, filter, "", nil)
 	if err != nil {
-		return fmt.Errorf("Error getting resources: %+v", err)
+		return fmt.Errorf("getting resources: %+v", err)
 	}
 
 	resources = append(resources, filterResource(resourcesResp.Values(), requiredTags)...)
@@ -121,7 +121,7 @@ func dataSourceResourcesRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	d.SetId("resource-" + uuid.New().String())
 	if err := d.Set("resources", resources); err != nil {
-		return fmt.Errorf("Error setting `resources`: %+v", err)
+		return fmt.Errorf("setting `resources`: %+v", err)
 	}
 
 	return nil

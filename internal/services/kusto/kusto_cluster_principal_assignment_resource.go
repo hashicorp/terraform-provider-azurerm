@@ -113,7 +113,7 @@ func resourceKustoClusterPrincipalAssignmentCreateUpdate(d *pluginsdk.ResourceDa
 		principalAssignment, err := client.Get(ctx, resourceGroup, clusterName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(principalAssignment.Response) {
-				return fmt.Errorf("Error checking for presence of existing Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
+				return fmt.Errorf("checking for presence of existing Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
 			}
 		}
 
@@ -138,16 +138,16 @@ func resourceKustoClusterPrincipalAssignmentCreateUpdate(d *pluginsdk.ResourceDa
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, name, principalAssignment)
 	if err != nil {
-		return fmt.Errorf("Error creating or updating Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
+		return fmt.Errorf("creating or updating Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
+		return fmt.Errorf("waiting for completion of Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, clusterName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
+		return fmt.Errorf("retrieving Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", name, resourceGroup, clusterName, err)
 	}
 
 	if resp.ID == nil {
@@ -175,7 +175,7 @@ func resourceKustoClusterPrincipalAssignmentRead(d *pluginsdk.ResourceData, meta
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, err)
+		return fmt.Errorf("retrieving Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
@@ -227,11 +227,11 @@ func resourceKustoClusterPrincipalAssignmentDelete(d *pluginsdk.ResourceData, me
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.PrincipalAssignmentName)
 	if err != nil {
-		return fmt.Errorf("Error deleting Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, err)
+		return fmt.Errorf("deleting Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, err)
+		return fmt.Errorf("waiting for deletion of Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, err)
 	}
 
 	return nil

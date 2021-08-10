@@ -368,7 +368,7 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Batch pool %q in account %q (Resource Group %q) was not found", name, accountName, resourceGroup)
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Batch pool %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM Batch pool %q: %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -383,38 +383,38 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 		if scaleSettings := props.ScaleSettings; scaleSettings != nil {
 			if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
-				return fmt.Errorf("Error flattening `auto_scale`: %+v", err)
+				return fmt.Errorf("flattening `auto_scale`: %+v", err)
 			}
 			if err := d.Set("fixed_scale", flattenBatchPoolFixedScaleSettings(scaleSettings.FixedScale)); err != nil {
-				return fmt.Errorf("Error flattening `fixed_scale `: %+v", err)
+				return fmt.Errorf("flattening `fixed_scale `: %+v", err)
 			}
 		}
 
 		if dcfg := props.DeploymentConfiguration; dcfg != nil {
 			if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
 				if err := d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration)); err != nil {
-					return fmt.Errorf("error setting `container_configuration`: %v", err)
+					return fmt.Errorf("setting `container_configuration`: %v", err)
 				}
 
 				if err := d.Set("storage_image_reference", flattenBatchPoolImageReference(vmcfg.ImageReference)); err != nil {
-					return fmt.Errorf("error setting `storage_image_reference`: %v", err)
+					return fmt.Errorf("setting `storage_image_reference`: %v", err)
 				}
 
 				if err := d.Set("node_agent_sku_id", vmcfg.NodeAgentSkuID); err != nil {
-					return fmt.Errorf("error setting `node_agent_sku_id`: %v", err)
+					return fmt.Errorf("setting `node_agent_sku_id`: %v", err)
 				}
 			}
 		}
 
 		if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
-			return fmt.Errorf("error setting `certificate`: %v", err)
+			return fmt.Errorf("setting `certificate`: %v", err)
 		}
 
 		d.Set("start_task", flattenBatchPoolStartTask(props.StartTask))
 		d.Set("metadata", FlattenBatchMetaData(props.Metadata))
 
 		if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
-			return fmt.Errorf("error setting `network_configuration`: %v", err)
+			return fmt.Errorf("setting `network_configuration`: %v", err)
 		}
 	}
 

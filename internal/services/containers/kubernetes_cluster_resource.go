@@ -1165,7 +1165,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			props.EnableRBAC = utils.Bool(rbacEnabled)
 
 			// Reset AAD profile is only possible if not managed
-			if props.AadProfile.Managed == nil || !*props.AadProfile.Managed {
+			if props.AadProfile == nil || props.AadProfile.Managed == nil || !*props.AadProfile.Managed {
 				log.Printf("[DEBUG] Updating the RBAC AAD profile")
 				future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.ManagedClusterName, *props.AadProfile)
 				if err != nil {

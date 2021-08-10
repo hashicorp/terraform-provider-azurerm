@@ -72,7 +72,7 @@ func dataSourceArmAMLWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Machine Learning Workspace %q (Resource Group %q) was not found: %+v", name, resourceGroup, err)
 		}
-		return fmt.Errorf("Error reading Machine Learning Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading Machine Learning Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("Cannot read Machine Learning Workspace %q (Resource Group %q) ID", name, resourceGroup)

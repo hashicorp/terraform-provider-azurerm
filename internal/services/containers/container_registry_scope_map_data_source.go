@@ -61,7 +61,7 @@ func dataSourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta int
 			return fmt.Errorf("Container Registry Scope Map %q was not found in Resource Group %q", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on Scope Map %q (Azure Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("making Read request on Scope Map %q (Azure Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {

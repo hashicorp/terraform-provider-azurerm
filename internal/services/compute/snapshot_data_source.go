@@ -120,7 +120,7 @@ func dataSourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Snapshot %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error loading Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("loading Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -134,7 +134,7 @@ func dataSourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
-			return fmt.Errorf("Error setting `encryption_settings`: %+v", err)
+			return fmt.Errorf("setting `encryption_settings`: %+v", err)
 		}
 	}
 

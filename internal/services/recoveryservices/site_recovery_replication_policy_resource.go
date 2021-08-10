@@ -75,7 +75,7 @@ func resourceSiteRecoveryReplicationPolicyCreate(d *pluginsdk.ResourceData, meta
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing site recovery replication policy %s: %+v", name, err)
+				return fmt.Errorf("checking for presence of existing site recovery replication policy %s: %+v", name, err)
 			}
 		}
 
@@ -98,15 +98,15 @@ func resourceSiteRecoveryReplicationPolicyCreate(d *pluginsdk.ResourceData, meta
 	}
 	future, err := client.Create(ctx, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("creating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error creating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("creating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("retrieving site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
@@ -137,15 +137,15 @@ func resourceSiteRecoveryReplicationPolicyUpdate(d *pluginsdk.ResourceData, meta
 	}
 	future, err := client.Update(ctx, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error updating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("updating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error updating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("updating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("retrieving site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
@@ -173,7 +173,7 @@ func resourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta i
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("making Read request on site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -202,11 +202,11 @@ func resourceSiteRecoveryReplicationPolicyDelete(d *pluginsdk.ResourceData, meta
 
 	future, err := client.Delete(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("deleting site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("waiting for deletion of site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	return nil

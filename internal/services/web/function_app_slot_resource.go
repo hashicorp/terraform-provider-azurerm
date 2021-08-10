@@ -235,7 +235,7 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		existing, err := client.GetSlot(ctx, resourceGroup, functionAppName, slot)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Slot %q (Function App %q / Resource Group %q): %s", slot, functionAppName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Slot %q (Function App %q / Resource Group %q): %s", slot, functionAppName, resourceGroup, err)
 			}
 		}
 
@@ -268,7 +268,7 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
-		return fmt.Errorf("Error expanding `site_config` for Function App Slot %q (Resource Group %q): %s", slot, resourceGroup, err)
+		return fmt.Errorf("expanding `site_config` for Function App Slot %q (Resource Group %q): %s", slot, resourceGroup, err)
 	}
 
 	siteConfig.AppSettings = &basicAppSettings
@@ -322,7 +322,7 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if _, err := client.UpdateAuthSettingsSlot(ctx, resourceGroup, functionAppName, auth, slot); err != nil {
-		return fmt.Errorf("Error updating auth settings for Slot %q (Function App Slot %q / Resource Group %q): %+s", slot, functionAppName, resourceGroup, err)
+		return fmt.Errorf("updating auth settings for Slot %q (Function App Slot %q / Resource Group %q): %+s", slot, functionAppName, resourceGroup, err)
 	}
 
 	return resourceFunctionAppSlotUpdate(d, meta)
@@ -363,7 +363,7 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
-		return fmt.Errorf("Error expanding `site_config` for Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("expanding `site_config` for Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
 
 	siteConfig.AppSettings = &basicAppSettings
@@ -390,12 +390,12 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
 	if err != nil {
-		return fmt.Errorf("Error updating Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for update of Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
 
 	appSettings, err := expandFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
@@ -407,19 +407,19 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if _, err = client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, settings, id.SlotName); err != nil {
-		return fmt.Errorf("Error updating Application Settings for Function App Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Application Settings for Function App Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
 
 	if d.HasChange("site_config") {
 		siteConfig, err := expandFunctionAppSiteConfig(d)
 		if err != nil {
-			return fmt.Errorf("Error expanding `site_config` for Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
+			return fmt.Errorf("expanding `site_config` for Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
 		}
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
 		if _, err := client.CreateOrUpdateConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, siteConfigResource, id.SlotName); err != nil {
-			return fmt.Errorf("Error updating Configuration for Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+			return fmt.Errorf("updating Configuration for Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
 		}
 	}
 
@@ -432,7 +432,7 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, authSettings, id.SlotName); err != nil {
-			return fmt.Errorf("Error updating Authentication Settings for Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+			return fmt.Errorf("updating Authentication Settings for Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
 		}
 	}
 
@@ -444,7 +444,7 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		if _, err := client.UpdateConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, properties, id.SlotName); err != nil {
-			return fmt.Errorf("Error updating Connection Strings for Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+			return fmt.Errorf("updating Connection Strings for Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
 		}
 	}
 
@@ -468,7 +468,7 @@ func resourceFunctionAppSlotRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error makeing read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("makeing read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
 
 	appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
@@ -478,12 +478,12 @@ func resourceFunctionAppSlotRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q) AppSettings: %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q) AppSettings: %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
 
 	connectionStringsResp, err := client.ListConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q) ConnectionStrings: %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q) ConnectionStrings: %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
 
 	siteCredFuture, err := client.ListPublishingCredentialsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
@@ -496,11 +496,11 @@ func resourceFunctionAppSlotRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q) Site Credentials: %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q) Site Credentials: %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
 	authResp, err := client.GetAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving the AuthSettings for AzureRM Function App Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving the AuthSettings for AzureRM Function App Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.SlotName)
@@ -572,12 +572,12 @@ func resourceFunctionAppSlotRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("Error setting `identity`: %s", err)
+		return fmt.Errorf("setting `identity`: %s", err)
 	}
 
 	configResp, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM Function App Configuration %q: %+v", id.SlotName, err)
+		return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SlotName, err)
 	}
 
 	siteConfig := flattenFunctionAppSiteConfig(configResp.SiteConfig)
@@ -587,7 +587,7 @@ func resourceFunctionAppSlotRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	authSettings := flattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
 	if err := d.Set("auth_settings", authSettings); err != nil {
-		return fmt.Errorf("Error setting `auth_settings`: %s", err)
+		return fmt.Errorf("setting `auth_settings`: %s", err)
 	}
 
 	siteCred := flattenFunctionAppSlotSiteCredential(siteCredResp.UserProperties)
