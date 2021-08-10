@@ -114,7 +114,7 @@ A `extended_auditing_policy` block supports the following:
 
 * `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
 
-* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its master database audit events to Azure Monitor.
+* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its main database audit events to Azure Monitor.
 
 ### Timeouts
 

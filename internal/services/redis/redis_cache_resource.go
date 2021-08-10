@@ -286,6 +286,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			// todo 3.0 rename this to replicas_per_main? or something else to confirm to inclusive language guidelines
 			"replicas_per_master": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,

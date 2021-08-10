@@ -1,6 +1,6 @@
 # Spark & Cassandra on CentOS 7.x
 
-This Terraform template was based on [this](https://github.com/Azure/azure-quickstart-templates/tree/master/spark-and-cassandra-on-centos) Azure Quickstart Template. Changes to the ARM template that may have occurred since the creation of this example may not be reflected here.
+This Terraform template was based on [this](https://github.com/Azure/azure-quickstart-templates/tree/main/spark-and-cassandra-on-centos) Azure Quickstart Template. Changes to the ARM template that may have occurred since the creation of this example may not be reflected here.
 
 This project configures a Spark cluster (1 primary and n-secondary nodes) and a single node Cassandra on Azure using CentOS 7.x.  The base image starts with CentOS 7.3, and it is updated to the latest version as part of the provisioning steps.
 

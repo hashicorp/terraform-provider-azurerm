@@ -61,7 +61,7 @@ The following attributes are exported:
 
 * `virtual_network_rule` - Subnets that are allowed to access this CosmosDB account.
 
-* `enable_multiple_write_locations` - If multi-master is enabled for this Cosmos DB account.
+* `enable_multiple_write_locations` - If multi-main is enabled for this Cosmos DB account.
 
 `consistency_policy` The current consistency Settings for this CosmosDB account with the following properties:
 
@@ -86,13 +86,13 @@ The following attributes are exported:
 
 * `write_endpoints` - A list of write endpoints available for this CosmosDB account.
 
-* `primary_key` - The Primary master key for the CosmosDB Account.
+* `primary_key` - The Primary key for the CosmosDB Account.
 
-* `secondary_key` - The Secondary master key for the CosmosDB Account.
+* `secondary_key` - The Secondary main key for the CosmosDB Account.
 
-* `primary_readonly_key` - The Primary read-only master Key for the CosmosDB Account.
+* `primary_readonly_key` - The Primary read-only main Key for the CosmosDB Account.
 
-* `secondary_readonly_key` - The Secondary read-only master key for the CosmosDB Account.
+* `secondary_readonly_key` - The Secondary read-only main key for the CosmosDB Account.
 
 ## Timeouts
 

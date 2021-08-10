@@ -1,6 +1,6 @@
 # Enable encryption on a running Linux VM. 
 
-This Terraform template was based on [this](https://github.com/Azure/azure-quickstart-templates/tree/master/201-encrypt-running-linux-vm) Azure Quickstart Template. Changes to the ARM template that may have occurred since the creation of this example may not be reflected in this Terraform template.
+This Terraform template was based on [this](https://github.com/Azure/azure-quickstart-templates/tree/main/201-encrypt-running-linux-vm) Azure Quickstart Template. Changes to the ARM template that may have occurred since the creation of this example may not be reflected in this Terraform template.
 
 This template enables encryption on a running linux vm using AAD client secret. This template assumes that the VM is located in the same region as the resource group. If not, please edit the template to pass appropriate location for the VM sub-resources.
 
