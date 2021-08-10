@@ -6,6 +6,7 @@ FEATURES:
 
 BUG FIXES:
 
+* Data Source: `azurerm_key_vault_certificate_data` - updating the PEM Header when using a RSA Private Key so this validates with OpenSSL [GH-12896]
 * `azurerm_kubernetes_cluster` - prevent nil panic when rbac config is empty [GH-12881]
 * `azurerm_logic_app_trigger_recurrence` - update time zone strings to match API behaviour, and use the timezone even when `start_time` is not specified [GH-12453]
 
