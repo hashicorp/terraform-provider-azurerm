@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,7 +23,9 @@ func TestAccVideoAnalyzerEdgeModule_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check:  acceptance.ComposeAggregateTestCheckFunc(),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("video_analyzer_name").HasValue("acctestva" + data.RandomString),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -35,7 +38,9 @@ func TestAccVideoAnalyzerEdgeModule_requiresImport(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check:  acceptance.ComposeAggregateTestCheckFunc(),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
