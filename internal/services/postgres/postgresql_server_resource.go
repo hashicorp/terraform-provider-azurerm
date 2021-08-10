@@ -78,11 +78,11 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			if resp.ReplicationRole != nil && *resp.ReplicationRole != "Master" && *resp.ReplicationRole != "None" {
 				d.Set("create_mode", resp.ReplicationRole)
 
-				masterServerId, err := parse.ServerID(*resp.MasterServerID)
+				sourceServerId, err := parse.ServerID(*resp.MasterServerID)
 				if err != nil {
-					return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing Postgres Master Server ID : %v", err)
+					return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing Postgres Main Server ID : %v", err)
 				}
-				d.Set("creation_source_server_id", masterServerId.ID())
+				d.Set("creation_source_server_id", sourceServerId.ID())
 			}
 
 			return []*pluginsdk.ResourceData{d}, nil

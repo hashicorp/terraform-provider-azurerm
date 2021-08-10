@@ -132,7 +132,7 @@ func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []in
 	if input.Branch != nil && *input.Branch != "" {
 		result["branch"] = *input.Branch
 	} else {
-		result["branch"] = "master"
+		result["branch"] = "master" // todo 3.0 change this to default to main
 	}
 
 	result["use_mercurial"] = *input.IsMercurial
