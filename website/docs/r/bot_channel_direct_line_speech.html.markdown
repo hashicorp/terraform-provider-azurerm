@@ -33,7 +33,7 @@ resource "azurerm_bot_channels_registration" "example" {
   location            = "global"
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "F0"
-  microsoft_app_id    = data.azurerm_client_config.current.service_principal_application_id
+  microsoft_app_id    = data.azurerm_client_config.current.client_id
 }
 
 resource "azurerm_bot_channel_direct_line_speech" "example" {
