@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -66,7 +67,7 @@ func dataSourceVPNGateway() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"custom_ips": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -79,7 +80,7 @@ func dataSourceVPNGateway() *pluginsdk.Resource {
 									},
 
 									"default_ips": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -87,7 +88,7 @@ func dataSourceVPNGateway() *pluginsdk.Resource {
 									},
 
 									"tunnel_ips": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -103,7 +104,7 @@ func dataSourceVPNGateway() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"custom_ips": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -116,7 +117,7 @@ func dataSourceVPNGateway() *pluginsdk.Resource {
 									},
 
 									"default_ips": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -124,7 +125,7 @@ func dataSourceVPNGateway() *pluginsdk.Resource {
 									},
 
 									"tunnel_ips": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -150,28 +151,26 @@ func dataSourceVPNGateway() *pluginsdk.Resource {
 func dataSourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewVpnGatewayID(subscriptionId, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] VPN Gateway %q was not found in Resource Group %q - removing from state", name, resourceGroup)
+			log.Printf("[DEBUG] VPN Gateway %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	if resp.ID != nil {
-		d.SetId(*resp.ID)
-	}
-
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.SetId(id.ID())
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
