@@ -86,18 +86,14 @@ func resourceStaticSiteCustomDomainCreateOrUpdate(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	domainName := d.Get("name").(string)
-
-	resourceGroup := staticSiteId.ResourceGroup
-	staticSiteName := staticSiteId.Name
-
-	_, err = client.GetStaticSite(ctx, resourceGroup, staticSiteName)
+	id := parse.NewStaticSiteCustomDomainID(staticSiteId.SubscriptionId, staticSiteId.ResourceGroup, staticSiteId.Name, d.Get("name").(string))
+	_, err = client.GetStaticSite(ctx, id.ResourceGroup, id.StaticSiteName)
 	if err != nil {
-		return fmt.Errorf("finding Static Site (Name %q / Resource Group %q): %s", staticSiteName, resourceGroup, err)
+		return fmt.Errorf("finding Static Site (Name %q / Resource Group %q): %s", id.StaticSiteName, id.ResourceGroup, err)
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.GetStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroup, staticSiteName, domainName)
+		existing, err := client.GetStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", staticSiteId, err)
@@ -117,7 +113,7 @@ func resourceStaticSiteCustomDomainCreateOrUpdate(d *pluginsdk.ResourceData, met
 		},
 	}
 
-	future, err := client.CreateOrUpdateStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroup, staticSiteName, domainName, siteEnvelope)
+	future, err := client.CreateOrUpdateStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroup, id.StaticSiteName, id.CustomDomainName, siteEnvelope)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", staticSiteId, err)
 	}
@@ -126,7 +122,7 @@ func resourceStaticSiteCustomDomainCreateOrUpdate(d *pluginsdk.ResourceData, met
 	if validationMethod == cnameValidationType {
 		err := future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
-			return fmt.Errorf("waiting for creation of Static Site Custom Domain %q (Static Site %q / Resource Group %q): %+v", domainName, staticSiteName, staticSiteId.ResourceGroup, err)
+			return fmt.Errorf("waiting for creation of Static Site Custom Domain %q (Static Site %q / Resource Group %q): %+v", id.CustomDomainName, id.StaticSiteName, id.ResourceGroup, err)
 		}
 	}
 
@@ -142,9 +138,9 @@ func resourceStaticSiteCustomDomainCreateOrUpdate(d *pluginsdk.ResourceData, met
 			MinTimeout: 30 * time.Second,
 			Timeout:    10 * time.Minute,
 			Refresh: func() (interface{}, string, error) {
-				domain, err := client.GetStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroup, staticSiteName, domainName)
+				domain, err := client.GetStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
 				if err != nil {
-					return domain, "Error", fmt.Errorf("retrieving Static Site custom domain %q (Static Site %q / Resource Group %q): %+v", domainName, staticSiteName, staticSiteId.ResourceGroup, err)
+					return domain, "Error", fmt.Errorf("retrieving Static Site custom domain %q (Static Site %q / Resource Group %q): %+v", id.CustomDomainName, id.StaticSiteName, id.ResourceGroup, err)
 				}
 
 				status := domain.StaticSiteCustomDomainOverviewARMResourceProperties.Status
@@ -154,12 +150,11 @@ func resourceStaticSiteCustomDomainCreateOrUpdate(d *pluginsdk.ResourceData, met
 		}
 
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for Static Site custom domain %q (Static Site %q / Resource Group %q): %+v", domainName, staticSiteName, staticSiteId.ResourceGroup, err)
+			return fmt.Errorf("waiting for Static Site custom domain %q (Static Site %q / Resource Group %q): %+v", id.CustomDomainName, id.StaticSiteName, staticSiteId.ResourceGroup, err)
 		}
 	}
 
-	resourceId := parse.NewStaticSiteCustomDomainID(staticSiteId.SubscriptionId, staticSiteId.ResourceGroup, staticSiteName, domainName)
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 
 	return resourceStaticSiteCustomDomainRead(d, meta)
 }
