@@ -52,14 +52,14 @@ resource "azurerm_key_vault_access_policy" "cognitive" {
   secret_permissions = ["get"]
 }
 resource "azurerm_key_vault_access_policy" "client" {
-  key_vault_id       = azurerm_key_vault.test.id
+  key_vault_id       = azurerm_key_vault.example.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
   object_id          = data.azurerm_client_config.current.object_id
   key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
   secret_permissions = ["get"]
 }
 resource "azurerm_key_vault_access_policy" "user" {
-  key_vault_id       = azurerm_key_vault.test.id
+  key_vault_id       = azurerm_key_vault.example.id
   tenant_id          = azurerm_user_assigned_identity.example.tenant_id
   object_id          = azurerm_user_assigned_identity.example.principal_id
   key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
@@ -67,7 +67,7 @@ resource "azurerm_key_vault_access_policy" "user" {
 }
 resource "azurerm_key_vault_key" "example" {
   name         = "example-key"
-  key_vault_id = azurerm_key_vault.test.id
+  key_vault_id = azurerm_key_vault.example.id
   key_type     = "RSA"
   key_size     = 2048
   key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Required) The ID of the Key Vault Key.
 
-* `identity_client_id` - (Optional) The client id of the user assigned identity that has access to the key.
+* `identity_client_id` - (Optional) The Client ID of the User Assigned Identity that has access to the key. This property only needs to be specified when there're multiple identities attached to the Cognitive Account.
 
 ## Attributes Reference
 

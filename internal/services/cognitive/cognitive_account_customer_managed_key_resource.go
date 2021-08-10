@@ -76,7 +76,7 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	if d.IsNewResource() {
-		if resp.Properties != nil && resp.Properties.Encryption != nil {
+		if resp.Properties != nil && resp.Properties.Encryption != nil && resp.Properties.Encryption.KeySource != cognitiveservices.KeySourceMicrosoftCognitiveServices {
 			return tf.ImportAsExistsError("azurerm_cognitive_account_customer_managed_key", id.ID())
 		}
 	}
@@ -101,7 +101,7 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	if _, err = client.Update(ctx, id.ResourceGroup, id.Name, props); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+		return fmt.Errorf("adding Customer Managed Key for %s: %+v", id, err)
 	}
 
 	timeout, _ := ctx.Deadline()
@@ -133,40 +133,25 @@ func resourceCognitiveAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, m
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	if resp.Properties == nil || resp.Properties.Encryption == nil {
+		d.SetId("")
+		return nil
+	}
+	if resp.Properties.Encryption.KeySource == cognitiveservices.KeySourceMicrosoftCognitiveServices {
 		d.SetId("")
 		return nil
 	}
 
 	d.Set("cognitive_account_id", id.ID())
 	if props := resp.Properties.Encryption.KeyVaultProperties; props != nil {
-		var keyName string
-		if props.KeyName != nil {
-			keyName = *props.KeyName
-		}
-
-		var keyVaultUri string
-		if props.KeyVaultURI != nil {
-			keyVaultUri = *props.KeyVaultURI
-		}
-
-		var keyVersion string
-		if props.KeyVersion != nil {
-			keyVersion = *props.KeyVersion
-		}
-		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, "keys", keyName, keyVersion)
+		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(*props.KeyVaultURI, "keys", *props.KeyName, *props.KeyVersion)
 		if err != nil {
 			return fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
 		}
 		d.Set("key_vault_key_id", keyVaultKeyId.ID())
-		if props.IdentityClientID != nil {
-			d.Set("identity_client_id", *props.IdentityClientID)
-		}
-	} else {
-		d.Set("key_vault_key_id", nil)
-		d.Set("identity_client_id", nil)
+		d.Set("identity_client_id", props.IdentityClientID)
 	}
 
 	return nil
@@ -187,11 +172,11 @@ func resourceCognitiveAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData,
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	if resp.Properties == nil || resp.Properties.Encryption == nil {
-		return fmt.Errorf("%s doesn't exist", id)
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
 	// set key source to Microsoft.CognitiveServices to disable customer managed key
@@ -204,7 +189,7 @@ func resourceCognitiveAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData,
 	}
 
 	if _, err = client.Update(ctx, id.ResourceGroup, id.Name, props); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+		return fmt.Errorf("removing Customer Managed Key for %s: %+v", *id, err)
 	}
 
 	timeout, _ := ctx.Deadline()
@@ -217,7 +202,7 @@ func resourceCognitiveAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData,
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", id, err)
+		return fmt.Errorf("waiting for removal of Customer Managed Key for %s: %+v", *id, err)
 	}
 
 	return nil

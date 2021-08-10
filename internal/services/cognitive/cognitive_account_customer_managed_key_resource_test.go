@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2021-04-30/cognitiveservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,10 +99,14 @@ func (r CognitiveAccountCustomerManagedKeyResource) Exists(ctx context.Context, 
 
 	resp, err := clients.Cognitive.AccountsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	if resp.Properties == nil || resp.Properties.Encryption == nil {
+		return utils.Bool(false), nil
+	}
+
+	if resp.Properties.Encryption.KeySource == cognitiveservices.KeySourceMicrosoftCognitiveServices {
 		return utils.Bool(false), nil
 	}
 
@@ -119,7 +124,7 @@ resource "azurerm_cognitive_account_customer_managed_key" "test" {
 }
 
 func (r CognitiveAccountCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {
-	template := CognitiveAccountCustomerManagedKeyResource{}.basic(data)
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_cognitive_account_customer_managed_key" "import" {
@@ -149,16 +154,20 @@ provider "azurerm" {
     }
   }
 }
+
 data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cognitive-%d"
   location = "%s"
 }
+
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   name                = "%s"
 }
+
 resource "azurerm_cognitive_account" "test" {
   name                  = "acctest-cogacc-%d"
   location              = azurerm_resource_group.test.location
@@ -171,6 +180,7 @@ resource "azurerm_cognitive_account" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
+
 resource "azurerm_key_vault" "test" {
   name                     = "acctestkv%s"
   location                 = azurerm_resource_group.test.location
@@ -180,27 +190,31 @@ resource "azurerm_key_vault" "test" {
   soft_delete_enabled      = true
   purge_protection_enabled = true
 }
+
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id       = azurerm_key_vault.test.id
   tenant_id          = azurerm_cognitive_account.test.identity.0.tenant_id
   object_id          = azurerm_cognitive_account.test.identity.0.principal_id
-  key_permissions    = ["get", "create", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
+  key_permissions    = ["get", "create", "list", "restore", "recover", "unwrapKey", "wrapKey", "purge", "encrypt", "decrypt", "sign", "verify"]
   secret_permissions = ["get"]
 }
+
 resource "azurerm_key_vault_access_policy" "test2" {
   key_vault_id       = azurerm_key_vault.test.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
   object_id          = data.azurerm_client_config.current.object_id
-  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
+  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapKey", "wrapKey", "purge", "encrypt", "decrypt", "sign", "verify"]
   secret_permissions = ["get"]
 }
+
 resource "azurerm_key_vault_access_policy" "test3" {
   key_vault_id       = azurerm_key_vault.test.id
   tenant_id          = azurerm_user_assigned_identity.test.tenant_id
   object_id          = azurerm_user_assigned_identity.test.principal_id
-  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
+  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapKey", "wrapKey", "purge", "encrypt", "decrypt", "sign", "verify"]
   secret_permissions = ["get"]
 }
+
 resource "azurerm_key_vault_key" "test" {
   name         = "acctestkvkey%s"
   key_vault_id = azurerm_key_vault.test.id
