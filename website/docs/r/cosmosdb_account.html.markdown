@@ -104,7 +104,7 @@ The following arguments are supported:
 
 * `virtual_network_rule` - (Optional) Specifies a `virtual_network_rules` resource, used to define which subnets are allowed to access this CosmosDB account.
 
-* `enable_multiple_write_locations` - (Optional) Enable multi-main support for this Cosmos DB account.
+* `enable_multiple_write_locations` - (Optional) Enable multiple write locations for this Cosmos DB account.
 
 * `access_key_metadata_writes_enabled` - (Optional) Is write operations on metadata resources (databases, containers, throughput) via account keys enabled? Defaults to `true`.
 
