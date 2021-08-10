@@ -2,7 +2,7 @@
 
 This example provisions a Traffic Manager Profile which fronts a couple of Virtual Machines.
 
-This Terraform template was based on [this](https://github.com/Azure/azure-quickstart-templates/tree/main/201-traffic-manager-vm) Azure Quickstart Template. Changes to the ARM template that may have occurred since the creation of this example may not be reflected here.
+This Terraform template was based on [this](https://github.com/Azure/azure-quickstart-templates/tree/master/201-traffic-manager-vm) Azure Quickstart Template. Changes to the ARM template that may have occurred since the creation of this example may not be reflected here.
 
 This template shows how to create an Azure Traffic Manager profile to load-balance across a couple of Azure virtual machines. Each endpoint has an equal weight but different weights can be specified to distribute load non-uniformly.
 

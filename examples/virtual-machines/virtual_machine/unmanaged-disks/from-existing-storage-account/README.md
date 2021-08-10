@@ -1,6 +1,6 @@
 # Create a new VM on a new storage account from a custom image
 
-This Terraform template was based on [this](https://github.com/Azure/azure-quickstart-templates/tree/main/201-vm-custom-image-new-storage-account) Azure Quickstart Template. Changes to the ARM template that may have occurred since the creation of this example may not be reflected here.
+This Terraform template was based on [this](https://github.com/Azure/azure-quickstart-templates/tree/master/201-vm-custom-image-new-storage-account) Azure Quickstart Template. Changes to the ARM template that may have occurred since the creation of this example may not be reflected here.
 
 This template allows you to create a new Virtual Machine from a custom image on a new storage account deployed together with the storage account, which means the source image VHD must be transferred to the newly created storage account before that Virtual Machine is deployed. This is accomplished by the usage of a transfer virtual machine that is deployed and then uses a script via custom script extension to copy the source VHD to the destination storage account. This process is used to overcome the limitation of the custom VHD that needs to reside at the same storage account where new virtual machines based on it will be spun up, the problem arises when you are also deploying the storage account within your template, since the storage account does not exist yet, how can you add the source VHDs beforehand?
 
