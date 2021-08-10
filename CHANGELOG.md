@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Resource:** `azurerm_video_analyzer` [GH-12665]
 
+ENHANCEMENTS:
+
+* `azurerm_function_app` - add support for `dotnet_framework_version` in [GH-12883]
+
 BUG FIXES:
 
 * Data Source: `azurerm_key_vault_certificate_data` - updating the PEM Header when using a RSA Private Key so this validates with OpenSSL [GH-12896]
