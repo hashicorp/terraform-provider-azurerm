@@ -37,6 +37,7 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
+		
 		"cluster_setting": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -133,11 +134,6 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-		},
-
-		"zone_redundant": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
 		},
 
 		"tags": tags.SchemaDataSource(),
