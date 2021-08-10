@@ -139,13 +139,11 @@ func resourceRedisCache() *pluginsdk.Resource {
 						"maxmemory_delta": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
-							Computed: true,
 						},
 
 						"maxmemory_reserved": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
-							Computed: true,
 						},
 
 						"maxmemory_policy": {
@@ -158,7 +156,6 @@ func resourceRedisCache() *pluginsdk.Resource {
 						"maxfragmentationmemory_reserved": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
-							Computed: true,
 						},
 
 						"rdb_backup_enabled": {
@@ -868,30 +865,8 @@ func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) 
 		}
 		outputs["maxclients"] = i
 	}
-	if v := input["maxmemory-delta"]; v != nil {
-		i, err := strconv.Atoi(*v)
-		if err != nil {
-			return nil, fmt.Errorf("Error parsing `maxmemory-delta` %q: %+v", *v, err)
-		}
-		outputs["maxmemory_delta"] = i
-	}
-	if v := input["maxmemory-reserved"]; v != nil {
-		i, err := strconv.Atoi(*v)
-		if err != nil {
-			return nil, fmt.Errorf("Error parsing `maxmemory-reserved` %q: %+v", *v, err)
-		}
-		outputs["maxmemory_reserved"] = i
-	}
 	if v := input["maxmemory-policy"]; v != nil {
 		outputs["maxmemory_policy"] = *v
-	}
-
-	if v := input["maxfragmentationmemory-reserved"]; v != nil {
-		i, err := strconv.Atoi(*v)
-		if err != nil {
-			return nil, fmt.Errorf("Error parsing `maxfragmentationmemory-reserved` %q: %+v", *v, err)
-		}
-		outputs["maxfragmentationmemory_reserved"] = i
 	}
 
 	// delta, reserved, enabled, frequency,, count,
