@@ -92,7 +92,6 @@ The following supported arguments are specific to Delimited Text Dataset:
 
 * `row_delimiter` - (Optional) The row delimiter. Defaults to any of the following values on read: `\r\n`, `\r`, `\n`, and `\n` or `\r\n` on write by mapping data flow and Copy activity respectively.
 
-
 * `encoding` - (Optional) The encoding format for the file.
 
 * `quote_character` - (Optional) The quote character. Defaults to `"`.
