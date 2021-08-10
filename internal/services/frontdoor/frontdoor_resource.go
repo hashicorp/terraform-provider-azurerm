@@ -811,7 +811,7 @@ func resourceFrontDoorDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deleting Front Door %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for deletion of Front Door %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 

@@ -836,7 +836,7 @@ func resourceContainerRegistryDelete(d *pluginsdk.ResourceData, meta interface{}
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("deleting Container Registry %q (Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
