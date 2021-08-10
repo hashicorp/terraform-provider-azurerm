@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -412,16 +411,11 @@ func resourceWebApplicationFirewallPolicyDelete(d *pluginsdk.ResourceData, meta 
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 		return fmt.Errorf("deleting Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deleting Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
+		return fmt.Errorf("waiting for the deletion of Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -184,9 +183,6 @@ func resourceMariaDbDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) 
 
 	future, err := client.Delete(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 
 		return fmt.Errorf("making delete request on MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
 	}

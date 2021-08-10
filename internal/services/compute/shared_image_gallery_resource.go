@@ -169,11 +169,6 @@ func resourceSharedImageGalleryDelete(d *pluginsdk.ResourceData, meta interface{
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.GalleryName)
 	if err != nil {
-		// deleted outside of Terraform
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-
 		return fmt.Errorf("deleting Shared Image Gallery %q (Resource Group %q): %+v", id.GalleryName, id.ResourceGroup, err)
 	}
 
