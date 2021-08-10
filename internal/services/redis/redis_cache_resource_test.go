@@ -1195,7 +1195,7 @@ resource "azurerm_redis_cache" "test" {
   resource_group_name = azurerm_resource_group.test.name
   capacity            = 2
   family              = "C"
-  sku_name            = "Standard"
+  sku_name            = "Basic"
   enable_non_ssl_port = false
   minimum_tls_version = "1.2"
 
