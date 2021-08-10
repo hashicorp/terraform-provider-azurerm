@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2020-11-01-preview/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2021-06-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
@@ -50,11 +50,30 @@ func resourceSpringCloudJavaDeployment() *pluginsdk.Resource {
 				ValidateFunc: validate.SpringCloudAppID,
 			},
 
+			// TODO: Remove in 3.0
+			// The value returned in GET will be recalculated by the service if "cpu_v2" is honored, so make this property as Computed.
 			"cpu": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Default:      1,
+				Computed: 	  true,
 				ValidateFunc: validation.IntBetween(1, 4),
+				ConflictsWith: []string{"cpu_v2"},
+				Deprecated:       "This field has been deprecated in favour of `cpu_v2` and will be removed in a future version of the provider",
+			},
+
+			// The value returned in GET will be recalculated by the service if "cpu" is honored, so make this property as Computed.
+			"cpu_v2": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed: 	  true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"500m",
+					"1",
+					"2",
+					"3",
+					"4",
+				}, false),
+				ConflictsWith: []string{"cpu"},
 			},
 
 			"environment_variables": {
@@ -77,21 +96,44 @@ func resourceSpringCloudJavaDeployment() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			// TODO: Remove in 3.0
+			// The value returned in GET will be recalculated by the service if "memory_v2" is honored, so make this property as Computed.
 			"memory_in_gb": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Default:      1,
+				Computed: 	  true,
 				ValidateFunc: validation.IntBetween(1, 8),
+				ConflictsWith: []string{"memory_v2"},
+				Deprecated:       "This field has been deprecated in favour of `memory_v2` and will be removed in a future version of the provider",
+			},
+
+			// The value returned in GET will be recalculated by the service if "memory_in_gb" is honored, so make this property as Computed.
+			"memory_v2": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"512Mi",
+					"1Gi",
+					"2Gi",
+					"3Gi",
+					"4Gi",
+					"5Gi",
+					"6Gi",
+					"7Gi",
+					"8Gi",
+				}, false),
+				ConflictsWith: []string{"memory_in_gb"},
 			},
 
 			"runtime_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(appplatform.Java8),
-					string(appplatform.Java11),
+					string(appplatform.RuntimeVersionJava8),
+					string(appplatform.RuntimeVersionJava11),
 				}, false),
-				Default: string(appplatform.Java8),
+				Default: string(appplatform.RuntimeVersionJava8),
 			},
 		},
 	}
@@ -136,7 +178,7 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 		},
 		Properties: &appplatform.DeploymentResourceProperties{
 			Source: &appplatform.UserSourceInfo{
-				Type:         appplatform.Jar,
+				Type:         appplatform.UserSourceTypeJar,
 				RelativePath: utils.String("<default>"),
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
@@ -144,6 +186,7 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 				MemoryInGB:           utils.Int32(int32(d.Get("memory_in_gb").(int))),
 				JvmOptions:           utils.String(d.Get("jvm_options").(string)),
 				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
+				ResourceRequests:     expandSpringCloudDeploymentResourceRequests(d.Get("cpu").(int), d.Get("cpu_v2").(string), d.Get("memory_in_gb").(int), d.Get("memory_v2").(string)),
 				RuntimeVersion:       appplatform.RuntimeVersion(d.Get("runtime_version").(string)),
 			},
 		},
@@ -187,6 +230,11 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("cpu") {
 		existing.Properties.DeploymentSettings.CPU = utils.Int32(int32(d.Get("cpu").(int)))
+
+		// "cpu_v2" that takes precedence of "cpu" should be ignored in this situation where users explicitly update the legacy "cpu" that conflicts with "cpu_v2"
+		if existing.Properties.DeploymentSettings.ResourceRequests != nil {
+			existing.Properties.DeploymentSettings.ResourceRequests.CPU = utils.String("")
+		}
 	}
 
 	if d.HasChange("environment_variables") {
@@ -199,6 +247,19 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("memory_in_gb") {
 		existing.Properties.DeploymentSettings.MemoryInGB = utils.Int32(int32(d.Get("memory_in_gb").(int)))
+
+		// "memory_v2" that takes precedence of "memory_in_gb" should be ignored in this situation where users explicitly update the legacy "memory_in_gb" that conflicts with "memory_v2"
+		if existing.Properties.DeploymentSettings.ResourceRequests != nil {
+			existing.Properties.DeploymentSettings.ResourceRequests.Memory = utils.String("")
+		}
+	}
+
+	if d.HasChange("cpu_v2") || d.HasChange("memory_v2") {
+		if existing.Properties.DeploymentSettings.ResourceRequests == nil {
+			return fmt.Errorf("nil `properties.deploymentSettings.resourceRequests` for %s: %+v", id, err)
+		}
+
+		existing.Properties.DeploymentSettings.ResourceRequests = expandSpringCloudDeploymentResourceRequests(d.Get("cpu").(int), d.Get("cpu_v2").(string), d.Get("memory_in_gb").(int), d.Get("memory_v2").(string))
 	}
 
 	if d.HasChange("runtime_version") {
@@ -249,6 +310,12 @@ func resourceSpringCloudJavaDeploymentRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("jvm_options", settings.JvmOptions)
 		d.Set("environment_variables", flattenSpringCloudDeploymentEnvironmentVariables(settings.EnvironmentVariables))
 		d.Set("runtime_version", settings.RuntimeVersion)
+
+		if settings.ResourceRequests != nil {
+			resourceRequests := settings.ResourceRequests
+			d.Set("cpu_v2", resourceRequests.CPU)
+			d.Set("memory_v2", resourceRequests.Memory)
+		}
 	}
 
 	return nil
@@ -290,4 +357,28 @@ func flattenSpringCloudDeploymentEnvironmentVariables(envMap map[string]*string)
 		output[i] = *v
 	}
 	return output
+}
+
+func expandSpringCloudDeploymentResourceRequests(cpu int, cpuV2 string, mem int, memV2 string) *appplatform.ResourceRequests {
+	cpuResult := "1" // default value that's aligned with previous behavior used to be defined in schema.
+	memResult := "1Gi" // default value that's aligned with previous behavior used to be defined in schema.
+
+	if cpuV2 != "" {
+		cpuResult = cpuV2
+	} else if cpu != 0 {
+		cpuResult = "" // Take legacy property as precedence with setting "" to new property, otherwise the new property that's not set by users always takes precedence.
+	}
+
+	if memV2 != "" {
+		memResult = memV2
+	} else if mem != 0 {
+		memResult = "" // Take legacy property as precedence with setting "" to new property, otherwise the new property that's not set by users always takes precedence.
+	}
+
+	result := appplatform.ResourceRequests{
+		CPU: utils.String(cpuResult),
+		Memory: utils.String(memResult),
+	}
+
+	return &result
 }

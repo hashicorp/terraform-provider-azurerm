@@ -62,7 +62,9 @@ The following arguments are supported:
 
 * `spring_cloud_app_id` - (Required) Specifies the id of the Spring Cloud Application in which to create the Deployment. Changing this forces a new resource to be created.
 
-* `cpu` - (Optional) Specifies the required cpu of the Spring Cloud Deployment. Possible Values are between `1` and `4`. Defaults to `1` if not specified.
+* `cpu` - (Deprecated) Specifies the required cpu of the Spring Cloud Deployment. Possible Values are between `1` and `4`. Defaults to `1` if not specified.
+
+* `cpu_v2` - (Optional) Specifies the required cpu of the Spring Cloud Deployment. Possible Values are `500m`, and between `1` and `4`. Defaults to `1` if not specified.
 
 * `environment_variables` - (Optional) Specifies the environment variables of the Spring Cloud Deployment as a map of key-value pairs.
 
@@ -70,7 +72,9 @@ The following arguments are supported:
 
 * `jvm_options` - (Optional) Specifies the jvm option of the Spring Cloud Deployment.
 
-* `memory_in_gb` - (Optional) Specifies the required memory size of the Spring Cloud Deployment. Possible Values are between `1` and `8`. Defaults to `1` if not specified.
+* `memory_in_gb` - (Deprecated) Specifies the required memory size of the Spring Cloud Deployment. Possible Values are between `1` and `8`. Defaults to `1` if not specified.
+
+* `memory_v2` - (Optional) Specifies the required memory size of the Spring Cloud Deployment. Possible Values are `512Mi`, and between `1Gi` and `8Gi`. Defaults to `1Gi` if not specified.
 
 * `runtime_version` - (Optional) Specifies the runtime version of the Spring Cloud Deployment. Possible Values are `Java_8` and `Java_11`. Defaults to `Java_8`.
 

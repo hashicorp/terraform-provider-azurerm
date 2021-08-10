@@ -90,6 +90,35 @@ func TestAccSpringCloudJavaDeployment_update(t *testing.T) {
 	})
 }
 
+func TestAccSpringCloudJavaDeployment_updateHalfCpuMemory(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_java_deployment", "test")
+	r := SpringCloudJavaDeploymentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.halfCpuMemory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.nonHalfCpuMemory(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r SpringCloudJavaDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SpringCloudDeploymentID(state.ID)
 	if err != nil {
@@ -143,6 +172,32 @@ resource "azurerm_spring_cloud_java_deployment" "test" {
     "Foo" : "Bar"
     "Env" : "Staging"
   }
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r SpringCloudJavaDeploymentResource) halfCpuMemory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_spring_cloud_java_deployment" "test" {
+  name                = "acctest-scjd%s"
+  spring_cloud_app_id = azurerm_spring_cloud_app.test.id
+  cpu_v2              = "500m"
+  memory_v2           = "512Mi"
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r SpringCloudJavaDeploymentResource) nonHalfCpuMemory(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_spring_cloud_java_deployment" "test" {
+  name                = "acctest-scjd%s"
+  spring_cloud_app_id = azurerm_spring_cloud_app.test.id
+  cpu_v2              = "2"
+  memory_v2           = "4Gi"
 }
 `, r.template(data), data.RandomString)
 }
