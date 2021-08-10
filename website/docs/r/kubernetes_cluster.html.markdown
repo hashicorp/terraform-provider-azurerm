@@ -16,7 +16,7 @@ Manages a Managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Servi
 
 ## Example Usage
 
-This example provisions a basic Managed Kubernetes Cluster. Other examples of the `azurerm_kubernetes_cluster` resource can be found in [the `./examples/kubernetes` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/kubernetes)
+This example provisions a basic Managed Kubernetes Cluster. Other examples of the `azurerm_kubernetes_cluster` resource can be found in [the `./examples/kubernetes` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/kubernetes)
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -51,6 +51,8 @@ output "client_certificate" {
 
 output "kube_config" {
   value = azurerm_kubernetes_cluster.example.kube_config_raw
+
+  sensitive = true
 }
 ```
 
@@ -78,7 +80,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 ---
 
-* `automatic_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `patch`, `rapid`, and `stable`.
+* `automatic_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `patch`, `rapid`, `node-image` and `stable`.
 
 !> **Note:** Cluster Auto-Upgrade will update the Kubernetes Cluster (and it's Node Pools) to the latest GA version of Kubernetes automatically - please [see the Azure documentation for more information](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#set-auto-upgrade-channel-preview).
 
@@ -105,6 +107,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 -> **NOTE:** Upgrading your cluster may take up to 10 minutes per node.
 
 * `linux_profile` - (Optional) A `linux_profile` block as defined below.
+
+* `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
 * `network_profile` - (Optional) A `network_profile` block as defined below.
 
@@ -319,6 +323,8 @@ A `default_node_pool` block supports the following:
 
 * `kubelet_disk_type` - (Optional) The type of disk used by kubelet. At this time the only possible value is `OS`.
 
+* `local_account_disabled` - (Optional) Is local account disabled for AAD integrated kubernetes cluster?
+
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
 * `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `enable_node_public_ip` should be `true`. Changing this forces a new resource to be created.
@@ -440,6 +446,30 @@ A `linux_profile` block supports the following:
 
 ---
 
+A `maintenance_window` block supports the following:
+
+* `allowed` - (Optional) One or more `allowed` block as defined below.
+
+* `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
+
+---
+
+An `allowed` block exports the following:
+
+* `day` - (Required) A day in a week. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
+
+* `hours` - (Required) An array of hour slots in a day. Possible values are between `0` and `23`.
+
+---
+
+An `not_allowed` block exports the following:
+
+* `end` - (Required) The end of a time span, formatted as an RFC3339 string.
+
+* `start` - (Required) The start of a time span, formatted as an RFC3339 string.
+
+---
+
 A `network_profile` block supports the following:
 
 * `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are `azure` and `kubenet`. Changing this forces a new resource to be created.
@@ -468,7 +498,7 @@ A `network_profile` block supports the following:
 
 ~> **NOTE:** This range should not be used by any network element on or connected to this VNet. Service address CIDR must be smaller than /12. `docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or all should be set.
 
-Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/networking-overview#advanced-networking) can be [found in the `./examples/kubernetes/` directory in the Github repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/kubernetes).
+Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/networking-overview#advanced-networking) can be [found in the `./examples/kubernetes/` directory in the Github repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/kubernetes).
 
 * `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `Basic` and `Standard`. Defaults to `Standard`.
 
