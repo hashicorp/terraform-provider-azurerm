@@ -9,45 +9,45 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
-type EdgeModulesId struct {
+type EdgeModuleId struct {
 	SubscriptionId    string
 	ResourceGroup     string
 	VideoAnalyzerName string
-	EdgeModuleName    string
+	Name              string
 }
 
-func NewEdgeModulesID(subscriptionId, resourceGroup, videoAnalyzerName, edgeModuleName string) EdgeModulesId {
-	return EdgeModulesId{
+func NewEdgeModuleID(subscriptionId, resourceGroup, videoAnalyzerName, name string) EdgeModuleId {
+	return EdgeModuleId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroup:     resourceGroup,
 		VideoAnalyzerName: videoAnalyzerName,
-		EdgeModuleName:    edgeModuleName,
+		Name:              name,
 	}
 }
 
-func (id EdgeModulesId) String() string {
+func (id EdgeModuleId) String() string {
 	segments := []string{
-		fmt.Sprintf("Edge Module Name %q", id.EdgeModuleName),
+		fmt.Sprintf("Name %q", id.Name),
 		fmt.Sprintf("Video Analyzer Name %q", id.VideoAnalyzerName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Edge Modules", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Edge Module", segmentsStr)
 }
 
-func (id EdgeModulesId) ID() string {
+func (id EdgeModuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/videoAnalyzers/%s/edgeModules/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VideoAnalyzerName, id.EdgeModuleName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VideoAnalyzerName, id.Name)
 }
 
-// EdgeModulesID parses a EdgeModules ID into an EdgeModulesId struct
-func EdgeModulesID(input string) (*EdgeModulesId, error) {
+// EdgeModuleID parses a EdgeModule ID into an EdgeModuleId struct
+func EdgeModuleID(input string) (*EdgeModuleId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := EdgeModulesId{
+	resourceId := EdgeModuleId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -63,7 +63,7 @@ func EdgeModulesID(input string) (*EdgeModulesId, error) {
 	if resourceId.VideoAnalyzerName, err = id.PopSegment("videoAnalyzers"); err != nil {
 		return nil, err
 	}
-	if resourceId.EdgeModuleName, err = id.PopSegment("edgeModules"); err != nil {
+	if resourceId.Name, err = id.PopSegment("edgeModules"); err != nil {
 		return nil, err
 	}
 

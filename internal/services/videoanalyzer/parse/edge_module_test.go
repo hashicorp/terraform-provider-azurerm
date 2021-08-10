@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = EdgeModulesId{}
+var _ resourceid.Formatter = EdgeModuleId{}
 
-func TestEdgeModulesIDFormatter(t *testing.T) {
-	actual := NewEdgeModulesID("12345678-1234-9876-4563-123456789012", "resGroup1", "analyzer1", "edgemodule1").ID()
+func TestEdgeModuleIDFormatter(t *testing.T) {
+	actual := NewEdgeModuleID("12345678-1234-9876-4563-123456789012", "resGroup1", "analyzer1", "edgemodule1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Media/videoAnalyzers/analyzer1/edgeModules/edgemodule1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestEdgeModulesID(t *testing.T) {
+func TestEdgeModuleID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *EdgeModulesId
+		Expected *EdgeModuleId
 	}{
 
 		{
@@ -68,13 +68,13 @@ func TestEdgeModulesID(t *testing.T) {
 		},
 
 		{
-			// missing EdgeModuleName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Media/videoAnalyzers/analyzer1/",
 			Error: true,
 		},
 
 		{
-			// missing value for EdgeModuleName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Media/videoAnalyzers/analyzer1/edgeModules/",
 			Error: true,
 		},
@@ -82,11 +82,11 @@ func TestEdgeModulesID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Media/videoAnalyzers/analyzer1/edgeModules/edgemodule1",
-			Expected: &EdgeModulesId{
+			Expected: &EdgeModuleId{
 				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:     "resGroup1",
 				VideoAnalyzerName: "analyzer1",
-				EdgeModuleName:    "edgemodule1",
+				Name:              "edgemodule1",
 			},
 		},
 
@@ -100,7 +100,7 @@ func TestEdgeModulesID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := EdgeModulesID(v.Input)
+		actual, err := EdgeModuleID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -121,8 +121,8 @@ func TestEdgeModulesID(t *testing.T) {
 		if actual.VideoAnalyzerName != v.Expected.VideoAnalyzerName {
 			t.Fatalf("Expected %q but got %q for VideoAnalyzerName", v.Expected.VideoAnalyzerName, actual.VideoAnalyzerName)
 		}
-		if actual.EdgeModuleName != v.Expected.EdgeModuleName {
-			t.Fatalf("Expected %q but got %q for EdgeModuleName", v.Expected.EdgeModuleName, actual.EdgeModuleName)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }

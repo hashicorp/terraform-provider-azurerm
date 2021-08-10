@@ -42,14 +42,14 @@ func TestAccVideoAnalyzerEdgeModule_requiresImport(t *testing.T) {
 }
 
 func (VideoAnalyzerEdgeModuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.EdgeModulesID(state.ID)
+	id, err := parse.EdgeModuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.VideoAnalyzer.EdgeModulesClient.Get(ctx, id.ResourceGroup, id.VideoAnalyzerName, id.EdgeModuleName)
+	resp, err := clients.VideoAnalyzer.EdgeModulesClient.Get(ctx, id.ResourceGroup, id.VideoAnalyzerName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Video Analyzer Edge module %s (resource group: %s): %v", id.EdgeModuleName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Video Analyzer Edge module %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.EdgeModuleProperties != nil), nil

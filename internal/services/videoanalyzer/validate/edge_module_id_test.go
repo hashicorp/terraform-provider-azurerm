@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestEdgeModulesID(t *testing.T) {
+func TestEdgeModuleID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -53,13 +53,13 @@ func TestEdgeModulesID(t *testing.T) {
 		},
 
 		{
-			// missing EdgeModuleName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Media/videoAnalyzers/analyzer1/",
 			Valid: false,
 		},
 
 		{
-			// missing value for EdgeModuleName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Media/videoAnalyzers/analyzer1/edgeModules/",
 			Valid: false,
 		},
@@ -78,7 +78,7 @@ func TestEdgeModulesID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := EdgeModulesID(tc.Input, "test")
+		_, errors := EdgeModuleID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

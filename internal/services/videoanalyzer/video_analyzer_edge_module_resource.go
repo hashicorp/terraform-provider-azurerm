@@ -31,7 +31,7 @@ func resourceVideoAnalyzerEdgeModule() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.EdgeModulesID(id)
+			_, err := parse.EdgeModuleID(id)
 			return err
 		}),
 
@@ -63,9 +63,9 @@ func resourceVideoAnalyzerEdgeModuleCreateUpdate(d *pluginsdk.ResourceData, meta
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	resourceId := parse.NewEdgeModulesID(subscriptionId, d.Get("resource_group_name").(string), d.Get("video_analyzer_name").(string), d.Get("name").(string))
+	resourceId := parse.NewEdgeModuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("video_analyzer_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.VideoAnalyzerName, resourceId.EdgeModuleName)
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.VideoAnalyzerName, resourceId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", resourceId, err)
@@ -77,7 +77,7 @@ func resourceVideoAnalyzerEdgeModuleCreateUpdate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.VideoAnalyzerName, resourceId.EdgeModuleName, videoanalyzer.EdgeModuleEntity{}); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.VideoAnalyzerName, resourceId.Name, videoanalyzer.EdgeModuleEntity{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
 
@@ -90,12 +90,12 @@ func resourceVideoAnalyzerEdgeModuleRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EdgeModulesID(d.Id())
+	id, err := parse.EdgeModuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.VideoAnalyzerName, id.EdgeModuleName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.VideoAnalyzerName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
@@ -106,7 +106,7 @@ func resourceVideoAnalyzerEdgeModuleRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.EdgeModuleName)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("video_analyzer_name", id.VideoAnalyzerName)
 
@@ -118,12 +118,12 @@ func resourceVideoAnalyzerEdgeModuleDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EdgeModulesID(d.Id())
+	id, err := parse.EdgeModuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, id.VideoAnalyzerName, id.EdgeModuleName)
+	_, err = client.Delete(ctx, id.ResourceGroup, id.VideoAnalyzerName, id.Name)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
