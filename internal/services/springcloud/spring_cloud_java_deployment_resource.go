@@ -53,19 +53,19 @@ func resourceSpringCloudJavaDeployment() *pluginsdk.Resource {
 			// TODO: Remove in 3.0
 			// The value returned in GET will be recalculated by the service if "cpu_v2" is honored, so make this property as Computed.
 			"cpu": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed: 	  true,
-				ValidateFunc: validation.IntBetween(1, 4),
+				Type:          pluginsdk.TypeInt,
+				Optional:      true,
+				Computed:      true,
+				ValidateFunc:  validation.IntBetween(1, 4),
 				ConflictsWith: []string{"cpu_v2"},
-				Deprecated:       "This field has been deprecated in favour of `cpu_v2` and will be removed in a future version of the provider",
+				Deprecated:    "This field has been deprecated in favour of `cpu_v2` and will be removed in a future version of the provider",
 			},
 
 			// The value returned in GET will be recalculated by the service if "cpu" is honored, so make this property as Computed.
 			"cpu_v2": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed: 	  true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"500m",
 					"1",
@@ -99,19 +99,19 @@ func resourceSpringCloudJavaDeployment() *pluginsdk.Resource {
 			// TODO: Remove in 3.0
 			// The value returned in GET will be recalculated by the service if "memory_v2" is honored, so make this property as Computed.
 			"memory_in_gb": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed: 	  true,
-				ValidateFunc: validation.IntBetween(1, 8),
+				Type:          pluginsdk.TypeInt,
+				Optional:      true,
+				Computed:      true,
+				ValidateFunc:  validation.IntBetween(1, 8),
 				ConflictsWith: []string{"memory_v2"},
-				Deprecated:       "This field has been deprecated in favour of `memory_v2` and will be removed in a future version of the provider",
+				Deprecated:    "This field has been deprecated in favour of `memory_v2` and will be removed in a future version of the provider",
 			},
 
 			// The value returned in GET will be recalculated by the service if "memory_in_gb" is honored, so make this property as Computed.
 			"memory_v2": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"512Mi",
 					"1Gi",
@@ -360,7 +360,7 @@ func flattenSpringCloudDeploymentEnvironmentVariables(envMap map[string]*string)
 }
 
 func expandSpringCloudDeploymentResourceRequests(cpu int, cpuV2 string, mem int, memV2 string) *appplatform.ResourceRequests {
-	cpuResult := "1" // default value that's aligned with previous behavior used to be defined in schema.
+	cpuResult := "1"   // default value that's aligned with previous behavior used to be defined in schema.
 	memResult := "1Gi" // default value that's aligned with previous behavior used to be defined in schema.
 
 	if cpuV2 != "" {
@@ -376,7 +376,7 @@ func expandSpringCloudDeploymentResourceRequests(cpu int, cpuV2 string, mem int,
 	}
 
 	result := appplatform.ResourceRequests{
-		CPU: utils.String(cpuResult),
+		CPU:    utils.String(cpuResult),
 		Memory: utils.String(memResult),
 	}
 
