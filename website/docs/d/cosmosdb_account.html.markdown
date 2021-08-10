@@ -88,11 +88,11 @@ The following attributes are exported:
 
 * `primary_key` - The Primary key for the CosmosDB Account.
 
-* `secondary_key` - The Secondary main key for the CosmosDB Account.
+* `secondary_key` - The Secondary key for the CosmosDB Account.
 
-* `primary_readonly_key` - The Primary read-only main Key for the CosmosDB Account.
+* `primary_readonly_key` - The Primary read-only Key for the CosmosDB Account.
 
-* `secondary_readonly_key` - The Secondary read-only main key for the CosmosDB Account.
+* `secondary_readonly_key` - The Secondary read-only key for the CosmosDB Account.
 
 ## Timeouts
 
