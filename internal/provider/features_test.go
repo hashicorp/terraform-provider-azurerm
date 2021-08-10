@@ -44,7 +44,7 @@ func TestExpandFeatures(t *testing.T) {
 					RollInstancesWhenRequired: true,
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
-					DeleteNestedItemsDuringDeletion: false,
+					PreventDeletionIfContainsResources: false,
 				},
 			},
 		},
@@ -73,6 +73,11 @@ func TestExpandFeatures(t *testing.T) {
 							"relaxed_locking": true,
 						},
 					},
+					"resource_group": []interface{}{
+						map[string]interface{}{
+							"prevent_deletion_if_contains_resources": true,
+						},
+					},
 					"template_deployment": []interface{}{
 						map[string]interface{}{
 							"delete_nested_items_during_deletion": true,
@@ -91,11 +96,6 @@ func TestExpandFeatures(t *testing.T) {
 							"force_delete":                 true,
 						},
 					},
-					"resource_group": []interface{}{
-						map[string]interface{}{
-							"delete_nested_items_during_deletion": true,
-						},
-					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -112,6 +112,9 @@ func TestExpandFeatures(t *testing.T) {
 				Network: features.NetworkFeatures{
 					RelaxedLocking: true,
 				},
+				ResourceGroup: features.ResourceGroupFeatures{
+					PreventDeletionIfContainsResources: true,
+				},
 				TemplateDeployment: features.TemplateDeploymentFeatures{
 					DeleteNestedItemsDuringDeletion: true,
 				},
@@ -123,9 +126,6 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					RollInstancesWhenRequired: true,
 					ForceDelete:               true,
-				},
-				ResourceGroup: features.ResourceGroupFeatures{
-					DeleteNestedItemsDuringDeletion: true,
 				},
 			},
 		},
@@ -154,6 +154,11 @@ func TestExpandFeatures(t *testing.T) {
 							"relaxed_locking": false,
 						},
 					},
+					"resource_group": []interface{}{
+						map[string]interface{}{
+							"prevent_deletion_if_contains_resources": false,
+						},
+					},
 					"template_deployment": []interface{}{
 						map[string]interface{}{
 							"delete_nested_items_during_deletion": false,
@@ -172,11 +177,6 @@ func TestExpandFeatures(t *testing.T) {
 							"roll_instances_when_required": false,
 						},
 					},
-					"resource_group": []interface{}{
-						map[string]interface{}{
-							"delete_nested_items_during_deletion": false,
-						},
-					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -193,6 +193,9 @@ func TestExpandFeatures(t *testing.T) {
 				Network: features.NetworkFeatures{
 					RelaxedLocking: false,
 				},
+				ResourceGroup: features.ResourceGroupFeatures{
+					PreventDeletionIfContainsResources: false,
+				},
 				TemplateDeployment: features.TemplateDeploymentFeatures{
 					DeleteNestedItemsDuringDeletion: false,
 				},
@@ -204,9 +207,6 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
 					RollInstancesWhenRequired: false,
-				},
-				ResourceGroup: features.ResourceGroupFeatures{
-					DeleteNestedItemsDuringDeletion: false,
 				},
 			},
 		},
@@ -772,41 +772,41 @@ func TestExpandFeaturesResourceGroup(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				ResourceGroup: features.ResourceGroupFeatures{
-					DeleteNestedItemsDuringDeletion: false,
+					PreventDeletionIfContainsResources: false,
 				},
 			},
 		},
 		{
-			Name: "Delete Nested Items During Deletion Enabled",
+			Name: "Prevent Deletion If Contains Resources Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"resource_group": []interface{}{
 						map[string]interface{}{
-							"delete_nested_items_during_deletion": true,
+							"prevent_deletion_if_contains_resources": true,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				ResourceGroup: features.ResourceGroupFeatures{
-					DeleteNestedItemsDuringDeletion: true,
+					PreventDeletionIfContainsResources: true,
 				},
 			},
 		},
 		{
-			Name: "Delete Nested Items During Deletion Disabled",
+			Name: "Prevent Deletion If Contains Resources Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
-					"template_deployment": []interface{}{
+					"resource_group": []interface{}{
 						map[string]interface{}{
-							"delete_nested_items_during_deletion": false,
+							"prevent_deletion_if_contains_resources": false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				ResourceGroup: features.ResourceGroupFeatures{
-					DeleteNestedItemsDuringDeletion: false,
+					PreventDeletionIfContainsResources: false,
 				},
 			},
 		},

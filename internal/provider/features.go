@@ -132,7 +132,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
-					"delete_nested_items_during_deletion": {
+					"prevent_deletion_if_contains_resources": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
@@ -260,8 +260,8 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		items := raw.([]interface{})
 		if len(items) > 0 {
 			resourceGroupRaw := items[0].(map[string]interface{})
-			if v, ok := resourceGroupRaw["delete_nested_items_during_deletion"]; ok {
-				features.ResourceGroup.DeleteNestedItemsDuringDeletion = v.(bool)
+			if v, ok := resourceGroupRaw["prevent_deletion_if_contains_resources"]; ok {
+				features.ResourceGroup.PreventDeletionIfContainsResources = v.(bool)
 			}
 		}
 	}

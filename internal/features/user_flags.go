@@ -44,5 +44,5 @@ type LogAnalyticsWorkspaceFeatures struct {
 }
 
 type ResourceGroupFeatures struct {
-	DeleteNestedItemsDuringDeletion bool
+	PreventDeletionIfContainsResources bool
 }

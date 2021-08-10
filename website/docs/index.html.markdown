@@ -211,7 +211,9 @@ The `log_analytics_workspace` block supports the following:
 
 The `resource_group` block supports the following:
 
-* `delete_nested_items_during_deletion` - (Optional) Should the `azurerm_resource_group` resource allow deleting when the Resource Group contains any resource? Defaults to `false`.
+* `prevent_deletion_if_contains_resources` - (Optional) Should the `azurerm_resource_group` resource check that there are no Resources within the Resource Group during deletion? This means that all Resources within the Resource Group must be deleted prior to deleting the Resource Group. Defaults to `false`.
+
+-> **Note:** This will be defaulted to `true` in the next major version of the Azure Provider (3.0).
 
 ---
 

@@ -16,6 +16,9 @@ func Default() UserFeatures {
 		Network: NetworkFeatures{
 			RelaxedLocking: false,
 		},
+		ResourceGroup: ResourceGroupFeatures{
+			PreventDeletionIfContainsResources: false,
+		},
 		TemplateDeployment: TemplateDeploymentFeatures{
 			DeleteNestedItemsDuringDeletion: true,
 		},
@@ -27,9 +30,6 @@ func Default() UserFeatures {
 		VirtualMachineScaleSet: VirtualMachineScaleSetFeatures{
 			ForceDelete:               false,
 			RollInstancesWhenRequired: true,
-		},
-		ResourceGroup: ResourceGroupFeatures{
-			DeleteNestedItemsDuringDeletion: false,
 		},
 	}
 }
