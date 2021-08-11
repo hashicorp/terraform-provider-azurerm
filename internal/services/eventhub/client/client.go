@@ -2,12 +2,12 @@ package client
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/authorizationruleseventhubs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/authorizationrulesnamespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/checknameavailabilitydisasterrecoveryconfigs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/consumergroups"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/disasterrecoveryconfigs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/eventhubs"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationruleseventhubs"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/checknameavailabilitydisasterrecoveryconfigs"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/consumergroups"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/disasterrecoveryconfigs"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/eventhubsclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/networkrulesets"

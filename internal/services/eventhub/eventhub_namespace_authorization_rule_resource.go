@@ -5,13 +5,14 @@ import (
 	"log"
 	"time"
 
+	authorizationrulesnamespaces2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
+
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/authorizationrulesnamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -70,7 +71,7 @@ func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resourc
 
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace Authorization Rule creation.")
 
-	id := authorizationrulesnamespaces.NewAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	id := authorizationrulesnamespaces2.NewAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.NamespacesGetAuthorizationRule(ctx, id)
 		if err != nil {
@@ -87,9 +88,9 @@ func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resourc
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
-	parameters := authorizationrulesnamespaces.AuthorizationRule{
+	parameters := authorizationrulesnamespaces2.AuthorizationRule{
 		Name: &id.Name,
-		Properties: &authorizationrulesnamespaces.AuthorizationRuleProperties{
+		Properties: &authorizationrulesnamespaces2.AuthorizationRuleProperties{
 			Rights: expandEventHubAuthorizationRuleRights(d),
 		},
 	}
@@ -107,7 +108,7 @@ func resourceEventHubNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := authorizationrulesnamespaces.AuthorizationRuleID(d.Id())
+	id, err := authorizationrulesnamespaces2.AuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -156,7 +157,7 @@ func resourceEventHubNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := authorizationrulesnamespaces.AuthorizationRuleID(d.Id())
+	id, err := authorizationrulesnamespaces2.AuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}

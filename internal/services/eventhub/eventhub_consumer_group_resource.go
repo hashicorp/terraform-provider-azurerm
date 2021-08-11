@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	consumergroups2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/consumergroups"
+
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/consumergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -83,7 +84,7 @@ func (r ConsumerGroupResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Eventhub.ConsumerGroupClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := consumergroups.NewConsumergroupID(subscriptionId, state.ResourceGroupName, state.NamespaceName, state.EventHubName, state.Name)
+			id := consumergroups2.NewConsumergroupID(subscriptionId, state.ResourceGroupName, state.NamespaceName, state.EventHubName, state.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
@@ -92,9 +93,9 @@ func (r ConsumerGroupResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			parameters := consumergroups.ConsumerGroup{
+			parameters := consumergroups2.ConsumerGroup{
 				Name: utils.String(state.Name),
-				Properties: &consumergroups.ConsumerGroupProperties{
+				Properties: &consumergroups2.ConsumerGroupProperties{
 					UserMetadata: utils.String(state.UserMetadata),
 				},
 			}
@@ -113,7 +114,7 @@ func (r ConsumerGroupResource) Create() sdk.ResourceFunc {
 func (r ConsumerGroupResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := consumergroups.ConsumergroupID(metadata.ResourceData.Id())
+			id, err := consumergroups2.ConsumergroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -127,9 +128,9 @@ func (r ConsumerGroupResource) Update() sdk.ResourceFunc {
 			metadata.Logger.Infof("updating Consumer Group %q..", state.Name)
 			client := metadata.Client.Eventhub.ConsumerGroupClient
 
-			parameters := consumergroups.ConsumerGroup{
+			parameters := consumergroups2.ConsumerGroup{
 				Name: utils.String(id.Name),
-				Properties: &consumergroups.ConsumerGroupProperties{
+				Properties: &consumergroups2.ConsumerGroupProperties{
 					UserMetadata: utils.String(state.UserMetadata),
 				},
 			}
@@ -148,7 +149,7 @@ func (r ConsumerGroupResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Eventhub.ConsumerGroupClient
-			id, err := consumergroups.ConsumergroupID(metadata.ResourceData.Id())
+			id, err := consumergroups2.ConsumergroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -183,7 +184,7 @@ func (r ConsumerGroupResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Eventhub.ConsumerGroupClient
-			id, err := consumergroups.ConsumergroupID(metadata.ResourceData.Id())
+			id, err := consumergroups2.ConsumergroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

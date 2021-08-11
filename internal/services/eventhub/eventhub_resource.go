@@ -5,12 +5,13 @@ import (
 	"log"
 	"time"
 
+	eventhubs2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/eventhubs"
+
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -90,8 +91,8 @@ func resourceEventHub() *pluginsdk.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(eventhubs.EncodingCaptureDescriptionAvro),
-								string(eventhubs.EncodingCaptureDescriptionAvroDeflate),
+								string(eventhubs2.EncodingCaptureDescriptionAvro),
+								string(eventhubs2.EncodingCaptureDescriptionAvroDeflate),
 							}, true),
 						},
 						"interval_in_seconds": {
@@ -146,11 +147,11 @@ func resourceEventHub() *pluginsdk.Resource {
 			"status": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(eventhubs.EntityStatusActive),
+				Default:  string(eventhubs2.EntityStatusActive),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(eventhubs.EntityStatusActive),
-					string(eventhubs.EntityStatusDisabled),
-					string(eventhubs.EntityStatusSendDisabled),
+					string(eventhubs2.EntityStatusActive),
+					string(eventhubs2.EntityStatusDisabled),
+					string(eventhubs2.EntityStatusSendDisabled),
 				}, false),
 			},
 
@@ -172,7 +173,7 @@ func resourceEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")
 
-	id := eventhubs.NewEventhubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	id := eventhubs2.NewEventhubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -189,10 +190,10 @@ func resourceEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	partitionCount := int64(d.Get("partition_count").(int))
 	messageRetention := int64(d.Get("message_retention").(int))
-	eventhubStatus := eventhubs.EntityStatus(d.Get("status").(string))
+	eventhubStatus := eventhubs2.EntityStatus(d.Get("status").(string))
 
-	parameters := eventhubs.Eventhub{
-		Properties: &eventhubs.EventhubProperties{
+	parameters := eventhubs2.Eventhub{
+		Properties: &eventhubs2.EventhubProperties{
 			PartitionCount:         &partitionCount,
 			MessageRetentionInDays: &messageRetention,
 			Status:                 &eventhubStatus,
@@ -217,7 +218,7 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := eventhubs.EventhubID(d.Id())
+	id, err := eventhubs2.EventhubID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -257,7 +258,7 @@ func resourceEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := eventhubs.EventhubID(d.Id())
+	id, err := eventhubs2.EventhubID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -274,7 +275,7 @@ func resourceEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.CaptureDescription {
+func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs2.CaptureDescription {
 	inputs := d.Get("capture_description").([]interface{})
 	input := inputs[0].(map[string]interface{})
 
@@ -284,10 +285,10 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 	sizeLimitInBytes := input["size_limit_in_bytes"].(int)
 	skipEmptyArchives := input["skip_empty_archives"].(bool)
 
-	captureDescription := eventhubs.CaptureDescription{
+	captureDescription := eventhubs2.CaptureDescription{
 		Enabled: utils.Bool(enabled),
-		Encoding: func() *eventhubs.EncodingCaptureDescription {
-			v := eventhubs.EncodingCaptureDescription(encoding)
+		Encoding: func() *eventhubs2.EncodingCaptureDescription {
+			v := eventhubs2.EncodingCaptureDescription(encoding)
 			return &v
 		}(),
 		IntervalInSeconds: utils.Int64(int64(intervalInSeconds)),
@@ -305,9 +306,9 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 			blobContainerName := destination["blob_container_name"].(string)
 			storageAccountId := destination["storage_account_id"].(string)
 
-			captureDescription.Destination = &eventhubs.Destination{
+			captureDescription.Destination = &eventhubs2.Destination{
 				Name: utils.String(destinationName),
-				Properties: &eventhubs.DestinationProperties{
+				Properties: &eventhubs2.DestinationProperties{
 					ArchiveNameFormat:        utils.String(archiveNameFormat),
 					BlobContainer:            utils.String(blobContainerName),
 					StorageAccountResourceId: utils.String(storageAccountId),
@@ -319,7 +320,7 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 	return &captureDescription
 }
 
-func flattenEventHubCaptureDescription(description *eventhubs.CaptureDescription) []interface{} {
+func flattenEventHubCaptureDescription(description *eventhubs2.CaptureDescription) []interface{} {
 	results := make([]interface{}, 0)
 
 	if description != nil {

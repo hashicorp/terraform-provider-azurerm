@@ -5,13 +5,14 @@ import (
 	"log"
 	"time"
 
+	authorizationruleseventhubs2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationruleseventhubs"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/eventhubs"
+
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/authorizationruleseventhubs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -92,16 +93,16 @@ func resourceEventHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, me
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
-	parameters := authorizationruleseventhubs.AuthorizationRule{
+	parameters := authorizationruleseventhubs2.AuthorizationRule{
 		Name: &id.Name,
-		Properties: &authorizationruleseventhubs.AuthorizationRuleProperties{
+		Properties: &authorizationruleseventhubs2.AuthorizationRuleProperties{
 			Rights: expandEventHubAuthorizationRuleRights(d),
 		},
 	}
 
 	//lintignore:R006
 	return pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		localId := authorizationruleseventhubs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.Name)
+		localId := authorizationruleseventhubs2.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.Name)
 		if _, err := authorizationRulesClient.EventHubsCreateOrUpdateAuthorizationRule(ctx, localId, parameters); err != nil {
 			return pluginsdk.NonRetryableError(fmt.Errorf("creating %s: %+v", id, err))
 		}
@@ -158,7 +159,7 @@ func resourceEventHubAuthorizationRuleRead(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
-	localId := authorizationruleseventhubs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.Name)
+	localId := authorizationruleseventhubs2.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.Name)
 	keysResp, err := authorizationRulesClient.EventHubsListKeys(ctx, localId)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
