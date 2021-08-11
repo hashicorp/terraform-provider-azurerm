@@ -5,11 +5,12 @@ import (
 	"log"
 	"time"
 
+	authorizations2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/authorizations"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/privateclouds"
+
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/authorizations"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/privateclouds"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -29,7 +30,7 @@ func resourceVmwareExpressRouteAuthorization() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := authorizations.ParseAuthorizationID(id)
+			_, err := authorizations2.ParseAuthorizationID(id)
 			return err
 		}),
 
@@ -74,7 +75,7 @@ func resourceVmwareExpressRouteAuthorizationCreate(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	id := authorizations.NewAuthorizationID(subscriptionId, privateCloudId.ResourceGroup, privateCloudId.Name, name)
+	id := authorizations2.NewAuthorizationID(subscriptionId, privateCloudId.ResourceGroup, privateCloudId.Name, name)
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -85,7 +86,7 @@ func resourceVmwareExpressRouteAuthorizationCreate(d *pluginsdk.ResourceData, me
 		return tf.ImportAsExistsError("azurerm_vmware_express_route_authorization", id.ID())
 	}
 
-	props := authorizations.ExpressRouteAuthorization{}
+	props := authorizations2.ExpressRouteAuthorization{}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, props); err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
@@ -101,7 +102,7 @@ func resourceVmwareExpressRouteAuthorizationRead(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := authorizations.ParseAuthorizationID(d.Id())
+	id, err := authorizations2.ParseAuthorizationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -135,7 +136,7 @@ func resourceVmwareExpressRouteAuthorizationDelete(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := authorizations.ParseAuthorizationID(d.Id())
+	id, err := authorizations2.ParseAuthorizationID(d.Id())
 	if err != nil {
 		return err
 	}

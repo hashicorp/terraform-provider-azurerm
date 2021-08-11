@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
+	privateclouds2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/privateclouds"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/privateclouds"
+	"github.com/hashicorp/go-azure-helpers/response"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -157,7 +157,7 @@ func dataSourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := privateclouds.NewPrivateCloudID(subscriptionId, resourceGroup, name)
+	id := privateclouds2.NewPrivateCloudID(subscriptionId, resourceGroup, name)
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -184,7 +184,7 @@ func dataSourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{
 
 		internetConnectionEnabled := false
 		if props.Internet != nil {
-			internetConnectionEnabled = *props.Internet == privateclouds.InternetEnumEnabled
+			internetConnectionEnabled = *props.Internet == privateclouds2.InternetEnumEnabled
 		}
 
 		d.Set("internet_connection_enabled", internetConnectionEnabled)

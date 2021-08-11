@@ -5,12 +5,13 @@ import (
 	"log"
 	"time"
 
+	privateclouds2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/privateclouds"
+
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/privateclouds"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -33,7 +34,7 @@ func resourceVmwarePrivateCloud() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := privateclouds.ParsePrivateCloudID(id)
+			_, err := privateclouds2.ParsePrivateCloudID(id)
 			return err
 		}),
 
@@ -196,7 +197,7 @@ func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := privateclouds.NewPrivateCloudID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := privateclouds2.NewPrivateCloudID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -207,18 +208,18 @@ func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta interface{
 		return tf.ImportAsExistsError("azurerm_vmware_private_cloud", id.ID())
 	}
 
-	internet := privateclouds.InternetEnumDisabled
+	internet := privateclouds2.InternetEnumDisabled
 	if d.Get("internet_connection_enabled").(bool) {
-		internet = privateclouds.InternetEnumEnabled
+		internet = privateclouds2.InternetEnumEnabled
 	}
 
-	privateCloud := privateclouds.PrivateCloud{
+	privateCloud := privateclouds2.PrivateCloud{
 		Location: location.Normalize(d.Get("location").(string)),
-		Sku: privateclouds.Sku{
+		Sku: privateclouds2.Sku{
 			Name: d.Get("sku_name").(string),
 		},
-		Properties: privateclouds.PrivateCloudProperties{
-			ManagementCluster: privateclouds.ManagementCluster{
+		Properties: privateclouds2.PrivateCloudProperties{
+			ManagementCluster: privateclouds2.ManagementCluster{
 				ClusterSize: int64(d.Get("management_cluster.0.size").(int)),
 			},
 			NetworkBlock:    d.Get("network_subnet_cidr").(string),
@@ -242,7 +243,7 @@ func resourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := privateclouds.ParsePrivateCloudID(d.Id())
+	id, err := privateclouds2.ParsePrivateCloudID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -274,7 +275,7 @@ func resourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{})
 
 		internetConnectionEnabled := false
 		if props.Internet != nil {
-			internetConnectionEnabled = *props.Internet == privateclouds.InternetEnumEnabled
+			internetConnectionEnabled = *props.Internet == privateclouds2.InternetEnumEnabled
 		}
 		d.Set("internet_connection_enabled", internetConnectionEnabled)
 
@@ -302,13 +303,13 @@ func resourceVmwarePrivateCloudUpdate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := privateclouds.ParsePrivateCloudID(d.Id())
+	id, err := privateclouds2.ParsePrivateCloudID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	privateCloudUpdate := privateclouds.PrivateCloudUpdate{
-		Properties: &privateclouds.PrivateCloudUpdateProperties{},
+	privateCloudUpdate := privateclouds2.PrivateCloudUpdate{
+		Properties: &privateclouds2.PrivateCloudUpdateProperties{},
 	}
 
 	if d.HasChange("management_cluster") && d.HasChange("internet_connection_enabled") {
@@ -316,15 +317,15 @@ func resourceVmwarePrivateCloudUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("management_cluster") {
-		privateCloudUpdate.Properties.ManagementCluster = &privateclouds.ManagementCluster{
+		privateCloudUpdate.Properties.ManagementCluster = &privateclouds2.ManagementCluster{
 			ClusterSize: int64(d.Get("management_cluster.0.size").(int)),
 		}
 	}
 
 	if d.HasChange("internet_connection_enabled") {
-		internet := privateclouds.InternetEnumDisabled
+		internet := privateclouds2.InternetEnumDisabled
 		if d.Get("internet_connection_enabled").(bool) {
-			internet = privateclouds.InternetEnumEnabled
+			internet = privateclouds2.InternetEnumEnabled
 		}
 		privateCloudUpdate.Properties.Internet = &internet
 	}
@@ -345,7 +346,7 @@ func resourceVmwarePrivateCloudDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := privateclouds.ParsePrivateCloudID(d.Id())
+	id, err := privateclouds2.ParsePrivateCloudID(d.Id())
 	if err != nil {
 		return err
 	}
