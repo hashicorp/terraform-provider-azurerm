@@ -93,7 +93,7 @@ func resourceDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.CNAME)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing DNS CNAME Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing DNS CNAME Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 			}
 		}
 
@@ -133,7 +133,7 @@ func resourceDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
 	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.CNAME, parameters, eTag, ifNoneMatch); err != nil {
-		return fmt.Errorf("Error creating/updating CNAME Record %q (DNS Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+		return fmt.Errorf("creating/updating CNAME Record %q (DNS Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -157,7 +157,7 @@ func resourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving CNAME Record %s (DNS Zone %q / Resource Group %q): %+v", id.CNAMEName, id.DnszoneName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving CNAME Record %s (DNS Zone %q / Resource Group %q): %+v", id.CNAMEName, id.DnszoneName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.CNAMEName)
@@ -196,7 +196,7 @@ func resourceDnsCNameRecordDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	resp, err := dnsClient.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.CNAMEName, dns.CNAME, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting CNAME Record %q (DNS Zone %q / Resource Group %q): %+v", id.CNAMEName, id.DnszoneName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting CNAME Record %q (DNS Zone %q / Resource Group %q): %+v", id.CNAMEName, id.DnszoneName, id.ResourceGroup, err)
 	}
 
 	return nil

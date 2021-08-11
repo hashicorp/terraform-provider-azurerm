@@ -219,10 +219,19 @@ func expandBackupVaultDppIdentityDetails(input []interface{}) *dataprotection.Dp
 func flattenBackupVaultDppIdentityDetails(input *dataprotection.DppIdentityDetails) []interface{} {
 	var config *identity.ExpandedConfig
 	if input != nil {
+		principalId := ""
+		if input.PrincipalID != nil {
+			principalId = *input.PrincipalID
+		}
+
+		tenantId := ""
+		if input.TenantID != nil {
+			tenantId = *input.TenantID
+		}
 		config = &identity.ExpandedConfig{
 			Type:        identity.Type(*input.Type),
-			PrincipalId: input.PrincipalID,
-			TenantId:    input.TenantID,
+			PrincipalId: principalId,
+			TenantId:    tenantId,
 		}
 	}
 	return identity.SystemAssigned{}.Flatten(config)

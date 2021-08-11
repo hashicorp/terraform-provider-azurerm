@@ -146,7 +146,7 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing App Service Plan %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing App Service Plan %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
@@ -206,16 +206,16 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, appServicePlan)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating/updating App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the create/update of App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for the create/update of App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("retrieving App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read AzureRM App Service Plan %q (resource group %q) ID", name, resGroup)
@@ -244,7 +244,7 @@ func resourceAppServicePlanRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on App Service Plan %q (Resource Group %q): %+v", id.ServerfarmName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on App Service Plan %q (Resource Group %q): %+v", id.ServerfarmName, id.ResourceGroup, err)
 	}
 
 	// A 404 doesn't error from the app service plan sdk so we'll add this check here to catch resource not found responses
@@ -287,7 +287,7 @@ func resourceAppServicePlanRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if err := d.Set("sku", flattenAppServicePlanSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
+		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -308,7 +308,7 @@ func resourceAppServicePlanDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServerfarmName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting App Service Plan %q (Resource Group %q): %+v", id.ServerfarmName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting App Service Plan %q (Resource Group %q): %+v", id.ServerfarmName, id.ResourceGroup, err)
 		}
 	}
 

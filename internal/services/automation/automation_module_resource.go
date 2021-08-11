@@ -100,7 +100,7 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		existing, err := client.Get(ctx, resGroup, accName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Automation Module %q (Account %q / Resource Group %q): %s", name, accName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Automation Module %q (Account %q / Resource Group %q): %s", name, accName, resGroup, err)
 			}
 		}
 
@@ -145,7 +145,7 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		Refresh: func() (interface{}, string, error) {
 			resp, err2 := client.Get(ctx, resGroup, accName, name)
 			if err2 != nil {
-				return resp, "Error", fmt.Errorf("Error retrieving Module %q (Automation Account %q / Resource Group %q): %+v", name, accName, resGroup, err2)
+				return resp, "Error", fmt.Errorf("retrieving Module %q (Automation Account %q / Resource Group %q): %+v", name, accName, resGroup, err2)
 			}
 
 			if properties := resp.ModuleProperties; properties != nil {
@@ -165,7 +165,7 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for Module %q (Automation Account %q / Resource Group %q) to finish provisioning: %+v", name, accName, resGroup, err)
+		return fmt.Errorf("waiting for Module %q (Automation Account %q / Resource Group %q) to finish provisioning: %+v", name, accName, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, accName, name)
@@ -202,7 +202,7 @@ func resourceAutomationModuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Module %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM Automation Module %q: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -231,7 +231,7 @@ func resourceAutomationModuleDelete(d *pluginsdk.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for Automation Module %q: %+v", name, err)
+		return fmt.Errorf("issuing AzureRM delete request for Automation Module %q: %+v", name, err)
 	}
 
 	return nil

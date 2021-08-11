@@ -100,26 +100,26 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	name := d.Get("name").(string)
 	virtualMachineId, err := parse.VirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
-		return fmt.Errorf("Error parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
+		return fmt.Errorf("parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
 	}
 	virtualMachineName := virtualMachineId.Name
 	resourceGroup := virtualMachineId.ResourceGroup
 
 	virtualMachine, err := vmClient.Get(ctx, resourceGroup, virtualMachineName, "")
 	if err != nil {
-		return fmt.Errorf("Error getting Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("getting Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	location := *virtualMachine.Location
 	if location == "" {
-		return fmt.Errorf("Error reading location of Virtual Machine %q", virtualMachineName)
+		return fmt.Errorf("reading location of Virtual Machine %q", virtualMachineName)
 	}
 
 	if d.IsNewResource() {
 		existing, err := vmExtensionClient.Get(ctx, resourceGroup, virtualMachineName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Extension %q (Virtual Machine %q / Resource Group %q): %s", name, virtualMachineName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Extension %q (Virtual Machine %q / Resource Group %q): %s", name, virtualMachineName, resourceGroup, err)
 			}
 		}
 
@@ -201,7 +201,7 @@ func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interf
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Virtual Machine %s: %s", id.ExtensionName, err)
+		return fmt.Errorf("making Read request on Virtual Machine %s: %s", id.ExtensionName, err)
 	}
 
 	d.Set("virtual_machine_id", virtualMachine.ID)
@@ -212,7 +212,7 @@ func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interf
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Virtual Machine Extension %s: %s", id.ExtensionName, err)
+		return fmt.Errorf("making Read request on Virtual Machine Extension %s: %s", id.ExtensionName, err)
 	}
 
 	d.Set("name", resp.Name)

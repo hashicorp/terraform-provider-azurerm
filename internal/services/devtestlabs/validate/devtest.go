@@ -31,7 +31,7 @@ func DevTestVirtualMachineName(maxLength int) pluginsdk.SchemaValidateFunc {
 
 		matched, err := regexp.MatchString("^([a-zA-Z0-9]{1})([a-zA-Z0-9-]+)([a-zA-Z0-9]{1})$", v)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("Error validating regex: %+v", err))
+			errs = append(errs, fmt.Errorf("validating regex: %+v", err))
 		}
 		if !matched {
 			errs = append(errs, fmt.Errorf("%s may contain letters, numbers, or '-', must begin and end with a letter or number, and cannot be all numbers.", k))
@@ -39,7 +39,7 @@ func DevTestVirtualMachineName(maxLength int) pluginsdk.SchemaValidateFunc {
 
 		matched, err = regexp.MatchString("([a-zA-Z-]+)", v)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("Error validating regex: %+v", err))
+			errs = append(errs, fmt.Errorf("validating regex: %+v", err))
 		}
 		if !matched {
 			errs = append(errs, fmt.Errorf("%s cannot be all numbers.", k))

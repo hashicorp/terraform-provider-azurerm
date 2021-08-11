@@ -343,9 +343,9 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *pluginsdk.ResourceData, 
 			return nil
 		}
 
-		oldBackEndPools := *lb.LoadBalancerPropertiesFormat.BackendAddressPools
-		newBackEndPools := append(oldBackEndPools[:index], oldBackEndPools[index+1:]...)
-		lb.LoadBalancerPropertiesFormat.BackendAddressPools = &newBackEndPools
+		backEndPools := *lb.LoadBalancerPropertiesFormat.BackendAddressPools
+		backEndPools = append(backEndPools[:index], backEndPools[index+1:]...)
+		lb.LoadBalancerPropertiesFormat.BackendAddressPools = &backEndPools
 
 		future, err := lbClient.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, lb)
 		if err != nil {

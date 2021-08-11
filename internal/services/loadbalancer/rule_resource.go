@@ -321,9 +321,9 @@ func resourceArmLoadBalancerRuleDelete(d *pluginsdk.ResourceData, meta interface
 		return nil
 	}
 
-	oldLbRules := *loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules
-	newLbRules := append(oldLbRules[:index], oldLbRules[index+1:]...)
-	loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules = &newLbRules
+	lbRules := *loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules
+	lbRules = append(lbRules[:index], lbRules[index+1:]...)
+	loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules = &lbRules
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
 	if err != nil {

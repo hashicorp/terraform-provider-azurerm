@@ -228,7 +228,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Firewall %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing Firewall %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
 	}
 
@@ -239,7 +239,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if err := validateFirewallIPConfigurationSettings(d.Get("ip_configuration").([]interface{})); err != nil {
-		return fmt.Errorf("Error validating Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("validating Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -247,7 +247,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	i := d.Get("ip_configuration").([]interface{})
 	ipConfigs, subnetToLock, vnetToLock, err := expandFirewallIPConfigurations(i)
 	if err != nil {
-		return fmt.Errorf("Error building list of Azure Firewall IP Configurations: %+v", err)
+		return fmt.Errorf("building list of Azure Firewall IP Configurations: %+v", err)
 	}
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
@@ -266,7 +266,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if len(m) == 1 {
 		mgmtIPConfig, mgmtSubnetName, mgmtVirtualNetworkName, err := expandFirewallIPConfigurations(m)
 		if err != nil {
-			return fmt.Errorf("Error parsing Azure Firewall Management IP Configurations: %+v", err)
+			return fmt.Errorf("parsing Azure Firewall Management IP Configurations: %+v", err)
 		}
 
 		if !utils.SliceContainsValue(*subnetToLock, (*mgmtSubnetName)[0]) {
@@ -336,12 +336,12 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		exists, err2 := client.Get(ctx, resourceGroup, name)
 		if err2 != nil {
 			if utils.ResponseWasNotFound(exists.Response) {
-				return fmt.Errorf("Error retrieving existing Firewall %q (Resource Group %q): firewall not found in resource group", name, resourceGroup)
+				return fmt.Errorf("retrieving existing Firewall %q (Resource Group %q): firewall not found in resource group", name, resourceGroup)
 			}
-			return fmt.Errorf("Error retrieving existing Firewall %q (Resource Group %q): %s", name, resourceGroup, err2)
+			return fmt.Errorf("retrieving existing Firewall %q (Resource Group %q): %s", name, resourceGroup, err2)
 		}
 		if exists.AzureFirewallPropertiesFormat == nil {
-			return fmt.Errorf("Error retrieving existing rules (Firewall %q / Resource Group %q): `props` was nil", name, resourceGroup)
+			return fmt.Errorf("retrieving existing rules (Firewall %q / Resource Group %q): `props` was nil", name, resourceGroup)
 		}
 		props := *exists.AzureFirewallPropertiesFormat
 		parameters.AzureFirewallPropertiesFormat.ApplicationRuleCollections = props.ApplicationRuleCollections
@@ -351,16 +351,16 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation/update of Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -392,7 +392,7 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", read.Name)
@@ -403,7 +403,7 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if props := read.AzureFirewallPropertiesFormat; props != nil {
 		if err := d.Set("ip_configuration", flattenFirewallIPConfigurations(props.IPConfigurations)); err != nil {
-			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
+			return fmt.Errorf("setting `ip_configuration`: %+v", err)
 		}
 		managementIPConfigs := make([]interface{}, 0)
 		if props.ManagementIPConfiguration != nil {
@@ -412,17 +412,17 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			})
 		}
 		if err := d.Set("management_ip_configuration", managementIPConfigs); err != nil {
-			return fmt.Errorf("Error setting `management_ip_configuration`: %+v", err)
+			return fmt.Errorf("setting `management_ip_configuration`: %+v", err)
 		}
 
 		d.Set("threat_intel_mode", string(props.ThreatIntelMode))
 
 		if err := d.Set("dns_servers", flattenFirewallDNSServers(props.AdditionalProperties)); err != nil {
-			return fmt.Errorf("Error setting `dns_servers`: %+v", err)
+			return fmt.Errorf("setting `dns_servers`: %+v", err)
 		}
 
 		if err := d.Set("private_ip_ranges", flattenFirewallPrivateIpRange(props.AdditionalProperties)); err != nil {
-			return fmt.Errorf("Error setting `private_ip_ranges`: %+v", err)
+			return fmt.Errorf("setting `private_ip_ranges`: %+v", err)
 		}
 
 		if policy := props.FirewallPolicy; policy != nil {
@@ -435,12 +435,12 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if err := d.Set("virtual_hub", flattenFirewallVirtualHubSetting(props)); err != nil {
-			return fmt.Errorf("Error setting `virtual_hub`: %+v", err)
+			return fmt.Errorf("setting `virtual_hub`: %+v", err)
 		}
 	}
 
 	if err := d.Set("zones", azure.FlattenZones(read.Zones)); err != nil {
-		return fmt.Errorf("Error setting `zones`: %+v", err)
+		return fmt.Errorf("setting `zones`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, read.Tags)
@@ -466,7 +466,7 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	subnetNamesToLock := make([]string, 0)
@@ -526,11 +526,11 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the deletion of Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return err

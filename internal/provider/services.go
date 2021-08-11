@@ -94,6 +94,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web"
 )
@@ -205,6 +206,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		synapse.Registration{},
 		iottimeseriesinsights.Registration{},
 		trafficmanager.Registration{},
+		videoanalyzer.Registration{},
 		vmware.Registration{},
 		web.Registration{},
 	}

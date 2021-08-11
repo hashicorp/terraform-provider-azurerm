@@ -51,19 +51,19 @@ func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceT
 		client := meta.(*clients.Client).Compute.VMScaleSetClient
 		vm, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if vm.VirtualMachineScaleSetProperties == nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 		}
 
 		if vm.VirtualMachineScaleSetProperties.VirtualMachineProfile == nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile` was nil", id.Name, id.ResourceGroup)
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile` was nil", id.Name, id.ResourceGroup)
 		}
 
 		if vm.VirtualMachineScaleSetProperties.VirtualMachineProfile.OsProfile == nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile.osProfile` was nil", id.Name, id.ResourceGroup)
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile.osProfile` was nil", id.Name, id.ResourceGroup)
 		}
 
 		isCorrectOS := false

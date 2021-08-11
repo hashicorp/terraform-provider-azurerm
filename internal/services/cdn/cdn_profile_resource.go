@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -88,7 +87,7 @@ func resourceCdnProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing CDN Profile %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing CDN Profile %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
@@ -160,11 +159,11 @@ func resourceCdnProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, props)
 	if err != nil {
-		return fmt.Errorf("Error issuing update request for CDN Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("issuing update request for CDN Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the update of CDN Profile %q (Resource Group %q) to commplete: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the update of CDN Profile %q (Resource Group %q) to commplete: %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return resourceCdnProfileRead(d, meta)
@@ -186,7 +185,7 @@ func resourceCdnProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure CDN Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Azure CDN Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -214,16 +213,10 @@ func resourceCdnProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 		return fmt.Errorf("deleting CDN Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 		return fmt.Errorf("waiting for deletion of CDN Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 

@@ -68,12 +68,12 @@ func dataSourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error: EventGrid Topic %s (Resource Group %s) was not found: %+v", name, resourceGroup, err)
 		}
 
-		return fmt.Errorf("Error making Read request on EventGrid Topic '%s': %+v", name, err)
+		return fmt.Errorf("making Read request on EventGrid Topic '%s': %+v", name, err)
 	}
 
 	keys, err := client.ListSharedAccessKeys(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Shared Access Keys for EventGrid Topic '%s': %+v", name, err)
+		return fmt.Errorf("retrieving Shared Access Keys for EventGrid Topic '%s': %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)

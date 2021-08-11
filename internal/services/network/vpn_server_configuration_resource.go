@@ -392,7 +392,7 @@ func resourceVPNServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta 
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing VPN Server Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing VPN Server Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -492,16 +492,16 @@ func resourceVPNServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating VPN Server Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating VPN Server Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of VPN Server Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of VPN Server Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving VPN Server Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving VPN Server Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -527,7 +527,7 @@ func resourceVPNServerConfigurationRead(d *pluginsdk.ResourceData, meta interfac
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving VPN Server Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving VPN Server Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -540,33 +540,33 @@ func resourceVPNServerConfigurationRead(d *pluginsdk.ResourceData, meta interfac
 	if props := resp.VpnServerConfigurationProperties; props != nil {
 		flattenedAADAuthentication := flattenVpnServerConfigurationAADAuthentication(props.AadAuthenticationParameters)
 		if err := d.Set("azure_active_directory_authentication", flattenedAADAuthentication); err != nil {
-			return fmt.Errorf("Error setting `azure_active_directory_authentication`: %+v", err)
+			return fmt.Errorf("setting `azure_active_directory_authentication`: %+v", err)
 		}
 
 		flattenedClientRootCerts := flattenVpnServerConfigurationClientRootCertificates(props.VpnClientRootCertificates)
 		if err := d.Set("client_root_certificate", flattenedClientRootCerts); err != nil {
-			return fmt.Errorf("Error setting `client_root_certificate`: %+v", err)
+			return fmt.Errorf("setting `client_root_certificate`: %+v", err)
 		}
 
 		flattenedClientRevokedCerts := flattenVpnServerConfigurationClientRevokedCertificates(props.VpnClientRevokedCertificates)
 		if err := d.Set("client_revoked_certificate", flattenedClientRevokedCerts); err != nil {
-			return fmt.Errorf("Error setting `client_revoked_certificate`: %+v", err)
+			return fmt.Errorf("setting `client_revoked_certificate`: %+v", err)
 		}
 
 		flattenedIPSecPolicies := flattenVpnServerConfigurationIPSecPolicies(props.VpnClientIpsecPolicies)
 		if err := d.Set("ipsec_policy", flattenedIPSecPolicies); err != nil {
-			return fmt.Errorf("Error setting `ipsec_policy`: %+v", err)
+			return fmt.Errorf("setting `ipsec_policy`: %+v", err)
 		}
 
 		flattenedRadius := flattenVpnServerConfigurationRadius(props)
 		if len(flattenedRadius) > 0 {
 			if flattenedRadius[0].(map[string]interface{})["server"] != nil {
 				if err := d.Set("radius", flattenedRadius); err != nil {
-					return fmt.Errorf("Error setting `radius`: %+v", err)
+					return fmt.Errorf("setting `radius`: %+v", err)
 				}
 			} else {
 				if err := d.Set("radius_server", flattenedRadius); err != nil {
-					return fmt.Errorf("Error setting `radius_server`: %+v", err)
+					return fmt.Errorf("setting `radius_server`: %+v", err)
 				}
 			}
 		}
@@ -578,12 +578,12 @@ func resourceVPNServerConfigurationRead(d *pluginsdk.ResourceData, meta interfac
 			}
 		}
 		if err := d.Set("vpn_authentication_types", vpnAuthenticationTypes); err != nil {
-			return fmt.Errorf("Error setting `vpn_authentication_types`: %+v", err)
+			return fmt.Errorf("setting `vpn_authentication_types`: %+v", err)
 		}
 
 		flattenedVpnProtocols := flattenVpnServerConfigurationVPNProtocols(props.VpnProtocols)
 		if err := d.Set("vpn_protocols", pluginsdk.NewSet(pluginsdk.HashString, flattenedVpnProtocols)); err != nil {
-			return fmt.Errorf("Error setting `vpn_protocols`: %+v", err)
+			return fmt.Errorf("setting `vpn_protocols`: %+v", err)
 		}
 	}
 
@@ -602,11 +602,11 @@ func resourceVPNServerConfigurationDelete(d *pluginsdk.ResourceData, meta interf
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting VPN Server Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting VPN Server Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of VPN Server Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of VPN Server Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

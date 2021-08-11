@@ -81,7 +81,7 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if displayName != "" {
 		groupName, err = getManagementGroupNameByDisplayName(ctx, client, displayName)
 		if err != nil {
-			return fmt.Errorf("Error reading Management Group (Display Name %q): %+v", displayName, err)
+			return fmt.Errorf("reading Management Group (Display Name %q): %+v", displayName, err)
 		}
 	}
 	recurse := true
@@ -91,7 +91,7 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("Management Group %q was not found", groupName)
 		}
 
-		return fmt.Errorf("Error reading Management Group %q: %+v", groupName, err)
+		return fmt.Errorf("reading Management Group %q: %+v", groupName, err)
 	}
 
 	if resp.ID == nil {
@@ -107,7 +107,7 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 		subscriptionIds, err := flattenManagementGroupDataSourceSubscriptionIds(props.Children)
 		if err != nil {
-			return fmt.Errorf("Error flattening `subscription_ids`: %+v", err)
+			return fmt.Errorf("flattening `subscription_ids`: %+v", err)
 		}
 		d.Set("subscription_ids", subscriptionIds)
 
@@ -128,7 +128,7 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 func getManagementGroupNameByDisplayName(ctx context.Context, client *managementgroups.Client, displayName string) (string, error) {
 	iterator, err := client.ListComplete(ctx, managementGroupCacheControl, "")
 	if err != nil {
-		return "", fmt.Errorf("Error listing Management Groups: %+v", err)
+		return "", fmt.Errorf("listing Management Groups: %+v", err)
 	}
 
 	var results []string
@@ -139,7 +139,7 @@ func getManagementGroupNameByDisplayName(ctx context.Context, client *management
 		}
 
 		if err := iterator.NextWithContext(ctx); err != nil {
-			return "", fmt.Errorf("Error listing Management Groups: %+v", err)
+			return "", fmt.Errorf("listing Management Groups: %+v", err)
 		}
 	}
 

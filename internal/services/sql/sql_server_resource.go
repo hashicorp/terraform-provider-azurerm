@@ -139,7 +139,7 @@ func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
 			}
 		}
 
@@ -169,7 +169,7 @@ func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("issuing create/update request for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -177,12 +177,12 @@ func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", name)
 		}
 
-		return fmt.Errorf("Error waiting on create/update future for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting on create/update future for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error issuing get request for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("issuing get request for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -193,14 +193,14 @@ func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		},
 	}
 	if _, err = connectionClient.CreateOrUpdate(ctx, resGroup, name, connection); err != nil {
-		return fmt.Errorf("Error issuing create/update request for SQL Server %q Connection Policy (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("issuing create/update request for SQL Server %q Connection Policy (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
 		ExtendedServerBlobAuditingPolicyProperties: helper.ExpandAzureRmSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{})),
 	}
 	if _, err = auditingClient.CreateOrUpdate(ctx, resGroup, name, auditingProps); err != nil {
-		return fmt.Errorf("Error issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	return resourceSqlServerRead(d, meta)
@@ -246,7 +246,7 @@ func resourceSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if err := d.Set("identity", flattenAzureRmSqlServerIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if serverProperties := resp.ServerProperties; serverProperties != nil {

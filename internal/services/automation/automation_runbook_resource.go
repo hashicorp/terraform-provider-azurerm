@@ -157,7 +157,7 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		existing, err := client.Get(ctx, resGroup, accName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Automation Runbook %q (Account %q / Resource Group %q): %s", name, accName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Automation Runbook %q (Account %q / Resource Group %q): %s", name, accName, resGroup, err)
 			}
 		}
 
@@ -194,7 +194,7 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters); err != nil {
-		return fmt.Errorf("Error creating/updating Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+		return fmt.Errorf("creating/updating Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 	}
 
 	if v, ok := d.GetOk("content"); ok {
@@ -203,17 +203,17 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		draftClient := meta.(*clients.Client).Automation.RunbookDraftClient
 
 		if _, err := draftClient.ReplaceContent(ctx, resGroup, accName, name, reader); err != nil {
-			return fmt.Errorf("Error setting the draft Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+			return fmt.Errorf("setting the draft Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 		}
 
 		if _, err := client.Publish(ctx, resGroup, accName, name); err != nil {
-			return fmt.Errorf("Error publishing the updated Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+			return fmt.Errorf("publishing the updated Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 		}
 	}
 
 	read, err := client.Get(ctx, resGroup, accName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+		return fmt.Errorf("retrieving Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 	}
 
 	if read.ID == nil {
@@ -278,7 +278,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+		return fmt.Errorf("making Read request on AzureRM Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -308,7 +308,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if contentBytes := *response.Value; contentBytes != nil {
 			buf := new(bytes.Buffer)
 			if _, err := buf.ReadFrom(contentBytes); err != nil {
-				return fmt.Errorf("Error reading from Automation Runbook buffer %q: %+v", name, err)
+				return fmt.Errorf("reading from Automation Runbook buffer %q: %+v", name, err)
 			}
 			content := buf.String()
 			d.Set("content", content)
@@ -365,7 +365,7 @@ func resourceAutomationRunbookDelete(d *pluginsdk.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for Automation Runbook '%s': %+v", name, err)
+		return fmt.Errorf("issuing AzureRM delete request for Automation Runbook '%s': %+v", name, err)
 	}
 
 	return nil

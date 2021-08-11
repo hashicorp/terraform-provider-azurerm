@@ -51,7 +51,7 @@ func dataSourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("Error: Proximity Placement Group %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on Proximity Placement Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Proximity Placement Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)

@@ -10,7 +10,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -280,7 +279,7 @@ func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing MariaDB Server %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing MariaDB Server %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -295,7 +294,7 @@ func resourceMariaDbServerCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	sku, err := expandServerSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("error expanding sku_name for MariaDB Server %q (Resource Group %q): %v", name, resourceGroup, err)
+		return fmt.Errorf("expanding sku_name for MariaDB Server %q (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
 	publicAccess := mariadb.PublicNetworkAccessEnumEnabled
@@ -536,17 +535,11 @@ func resourceMariaDbServerDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 
 		return fmt.Errorf("deleting MariaDB Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 
 		return fmt.Errorf("waiting for deletion of MariaDB Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}

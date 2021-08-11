@@ -89,7 +89,7 @@ func dataSourceArmSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("SQL Database %q (server %q / resource group %q) was not found", name, serverName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving SQL Database %q (server %q / resource group %q): %s", name, serverName, resourceGroup, err)
+		return fmt.Errorf("retrieving SQL Database %q (server %q / resource group %q): %s", name, serverName, resourceGroup, err)
 	}
 
 	d.Set("location", azure.NormalizeLocation(*resp.Location))

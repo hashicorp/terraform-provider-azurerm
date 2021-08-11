@@ -60,7 +60,7 @@ func dataSourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Virtual Hub %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error reading Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)

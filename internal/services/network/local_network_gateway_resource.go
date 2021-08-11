@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -104,7 +103,7 @@ func resourceLocalNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Local Network Gateway %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Local Network Gateway %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
@@ -139,22 +138,22 @@ func resourceLocalNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if !d.IsNewResource() && d.HasChange("address_space") {
 		future, err := client.CreateOrUpdate(ctx, resGroup, name, gateway)
 		if err != nil {
-			return fmt.Errorf("error removing Local Network Gateway address space %q (Resource Group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("removing Local Network Gateway address space %q (Resource Group %q): %+v", name, resGroup, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("error waiting for completion of Local Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("waiting for completion of Local Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
 		}
 	}
 	gateway.LocalNetworkGatewayPropertiesFormat.LocalNetworkAddressSpace = expandLocalNetworkGatewayAddressSpaces(d)
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, gateway)
 	if err != nil {
-		return fmt.Errorf("Error creating Local Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating Local Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Local Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for completion of Local Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
@@ -187,7 +186,7 @@ func resourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("Error reading the state of Local Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("reading the state of Local Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -224,19 +223,13 @@ func resourceLocalNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interface
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 
-		return fmt.Errorf("Error issuing delete request for local network gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("issuing delete request for local network gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 
-		return fmt.Errorf("Error waiting for completion of local network gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for completion of local network gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	return nil

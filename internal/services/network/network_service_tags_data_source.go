@@ -54,7 +54,7 @@ func dataSourceNetworkServiceTagsRead(d *pluginsdk.ResourceData, meta interface{
 	location := azure.NormalizeLocation(d.Get("location"))
 	res, err := client.List(ctx, location)
 	if err != nil {
-		return fmt.Errorf("error listing network service tags: %+v", err)
+		return fmt.Errorf("listing network service tags: %+v", err)
 	}
 
 	if res.Values == nil {
@@ -81,7 +81,7 @@ func dataSourceNetworkServiceTagsRead(d *pluginsdk.ResourceData, meta interface{
 				}
 				err = d.Set("address_prefixes", addressPrefixes)
 				if err != nil {
-					return fmt.Errorf("error setting `address_prefixes`: %+v", err)
+					return fmt.Errorf("setting `address_prefixes`: %+v", err)
 				}
 
 				if sti.ID == nil {

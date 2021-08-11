@@ -213,7 +213,7 @@ func resourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta int
 
 		window := flattenMaintenanceConfigurationWindow(props.Window)
 		if err := d.Set("window", window); err != nil {
-			return fmt.Errorf("error setting `window`: %+v", err)
+			return fmt.Errorf("setting `window`: %+v", err)
 		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)

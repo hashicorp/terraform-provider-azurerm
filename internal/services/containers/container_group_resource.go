@@ -548,7 +548,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Container Group %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Container Group %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
@@ -606,11 +606,11 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, containerGroup)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating container group %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating/updating container group %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of container group %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for completion of container group %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
@@ -644,7 +644,7 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
-		return fmt.Errorf("Error updating container group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating container group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return resourceContainerGroupRead(d, meta)
@@ -684,17 +684,17 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if props := resp.ContainerGroupProperties; props != nil {
 		containerConfigs := flattenContainerGroupContainers(d, resp.Containers, props.Volumes)
 		if err := d.Set("container", containerConfigs); err != nil {
-			return fmt.Errorf("Error setting `container`: %+v", err)
+			return fmt.Errorf("setting `container`: %+v", err)
 		}
 
 		if err := d.Set("image_registry_credential", flattenContainerImageRegistryCredentials(d, props.ImageRegistryCredentials)); err != nil {
-			return fmt.Errorf("Error setting `image_registry_credential`: %+v", err)
+			return fmt.Errorf("setting `image_registry_credential`: %+v", err)
 		}
 
 		if address := props.IPAddress; address != nil {
@@ -714,7 +714,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("dns_config", flattenContainerGroupDnsConfig(resp.DNSConfig))
 
 		if err := d.Set("diagnostics", flattenContainerGroupDiagnostics(d, props.Diagnostics)); err != nil {
-			return fmt.Errorf("Error setting `diagnostics`: %+v", err)
+			return fmt.Errorf("setting `diagnostics`: %+v", err)
 		}
 	}
 
@@ -766,7 +766,7 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if props := existing.ContainerGroupProperties; props != nil {
@@ -779,10 +779,10 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if networkProfileId != "" {
@@ -807,7 +807,7 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("Error waiting for Container Group %q (Resource Group %q) to finish deleting: %s", name, resourceGroup, err)
+			return fmt.Errorf("waiting for Container Group %q (Resource Group %q) to finish deleting: %s", name, resourceGroup, err)
 		}
 	}
 
@@ -821,7 +821,7 @@ func containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx context.Conte
 	return func() (interface{}, string, error) {
 		profile, err := client.Get(ctx, networkProfileResourceGroup, networkProfileName, "")
 		if err != nil {
-			return nil, "Error", fmt.Errorf("Error retrieving Network Profile %q (Resource Group %q): %s", networkProfileName, networkProfileResourceGroup, err)
+			return nil, "Error", fmt.Errorf("retrieving Network Profile %q (Resource Group %q): %s", networkProfileName, networkProfileResourceGroup, err)
 		}
 
 		exists := false

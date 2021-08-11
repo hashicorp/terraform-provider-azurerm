@@ -102,7 +102,7 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -146,16 +146,16 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("issuing create/update request for Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting on create/update future for Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error issuing get request for Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("issuing get request for Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -184,7 +184,7 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Snapshot %q: %+v", name, err)
+		return fmt.Errorf("making Read request on Snapshot %q: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -207,7 +207,7 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
-			return fmt.Errorf("Error setting `encryption_settings`: %+v", err)
+			return fmt.Errorf("setting `encryption_settings`: %+v", err)
 		}
 	}
 
@@ -229,11 +229,11 @@ func resourceSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Snapshot: %+v", err)
+		return fmt.Errorf("deleting Snapshot: %+v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error deleting Snapshot: %+v", err)
+		return fmt.Errorf("deleting Snapshot: %+v", err)
 	}
 
 	return nil

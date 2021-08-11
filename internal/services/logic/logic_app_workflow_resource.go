@@ -146,7 +146,7 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Logic App Workflow %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Logic App Workflow %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -276,7 +276,7 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, properties); err != nil {
-		return fmt.Errorf("Error updating Logic App Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("updating Logic App Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return resourceLogicAppWorkflowRead(d, meta)
@@ -353,7 +353,7 @@ func resourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) e
 						return fmt.Errorf("flattening `parameters`: %v", err)
 					}
 					if err := d.Set("parameters", parameters); err != nil {
-						return fmt.Errorf("Error setting `parameters`: %+v", err)
+						return fmt.Errorf("setting `parameters`: %+v", err)
 					}
 				}
 			}
@@ -401,7 +401,7 @@ func resourceLogicAppWorkflowDelete(d *pluginsdk.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing delete request for Logic App Workflow %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("issuing delete request for Logic App Workflow %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil

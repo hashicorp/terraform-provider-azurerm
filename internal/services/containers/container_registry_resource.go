@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -397,7 +396,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Container Registry %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Container Registry %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -412,7 +411,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
 	if err != nil {
-		return fmt.Errorf("Error checking if the name %q was available: %+v", name, err)
+		return fmt.Errorf("checking if the name %q was available: %+v", name, err)
 	}
 
 	if !*available.NameAvailable {
@@ -492,11 +491,11 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	future, err := client.Create(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	// the ACR is being created so no previous geo-replication locations
@@ -510,13 +509,13 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	if len(newGeoReplicationLocations) > 0 {
 		err = applyGeoReplicationLocations(d, meta, resourceGroup, name, oldGeoReplicationLocations, newGeoReplicationLocations)
 		if err != nil {
-			return fmt.Errorf("Error applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -559,7 +558,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	// handle upgrade to Premium SKU first
 	if skuChange && isPremiumSku {
 		if err := applyContainerRegistrySku(d, meta, sku, resourceGroup, name); err != nil {
-			return fmt.Errorf("Error applying sku %q for Container Registry %q (Resource Group %q): %+v", sku, name, resourceGroup, err)
+			return fmt.Errorf("applying sku %q for Container Registry %q (Resource Group %q): %+v", sku, name, resourceGroup, err)
 		}
 	}
 
@@ -608,34 +607,34 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if hasGeoReplicationsChanges {
 		err := applyGeoReplicationLocations(d, meta, resourceGroup, name, expandReplications(oldReplications), expandReplications(newReplications))
 		if err != nil {
-			return fmt.Errorf("Error applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	} else if hasGeoReplicationLocationsChanges {
 		err := applyGeoReplicationLocations(d, meta, resourceGroup, name, expandReplicationsFromLocations(oldGeoReplicationLocations.List()), expandReplicationsFromLocations(newGeoReplicationLocations.List()))
 		if err != nil {
-			return fmt.Errorf("Error applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error updating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("updating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for update of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	// downgrade to Basic or Standard SKU
 	if skuChange && (isBasicSku || isStandardSku) {
 		if err := applyContainerRegistrySku(d, meta, sku, resourceGroup, name); err != nil {
-			return fmt.Errorf("Error applying sku %q for Container Registry %q (Resource Group %q): %+v", sku, name, resourceGroup, err)
+			return fmt.Errorf("applying sku %q for Container Registry %q (Resource Group %q): %+v", sku, name, resourceGroup, err)
 		}
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -661,11 +660,11 @@ func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku 
 
 	future, err := client.Update(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error updating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("updating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for update of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
@@ -686,10 +685,10 @@ func applyGeoReplicationLocations(d *pluginsdk.ResourceData, meta interface{}, r
 
 		future, err := replicationClient.Delete(ctx, resourceGroup, name, oldLocation)
 		if err != nil {
-			return fmt.Errorf("Error deleting Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, oldLocation, err)
+			return fmt.Errorf("deleting Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, oldLocation, err)
 		}
 		if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
-			return fmt.Errorf("Error waiting for deletion of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, oldLocation, err)
+			return fmt.Errorf("waiting for deletion of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, oldLocation, err)
 		}
 	}
 
@@ -701,11 +700,11 @@ func applyGeoReplicationLocations(d *pluginsdk.ResourceData, meta interface{}, r
 		locationToCreate := azure.NormalizeLocation(*replication.Location)
 		future, err := replicationClient.Create(ctx, resourceGroup, name, locationToCreate, replication)
 		if err != nil {
-			return fmt.Errorf("Error creating Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, locationToCreate, err)
+			return fmt.Errorf("creating Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, locationToCreate, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
-			return fmt.Errorf("Error waiting for creation of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, locationToCreate, err)
+			return fmt.Errorf("waiting for creation of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, locationToCreate, err)
 		}
 	}
 
@@ -733,7 +732,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -749,26 +748,26 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	networkRuleSet := flattenNetworkRuleSet(resp.NetworkRuleSet)
 	if err := d.Set("network_rule_set", networkRuleSet); err != nil {
-		return fmt.Errorf("Error setting `network_rule_set`: %+v", err)
+		return fmt.Errorf("setting `network_rule_set`: %+v", err)
 	}
 
 	identity, _ := flattenIdentityProperties(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if properties := resp.RegistryProperties; properties != nil {
 		if err := d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(properties.Policies)); err != nil {
-			return fmt.Errorf("Error setting `quarantine_policy`: %+v", err)
+			return fmt.Errorf("setting `quarantine_policy`: %+v", err)
 		}
 		if err := d.Set("retention_policy", flattenRetentionPolicy(properties.Policies)); err != nil {
-			return fmt.Errorf("Error setting `retention_policy`: %+v", err)
+			return fmt.Errorf("setting `retention_policy`: %+v", err)
 		}
 		if err := d.Set("trust_policy", flattenTrustPolicy(properties.Policies)); err != nil {
-			return fmt.Errorf("Error setting `trust_policy`: %+v", err)
+			return fmt.Errorf("setting `trust_policy`: %+v", err)
 		}
 		if err := d.Set("encryption", flattenEncryption(properties.Encryption)); err != nil {
-			return fmt.Errorf("Error setting `encryption`: %+v", err)
+			return fmt.Errorf("setting `encryption`: %+v", err)
 		}
 		d.Set("zone_redundancy_enabled", properties.ZoneRedundancy == containerregistry.ZoneRedundancyEnabled)
 	}
@@ -784,7 +783,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if *resp.AdminUserEnabled {
 		credsResp, errList := client.ListCredentials(ctx, resourceGroup, name)
 		if errList != nil {
-			return fmt.Errorf("Error making Read request on Azure Container Registry %s for Credentials: %s", name, errList)
+			return fmt.Errorf("making Read request on Azure Container Registry %s for Credentials: %s", name, errList)
 		}
 
 		d.Set("admin_username", credsResp.Username)
@@ -799,7 +798,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	replications, err := replicationClient.List(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on Azure Container Registry %s for replications: %s", name, err)
+		return fmt.Errorf("making Read request on Azure Container Registry %s for replications: %s", name, err)
 	}
 
 	geoReplicationLocations := make([]interface{}, 0)
@@ -837,17 +836,11 @@ func resourceContainerRegistryDelete(d *pluginsdk.ResourceData, meta interface{}
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry '%s': %+v", name, err)
+		return fmt.Errorf("deleting Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry '%s': %+v", name, err)
+		return fmt.Errorf("waiting for Container Registry %q (Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
 	}
 
 	return nil

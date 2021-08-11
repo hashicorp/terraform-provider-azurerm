@@ -72,7 +72,7 @@ func FlattenSSHKeys(input *compute.SSHConfiguration) (*[]interface{}, error) {
 
 		username := parseUsernameFromAuthorizedKeysPath(*v.Path)
 		if username == nil {
-			return nil, fmt.Errorf("Error parsing username from %q", *v.Path)
+			return nil, fmt.Errorf("parsing username from %q", *v.Path)
 		}
 
 		output = append(output, map[string]interface{}{

@@ -84,7 +84,7 @@ func dataSourcePrivateLinkServiceEndpointConnectionsRead(d *pluginsdk.ResourceDa
 
 	id, err := azure.ParseAzureResourceID(serviceId)
 	if err != nil {
-		return fmt.Errorf("Error parsing %q: %s", serviceId, err)
+		return fmt.Errorf("parsing %q: %s", serviceId, err)
 	}
 
 	name := id.Path["privateLinkServices"]
@@ -95,7 +95,7 @@ func dataSourcePrivateLinkServiceEndpointConnectionsRead(d *pluginsdk.ResourceDa
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Private Link Service %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error reading Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("API returns a nil/empty id on Private Link Service Endpoint Connection Status %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -108,7 +108,7 @@ func dataSourcePrivateLinkServiceEndpointConnectionsRead(d *pluginsdk.ResourceDa
 
 	if props := resp.PrivateLinkServiceProperties; props != nil {
 		if err := d.Set("private_endpoint_connections", dataSourceflattenPrivateLinkServicePrivateEndpointConnections(props.PrivateEndpointConnections)); err != nil {
-			return fmt.Errorf("Error setting `private_endpoint_connections`: %+v", err)
+			return fmt.Errorf("setting `private_endpoint_connections`: %+v", err)
 		}
 	}
 

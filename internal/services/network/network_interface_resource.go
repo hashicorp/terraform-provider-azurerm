@@ -332,11 +332,11 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		ipConfigsRaw := d.Get("ip_configuration").([]interface{})
 		ipConfigs, err := expandNetworkInterfaceIPConfigurations(ipConfigsRaw)
 		if err != nil {
-			return fmt.Errorf("Error expanding `ip_configuration`: %+v", err)
+			return fmt.Errorf("expanding `ip_configuration`: %+v", err)
 		}
 		lockingDetails, err := determineResourcesToLockFromIPConfiguration(ipConfigs)
 		if err != nil {
-			return fmt.Errorf("Error determining locking details: %+v", err)
+			return fmt.Errorf("determining locking details: %+v", err)
 		}
 
 		lockingDetails.lock()
@@ -439,11 +439,11 @@ func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		if err := d.Set("applied_dns_servers", appliedDNSServers); err != nil {
-			return fmt.Errorf("Error setting `applied_dns_servers`: %+v", err)
+			return fmt.Errorf("setting `applied_dns_servers`: %+v", err)
 		}
 
 		if err := d.Set("dns_servers", dnsServers); err != nil {
-			return fmt.Errorf("Error setting `applied_dns_servers`: %+v", err)
+			return fmt.Errorf("setting `applied_dns_servers`: %+v", err)
 		}
 
 		d.Set("enable_ip_forwarding", resp.EnableIPForwarding)
@@ -455,11 +455,11 @@ func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("virtual_machine_id", virtualMachineId)
 
 		if err := d.Set("ip_configuration", flattenNetworkInterfaceIPConfigurations(props.IPConfigurations)); err != nil {
-			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
+			return fmt.Errorf("setting `ip_configuration`: %+v", err)
 		}
 
 		if err := d.Set("private_ip_addresses", privateIPAddresses); err != nil {
-			return fmt.Errorf("Error setting `private_ip_addresses`: %+v", err)
+			return fmt.Errorf("setting `private_ip_addresses`: %+v", err)
 		}
 	}
 

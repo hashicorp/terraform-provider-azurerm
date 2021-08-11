@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	helpersValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -404,9 +403,9 @@ func resourceAppServiceEnvironmentRead(d *pluginsdk.ResourceData, meta interface
 	vipInfo, err := client.GetVipInfo(ctx, id.ResourceGroup, id.HostingEnvironmentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(vipInfo.Response) {
-			return fmt.Errorf("Error retrieving VIP info: App Service Environment %q (Resource Group %q) was not found", id.HostingEnvironmentName, id.ResourceGroup)
+			return fmt.Errorf("retrieving VIP info: App Service Environment %q (Resource Group %q) was not found", id.HostingEnvironmentName, id.ResourceGroup)
 		}
-		return fmt.Errorf("Error retrieving VIP info App Service Environment %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving VIP info App Service Environment %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
 	}
 
 	d.Set("internal_ip_address", vipInfo.InternalIPAddress)
@@ -432,18 +431,12 @@ func resourceAppServiceEnvironmentDelete(d *pluginsdk.ResourceData, meta interfa
 	forceDeleteAllChildren := utils.Bool(false)
 	future, err := client.Delete(ctx, id.ResourceGroup, id.HostingEnvironmentName, forceDeleteAllChildren)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 
 		return fmt.Errorf("deleting App Service Environment %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 
 		return fmt.Errorf("waiting for deletion of App Service Environment %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
 	}

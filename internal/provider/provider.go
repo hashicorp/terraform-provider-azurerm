@@ -295,7 +295,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 
 		config, err := builder.Build()
 		if err != nil {
-			return nil, diag.FromErr(fmt.Errorf("Error building AzureRM Client: %s", err))
+			return nil, diag.FromErr(fmt.Errorf("building AzureRM Client: %s", err))
 		}
 
 		terraformVersion := p.TerraformVersion
@@ -321,7 +321,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			CustomCorrelationRequestID: os.Getenv("ARM_CORRELATION_REQUEST_ID"),
 		}
 
-		stopCtx, ok := schema.StopContext(ctx) //nolint:SA1019
+		//lint:ignore SA1019 SDKv2 migration - staticcheck's own linter directives are currently being ignored under golanci-lint
+		stopCtx, ok := schema.StopContext(ctx) //nolint:staticcheck
 		if !ok {
 			stopCtx = ctx
 		}

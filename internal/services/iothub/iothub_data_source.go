@@ -47,7 +47,7 @@ func dataSourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: IoTHub %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error retrieving IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)

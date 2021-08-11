@@ -131,18 +131,18 @@ func (NetworkInterfaceNetworkSecurityGroupAssociationResource) destroy(ctx conte
 
 	read, err := client.Network.InterfacesClient.Get(ctx, resourceGroup, nicName, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+		return fmt.Errorf("retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
 	}
 
 	read.InterfacePropertiesFormat.NetworkSecurityGroup = nil
 
 	future, err := azuresdkhacks.UpdateNetworkInterfaceAllowingRemovalOfNSG(ctx, client.Network.InterfacesClient, resourceGroup, nicName, read)
 	if err != nil {
-		return fmt.Errorf("Error removing Network Security Group Association for Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+		return fmt.Errorf("removing Network Security Group Association for Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Network.InterfacesClient.Client); err != nil {
-		return fmt.Errorf("Error waiting for removal of Network Security Group Association for NIC %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+		return fmt.Errorf("waiting for removal of Network Security Group Association for NIC %q (Resource Group %q): %+v", nicName, resourceGroup, err)
 	}
 
 	return nil

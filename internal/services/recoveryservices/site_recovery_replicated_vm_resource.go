@@ -242,7 +242,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		existing, err := client.Get(ctx, fabricName, sourceProtectionContainerName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
+				return fmt.Errorf("checking for presence of existing site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
 			}
 		}
 
@@ -286,15 +286,15 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 	}
 	future, err := client.Create(ctx, fabricName, sourceProtectionContainerName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating replicated vm %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("creating replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error creating replicated vm %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("creating replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	resp, err := client.Get(ctx, fabricName, sourceProtectionContainerName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving replicated vm %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("retrieving replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
@@ -341,7 +341,7 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 
 		nicId := findNicId(state, sourceNicId)
 		if nicId == nil {
-			return fmt.Errorf("Error updating replicated vm %s (vault %s): Trying to update NIC that is not known by Azure %s", name, vaultName, sourceNicId)
+			return fmt.Errorf("updating replicated vm %s (vault %s): Trying to update NIC that is not known by Azure %s", name, vaultName, sourceNicId)
 		}
 		vmNics = append(vmNics, siterecovery.VMNicInputDetails{
 			NicID:                     nicId,
@@ -392,10 +392,10 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 
 	future, err := client.Update(ctx, fabricName, sourceProtectionContainerName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error updating replicated vm %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("updating replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error updating replicated vm %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("updating replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	return resourceSiteRecoveryReplicatedItemRead(d, meta)
@@ -436,7 +436,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("making Read request on site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.Set("name", name)
@@ -547,11 +547,11 @@ func resourceSiteRecoveryReplicatedItemDelete(d *pluginsdk.ResourceData, meta in
 	defer cancel()
 	future, err := client.Delete(ctx, fabricName, protectionContainerName, name, disableProtectionInput)
 	if err != nil {
-		return fmt.Errorf("Error deleting site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("deleting site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("waiting for deletion of site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 	return nil
 }
@@ -580,14 +580,14 @@ func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceDat
 
 	result, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Error waiting for site recovery to replicate vm: %+v", err)
+		return nil, fmt.Errorf("waiting for site recovery to replicate vm: %+v", err)
 	}
 
 	protectedItem, ok := result.(siterecovery.ReplicationProtectedItem)
 	if ok {
 		return &protectedItem, nil
 	} else {
-		return nil, fmt.Errorf("Error waiting for site recovery return incompatible tyupe")
+		return nil, fmt.Errorf("waiting for site recovery return incompatible tyupe")
 	}
 }
 
@@ -610,7 +610,7 @@ func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta in
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName, name)
 		if err != nil {
-			return nil, "", fmt.Errorf("Error making Read request on site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
+			return nil, "", fmt.Errorf("making Read request on site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
 		}
 
 		if resp.Properties == nil {

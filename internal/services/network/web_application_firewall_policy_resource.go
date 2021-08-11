@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -310,7 +309,7 @@ func resourceWebApplicationFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData,
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for present of existing Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(resp.Response) {
@@ -335,12 +334,12 @@ func resourceWebApplicationFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("Error creating Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read Web Application Firewall Policy %q (Resource Group %q) ID", name, resourceGroup)
@@ -369,7 +368,7 @@ func resourceWebApplicationFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -379,19 +378,19 @@ func resourceWebApplicationFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 	}
 	if webApplicationFirewallPolicyPropertiesFormat := resp.WebApplicationFirewallPolicyPropertiesFormat; webApplicationFirewallPolicyPropertiesFormat != nil {
 		if err := d.Set("custom_rules", flattenWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(webApplicationFirewallPolicyPropertiesFormat.CustomRules)); err != nil {
-			return fmt.Errorf("Error setting `custom_rules`: %+v", err)
+			return fmt.Errorf("setting `custom_rules`: %+v", err)
 		}
 		if err := d.Set("policy_settings", flattenWebApplicationFirewallPolicyPolicySettings(webApplicationFirewallPolicyPropertiesFormat.PolicySettings)); err != nil {
-			return fmt.Errorf("Error setting `policy_settings`: %+v", err)
+			return fmt.Errorf("setting `policy_settings`: %+v", err)
 		}
 		if err := d.Set("managed_rules", flattenWebApplicationFirewallPolicyManagedRulesDefinition(webApplicationFirewallPolicyPropertiesFormat.ManagedRules)); err != nil {
-			return fmt.Errorf("Error setting `managed_rules`: %+v", err)
+			return fmt.Errorf("setting `managed_rules`: %+v", err)
 		}
 		if err := d.Set("http_listener_ids", flattenSubResourcesToIDs(webApplicationFirewallPolicyPropertiesFormat.HTTPListeners)); err != nil {
-			return fmt.Errorf("Error setting `http_listeners`: %+v", err)
+			return fmt.Errorf("setting `http_listeners`: %+v", err)
 		}
 		if err := d.Set("path_based_rule_ids", flattenSubResourcesToIDs(webApplicationFirewallPolicyPropertiesFormat.PathBasedRules)); err != nil {
-			return fmt.Errorf("Error setting `path_based_rules`: %+v", err)
+			return fmt.Errorf("setting `path_based_rules`: %+v", err)
 		}
 	}
 
@@ -412,16 +411,11 @@ func resourceWebApplicationFirewallPolicyDelete(d *pluginsdk.ResourceData, meta 
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error deleting Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
+		return fmt.Errorf("waiting for the deletion of Web Application Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil

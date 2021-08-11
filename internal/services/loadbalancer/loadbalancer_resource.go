@@ -306,7 +306,7 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 	if props := resp.LoadBalancerPropertiesFormat; props != nil {
 		if feipConfigs := props.FrontendIPConfigurations; feipConfigs != nil {
 			if err := d.Set("frontend_ip_configuration", flattenLoadBalancerFrontendIpConfiguration(feipConfigs)); err != nil {
-				return fmt.Errorf("Error flattening `frontend_ip_configuration`: %+v", err)
+				return fmt.Errorf("flattening `frontend_ip_configuration`: %+v", err)
 			}
 
 			privateIpAddress := ""

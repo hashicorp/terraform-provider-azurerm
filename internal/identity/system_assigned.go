@@ -26,19 +26,11 @@ func (s SystemAssigned) Flatten(input *ExpandedConfig) []interface{} {
 		return []interface{}{}
 	}
 
-	coalesce := func(input *string) string {
-		if input == nil {
-			return ""
-		}
-
-		return *input
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"type":         input.Type,
-			"principal_id": coalesce(input.PrincipalId),
-			"tenant_id":    coalesce(input.TenantId),
+			"principal_id": input.PrincipalId,
+			"tenant_id":    input.TenantId,
 		},
 	}
 }

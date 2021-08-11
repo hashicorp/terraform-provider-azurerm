@@ -75,9 +75,9 @@ func expandVirtualMachineIdentity(input []interface{}) (*compute.VirtualMachineI
 	}
 
 	var identityIds map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue
-	if config.UserAssignedIdentityIds != nil {
+	if len(config.UserAssignedIdentityIds) != 0 {
 		identityIds = map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue{}
-		for _, id := range *config.UserAssignedIdentityIds {
+		for _, id := range config.UserAssignedIdentityIds {
 			identityIds[id] = &compute.VirtualMachineIdentityUserAssignedIdentitiesValue{}
 		}
 	}
@@ -101,11 +101,21 @@ func flattenVirtualMachineIdentity(input *compute.VirtualMachineIdentity) ([]int
 			identityIds = append(identityIds, parsedId.ID())
 		}
 
+		principalId := ""
+		if input.PrincipalID != nil {
+			principalId = *input.PrincipalID
+		}
+
+		tenantId := ""
+		if input.TenantID != nil {
+			tenantId = *input.TenantID
+		}
+
 		config = &identity.ExpandedConfig{
 			Type:                    identity.Type(string(input.Type)),
-			PrincipalId:             input.PrincipalID,
-			TenantId:                input.TenantID,
-			UserAssignedIdentityIds: &identityIds,
+			PrincipalId:             principalId,
+			TenantId:                tenantId,
+			UserAssignedIdentityIds: identityIds,
 		}
 	}
 	return virtualMachineIdentity{}.Flatten(config), nil

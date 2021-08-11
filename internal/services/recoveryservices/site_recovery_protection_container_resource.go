@@ -70,7 +70,7 @@ func resourceSiteRecoveryProtectionContainerCreate(d *pluginsdk.ResourceData, me
 		existing, err := client.Get(ctx, fabricName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing site recovery protection container %s (fabric %s): %+v", name, fabricName, err)
+				return fmt.Errorf("checking for presence of existing site recovery protection container %s (fabric %s): %+v", name, fabricName, err)
 			}
 		}
 
@@ -85,15 +85,15 @@ func resourceSiteRecoveryProtectionContainerCreate(d *pluginsdk.ResourceData, me
 
 	future, err := client.Create(ctx, fabricName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating site recovery protection container %s (fabric %s): %+v", name, fabricName, err)
+		return fmt.Errorf("creating site recovery protection container %s (fabric %s): %+v", name, fabricName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error creating site recovery protection container %s (fabric %s): %+v", name, fabricName, err)
+		return fmt.Errorf("creating site recovery protection container %s (fabric %s): %+v", name, fabricName, err)
 	}
 
 	resp, err := client.Get(ctx, fabricName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving site recovery protection container %s (fabric %s): %+v", name, fabricName, err)
+		return fmt.Errorf("retrieving site recovery protection container %s (fabric %s): %+v", name, fabricName, err)
 	}
 
 	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
@@ -122,7 +122,7 @@ func resourceSiteRecoveryProtectionContainerRead(d *pluginsdk.ResourceData, meta
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on site recovery protection container %s (fabric %s): %+v", name, fabricName, err)
+		return fmt.Errorf("making Read request on site recovery protection container %s (fabric %s): %+v", name, fabricName, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -149,11 +149,11 @@ func resourceSiteRecoveryProtectionContainerDelete(d *pluginsdk.ResourceData, me
 
 	future, err := client.Delete(ctx, fabricName, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting site recovery protection container %s (fabric %s): %+v", name, fabricName, err)
+		return fmt.Errorf("deleting site recovery protection container %s (fabric %s): %+v", name, fabricName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of site recovery protection container %s (fabric %s): %+v", name, fabricName, err)
+		return fmt.Errorf("waiting for deletion of site recovery protection container %s (fabric %s): %+v", name, fabricName, err)
 	}
 
 	return nil

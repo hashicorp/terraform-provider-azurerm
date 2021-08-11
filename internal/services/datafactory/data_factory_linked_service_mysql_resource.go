@@ -111,7 +111,7 @@ func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *pluginsdk.ResourceData
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 			}
 		}
 
@@ -160,12 +160,12 @@ func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, linkedService, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
@@ -194,7 +194,7 @@ func resourceDataFactoryLinkedServiceMySQLRead(d *pluginsdk.ResourceData, meta i
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -203,7 +203,7 @@ func resourceDataFactoryLinkedServiceMySQLRead(d *pluginsdk.ResourceData, meta i
 
 	mysql, ok := resp.Properties.AsMySQLLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeMySQL, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeMySQL, *resp.Type)
 	}
 
 	d.Set("additional_properties", mysql.AdditionalProperties)
@@ -211,12 +211,12 @@ func resourceDataFactoryLinkedServiceMySQLRead(d *pluginsdk.ResourceData, meta i
 
 	annotations := flattenDataFactoryAnnotations(mysql.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
-		return fmt.Errorf("Error setting `annotations`: %+v", err)
+		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
 	parameters := flattenDataFactoryParameters(mysql.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
-		return fmt.Errorf("Error setting `parameters`: %+v", err)
+		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
 	if connectVia := mysql.ConnectVia; connectVia != nil {
@@ -241,7 +241,7 @@ func resourceDataFactoryLinkedServiceMySQLDelete(d *pluginsdk.ResourceData, meta
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Data Factory Linked Service MySQL %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 		}
 	}
 

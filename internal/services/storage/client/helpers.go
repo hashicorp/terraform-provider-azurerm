@@ -37,7 +37,7 @@ func (ad *accountDetails) AccountKey(ctx context.Context, client Client) (*strin
 	log.Printf("[DEBUG] Cache Miss - looking up the account key for storage account %q..", ad.name)
 	props, err := client.AccountsClient.ListKeys(ctx, ad.ResourceGroup, ad.name, storage.Kerb)
 	if err != nil {
-		return nil, fmt.Errorf("Error Listing Keys for Storage Account %q (Resource Group %q): %+v", ad.name, ad.ResourceGroup, err)
+		return nil, fmt.Errorf("Listing Keys for Storage Account %q (Resource Group %q): %+v", ad.name, ad.ResourceGroup, err)
 	}
 
 	if props.Keys == nil || len(*props.Keys) == 0 || (*props.Keys)[0].Value == nil {
@@ -83,7 +83,7 @@ func (client Client) FindAccount(ctx context.Context, accountName string) (*acco
 
 	accountsPage, err := client.AccountsClient.List(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Error retrieving storage accounts: %+v", err)
+		return nil, fmt.Errorf("retrieving storage accounts: %+v", err)
 	}
 
 	var accounts []storage.Account
@@ -91,7 +91,7 @@ func (client Client) FindAccount(ctx context.Context, accountName string) (*acco
 		accounts = append(accounts, accountsPage.Values()...)
 		err = accountsPage.NextWithContext(ctx)
 		if err != nil {
-			return nil, fmt.Errorf("Error retrieving next page of storage accounts: %+v", err)
+			return nil, fmt.Errorf("retrieving next page of storage accounts: %+v", err)
 		}
 	}
 
@@ -123,7 +123,7 @@ func populateAccountDetails(accountName string, props storage.Account) (*account
 	accountId := *props.ID
 	id, err := parse.StorageAccountID(accountId)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing %q as a Resource ID: %+v", accountId, err)
+		return nil, fmt.Errorf("parsing %q as a Resource ID: %+v", accountId, err)
 	}
 
 	return &accountDetails{
