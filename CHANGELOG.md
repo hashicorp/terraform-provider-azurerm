@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_video_analyzer` [GH-12665]
+* **New Resource:** `azurerm_video_analyzer_edge_module` [GH-12911]
 
 ENHANCEMENTS:
 
