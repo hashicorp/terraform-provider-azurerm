@@ -195,22 +195,24 @@ func resourceEventGridTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		InboundIPRules:      expandInboundIPRules(d),
 	}
 
-	identityRaw := d.Get("identity").([]interface{})
-	identity, err := expandIdentity(identityRaw)
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
-	properties := eventgrid.Topic{
+	topic := eventgrid.Topic{
 		Location:        &location,
-		Identity:        identity,
 		TopicProperties: topicProperties,
 		Tags:            tags.Expand(t),
 	}
 
-	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Topic creation with Properties: %+v.", properties)
+	if v, ok := d.GetOk("identity"); ok {
+		identityRaw := v.([]interface{})
+		identity, err := expandIdentity(identityRaw)
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		topic.Identity = identity
+	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
+	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Topic creation with Properties: %+v.", topic)
+
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, topic)
 	if err != nil {
 		return err
 	}

@@ -188,12 +188,6 @@ func resourceEventGridDomainCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	identityRaw := d.Get("identity").([]interface{})
-	identity, err := expandIdentity(identityRaw)
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
 	domainProperties := &eventgrid.DomainProperties{
 		InputSchemaMapping:  expandAzureRmEventgridDomainInputMapping(d),
 		InputSchema:         eventgrid.InputSchema(d.Get("input_schema").(string)),
@@ -203,9 +197,17 @@ func resourceEventGridDomainCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	domain := eventgrid.Domain{
 		Location:         &location,
-		Identity:         identity,
 		DomainProperties: domainProperties,
 		Tags:             tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("identity"); ok {
+		identityRaw := v.([]interface{})
+		identity, err := expandIdentity(identityRaw)
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		domain.Identity = identity
 	}
 
 	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Domain creation with Properties: %+v", domain)
