@@ -410,6 +410,7 @@ func (NetAppVolumeResource) nfsv3SnapshotDirectoryVisibleFalse(data acceptance.T
 	template := NetAppVolumeResource{}.template(data)
 	return fmt.Sprintf(`
 %[1]s
+
 resource "azurerm_netapp_volume" "test_snapshot_directory_visible_false" {
   name                        = "acctest-NetAppVolume-%[2]d"
   location                    = azurerm_resource_group.test.location
