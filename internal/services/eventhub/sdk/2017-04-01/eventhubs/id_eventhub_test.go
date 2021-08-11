@@ -16,7 +16,7 @@ func TestEventhubIDFormatter(t *testing.T) {
 	}
 }
 
-func TestEventhubID(t *testing.T) {
+func TestParseEventhubID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -98,7 +98,7 @@ func TestEventhubID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := EventhubID(v.Input)
+		actual, err := ParseEventhubID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -125,7 +125,7 @@ func TestEventhubID(t *testing.T) {
 	}
 }
 
-func TestEventhubIDInsensitively(t *testing.T) {
+func TestParseEventhubIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -234,7 +234,7 @@ func TestEventhubIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := EventhubIDInsensitively(v.Input)
+		actual, err := ParseEventhubIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

@@ -1,4 +1,4 @@
-package disasterrecoveryconfigs
+package namespaces
 
 import (
 	"context"
@@ -12,14 +12,14 @@ import (
 
 type ListResponse struct {
 	HttpResponse *http.Response
-	Model        *[]ArmDisasterRecovery
+	Model        *[]EHNamespace
 
 	nextLink     *string
 	nextPageFunc func(ctx context.Context, nextLink string) (ListResponse, error)
 }
 
 type ListCompleteResult struct {
-	Items []ArmDisasterRecovery
+	Items []EHNamespace
 }
 
 func (r ListResponse) HasMore() bool {
@@ -35,35 +35,35 @@ func (r ListResponse) LoadMore(ctx context.Context) (resp ListResponse, err erro
 }
 
 // List ...
-func (c DisasterRecoveryConfigsClient) List(ctx context.Context, id NamespaceId) (resp ListResponse, err error) {
+func (c NamespacesClient) List(ctx context.Context, id SubscriptionId) (resp ListResponse, err error) {
 	req, err := c.preparerForList(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "disasterrecoveryconfigs.DisasterRecoveryConfigsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "namespaces.NamespacesClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "disasterrecoveryconfigs.DisasterRecoveryConfigsClient", "List", resp.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "namespaces.NamespacesClient", "List", resp.HttpResponse, "Failure sending request")
 		return
 	}
 
 	resp, err = c.responderForList(resp.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "disasterrecoveryconfigs.DisasterRecoveryConfigsClient", "List", resp.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "namespaces.NamespacesClient", "List", resp.HttpResponse, "Failure responding to request")
 		return
 	}
 	return
 }
 
 // ListComplete retrieves all of the results into a single object
-func (c DisasterRecoveryConfigsClient) ListComplete(ctx context.Context, id NamespaceId) (ListCompleteResult, error) {
-	return c.ListCompleteMatchingPredicate(ctx, id, ArmDisasterRecoveryPredicate{})
+func (c NamespacesClient) ListComplete(ctx context.Context, id SubscriptionId) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, EHNamespacePredicate{})
 }
 
 // ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c DisasterRecoveryConfigsClient) ListCompleteMatchingPredicate(ctx context.Context, id NamespaceId, predicate ArmDisasterRecoveryPredicate) (resp ListCompleteResult, err error) {
-	items := make([]ArmDisasterRecovery, 0)
+func (c NamespacesClient) ListCompleteMatchingPredicate(ctx context.Context, id SubscriptionId, predicate EHNamespacePredicate) (resp ListCompleteResult, err error) {
+	items := make([]EHNamespace, 0)
 
 	page, err := c.List(ctx, id)
 	if err != nil {
@@ -101,7 +101,7 @@ func (c DisasterRecoveryConfigsClient) ListCompleteMatchingPredicate(ctx context
 }
 
 // preparerForList prepares the List request.
-func (c DisasterRecoveryConfigsClient) preparerForList(ctx context.Context, id NamespaceId) (*http.Request, error) {
+func (c NamespacesClient) preparerForList(ctx context.Context, id SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -110,13 +110,13 @@ func (c DisasterRecoveryConfigsClient) preparerForList(ctx context.Context, id N
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsGet(),
 		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(fmt.Sprintf("%s/disasterRecoveryConfigs", id.ID())),
+		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.EventHub/namespaces", id.ID())),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // preparerForListWithNextLink prepares the List request with the given nextLink token.
-func (c DisasterRecoveryConfigsClient) preparerForListWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
+func (c NamespacesClient) preparerForListWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
 	uri, err := url.Parse(nextLink)
 	if err != nil {
 		return nil, fmt.Errorf("parsing nextLink %q: %+v", nextLink, err)
@@ -142,10 +142,10 @@ func (c DisasterRecoveryConfigsClient) preparerForListWithNextLink(ctx context.C
 
 // responderForList handles the response to the List request. The method always
 // closes the http.Response Body.
-func (c DisasterRecoveryConfigsClient) responderForList(resp *http.Response) (result ListResponse, err error) {
+func (c NamespacesClient) responderForList(resp *http.Response) (result ListResponse, err error) {
 	type page struct {
-		Values   []ArmDisasterRecovery `json:"value"`
-		NextLink *string               `json:"nextLink"`
+		Values   []EHNamespace `json:"value"`
+		NextLink *string       `json:"nextLink"`
 	}
 	var respObj page
 	err = autorest.Respond(
@@ -160,19 +160,19 @@ func (c DisasterRecoveryConfigsClient) responderForList(resp *http.Response) (re
 		result.nextPageFunc = func(ctx context.Context, nextLink string) (result ListResponse, err error) {
 			req, err := c.preparerForListWithNextLink(ctx, nextLink)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "disasterrecoveryconfigs.DisasterRecoveryConfigsClient", "List", nil, "Failure preparing request")
+				err = autorest.NewErrorWithError(err, "namespaces.NamespacesClient", "List", nil, "Failure preparing request")
 				return
 			}
 
 			result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "disasterrecoveryconfigs.DisasterRecoveryConfigsClient", "List", result.HttpResponse, "Failure sending request")
+				err = autorest.NewErrorWithError(err, "namespaces.NamespacesClient", "List", result.HttpResponse, "Failure sending request")
 				return
 			}
 
 			result, err = c.responderForList(result.HttpResponse)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "disasterrecoveryconfigs.DisasterRecoveryConfigsClient", "List", result.HttpResponse, "Failure responding to request")
+				err = autorest.NewErrorWithError(err, "namespaces.NamespacesClient", "List", result.HttpResponse, "Failure responding to request")
 				return
 			}
 

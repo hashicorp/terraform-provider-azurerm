@@ -38,8 +38,8 @@ func (id DisasterRecoveryConfigId) ID() string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.Name)
 }
 
-// DisasterRecoveryConfigID parses a DisasterRecoveryConfig ID into an DisasterRecoveryConfigId struct
-func DisasterRecoveryConfigID(input string) (*DisasterRecoveryConfigId, error) {
+// ParseDisasterRecoveryConfigID parses a DisasterRecoveryConfig ID into an DisasterRecoveryConfigId struct
+func ParseDisasterRecoveryConfigID(input string) (*DisasterRecoveryConfigId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
@@ -72,10 +72,10 @@ func DisasterRecoveryConfigID(input string) (*DisasterRecoveryConfigId, error) {
 	return &resourceId, nil
 }
 
-// DisasterRecoveryConfigIDInsensitively parses an DisasterRecoveryConfig ID into an DisasterRecoveryConfigId struct, insensitively
+// ParseDisasterRecoveryConfigIDInsensitively parses an DisasterRecoveryConfig ID into an DisasterRecoveryConfigId struct, insensitively
 // This should only be used to parse an ID for rewriting to a consistent casing,
-// the DisasterRecoveryConfigID method should be used instead for validation etc.
-func DisasterRecoveryConfigIDInsensitively(input string) (*DisasterRecoveryConfigId, error) {
+// the ParseDisasterRecoveryConfigID method should be used instead for validation etc.
+func ParseDisasterRecoveryConfigIDInsensitively(input string) (*DisasterRecoveryConfigId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err

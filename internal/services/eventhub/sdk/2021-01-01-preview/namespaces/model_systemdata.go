@@ -15,7 +15,7 @@ type SystemData struct {
 	LastModifiedByType *CreatedByType `json:"lastModifiedByType,omitempty"`
 }
 
-func (o SystemData) ListCreatedAtAsTime() (*time.Time, error) {
+func (o SystemData) GetCreatedAtAsTime() (*time.Time, error) {
 	return formatting.ParseAsDateFormat(o.CreatedAt, "2006-01-02T15:04:05Z07:00")
 }
 
@@ -24,7 +24,7 @@ func (o SystemData) SetCreatedAtAsTime(input time.Time) {
 	o.CreatedAt = &formatted
 }
 
-func (o SystemData) ListLastModifiedAtAsTime() (*time.Time, error) {
+func (o SystemData) GetLastModifiedAtAsTime() (*time.Time, error) {
 	return formatting.ParseAsDateFormat(o.LastModifiedAt, "2006-01-02T15:04:05Z07:00")
 }
 

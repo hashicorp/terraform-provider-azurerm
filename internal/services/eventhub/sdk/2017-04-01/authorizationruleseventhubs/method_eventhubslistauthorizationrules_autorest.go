@@ -34,19 +34,6 @@ func (r EventHubsListAuthorizationRulesResponse) LoadMore(ctx context.Context) (
 	return r.nextPageFunc(ctx, *r.nextLink)
 }
 
-type AuthorizationRulePredicate struct {
-	// TODO: implement me
-}
-
-func (p AuthorizationRulePredicate) Matches(input AuthorizationRule) bool {
-	// TODO: implement me
-	// if p.Name != nil && input.Name != *p.Name {
-	// 	return false
-	// }
-
-	return true
-}
-
 // EventHubsListAuthorizationRules ...
 func (c AuthorizationRulesEventHubsClient) EventHubsListAuthorizationRules(ctx context.Context, id EventhubId) (resp EventHubsListAuthorizationRulesResponse, err error) {
 	req, err := c.preparerForEventHubsListAuthorizationRules(ctx, id)
@@ -69,7 +56,7 @@ func (c AuthorizationRulesEventHubsClient) EventHubsListAuthorizationRules(ctx c
 	return
 }
 
-// EventHubsListAuthorizationRulesCompleteMatchingPredicate retrieves all of the results into a single object
+// EventHubsListAuthorizationRulesComplete retrieves all of the results into a single object
 func (c AuthorizationRulesEventHubsClient) EventHubsListAuthorizationRulesComplete(ctx context.Context, id EventhubId) (EventHubsListAuthorizationRulesCompleteResult, error) {
 	return c.EventHubsListAuthorizationRulesCompleteMatchingPredicate(ctx, id, AuthorizationRulePredicate{})
 }
