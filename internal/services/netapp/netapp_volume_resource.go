@@ -255,9 +255,10 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				},
 			},
 
-			"hide_snapshot_path": {
+			"snapshot_directory_visible": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 		},
 	}
@@ -318,7 +319,7 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		volumeType = "DataProtection"
 	}
 
-	snapshotDirectoryVisible := !(d.Get("hide_snapshot_path").(bool))
+	snapshotDirectoryVisible := d.Get("snapshot_directory_visible").(bool)
 
 	// Handling volume creation from snapshot case
 	snapshotResourceID := d.Get("create_from_snapshot_resource_id").(string)
@@ -491,7 +492,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("subnet_id", props.SubnetID)
 		d.Set("protocols", props.ProtocolTypes)
 		d.Set("security_style", props.SecurityStyle)
-		d.Set("hide_snapshot_path", !(*props.SnapshotDirectoryVisible))
+		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
 		}

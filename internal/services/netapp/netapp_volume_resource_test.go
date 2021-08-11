@@ -78,16 +78,16 @@ func TestAccNetAppVolume_nfsv3FromSnapshot(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_nfsv3HideSnapshotPath(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_hide_snapshot_path")
+func TestAccNetAppVolume_nfsv3SnapshotDirectoryVisibleFalse(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_snapshot_directory_visible_false")
 	r := NetAppVolumeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.nfsv3HideSnapshotPath(data),
+			Config: r.nfsv3SnapshotDirectoryVisibleFalse(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("hide_snapshot_path").HasValue("true"),
+				check.That(data.ResourceName).Key("snapshot_directory_visible").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -406,22 +406,23 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
 `, template, data.RandomInteger)
 }
 
-func (NetAppVolumeResource) nfsv3HideSnapshotPath(data acceptance.TestData) string {
+func (NetAppVolumeResource) nfsv3SnapshotDirectoryVisibleFalse(data acceptance.TestData) string {
 	template := NetAppVolumeResource{}.template(data)
 	return fmt.Sprintf(`
 %[1]s
-resource "azurerm_netapp_volume" "test_hide_snapshot_path" {
-  name                = "acctest-NetAppVolume-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_netapp_account.test.name
-  pool_name           = azurerm_netapp_pool.test.name
-  volume_path         = "my-unique-file-path-%[2]d"
-  service_level       = "Standard"
-  subnet_id           = azurerm_subnet.test.id
-  protocols           = ["NFSv3"]
-  storage_quota_in_gb = 100
-  hide_snapshot_path  = true
+resource "azurerm_netapp_volume" "test_snapshot_directory_visible_false" {
+  name                        = "acctest-NetAppVolume-%[2]d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  account_name                = azurerm_netapp_account.test.name
+  pool_name                   = azurerm_netapp_pool.test.name
+  volume_path                 = "my-unique-file-path-%[2]d"
+  service_level               = "Standard"
+  subnet_id                   = azurerm_subnet.test.id
+  protocols                   = ["NFSv3"]
+  storage_quota_in_gb         = 100
+  snapshot_directory_visible  = false
+
   export_policy_rule {
     rule_index        = 1
     allowed_clients   = ["1.2.3.0/24"]
