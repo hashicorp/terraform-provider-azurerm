@@ -5,18 +5,18 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel"
 
 	"github.com/google/uuid"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SentinelAutomationRuleResource struct{ uuid string }
@@ -25,10 +25,10 @@ func TestAccSentinelAutomationRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
 	r := SentinelAutomationRuleResource{uuid: uuid.New().String()}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -40,10 +40,10 @@ func TestAccSentinelAutomationRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
 	r := SentinelAutomationRuleResource{uuid: uuid.New().String()}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -55,24 +55,24 @@ func TestAccSentinelAutomationRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
 	r := SentinelAutomationRuleResource{uuid: uuid.New().String()}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -84,10 +84,10 @@ func TestAccSentinelAutomationRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
 	r := SentinelAutomationRuleResource{uuid: uuid.New().String()}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -95,7 +95,7 @@ func TestAccSentinelAutomationRule_requiresImport(t *testing.T) {
 	})
 }
 
-func (r SentinelAutomationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r SentinelAutomationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Sentinel.AutomationRulesClient
 
 	id, err := parse.AutomationRuleID(state.ID)

@@ -5,7 +5,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 )
 
 func AutomationRuleID(input interface{}, key string) (warnings []string, errors []error) {
