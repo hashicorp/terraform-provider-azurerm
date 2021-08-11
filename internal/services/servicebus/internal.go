@@ -92,6 +92,18 @@ func authorizationRuleSchemaFrom(s map[string]*pluginsdk.Schema) map[string]*plu
 			Computed:  true,
 			Sensitive: true,
 		},
+
+		"alias_primary_connection_string": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"alias_secondary_connection_string": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
 	}
 	return azure.MergeSchema(s, authSchema)
 }

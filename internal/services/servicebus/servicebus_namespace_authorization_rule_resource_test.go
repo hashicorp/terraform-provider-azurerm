@@ -71,6 +71,8 @@ func TestAccServiceBusNamespaceAuthorizationRule_rightsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("secondary_key").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("alias_primary_connection_string").HasValue(""),
+				check.That(data.ResourceName).Key("alias_secondary_connection_string").HasValue(""),
 				check.That(data.ResourceName).Key("listen").HasValue("true"),
 				check.That(data.ResourceName).Key("send").HasValue("true"),
 				check.That(data.ResourceName).Key("manage").HasValue("true"),

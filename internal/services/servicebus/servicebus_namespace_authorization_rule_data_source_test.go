@@ -24,6 +24,8 @@ func TestAccDataSourceServiceBusNamespaceRule_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("primary_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("secondary_key").Exists(),
+				check.That(data.ResourceName).Key("alias_primary_connection_string").HasValue(""),
+				check.That(data.ResourceName).Key("alias_secondary_connection_string").HasValue(""),
 			),
 		},
 	})

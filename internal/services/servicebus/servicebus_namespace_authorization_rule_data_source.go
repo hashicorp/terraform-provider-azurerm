@@ -58,6 +58,18 @@ func dataSourceServiceBusNamespaceAuthorizationRule() *pluginsdk.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"alias_primary_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"alias_secondary_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -88,6 +100,8 @@ func dataSourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceDat
 	d.Set("primary_connection_string", keysResp.PrimaryConnectionString)
 	d.Set("secondary_key", keysResp.SecondaryKey)
 	d.Set("secondary_connection_string", keysResp.SecondaryConnectionString)
+	d.Set("alias_primary_connection_string", keysResp.AliasPrimaryConnectionString)
+	d.Set("alias_secondary_connection_string", keysResp.AliasSecondaryConnectionString)
 
 	return nil
 }
