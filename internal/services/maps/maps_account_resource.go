@@ -5,13 +5,14 @@ import (
 	"log"
 	"time"
 
+	accounts2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/sdk/2021-02-01/accounts"
+
 	"github.com/hashicorp/go-azure-helpers/response"
 
 	"github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2021-02-01/maps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/sdk/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -34,7 +35,7 @@ func resourceMapsAccount() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := accounts.ParseAccountID(id)
+			_, err := accounts2.ParseAccountID(id)
 			return err
 		}),
 
@@ -89,7 +90,7 @@ func resourceMapsAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	log.Printf("[INFO] preparing arguments for AzureRM Maps Account creation.")
 
-	id := accounts.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := accounts2.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -103,10 +104,10 @@ func resourceMapsAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	parameters := accounts.MapsAccount{
+	parameters := accounts2.MapsAccount{
 		Location: "global",
-		Sku: accounts.Sku{
-			Name: accounts.Name(d.Get("sku_name").(string)),
+		Sku: accounts2.Sku{
+			Name: accounts2.Name(d.Get("sku_name").(string)),
 		},
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
@@ -127,7 +128,7 @@ func resourceMapsAccountRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := accounts.ParseAccountID(d.Id())
+	id, err := accounts2.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -173,7 +174,7 @@ func resourceMapsAccountDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := accounts.ParseAccountID(d.Id())
+	id, err := accounts2.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
