@@ -1579,9 +1579,9 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 		// we need to ensure the whitespace is consistent
 		settings := m["settings"].(string)
 		if settings != "" {
-			expandedSettings, err := structure.ExpandJsonFromString(settings)
+			expandedSettings, err := pluginsdk.ExpandJsonFromString(settings)
 			if err == nil {
-				serializedSettings, err := structure.FlattenJsonToString(expandedSettings)
+				serializedSettings, err := pluginsdk.FlattenJsonToString(expandedSettings)
 				if err == nil {
 					buf.WriteString(fmt.Sprintf("%s-", serializedSettings))
 				}
@@ -1591,9 +1591,9 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 		if v, ok := m["protected_settings"]; ok {
 			settings := v.(string)
 			if settings != "" {
-				expandedSettings, err := structure.ExpandJsonFromString(settings)
+				expandedSettings, err := pluginsdk.ExpandJsonFromString(settings)
 				if err == nil {
-					serializedSettings, err := structure.FlattenJsonToString(expandedSettings)
+					serializedSettings, err := pluginsdk.FlattenJsonToString(expandedSettings)
 					if err == nil {
 						buf.WriteString(fmt.Sprintf("%s-", serializedSettings))
 					}
@@ -1602,7 +1602,7 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 		}
 	}
 
-	return schema.HashString(buf.String())
+	return pluginsdk.HashString(buf.String())
 }
 
 func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfile *compute.VirtualMachineScaleSetExtensionProfile, hasHealthExtension bool, err error) {
@@ -1669,7 +1669,7 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 	// since it is not returned from the API.
 	extensionsFromState := map[string]map[string]interface{}{}
 	if extSet, ok := d.GetOk("extension"); ok && extSet != nil {
-		extensions := extSet.(*schema.Set).List()
+		extensions := extSet.(*pluginsdk.Set).List()
 		for _, ext := range extensions {
 			if ext == nil {
 				continue
