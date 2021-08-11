@@ -613,12 +613,12 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("Error: Managed Kubernetes Cluster %q was not found in Resource Group %q", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	profile, err := client.GetAccessProfile(ctx, resourceGroup, name, "clusterUser")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -641,7 +641,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 		if accessProfile := props.APIServerAccessProfile; accessProfile != nil {
 			apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
 			if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
-				return fmt.Errorf("Error setting `api_server_authorized_ip_ranges`: %+v", err)
+				return fmt.Errorf("setting `api_server_authorized_ip_ranges`: %+v", err)
 			}
 
 			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
@@ -650,12 +650,12 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 
 		addonProfiles := flattenKubernetesClusterDataSourceAddonProfiles(props.AddonProfiles)
 		if err := d.Set("addon_profile", addonProfiles); err != nil {
-			return fmt.Errorf("Error setting `addon_profile`: %+v", err)
+			return fmt.Errorf("setting `addon_profile`: %+v", err)
 		}
 
 		agentPoolProfiles := flattenKubernetesClusterDataSourceAgentPoolProfiles(props.AgentPoolProfiles)
 		if err := d.Set("agent_pool_profile", agentPoolProfiles); err != nil {
-			return fmt.Errorf("Error setting `agent_pool_profile`: %+v", err)
+			return fmt.Errorf("setting `agent_pool_profile`: %+v", err)
 		}
 
 		kubeletIdentity, err := flattenKubernetesClusterDataSourceIdentityProfile(props.IdentityProfile)
@@ -668,40 +668,40 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 
 		linuxProfile := flattenKubernetesClusterDataSourceLinuxProfile(props.LinuxProfile)
 		if err := d.Set("linux_profile", linuxProfile); err != nil {
-			return fmt.Errorf("Error setting `linux_profile`: %+v", err)
+			return fmt.Errorf("setting `linux_profile`: %+v", err)
 		}
 
 		windowsProfile := flattenKubernetesClusterDataSourceWindowsProfile(props.WindowsProfile)
 		if err := d.Set("windows_profile", windowsProfile); err != nil {
-			return fmt.Errorf("Error setting `windows_profile`: %+v", err)
+			return fmt.Errorf("setting `windows_profile`: %+v", err)
 		}
 
 		networkProfile := flattenKubernetesClusterDataSourceNetworkProfile(props.NetworkProfile)
 		if err := d.Set("network_profile", networkProfile); err != nil {
-			return fmt.Errorf("Error setting `network_profile`: %+v", err)
+			return fmt.Errorf("setting `network_profile`: %+v", err)
 		}
 
 		roleBasedAccessControl := flattenKubernetesClusterDataSourceRoleBasedAccessControl(props)
 		if err := d.Set("role_based_access_control", roleBasedAccessControl); err != nil {
-			return fmt.Errorf("Error setting `role_based_access_control`: %+v", err)
+			return fmt.Errorf("setting `role_based_access_control`: %+v", err)
 		}
 
 		servicePrincipal := flattenKubernetesClusterDataSourceServicePrincipalProfile(props.ServicePrincipalProfile)
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
-			return fmt.Errorf("Error setting `service_principal`: %+v", err)
+			return fmt.Errorf("setting `service_principal`: %+v", err)
 		}
 
 		// adminProfile is only available for RBAC enabled clusters with AAD
 		if props.AadProfile != nil {
 			adminProfile, err := client.GetAccessProfile(ctx, resourceGroup, name, "clusterAdmin")
 			if err != nil {
-				return fmt.Errorf("Error retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 
 			adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(adminProfile)
 			d.Set("kube_admin_config_raw", adminKubeConfigRaw)
 			if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
-				return fmt.Errorf("Error setting `kube_admin_config`: %+v", err)
+				return fmt.Errorf("setting `kube_admin_config`: %+v", err)
 			}
 		} else {
 			d.Set("kube_admin_config_raw", "")
@@ -721,7 +721,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	kubeConfigRaw, kubeConfig := flattenKubernetesClusterDataSourceAccessProfile(profile)
 	d.Set("kube_config_raw", kubeConfigRaw)
 	if err := d.Set("kube_config", kubeConfig); err != nil {
-		return fmt.Errorf("Error setting `kube_config`: %+v", err)
+		return fmt.Errorf("setting `kube_config`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

@@ -394,7 +394,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	identityRaw := d.Get("identity").([]interface{})
 	identity, err := expandCognitiveAccountIdentity(identityRaw)
 	if err != nil {
-		return fmt.Errorf("Error expanding `identity`: %+v", err)
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 	props.Identity = identity
 
@@ -430,7 +430,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	sku, err := expandAccountSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("error expanding sku_name for %s: %+v", *id, err)
+		return fmt.Errorf("expanding sku_name for %s: %+v", *id, err)
 	}
 
 	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d)
@@ -477,7 +477,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	identityRaw := d.Get("identity").([]interface{})
 	identity, err := expandCognitiveAccountIdentity(identityRaw)
 	if err != nil {
-		return fmt.Errorf("Error expanding `identity`: %+v", err)
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 	props.Identity = identity
 

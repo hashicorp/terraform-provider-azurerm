@@ -76,7 +76,7 @@ func dataSourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("Error: default tags for Subscription %q was not found", subscriptionId)
 		}
 
-		return fmt.Errorf("Error reading default tags for Subscription: %+v", err)
+		return fmt.Errorf("reading default tags for Subscription: %+v", err)
 	}
 
 	d.SetId(*resp.ID)

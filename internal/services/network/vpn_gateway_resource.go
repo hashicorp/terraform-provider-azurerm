@@ -189,7 +189,7 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -218,7 +218,7 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("Error creating VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if err := waitForCompletion(d, ctx, client, resourceGroup, name); err != nil {
 		return err
@@ -226,7 +226,7 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	// `vpnGatewayParameters.Properties.bgpSettings.bgpPeeringAddress` customer cannot provide this field during create. This will be set with default value once gateway is created.
@@ -328,7 +328,7 @@ func resourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -339,7 +339,7 @@ func resourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if props := resp.VpnGatewayProperties; props != nil {
 		if err := d.Set("bgp_settings", flattenVPNGatewayBGPSettings(props.BgpSettings)); err != nil {
-			return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
+			return fmt.Errorf("setting `bgp_settings`: %+v", err)
 		}
 
 		scaleUnit := 0
@@ -374,7 +374,7 @@ func resourceVPNGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
@@ -383,7 +383,7 @@ func resourceVPNGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error
 			return nil
 		}
 
-		return fmt.Errorf("Error waiting for deletion of VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -487,12 +487,12 @@ func vpnGatewayWaitForCreatedRefreshFunc(ctx context.Context, client *network.Vp
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			log.Printf("[DEBUG] Error retrieving VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
-			return nil, "error", fmt.Errorf("Error retrieving VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return nil, "error", fmt.Errorf("retrieving VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		if resp.VpnGatewayProperties == nil {
 			log.Printf("[DEBUG] Error retrieving VPN Gateway %q (Resource Group %q): `properties` was nil", name, resourceGroup)
-			return nil, "error", fmt.Errorf("Error retrieving VPN Gateway %q (Resource Group %q): `properties` was nil", name, resourceGroup)
+			return nil, "error", fmt.Errorf("retrieving VPN Gateway %q (Resource Group %q): `properties` was nil", name, resourceGroup)
 		}
 
 		log.Printf("[DEBUG] VPN Gateway %q (Resource Group %q) is %q..", name, resourceGroup, string(resp.VpnGatewayProperties.ProvisioningState))

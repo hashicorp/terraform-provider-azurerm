@@ -86,7 +86,7 @@ func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	log.Printf("[DEBUG] Reading Public IP's in Resource Group %q", resourceGroup)
 	resp, err := client.List(ctx, resourceGroup)
 	if err != nil {
-		return fmt.Errorf("Error listing Public IP Addresses in the Resource Group %q: %v", resourceGroup, err)
+		return fmt.Errorf("listing Public IP Addresses in the Resource Group %q: %v", resourceGroup, err)
 	}
 
 	filteredIPAddresses := make([]network.PublicIPAddress, 0)
@@ -118,7 +118,7 @@ func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	results := flattenDataSourcePublicIPs(filteredIPAddresses)
 	if err := d.Set("public_ips", results); err != nil {
-		return fmt.Errorf("Error setting `public_ips`: %+v", err)
+		return fmt.Errorf("setting `public_ips`: %+v", err)
 	}
 
 	return nil

@@ -91,7 +91,7 @@ func resourceHPCCacheBlobTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta in
 		resp, err := client.Get(ctx, resourceGroup, cache, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for existing HPC Cache Blob Target %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for existing HPC Cache Blob Target %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -123,20 +123,20 @@ func resourceHPCCacheBlobTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta in
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, cache, name, param)
 	if err != nil {
-		return fmt.Errorf("Error creating HPC Cache Blob Target %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating HPC Cache Blob Target %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of HPC Cache Blob Target %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of HPC Cache Blob Target %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, cache, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving HPC Cache Blob Target %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving HPC Cache Blob Target %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Error retrieving HPC Cache Blob Target %q (Resource Group %q): `id` was nil", name, resourceGroup)
+		return fmt.Errorf("retrieving HPC Cache Blob Target %q (Resource Group %q): `id` was nil", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -162,7 +162,7 @@ func resourceHPCCacheBlobTargetRead(d *pluginsdk.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving HPC Cache Blob Target %q (Resource Group %q, Cache %q): %+v", id.Name, id.ResourceGroup, id.CacheName, err)
+		return fmt.Errorf("retrieving HPC Cache Blob Target %q (Resource Group %q, Cache %q): %+v", id.Name, id.ResourceGroup, id.CacheName, err)
 	}
 
 	d.Set("name", id.Name)
@@ -207,11 +207,11 @@ func resourceHPCCacheBlobTargetDelete(d *pluginsdk.ResourceData, meta interface{
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.CacheName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting HPC Cache Blob Target %q (Resource Group %q, Cahe %q): %+v", id.Name, id.ResourceGroup, id.CacheName, err)
+		return fmt.Errorf("deleting HPC Cache Blob Target %q (Resource Group %q, Cahe %q): %+v", id.Name, id.ResourceGroup, id.CacheName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of HPC Cache Blob Target %q (Resource Group %q, Cahe %q): %+v", id.Name, id.ResourceGroup, id.CacheName, err)
+		return fmt.Errorf("waiting for deletion of HPC Cache Blob Target %q (Resource Group %q, Cahe %q): %+v", id.Name, id.ResourceGroup, id.CacheName, err)
 	}
 
 	return nil

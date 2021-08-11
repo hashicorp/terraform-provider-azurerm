@@ -167,7 +167,7 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Stream Analytics Job %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Stream Analytics Job %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -224,11 +224,11 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 		future, err := client.CreateOrReplace(ctx, props, resourceGroup, name, "", "")
 		if err != nil {
-			return fmt.Errorf("Error Creating Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Creating Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for creation of Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for creation of Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		read, err := client.Get(ctx, resourceGroup, name, "")
@@ -242,7 +242,7 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		d.SetId(*read.ID)
 	} else {
 		if _, err := client.Update(ctx, props, resourceGroup, name, ""); err != nil {
-			return fmt.Errorf("Error Updating Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Updating Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		job, err := client.Get(ctx, resourceGroup, name, "transformation")
@@ -252,7 +252,7 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 		if readTransformation := job.Transformation; readTransformation != nil {
 			if _, err := transformationsClient.Update(ctx, transformation, resourceGroup, name, *readTransformation.Name, ""); err != nil {
-				return fmt.Errorf("Error Updating Transformation for Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("Updating Transformation for Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 	}

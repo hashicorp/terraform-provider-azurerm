@@ -59,7 +59,7 @@ func dataSourcePlatformImageRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	result, err := client.List(ctx, location, publisher, offer, sku, "", utils.Int32(int32(1000)), "name")
 	if err != nil {
-		return fmt.Errorf("Error reading Platform Images: %+v", err)
+		return fmt.Errorf("reading Platform Images: %+v", err)
 	}
 
 	var image *compute.VirtualMachineImageResource

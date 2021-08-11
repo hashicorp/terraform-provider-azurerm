@@ -74,7 +74,7 @@ func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta int
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Private Endpoint %q was not found in Resource Group %q", name, resourceGroup)
 		}
-		return fmt.Errorf("Error reading Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("API returns a nil/empty id on Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -98,7 +98,7 @@ func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta int
 		}
 
 		if err := d.Set("private_service_connection", dataSourceFlattenPrivateEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
-			return fmt.Errorf("Error setting `private_service_connection`: %+v", err)
+			return fmt.Errorf("setting `private_service_connection`: %+v", err)
 		}
 	}
 

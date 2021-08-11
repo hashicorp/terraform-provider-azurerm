@@ -134,12 +134,12 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, m
 			return fmt.Errorf("Storage Account %q (Resource Group %q) was not found", storageAccountName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
+		return fmt.Errorf("retrieving Storage Account %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
 	}
 
 	if d.IsNewResource() {
 		if storageAccount.AccountProperties == nil {
-			return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties` was nil", storageAccountName, resourceGroup)
+			return fmt.Errorf("retrieving Storage Account %q (Resource Group %q): `properties` was nil", storageAccountName, resourceGroup)
 		}
 
 		if checkForNonDefaultStorageAccountNetworkRule(storageAccount.AccountProperties.NetworkRuleSet) {
@@ -165,7 +165,7 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if _, err := client.Update(ctx, resourceGroup, storageAccountName, opts); err != nil {
-		return fmt.Errorf("Error updating Azure Storage Account Network Rules %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
+		return fmt.Errorf("updating Azure Storage Account Network Rules %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
 	}
 
 	d.SetId(*storageAccount.ID)
@@ -188,7 +188,7 @@ func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta inte
 
 	storageAccount, err := client.GetProperties(ctx, resourceGroup, storageAccountName, "")
 	if err != nil {
-		return fmt.Errorf("Error reading Storage Account Network Rules %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
+		return fmt.Errorf("reading Storage Account Network Rules %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
 	}
 
 	d.Set("storage_account_name", storageAccountName)
@@ -196,13 +196,13 @@ func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta inte
 
 	if rules := storageAccount.NetworkRuleSet; rules != nil {
 		if err := d.Set("ip_rules", pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountIPRules(rules.IPRules))); err != nil {
-			return fmt.Errorf("Error setting `ip_rules`: %+v", err)
+			return fmt.Errorf("setting `ip_rules`: %+v", err)
 		}
 		if err := d.Set("virtual_network_subnet_ids", pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountVirtualNetworks(rules.VirtualNetworkRules))); err != nil {
-			return fmt.Errorf("Error setting `virtual_network_subnet_ids`: %+v", err)
+			return fmt.Errorf("setting `virtual_network_subnet_ids`: %+v", err)
 		}
 		if err := d.Set("bypass", pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountBypass(rules.Bypass))); err != nil {
-			return fmt.Errorf("Error setting `bypass`: %+v", err)
+			return fmt.Errorf("setting `bypass`: %+v", err)
 		}
 		d.Set("default_action", string(rules.DefaultAction))
 		if err := d.Set("private_link_access", flattenStorageAccountPrivateLinkAccess(rules.ResourceAccessRules)); err != nil {
@@ -235,7 +235,7 @@ func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta in
 			return fmt.Errorf("Storage Account %q (Resource Group %q) was not found", storageAccountName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error loading Storage Account %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
+		return fmt.Errorf("loading Storage Account %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
 	}
 
 	if storageAccount.NetworkRuleSet == nil {
@@ -253,7 +253,7 @@ func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta in
 	}
 
 	if _, err := client.Update(ctx, resourceGroup, storageAccountName, opts); err != nil {
-		return fmt.Errorf("Error deleting Azure Storage Account Network Rule %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
+		return fmt.Errorf("deleting Azure Storage Account Network Rule %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
 	}
 
 	return nil

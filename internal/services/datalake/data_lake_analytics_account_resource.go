@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -89,7 +88,7 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *pluginsdk.ResourceData, meta i
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Data Lake Analytics Account %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing Data Lake Analytics Account %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
 	}
 
@@ -120,16 +119,16 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *pluginsdk.ResourceData, meta i
 
 	future, err := client.Create(ctx, resourceGroup, name, dateLakeAnalyticsAccount)
 	if err != nil {
-		return fmt.Errorf("Error issuing create request for Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("issuing create request for Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error creating Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Data Lake Analytics Account %s (resource group %s) ID", name, resourceGroup)
@@ -165,11 +164,11 @@ func resourceArmDateLakeAnalyticsAccountUpdate(d *pluginsdk.ResourceData, meta i
 
 	future, err := client.Update(ctx, resourceGroup, name, props)
 	if err != nil {
-		return fmt.Errorf("Error issuing update request for Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("issuing update request for Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the update of Data Lake Analytics Account %q (Resource Group %q) to commplete: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the update of Data Lake Analytics Account %q (Resource Group %q) to commplete: %+v", name, resourceGroup, err)
 	}
 
 	return resourceArmDateLakeAnalyticsAccountRead(d, meta)
@@ -195,7 +194,7 @@ func resourceArmDateLakeAnalyticsAccountRead(d *pluginsdk.ResourceData, meta int
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -226,17 +225,11 @@ func resourceArmDateLakeAnalyticsAccountDelete(d *pluginsdk.ResourceData, meta i
 	name := id.Path["accounts"]
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error issuing delete request for Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error deleting Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil

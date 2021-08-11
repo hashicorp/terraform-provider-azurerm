@@ -151,7 +151,7 @@ func dataSourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta in
 			return fmt.Errorf("Error: App Service Certificate Order %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM App Service Certificate Order %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM App Service Certificate Order %q: %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)

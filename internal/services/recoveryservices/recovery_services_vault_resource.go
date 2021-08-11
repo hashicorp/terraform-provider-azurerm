@@ -114,7 +114,7 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -135,7 +135,7 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	vault, err := client.CreateOrUpdate(ctx, resourceGroup, name, vault)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	cfg := backup.ResourceVaultConfigResource{
@@ -160,7 +160,7 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 				if strings.Contains(err.Error(), "ResourceNotYetSynced") {
 					return resp, "syncing", nil
 				}
-				return resp, "error", fmt.Errorf("Error updating Recovery Service Vault Cfg %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return resp, "error", fmt.Errorf("updating Recovery Service Vault Cfg %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 
 			return resp, "success", nil
@@ -174,15 +174,15 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for on update for Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for on update for Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error issuing read request for Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("issuing read request for Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Error Recovery Service Vault %q (Resource Group %q): read returned nil", name, resourceGroup)
+		return fmt.Errorf("Recovery Service Vault %q (Resource Group %q): read returned nil", name, resourceGroup)
 	}
 
 	d.SetId(*vault.ID)
@@ -213,7 +213,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -228,7 +228,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 
 	cfg, err := cfgsClient.Get(ctx, name, resourceGroup)
 	if err != nil {
-		return fmt.Errorf("Error reading Recovery Service Vault Cfg %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading Recovery Service Vault Cfg %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if props := cfg.Properties; props != nil {
@@ -236,7 +236,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if err := d.Set("identity", flattenVaultIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -260,7 +260,7 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error issuing delete request for Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("issuing delete request for Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 

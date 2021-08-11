@@ -13,13 +13,15 @@ import (
 
 // All returns a SchemaValidateFunc which tests if the provided value
 // passes all provided SchemaValidateFunc
-func All(validators ...schema.SchemaValidateFunc) schema.SchemaValidateFunc { //nolint:SA1019
+// lint:ignore SA1019 SDKv2 migration - staticcheck's own linter directives are currently being ignored under golanci-lint
+func All(validators ...schema.SchemaValidateFunc) schema.SchemaValidateFunc { //nolint:staticcheck
 	return validation.All(validators...)
 }
 
 // Any returns a SchemaValidateFunc which tests if the provided value
 // passes any of the provided SchemaValidateFunc
-func Any(validators ...schema.SchemaValidateFunc) schema.SchemaValidateFunc { //nolint:SA1019
+//lint:ignore SA1019 SDKv2 migration - staticcheck's own linter directives are currently being ignored under golanci-lint
+func Any(validators ...schema.SchemaValidateFunc) schema.SchemaValidateFunc { //nolint:staticcheck
 	return validation.Any(validators...)
 }
 

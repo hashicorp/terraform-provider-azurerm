@@ -150,7 +150,7 @@ func resourceLighthouseDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	if lighthouseDefinitionID == "" {
 		uuid, err := uuid.GenerateUUID()
 		if err != nil {
-			return fmt.Errorf("Error generating UUID for Lighthouse Definition: %+v", err)
+			return fmt.Errorf("generating UUID for Lighthouse Definition: %+v", err)
 		}
 
 		lighthouseDefinitionID = uuid
@@ -158,7 +158,7 @@ func resourceLighthouseDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	if subscriptionID == "" {
-		return fmt.Errorf("Error reading Subscription for Lighthouse Definition %q", lighthouseDefinitionID)
+		return fmt.Errorf("reading Subscription for Lighthouse Definition %q", lighthouseDefinitionID)
 	}
 
 	scope := d.Get("scope").(string)
@@ -190,7 +190,7 @@ func resourceLighthouseDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, lighthouseDefinitionID, scope, parameters); err != nil {
-		return fmt.Errorf("Error Creating/Updating Lighthouse Definition %q (Scope %q): %+v", lighthouseDefinitionID, scope, err)
+		return fmt.Errorf("Creating/Updating Lighthouse Definition %q (Scope %q): %+v", lighthouseDefinitionID, scope, err)
 	}
 
 	read, err := client.Get(ctx, scope, lighthouseDefinitionID)
@@ -225,7 +225,7 @@ func resourceLighthouseDefinitionRead(d *pluginsdk.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Lighthouse Definition %q (Scope %q): %+v", id.LighthouseDefinitionID, id.Scope, err)
+		return fmt.Errorf("making Read request on Lighthouse Definition %q (Scope %q): %+v", id.LighthouseDefinitionID, id.Scope, err)
 	}
 
 	d.Set("lighthouse_definition_id", resp.Name)
@@ -258,7 +258,7 @@ func resourceLighthouseDefinitionDelete(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if _, err = client.Delete(ctx, id.LighthouseDefinitionID, id.Scope); err != nil {
-		return fmt.Errorf("Error deleting Lighthouse Definition %q at Scope %q: %+v", id.LighthouseDefinitionID, id.Scope, err)
+		return fmt.Errorf("deleting Lighthouse Definition %q at Scope %q: %+v", id.LighthouseDefinitionID, id.Scope, err)
 	}
 
 	return nil

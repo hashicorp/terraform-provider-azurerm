@@ -144,7 +144,7 @@ func resourceServiceFabricMeshSecretRead(d *pluginsdk.ResourceData, meta interfa
 
 	props, ok := resp.Properties.AsSecretResourceProperties()
 	if !ok {
-		return fmt.Errorf("classifiying Service Fabric Mesh Secret %q (Resource Group %q): Expected: %q Received: %q", id.Name, id.ResourceGroup, servicefabricmesh.KindInlinedValue, props.Kind)
+		return fmt.Errorf("classifying Service Fabric Mesh Secret %q (Resource Group %q): Expected: %q Received: %q", id.Name, id.ResourceGroup, servicefabricmesh.KindInlinedValue, props.Kind)
 	}
 
 	d.Set("name", resp.Name)

@@ -116,7 +116,7 @@ func dataSourceArmRoleDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 	scope := d.Get("scope").(string)
 
 	if name == "" && defId == "" {
-		return fmt.Errorf("Error one of `name` or `role_definition_id` must be specified")
+		return fmt.Errorf("one of `name` or `role_definition_id` must be specified")
 	}
 
 	// search by name
@@ -124,30 +124,30 @@ func dataSourceArmRoleDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 	if name != "" {
 		roleDefinitions, err := client.List(ctx, scope, fmt.Sprintf("roleName eq '%s'", name))
 		if err != nil {
-			return fmt.Errorf("Error loading Role Definition List: %+v", err)
+			return fmt.Errorf("loading Role Definition List: %+v", err)
 		}
 		if len(roleDefinitions.Values()) != 1 {
-			return fmt.Errorf("Error loading Role Definition List: could not find role '%s'", name)
+			return fmt.Errorf("loading Role Definition List: could not find role '%s'", name)
 		}
 		if roleDefinitions.Values()[0].ID == nil {
-			return fmt.Errorf("Error loading Role Definition List: values[0].ID is nil '%s'", name)
+			return fmt.Errorf("loading Role Definition List: values[0].ID is nil '%s'", name)
 		}
 
 		defId = *roleDefinitions.Values()[0].ID
 		role, err = client.GetByID(ctx, defId)
 		if err != nil {
-			return fmt.Errorf("Error Getting Role Definition by ID %s: %+v", defId, err)
+			return fmt.Errorf("Getting Role Definition by ID %s: %+v", defId, err)
 		}
 	} else {
 		var err error
 		role, err = client.Get(ctx, scope, defId)
 		if err != nil {
-			return fmt.Errorf("Error loading Role Definition: %+v", err)
+			return fmt.Errorf("loading Role Definition: %+v", err)
 		}
 	}
 
 	if role.ID == nil {
-		return fmt.Errorf("Error returned role had a nil ID (id %q, scope %q, name %q)", defId, scope, name)
+		return fmt.Errorf("returned role had a nil ID (id %q, scope %q, name %q)", defId, scope, name)
 	}
 	d.SetId(*role.ID)
 

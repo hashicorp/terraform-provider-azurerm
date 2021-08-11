@@ -135,7 +135,7 @@ func dataSourceMariaDbServerRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("fqdn", properties.FullyQualifiedDomainName)
 
 		if err := d.Set("storage_profile", flattenMariaDbStorageProfile(properties.StorageProfile)); err != nil {
-			return fmt.Errorf("Error setting `storage_profile`: %+v", err)
+			return fmt.Errorf("setting `storage_profile`: %+v", err)
 		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)

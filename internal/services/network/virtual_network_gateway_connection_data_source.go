@@ -201,7 +201,7 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 			return fmt.Errorf("Virtual Network Gateway Connection %q (Resource Group %q) was not found", name, resGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("making Read request on AzureRM Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -254,12 +254,12 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 
 		ipsecPoliciesSettingsFlat := flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(gwc.IpsecPolicies)
 		if err := d.Set("ipsec_policy", ipsecPoliciesSettingsFlat); err != nil {
-			return fmt.Errorf("Error setting `ipsec_policy`: %+v", err)
+			return fmt.Errorf("setting `ipsec_policy`: %+v", err)
 		}
 
 		trafficSelectorsPolicyFlat := flattenVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(gwc.TrafficSelectorPolicies)
 		if err := d.Set("traffic_selector_policy", trafficSelectorsPolicyFlat); err != nil {
-			return fmt.Errorf("Error setting `traffic_selector_policy`: %+v", err)
+			return fmt.Errorf("setting `traffic_selector_policy`: %+v", err)
 		}
 	}
 

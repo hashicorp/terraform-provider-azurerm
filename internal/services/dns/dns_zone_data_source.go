@@ -76,7 +76,7 @@ func dataSourceDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Error: DNS Zone %q (Resource Group %q) was not found", name, resourceGroup)
 			}
-			return fmt.Errorf("Error reading DNS Zone %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("reading DNS Zone %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	} else {
 		var zone *dns.Zone

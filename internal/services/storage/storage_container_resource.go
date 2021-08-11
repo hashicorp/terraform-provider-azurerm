@@ -100,7 +100,7 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Container %q: %s", accountName, containerName, err)
+		return fmt.Errorf("retrieving Account %q for Container %q: %s", accountName, containerName, err)
 	}
 	if account == nil {
 		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
@@ -174,7 +174,7 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		metaData := ExpandMetaData(metaDataRaw)
 
 		if err := client.UpdateMetaData(ctx, account.ResourceGroup, id.AccountName, id.Name, metaData); err != nil {
-			return fmt.Errorf("Error updating the MetaData for Container %q (Storage Account %q / Resource Group %q): %s", id.Name, id.AccountName, account.ResourceGroup, err)
+			return fmt.Errorf("updating the MetaData for Container %q (Storage Account %q / Resource Group %q): %s", id.Name, id.AccountName, account.ResourceGroup, err)
 		}
 
 		log.Printf("[DEBUG] Updated the MetaData for Container %q (Storage Account %q / Resource Group %q)", id.Name, id.AccountName, account.ResourceGroup)
@@ -210,7 +210,7 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	props, err := client.Get(ctx, account.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q): %s", id.Name, id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("retrieving Container %q (Account %q / Resource Group %q): %s", id.Name, id.AccountName, account.ResourceGroup, err)
 	}
 	if props == nil {
 		log.Printf("[DEBUG] Container %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.Name, id.AccountName, account.ResourceGroup)
@@ -248,7 +248,7 @@ func resourceStorageContainerDelete(d *pluginsdk.ResourceData, meta interface{})
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Container %q: %s", id.AccountName, id.Name, err)
+		return fmt.Errorf("retrieving Account %q for Container %q: %s", id.AccountName, id.Name, err)
 	}
 	if account == nil {
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)

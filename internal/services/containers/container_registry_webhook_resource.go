@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -119,7 +118,7 @@ func resourceContainerRegistryWebhookCreate(d *pluginsdk.ResourceData, meta inte
 		existing, err := client.Get(ctx, resourceGroup, registryName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Container Registry Webhook %q (Resource Group %q, Registry %q): %s", name, resourceGroup, registryName, err)
+				return fmt.Errorf("checking for presence of existing Container Registry Webhook %q (Resource Group %q, Registry %q): %s", name, resourceGroup, registryName, err)
 			}
 		}
 
@@ -139,16 +138,16 @@ func resourceContainerRegistryWebhookCreate(d *pluginsdk.ResourceData, meta inte
 
 	future, err := client.Create(ctx, resourceGroup, registryName, name, webhook)
 	if err != nil {
-		return fmt.Errorf("Error creating Container Registry Webhook %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
+		return fmt.Errorf("creating Container Registry Webhook %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Container Registry %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
+		return fmt.Errorf("waiting for creation of Container Registry %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, registryName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Container Registry %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
+		return fmt.Errorf("retrieving Container Registry %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
 	}
 
 	if read.ID == nil {
@@ -185,11 +184,11 @@ func resourceContainerRegistryWebhookUpdate(d *pluginsdk.ResourceData, meta inte
 
 	future, err := client.Update(ctx, resourceGroup, registryName, name, webhook)
 	if err != nil {
-		return fmt.Errorf("Error updating Container Registry Webhook %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
+		return fmt.Errorf("updating Container Registry Webhook %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Container Registry Webhook %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
+		return fmt.Errorf("waiting for completion of Container Registry Webhook %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
 	}
 
 	return resourceContainerRegistryWebhookRead(d, meta)
@@ -216,12 +215,12 @@ func resourceContainerRegistryWebhookRead(d *pluginsdk.ResourceData, meta interf
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Container Registry Webhook %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
+		return fmt.Errorf("making Read request on Azure Container Registry Webhook %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
 	}
 
 	callbackConfig, err := client.GetCallbackConfig(ctx, resourceGroup, registryName, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on Azure Container Registry Webhook Callback Config %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
+		return fmt.Errorf("making Read request on Azure Container Registry Webhook Callback Config %q (Resource Group %q, Registry %q): %+v", name, resourceGroup, registryName, err)
 	}
 
 	d.Set("resource_group_name", resourceGroup)
@@ -276,19 +275,12 @@ func resourceContainerRegistryWebhookDelete(d *pluginsdk.ResourceData, meta inte
 
 	future, err := client.Delete(ctx, resourceGroup, registryName, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry Webhook '%s': %+v", name, err)
+		return fmt.Errorf("deleting Webhook %q (Container Registry %q / Resource Group %q): %+v", name, registryName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry Webhook '%s': %+v", name, err)
+		return fmt.Errorf("waiting for deletion of Webhook %q (Container Registry %q / Resource Group %q): %+v", name, registryName, resourceGroup, err)
 	}
-
 	return nil
 }
 

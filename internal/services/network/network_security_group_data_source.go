@@ -165,7 +165,7 @@ func dataSourceNetworkSecurityGroupRead(d *pluginsdk.ResourceData, meta interfac
 	if props := resp.SecurityGroupPropertiesFormat; props != nil {
 		flattenedRules := flattenNetworkSecurityRules(props.SecurityRules)
 		if err := d.Set("security_rule", flattenedRules); err != nil {
-			return fmt.Errorf("Error setting `security_rule`: %+v", err)
+			return fmt.Errorf("setting `security_rule`: %+v", err)
 		}
 	}
 

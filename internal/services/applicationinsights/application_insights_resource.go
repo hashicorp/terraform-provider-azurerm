@@ -151,7 +151,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Application Insights %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Application Insights %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
@@ -191,12 +191,12 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	_, err := client.CreateOrUpdate(ctx, resGroup, name, insightProperties)
 	if err != nil {
-		return fmt.Errorf("Error creating Application Insights %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating Application Insights %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Application Insights %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("retrieving Application Insights %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read AzureRM Application Insights '%s' (Resource Group %s) ID", name, resGroup)
@@ -204,7 +204,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	billingRead, err := billingClient.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error read Application Insights Billing Features %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("read Application Insights Billing Features %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	applicationInsightsComponentBillingFeatures := insights.ApplicationInsightsComponentBillingFeatures{
@@ -221,7 +221,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if _, err = billingClient.Update(ctx, resGroup, name, applicationInsightsComponentBillingFeatures); err != nil {
-		return fmt.Errorf("Error update Application Insights Billing Feature %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("update Application Insights Billing Feature %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.SetId(resourceId)
@@ -248,12 +248,12 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Application Insights '%s': %+v", id.Name, err)
+		return fmt.Errorf("making Read request on AzureRM Application Insights '%s': %+v", id.Name, err)
 	}
 
 	billingResp, err := billingClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM Application Insights Billing Feature '%s': %+v", id.Name, err)
+		return fmt.Errorf("making Read request on AzureRM Application Insights Billing Feature '%s': %+v", id.Name, err)
 	}
 
 	d.Set("name", id.Name)
@@ -304,7 +304,7 @@ func resourceApplicationInsightsDelete(d *pluginsdk.ResourceData, meta interface
 		if resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
-		return fmt.Errorf("Error issuing AzureRM delete request for Application Insights %q: %+v", id.Name, err)
+		return fmt.Errorf("issuing AzureRM delete request for Application Insights %q: %+v", id.Name, err)
 	}
 
 	return err

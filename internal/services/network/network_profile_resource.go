@@ -107,7 +107,7 @@ func resourceNetworkProfileCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Network Profile %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Network Profile %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -121,7 +121,7 @@ func resourceNetworkProfileCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(d)
 	if err != nil {
-		return fmt.Errorf("Error extracting names of Subnet and Virtual Network: %+v", err)
+		return fmt.Errorf("extracting names of Subnet and Virtual Network: %+v", err)
 	}
 
 	locks.ByName(name, azureNetworkProfileResourceName)
@@ -142,12 +142,12 @@ func resourceNetworkProfileCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("Error creating/updating Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	profile, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if profile.ID == nil {
@@ -179,7 +179,7 @@ func resourceNetworkProfileRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", profile.Name)
@@ -191,12 +191,12 @@ func resourceNetworkProfileRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if props := profile.ProfilePropertiesFormat; props != nil {
 		cniConfigs := flattenNetworkProfileContainerNetworkInterface(props.ContainerNetworkInterfaceConfigurations)
 		if err := d.Set("container_network_interface", cniConfigs); err != nil {
-			return fmt.Errorf("Error setting `container_network_interface`: %+v", err)
+			return fmt.Errorf("setting `container_network_interface`: %+v", err)
 		}
 
 		cniIDs := flattenNetworkProfileContainerNetworkInterfaceIDs(props.ContainerNetworkInterfaces)
 		if err := d.Set("container_network_interface_ids", cniIDs); err != nil {
-			return fmt.Errorf("Error setting `container_network_interface_ids`: %+v", err)
+			return fmt.Errorf("setting `container_network_interface_ids`: %+v", err)
 		}
 	}
 
@@ -223,12 +223,12 @@ func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta interface{}) e
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(d)
 	if err != nil {
-		return fmt.Errorf("Error extracting names of Subnet and Virtual Network: %+v", err)
+		return fmt.Errorf("extracting names of Subnet and Virtual Network: %+v", err)
 	}
 
 	locks.ByName(name, azureNetworkProfileResourceName)
@@ -241,7 +241,7 @@ func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	defer locks.UnlockMultipleByName(subnetsToLock, SubnetResourceName)
 
 	if _, err = client.Delete(ctx, resourceGroup, name); err != nil {
-		return fmt.Errorf("Error deleting Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return err

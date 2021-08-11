@@ -80,7 +80,7 @@ func dataSourceApiManagementApiVersionSetRead(d *pluginsdk.ResourceData, meta in
 
 	id, err := parse.ApiVersionSetID(*resp.ID)
 	if err != nil {
-		return fmt.Errorf("Error parsing API Version Set ID: %q", *resp.ID)
+		return fmt.Errorf("parsing API Version Set ID: %q", *resp.ID)
 	}
 
 	d.SetId(id.ID())

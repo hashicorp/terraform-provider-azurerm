@@ -128,7 +128,7 @@ func resourceLogAnalyticsDataSourceWindowsEventCreateUpdate(d *pluginsdk.Resourc
 
 	resp, err := client.Get(ctx, resourceGroup, workspaceName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Log Analytics Data Source Windows Event  %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
+		return fmt.Errorf("retrieving Log Analytics Data Source Windows Event  %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("Cannot read Log Analytics Data Source Windows Event  %q (Resource Group %q) ID", name, resourceGroup)

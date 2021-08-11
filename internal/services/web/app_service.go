@@ -1708,8 +1708,7 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 	}
 
 	if v, ok := config["ip_restriction"]; ok {
-		ipSecurityRestrictions := v.(interface{})
-		restrictions, err := expandAppServiceIpRestriction(ipSecurityRestrictions)
+		restrictions, err := expandAppServiceIpRestriction(v)
 		if err != nil {
 			return siteConfig, err
 		}
@@ -1782,8 +1781,7 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 	}
 
 	if v, ok := config["cors"]; ok {
-		corsSettings := v.(interface{})
-		expand := ExpandWebCorsSettings(corsSettings)
+		expand := ExpandWebCorsSettings(v)
 		siteConfig.Cors = &expand
 	}
 

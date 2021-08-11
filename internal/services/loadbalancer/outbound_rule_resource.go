@@ -289,9 +289,9 @@ func resourceArmLoadBalancerOutboundRuleDelete(d *pluginsdk.ResourceData, meta i
 		return nil
 	}
 
-	oldOutboundRules := *loadBalancer.LoadBalancerPropertiesFormat.OutboundRules
-	newOutboundRules := append(oldOutboundRules[:index], oldOutboundRules[index+1:]...)
-	loadBalancer.LoadBalancerPropertiesFormat.OutboundRules = &newOutboundRules
+	outboundRules := *loadBalancer.LoadBalancerPropertiesFormat.OutboundRules
+	outboundRules = append(outboundRules[:index], outboundRules[index+1:]...)
+	loadBalancer.LoadBalancerPropertiesFormat.OutboundRules = &outboundRules
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
 	if err != nil {
