@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -778,9 +779,6 @@ func eventSubscriptionSchemaLabels() *pluginsdk.Schema {
 	}
 }
 
-<<<<<<< HEAD:internal/services/eventgrid/event_subscription.go
-func expandEventGridExpirationTime(d *pluginsdk.ResourceData) (*date.Time, error) {
-=======
 func eventSubscriptionSchemaIdentity() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -801,7 +799,6 @@ func eventSubscriptionSchemaIdentity() *schema.Schema {
 }
 
 func expandEventGridExpirationTime(d *schema.ResourceData) (*date.Time, error) {
->>>>>>> eventgrid event subscription managed identity support:azurerm/internal/services/eventgrid/event_subscription.go
 	if expirationTimeUtc, ok := d.GetOk("expiration_time_utc"); ok {
 		if expirationTimeUtc == "" {
 			return nil, nil
@@ -1485,7 +1482,6 @@ func flattenKey(inputKey *string) map[string]interface{} {
 		"key": key,
 	}
 }
-
 
 func flattenIdentity(input *eventgrid.EventSubscriptionIdentity) []interface{} {
 	if input == nil || string(input.Type) == "None" {
