@@ -342,23 +342,12 @@ func (FirewallPolicyResource) templatePremium(data acceptance.TestData) string {
 provider "azurerm" {
   features {}
 }
-<<<<<<< HEAD
-
 data "azurerm_client_config" "current" {
 }
-
-=======
-data "azurerm_client_config" "current" {
-}
->>>>>>> 826149085676c4a587b20fe0d87fa44f4e5fb1a6
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-networkfw-%d"
   location = "%s"
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> 826149085676c4a587b20fe0d87fa44f4e5fb1a6
 resource "azurerm_key_vault" "test" {
   name                            = "tlskv%d"
   location                        = azurerm_resource_group.test.location
@@ -367,33 +356,18 @@ resource "azurerm_key_vault" "test" {
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
   tenant_id                       = data.azurerm_client_config.current.tenant_id
-<<<<<<< HEAD
-
   sku_name = "standard"
 }
-
-=======
-  sku_name = "standard"
-}
->>>>>>> 826149085676c4a587b20fe0d87fa44f4e5fb1a6
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestUAI-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> 826149085676c4a587b20fe0d87fa44f4e5fb1a6
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id   = azurerm_key_vault.test.id
   application_id = azurerm_user_assigned_identity.test.client_id
   tenant_id      = data.azurerm_client_config.current.tenant_id
   object_id      = azurerm_user_assigned_identity.test.principal_id
-<<<<<<< HEAD
-
-=======
->>>>>>> 826149085676c4a587b20fe0d87fa44f4e5fb1a6
   key_permissions = [
     "backup",
     "create",
@@ -406,10 +380,6 @@ resource "azurerm_key_vault_access_policy" "test" {
     "restore",
     "update"
   ]
-<<<<<<< HEAD
-
-=======
->>>>>>> 826149085676c4a587b20fe0d87fa44f4e5fb1a6
   certificate_permissions = [
     "backup",
     "create",
