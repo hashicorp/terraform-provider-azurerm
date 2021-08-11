@@ -412,17 +412,17 @@ func (NetAppVolumeResource) nfsv3SnapshotDirectoryVisibleFalse(data acceptance.T
 %[1]s
 
 resource "azurerm_netapp_volume" "test_snapshot_directory_visible_false" {
-  name                        = "acctest-NetAppVolume-%[2]d"
-  location                    = azurerm_resource_group.test.location
-  resource_group_name         = azurerm_resource_group.test.name
-  account_name                = azurerm_netapp_account.test.name
-  pool_name                   = azurerm_netapp_pool.test.name
-  volume_path                 = "my-unique-file-path-%[2]d"
-  service_level               = "Standard"
-  subnet_id                   = azurerm_subnet.test.id
-  protocols                   = ["NFSv3"]
-  storage_quota_in_gb         = 100
-  snapshot_directory_visible  = false
+  name                       = "acctest-NetAppVolume-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  account_name               = azurerm_netapp_account.test.name
+  pool_name                  = azurerm_netapp_pool.test.name
+  volume_path                = "my-unique-file-path-%[2]d"
+  service_level              = "Standard"
+  subnet_id                  = azurerm_subnet.test.id
+  protocols                  = ["NFSv3"]
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = false
 
   export_policy_rule {
     rule_index        = 1
