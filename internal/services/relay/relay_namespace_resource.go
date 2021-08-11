@@ -6,12 +6,13 @@ import (
 	"log"
 	"time"
 
+	namespaces2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
+
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,7 +26,7 @@ func resourceRelayNamespace() *pluginsdk.Resource {
 		Update: resourceRelayNamespaceCreateUpdate,
 		Delete: resourceRelayNamespaceDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := namespaces.ParseNamespaceID(id)
+			_, err := namespaces2.ParseNamespaceID(id)
 			return err
 		}),
 
@@ -52,7 +53,7 @@ func resourceRelayNamespace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(namespaces.SkuNameStandard),
+					string(namespaces2.SkuNameStandard),
 				}, false),
 			},
 
@@ -98,7 +99,7 @@ func resourceRelayNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	log.Printf("[INFO] preparing arguments for Relay Namespace create/update.")
 
-	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := namespaces2.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -112,14 +113,14 @@ func resourceRelayNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	skuTier := namespaces.SkuTier(d.Get("sku_name").(string))
-	parameters := namespaces.RelayNamespace{
+	skuTier := namespaces2.SkuTier(d.Get("sku_name").(string))
+	parameters := namespaces2.RelayNamespace{
 		Location: azure.NormalizeLocation(d.Get("location").(string)),
-		Sku: &namespaces.Sku{
-			Name: namespaces.SkuName(d.Get("sku_name").(string)),
+		Sku: &namespaces2.Sku{
+			Name: namespaces2.SkuName(d.Get("sku_name").(string)),
 			Tier: &skuTier,
 		},
-		Properties: &namespaces.RelayNamespaceProperties{},
+		Properties: &namespaces2.RelayNamespaceProperties{},
 		Tags:       expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
@@ -136,7 +137,7 @@ func resourceRelayNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := namespaces.ParseNamespaceID(d.Id())
+	id, err := namespaces2.ParseNamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -151,7 +152,7 @@ func resourceRelayNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	authRuleId := namespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.Name, "RootManageSharedAccessKey")
+	authRuleId := namespaces2.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.Name, "RootManageSharedAccessKey")
 	keysResp, err := client.ListKeys(ctx, authRuleId)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
@@ -191,7 +192,7 @@ func resourceRelayNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := namespaces.ParseNamespaceID(d.Id())
+	id, err := namespaces2.ParseNamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -217,7 +218,7 @@ func resourceRelayNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func relayNamespaceDeleteRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
+func relayNamespaceDeleteRefreshFunc(ctx context.Context, client *namespaces2.NamespacesClient, id namespaces2.NamespaceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id)
 		if err != nil {
