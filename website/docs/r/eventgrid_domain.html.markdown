@@ -56,11 +56,13 @@ The following arguments are supported:
 
 ---
 
-A `identity` block exports the following:
+A `identity` block supports the following:
 
-~> **Note:** Currently only type `SystemAssigned` identity is supported.
+* `type` - Specifies the identity type of Event Grid Domain. Possible values are `SystemAssigned` (where Azure will generate a Managed Identity for you), `UserAssigned` where you can specify the User Assigned Managed Identity IDs in the `identity_ids` field, and `SystemAssigned, UserAssigned` which assigns both a system managed identity as well as the specified user assigned identities.
 
-* `type` - Specifies the type of Managed Service Identity that is configured on this Event Grid Domain.
+~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Event Grid Domain has been created. More details are available below.
+
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
 
 ---
 
@@ -108,9 +110,23 @@ The following attributes are exported:
 
 * `secondary_access_key` - The Secondary Shared Access Key associated with the EventGrid Domain.
 
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Event Grid Domain.
+
+---
+
+A `identity` block exports the following:
+
+* `type` - Specifies the type of Managed Service Identity that is configured on this Event Grid Domain.
+
+* `principal_id` - Specifies the Principal ID of the System Assigned Managed Service Identity that is configured on this Event Grid Domain.
+
+* `tenant_id` - Specifies the Tenant ID of the System Assigned Managed Service Identity that is configured on this Event Grid Domain.
+
+* `identity_ids` - A list of IDs for User Assigned Managed Identity resources to be assigned.
+
+---
+
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
