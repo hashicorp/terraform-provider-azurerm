@@ -13,7 +13,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * `azurerm_function_app` - add support for `dotnet_framework_version` in [GH-12883]
-* `azurerm_resource_group` - * conditionally (based on the `prevent_deletion_if_contains_resources` features flag - see the 'Upgrade Notes' section) checking for nested Resources during deletion of the Resource Group and raising an error if Resources are found [GH-12657]
+* `azurerm_resource_group` - conditionally (based on the `prevent_deletion_if_contains_resources` features flag - see the 'Upgrade Notes' section) checking for nested Resources during deletion of the Resource Group and raising an error if Resources are found [GH-12657]
 
 BUG FIXES:
 
