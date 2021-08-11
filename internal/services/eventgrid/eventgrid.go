@@ -136,7 +136,7 @@ func flattenInboundIPRules(in *[]eventgrid.InboundIPRule) []interface{} {
 }
 
 func expandIdentity(input []interface{}) (*eventgrid.IdentityInfo, error) {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return &eventgrid.IdentityInfo{
 			Type: eventgrid.IdentityTypeNone,
 		}, nil
