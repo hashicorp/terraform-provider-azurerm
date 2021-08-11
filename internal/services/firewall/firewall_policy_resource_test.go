@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"testing"
-  
-  "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
@@ -356,7 +356,7 @@ resource "azurerm_key_vault" "test" {
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
   tenant_id                       = data.azurerm_client_config.current.tenant_id
-  sku_name = "standard"
+  sku_name                        = "standard"
 }
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestUAI-%d"
