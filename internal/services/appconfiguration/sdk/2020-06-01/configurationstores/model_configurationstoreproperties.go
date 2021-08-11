@@ -7,15 +7,15 @@ import (
 )
 
 type ConfigurationStoreProperties struct {
-	CreationDate               *string                      `json:"creationDate,omitempty"`
-	Encryption                 *EncryptionProperties        `json:"encryption,omitempty"`
-	Endpoint                   *string                      `json:"endpoint,omitempty"`
-	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
-	ProvisioningState          *ProvisioningState           `json:"provisioningState,omitempty"`
-	PublicNetworkAccess        *PublicNetworkAccess         `json:"publicNetworkAccess,omitempty"`
+	CreationDate               *string                               `json:"creationDate,omitempty"`
+	Encryption                 *EncryptionProperties                 `json:"encryption,omitempty"`
+	Endpoint                   *string                               `json:"endpoint,omitempty"`
+	PrivateEndpointConnections *[]PrivateEndpointConnectionReference `json:"privateEndpointConnections,omitempty"`
+	ProvisioningState          *ProvisioningState                    `json:"provisioningState,omitempty"`
+	PublicNetworkAccess        *PublicNetworkAccess                  `json:"publicNetworkAccess,omitempty"`
 }
 
-func (o ConfigurationStoreProperties) ListCreationDateAsTime() (*time.Time, error) {
+func (o ConfigurationStoreProperties) GetCreationDateAsTime() (*time.Time, error) {
 	return formatting.ParseAsDateFormat(o.CreationDate, "2006-01-02T15:04:05Z07:00")
 }
 
