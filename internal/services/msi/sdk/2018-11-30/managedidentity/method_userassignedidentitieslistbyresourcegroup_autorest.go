@@ -34,19 +34,6 @@ func (r UserAssignedIdentitiesListByResourceGroupResponse) LoadMore(ctx context.
 	return r.nextPageFunc(ctx, *r.nextLink)
 }
 
-type IdentityPredicate struct {
-	// TODO: implement me
-}
-
-func (p IdentityPredicate) Matches(input Identity) bool {
-	// TODO: implement me
-	// if p.Name != nil && input.Name != *p.Name {
-	// 	return false
-	// }
-
-	return true
-}
-
 // UserAssignedIdentitiesListByResourceGroup ...
 func (c ManagedIdentityClient) UserAssignedIdentitiesListByResourceGroup(ctx context.Context, id ResourceGroupId) (resp UserAssignedIdentitiesListByResourceGroupResponse, err error) {
 	req, err := c.preparerForUserAssignedIdentitiesListByResourceGroup(ctx, id)
@@ -69,7 +56,7 @@ func (c ManagedIdentityClient) UserAssignedIdentitiesListByResourceGroup(ctx con
 	return
 }
 
-// UserAssignedIdentitiesListByResourceGroupCompleteMatchingPredicate retrieves all of the results into a single object
+// UserAssignedIdentitiesListByResourceGroupComplete retrieves all of the results into a single object
 func (c ManagedIdentityClient) UserAssignedIdentitiesListByResourceGroupComplete(ctx context.Context, id ResourceGroupId) (UserAssignedIdentitiesListByResourceGroupCompleteResult, error) {
 	return c.UserAssignedIdentitiesListByResourceGroupCompleteMatchingPredicate(ctx, id, IdentityPredicate{})
 }
