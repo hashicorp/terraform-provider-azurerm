@@ -58,7 +58,7 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - Specifies the identity type of Event Grid Domain. Possible values are `SystemAssigned` (where Azure will generate a Managed Identity for you), `UserAssigned` where you can specify the User Assigned Managed Identity IDs in the `identity_ids` field, and `SystemAssigned, UserAssigned` which assigns both a system managed identity as well as the specified user assigned identities.
+* `type` - Specifies the identity type of Event Grid Domain. Possible values are `SystemAssigned` (where Azure will generate a Principal for you) or `UserAssigned` where you can specify the User Assigned Managed Identity IDs in the `identity_ids` field.
 
 ~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Event Grid Domain has been created. More details are available below.
 

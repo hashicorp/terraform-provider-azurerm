@@ -23,6 +23,7 @@ func IdentitySchema() *schema.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(eventgrid.IdentityTypeNone),
 						string(eventgrid.IdentityTypeSystemAssigned),
+						string(eventgrid.IdentityTypeUserAssigned),
 					}, false),
 				},
 
