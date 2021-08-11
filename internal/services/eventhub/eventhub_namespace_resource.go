@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	namespaces2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-01-01-preview/namespaces"
+
 	networkrulesets2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/networkrulesets"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
@@ -18,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -71,9 +72,9 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Required:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(namespaces.SkuNameBasic),
-					string(namespaces.SkuNameStandard),
-					string(namespaces.SkuNamePremium),
+					string(namespaces2.SkuNameBasic),
+					string(namespaces2.SkuNameStandard),
+					string(namespaces2.SkuNamePremium),
 				}, true),
 			},
 
@@ -113,7 +114,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(namespaces.ManagedServiceIdentityTypeSystemAssigned),
+								string(namespaces2.ManagedServiceIdentityTypeSystemAssigned),
 							}, false),
 						},
 
@@ -254,11 +255,11 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			oldSku, newSku := d.GetChange("sku")
 			if d.HasChange("sku") {
-				if strings.EqualFold(newSku.(string), string(namespaces.SkuNamePremium)) || strings.EqualFold(oldSku.(string), string(namespaces.SkuTierPremium)) {
+				if strings.EqualFold(newSku.(string), string(namespaces2.SkuNamePremium)) || strings.EqualFold(oldSku.(string), string(namespaces2.SkuTierPremium)) {
 					log.Printf("[DEBUG] cannot migrate a namespace from or to Premium SKU")
 					d.ForceNew("sku")
 				}
-				if strings.EqualFold(newSku.(string), string(namespaces.SkuTierPremium)) {
+				if strings.EqualFold(newSku.(string), string(namespaces2.SkuTierPremium)) {
 					zoneRedundant := d.Get("zone_redundant").(bool)
 					if !zoneRedundant {
 						return fmt.Errorf("zone_redundant needs to be set to true when using premium SKU")
@@ -277,7 +278,7 @@ func resourceEventHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace creation.")
 
-	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := namespaces2.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -298,18 +299,18 @@ func resourceEventHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
 	zoneRedundant := d.Get("zone_redundant").(bool)
 
-	parameters := namespaces.EHNamespace{
+	parameters := namespaces2.EHNamespace{
 		Location: &location,
-		Sku: &namespaces.Sku{
-			Name: namespaces.SkuName(sku),
-			Tier: func() *namespaces.SkuTier {
-				v := namespaces.SkuTier(sku)
+		Sku: &namespaces2.Sku{
+			Name: namespaces2.SkuName(sku),
+			Tier: func() *namespaces2.SkuTier {
+				v := namespaces2.SkuTier(sku)
 				return &v
 			}(),
 			Capacity: utils.Int64(int64(capacity)),
 		},
 		Identity: expandEventHubIdentity(d.Get("identity").([]interface{})),
-		Properties: &namespaces.EHNamespaceProperties{
+		Properties: &namespaces2.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
 			ZoneRedundant:        utils.Bool(zoneRedundant),
 		},
@@ -329,7 +330,7 @@ func resourceEventHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	//
 	// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/10244
 	//
-	if *parameters.Sku.Tier == namespaces.SkuTierBasic && !autoInflateEnabled {
+	if *parameters.Sku.Tier == namespaces2.SkuTierBasic && !autoInflateEnabled {
 		parameters.Properties.MaximumThroughputUnits = utils.Int64(0)
 	}
 
@@ -346,7 +347,7 @@ func resourceEventHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		}
 
 		// cannot use network rulesets with the basic SKU
-		if parameters.Sku.Name != namespaces.SkuNameBasic {
+		if parameters.Sku.Name != namespaces2.SkuNameBasic {
 			ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
 			namespaceId := networkrulesets2.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.Name)
 			if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
@@ -373,7 +374,7 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := namespaces.ParseNamespaceID(d.Id())
+	id, err := namespaces2.ParseNamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -447,7 +448,7 @@ func resourceEventHubNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := namespaces.ParseNamespaceID(d.Id())
+	id, err := namespaces2.ParseNamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -463,7 +464,7 @@ func resourceEventHubNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}
 	return waitForEventHubNamespaceToBeDeleted(ctx, client, *id)
 }
 
-func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) error {
+func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *namespaces2.NamespacesClient, id namespaces2.NamespaceId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("context has no deadline")
@@ -485,7 +486,7 @@ func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *namespaces
 	return nil
 }
 
-func eventHubNamespaceStateStatusCodeRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
+func eventHubNamespaceStateStatusCodeRefreshFunc(ctx context.Context, client *namespaces2.NamespacesClient, id namespaces2.NamespaceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id)
 		if res.HttpResponse != nil {
@@ -612,21 +613,21 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets2.NamespacesG
 	}}
 }
 
-func expandEventHubIdentity(input []interface{}) *namespaces.Identity {
+func expandEventHubIdentity(input []interface{}) *namespaces2.Identity {
 	if len(input) == 0 {
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
-	return &namespaces.Identity{
-		Type: func() *namespaces.ManagedServiceIdentityType {
-			v := namespaces.ManagedServiceIdentityType(v["type"].(string))
+	return &namespaces2.Identity{
+		Type: func() *namespaces2.ManagedServiceIdentityType {
+			v := namespaces2.ManagedServiceIdentityType(v["type"].(string))
 			return &v
 		}(),
 	}
 }
 
-func flattenEventHubIdentity(input *namespaces.Identity) []interface{} {
+func flattenEventHubIdentity(input *namespaces2.Identity) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
