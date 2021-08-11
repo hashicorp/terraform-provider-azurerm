@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/privateclouds"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/privateclouds"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
