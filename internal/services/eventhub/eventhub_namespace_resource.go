@@ -3,11 +3,14 @@ package eventhub
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
 	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	networkrulesets2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/networkrulesets"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
 
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -16,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/namespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/networkrulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -147,8 +149,8 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(networkrulesets.DefaultActionAllow),
-								string(networkrulesets.DefaultActionDeny),
+								string(networkrulesets2.DefaultActionAllow),
+								string(networkrulesets2.DefaultActionDeny),
 							}, false),
 						},
 
@@ -199,9 +201,9 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 									"action": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(networkrulesets.NetworkRuleIPActionAllow),
+										Default:  string(networkrulesets2.NetworkRuleIPActionAllow),
 										ValidateFunc: validation.StringInSlice([]string{
-											string(networkrulesets.NetworkRuleIPActionAllow),
+											string(networkrulesets2.NetworkRuleIPActionAllow),
 										}, false),
 									},
 								},
@@ -339,21 +341,21 @@ func resourceEventHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	ruleSets, hasRuleSets := d.GetOk("network_rulesets")
 	if hasRuleSets {
-		rulesets := networkrulesets.NetworkRuleSet{
+		rulesets := networkrulesets2.NetworkRuleSet{
 			Properties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
 		}
 
 		// cannot use network rulesets with the basic SKU
 		if parameters.Sku.Name != namespaces.SkuNameBasic {
 			ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
-			namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.Name)
+			namespaceId := networkrulesets2.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.Name)
 			if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
 				return fmt.Errorf("setting network ruleset properties for %s: %+v", id, err)
 			}
 		} else if rulesets.Properties != nil {
 			props := rulesets.Properties
 			// so if the user has specified the non default rule sets throw a validation error
-			if *props.DefaultAction != networkrulesets.DefaultActionDeny ||
+			if *props.DefaultAction != networkrulesets2.DefaultActionDeny ||
 				(props.IpRules != nil && len(*props.IpRules) > 0) ||
 				(props.VirtualNetworkRules != nil && len(*props.VirtualNetworkRules) > 0) {
 				return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
@@ -412,7 +414,7 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.Name)
+	namespaceId := networkrulesets2.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.Name)
 	ruleset, err := ruleSetsClient.NamespacesGetNetworkRuleSet(ctx, namespaceId)
 	if err != nil {
 		return fmt.Errorf("retrieving Network Rule Sets for %s: %+v", *id, err)
@@ -501,16 +503,16 @@ func eventHubNamespaceStateStatusCodeRefreshFunc(ctx context.Context, client *na
 	}
 }
 
-func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets.NetworkRuleSetProperties {
+func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets2.NetworkRuleSetProperties {
 	if len(input) == 0 {
 		return nil
 	}
 
 	block := input[0].(map[string]interface{})
 
-	ruleset := networkrulesets.NetworkRuleSetProperties{
-		DefaultAction: func() *networkrulesets.DefaultAction {
-			v := networkrulesets.DefaultAction(block["default_action"].(string))
+	ruleset := networkrulesets2.NetworkRuleSetProperties{
+		DefaultAction: func() *networkrulesets2.DefaultAction {
+			v := networkrulesets2.DefaultAction(block["default_action"].(string))
 			return &v
 		}(),
 	}
@@ -521,11 +523,11 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 
 	if v, ok := block["virtual_network_rule"].([]interface{}); ok {
 		if len(v) > 0 {
-			var rules []networkrulesets.NWRuleSetVirtualNetworkRules
+			var rules []networkrulesets2.NWRuleSetVirtualNetworkRules
 			for _, r := range v {
 				rblock := r.(map[string]interface{})
-				rules = append(rules, networkrulesets.NWRuleSetVirtualNetworkRules{
-					Subnet: &networkrulesets.Subnet{
+				rules = append(rules, networkrulesets2.NWRuleSetVirtualNetworkRules{
+					Subnet: &networkrulesets2.Subnet{
 						Id: utils.String(rblock["subnet_id"].(string)),
 					},
 					IgnoreMissingVnetServiceEndpoint: utils.Bool(rblock["ignore_missing_virtual_network_service_endpoint"].(bool)),
@@ -538,13 +540,13 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 
 	if v, ok := block["ip_rule"].([]interface{}); ok {
 		if len(v) > 0 {
-			var rules []networkrulesets.NWRuleSetIpRules
+			var rules []networkrulesets2.NWRuleSetIpRules
 			for _, r := range v {
 				rblock := r.(map[string]interface{})
-				rules = append(rules, networkrulesets.NWRuleSetIpRules{
+				rules = append(rules, networkrulesets2.NWRuleSetIpRules{
 					IpMask: utils.String(rblock["ip_mask"].(string)),
-					Action: func() *networkrulesets.NetworkRuleIPAction {
-						v := networkrulesets.NetworkRuleIPAction(rblock["action"].(string))
+					Action: func() *networkrulesets2.NetworkRuleIPAction {
+						v := networkrulesets2.NetworkRuleIPAction(rblock["action"].(string))
 						return &v
 					}(),
 				})
@@ -557,7 +559,7 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 	return &ruleset
 }
 
-func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGetNetworkRuleSetResponse) []interface{} {
+func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets2.NamespacesGetNetworkRuleSetResponse) []interface{} {
 	if ruleset.Model == nil || ruleset.Model.Properties == nil {
 		return nil
 	}
