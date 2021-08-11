@@ -3,7 +3,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/authorizations"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/authorizations"
 )
 
 func ExpressRouteAuthorizationID(input interface{}, key string) (warnings []string, errors []error) {

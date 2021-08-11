@@ -70,5 +70,5 @@ var serviceTestConfigurationOverrides = mapOf(
         "springcloud" to testConfiguration(parallelism = 5),
 
         // Currently have a quota of 10 nodes, 3 nodes required per test
-        "vmware" to testConfiguration(parallelism = 1)
+        "vmware" to testConfiguration(parallelism = 3)
 )

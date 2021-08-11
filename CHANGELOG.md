@@ -1,8 +1,19 @@
 ## 2.72.0 (Unreleased)
 
+UPGRADE NOTES
+
+* This version of the Azure Provider introduces the `prevent_deletion_if_contains_resources` feature flag (which is disabled by default) which (when enabled) means that Terraform will check for Resources nested within the Resource Group during the deletion of the Resource Group and require that these Resources are deleted first. This avoids the unintentional deletion of unmanaged Resources within a Resource Group - and is defaulted off in 2.x versions of the Azure Provider but **will be enabled by default in version 3.0 of the Azure Provider**, see [the `features` block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features) for more information. [GH-12657]
+
+
 FEATURES:
 
 * **New Resource:** `azurerm_video_analyzer` [GH-12665]
+* **New Resource:** `azurerm_video_analyzer_edge_module` [GH-12911]
+
+ENHANCEMENTS:
+
+* `azurerm_function_app` - add support for `dotnet_framework_version` in [GH-12883]
+* `azurerm_resource_group` - conditionally (based on the `prevent_deletion_if_contains_resources` features flag - see the 'Upgrade Notes' section) checking for nested Resources during deletion of the Resource Group and raising an error if Resources are found [GH-12657]
 
 BUG FIXES:
 
@@ -155,6 +166,6 @@ BUG FIXES:
 
 ---
 
-For information on changes between the v2.69.0 and v2.0.0 releases, please see [the previous v2.x changelog entries](https://github.com/terraform-providers/terraform-provider-azurerm/blob/master/CHANGELOG-v2.md).
+For information on changes between the v2.69.0 and v2.0.0 releases, please see [the previous v2.x changelog entries](https://github.com/terraform-providers/terraform-provider-azurerm/blob/main/CHANGELOG-v2.md).
 
-For information on changes in version v1.44.0 and prior releases, please see [the v1.x changelog](https://github.com/terraform-providers/terraform-provider-azurerm/blob/master/CHANGELOG-v1.md).
+For information on changes in version v1.44.0 and prior releases, please see [the v1.x changelog](https://github.com/terraform-providers/terraform-provider-azurerm/blob/main/CHANGELOG-v1.md).

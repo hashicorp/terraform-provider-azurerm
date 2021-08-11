@@ -108,6 +108,11 @@ debugacc: fmtcheck
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
 
 website-lint:
+	@echo "==> Checking documentation for .html.markdown extension present"
+	@if ! find website/docs -type f -not -name "*.html.markdown" -print -exec false {} +; then \
+		echo "ERROR: file extension should be .html.markdown"; \
+		exit 1; \
+	fi
 	@echo "==> Checking documentation spelling..."
 	@misspell -error -source=text -i hdinsight,exportfs website/
 	@echo "==> Checking documentation for errors..."

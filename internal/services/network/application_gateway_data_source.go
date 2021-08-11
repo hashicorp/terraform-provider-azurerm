@@ -89,7 +89,7 @@ func flattenApplicationGatewayDataSourceIdentity(input *network.ManagedServiceId
 		}
 		config = &identity.ExpandedConfig{
 			Type:                    identity.Type(string(input.Type)),
-			UserAssignedIdentityIds: &identityIds,
+			UserAssignedIdentityIds: identityIds,
 		}
 	}
 	return config, nil
