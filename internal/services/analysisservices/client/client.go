@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/sdk/servers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/sdk/2017-08-01/servers"
 )
 
 type Client struct {
