@@ -5,14 +5,13 @@ import (
 	"log"
 	"time"
 
-	managedidentity2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/sdk/2018-11-30/managedidentity"
-
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/sdk/2018-11-30/managedidentity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,7 +26,7 @@ func resourceArmUserAssignedIdentity() *pluginsdk.Resource {
 		Update: resourceArmUserAssignedIdentityCreateUpdate,
 		Delete: resourceArmUserAssignedIdentityDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := managedidentity2.ParseUserAssignedIdentitiesID(id)
+			_, err := managedidentity.ParseUserAssignedIdentitiesID(id)
 			return err
 		}),
 
@@ -86,7 +85,7 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *pluginsdk.ResourceData, meta
 	location := d.Get("location").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	resourceId := managedidentity2.NewUserAssignedIdentitiesID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resourceId := managedidentity.NewUserAssignedIdentitiesID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.UserAssignedIdentitiesGet(ctx, resourceId)
 		if err != nil {
@@ -100,7 +99,7 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	identity := managedidentity2.Identity{
+	identity := managedidentity.Identity{
 		Name:     utils.String(resourceId.UserAssignedIdentityName),
 		Location: location,
 		Tags:     expandTags(t),
@@ -119,7 +118,7 @@ func resourceArmUserAssignedIdentityRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := managedidentity2.ParseUserAssignedIdentitiesID(d.Id())
+	id, err := managedidentity.ParseUserAssignedIdentitiesID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -158,7 +157,7 @@ func resourceArmUserAssignedIdentityDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := managedidentity2.ParseUserAssignedIdentitiesID(d.Id())
+	id, err := managedidentity.ParseUserAssignedIdentitiesID(d.Id())
 	if err != nil {
 		return err
 	}

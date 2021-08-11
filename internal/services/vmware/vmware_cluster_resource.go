@@ -5,12 +5,11 @@ import (
 	"log"
 	"time"
 
-	clusters2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/clusters"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/privateclouds"
-
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/clusters"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/privateclouds"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -33,7 +32,7 @@ func resourceVmwareCluster() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := clusters2.ParseClusterID(id)
+			_, err := clusters.ParseClusterID(id)
 			return err
 		}),
 
@@ -97,7 +96,7 @@ func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	id := clusters2.NewClusterID(subscriptionId, privateCloudId.ResourceGroup, privateCloudId.Name, name)
+	id := clusters.NewClusterID(subscriptionId, privateCloudId.ResourceGroup, privateCloudId.Name, name)
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -108,11 +107,11 @@ func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return tf.ImportAsExistsError("azurerm_vmware_cluster", id.ID())
 	}
 
-	cluster := clusters2.Cluster{
-		Sku: clusters2.Sku{
+	cluster := clusters.Cluster{
+		Sku: clusters.Sku{
 			Name: d.Get("sku_name").(string),
 		},
-		Properties: clusters2.ClusterProperties{
+		Properties: clusters.ClusterProperties{
 			ClusterSize: int64(d.Get("cluster_node_count").(int)),
 		},
 	}
@@ -130,7 +129,7 @@ func resourceVmwareClusterRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := clusters2.ParseClusterID(d.Id())
+	id, err := clusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -163,13 +162,13 @@ func resourceVmwareClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := clusters2.ParseClusterID(d.Id())
+	id, err := clusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	clusterUpdate := clusters2.ClusterUpdate{
-		Properties: &clusters2.ClusterUpdateProperties{},
+	clusterUpdate := clusters.ClusterUpdate{
+		Properties: &clusters.ClusterUpdateProperties{},
 	}
 	if d.HasChange("cluster_node_count") {
 		clusterUpdate.Properties.ClusterSize = utils.Int64(int64(d.Get("cluster_node_count").(int)))
@@ -186,7 +185,7 @@ func resourceVmwareClusterDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := clusters2.ParseClusterID(d.Id())
+	id, err := clusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -1,11 +1,11 @@
 package vmware
 
 import (
-	privateclouds2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/privateclouds"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/privateclouds"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func flattenPrivateCloudManagementCluster(input privateclouds2.ManagementCluster) []interface{} {
+func flattenPrivateCloudManagementCluster(input privateclouds.ManagementCluster) []interface{} {
 	return []interface{}{
 		map[string]interface{}{
 			"size":  input.ClusterSize,
@@ -15,7 +15,7 @@ func flattenPrivateCloudManagementCluster(input privateclouds2.ManagementCluster
 	}
 }
 
-func flattenPrivateCloudCircuit(input *privateclouds2.Circuit) []interface{} {
+func flattenPrivateCloudCircuit(input *privateclouds.Circuit) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}

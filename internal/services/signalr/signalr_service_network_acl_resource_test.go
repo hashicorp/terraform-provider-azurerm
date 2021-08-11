@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	signalr2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -105,7 +104,7 @@ func TestAccSignalRServiceNetworkACL_updateMultiplePrivateEndpoints(t *testing.T
 }
 
 func (r SignalRServiceNetworkACLResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := signalr2.ParseSignalRID(state.ID)
+	id, err := signalr.ParseSignalRID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +120,7 @@ func (r SignalRServiceNetworkACLResource) Exists(ctx context.Context, clients *c
 			if acls := props.NetworkACLs; acls != nil {
 				hasDefaultAction := false
 				if acls.DefaultAction != nil {
-					hasDefaultAction = *acls.DefaultAction == signalr2.ACLActionDeny
+					hasDefaultAction = *acls.DefaultAction == signalr.ACLActionDeny
 				}
 
 				hasDefaultMatches := false

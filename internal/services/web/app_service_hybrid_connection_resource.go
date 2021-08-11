@@ -6,8 +6,6 @@ import (
 	"log"
 	"time"
 
-	namespaces2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
-
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -15,6 +13,7 @@ import (
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	relayParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
 	relayValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -201,7 +200,7 @@ func resourceAppServiceHybridConnectionRead(d *pluginsdk.ResourceData, meta inte
 		if err != nil {
 			return err
 		}
-		authRuleId := namespaces2.NewAuthorizationRuleID(id.SubscriptionId, *relayNamespaceRG, *resp.ServiceBusNamespace, *resp.SendKeyName)
+		authRuleId := namespaces.NewAuthorizationRuleID(id.SubscriptionId, *relayNamespaceRG, *resp.ServiceBusNamespace, *resp.SendKeyName)
 		accessKeys, err := relayNamespacesClient.ListKeys(ctx, authRuleId)
 		if err != nil {
 			return fmt.Errorf("unable to List Access Keys for Namespace %q (Resource Group %q): %+v", *resp.ServiceBusNamespace, id.ResourceGroup, err)
@@ -235,14 +234,14 @@ func resourceAppServiceHybridConnectionDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func findRelayNamespace(ctx context.Context, client *namespaces2.NamespacesClient, subscriptionId, name string) (*string, error) {
-	subId := namespaces2.NewSubscriptionID(subscriptionId)
+func findRelayNamespace(ctx context.Context, client *namespaces.NamespacesClient, subscriptionId, name string) (*string, error) {
+	subId := namespaces.NewSubscriptionID(subscriptionId)
 	relayNSIterator, err := client.ListComplete(ctx, subId)
 	if err != nil {
 		return nil, fmt.Errorf("listing Relay Namespaces: %+v", err)
 	}
 
-	var found *namespaces2.RelayNamespace
+	var found *namespaces.RelayNamespace
 	for _, item := range relayNSIterator.Items {
 		if item.Name != nil && *item.Name == name {
 			found = &item
@@ -254,7 +253,7 @@ func findRelayNamespace(ctx context.Context, client *namespaces2.NamespacesClien
 		return nil, fmt.Errorf("could not find Relay Namespace with name: %q", name)
 	}
 
-	id, err := namespaces2.ParseNamespaceID(*found.Id)
+	id, err := namespaces.ParseNamespaceID(*found.Id)
 	if err != nil {
 		return nil, fmt.Errorf("relay Namespace id not valid: %+v", err)
 	}

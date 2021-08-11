@@ -7,14 +7,13 @@ import (
 	"strconv"
 	"time"
 
-	checknameavailabilitydisasterrecoveryconfigs2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/checknameavailabilitydisasterrecoveryconfigs"
-	disasterrecoveryconfigs2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/disasterrecoveryconfigs"
-
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/checknameavailabilitydisasterrecoveryconfigs"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/disasterrecoveryconfigs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -80,7 +79,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.Resource
 
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace Disaster Recovery Configs creation.")
 
-	id := disasterrecoveryconfigs2.NewDisasterRecoveryConfigID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	id := disasterrecoveryconfigs.NewDisasterRecoveryConfigID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -98,8 +97,8 @@ func resourceEventHubNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.Resource
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
-	parameters := disasterrecoveryconfigs2.ArmDisasterRecovery{
-		Properties: &disasterrecoveryconfigs2.ArmDisasterRecoveryProperties{
+	parameters := disasterrecoveryconfigs.ArmDisasterRecovery{
+		Properties: &disasterrecoveryconfigs.ArmDisasterRecoveryProperties{
 			PartnerNamespace: utils.String(d.Get("partner_namespace_id").(string)),
 		},
 	}
@@ -125,7 +124,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := disasterrecoveryconfigs2.DisasterRecoveryConfigID(d.Id())
+	id, err := disasterrecoveryconfigs.DisasterRecoveryConfigID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -144,8 +143,8 @@ func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resource
 		}
 	}
 
-	parameters := disasterrecoveryconfigs2.ArmDisasterRecovery{
-		Properties: &disasterrecoveryconfigs2.ArmDisasterRecoveryProperties{
+	parameters := disasterrecoveryconfigs.ArmDisasterRecovery{
+		Properties: &disasterrecoveryconfigs.ArmDisasterRecoveryProperties{
 			PartnerNamespace: utils.String(d.Get("partner_namespace_id").(string)),
 		},
 	}
@@ -170,7 +169,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := disasterrecoveryconfigs2.DisasterRecoveryConfigID(d.Id())
+	id, err := disasterrecoveryconfigs.DisasterRecoveryConfigID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -201,7 +200,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := disasterrecoveryconfigs2.DisasterRecoveryConfigID(d.Id())
+	id, err := disasterrecoveryconfigs.DisasterRecoveryConfigID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -251,7 +250,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 
 	// it can take some time for the name to become available again
 	// this is mainly here	to enable updating the resource in place
-	parentNamespaceId := checknameavailabilitydisasterrecoveryconfigs2.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName)
+	parentNamespaceId := checknameavailabilitydisasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName)
 	availabilityClient := meta.(*clients.Client).Eventhub.DisasterRecoveryNameAvailabilityClient
 	nameFreeWait := &pluginsdk.StateChangeConf{
 		Pending:    []string{"NameInUse"},
@@ -259,7 +258,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 		MinTimeout: 30 * time.Second,
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 		Refresh: func() (interface{}, string, error) {
-			input := checknameavailabilitydisasterrecoveryconfigs2.CheckNameAvailabilityParameter{
+			input := checknameavailabilitydisasterrecoveryconfigs.CheckNameAvailabilityParameter{
 				Name: id.Name,
 			}
 			resp, err := availabilityClient.DisasterRecoveryConfigsCheckNameAvailability(ctx, parentNamespaceId, input)
@@ -278,14 +277,14 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 	return nil
 }
 
-func resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx context.Context, client *disasterrecoveryconfigs2.DisasterRecoveryConfigsClient, id disasterrecoveryconfigs2.DisasterRecoveryConfigId) error {
+func resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx context.Context, client *disasterrecoveryconfigs.DisasterRecoveryConfigsClient, id disasterrecoveryconfigs.DisasterRecoveryConfigId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(disasterrecoveryconfigs2.ProvisioningStateDRAccepted)},
-		Target:     []string{string(disasterrecoveryconfigs2.ProvisioningStateDRSucceeded)},
+		Pending:    []string{string(disasterrecoveryconfigs.ProvisioningStateDRAccepted)},
+		Target:     []string{string(disasterrecoveryconfigs.ProvisioningStateDRSucceeded)},
 		MinTimeout: 30 * time.Second,
 		Timeout:    time.Until(deadline),
 		Refresh: func() (interface{}, string, error) {
@@ -300,7 +299,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx context.Con
 						return read, "failed", fmt.Errorf("provisioningState was empty")
 					}
 
-					if *props.ProvisioningState == disasterrecoveryconfigs2.ProvisioningStateDRFailed {
+					if *props.ProvisioningState == disasterrecoveryconfigs.ProvisioningStateDRFailed {
 						return read, "failed", fmt.Errorf("replication failed for %s: %+v", id, err)
 					}
 					return read, string(*props.ProvisioningState), nil

@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	namespaces2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-01-01-preview/namespaces"
-
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -59,7 +58,7 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := namespaces2.ParseNamespaceID(d.Get("eventhub_namespace_id").(string))
+	id, err := namespaces.ParseNamespaceID(d.Get("eventhub_namespace_id").(string))
 	if err != nil {
 		return err
 	}
@@ -83,8 +82,8 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 
 	namespace := resp.Model
 
-	keySource := namespaces2.KeySourceMicrosoftKeyVault
-	namespace.Properties.Encryption = &namespaces2.Encryption{
+	keySource := namespaces.KeySourceMicrosoftKeyVault
+	namespace.Properties.Encryption = &namespaces.Encryption{
 		KeySource: &keySource,
 	}
 
@@ -108,7 +107,7 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := namespaces2.ParseNamespaceID(d.Id())
+	id, err := namespaces.ParseNamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -148,7 +147,7 @@ func resourceEventHubNamespaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := namespaces2.ParseNamespaceID(d.Id())
+	id, err := namespaces.ParseNamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -189,12 +188,12 @@ func resourceEventHubNamespaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData
 	return nil
 }
 
-func expandEventHubNamespaceKeyVaultKeyIds(input []interface{}) (*[]namespaces2.KeyVaultProperties, error) {
+func expandEventHubNamespaceKeyVaultKeyIds(input []interface{}) (*[]namespaces.KeyVaultProperties, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 
-	results := make([]namespaces2.KeyVaultProperties, 0)
+	results := make([]namespaces.KeyVaultProperties, 0)
 
 	for _, item := range input {
 		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(item.(string))
@@ -202,7 +201,7 @@ func expandEventHubNamespaceKeyVaultKeyIds(input []interface{}) (*[]namespaces2.
 			return nil, err
 		}
 
-		results = append(results, namespaces2.KeyVaultProperties{
+		results = append(results, namespaces.KeyVaultProperties{
 			KeyName:     utils.String(keyId.Name),
 			KeyVaultUri: utils.String(keyId.KeyVaultBaseUrl),
 			KeyVersion:  utils.String(keyId.Version),
@@ -212,7 +211,7 @@ func expandEventHubNamespaceKeyVaultKeyIds(input []interface{}) (*[]namespaces2.
 	return &results, nil
 }
 
-func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces2.Encryption) ([]interface{}, error) {
+func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil || input.KeyVaultProperties == nil {
 		return results, nil

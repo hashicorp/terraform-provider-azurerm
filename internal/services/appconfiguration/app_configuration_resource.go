@@ -6,14 +6,13 @@ import (
 	"strings"
 	"time"
 
-	configurationstores2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
-
 	"github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2020-06-01/appconfiguration"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -36,7 +35,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := configurationstores2.ConfigurationStoreID(id)
+			_, err := configurationstores.ConfigurationStoreID(id)
 			return err
 		}),
 
@@ -205,7 +204,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	resourceId := configurationstores2.NewConfigurationStoreID(subscriptionId, resourceGroup, name)
+	resourceId := configurationstores.NewConfigurationStoreID(subscriptionId, resourceGroup, name)
 	existing, err := client.Get(ctx, resourceId)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -216,9 +215,9 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		return tf.ImportAsExistsError("azurerm_app_configuration", resourceId.ID())
 	}
 
-	parameters := configurationstores2.ConfigurationStore{
+	parameters := configurationstores.ConfigurationStore{
 		Location: azure.NormalizeLocation(d.Get("location").(string)),
-		Sku: configurationstores2.Sku{
+		Sku: configurationstores.Sku{
 			Name: d.Get("sku").(string),
 		},
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
@@ -240,13 +239,13 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM App Configuration update.")
-	id, err := configurationstores2.ConfigurationStoreID(d.Id())
+	id, err := configurationstores.ConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	parameters := configurationstores2.ConfigurationStoreUpdateParameters{
-		Sku: &configurationstores2.Sku{
+	parameters := configurationstores.ConfigurationStoreUpdateParameters{
+		Sku: &configurationstores.Sku{
 			Name: d.Get("sku").(string),
 		},
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
@@ -268,7 +267,7 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := configurationstores2.ConfigurationStoreID(d.Id())
+	id, err := configurationstores.ConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -320,7 +319,7 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := configurationstores2.ConfigurationStoreID(d.Id())
+	id, err := configurationstores.ConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -339,7 +338,7 @@ type flattenedAccessKeys struct {
 	secondaryWriteKey []interface{}
 }
 
-func flattenAppConfigurationAccessKeys(values []configurationstores2.AccessKey) flattenedAccessKeys {
+func flattenAppConfigurationAccessKeys(values []configurationstores.AccessKey) flattenedAccessKeys {
 	result := flattenedAccessKeys{
 		primaryReadKey:    make([]interface{}, 0),
 		primaryWriteKey:   make([]interface{}, 0),
@@ -376,7 +375,7 @@ func flattenAppConfigurationAccessKeys(values []configurationstores2.AccessKey) 
 	return result
 }
 
-func flattenAppConfigurationAccessKey(input configurationstores2.AccessKey) []interface{} {
+func flattenAppConfigurationAccessKey(input configurationstores.AccessKey) []interface{} {
 	connectionString := ""
 
 	if input.ConnectionString != nil {
@@ -402,23 +401,23 @@ func flattenAppConfigurationAccessKey(input configurationstores2.AccessKey) []in
 	}
 }
 
-func expandAppConfigurationIdentity(identities []interface{}) *configurationstores2.ResourceIdentity {
-	var out = func(in configurationstores2.IdentityType) *configurationstores2.ResourceIdentity {
-		return &configurationstores2.ResourceIdentity{
+func expandAppConfigurationIdentity(identities []interface{}) *configurationstores.ResourceIdentity {
+	var out = func(in configurationstores.IdentityType) *configurationstores.ResourceIdentity {
+		return &configurationstores.ResourceIdentity{
 			Type: &in,
 		}
 	}
 
 	if len(identities) == 0 {
-		return out(configurationstores2.IdentityTypeNone)
+		return out(configurationstores.IdentityTypeNone)
 	}
 	identity := identities[0].(map[string]interface{})
-	identityType := configurationstores2.IdentityType(identity["type"].(string))
+	identityType := configurationstores.IdentityType(identity["type"].(string))
 	return out(identityType)
 }
 
-func flattenAppConfigurationIdentity(identity *configurationstores2.ResourceIdentity) []interface{} {
-	if identity == nil || identity.Type == nil || *identity.Type == configurationstores2.IdentityTypeNone {
+func flattenAppConfigurationIdentity(identity *configurationstores.ResourceIdentity) []interface{} {
+	if identity == nil || identity.Type == nil || *identity.Type == configurationstores.IdentityTypeNone {
 		return []interface{}{}
 	}
 

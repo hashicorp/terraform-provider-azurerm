@@ -7,13 +7,12 @@ import (
 	"strings"
 	"time"
 
-	eventhubsclusters2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/eventhubsclusters"
-
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/eventhubsclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,7 +28,7 @@ func resourceEventHubCluster() *pluginsdk.Resource {
 		Update: resourceEventHubClusterCreateUpdate,
 		Delete: resourceEventHubClusterDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := eventhubsclusters2.ClusterID(id)
+			_, err := eventhubsclusters.ClusterID(id)
 			return err
 		}),
 
@@ -75,7 +74,7 @@ func resourceEventHubClusterCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub Cluster creation.")
 
-	id := eventhubsclusters2.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := eventhubsclusters.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.ClustersGet(ctx, id)
 		if err != nil {
@@ -89,7 +88,7 @@ func resourceEventHubClusterCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	cluster := eventhubsclusters2.Cluster{
+	cluster := eventhubsclusters.Cluster{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
 		Sku:      expandEventHubClusterSkuName(d.Get("sku_name").(string)),
@@ -111,7 +110,7 @@ func resourceEventHubClusterRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := eventhubsclusters2.ClusterID(d.Id())
+	id, err := eventhubsclusters.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -141,7 +140,7 @@ func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	client := meta.(*clients.Client).Eventhub.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := eventhubsclusters2.ClusterID(d.Id())
+	id, err := eventhubsclusters.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -170,7 +169,7 @@ func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	}) //lintignore:R006
 }
 
-func expandEventHubClusterSkuName(skuName string) *eventhubsclusters2.ClusterSku {
+func expandEventHubClusterSkuName(skuName string) *eventhubsclusters.ClusterSku {
 	if len(skuName) == 0 {
 		return nil
 	}
@@ -180,13 +179,13 @@ func expandEventHubClusterSkuName(skuName string) *eventhubsclusters2.ClusterSku
 		return nil
 	}
 
-	return &eventhubsclusters2.ClusterSku{
-		Name:     eventhubsclusters2.ClusterSkuName(name),
+	return &eventhubsclusters.ClusterSku{
+		Name:     eventhubsclusters.ClusterSkuName(name),
 		Capacity: utils.Int64(int64(capacity)),
 	}
 }
 
-func flattenEventHubClusterSkuName(input *eventhubsclusters2.ClusterSku) string {
+func flattenEventHubClusterSkuName(input *eventhubsclusters.ClusterSku) string {
 	if input == nil || input.Capacity == nil {
 		return ""
 	}
