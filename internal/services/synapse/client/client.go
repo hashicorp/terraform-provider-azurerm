@@ -18,6 +18,7 @@ type Client struct {
 	PrivateLinkHubsClient                            *synapse.PrivateLinkHubsClient
 	SparkPoolClient                                  *synapse.BigDataPoolsClient
 	SqlPoolClient                                    *synapse.SQLPoolsClient
+	SqlPoolExtendedBlobAuditingPoliciesClient        *synapse.ExtendedSQLPoolBlobAuditingPoliciesClient
 	SqlPoolSecurityAlertPolicyClient                 *synapse.SQLPoolSecurityAlertPoliciesClient
 	SqlPoolTransparentDataEncryptionClient           *synapse.SQLPoolTransparentDataEncryptionsClient
 	SqlPoolVulnerabilityAssessmentsClient            *synapse.SQLPoolVulnerabilityAssessmentsClient
@@ -50,6 +51,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	sqlPoolClient := synapse.NewSQLPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolClient.Client, o.ResourceManagerAuthorizer)
+
+	sqlPoolExtendedBlobAuditingPoliciesClient := synapse.NewExtendedSQLPoolBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sqlPoolExtendedBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	sqlPoolSecurityAlertPolicyClient := synapse.NewSQLPoolSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolSecurityAlertPolicyClient.Client, o.ResourceManagerAuthorizer)
@@ -84,6 +88,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		PrivateLinkHubsClient:                            &privateLinkHubsClient,
 		SparkPoolClient:                                  &sparkPoolClient,
 		SqlPoolClient:                                    &sqlPoolClient,
+		SqlPoolExtendedBlobAuditingPoliciesClient:        &sqlPoolExtendedBlobAuditingPoliciesClient,
 		SqlPoolSecurityAlertPolicyClient:                 &sqlPoolSecurityAlertPolicyClient,
 		SqlPoolTransparentDataEncryptionClient:           &sqlPoolTransparentDataEncryptionClient,
 		SqlPoolVulnerabilityAssessmentsClient:            &sqlPoolVulnerabilityAssessmentsClient,
