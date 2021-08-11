@@ -172,7 +172,7 @@ func TestAccEventHubNamespaceAuthorizationRule_multi(t *testing.T) {
 }
 
 func (EventHubNamespaceAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := authorizationrulesnamespaces.AuthorizationRuleID(state.ID)
+	id, err := authorizationrulesnamespaces.ParseAuthorizationRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}

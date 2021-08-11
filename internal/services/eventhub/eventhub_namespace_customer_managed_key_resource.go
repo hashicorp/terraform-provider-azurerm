@@ -82,7 +82,7 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 
 	namespace := resp.Model
 
-	keySource := namespaces.KeySourceMicrosoftKeyVault
+	keySource := namespaces.KeySourceMicrosoftPointKeyVault
 	namespace.Properties.Encryption = &namespaces.Encryption{
 		KeySource: &keySource,
 	}
