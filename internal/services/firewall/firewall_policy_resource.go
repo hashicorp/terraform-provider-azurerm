@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
+	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 )
 
 const azureFirewallPolicyResourceName = "azurerm_firewall_policy"
@@ -281,6 +281,25 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 				},
 			},
 
+			"tls_certificate": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				MinItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_secret_id": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
 			"child_policies": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -350,6 +369,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			ThreatIntelWhitelist: expandFirewallPolicyThreatIntelWhitelist(d.Get("threat_intelligence_allowlist").([]interface{})),
 			DNSSettings:          expandFirewallPolicyDNSSetting(d.Get("dns").([]interface{})),
 			IntrusionDetection:   expandFirewallPolicyIntrusionDetection(d.Get("intrusion_detection").([]interface{})),
+			TransportSecurity:    expandFirewallPolicyTransportSecurity(d.Get("tls_certificate").([]interface{})),
 		},
 		Identity: expandFirewallPolicyIdentity(d.Get("identity").([]interface{})),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
@@ -439,6 +459,10 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		if err := d.Set("intrusion_detection", flattenFirewallPolicyIntrusionDetection(resp.IntrusionDetection)); err != nil {
 			return fmt.Errorf(`setting "intrusion_detection": %+v`, err)
+		}
+
+		if err := d.Set("tls_certificate", flattenFirewallPolicyTransportSecurity(prop.TransportSecurity)); err != nil {
+			return fmt.Errorf(`setting "tls_certificate": %+v`, err)
 		}
 
 		if err := d.Set("child_policies", flattenNetworkSubResourceID(prop.ChildPolicies)); err != nil {
@@ -561,6 +585,21 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *network.Firewa
 
 }
 
+func expandFirewallPolicyTransportSecurity(input []interface{}) *network.FirewallPolicyTransportSecurity {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+
+	return &network.FirewallPolicyTransportSecurity{
+		CertificateAuthority: &network.FirewallPolicyCertificateAuthority{
+			KeyVaultSecretID: utils.String(raw["key_vault_secret_id"].(string)),
+			Name:             utils.String(raw["name"].(string)),
+		},
+	}
+}
+
 func expandFirewallPolicyIdentity(input []interface{}) *network.ManagedServiceIdentity {
 	if len(input) == 0 {
 		return nil
@@ -617,6 +656,19 @@ func flattenFirewallPolicyIntrusionDetection(input *network.FirewallPolicyIntrus
 			"mode":                input.Mode,
 			"signature_overrides": input.Configuration.SignatureOverrides,
 			"traffic_bypass":      input.Configuration.BypassTrafficSettings,
+		},
+	}
+}
+
+func flattenFirewallPolicyTransportSecurity(input *network.FirewallPolicyTransportSecurity) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"key_vault_secret_id": input.CertificateAuthority.KeyVaultSecretID,
+			"name":                input.CertificateAuthority.Name,
 		},
 	}
 }

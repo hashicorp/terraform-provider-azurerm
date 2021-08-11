@@ -183,7 +183,6 @@ func (FirewallPolicyResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_firewall_policy" "test" {
   name                = "acctest-networkfw-Policy-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -197,7 +196,6 @@ func (FirewallPolicyResource) basicPremium(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_firewall_policy" "test" {
   name                = "acctest-networkfw-Policy-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -212,7 +210,6 @@ func (FirewallPolicyResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_firewall_policy" "test" {
   name                     = "acctest-networkfw-Policy-%d"
   resource_group_name      = azurerm_resource_group.test.name
@@ -238,7 +235,6 @@ func (FirewallPolicyResource) completePremium(data acceptance.TestData) string {
 	template := r.templatePremium(data)
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_firewall_policy" "test" {
   name                     = "acctest-networkfw-Policy-%d"
   resource_group_name      = azurerm_resource_group.test.name
@@ -291,7 +287,6 @@ func (FirewallPolicyResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_firewall_policy" "import" {
   name                = azurerm_firewall_policy.test.name
   resource_group_name = azurerm_firewall_policy.test.resource_group_name
@@ -305,13 +300,11 @@ func (FirewallPolicyResource) inherit(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_firewall_policy" "test-parent" {
   name                = "acctest-networkfw-Policy-%d-parent"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
-
 resource "azurerm_firewall_policy" "test" {
   name                = "acctest-networkfw-Policy-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -337,7 +330,6 @@ func (FirewallPolicyResource) template(data acceptance.TestData) string {
 provider "azurerm" {
   features {}
 }
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-networkfw-%d"
   location = "%s"
@@ -350,15 +342,23 @@ func (FirewallPolicyResource) templatePremium(data acceptance.TestData) string {
 provider "azurerm" {
   features {}
 }
+<<<<<<< HEAD
 
 data "azurerm_client_config" "current" {
 }
 
+=======
+data "azurerm_client_config" "current" {
+}
+>>>>>>> 826149085676c4a587b20fe0d87fa44f4e5fb1a6
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-networkfw-%d"
   location = "%s"
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 826149085676c4a587b20fe0d87fa44f4e5fb1a6
 resource "azurerm_key_vault" "test" {
   name                            = "tlskv%d"
   location                        = azurerm_resource_group.test.location
@@ -367,22 +367,33 @@ resource "azurerm_key_vault" "test" {
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
   tenant_id                       = data.azurerm_client_config.current.tenant_id
+<<<<<<< HEAD
 
   sku_name = "standard"
 }
 
+=======
+  sku_name = "standard"
+}
+>>>>>>> 826149085676c4a587b20fe0d87fa44f4e5fb1a6
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestUAI-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 826149085676c4a587b20fe0d87fa44f4e5fb1a6
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id   = azurerm_key_vault.test.id
   application_id = azurerm_user_assigned_identity.test.client_id
   tenant_id      = data.azurerm_client_config.current.tenant_id
   object_id      = azurerm_user_assigned_identity.test.principal_id
+<<<<<<< HEAD
 
+=======
+>>>>>>> 826149085676c4a587b20fe0d87fa44f4e5fb1a6
   key_permissions = [
     "backup",
     "create",
@@ -395,7 +406,10 @@ resource "azurerm_key_vault_access_policy" "test" {
     "restore",
     "update"
   ]
+<<<<<<< HEAD
 
+=======
+>>>>>>> 826149085676c4a587b20fe0d87fa44f4e5fb1a6
   certificate_permissions = [
     "backup",
     "create",
@@ -406,7 +420,6 @@ resource "azurerm_key_vault_access_policy" "test" {
     "delete",
     "recover",
   ]
-
   secret_permissions = [
     "get",
     "list",
@@ -415,17 +428,13 @@ resource "azurerm_key_vault_access_policy" "test" {
     "delete",
     "recover"
   ]
-
 }
-
 resource "azurerm_key_vault_certificate" "test" {
   name         = "AzureFirewallPolicyCertificate"
   key_vault_id = azurerm_key_vault.test.id
-
   certificate {
     contents = filebase64("testdata/cert_key.pem")
   }
-
   certificate_policy {
     issuer_parameters {
       name = "Self"
@@ -458,8 +467,6 @@ resource "azurerm_key_vault_certificate" "test" {
       validity_in_months = 1
     }
   }
-
 }
-
 `, data.RandomInteger, "westeurope", data.RandomInteger, data.RandomInteger)
 }

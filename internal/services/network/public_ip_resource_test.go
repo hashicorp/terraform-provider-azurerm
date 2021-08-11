@@ -894,7 +894,8 @@ resource "azurerm_public_ip" "test" {
   allocation_method   = "Static"
   sku                 = "Standard"
   sku_tier            = "Global"
-}`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (PublicIPResource) regionalTier(data acceptance.TestData) string {
@@ -915,5 +916,6 @@ resource "azurerm_public_ip" "test" {
   allocation_method   = "Static"
   sku                 = "Basic"
   sku_tier            = "Regional"
-}`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
