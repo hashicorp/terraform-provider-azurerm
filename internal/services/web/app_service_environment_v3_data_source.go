@@ -201,8 +201,7 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 				model.AllowNewPrivateEndpointConnections = *props.AllowNewPrivateEndpointConnections
 			}
 
-			inboundNetworkDependencies := &[]AppServiceV3InboundDependencies{}
-			inboundNetworkDependencies, err = flattenInboundNetworkDependencies(ctx, client, &id)
+			inboundNetworkDependencies, err := flattenInboundNetworkDependencies(ctx, client, &id)
 			if err != nil {
 				return err
 			}

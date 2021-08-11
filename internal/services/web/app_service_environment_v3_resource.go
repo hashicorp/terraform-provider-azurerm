@@ -337,8 +337,7 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 				model.AllowNewPrivateEndpointConnections = *props.AllowNewPrivateEndpointConnections
 			}
 
-			inboundNetworkDependencies := &[]AppServiceV3InboundDependencies{}
-			inboundNetworkDependencies, err = flattenInboundNetworkDependencies(ctx, client, id)
+			inboundNetworkDependencies, err := flattenInboundNetworkDependencies(ctx, client, id)
 			if err != nil {
 				return err
 			}
@@ -469,7 +468,8 @@ func expandClusterSettingsModel(input []ClusterSettingModel) *[]web.NameValuePai
 
 func flattenInboundNetworkDependencies(ctx context.Context, client *web.AppServiceEnvironmentsClient, id *parse.AppServiceEnvironmentId) (*[]AppServiceV3InboundDependencies, error) {
 	var results []AppServiceV3InboundDependencies
-	for inboundNetworking, err := client.GetInboundNetworkDependenciesEndpointsComplete(ctx, id.ResourceGroup, id.HostingEnvironmentName); inboundNetworking.NotDone(); inboundNetworking.NextWithContext(ctx) {
+	inboundNetworking, err := client.GetInboundNetworkDependenciesEndpointsComplete(ctx, id.ResourceGroup, id.HostingEnvironmentName)
+	for inboundNetworking.NotDone() {
 		if err != nil {
 			return nil, fmt.Errorf("reading Inbound Network dependencies for %s: %+v", id, err)
 		}
@@ -487,6 +487,11 @@ func flattenInboundNetworkDependencies(ctx context.Context, client *web.AppServi
 		}
 
 		results = append(results, result)
+
+		err = inboundNetworking.NextWithContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("reading paged results for Inbound Network Dependencies for %s: %+v", id, err)
+		}
 	}
 
 	return &results, nil
