@@ -24,6 +24,7 @@ type Client struct {
 	SqlPoolVulnerabilityAssessmentsClient            *synapse.SQLPoolVulnerabilityAssessmentsClient
 	WorkspaceClient                                  *synapse.WorkspacesClient
 	WorkspaceAadAdminsClient                         *synapse.WorkspaceAadAdminsClient
+	WorkspaceExtendedBlobAuditingPoliciesClient      *synapse.WorkspaceManagedSQLServerExtendedBlobAuditingPoliciesClient
 	WorkspaceManagedIdentitySQLControlSettingsClient *synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	WorkspaceSecurityAlertPolicyClient               *synapse.WorkspaceManagedSQLServerSecurityAlertPolicyClient
 	WorkspaceVulnerabilityAssessmentsClient          *synapse.WorkspaceManagedSQLServerVulnerabilityAssessmentsClient
@@ -70,6 +71,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	workspaceAadAdminsClient := synapse.NewWorkspaceAadAdminsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceAadAdminsClient.Client, o.ResourceManagerAuthorizer)
 
+	workspaceExtendedBlobAuditingPoliciesClient := synapse.NewWorkspaceManagedSQLServerExtendedBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&workspaceExtendedBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
 	workspaceManagedIdentitySQLControlSettingsClient := synapse.NewWorkspaceManagedIdentitySQLControlSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceManagedIdentitySQLControlSettingsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -94,6 +98,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		SqlPoolVulnerabilityAssessmentsClient:            &sqlPoolVulnerabilityAssessmentsClient,
 		WorkspaceClient:                                  &workspaceClient,
 		WorkspaceAadAdminsClient:                         &workspaceAadAdminsClient,
+		WorkspaceExtendedBlobAuditingPoliciesClient:      &workspaceExtendedBlobAuditingPoliciesClient,
 		WorkspaceManagedIdentitySQLControlSettingsClient: &workspaceManagedIdentitySQLControlSettingsClient,
 		WorkspaceSecurityAlertPolicyClient:               &workspaceSecurityAlertPolicyClient,
 		WorkspaceVulnerabilityAssessmentsClient:          &workspaceVulnerabilityAssessmentsClient,
