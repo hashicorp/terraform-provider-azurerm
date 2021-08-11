@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -192,10 +192,10 @@ func TestAccEventGridSystemTopicEventSubscription_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridSystemTopicEventSubscriptionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("delivery_identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("delivery_identity.0.type").HasValue("SystemAssigned"),
@@ -206,7 +206,7 @@ func TestAccEventGridSystemTopicEventSubscription_identity(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("delivery_identity.#").HasValue("0"),
 				check.That(data.ResourceName).Key("dead_letter_identity.#").HasValue("0"),
@@ -215,7 +215,7 @@ func TestAccEventGridSystemTopicEventSubscription_identity(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.identity(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("delivery_identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("delivery_identity.0.type").HasValue("SystemAssigned"),
@@ -889,6 +889,14 @@ resource "azurerm_storage_blob" "test" {
 
   type = "Page"
   size = 5120
+}
+
+resource "azurerm_eventgrid_system_topic" "test" {
+  name                   = "acctesteg-%[1]d"
+  location               = "Global"
+  resource_group_name    = azurerm_resource_group.test.name
+  source_arm_resource_id = azurerm_resource_group.test.id
+  topic_type             = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
