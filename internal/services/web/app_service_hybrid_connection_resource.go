@@ -6,8 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/namespaces"
-
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -15,6 +13,7 @@ import (
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	relayParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
 	relayValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
