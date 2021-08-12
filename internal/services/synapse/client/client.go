@@ -15,6 +15,7 @@ type Client struct {
 	PrivateLinkHubsClient                            *synapse.PrivateLinkHubsClient
 	SparkPoolClient                                  *synapse.BigDataPoolsClient
 	SqlPoolClient                                    *synapse.SQLPoolsClient
+	SqlPoolSecurityAlertPolicyClient                 *synapse.SQLPoolSecurityAlertPoliciesClient
 	SqlPoolTransparentDataEncryptionClient           *synapse.SQLPoolTransparentDataEncryptionsClient
 	WorkspaceClient                                  *synapse.WorkspacesClient
 	WorkspaceAadAdminsClient                         *synapse.WorkspaceAadAdminsClient
@@ -38,6 +39,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	sqlPoolClient := synapse.NewSQLPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolClient.Client, o.ResourceManagerAuthorizer)
 
+	sqlPoolSecurityAlertPolicyClient := synapse.NewSQLPoolSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sqlPoolSecurityAlertPolicyClient.Client, o.ResourceManagerAuthorizer)
+
 	sqlPoolTransparentDataEncryptionClient := synapse.NewSQLPoolTransparentDataEncryptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolTransparentDataEncryptionClient.Client, o.ResourceManagerAuthorizer)
 
@@ -58,6 +62,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		PrivateLinkHubsClient:                            &privateLinkHubsClient,
 		SparkPoolClient:                                  &sparkPoolClient,
 		SqlPoolClient:                                    &sqlPoolClient,
+		SqlPoolSecurityAlertPolicyClient:                 &sqlPoolSecurityAlertPolicyClient,
 		SqlPoolTransparentDataEncryptionClient:           &sqlPoolTransparentDataEncryptionClient,
 		WorkspaceClient:                                  &workspaceClient,
 		WorkspaceAadAdminsClient:                         &workspaceAadAdminsClient,
