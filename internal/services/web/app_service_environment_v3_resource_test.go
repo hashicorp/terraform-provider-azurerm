@@ -111,6 +111,36 @@ func TestAccAppServiceEnvironmentV3_updateVnet(t *testing.T) {
 	})
 }
 
+func TestAccAppServiceEnvironmentV3_zoneRedundant(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment_v3", "test")
+	r := AppServiceEnvironmentV3Resource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zoneRedundant(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppServiceEnvironmentV3_dedicatedHosts(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment_v3", "test")
+	r := AppServiceEnvironmentV3Resource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dedicatedHosts(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (AppServiceEnvironmentV3Resource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AppServiceEnvironmentID(state.ID)
 	if err != nil {
@@ -253,6 +283,34 @@ resource "azurerm_app_service_environment_v3" "import" {
 }
 `, template)
 }
+
+func (r AppServiceEnvironmentV3Resource) zoneRedundant(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_app_service_environment_v3" "test" {
+  name                = "acctest-ase-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.test.id
+  zone_redundant      = true
+}
+`, template, data.RandomInteger)
+}
+
+func (r AppServiceEnvironmentV3Resource) dedicatedHosts(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_app_service_environment_v3" "test" {
+  name                 = "acctest-ase-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  subnet_id            = azurerm_subnet.test.id
+  dedicated_host_count = 2
+}
+`, template, data.RandomInteger)
+}
+
+
 
 func (r AppServiceEnvironmentV3Resource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
