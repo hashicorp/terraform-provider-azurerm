@@ -264,7 +264,7 @@ resource "azurerm_subnet" "test2" {
 
 resource "azurerm_app_service_environment_v3" "test" {
   name                = "acctest-ase-%[2]d"
-  resource_group_name = azurerm_resource_group.test2.name
+  resource_group_name = azurerm_resource_group.test.name
   subnet_id           = azurerm_subnet.test2.id
 }
 `, template, data.RandomInteger)
