@@ -130,10 +130,19 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the Machine Learning compute. Changing this forces a new Machine Learning Inference Cluster to be created.
 
+* `identity` - (Optional) A `identity` block as defined below. Changing this forces a new Machine Learning Inference Cluster to be created.
+
 * `ssl` - (Optional) A `ssl` block as defined below. Changing this forces a new Machine Learning Inference Cluster to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning Inference Cluster. Changing this forces a new Machine Learning Inference Cluster to be created.
 
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) The Type of Identity which should be used for this Machine Learning Inference Cluster. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned,UserAssigned`. Changing this forces a new Machine Learning Inference Cluster to be created.
+
+* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Machine Learning Inference Cluster. Changing this forces a new Machine Learning Inference Cluster to be created.
 
 ---
 
@@ -154,6 +163,16 @@ A `ssl` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Machine Learning Inference Cluster.
+
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Machine Learning Inference Cluster.
+
+---
+
+A `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Machine Learning Inference Cluster.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Machine Learning Inference Cluster.
 
 ## Timeouts
 

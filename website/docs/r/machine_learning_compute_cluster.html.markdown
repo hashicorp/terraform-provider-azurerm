@@ -110,15 +110,26 @@ The following arguments are supported:
 
 * `vm_size` - (Required) The size of the VM. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `identity` - (Required) A `identity` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
-
 * `scale_settings` - (Required) A `scale_settings` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
   
 ---
+* `credential` - (Optional) Credentials for an administrator user account that will be created on each compute node. A `credential` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `description` - (Optional) The description of the Machine Learning compute. Changing this forces a new Machine Learning Compute Cluster to be created.
-  
+
+* `identity` - (Optional) A `identity` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
+
+* `isolated_network_enabled` - (Optional) A boolean value indicating whether network is isolated. Changing this forces a new Machine Learning Compute Cluster to be created.
+
+* `node_public_ip_enabled` - (Optional)  A boolean value indicating whether enable node public IP address provisioning. Changing this forces a new Machine Learning Compute Cluster to be created.
+
+* `os_type` - (Optional)  Compute OS Type. Possible values include: `Linux`, `Windows`. Changing this forces a new Machine Learning Compute Cluster to be created.
+
+* `remote_login_port_public_access_enabled` - (Optional)  A boolean value indicating whether enable the public SSH port. Changing this forces a new Machine Learning Compute Cluster to be created.
+
 * `subnet_resource_id` - (Optional) The ID of the Subnet that the Compute Cluster should reside in. Changing this forces a new Machine Learning Compute Cluster to be created.
+
+* `virtual_machine_image_id` - (Optional) The ID of Virtual Machine image. This property is used only `os_type` sets to `Windows`. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning Compute Cluster. Changing this forces a new Machine Learning Compute Cluster to be created.
 
@@ -126,7 +137,18 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The Type of Identity which should be used for this Disk Encryption Set. At this time the only possible value is SystemAssigned. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `type` - (Required) The Type of Identity which should be used for this Machine Learning Compute Cluster. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned,UserAssigned`. Changing this forces a new Machine Learning Compute Cluster to be created.
+
+* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Machine Learning Compute Cluster. Changing this forces a new Machine Learning Compute Cluster to be created.
+
+---
+A `credential` block supports the following:
+
+* `username` - (Required) Name of the administrator user account which can be used to SSH to nodes. Changing this forces a new Machine Learning Compute Cluster to be created.
+
+* `password` - (Optional) Password of the administrator user account. Changing this forces a new Machine Learning Compute Cluster to be created.
+
+* `ssh_public_key` - (Optional) SSH public key of the administrator user account. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 ---
 
@@ -143,6 +165,16 @@ A `scale_settings` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Machine Learning Compute Cluster.
+
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Machine Learning Compute Cluster.
+
+---
+
+A `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Machine Learning Compute Cluster.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Machine Learning Compute Cluster.
 
 ## Timeouts
 
