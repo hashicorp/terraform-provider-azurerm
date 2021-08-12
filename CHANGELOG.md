@@ -1,5 +1,10 @@
 ## 2.73.0 (Unreleased)
 
+
+ENHANCEMENTS:
+
+* Dependencies: upgrade `azure-sdk-for-go` to v56.2.0 [GH-12969]
+
 ## 2.72.0 (August 12, 2021)
 
 UPGRADE NOTES
