@@ -204,15 +204,6 @@ resource "azurerm_servicebus_namespace" "primary_namespace_test" {
   capacity            = "1"
 }
 
-resource "azurerm_servicebus_namespace_authorization_rule" "test" {
-  name                = "example_namespace_rule"
-  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
-  resource_group_name = azurerm_resource_group.primary.name
-  manage              = true
-  listen              = true
-  send                = true
-}
-
 resource "azurerm_servicebus_namespace" "secondary_namespace_test" {
   name                = "acctest2-%[1]d"
   location            = azurerm_resource_group.secondary.location
@@ -225,11 +216,20 @@ resource "azurerm_servicebus_namespace_disaster_recovery_config" "pairing_test" 
   name                 = "acctest-alias-%[1]d"
   primary_namespace_id = azurerm_servicebus_namespace.primary_namespace_test.id
   partner_namespace_id = azurerm_servicebus_namespace.secondary_namespace_test.id
-
-  depends_on = [
-    azurerm_servicebus_namespace_authorization_rule.example
-  ]    
 }
+
+resource "azurerm_servicebus_namespace_authorization_rule" "test" {
+	name                = "example_namespace_rule"
+	namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
+	resource_group_name = azurerm_resource_group.primary.name
+	manage              = true
+	listen              = true
+	send                = true
+
+	depends_on = [
+		azurerm_servicebus_namespace_disaster_recovery_config.pairing_test
+	  ]    	
+  }
 
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }

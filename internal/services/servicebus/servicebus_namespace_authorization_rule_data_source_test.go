@@ -31,7 +31,7 @@ func TestAccDataSourceServiceBusNamespaceRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceServiceBusNamespaceRule_aliasConnectionString(t *testing.T) {
+func TestAccDataSourceServiceBusNamespaceRule_withAliasConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_namespace_authorization_rule", "test")
 	r := ServiceBusNamespaceAuthorizationRuleDataSource{}
 
@@ -70,7 +70,7 @@ func (ServiceBusNamespaceAuthorizationRuleDataSource) namespaceAliasPolicy(data 
 	%s
 
 data "azurerm_servicebus_namespace_authorization_rule" "test" {
-  name                = azurerm_servicebus_namespace_authorization_rule.example.name
+  name                = azurerm_servicebus_namespace_authorization_rule.test.name
   namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
   resource_group_name = azurerm_resource_group.primary.name
 }

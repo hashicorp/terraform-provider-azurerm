@@ -33,7 +33,7 @@ func TestAccDataSourceServiceBusQueueAuthorizationRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceServiceBusQueueAuthorizationRule_aliasConnectionString(t *testing.T) {
+func TestAccDataSourceServiceBusQueueAuthorizationRule_withAliasConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_queue_authorization_rule", "test")
 	r := ServiceBusQueueAuthorizationRuleDataSource{}
 
@@ -69,7 +69,7 @@ func (ServiceBusQueueAuthorizationRuleDataSource) queueAliasPolicy(data acceptan
 %s
 
 data "azurerm_servicebus_queue_authorization_rule" "test" {
-  name                = azurerm_servicebus_queue_authorization_rule.example.name
+  name                = azurerm_servicebus_queue_authorization_rule.test.name
   namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
   resource_group_name = azurerm_resource_group.primary.name
   queue_name          = azurerm_servicebus_queue.example.name

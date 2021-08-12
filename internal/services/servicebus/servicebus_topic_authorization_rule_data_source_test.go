@@ -33,7 +33,7 @@ func TestAccDataSourceServiceBusTopicAuthorizationRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceServiceBusTopicAuthorizationRule_aliasConnectionString(t *testing.T) {
+func TestAccDataSourceServiceBusTopicAuthorizationRule_withAliasConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_topic_authorization_rule", "test")
 	r := ServiceBusTopicAuthorizationRuleDataSource{}
 
@@ -69,7 +69,7 @@ func (ServiceBusTopicAuthorizationRuleDataSource) topicAliasPolicy(data acceptan
 %s
 
 data "azurerm_servicebus_topic_authorization_rule" "test" {
-  name                = azurerm_servicebus_topic_authorization_rule.example.name
+  name                = azurerm_servicebus_topic_authorization_rule.test.name
   namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
   resource_group_name = azurerm_resource_group.primary.name
   topic_name          = azurerm_servicebus_topic.example.name
