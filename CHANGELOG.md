@@ -25,6 +25,7 @@ BUG FIXES:
 * `azurerm_container_registry_token` - removing an unnecessary check during deletion [GH-12879]
 * `azurerm_container_registry_webhook` - removing an unnecessary check during deletion [GH-12879]
 * `azurerm_container_registry` - removing an unnecessary check during deletion [GH-12879]
+* `azurerm_data_factory_dataset_delimited_text` - correctly send optional optional values to the API [GH-12921]
 * `azurerm_data_lake_analytics_account` - removing an unnecessary check during deletion [GH-12879]
 * `azurerm_data_lake_store` - removing an unnecessary check during deletion [GH-12879]
 * `azurerm_data_protection_backup_instance_disk` - removing an unnecessary check during deletion [GH-12879]
@@ -70,7 +71,6 @@ BUG FIXES:
 * `azurerm_virtual_wan` - removing an unnecessary check during deletion [GH-12879]
 * `azurerm_vpn_gateway_connection` - removing an unnecessary check during deletion [GH-12879]
 * `azurerm_web_application_firewall_policy` - removing an unnecessary check during deletion [GH-12879]
-
 
 ## 2.71.0 (August 06, 2021)
 
