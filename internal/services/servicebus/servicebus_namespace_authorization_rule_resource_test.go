@@ -204,7 +204,7 @@ resource "azurerm_servicebus_namespace" "primary_namespace_test" {
   capacity            = "1"
 }
 
-resource "azurerm_servicebus_namespace_authorization_rule" "example" {
+resource "azurerm_servicebus_namespace_authorization_rule" "test" {
   name                = "example_namespace_rule"
   namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
   resource_group_name = azurerm_resource_group.primary.name

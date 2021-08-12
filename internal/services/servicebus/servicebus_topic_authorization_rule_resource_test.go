@@ -230,7 +230,7 @@ resource "azurerm_servicebus_topic" "example" {
   namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
 }
 
-resource "azurerm_servicebus_topic_authorization_rule" "example" {
+resource "azurerm_servicebus_topic_authorization_rule" "test" {
   name                = "example_topic_rule"
   namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
   topic_name          = azurerm_servicebus_topic.example.name
@@ -254,7 +254,7 @@ resource "azurerm_servicebus_namespace_disaster_recovery_config" "pairing_test" 
   partner_namespace_id = azurerm_servicebus_namespace.secondary_namespace_test.id
 
   depends_on = [
-    azurerm_servicebus_topic_authorization_rule.example
+    azurerm_servicebus_topic_authorization_rule.test
   ]    
 }
 

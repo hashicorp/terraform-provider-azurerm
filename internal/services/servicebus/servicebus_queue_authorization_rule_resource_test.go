@@ -231,7 +231,7 @@ resource "azurerm_servicebus_queue" "example" {
   namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
 }
 
-resource "azurerm_servicebus_queue_authorization_rule" "example" {
+resource "azurerm_servicebus_queue_authorization_rule" "test" {
   name                = "example_queue_rule"
   namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
   queue_name          = azurerm_servicebus_queue.example.name
