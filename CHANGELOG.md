@@ -6,6 +6,11 @@ ENHANCEMENTS:
 * Dependencies: upgrade `azure-sdk-for-go` to v56.2.0 [GH-12969]
 * Dependencies: updating `web` to use API version `2021-02-01` [GH-12970]
 
+FEATURES:
+
+* **New Data Source:** `azurerm_vpn_gateway` [GH-12844]
+
+
 ## 2.72.0 (August 12, 2021)
 
 UPGRADE NOTES
