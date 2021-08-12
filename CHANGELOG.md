@@ -13,6 +13,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * `azurerm_api_management_named_value` - support for system managed identities [GH-12938]
+* `azurerm_application_insights_smart_detection_rule` - support all currenly availible rules in the SDK [GH-12857]
 * `azurerm_function_app` - add support for `dotnet_framework_version` in [GH-12883]
 * `azurerm_resource_group` - conditionally (based on the `prevent_deletion_if_contains_resources` features flag - see the 'Upgrade Notes' section) checking for nested Resources during deletion of the Resource Group and raising an error if Resources are found [GH-12657]
 
