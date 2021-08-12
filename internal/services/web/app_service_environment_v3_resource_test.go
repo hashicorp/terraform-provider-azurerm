@@ -184,12 +184,12 @@ resource "azurerm_app_service_environment_v3" "test" {
 
   cluster_setting {
     name  = "InternalEncryption"
-    value = "true"
+    value = "false"
   }
 
   cluster_setting {
     name  = "DisableTls1.0"
-    value = "0"
+    value = "1"
   }
 
   cluster_setting {
@@ -220,7 +220,7 @@ resource "azurerm_virtual_network" "test2" {
 
 resource "azurerm_subnet" "test2" {
   name                 = "acctest-subnet2-%[2]d"
-  resource_group_name  = azurerm_resource_group.test.name
+  resource_group_name  = azurerm_virtual_network.test2.resource_group_name
   virtual_network_name = azurerm_virtual_network.test2.name
   address_prefix       = "20.0.2.0/24"
   delegation {
