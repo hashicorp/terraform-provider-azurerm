@@ -2,6 +2,8 @@ package compute
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -40,7 +42,7 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: validateAdminUsernameWindows,
 				},
 
 				"admin_password": {
@@ -49,10 +51,10 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 					ForceNew:         true,
 					Sensitive:        true,
 					DiffSuppressFunc: adminPasswordDiffSuppressFunc,
-					ValidateFunc:     validation.StringIsNotEmpty,
+					ValidateFunc:     validatePasswordComplexityWindows,
 				},
 
-				"computer_name_prefix": OrchestratedVirtualMachineScaleSetComputerPrefixWindowsSchema(),
+				"computer_name_prefix": computerPrefixWindowsSchema(),
 
 				"additional_unattend_content": additionalUnattendContentSchema(),
 
@@ -83,8 +85,30 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				"admin_username": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validateAdminUsernameLinux,
+				},
+
+				"admin_password": {
+					Type:             pluginsdk.TypeString,
+					Optional:         true,
+					ForceNew:         true,
+					Sensitive:        true,
+					DiffSuppressFunc: adminPasswordDiffSuppressFunc,
+					ValidateFunc:     validatePasswordComplexityLinux,
+				},
+
 				"admin_ssh_key":        SSHKeysSchema(false),
-				"computer_name_prefix": OrchestratedVirtualMachineScaleSetComputerPrefixLinuxSchema(),
+				"computer_name_prefix": computerPrefixLinuxSchema(),
+
+				"disable_password_authentication": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
 
 				"provision_vm_agent": {
 					Type:     pluginsdk.TypeBool,
@@ -122,7 +146,268 @@ func FlattenOrchestratedVirtualMachineScaleSetOSProfile(input *compute.VirtualMa
 		return []interface{}{}, nil
 	}
 
+	result := make(map[string]interface{}, 0)
+
+	if v := input.CustomData; v != nil {
+		result["custom_data"] = *v
+	}
+
+	if winConfig := input.WindowsConfiguration; winConfig != nil {
+		result["windows_configuration"], err = flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input)
+	}
+
+	compPrefix := ""
+	if v := input.ComputerNamePrefix; v != nil {
+		compPrefix = string(*v)
+	}
+
 	return []interface{}{}, nil
+}
+
+func validateAdminUsernameWindows(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	// **Disallowed values:**
+	invalidUserNames := []string{
+		" ", "administrator", "admin", "user", "user1", "test", "user2", "test1", "user3", "admin1", "1", "123", "a",
+		"actuser", "adm", "admin2", "aspnet", "backup", "console", "david", "guest", "john", "owner", "root", "server",
+		"sql", "support", "support_388945a0", "sys", "test2", "test3", "user4", "user5",
+	}
+
+	for _, str := range invalidUserNames {
+		if strings.EqualFold(v, str) {
+			errors = append(errors, fmt.Errorf("%q can not be one of %v, got %q", key, invalidUserNames, v))
+			return warnings, errors
+		}
+	}
+
+	// Cannot end in "."
+	if strings.HasSuffix(input.(string), ".") {
+		errors = append(errors, fmt.Errorf("%q can not end with a '.', got %q", key, v))
+		return warnings, errors
+	}
+
+	if len(v) < 1 || len(v) > 20 {
+		errors = append(errors, fmt.Errorf("%q must be between 1 and 20 characters in length, got %q(%d characters)", key, v, len(v)))
+		return warnings, errors
+	}
+
+	return
+}
+
+func validateAdminUsernameLinux(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	// **Disallowed values:**
+	invalidUserNames := []string{
+		" ", "abrt", "adm", "admin", "audio", "backup", "bin", "cdrom", "cgred", "console", "crontab", "daemon", "dbus", "dialout", "dip",
+		"disk", "fax", "floppy", "ftp", "fuse", "games", "gnats", "gopher", "haldaemon", "halt", "irc", "kmem", "landscape", "libuuid", "list",
+		"lock", "lp", "mail", "maildrop", "man", "mem", "messagebus", "mlocate", "modem", "netdev", "news", "nfsnobody", "nobody", "nogroup",
+		"ntp", "operator", "oprofile", "plugdev", "polkituser", "postdrop", "postfix", "proxy", "public", "qpidd", "root", "rpc", "rpcuser",
+		"sasl", "saslauth", "shadow", "shutdown", "slocate", "src", "ssh", "sshd", "staff", "stapdev", "stapusr", "sudo", "sync", "sys", "syslog",
+		"tape", "tcpdump", "test", "trusted", "tty", "users", "utempter", "utmp", "uucp", "uuidd", "vcsa", "video", "voice", "wheel", "whoopsie",
+		"www", "www-data", "wwwrun", "xok",
+	}
+
+	for _, str := range invalidUserNames {
+		if strings.EqualFold(v, str) {
+			errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, azure.QuotedStringSlice(invalidUserNames), v))
+			return warnings, errors
+		}
+	}
+
+	if len(v) < 1 || len(v) > 64 {
+		errors = append(errors, fmt.Errorf("%q must be between 1 and 64 characters in length, got %q(%d characters)", key, v, len(v)))
+		return warnings, errors
+	}
+
+	return
+}
+
+func validatePasswordComplexityWindows(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	complexityMatch := 0
+	re := regexp.MustCompile(`[a-z]{1,}`)
+	if re != nil && re.MatchString(v) {
+		complexityMatch++
+	}
+
+	re = regexp.MustCompile(`[A-Z]{1,}`)
+	if re != nil && re.MatchString(v) {
+		complexityMatch++
+	}
+
+	re = regexp.MustCompile(`[0-9]{1,}`)
+	if re != nil && re.MatchString(v) {
+		complexityMatch++
+	}
+
+	re = regexp.MustCompile(`[\W_]{1,}`)
+	if re != nil && re.MatchString(v) {
+		complexityMatch++
+	}
+
+	if complexityMatch < 3 {
+		errors = append(errors, fmt.Errorf("%q did not meet minimum password complexity requirements. A password must contain at least 3 of the 4 following conditions: a lower case character, a upper case character, a digit and/or a special character. Got %q.", key, v))
+		return warnings, errors
+	}
+
+	if len(v) < 8 || len(v) > 123 {
+		errors = append(errors, fmt.Errorf("%q must be at least 8 characters long and shorter than 123 characters long. Got %q(%d characters).", key, v, len(v)))
+		return warnings, errors
+	}
+
+	// NOTE: I realize that some of these will not pass the above complexity checks, but they are in the API so I am checking
+	// the same values that the API is...
+	disallowedValues := []string{
+		"abc@123", "P@$$w0rd", "P@ssw0rd", "P@ssword123", "Pa$$word", "pass@word1", "Password!", "Password1", "Password22", "iloveyou!",
+	}
+
+	for _, str := range disallowedValues {
+		if v == str {
+			errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, azure.QuotedStringSlice(disallowedValues), v))
+			return warnings, errors
+		}
+	}
+
+	return
+}
+
+func validatePasswordComplexityLinux(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	complexityMatch := 0
+	re := regexp.MustCompile(`[a-z]{1,}`)
+	if re != nil && re.MatchString(v) {
+		complexityMatch++
+	}
+
+	re = regexp.MustCompile(`[A-Z]{1,}`)
+	if re != nil && re.MatchString(v) {
+		complexityMatch++
+	}
+
+	re = regexp.MustCompile(`[0-9]{1,}`)
+	if re != nil && re.MatchString(v) {
+		complexityMatch++
+	}
+
+	re = regexp.MustCompile(`[\W_]{1,}`)
+	if re != nil && re.MatchString(v) {
+		complexityMatch++
+	}
+
+	if complexityMatch < 3 {
+		errors = append(errors, fmt.Errorf("%q did not meet minimum password complexity requirements. A password must contain at least 3 of the 4 following conditions: a lower case character, a upper case character, a digit and/or a special character. Got %q.", key, v))
+		return warnings, errors
+	}
+
+	if len(v) < 6 || len(v) > 72 {
+		errors = append(errors, fmt.Errorf("%q must be at least 6 characters long and shorter than 72 characters long. Got %q(%d characters).", key, v, len(v)))
+		return warnings, errors
+	}
+
+	// NOTE: I realize that some of these will not pass the above complexity checks, but they are in the API so I am checking
+	// the same values that the API is...
+	disallowedValues := []string{
+		"abc@123", "P@$$w0rd", "P@ssw0rd", "P@ssword123", "Pa$$word", "pass@word1", "Password!", "Password1", "Password22", "iloveyou!",
+	}
+
+	for _, str := range disallowedValues {
+		if v == str {
+			errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, azure.QuotedStringSlice(disallowedValues), v))
+			return warnings, errors
+		}
+	}
+
+	return
+}
+
+func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *compute.VirtualMachineScaleSetOSProfile) ([]interface{}, error) {
+	if input == nil {
+		return []interface{}{}, nil
+	}
+
+	result := make(map[string]interface{}, 0)
+	winConfig := input.WindowsConfiguration
+
+	// "admin_username": {
+	// "admin_password": {
+	// "computer_name_prefix": OrchestratedVirtualMachineScaleSetComputerPrefixWindowsSchema(),
+	// "additional_unattend_content": additionalUnattendContentSchema(),
+	// "enable_automatic_updates": {
+	// "provision_vm_agent": {
+	// "secret":         windowsSecretSchema(),
+	// "winrm_listener": winRmListenerSchema(),
+
+	if v := input.AdminUsername; v != nil {
+		result["admin_username"] = *v
+	}
+
+	if v := input.AdminPassword; v != nil {
+		result["admin_password"] = *v
+	}
+
+	if v := input.ComputerNamePrefix; v != nil {
+		result["computer_name_prefix"] = *v
+	}
+
+	if v := input.ComputerNamePrefix; v != nil {
+		result["additional_unattend_content"] = flattenWindowsConfigurationAdditionalUnattendContent(winConfig)
+	}
+
+	if v := input.ComputerNamePrefix; v != nil {
+		result["computer_name_prefix"] = *v
+	}
+
+	if v := input.ComputerNamePrefix; v != nil {
+		result["computer_name_prefix"] = *v
+	}
+
+	if v := input.ComputerNamePrefix; v != nil {
+		result["computer_name_prefix"] = *v
+	}
+
+	if v := input.ComputerNamePrefix; v != nil {
+		result["computer_name_prefix"] = *v
+	}
+
+	return []interface{}{}, nil
+}
+
+func flattenWindowsConfigurationAdditionalUnattendContent(input *compute.WindowsConfiguration) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+	for _, v := range *input.AdditionalUnattendContent {
+		// content isn't returned by the API since it's sensitive data so we need to look it up later
+		// where we can pull it out of the state file.
+		output = append(output, map[string]interface{}{
+			"content": "",
+			"setting": string(v.SettingName),
+		})
+	}
+
+	return output
 }
 
 func OrchestratedVirtualMachineScaleSetIdentitySchema() *pluginsdk.Schema {
@@ -859,7 +1144,7 @@ func FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input compute.Virt
 	}
 }
 
-func OrchestratedVirtualMachineScaleSetComputerPrefixWindowsSchema() *pluginsdk.Schema {
+func computerPrefixWindowsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
@@ -871,7 +1156,7 @@ func OrchestratedVirtualMachineScaleSetComputerPrefixWindowsSchema() *pluginsdk.
 	}
 }
 
-func OrchestratedVirtualMachineScaleSetComputerPrefixLinuxSchema() *pluginsdk.Schema {
+func computerPrefixLinuxSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
