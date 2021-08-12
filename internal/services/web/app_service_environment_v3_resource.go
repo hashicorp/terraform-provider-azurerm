@@ -139,11 +139,6 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 
 func (r AppServiceEnvironmentV3Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"dedicated_host_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-
 		"dns_suffix": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
