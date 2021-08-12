@@ -7,12 +7,16 @@ import (
 
 type Client struct {
 	IntegrationAccountClient            *logic.IntegrationAccountsClient
+	IntegrationAccountSessionClient     *logic.IntegrationAccountSessionsClient
 	IntegrationServiceEnvironmentClient *logic.IntegrationServiceEnvironmentsClient
 	WorkflowClient                      *logic.WorkflowsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	integrationAccountClient := logic.NewIntegrationAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&integrationAccountClient.Client, o.ResourceManagerAuthorizer)
+
+	integrationAccountSessionClient := logic.NewIntegrationAccountSessionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&integrationAccountClient.Client, o.ResourceManagerAuthorizer)
 
 	integrationServiceEnvironmentClient := logic.NewIntegrationServiceEnvironmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -23,6 +27,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		IntegrationAccountClient:            &integrationAccountClient,
+		IntegrationAccountSessionClient:     &integrationAccountSessionClient,
 		IntegrationServiceEnvironmentClient: &integrationServiceEnvironmentClient,
 		WorkflowClient:                      &workflowClient,
 	}
