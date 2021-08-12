@@ -862,7 +862,10 @@ resource "azurerm_frontdoor" "test" {
 
       cache_duration = "P90D"
 
-      cache_query_parameters = "width,height"
+      cache_query_parameters = [
+        "width",
+        "height"
+        ]
     }
   }
 
