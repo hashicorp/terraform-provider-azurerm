@@ -149,12 +149,18 @@ func frontDoorSettings(d *pluginsdk.ResourceDiff) error {
 
 			// cacheConfiguration validation
 			cacheEnabled := fc["cache_enabled"].(bool)
-			cacheQueryParameters := fc["cache_query_parameters"].(string)
+			cacheQueryParameters := fc["cache_query_parameters"].([]interface{})
+
+			// set cacheQueryParameters to nil if empty
+			if len(cacheQueryParameters) < 1 {
+				cacheQueryParameters = nil
+			}
+
 			cacheDuration := fc["cache_duration"].(string)
 			cacheQueryParameterStripDirective := fc["cache_query_parameter_strip_directive"].(string)
 
 			// cacheQueryParameters cannot be set when cacheEnabled is false
-			if !cacheEnabled && strings.TrimSpace(cacheQueryParameters) != "" {
+			if !cacheEnabled && cacheQueryParameters != nil {
 				return fmt.Errorf(`"cache_query_parameters" (%s) cannot be configured when "cache_enabled" is set to "false"`, cacheQueryParameters)
 			}
 
@@ -169,12 +175,12 @@ func frontDoorSettings(d *pluginsdk.ResourceDiff) error {
 			}
 
 			// cacheQueryParameters cannot be empty when cacheEnabled is true and cacheQueryParameterStripDirective is other than StripAllExcept or StripOnly
-			if cacheEnabled && (strings.TrimSpace(cacheQueryParameterStripDirective) == "StripAllExcept" || strings.TrimSpace(cacheQueryParameterStripDirective) == "StripOnly") && strings.TrimSpace(cacheQueryParameters) == "" {
+			if cacheEnabled && (strings.TrimSpace(cacheQueryParameterStripDirective) == "StripAllExcept" || strings.TrimSpace(cacheQueryParameterStripDirective) == "StripOnly") && cacheQueryParameters == nil {
 				return fmt.Errorf(`"cache_query_parameters" cannot be empty when "cache_query_parameter_strip_directive" (%s) is set to "StripAllExcept" or "StripOnly"`, cacheQueryParameterStripDirective)
 			}
 
 			// cacheQueryParameters cannot be set when cacheQueryParameterStripDirective is set to StripNone or StripAll
-			if cacheEnabled && (strings.TrimSpace(cacheQueryParameterStripDirective) == "StripNone" || strings.TrimSpace(cacheQueryParameterStripDirective) == "StripAll") && strings.TrimSpace(cacheQueryParameters) != "" {
+			if cacheEnabled && (strings.TrimSpace(cacheQueryParameterStripDirective) == "StripNone" || strings.TrimSpace(cacheQueryParameterStripDirective) == "StripAll") && cacheQueryParameters != nil {
 				return fmt.Errorf(`"cache_query_parameters" cannot be set when "cache_query_parameter_strip_directive" (%s) is set to "StripNone" or "StripAll"`, cacheQueryParameterStripDirective)
 			}
 		}
