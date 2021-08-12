@@ -42,6 +42,7 @@ type AppServiceEnvironmentV3Model struct {
 	WindowsOutboundIPAddresses         []string                          `tfschema:"windows_outbound_ip_addresses"`
 	LinuxOutboundIPAddresses           []string                          `tfschema:"linux_outbound_ip_addresses"`
 	InboundNetworkDependencies         []AppServiceV3InboundDependencies `tfschema:"inbound_network_dependencies"`
+	ZoneRedundant                      bool                              `tfschema:"zone_redundant"`
 	Tags                               map[string]interface{}            `tfschema:"tags"`
 }
 
@@ -101,6 +102,16 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 			},
 		},
 
+		"dedicated_host_count": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IntBetween(2, 2), // Docs suggest is limited to 2 physical hosts at this time
+			ConflictsWith: []string{
+				"zone_redundant",
+			},
+		},
+
 		"internal_load_balancing_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -111,6 +122,17 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 				string(web.LoadBalancingModeWebPublishing),
 			}, false),
 		},
+
+		"zone_redundant": {
+			Type:     pluginsdk.TypeBool,
+			ForceNew: true,
+			Optional: true,
+			Default:  false,
+			ConflictsWith: []string{
+				"dedicated_host_count",
+			},
+		},
+
 		"tags": tags.ForceNewSchema(),
 	}
 }
@@ -240,11 +262,13 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				Kind:     utils.String(KindASEV3),
 				Location: utils.String(vnetLoc),
 				AppServiceEnvironment: &web.AppServiceEnvironment{
+					DedicatedHostCount:        utils.Int32(int32(model.DedicatedHostCount)),
 					ClusterSettings:           expandClusterSettingsModel(model.ClusterSetting),
 					InternalLoadBalancingMode: web.LoadBalancingMode(model.InternalLoadBalancingMode),
 					VirtualNetwork: &web.VirtualNetworkProfile{
 						ID: utils.String(model.SubnetId),
 					},
+					ZoneRedundant: utils.Bool(model.ZoneRedundant),
 				},
 				Tags: tags.Expand(model.Tags),
 			}
@@ -324,6 +348,7 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 				model.ClusterSetting = flattenClusterSettingsModel(props.ClusterSettings)
 				model.DnsSuffix = utils.NormalizeNilableString(props.DNSSuffix)
 				model.IpSSLAddressCount = int(utils.NormaliseNilableInt32(existing.IpsslAddressCount))
+				model.ZoneRedundant = *props.ZoneRedundant
 			}
 
 			existingNetwork, err := client.GetAseV3NetworkingConfiguration(ctx, id.ResourceGroup, id.HostingEnvironmentName)

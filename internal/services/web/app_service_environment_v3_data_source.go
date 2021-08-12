@@ -136,6 +136,11 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 			},
 		},
 
+		"zone_redundant": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"tags": tags.SchemaDataSource(),
 	}
 }
@@ -187,7 +192,7 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 				model.ClusterSetting = flattenClusterSettingsModel(props.ClusterSettings)
 				model.DnsSuffix = utils.NormalizeNilableString(props.DNSSuffix)
 				model.IpSSLAddressCount = int(utils.NormaliseNilableInt32(existing.IpsslAddressCount))
-				// model.ZoneRedundant = *props.ZoneRedundant
+				model.ZoneRedundant = *props.ZoneRedundant
 			}
 
 			existingNetwork, err := client.GetAseV3NetworkingConfiguration(ctx, id.ResourceGroup, id.HostingEnvironmentName)
