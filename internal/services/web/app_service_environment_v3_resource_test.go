@@ -310,8 +310,6 @@ resource "azurerm_app_service_environment_v3" "test" {
 `, template, data.RandomInteger)
 }
 
-
-
 func (r AppServiceEnvironmentV3Resource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
