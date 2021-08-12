@@ -1,4 +1,4 @@
-// Package web implements the Azure ARM Web service API version 2021-01-15.
+// Package web implements the Azure ARM Web service API version 2021-02-01.
 //
 // WebSite Management Client
 package web
@@ -93,7 +93,7 @@ func (client BaseClient) CheckNameAvailabilityPreparer(ctx context.Context, requ
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -170,7 +170,7 @@ func (client BaseClient) GenerateGithubAccessTokenForAppserviceCLIAsync(ctx cont
 
 // GenerateGithubAccessTokenForAppserviceCLIAsyncPreparer prepares the GenerateGithubAccessTokenForAppserviceCLIAsync request.
 func (client BaseClient) GenerateGithubAccessTokenForAppserviceCLIAsyncPreparer(ctx context.Context, request AppserviceGithubTokenRequest) (*http.Request, error) {
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -239,7 +239,7 @@ func (client BaseClient) GetPublishingUser(ctx context.Context) (result User, er
 
 // GetPublishingUserPreparer prepares the GetPublishingUser request.
 func (client BaseClient) GetPublishingUserPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -312,7 +312,7 @@ func (client BaseClient) GetSourceControlPreparer(ctx context.Context, sourceCon
 		"sourceControlType": autorest.Encode("path", sourceControlType),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -383,7 +383,7 @@ func (client BaseClient) GetSubscriptionDeploymentLocationsPreparer(ctx context.
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -462,7 +462,7 @@ func (client BaseClient) ListBillingMetersPreparer(ctx context.Context, billingL
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -589,7 +589,7 @@ func (client BaseClient) ListGeoRegionsPreparer(ctx context.Context, sku SkuName
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -714,7 +714,7 @@ func (client BaseClient) ListPremierAddOnOffersPreparer(ctx context.Context) (*h
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -829,7 +829,7 @@ func (client BaseClient) ListSiteIdentifiersAssignedToHostNamePreparer(ctx conte
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -939,7 +939,7 @@ func (client BaseClient) ListSkusPreparer(ctx context.Context) (*http.Request, e
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1011,7 +1011,7 @@ func (client BaseClient) ListSourceControls(ctx context.Context) (result SourceC
 
 // ListSourceControlsPreparer prepares the ListSourceControls request.
 func (client BaseClient) ListSourceControlsPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1137,7 +1137,7 @@ func (client BaseClient) MovePreparer(ctx context.Context, resourceGroupName str
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1214,7 +1214,7 @@ func (client BaseClient) UpdatePublishingUser(ctx context.Context, userDetails U
 
 // UpdatePublishingUserPreparer prepares the UpdatePublishingUser request.
 func (client BaseClient) UpdatePublishingUserPreparer(ctx context.Context, userDetails User) (*http.Request, error) {
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1290,7 +1290,7 @@ func (client BaseClient) UpdateSourceControlPreparer(ctx context.Context, source
 		"sourceControlType": autorest.Encode("path", sourceControlType),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1386,7 +1386,7 @@ func (client BaseClient) ValidatePreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1477,7 +1477,7 @@ func (client BaseClient) ValidateMovePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1552,7 +1552,7 @@ func (client BaseClient) VerifyHostingEnvironmentVnetPreparer(ctx context.Contex
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

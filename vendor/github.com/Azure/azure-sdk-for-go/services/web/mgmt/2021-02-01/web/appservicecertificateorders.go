@@ -79,7 +79,7 @@ func (client AppServiceCertificateOrdersClient) CreateOrUpdatePreparer(ctx conte
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -170,7 +170,7 @@ func (client AppServiceCertificateOrdersClient) CreateOrUpdateCertificatePrepare
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -265,7 +265,7 @@ func (client AppServiceCertificateOrdersClient) DeletePreparer(ctx context.Conte
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -350,7 +350,7 @@ func (client AppServiceCertificateOrdersClient) DeleteCertificatePreparer(ctx co
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -433,7 +433,7 @@ func (client AppServiceCertificateOrdersClient) GetPreparer(ctx context.Context,
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -519,7 +519,7 @@ func (client AppServiceCertificateOrdersClient) GetCertificatePreparer(ctx conte
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -595,7 +595,7 @@ func (client AppServiceCertificateOrdersClient) ListPreparer(ctx context.Context
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -719,7 +719,7 @@ func (client AppServiceCertificateOrdersClient) ListByResourceGroupPreparer(ctx 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -845,7 +845,7 @@ func (client AppServiceCertificateOrdersClient) ListCertificatesPreparer(ctx con
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -967,7 +967,7 @@ func (client AppServiceCertificateOrdersClient) ReissuePreparer(ctx context.Cont
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1053,7 +1053,7 @@ func (client AppServiceCertificateOrdersClient) RenewPreparer(ctx context.Contex
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1138,7 +1138,7 @@ func (client AppServiceCertificateOrdersClient) ResendEmailPreparer(ctx context.
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1168,7 +1168,8 @@ func (client AppServiceCertificateOrdersClient) ResendEmailResponder(resp *http.
 	return
 }
 
-// ResendRequestEmails description for Verify domain ownership for this certificate order.
+// ResendRequestEmails resend domain verification ownership email containing steps on how to verify a domain for a
+// given certificate order
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // certificateOrderName - name of the certificate order.
@@ -1222,7 +1223,7 @@ func (client AppServiceCertificateOrdersClient) ResendRequestEmailsPreparer(ctx 
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1307,7 +1308,7 @@ func (client AppServiceCertificateOrdersClient) RetrieveCertificateActionsPrepar
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1391,7 +1392,7 @@ func (client AppServiceCertificateOrdersClient) RetrieveCertificateEmailHistoryP
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1422,7 +1423,12 @@ func (client AppServiceCertificateOrdersClient) RetrieveCertificateEmailHistoryR
 	return
 }
 
-// RetrieveSiteSeal description for Verify domain ownership for this certificate order.
+// RetrieveSiteSeal this method is used to obtain the site seal information for an issued certificate. A site seal is a
+// graphic that the certificate purchaser can embed on their web site to show their visitors information about their
+// SSL certificate. If a web site visitor clicks on the site seal image, a pop-up page is displayed that contains
+// detailed information about the SSL certificate. The site seal token is used to link the site seal graphic image to
+// the appropriate certificate details pop-up page display when a user clicks on the site seal. The site seal images
+// are expected to be static images and hosted by the reseller, to minimize delays for customer page load times.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // certificateOrderName - name of the certificate order.
@@ -1476,7 +1482,7 @@ func (client AppServiceCertificateOrdersClient) RetrieveSiteSealPreparer(ctx con
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1563,7 +1569,7 @@ func (client AppServiceCertificateOrdersClient) UpdatePreparer(ctx context.Conte
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1589,7 +1595,7 @@ func (client AppServiceCertificateOrdersClient) UpdateSender(req *http.Request) 
 func (client AppServiceCertificateOrdersClient) UpdateResponder(resp *http.Response) (result AppServiceCertificateOrder, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -1652,7 +1658,7 @@ func (client AppServiceCertificateOrdersClient) UpdateCertificatePreparer(ctx co
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1678,7 +1684,7 @@ func (client AppServiceCertificateOrdersClient) UpdateCertificateSender(req *htt
 func (client AppServiceCertificateOrdersClient) UpdateCertificateResponder(resp *http.Response) (result AppServiceCertificateResource, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -1727,7 +1733,7 @@ func (client AppServiceCertificateOrdersClient) ValidatePurchaseInformationPrepa
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1812,7 +1818,7 @@ func (client AppServiceCertificateOrdersClient) VerifyDomainOwnershipPreparer(ct
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

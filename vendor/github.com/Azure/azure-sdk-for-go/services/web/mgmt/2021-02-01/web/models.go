@@ -20,7 +20,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 
 // AbnormalTimePeriod class representing Abnormal Time Period identified in diagnosis
 type AbnormalTimePeriod struct {
@@ -149,10 +149,16 @@ type AddressResponseProperties struct {
 	VipMappings *[]VirtualIPMapping `json:"vipMappings,omitempty"`
 }
 
-// AllowedAudiencesValidation ...
+// AllowedAudiencesValidation the configuration settings of the Allowed Audiences validation flow.
 type AllowedAudiencesValidation struct {
-	// AllowedAudiencesValidationProperties - AllowedAudiencesValidation resource specific properties
-	*AllowedAudiencesValidationProperties `json:"properties,omitempty"`
+	// AllowedAudiences - The configuration settings of the allowed list of audiences from which to validate the JWT token.
+	AllowedAudiences *[]string `json:"allowedAudiences,omitempty"`
+}
+
+// AllowedPrincipals the configuration settings of the Azure Active Directory allowed principals.
+type AllowedPrincipals struct {
+	// AllowedPrincipalsProperties - AllowedPrincipals resource specific properties
+	*AllowedPrincipalsProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Resource Id.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource Name.
@@ -163,20 +169,20 @@ type AllowedAudiencesValidation struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for AllowedAudiencesValidation.
-func (aav AllowedAudiencesValidation) MarshalJSON() ([]byte, error) {
+// MarshalJSON is the custom marshaler for AllowedPrincipals.
+func (ap AllowedPrincipals) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if aav.AllowedAudiencesValidationProperties != nil {
-		objectMap["properties"] = aav.AllowedAudiencesValidationProperties
+	if ap.AllowedPrincipalsProperties != nil {
+		objectMap["properties"] = ap.AllowedPrincipalsProperties
 	}
-	if aav.Kind != nil {
-		objectMap["kind"] = aav.Kind
+	if ap.Kind != nil {
+		objectMap["kind"] = ap.Kind
 	}
 	return json.Marshal(objectMap)
 }
 
-// UnmarshalJSON is the custom unmarshaler for AllowedAudiencesValidation struct.
-func (aav *AllowedAudiencesValidation) UnmarshalJSON(body []byte) error {
+// UnmarshalJSON is the custom unmarshaler for AllowedPrincipals struct.
+func (ap *AllowedPrincipals) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
 	err := json.Unmarshal(body, &m)
 	if err != nil {
@@ -186,12 +192,12 @@ func (aav *AllowedAudiencesValidation) UnmarshalJSON(body []byte) error {
 		switch k {
 		case "properties":
 			if v != nil {
-				var allowedAudiencesValidationProperties AllowedAudiencesValidationProperties
-				err = json.Unmarshal(*v, &allowedAudiencesValidationProperties)
+				var allowedPrincipalsProperties AllowedPrincipalsProperties
+				err = json.Unmarshal(*v, &allowedPrincipalsProperties)
 				if err != nil {
 					return err
 				}
-				aav.AllowedAudiencesValidationProperties = &allowedAudiencesValidationProperties
+				ap.AllowedPrincipalsProperties = &allowedPrincipalsProperties
 			}
 		case "id":
 			if v != nil {
@@ -200,7 +206,7 @@ func (aav *AllowedAudiencesValidation) UnmarshalJSON(body []byte) error {
 				if err != nil {
 					return err
 				}
-				aav.ID = &ID
+				ap.ID = &ID
 			}
 		case "name":
 			if v != nil {
@@ -209,7 +215,7 @@ func (aav *AllowedAudiencesValidation) UnmarshalJSON(body []byte) error {
 				if err != nil {
 					return err
 				}
-				aav.Name = &name
+				ap.Name = &name
 			}
 		case "kind":
 			if v != nil {
@@ -218,7 +224,7 @@ func (aav *AllowedAudiencesValidation) UnmarshalJSON(body []byte) error {
 				if err != nil {
 					return err
 				}
-				aav.Kind = &kind
+				ap.Kind = &kind
 			}
 		case "type":
 			if v != nil {
@@ -227,7 +233,7 @@ func (aav *AllowedAudiencesValidation) UnmarshalJSON(body []byte) error {
 				if err != nil {
 					return err
 				}
-				aav.Type = &typeVar
+				ap.Type = &typeVar
 			}
 		}
 	}
@@ -235,9 +241,12 @@ func (aav *AllowedAudiencesValidation) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// AllowedAudiencesValidationProperties allowedAudiencesValidation resource specific properties
-type AllowedAudiencesValidationProperties struct {
-	AllowedAudiences *[]string `json:"allowedAudiences,omitempty"`
+// AllowedPrincipalsProperties allowedPrincipals resource specific properties
+type AllowedPrincipalsProperties struct {
+	// Groups - The list of the allowed groups.
+	Groups *[]string `json:"groups,omitempty"`
+	// Identities - The list of the allowed identities.
+	Identities *[]string `json:"identities,omitempty"`
 }
 
 // AnalysisData class Representing Detector Evidence used for analysis
@@ -1083,92 +1092,6 @@ type AppleProperties struct {
 
 // AppleRegistration the configuration settings of the registration for the Apple provider
 type AppleRegistration struct {
-	// AppleRegistrationProperties - AppleRegistration resource specific properties
-	*AppleRegistrationProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for AppleRegistration.
-func (ar AppleRegistration) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ar.AppleRegistrationProperties != nil {
-		objectMap["properties"] = ar.AppleRegistrationProperties
-	}
-	if ar.Kind != nil {
-		objectMap["kind"] = ar.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for AppleRegistration struct.
-func (ar *AppleRegistration) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var appleRegistrationProperties AppleRegistrationProperties
-				err = json.Unmarshal(*v, &appleRegistrationProperties)
-				if err != nil {
-					return err
-				}
-				ar.AppleRegistrationProperties = &appleRegistrationProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				ar.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				ar.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				ar.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				ar.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// AppleRegistrationProperties appleRegistration resource specific properties
-type AppleRegistrationProperties struct {
 	// ClientID - The Client ID of the app used for login.
 	ClientID *string `json:"clientId,omitempty"`
 	// ClientSecretSettingName - The app setting name that contains the client secret.
@@ -3264,8 +3187,10 @@ type AppServiceEnvironment struct {
 	UserWhitelistedIPRanges *[]string `json:"userWhitelistedIpRanges,omitempty"`
 	// HasLinuxWorkers - READ-ONLY; Flag that displays whether an ASE has linux workers or not
 	HasLinuxWorkers *bool `json:"hasLinuxWorkers,omitempty"`
-	// DedicatedHostCount - READ-ONLY; Dedicated Host Count
+	// DedicatedHostCount - Dedicated Host Count
 	DedicatedHostCount *int32 `json:"dedicatedHostCount,omitempty"`
+	// ZoneRedundant - Whether or not this App Service Environment is zone-redundant.
+	ZoneRedundant *bool `json:"zoneRedundant,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AppServiceEnvironment.
@@ -3294,6 +3219,12 @@ func (ase AppServiceEnvironment) MarshalJSON() ([]byte, error) {
 	}
 	if ase.UserWhitelistedIPRanges != nil {
 		objectMap["userWhitelistedIpRanges"] = ase.UserWhitelistedIPRanges
+	}
+	if ase.DedicatedHostCount != nil {
+		objectMap["dedicatedHostCount"] = ase.DedicatedHostCount
+	}
+	if ase.ZoneRedundant != nil {
+		objectMap["zoneRedundant"] = ase.ZoneRedundant
 	}
 	return json.Marshal(objectMap)
 }
@@ -4641,6 +4572,9 @@ type AppServicePlanPatchResourceProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// KubeEnvironmentProfile - Specification for the Kubernetes Environment to use for the App Service plan.
 	KubeEnvironmentProfile *KubeEnvironmentProfile `json:"kubeEnvironmentProfile,omitempty"`
+	// ZoneRedundant - If <code>true</code>, this App Service Plan will perform availability zone balancing.
+	// If <code>false</code>, this App Service Plan will not perform availability zone balancing.
+	ZoneRedundant *bool `json:"zoneRedundant,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AppServicePlanPatchResourceProperties.
@@ -4687,6 +4621,9 @@ func (asppr AppServicePlanPatchResourceProperties) MarshalJSON() ([]byte, error)
 	}
 	if asppr.KubeEnvironmentProfile != nil {
 		objectMap["kubeEnvironmentProfile"] = asppr.KubeEnvironmentProfile
+	}
+	if asppr.ZoneRedundant != nil {
+		objectMap["zoneRedundant"] = asppr.ZoneRedundant
 	}
 	return json.Marshal(objectMap)
 }
@@ -4736,6 +4673,9 @@ type AppServicePlanProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// KubeEnvironmentProfile - Specification for the Kubernetes Environment to use for the App Service plan.
 	KubeEnvironmentProfile *KubeEnvironmentProfile `json:"kubeEnvironmentProfile,omitempty"`
+	// ZoneRedundant - If <code>true</code>, this App Service Plan will perform availability zone balancing.
+	// If <code>false</code>, this App Service Plan will not perform availability zone balancing.
+	ZoneRedundant *bool `json:"zoneRedundant,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AppServicePlanProperties.
@@ -4782,6 +4722,9 @@ func (asp AppServicePlanProperties) MarshalJSON() ([]byte, error) {
 	}
 	if asp.KubeEnvironmentProfile != nil {
 		objectMap["kubeEnvironmentProfile"] = asp.KubeEnvironmentProfile
+	}
+	if asp.ZoneRedundant != nil {
+		objectMap["zoneRedundant"] = asp.ZoneRedundant
 	}
 	return json.Marshal(objectMap)
 }
@@ -6042,6 +5985,10 @@ type AseV3NetworkingConfigurationProperties struct {
 	WindowsOutboundIPAddresses *[]string `json:"windowsOutboundIpAddresses,omitempty"`
 	// LinuxOutboundIPAddresses - READ-ONLY
 	LinuxOutboundIPAddresses *[]string `json:"linuxOutboundIpAddresses,omitempty"`
+	// ExternalInboundIPAddresses - READ-ONLY
+	ExternalInboundIPAddresses *[]string `json:"externalInboundIpAddresses,omitempty"`
+	// InternalInboundIPAddresses - READ-ONLY
+	InternalInboundIPAddresses *[]string `json:"internalInboundIpAddresses,omitempty"`
 	// AllowNewPrivateEndpointConnections - Property to enable and disable new private endpoint connection creation on ASE
 	AllowNewPrivateEndpointConnections *bool `json:"allowNewPrivateEndpointConnections,omitempty"`
 }
@@ -6057,92 +6004,6 @@ func (avnc AseV3NetworkingConfigurationProperties) MarshalJSON() ([]byte, error)
 
 // AuthPlatform the configuration settings of the platform of App Service Authentication/Authorization.
 type AuthPlatform struct {
-	// AuthPlatformProperties - AuthPlatform resource specific properties
-	*AuthPlatformProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for AuthPlatform.
-func (ap AuthPlatform) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ap.AuthPlatformProperties != nil {
-		objectMap["properties"] = ap.AuthPlatformProperties
-	}
-	if ap.Kind != nil {
-		objectMap["kind"] = ap.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for AuthPlatform struct.
-func (ap *AuthPlatform) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var authPlatformProperties AuthPlatformProperties
-				err = json.Unmarshal(*v, &authPlatformProperties)
-				if err != nil {
-					return err
-				}
-				ap.AuthPlatformProperties = &authPlatformProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				ap.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				ap.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				ap.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				ap.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// AuthPlatformProperties authPlatform resource specific properties
-type AuthPlatformProperties struct {
 	// Enabled - <code>true</code> if the Authentication / Authorization feature is enabled for the current app; otherwise, <code>false</code>.
 	Enabled *bool `json:"enabled,omitempty"`
 	// RuntimeVersion - The RuntimeVersion of the Authentication / Authorization feature in use for the current app.
@@ -6199,88 +6060,18 @@ type AutoHealTriggers struct {
 
 // AzureActiveDirectory the configuration settings of the Azure Active directory provider.
 type AzureActiveDirectory struct {
-	// AzureActiveDirectoryProperties - AzureActiveDirectory resource specific properties
-	*AzureActiveDirectoryProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for AzureActiveDirectory.
-func (aad AzureActiveDirectory) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if aad.AzureActiveDirectoryProperties != nil {
-		objectMap["properties"] = aad.AzureActiveDirectoryProperties
-	}
-	if aad.Kind != nil {
-		objectMap["kind"] = aad.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for AzureActiveDirectory struct.
-func (aad *AzureActiveDirectory) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var azureActiveDirectoryProperties AzureActiveDirectoryProperties
-				err = json.Unmarshal(*v, &azureActiveDirectoryProperties)
-				if err != nil {
-					return err
-				}
-				aad.AzureActiveDirectoryProperties = &azureActiveDirectoryProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				aad.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				aad.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				aad.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				aad.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
+	// Enabled - <code>false</code> if the Azure Active Directory provider should not be enabled despite the set registration; otherwise, <code>true</code>.
+	Enabled *bool `json:"enabled,omitempty"`
+	// Registration - The configuration settings of the Azure Active Directory app registration.
+	Registration *AzureActiveDirectoryRegistration `json:"registration,omitempty"`
+	// Login - The configuration settings of the Azure Active Directory login flow.
+	Login *AzureActiveDirectoryLogin `json:"login,omitempty"`
+	// Validation - The configuration settings of the Azure Active Directory token validation flow.
+	Validation *AzureActiveDirectoryValidation `json:"validation,omitempty"`
+	// IsAutoProvisioned - Gets a value indicating whether the Azure AD configuration was auto-provisioned using 1st party tooling.
+	// This is an internal flag primarily intended to support the Azure Management Portal. Users should not
+	// read or write to this property.
+	IsAutoProvisioned *bool `json:"isAutoProvisioned,omitempty"`
 }
 
 // AzureActiveDirectoryLogin the configuration settings of the Azure Active Directory login flow.
@@ -6371,26 +6162,11 @@ func (aadl *AzureActiveDirectoryLogin) UnmarshalJSON(body []byte) error {
 
 // AzureActiveDirectoryLoginProperties azureActiveDirectoryLogin resource specific properties
 type AzureActiveDirectoryLoginProperties struct {
-	DisableWWWAuthenticate *bool `json:"disableWWWAuthenticate,omitempty"`
 	// LoginParameters - Login parameters to send to the OpenID Connect authorization endpoint when
 	// a user logs in. Each parameter must be in the form "key=value".
 	LoginParameters *[]string `json:"loginParameters,omitempty"`
-}
-
-// AzureActiveDirectoryProperties azureActiveDirectory resource specific properties
-type AzureActiveDirectoryProperties struct {
-	// Enabled - <code>false</code> if the Azure Active Directory provider should not be enabled despite the set registration; otherwise, <code>true</code>.
-	Enabled *bool `json:"enabled,omitempty"`
-	// Registration - The configuration settings of the Azure Active Directory app registration.
-	Registration *AzureActiveDirectoryRegistration `json:"registration,omitempty"`
-	// Login - The configuration settings of the Azure Active Directory login flow.
-	Login *AzureActiveDirectoryLogin `json:"login,omitempty"`
-	// Validation - The configuration settings of the Azure Active Directory token validation flow.
-	Validation *AzureActiveDirectoryValidation `json:"validation,omitempty"`
-	// IsAutoProvisioned - Gets a value indicating whether the Azure AD configuration was auto-provisioned using 1st party tooling.
-	// This is an internal flag primarily intended to support the Azure Management Portal. Users should not
-	// read or write to this property.
-	IsAutoProvisioned *bool `json:"isAutoProvisioned,omitempty"`
+	// DisableWWWAuthenticate - <code>true</code> if the www-authenticate provider should be omitted from the request; otherwise, <code>false</code>.
+	DisableWWWAuthenticate *bool `json:"disableWWWAuthenticate,omitempty"`
 }
 
 // AzureActiveDirectoryRegistration the configuration settings of the Azure Active Directory app
@@ -6497,6 +6273,12 @@ type AzureActiveDirectoryRegistrationProperties struct {
 	// ClientSecretCertificateThumbprint - An alternative to the client secret, that is the thumbprint of a certificate used for signing purposes. This property acts as
 	// a replacement for the Client Secret. It is also optional.
 	ClientSecretCertificateThumbprint *string `json:"clientSecretCertificateThumbprint,omitempty"`
+	// ClientSecretCertificateSubjectAlternativeName - An alternative to the client secret thumbprint, that is the subject alternative name of a certificate used for signing purposes. This property acts as
+	// a replacement for the Client Secret Certificate Thumbprint. It is also optional.
+	ClientSecretCertificateSubjectAlternativeName *string `json:"clientSecretCertificateSubjectAlternativeName,omitempty"`
+	// ClientSecretCertificateIssuer - An alternative to the client secret thumbprint, that is the issuer of a certificate used for signing purposes. This property acts as
+	// a replacement for the Client Secret Certificate Thumbprint. It is also optional.
+	ClientSecretCertificateIssuer *string `json:"clientSecretCertificateIssuer,omitempty"`
 }
 
 // AzureActiveDirectoryValidation the configuration settings of the Azure Active Directory token validation
@@ -6592,6 +6374,8 @@ type AzureActiveDirectoryValidationProperties struct {
 	JwtClaimChecks *JwtClaimChecks `json:"jwtClaimChecks,omitempty"`
 	// AllowedAudiences - The list of audiences that can make successful authentication/authorization requests.
 	AllowedAudiences *[]string `json:"allowedAudiences,omitempty"`
+	// DefaultAuthorizationPolicy - The configuration settings of the default authorization policy.
+	DefaultAuthorizationPolicy *DefaultAuthorizationPolicy `json:"defaultAuthorizationPolicy,omitempty"`
 }
 
 // AzureBlobStorageApplicationLogsConfig application logs azure blob storage configuration.
@@ -6715,92 +6499,6 @@ type AzureStaticWebAppsProperties struct {
 // AzureStaticWebAppsRegistration the configuration settings of the registration for the Azure Static Web
 // Apps provider
 type AzureStaticWebAppsRegistration struct {
-	// AzureStaticWebAppsRegistrationProperties - AzureStaticWebAppsRegistration resource specific properties
-	*AzureStaticWebAppsRegistrationProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for AzureStaticWebAppsRegistration.
-func (aswar AzureStaticWebAppsRegistration) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if aswar.AzureStaticWebAppsRegistrationProperties != nil {
-		objectMap["properties"] = aswar.AzureStaticWebAppsRegistrationProperties
-	}
-	if aswar.Kind != nil {
-		objectMap["kind"] = aswar.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for AzureStaticWebAppsRegistration struct.
-func (aswar *AzureStaticWebAppsRegistration) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var azureStaticWebAppsRegistrationProperties AzureStaticWebAppsRegistrationProperties
-				err = json.Unmarshal(*v, &azureStaticWebAppsRegistrationProperties)
-				if err != nil {
-					return err
-				}
-				aswar.AzureStaticWebAppsRegistrationProperties = &azureStaticWebAppsRegistrationProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				aswar.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				aswar.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				aswar.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				aswar.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// AzureStaticWebAppsRegistrationProperties azureStaticWebAppsRegistration resource specific properties
-type AzureStaticWebAppsRegistrationProperties struct {
 	// ClientID - The Client ID of the app used for login.
 	ClientID *string `json:"clientId,omitempty"`
 }
@@ -8438,92 +8136,6 @@ func (c CertificateProperties) MarshalJSON() ([]byte, error) {
 // ClientRegistration the configuration settings of the app registration for providers that have client ids
 // and client secrets
 type ClientRegistration struct {
-	// ClientRegistrationProperties - ClientRegistration resource specific properties
-	*ClientRegistrationProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ClientRegistration.
-func (cr ClientRegistration) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if cr.ClientRegistrationProperties != nil {
-		objectMap["properties"] = cr.ClientRegistrationProperties
-	}
-	if cr.Kind != nil {
-		objectMap["kind"] = cr.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for ClientRegistration struct.
-func (cr *ClientRegistration) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var clientRegistrationProperties ClientRegistrationProperties
-				err = json.Unmarshal(*v, &clientRegistrationProperties)
-				if err != nil {
-					return err
-				}
-				cr.ClientRegistrationProperties = &clientRegistrationProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				cr.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				cr.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				cr.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				cr.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// ClientRegistrationProperties clientRegistration resource specific properties
-type ClientRegistrationProperties struct {
 	// ClientID - The Client ID of the app used for login.
 	ClientID *string `json:"clientId,omitempty"`
 	// ClientSecretSettingName - The app setting name that contains the client secret.
@@ -9040,92 +8652,6 @@ func (cwj ContinuousWebJobProperties) MarshalJSON() ([]byte, error) {
 
 // CookieExpiration the configuration settings of the session cookie's expiration.
 type CookieExpiration struct {
-	// CookieExpirationProperties - CookieExpiration resource specific properties
-	*CookieExpirationProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for CookieExpiration.
-func (ce CookieExpiration) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ce.CookieExpirationProperties != nil {
-		objectMap["properties"] = ce.CookieExpirationProperties
-	}
-	if ce.Kind != nil {
-		objectMap["kind"] = ce.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for CookieExpiration struct.
-func (ce *CookieExpiration) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var cookieExpirationProperties CookieExpirationProperties
-				err = json.Unmarshal(*v, &cookieExpirationProperties)
-				if err != nil {
-					return err
-				}
-				ce.CookieExpirationProperties = &cookieExpirationProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				ce.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				ce.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				ce.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				ce.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// CookieExpirationProperties cookieExpiration resource specific properties
-type CookieExpirationProperties struct {
 	// Convention - The convention used when determining the session cookie's expiration. Possible values include: 'CookieExpirationConventionFixedTime', 'CookieExpirationConventionIdentityProviderDerived'
 	Convention CookieExpirationConvention `json:"convention,omitempty"`
 	// TimeToExpiration - The time after the request is made when the session cookie should expire.
@@ -9921,6 +9447,15 @@ type DataTableResponseObject struct {
 	Rows *[][]string `json:"rows,omitempty"`
 }
 
+// DefaultAuthorizationPolicy the configuration settings of the Azure Active Directory default
+// authorization policy.
+type DefaultAuthorizationPolicy struct {
+	// AllowedPrincipals - The configuration settings of the Azure Active Directory allowed principals.
+	AllowedPrincipals *AllowedPrincipals `json:"allowedPrincipals,omitempty"`
+	// AllowedApplications - The configuration settings of the Azure Active Directory allowed applications.
+	AllowedApplications *[]string `json:"allowedApplications,omitempty"`
+}
+
 // DefaultErrorResponse app Service error response.
 type DefaultErrorResponse struct {
 	// Error - READ-ONLY; Error model.
@@ -10663,93 +10198,6 @@ type DetectorAbnormalTimePeriod struct {
 
 // DetectorDefinition class representing detector definition
 type DetectorDefinition struct {
-	autorest.Response `json:"-"`
-	// DetectorDefinitionProperties - DetectorDefinition resource specific properties
-	*DetectorDefinitionProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for DetectorDefinition.
-func (dd DetectorDefinition) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if dd.DetectorDefinitionProperties != nil {
-		objectMap["properties"] = dd.DetectorDefinitionProperties
-	}
-	if dd.Kind != nil {
-		objectMap["kind"] = dd.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for DetectorDefinition struct.
-func (dd *DetectorDefinition) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var detectorDefinitionProperties DetectorDefinitionProperties
-				err = json.Unmarshal(*v, &detectorDefinitionProperties)
-				if err != nil {
-					return err
-				}
-				dd.DetectorDefinitionProperties = &detectorDefinitionProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				dd.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				dd.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				dd.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				dd.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// DetectorDefinitionProperties detectorDefinition resource specific properties
-type DetectorDefinitionProperties struct {
 	// DisplayName - READ-ONLY; Display name of the detector
 	DisplayName *string `json:"displayName,omitempty"`
 	// Description - READ-ONLY; Description of the detector
@@ -10760,10 +10208,97 @@ type DetectorDefinitionProperties struct {
 	IsEnabled *bool `json:"isEnabled,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for DetectorDefinitionProperties.
-func (dd DetectorDefinitionProperties) MarshalJSON() ([]byte, error) {
+// MarshalJSON is the custom marshaler for DetectorDefinition.
+func (dd DetectorDefinition) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
+}
+
+// DetectorDefinitionResource ARM resource for a detector definition
+type DetectorDefinitionResource struct {
+	autorest.Response `json:"-"`
+	// DetectorDefinition - Core resource properties
+	*DetectorDefinition `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DetectorDefinitionResource.
+func (ddr DetectorDefinitionResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ddr.DetectorDefinition != nil {
+		objectMap["properties"] = ddr.DetectorDefinition
+	}
+	if ddr.Kind != nil {
+		objectMap["kind"] = ddr.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for DetectorDefinitionResource struct.
+func (ddr *DetectorDefinitionResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var detectorDefinition DetectorDefinition
+				err = json.Unmarshal(*v, &detectorDefinition)
+				if err != nil {
+					return err
+				}
+				ddr.DetectorDefinition = &detectorDefinition
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ddr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ddr.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				ddr.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ddr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
 }
 
 // DetectorInfo definition of Detector
@@ -11611,7 +11146,7 @@ type DiagnosticData struct {
 type DiagnosticDetectorCollection struct {
 	autorest.Response `json:"-"`
 	// Value - Collection of resources.
-	Value *[]DetectorDefinition `json:"value,omitempty"`
+	Value *[]DetectorDefinitionResource `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to next page of resources.
 	NextLink *string `json:"nextLink,omitempty"`
 }
@@ -11625,7 +11160,8 @@ func (ddc DiagnosticDetectorCollection) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// DiagnosticDetectorCollectionIterator provides access to a complete listing of DetectorDefinition values.
+// DiagnosticDetectorCollectionIterator provides access to a complete listing of DetectorDefinitionResource
+// values.
 type DiagnosticDetectorCollectionIterator struct {
 	i    int
 	page DiagnosticDetectorCollectionPage
@@ -11676,9 +11212,9 @@ func (iter DiagnosticDetectorCollectionIterator) Response() DiagnosticDetectorCo
 
 // Value returns the current value or a zero-initialized value if the
 // iterator has advanced beyond the end of the collection.
-func (iter DiagnosticDetectorCollectionIterator) Value() DetectorDefinition {
+func (iter DiagnosticDetectorCollectionIterator) Value() DetectorDefinitionResource {
 	if !iter.page.NotDone() {
-		return DetectorDefinition{}
+		return DetectorDefinitionResource{}
 	}
 	return iter.page.Values()[iter.i]
 }
@@ -11710,7 +11246,7 @@ func (ddc DiagnosticDetectorCollection) diagnosticDetectorCollectionPreparer(ctx
 		autorest.WithBaseURL(to.String(ddc.NextLink)))
 }
 
-// DiagnosticDetectorCollectionPage contains a page of DetectorDefinition values.
+// DiagnosticDetectorCollectionPage contains a page of DetectorDefinitionResource values.
 type DiagnosticDetectorCollectionPage struct {
 	fn  func(context.Context, DiagnosticDetectorCollection) (DiagnosticDetectorCollection, error)
 	ddc DiagnosticDetectorCollection
@@ -11760,7 +11296,7 @@ func (page DiagnosticDetectorCollectionPage) Response() DiagnosticDetectorCollec
 }
 
 // Values returns the slice of values for the current page or nil if there are no values.
-func (page DiagnosticDetectorCollectionPage) Values() []DetectorDefinition {
+func (page DiagnosticDetectorCollectionPage) Values() []DetectorDefinitionResource {
 	if page.ddc.IsEmpty() {
 		return nil
 	}
@@ -12851,6 +12387,10 @@ type ErrorEntity struct {
 	Parameters *[]string `json:"parameters,omitempty"`
 	// InnerErrors - Inner errors.
 	InnerErrors *[]ErrorEntity `json:"innerErrors,omitempty"`
+	// Details - Error Details.
+	Details *[]ErrorEntity `json:"details,omitempty"`
+	// Target - The error target.
+	Target *string `json:"target,omitempty"`
 	// Code - Basic error code.
 	Code *string `json:"code,omitempty"`
 	// Message - Any details of the error.
@@ -12882,92 +12422,6 @@ func (el ExtendedLocation) MarshalJSON() ([]byte, error) {
 
 // Facebook the configuration settings of the Facebook provider.
 type Facebook struct {
-	// FacebookProperties - Facebook resource specific properties
-	*FacebookProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Facebook.
-func (f Facebook) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if f.FacebookProperties != nil {
-		objectMap["properties"] = f.FacebookProperties
-	}
-	if f.Kind != nil {
-		objectMap["kind"] = f.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for Facebook struct.
-func (f *Facebook) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var facebookProperties FacebookProperties
-				err = json.Unmarshal(*v, &facebookProperties)
-				if err != nil {
-					return err
-				}
-				f.FacebookProperties = &facebookProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				f.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				f.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				f.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				f.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// FacebookProperties facebook resource specific properties
-type FacebookProperties struct {
 	// Enabled - <code>false</code> if the Facebook provider should not be enabled despite the set registration; otherwise, <code>true</code>.
 	Enabled *bool `json:"enabled,omitempty"`
 	// Registration - The configuration settings of the app registration for the Facebook provider.
@@ -13000,184 +12454,12 @@ type FileSystemHTTPLogsConfig struct {
 
 // FileSystemTokenStore the configuration settings of the storage of the tokens if a file system is used.
 type FileSystemTokenStore struct {
-	// FileSystemTokenStoreProperties - FileSystemTokenStore resource specific properties
-	*FileSystemTokenStoreProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for FileSystemTokenStore.
-func (fsts FileSystemTokenStore) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if fsts.FileSystemTokenStoreProperties != nil {
-		objectMap["properties"] = fsts.FileSystemTokenStoreProperties
-	}
-	if fsts.Kind != nil {
-		objectMap["kind"] = fsts.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for FileSystemTokenStore struct.
-func (fsts *FileSystemTokenStore) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var fileSystemTokenStoreProperties FileSystemTokenStoreProperties
-				err = json.Unmarshal(*v, &fileSystemTokenStoreProperties)
-				if err != nil {
-					return err
-				}
-				fsts.FileSystemTokenStoreProperties = &fileSystemTokenStoreProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				fsts.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				fsts.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				fsts.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				fsts.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// FileSystemTokenStoreProperties fileSystemTokenStore resource specific properties
-type FileSystemTokenStoreProperties struct {
 	// Directory - The directory in which the tokens will be stored.
 	Directory *string `json:"directory,omitempty"`
 }
 
 // ForwardProxy the configuration settings of a forward proxy used to make the requests.
 type ForwardProxy struct {
-	// ForwardProxyProperties - ForwardProxy resource specific properties
-	*ForwardProxyProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ForwardProxy.
-func (fp ForwardProxy) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if fp.ForwardProxyProperties != nil {
-		objectMap["properties"] = fp.ForwardProxyProperties
-	}
-	if fp.Kind != nil {
-		objectMap["kind"] = fp.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for ForwardProxy struct.
-func (fp *ForwardProxy) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var forwardProxyProperties ForwardProxyProperties
-				err = json.Unmarshal(*v, &forwardProxyProperties)
-				if err != nil {
-					return err
-				}
-				fp.ForwardProxyProperties = &forwardProxyProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				fp.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				fp.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				fp.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				fp.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// ForwardProxyProperties forwardProxy resource specific properties
-type ForwardProxyProperties struct {
 	// Convention - The convention used to determine the url of the request made. Possible values include: 'ForwardProxyConventionNoProxy', 'ForwardProxyConventionStandard', 'ForwardProxyConventionCustom'
 	Convention ForwardProxyConvention `json:"convention,omitempty"`
 	// CustomHostHeaderName - The name of the header containing the host of the request.
@@ -14331,92 +13613,6 @@ type GlobalCsmSkuDescription struct {
 // GlobalValidation the configuration settings that determines the validation flow of users using App
 // Service Authentication/Authorization.
 type GlobalValidation struct {
-	// GlobalValidationProperties - GlobalValidation resource specific properties
-	*GlobalValidationProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for GlobalValidation.
-func (gv GlobalValidation) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if gv.GlobalValidationProperties != nil {
-		objectMap["properties"] = gv.GlobalValidationProperties
-	}
-	if gv.Kind != nil {
-		objectMap["kind"] = gv.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for GlobalValidation struct.
-func (gv *GlobalValidation) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var globalValidationProperties GlobalValidationProperties
-				err = json.Unmarshal(*v, &globalValidationProperties)
-				if err != nil {
-					return err
-				}
-				gv.GlobalValidationProperties = &globalValidationProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				gv.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				gv.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				gv.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				gv.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// GlobalValidationProperties globalValidation resource specific properties
-type GlobalValidationProperties struct {
 	// RequireAuthentication - <code>true</code> if the authentication flow is required any request is made; otherwise, <code>false</code>.
 	RequireAuthentication *bool `json:"requireAuthentication,omitempty"`
 	// UnauthenticatedClientAction - The action to take when an unauthenticated client attempts to access the app. Possible values include: 'UnauthenticatedClientActionV2RedirectToLoginPage', 'UnauthenticatedClientActionV2AllowAnonymous', 'UnauthenticatedClientActionV2Return401', 'UnauthenticatedClientActionV2Return403'
@@ -14952,92 +14148,6 @@ type HTTPLogsConfig struct {
 // HTTPSettings the configuration settings of the HTTP requests for authentication and authorization
 // requests made against App Service Authentication/Authorization.
 type HTTPSettings struct {
-	// HTTPSettingsProperties - HttpSettings resource specific properties
-	*HTTPSettingsProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for HTTPSettings.
-func (hs HTTPSettings) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if hs.HTTPSettingsProperties != nil {
-		objectMap["properties"] = hs.HTTPSettingsProperties
-	}
-	if hs.Kind != nil {
-		objectMap["kind"] = hs.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for HTTPSettings struct.
-func (hs *HTTPSettings) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var HTTPSettingsProperties HTTPSettingsProperties
-				err = json.Unmarshal(*v, &HTTPSettingsProperties)
-				if err != nil {
-					return err
-				}
-				hs.HTTPSettingsProperties = &HTTPSettingsProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				hs.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				hs.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				hs.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				hs.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// HTTPSettingsProperties httpSettings resource specific properties
-type HTTPSettingsProperties struct {
 	// RequireHTTPS - <code>false</code> if the authentication/authorization responses not having the HTTPS scheme are permissible; otherwise, <code>true</code>.
 	RequireHTTPS *bool `json:"requireHttps,omitempty"`
 	// Routes - The configuration settings of the paths HTTP requests.
@@ -15048,92 +14158,6 @@ type HTTPSettingsProperties struct {
 
 // HTTPSettingsRoutes the configuration settings of the paths HTTP requests.
 type HTTPSettingsRoutes struct {
-	// HTTPSettingsRoutesProperties - HttpSettingsRoutes resource specific properties
-	*HTTPSettingsRoutesProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for HTTPSettingsRoutes.
-func (hsr HTTPSettingsRoutes) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if hsr.HTTPSettingsRoutesProperties != nil {
-		objectMap["properties"] = hsr.HTTPSettingsRoutesProperties
-	}
-	if hsr.Kind != nil {
-		objectMap["kind"] = hsr.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for HTTPSettingsRoutes struct.
-func (hsr *HTTPSettingsRoutes) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var HTTPSettingsRoutesProperties HTTPSettingsRoutesProperties
-				err = json.Unmarshal(*v, &HTTPSettingsRoutesProperties)
-				if err != nil {
-					return err
-				}
-				hsr.HTTPSettingsRoutesProperties = &HTTPSettingsRoutesProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				hsr.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				hsr.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				hsr.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				hsr.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// HTTPSettingsRoutesProperties httpSettingsRoutes resource specific properties
-type HTTPSettingsRoutesProperties struct {
 	// APIPrefix - The prefix that should precede all the authentication/authorization paths.
 	APIPrefix *string `json:"apiPrefix,omitempty"`
 }
@@ -15882,92 +14906,6 @@ type IdentifierProperties struct {
 // IdentityProviders the configuration settings of each of the identity providers used to configure App
 // Service Authentication/Authorization.
 type IdentityProviders struct {
-	// IdentityProvidersProperties - IdentityProviders resource specific properties
-	*IdentityProvidersProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for IdentityProviders.
-func (IP IdentityProviders) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if IP.IdentityProvidersProperties != nil {
-		objectMap["properties"] = IP.IdentityProvidersProperties
-	}
-	if IP.Kind != nil {
-		objectMap["kind"] = IP.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for IdentityProviders struct.
-func (IP *IdentityProviders) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var identityProvidersProperties IdentityProvidersProperties
-				err = json.Unmarshal(*v, &identityProvidersProperties)
-				if err != nil {
-					return err
-				}
-				IP.IdentityProvidersProperties = &identityProvidersProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				IP.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				IP.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				IP.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				IP.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// IdentityProvidersProperties identityProviders resource specific properties
-type IdentityProvidersProperties struct {
 	// AzureActiveDirectory - The configuration settings of the Azure Active directory provider.
 	AzureActiveDirectory *AzureActiveDirectory `json:"azureActiveDirectory,omitempty"`
 	// Facebook - The configuration settings of the Facebook provider.
@@ -15989,8 +14927,8 @@ type IdentityProvidersProperties struct {
 	AzureStaticWebApps *AzureStaticWebApps `json:"azureStaticWebApps,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for IdentityProvidersProperties.
-func (IP IdentityProvidersProperties) MarshalJSON() ([]byte, error) {
+// MarshalJSON is the custom marshaler for IdentityProviders.
+func (IP IdentityProviders) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if IP.AzureActiveDirectory != nil {
 		objectMap["azureActiveDirectory"] = IP.AzureActiveDirectory
@@ -16586,92 +15524,6 @@ func (j JobProperties) MarshalJSON() ([]byte, error) {
 // JwtClaimChecks the configuration settings of the checks that should be made while validating the JWT
 // Claims.
 type JwtClaimChecks struct {
-	// JwtClaimChecksProperties - JwtClaimChecks resource specific properties
-	*JwtClaimChecksProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for JwtClaimChecks.
-func (jcc JwtClaimChecks) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if jcc.JwtClaimChecksProperties != nil {
-		objectMap["properties"] = jcc.JwtClaimChecksProperties
-	}
-	if jcc.Kind != nil {
-		objectMap["kind"] = jcc.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for JwtClaimChecks struct.
-func (jcc *JwtClaimChecks) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var jwtClaimChecksProperties JwtClaimChecksProperties
-				err = json.Unmarshal(*v, &jwtClaimChecksProperties)
-				if err != nil {
-					return err
-				}
-				jcc.JwtClaimChecksProperties = &jwtClaimChecksProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				jcc.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				jcc.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				jcc.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				jcc.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// JwtClaimChecksProperties jwtClaimChecks resource specific properties
-type JwtClaimChecksProperties struct {
 	// AllowedGroups - The list of the allowed groups.
 	AllowedGroups *[]string `json:"allowedGroups,omitempty"`
 	// AllowedClientApplications - The list of the allowed client applications.
@@ -17436,10 +16288,10 @@ type ListSnapshot struct {
 	Value             *[]Snapshot `json:"value,omitempty"`
 }
 
-// ListVnetInfo ...
-type ListVnetInfo struct {
+// ListVnetInfoResource ...
+type ListVnetInfoResource struct {
 	autorest.Response `json:"-"`
-	Value             *[]VnetInfo `json:"value,omitempty"`
+	Value             *[]VnetInfoResource `json:"value,omitempty"`
 }
 
 // ListVnetRoute ...
@@ -17465,92 +16317,6 @@ type LogAnalyticsConfiguration struct {
 // Login the configuration settings of the login flow of users using App Service
 // Authentication/Authorization.
 type Login struct {
-	// LoginProperties - Login resource specific properties
-	*LoginProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Login.
-func (l Login) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if l.LoginProperties != nil {
-		objectMap["properties"] = l.LoginProperties
-	}
-	if l.Kind != nil {
-		objectMap["kind"] = l.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for Login struct.
-func (l *Login) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var loginProperties LoginProperties
-				err = json.Unmarshal(*v, &loginProperties)
-				if err != nil {
-					return err
-				}
-				l.LoginProperties = &loginProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				l.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				l.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				l.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				l.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoginProperties login resource specific properties
-type LoginProperties struct {
 	// Routes - The routes that specify the endpoints used for login and logout requests.
 	Routes *LoginRoutes `json:"routes,omitempty"`
 	// TokenStore - The configuration settings of the token store.
@@ -17569,184 +16335,12 @@ type LoginProperties struct {
 
 // LoginRoutes the routes that specify the endpoints used for login and logout requests.
 type LoginRoutes struct {
-	// LoginRoutesProperties - LoginRoutes resource specific properties
-	*LoginRoutesProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for LoginRoutes.
-func (lr LoginRoutes) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if lr.LoginRoutesProperties != nil {
-		objectMap["properties"] = lr.LoginRoutesProperties
-	}
-	if lr.Kind != nil {
-		objectMap["kind"] = lr.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for LoginRoutes struct.
-func (lr *LoginRoutes) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var loginRoutesProperties LoginRoutesProperties
-				err = json.Unmarshal(*v, &loginRoutesProperties)
-				if err != nil {
-					return err
-				}
-				lr.LoginRoutesProperties = &loginRoutesProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				lr.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				lr.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				lr.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				lr.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoginRoutesProperties loginRoutes resource specific properties
-type LoginRoutesProperties struct {
 	// LogoutEndpoint - The endpoint at which a logout request should be made.
 	LogoutEndpoint *string `json:"logoutEndpoint,omitempty"`
 }
 
 // LoginScopes the configuration settings of the login flow, including the scopes that should be requested.
 type LoginScopes struct {
-	// LoginScopesProperties - LoginScopes resource specific properties
-	*LoginScopesProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for LoginScopes.
-func (ls LoginScopes) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ls.LoginScopesProperties != nil {
-		objectMap["properties"] = ls.LoginScopesProperties
-	}
-	if ls.Kind != nil {
-		objectMap["kind"] = ls.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for LoginScopes struct.
-func (ls *LoginScopes) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var loginScopesProperties LoginScopesProperties
-				err = json.Unmarshal(*v, &loginScopesProperties)
-				if err != nil {
-					return err
-				}
-				ls.LoginScopesProperties = &loginScopesProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				ls.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				ls.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				ls.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				ls.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoginScopesProperties loginScopes resource specific properties
-type LoginScopesProperties struct {
 	// Scopes - A list of the scopes that should be requested while authenticating.
 	Scopes *[]string `json:"scopes,omitempty"`
 }
@@ -18664,92 +17258,6 @@ type NetworkTrace struct {
 
 // Nonce the configuration settings of the nonce used in the login flow.
 type Nonce struct {
-	// NonceProperties - Nonce resource specific properties
-	*NonceProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Nonce.
-func (n Nonce) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if n.NonceProperties != nil {
-		objectMap["properties"] = n.NonceProperties
-	}
-	if n.Kind != nil {
-		objectMap["kind"] = n.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for Nonce struct.
-func (n *Nonce) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var nonceProperties NonceProperties
-				err = json.Unmarshal(*v, &nonceProperties)
-				if err != nil {
-					return err
-				}
-				n.NonceProperties = &nonceProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				n.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				n.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				n.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				n.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// NonceProperties nonce resource specific properties
-type NonceProperties struct {
 	// ValidateNonce - <code>false</code> if the nonce should not be validated while completing the login flow; otherwise, <code>true</code>.
 	ValidateNonce *bool `json:"validateNonce,omitempty"`
 	// NonceExpirationInterval - The time after the request is made when the nonce should expire.
@@ -18759,92 +17267,6 @@ type NonceProperties struct {
 // OpenIDConnectClientCredential the authentication client credentials of the custom Open ID Connect
 // provider.
 type OpenIDConnectClientCredential struct {
-	// OpenIDConnectClientCredentialProperties - OpenIdConnectClientCredential resource specific properties
-	*OpenIDConnectClientCredentialProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for OpenIDConnectClientCredential.
-func (oiccc OpenIDConnectClientCredential) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if oiccc.OpenIDConnectClientCredentialProperties != nil {
-		objectMap["properties"] = oiccc.OpenIDConnectClientCredentialProperties
-	}
-	if oiccc.Kind != nil {
-		objectMap["kind"] = oiccc.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for OpenIDConnectClientCredential struct.
-func (oiccc *OpenIDConnectClientCredential) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var openIDConnectClientCredentialProperties OpenIDConnectClientCredentialProperties
-				err = json.Unmarshal(*v, &openIDConnectClientCredentialProperties)
-				if err != nil {
-					return err
-				}
-				oiccc.OpenIDConnectClientCredentialProperties = &openIDConnectClientCredentialProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				oiccc.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				oiccc.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				oiccc.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				oiccc.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// OpenIDConnectClientCredentialProperties openIdConnectClientCredential resource specific properties
-type OpenIDConnectClientCredentialProperties struct {
 	// Method - The method that should be used to authenticate the user. Possible values include: 'ClientCredentialMethodClientSecretPost'
 	Method ClientCredentialMethod `json:"method,omitempty"`
 	// ClientSecretSettingName - The app setting that contains the client secret for the custom Open ID Connect provider.
@@ -18854,92 +17276,6 @@ type OpenIDConnectClientCredentialProperties struct {
 // OpenIDConnectConfig the configuration settings of the endpoints used for the custom Open ID Connect
 // provider.
 type OpenIDConnectConfig struct {
-	// OpenIDConnectConfigProperties - OpenIdConnectConfig resource specific properties
-	*OpenIDConnectConfigProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for OpenIDConnectConfig.
-func (oicc OpenIDConnectConfig) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if oicc.OpenIDConnectConfigProperties != nil {
-		objectMap["properties"] = oicc.OpenIDConnectConfigProperties
-	}
-	if oicc.Kind != nil {
-		objectMap["kind"] = oicc.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for OpenIDConnectConfig struct.
-func (oicc *OpenIDConnectConfig) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var openIDConnectConfigProperties OpenIDConnectConfigProperties
-				err = json.Unmarshal(*v, &openIDConnectConfigProperties)
-				if err != nil {
-					return err
-				}
-				oicc.OpenIDConnectConfigProperties = &openIDConnectConfigProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				oicc.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				oicc.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				oicc.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				oicc.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// OpenIDConnectConfigProperties openIdConnectConfig resource specific properties
-type OpenIDConnectConfigProperties struct {
 	// AuthorizationEndpoint - The endpoint to be used to make an authorization request.
 	AuthorizationEndpoint *string `json:"authorizationEndpoint,omitempty"`
 	// TokenEndpoint - The endpoint to be used to request a token.
@@ -18954,92 +17290,6 @@ type OpenIDConnectConfigProperties struct {
 
 // OpenIDConnectLogin the configuration settings of the login flow of the custom Open ID Connect provider.
 type OpenIDConnectLogin struct {
-	// OpenIDConnectLoginProperties - OpenIdConnectLogin resource specific properties
-	*OpenIDConnectLoginProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for OpenIDConnectLogin.
-func (oicl OpenIDConnectLogin) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if oicl.OpenIDConnectLoginProperties != nil {
-		objectMap["properties"] = oicl.OpenIDConnectLoginProperties
-	}
-	if oicl.Kind != nil {
-		objectMap["kind"] = oicl.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for OpenIDConnectLogin struct.
-func (oicl *OpenIDConnectLogin) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var openIDConnectLoginProperties OpenIDConnectLoginProperties
-				err = json.Unmarshal(*v, &openIDConnectLoginProperties)
-				if err != nil {
-					return err
-				}
-				oicl.OpenIDConnectLoginProperties = &openIDConnectLoginProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				oicl.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				oicl.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				oicl.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				oicl.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// OpenIDConnectLoginProperties openIdConnectLogin resource specific properties
-type OpenIDConnectLoginProperties struct {
 	// NameClaimType - The name of the claim that contains the users name.
 	NameClaimType *string `json:"nameClaimType,omitempty"`
 	// Scopes - A list of the scopes that should be requested while authenticating.
@@ -19049,92 +17299,6 @@ type OpenIDConnectLoginProperties struct {
 // OpenIDConnectRegistration the configuration settings of the app registration for the custom Open ID
 // Connect provider.
 type OpenIDConnectRegistration struct {
-	// OpenIDConnectRegistrationProperties - OpenIdConnectRegistration resource specific properties
-	*OpenIDConnectRegistrationProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for OpenIDConnectRegistration.
-func (oicr OpenIDConnectRegistration) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if oicr.OpenIDConnectRegistrationProperties != nil {
-		objectMap["properties"] = oicr.OpenIDConnectRegistrationProperties
-	}
-	if oicr.Kind != nil {
-		objectMap["kind"] = oicr.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for OpenIDConnectRegistration struct.
-func (oicr *OpenIDConnectRegistration) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var openIDConnectRegistrationProperties OpenIDConnectRegistrationProperties
-				err = json.Unmarshal(*v, &openIDConnectRegistrationProperties)
-				if err != nil {
-					return err
-				}
-				oicr.OpenIDConnectRegistrationProperties = &openIDConnectRegistrationProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				oicr.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				oicr.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				oicr.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				oicr.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// OpenIDConnectRegistrationProperties openIdConnectRegistration resource specific properties
-type OpenIDConnectRegistrationProperties struct {
 	// ClientID - The client id of the custom Open ID Connect provider.
 	ClientID *string `json:"clientId,omitempty"`
 	// ClientCredential - The authentication credentials of the custom Open ID Connect provider.
@@ -32109,92 +30273,6 @@ func NewTldLegalAgreementCollectionPage(cur TldLegalAgreementCollection, getNext
 
 // TokenStore the configuration settings of the token store.
 type TokenStore struct {
-	// TokenStoreProperties - TokenStore resource specific properties
-	*TokenStoreProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for TokenStore.
-func (ts TokenStore) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ts.TokenStoreProperties != nil {
-		objectMap["properties"] = ts.TokenStoreProperties
-	}
-	if ts.Kind != nil {
-		objectMap["kind"] = ts.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for TokenStore struct.
-func (ts *TokenStore) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var tokenStoreProperties TokenStoreProperties
-				err = json.Unmarshal(*v, &tokenStoreProperties)
-				if err != nil {
-					return err
-				}
-				ts.TokenStoreProperties = &tokenStoreProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				ts.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				ts.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				ts.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				ts.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// TokenStoreProperties tokenStore resource specific properties
-type TokenStoreProperties struct {
 	// Enabled - <code>true</code> to durably store platform-specific security tokens that are obtained during login flows; otherwise, <code>false</code>.
 	//  The default is <code>false</code>.
 	Enabled *bool `json:"enabled,omitempty"`
@@ -32740,92 +30818,6 @@ type TriggeredJobHistoryProperties struct {
 
 // TriggeredJobRun triggered Web Job Run Information.
 type TriggeredJobRun struct {
-	// TriggeredJobRunProperties - TriggeredJobRun resource specific properties
-	*TriggeredJobRunProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for TriggeredJobRun.
-func (tjr TriggeredJobRun) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if tjr.TriggeredJobRunProperties != nil {
-		objectMap["properties"] = tjr.TriggeredJobRunProperties
-	}
-	if tjr.Kind != nil {
-		objectMap["kind"] = tjr.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for TriggeredJobRun struct.
-func (tjr *TriggeredJobRun) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var triggeredJobRunProperties TriggeredJobRunProperties
-				err = json.Unmarshal(*v, &triggeredJobRunProperties)
-				if err != nil {
-					return err
-				}
-				tjr.TriggeredJobRunProperties = &triggeredJobRunProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				tjr.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				tjr.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				tjr.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				tjr.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// TriggeredJobRunProperties triggeredJobRun resource specific properties
-type TriggeredJobRunProperties struct {
 	// WebJobID - Job ID.
 	WebJobID *string `json:"web_job_id,omitempty"`
 	// WebJobName - Job name.
@@ -33261,92 +31253,6 @@ type TwitterProperties struct {
 
 // TwitterRegistration the configuration settings of the app registration for the Twitter provider.
 type TwitterRegistration struct {
-	// TwitterRegistrationProperties - TwitterRegistration resource specific properties
-	*TwitterRegistrationProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for TwitterRegistration.
-func (tr TwitterRegistration) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if tr.TwitterRegistrationProperties != nil {
-		objectMap["properties"] = tr.TwitterRegistrationProperties
-	}
-	if tr.Kind != nil {
-		objectMap["kind"] = tr.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for TwitterRegistration struct.
-func (tr *TwitterRegistration) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var twitterRegistrationProperties TwitterRegistrationProperties
-				err = json.Unmarshal(*v, &twitterRegistrationProperties)
-				if err != nil {
-					return err
-				}
-				tr.TwitterRegistrationProperties = &twitterRegistrationProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				tr.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				tr.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				tr.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				tr.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// TwitterRegistrationProperties twitterRegistration resource specific properties
-type TwitterRegistrationProperties struct {
 	// ConsumerKey - The OAuth 1.0a consumer key of the Twitter application used for sign-in.
 	// This setting is required for enabling Twitter Sign-In.
 	// Twitter Sign-In documentation: https://dev.twitter.com/web/sign-in
@@ -34037,93 +31943,6 @@ type VnetGatewayProperties struct {
 
 // VnetInfo virtual Network information contract.
 type VnetInfo struct {
-	autorest.Response `json:"-"`
-	// VnetInfoProperties - VnetInfo resource specific properties
-	*VnetInfoProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for VnetInfo.
-func (vi VnetInfo) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if vi.VnetInfoProperties != nil {
-		objectMap["properties"] = vi.VnetInfoProperties
-	}
-	if vi.Kind != nil {
-		objectMap["kind"] = vi.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for VnetInfo struct.
-func (vi *VnetInfo) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var vnetInfoProperties VnetInfoProperties
-				err = json.Unmarshal(*v, &vnetInfoProperties)
-				if err != nil {
-					return err
-				}
-				vi.VnetInfoProperties = &vnetInfoProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				vi.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				vi.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				vi.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				vi.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// VnetInfoProperties vnetInfo resource specific properties
-type VnetInfoProperties struct {
 	// VnetResourceID - The Virtual Network's resource ID.
 	VnetResourceID *string `json:"vnetResourceId,omitempty"`
 	// CertThumbprint - READ-ONLY; The client certificate thumbprint.
@@ -34141,8 +31960,8 @@ type VnetInfoProperties struct {
 	IsSwift *bool `json:"isSwift,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for VnetInfoProperties.
-func (vi VnetInfoProperties) MarshalJSON() ([]byte, error) {
+// MarshalJSON is the custom marshaler for VnetInfo.
+func (vi VnetInfo) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if vi.VnetResourceID != nil {
 		objectMap["vnetResourceId"] = vi.VnetResourceID
@@ -34157,6 +31976,93 @@ func (vi VnetInfoProperties) MarshalJSON() ([]byte, error) {
 		objectMap["isSwift"] = vi.IsSwift
 	}
 	return json.Marshal(objectMap)
+}
+
+// VnetInfoResource virtual Network information ARM resource.
+type VnetInfoResource struct {
+	autorest.Response `json:"-"`
+	// VnetInfo - Core resource properties
+	*VnetInfo `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VnetInfoResource.
+func (vir VnetInfoResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vir.VnetInfo != nil {
+		objectMap["properties"] = vir.VnetInfo
+	}
+	if vir.Kind != nil {
+		objectMap["kind"] = vir.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for VnetInfoResource struct.
+func (vir *VnetInfoResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var vnetInfo VnetInfo
+				err = json.Unmarshal(*v, &vnetInfo)
+				if err != nil {
+					return err
+				}
+				vir.VnetInfo = &vnetInfo
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				vir.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				vir.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				vir.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				vir.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
 }
 
 // VnetParameters the required set of inputs to validate a VNET
