@@ -150,6 +150,12 @@ func frontDoorSettings(d *pluginsdk.ResourceDiff) error {
 			// cacheConfiguration validation
 			cacheEnabled := fc["cache_enabled"].(bool)
 			cacheQueryParameters := fc["cache_query_parameters"].([]interface{})
+
+			// set cacheQueryParameters to nil if empty
+			if len(cacheQueryParameters) < 1 {
+				cacheQueryParameters = nil
+			}
+
 			cacheDuration := fc["cache_duration"].(string)
 			cacheQueryParameterStripDirective := fc["cache_query_parameter_strip_directive"].(string)
 

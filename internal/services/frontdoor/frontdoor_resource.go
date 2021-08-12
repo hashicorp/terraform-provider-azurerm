@@ -230,7 +230,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 									},
 									"cache_query_parameters": {
 										Type:     pluginsdk.TypeList,
-										Required: true,
+										Optional: true,
 										MaxItems: 25,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
