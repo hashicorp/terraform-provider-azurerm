@@ -87,7 +87,7 @@ func (client AppsClient) AddPremierAddOnPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -179,7 +179,7 @@ func (client AppsClient) AddPremierAddOnSlotPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -266,7 +266,7 @@ func (client AppsClient) AnalyzeCustomHostnamePreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -356,7 +356,7 @@ func (client AppsClient) AnalyzeCustomHostnameSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -448,7 +448,7 @@ func (client AppsClient) ApplySlotConfigToProductionPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -540,7 +540,7 @@ func (client AppsClient) ApplySlotConfigurationSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -619,7 +619,7 @@ func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionPreparer(ctx co
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -709,7 +709,7 @@ func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionSlotPreparer(ct
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -814,7 +814,7 @@ func (client AppsClient) BackupPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -913,7 +913,7 @@ func (client AppsClient) BackupSlotPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1002,7 +1002,7 @@ func (client AppsClient) CreateDeploymentPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1094,7 +1094,7 @@ func (client AppsClient) CreateDeploymentSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1176,7 +1176,7 @@ func (client AppsClient) CreateFunctionPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1269,7 +1269,7 @@ func (client AppsClient) CreateInstanceFunctionSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1360,7 +1360,7 @@ func (client AppsClient) CreateInstanceMSDeployOperationPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1453,7 +1453,7 @@ func (client AppsClient) CreateInstanceMSDeployOperationSlotPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1542,7 +1542,7 @@ func (client AppsClient) CreateMSDeployOperationPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1633,7 +1633,7 @@ func (client AppsClient) CreateMSDeployOperationSlotPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1745,7 +1745,7 @@ func (client AppsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1858,7 +1858,7 @@ func (client AppsClient) CreateOrUpdateConfigurationPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1965,7 +1965,7 @@ func (client AppsClient) CreateOrUpdateConfigurationSlotPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2055,7 +2055,7 @@ func (client AppsClient) CreateOrUpdateDomainOwnershipIdentifierPreparer(ctx con
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2148,7 +2148,7 @@ func (client AppsClient) CreateOrUpdateDomainOwnershipIdentifierSlotPreparer(ctx
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2239,7 +2239,7 @@ func (client AppsClient) CreateOrUpdateFunctionSecretPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2332,7 +2332,7 @@ func (client AppsClient) CreateOrUpdateFunctionSecretSlotPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2421,7 +2421,7 @@ func (client AppsClient) CreateOrUpdateHostNameBindingPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2513,7 +2513,7 @@ func (client AppsClient) CreateOrUpdateHostNameBindingSlotPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2604,7 +2604,7 @@ func (client AppsClient) CreateOrUpdateHostSecretPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2697,7 +2697,7 @@ func (client AppsClient) CreateOrUpdateHostSecretSlotPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2788,7 +2788,7 @@ func (client AppsClient) CreateOrUpdateHybridConnectionPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2881,7 +2881,7 @@ func (client AppsClient) CreateOrUpdateHybridConnectionSlotPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2971,7 +2971,7 @@ func (client AppsClient) CreateOrUpdatePublicCertificatePreparer(ctx context.Con
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3064,7 +3064,7 @@ func (client AppsClient) CreateOrUpdatePublicCertificateSlotPreparer(ctx context
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3154,7 +3154,7 @@ func (client AppsClient) CreateOrUpdateRelayServiceConnectionPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3247,7 +3247,7 @@ func (client AppsClient) CreateOrUpdateRelayServiceConnectionSlotPreparer(ctx co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3353,7 +3353,7 @@ func (client AppsClient) CreateOrUpdateSlotPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3442,7 +3442,7 @@ func (client AppsClient) CreateOrUpdateSourceControlPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3534,7 +3534,7 @@ func (client AppsClient) CreateOrUpdateSourceControlSlotPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3633,7 +3633,7 @@ func (client AppsClient) CreateOrUpdateSwiftVirtualNetworkConnectionWithCheckPre
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3726,7 +3726,7 @@ func (client AppsClient) CreateOrUpdateSwiftVirtualNetworkConnectionWithCheckSlo
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3766,7 +3766,7 @@ func (client AppsClient) CreateOrUpdateSwiftVirtualNetworkConnectionWithCheckSlo
 // name - name of the app.
 // vnetName - name of an existing Virtual Network.
 // connectionEnvelope - properties of the Virtual Network connection. See example.
-func (client AppsClient) CreateOrUpdateVnetConnection(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfo) (result VnetInfo, err error) {
+func (client AppsClient) CreateOrUpdateVnetConnection(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfoResource) (result VnetInfoResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.CreateOrUpdateVnetConnection")
 		defer func() {
@@ -3808,7 +3808,7 @@ func (client AppsClient) CreateOrUpdateVnetConnection(ctx context.Context, resou
 }
 
 // CreateOrUpdateVnetConnectionPreparer prepares the CreateOrUpdateVnetConnection request.
-func (client AppsClient) CreateOrUpdateVnetConnectionPreparer(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfo) (*http.Request, error) {
+func (client AppsClient) CreateOrUpdateVnetConnectionPreparer(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfoResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":              autorest.Encode("path", name),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -3816,7 +3816,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionPreparer(ctx context.Contex
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3839,7 +3839,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionSender(req *http.Request) (
 
 // CreateOrUpdateVnetConnectionResponder handles the response to the CreateOrUpdateVnetConnection request. The method always
 // closes the http.Response Body.
-func (client AppsClient) CreateOrUpdateVnetConnectionResponder(resp *http.Response) (result VnetInfo, err error) {
+func (client AppsClient) CreateOrUpdateVnetConnectionResponder(resp *http.Response) (result VnetInfoResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -3911,7 +3911,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionGatewayPreparer(ctx context
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4009,7 +4009,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionGatewaySlotPreparer(ctx con
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4051,7 +4051,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionGatewaySlotResponder(resp *
 // connectionEnvelope - properties of the Virtual Network connection. See example.
 // slot - name of the deployment slot. If a slot is not specified, the API will add or update connections for
 // the production slot.
-func (client AppsClient) CreateOrUpdateVnetConnectionSlot(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfo, slot string) (result VnetInfo, err error) {
+func (client AppsClient) CreateOrUpdateVnetConnectionSlot(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfoResource, slot string) (result VnetInfoResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.CreateOrUpdateVnetConnectionSlot")
 		defer func() {
@@ -4093,7 +4093,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionSlot(ctx context.Context, r
 }
 
 // CreateOrUpdateVnetConnectionSlotPreparer prepares the CreateOrUpdateVnetConnectionSlot request.
-func (client AppsClient) CreateOrUpdateVnetConnectionSlotPreparer(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfo, slot string) (*http.Request, error) {
+func (client AppsClient) CreateOrUpdateVnetConnectionSlotPreparer(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfoResource, slot string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":              autorest.Encode("path", name),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -4102,7 +4102,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionSlotPreparer(ctx context.Co
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4125,7 +4125,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionSlotSender(req *http.Reques
 
 // CreateOrUpdateVnetConnectionSlotResponder handles the response to the CreateOrUpdateVnetConnectionSlot request. The method always
 // closes the http.Response Body.
-func (client AppsClient) CreateOrUpdateVnetConnectionSlotResponder(resp *http.Response) (result VnetInfo, err error) {
+func (client AppsClient) CreateOrUpdateVnetConnectionSlotResponder(resp *http.Response) (result VnetInfoResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -4191,7 +4191,7 @@ func (client AppsClient) DeletePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4282,7 +4282,7 @@ func (client AppsClient) DeleteBackupPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4365,7 +4365,7 @@ func (client AppsClient) DeleteBackupConfigurationPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4451,7 +4451,7 @@ func (client AppsClient) DeleteBackupConfigurationSlotPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4539,7 +4539,7 @@ func (client AppsClient) DeleteBackupSlotPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4624,7 +4624,7 @@ func (client AppsClient) DeleteContinuousWebJobPreparer(ctx context.Context, res
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4712,7 +4712,7 @@ func (client AppsClient) DeleteContinuousWebJobSlotPreparer(ctx context.Context,
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4797,7 +4797,7 @@ func (client AppsClient) DeleteDeploymentPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4885,7 +4885,7 @@ func (client AppsClient) DeleteDeploymentSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4970,7 +4970,7 @@ func (client AppsClient) DeleteDomainOwnershipIdentifierPreparer(ctx context.Con
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5058,7 +5058,7 @@ func (client AppsClient) DeleteDomainOwnershipIdentifierSlotPreparer(ctx context
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5143,7 +5143,7 @@ func (client AppsClient) DeleteFunctionPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5230,7 +5230,7 @@ func (client AppsClient) DeleteFunctionSecretPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5319,7 +5319,7 @@ func (client AppsClient) DeleteFunctionSecretSlotPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5404,7 +5404,7 @@ func (client AppsClient) DeleteHostNameBindingPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5492,7 +5492,7 @@ func (client AppsClient) DeleteHostNameBindingSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5579,7 +5579,7 @@ func (client AppsClient) DeleteHostSecretPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5668,7 +5668,7 @@ func (client AppsClient) DeleteHostSecretSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5755,7 +5755,7 @@ func (client AppsClient) DeleteHybridConnectionPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5844,7 +5844,7 @@ func (client AppsClient) DeleteHybridConnectionSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5931,7 +5931,7 @@ func (client AppsClient) DeleteInstanceFunctionSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6020,7 +6020,7 @@ func (client AppsClient) DeleteInstanceProcessPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6112,7 +6112,7 @@ func (client AppsClient) DeleteInstanceProcessSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6197,7 +6197,7 @@ func (client AppsClient) DeletePremierAddOnPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6285,7 +6285,7 @@ func (client AppsClient) DeletePremierAddOnSlotPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6362,7 +6362,7 @@ func (client AppsClient) DeletePrivateEndpointConnectionPreparer(ctx context.Con
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6450,7 +6450,7 @@ func (client AppsClient) DeletePrivateEndpointConnectionSlotPreparer(ctx context
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6546,7 +6546,7 @@ func (client AppsClient) DeleteProcessPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6635,7 +6635,7 @@ func (client AppsClient) DeleteProcessSlotPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6720,7 +6720,7 @@ func (client AppsClient) DeletePublicCertificatePreparer(ctx context.Context, re
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6808,7 +6808,7 @@ func (client AppsClient) DeletePublicCertificateSlotPreparer(ctx context.Context
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6893,7 +6893,7 @@ func (client AppsClient) DeleteRelayServiceConnectionPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6981,7 +6981,7 @@ func (client AppsClient) DeleteRelayServiceConnectionSlotPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7066,7 +7066,7 @@ func (client AppsClient) DeleteSiteExtensionPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7154,7 +7154,7 @@ func (client AppsClient) DeleteSiteExtensionSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7242,7 +7242,7 @@ func (client AppsClient) DeleteSlotPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7331,7 +7331,7 @@ func (client AppsClient) DeleteSourceControlPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7420,7 +7420,7 @@ func (client AppsClient) DeleteSourceControlSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7507,7 +7507,7 @@ func (client AppsClient) DeleteSwiftVirtualNetworkPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7594,7 +7594,7 @@ func (client AppsClient) DeleteSwiftVirtualNetworkSlotPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7679,7 +7679,7 @@ func (client AppsClient) DeleteTriggeredWebJobPreparer(ctx context.Context, reso
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7767,7 +7767,7 @@ func (client AppsClient) DeleteTriggeredWebJobSlotPreparer(ctx context.Context, 
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7853,7 +7853,7 @@ func (client AppsClient) DeleteVnetConnectionPreparer(ctx context.Context, resou
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7942,7 +7942,7 @@ func (client AppsClient) DeleteVnetConnectionSlotPreparer(ctx context.Context, r
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8032,7 +8032,7 @@ func (client AppsClient) DiscoverBackupPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8128,7 +8128,7 @@ func (client AppsClient) DiscoverBackupSlotPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8215,7 +8215,7 @@ func (client AppsClient) GenerateNewSitePublishingPasswordPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8302,7 +8302,7 @@ func (client AppsClient) GenerateNewSitePublishingPasswordSlotPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8385,7 +8385,7 @@ func (client AppsClient) GetPreparer(ctx context.Context, resourceGroupName stri
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8471,7 +8471,7 @@ func (client AppsClient) GetAppSettingKeyVaultReferencePreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8558,7 +8558,7 @@ func (client AppsClient) GetAppSettingKeyVaultReferenceSlotPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8647,7 +8647,7 @@ func (client AppsClient) GetAppSettingsKeyVaultReferencesPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8774,7 +8774,7 @@ func (client AppsClient) GetAppSettingsKeyVaultReferencesSlotPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8895,7 +8895,7 @@ func (client AppsClient) GetAuthSettingsPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8982,7 +8982,7 @@ func (client AppsClient) GetAuthSettingsSlotPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9066,7 +9066,7 @@ func (client AppsClient) GetAuthSettingsV2Preparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9153,7 +9153,7 @@ func (client AppsClient) GetAuthSettingsV2SlotPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9237,7 +9237,7 @@ func (client AppsClient) GetBackupConfigurationPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9324,7 +9324,7 @@ func (client AppsClient) GetBackupConfigurationSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9410,7 +9410,7 @@ func (client AppsClient) GetBackupStatusPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9499,7 +9499,7 @@ func (client AppsClient) GetBackupStatusSlotPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9584,7 +9584,7 @@ func (client AppsClient) GetConfigurationPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9672,7 +9672,7 @@ func (client AppsClient) GetConfigurationSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9758,7 +9758,7 @@ func (client AppsClient) GetConfigurationSnapshotPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9848,7 +9848,7 @@ func (client AppsClient) GetConfigurationSnapshotSlotPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9932,7 +9932,7 @@ func (client AppsClient) GetContainerLogsZipPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10017,7 +10017,7 @@ func (client AppsClient) GetContainerLogsZipSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10102,7 +10102,7 @@ func (client AppsClient) GetContinuousWebJobPreparer(ctx context.Context, resour
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10191,7 +10191,7 @@ func (client AppsClient) GetContinuousWebJobSlotPreparer(ctx context.Context, re
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10277,7 +10277,7 @@ func (client AppsClient) GetDeploymentPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10366,7 +10366,7 @@ func (client AppsClient) GetDeploymentSlotPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10450,7 +10450,7 @@ func (client AppsClient) GetDiagnosticLogsConfigurationPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10537,7 +10537,7 @@ func (client AppsClient) GetDiagnosticLogsConfigurationSlotPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10623,7 +10623,7 @@ func (client AppsClient) GetDomainOwnershipIdentifierPreparer(ctx context.Contex
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10712,7 +10712,7 @@ func (client AppsClient) GetDomainOwnershipIdentifierSlotPreparer(ctx context.Co
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10796,7 +10796,7 @@ func (client AppsClient) GetFtpAllowedPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10881,7 +10881,7 @@ func (client AppsClient) GetFtpAllowedSlotPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10967,7 +10967,7 @@ func (client AppsClient) GetFunctionPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11051,7 +11051,7 @@ func (client AppsClient) GetFunctionsAdminTokenPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11137,7 +11137,7 @@ func (client AppsClient) GetFunctionsAdminTokenSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11223,7 +11223,7 @@ func (client AppsClient) GetHostNameBindingPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11312,7 +11312,7 @@ func (client AppsClient) GetHostNameBindingSlotPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11400,7 +11400,7 @@ func (client AppsClient) GetHybridConnectionPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11490,7 +11490,7 @@ func (client AppsClient) GetHybridConnectionSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11578,7 +11578,7 @@ func (client AppsClient) GetInstanceFunctionSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11663,7 +11663,7 @@ func (client AppsClient) GetInstanceInfoPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11750,7 +11750,7 @@ func (client AppsClient) GetInstanceInfoSlotPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11836,7 +11836,7 @@ func (client AppsClient) GetInstanceMSDeployLogPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11924,7 +11924,7 @@ func (client AppsClient) GetInstanceMSDeployLogSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12010,7 +12010,7 @@ func (client AppsClient) GetInstanceMsDeployStatusPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12098,7 +12098,7 @@ func (client AppsClient) GetInstanceMsDeployStatusSlotPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12188,7 +12188,7 @@ func (client AppsClient) GetInstanceProcessPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12278,7 +12278,7 @@ func (client AppsClient) GetInstanceProcessDumpPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12370,7 +12370,7 @@ func (client AppsClient) GetInstanceProcessDumpSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12461,7 +12461,7 @@ func (client AppsClient) GetInstanceProcessModulePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12556,7 +12556,7 @@ func (client AppsClient) GetInstanceProcessModuleSlotPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12649,7 +12649,7 @@ func (client AppsClient) GetInstanceProcessSlotPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12734,7 +12734,7 @@ func (client AppsClient) GetMigrateMySQLStatusPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12821,7 +12821,7 @@ func (client AppsClient) GetMigrateMySQLStatusSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12905,7 +12905,7 @@ func (client AppsClient) GetMSDeployLogPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12991,7 +12991,7 @@ func (client AppsClient) GetMSDeployLogSlotPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13075,7 +13075,7 @@ func (client AppsClient) GetMSDeployStatusPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13161,7 +13161,7 @@ func (client AppsClient) GetMSDeployStatusSlotPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13248,7 +13248,7 @@ func (client AppsClient) GetNetworkTraceOperationPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13338,7 +13338,7 @@ func (client AppsClient) GetNetworkTraceOperationSlotPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13428,7 +13428,7 @@ func (client AppsClient) GetNetworkTraceOperationSlotV2Preparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13515,7 +13515,7 @@ func (client AppsClient) GetNetworkTraceOperationV2Preparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13602,7 +13602,7 @@ func (client AppsClient) GetNetworkTracesPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13692,7 +13692,7 @@ func (client AppsClient) GetNetworkTracesSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13782,7 +13782,7 @@ func (client AppsClient) GetNetworkTracesSlotV2Preparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13869,7 +13869,7 @@ func (client AppsClient) GetNetworkTracesV2Preparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13955,7 +13955,7 @@ func (client AppsClient) GetPremierAddOnPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14044,7 +14044,7 @@ func (client AppsClient) GetPremierAddOnSlotPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14129,7 +14129,7 @@ func (client AppsClient) GetPrivateAccessPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14216,7 +14216,7 @@ func (client AppsClient) GetPrivateAccessSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14302,7 +14302,7 @@ func (client AppsClient) GetPrivateEndpointConnectionPreparer(ctx context.Contex
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14392,7 +14392,7 @@ func (client AppsClient) GetPrivateEndpointConnectionListPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14521,7 +14521,7 @@ func (client AppsClient) GetPrivateEndpointConnectionListSlotPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14646,7 +14646,7 @@ func (client AppsClient) GetPrivateEndpointConnectionSlotPreparer(ctx context.Co
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14730,7 +14730,7 @@ func (client AppsClient) GetPrivateLinkResourcesPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14815,7 +14815,7 @@ func (client AppsClient) GetPrivateLinkResourcesSlotPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14901,7 +14901,7 @@ func (client AppsClient) GetProcessPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14988,7 +14988,7 @@ func (client AppsClient) GetProcessDumpPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15077,7 +15077,7 @@ func (client AppsClient) GetProcessDumpSlotPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15164,7 +15164,7 @@ func (client AppsClient) GetProcessModulePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15256,7 +15256,7 @@ func (client AppsClient) GetProcessModuleSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15345,7 +15345,7 @@ func (client AppsClient) GetProcessSlotPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15431,7 +15431,7 @@ func (client AppsClient) GetPublicCertificatePreparer(ctx context.Context, resou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15521,7 +15521,7 @@ func (client AppsClient) GetPublicCertificateSlotPreparer(ctx context.Context, r
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15607,7 +15607,7 @@ func (client AppsClient) GetRelayServiceConnectionPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15696,7 +15696,7 @@ func (client AppsClient) GetRelayServiceConnectionSlotPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15780,7 +15780,7 @@ func (client AppsClient) GetScmAllowedPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15865,7 +15865,7 @@ func (client AppsClient) GetScmAllowedSlotPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15950,7 +15950,7 @@ func (client AppsClient) GetSiteConnectionStringKeyVaultReferencePreparer(ctx co
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16040,7 +16040,7 @@ func (client AppsClient) GetSiteConnectionStringKeyVaultReferencesPreparer(ctx c
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16163,7 +16163,7 @@ func (client AppsClient) GetSiteConnectionStringKeyVaultReferenceSlotPreparer(ct
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16254,7 +16254,7 @@ func (client AppsClient) GetSiteConnectionStringKeyVaultReferencesSlotPreparer(c
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16377,7 +16377,7 @@ func (client AppsClient) GetSiteExtensionPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16465,7 +16465,7 @@ func (client AppsClient) GetSiteExtensionSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16549,7 +16549,7 @@ func (client AppsClient) GetSitePhpErrorLogFlagPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16635,7 +16635,7 @@ func (client AppsClient) GetSitePhpErrorLogFlagSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16721,7 +16721,7 @@ func (client AppsClient) GetSlotPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16805,7 +16805,7 @@ func (client AppsClient) GetSourceControlPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16892,7 +16892,7 @@ func (client AppsClient) GetSourceControlSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16976,7 +16976,7 @@ func (client AppsClient) GetSwiftVirtualNetworkConnectionPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17063,7 +17063,7 @@ func (client AppsClient) GetSwiftVirtualNetworkConnectionSlotPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17149,7 +17149,7 @@ func (client AppsClient) GetTriggeredWebJobPreparer(ctx context.Context, resourc
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17238,7 +17238,7 @@ func (client AppsClient) GetTriggeredWebJobHistoryPreparer(ctx context.Context, 
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17329,7 +17329,7 @@ func (client AppsClient) GetTriggeredWebJobHistorySlotPreparer(ctx context.Conte
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17417,7 +17417,7 @@ func (client AppsClient) GetTriggeredWebJobSlotPreparer(ctx context.Context, res
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17453,7 +17453,7 @@ func (client AppsClient) GetTriggeredWebJobSlotResponder(resp *http.Response) (r
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the app.
 // vnetName - name of the virtual network.
-func (client AppsClient) GetVnetConnection(ctx context.Context, resourceGroupName string, name string, vnetName string) (result VnetInfo, err error) {
+func (client AppsClient) GetVnetConnection(ctx context.Context, resourceGroupName string, name string, vnetName string) (result VnetInfoResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.GetVnetConnection")
 		defer func() {
@@ -17503,7 +17503,7 @@ func (client AppsClient) GetVnetConnectionPreparer(ctx context.Context, resource
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17524,7 +17524,7 @@ func (client AppsClient) GetVnetConnectionSender(req *http.Request) (*http.Respo
 
 // GetVnetConnectionResponder handles the response to the GetVnetConnection request. The method always
 // closes the http.Response Body.
-func (client AppsClient) GetVnetConnectionResponder(resp *http.Response) (result VnetInfo, err error) {
+func (client AppsClient) GetVnetConnectionResponder(resp *http.Response) (result VnetInfoResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -17591,7 +17591,7 @@ func (client AppsClient) GetVnetConnectionGatewayPreparer(ctx context.Context, r
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17682,7 +17682,7 @@ func (client AppsClient) GetVnetConnectionGatewaySlotPreparer(ctx context.Contex
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17720,7 +17720,7 @@ func (client AppsClient) GetVnetConnectionGatewaySlotResponder(resp *http.Respon
 // vnetName - name of the virtual network.
 // slot - name of the deployment slot. If a slot is not specified, the API will get the named virtual network
 // for the production slot.
-func (client AppsClient) GetVnetConnectionSlot(ctx context.Context, resourceGroupName string, name string, vnetName string, slot string) (result VnetInfo, err error) {
+func (client AppsClient) GetVnetConnectionSlot(ctx context.Context, resourceGroupName string, name string, vnetName string, slot string) (result VnetInfoResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.GetVnetConnectionSlot")
 		defer func() {
@@ -17771,7 +17771,7 @@ func (client AppsClient) GetVnetConnectionSlotPreparer(ctx context.Context, reso
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17792,7 +17792,7 @@ func (client AppsClient) GetVnetConnectionSlotSender(req *http.Request) (*http.R
 
 // GetVnetConnectionSlotResponder handles the response to the GetVnetConnectionSlot request. The method always
 // closes the http.Response Body.
-func (client AppsClient) GetVnetConnectionSlotResponder(resp *http.Response) (result VnetInfo, err error) {
+func (client AppsClient) GetVnetConnectionSlotResponder(resp *http.Response) (result VnetInfoResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -17857,7 +17857,7 @@ func (client AppsClient) GetWebJobPreparer(ctx context.Context, resourceGroupNam
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17946,7 +17946,7 @@ func (client AppsClient) GetWebJobSlotPreparer(ctx context.Context, resourceGrou
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18030,7 +18030,7 @@ func (client AppsClient) GetWebSiteContainerLogsPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18115,7 +18115,7 @@ func (client AppsClient) GetWebSiteContainerLogsSlotPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18193,7 +18193,7 @@ func (client AppsClient) InstallSiteExtensionPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18283,7 +18283,7 @@ func (client AppsClient) InstallSiteExtensionSlotPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18376,7 +18376,7 @@ func (client AppsClient) IsCloneablePreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18462,7 +18462,7 @@ func (client AppsClient) IsCloneableSlotPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18538,7 +18538,7 @@ func (client AppsClient) ListPreparer(ctx context.Context) (*http.Request, error
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18659,7 +18659,7 @@ func (client AppsClient) ListApplicationSettingsPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18746,7 +18746,7 @@ func (client AppsClient) ListApplicationSettingsSlotPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18830,7 +18830,7 @@ func (client AppsClient) ListAzureStorageAccountsPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18917,7 +18917,7 @@ func (client AppsClient) ListAzureStorageAccountsSlotPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19006,7 +19006,7 @@ func (client AppsClient) ListBackupsPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19135,7 +19135,7 @@ func (client AppsClient) ListBackupsSlotPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19270,7 +19270,7 @@ func (client AppsClient) ListBackupStatusSecretsPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19372,7 +19372,7 @@ func (client AppsClient) ListBackupStatusSecretsSlotPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19464,7 +19464,7 @@ func (client AppsClient) ListBasicPublishingCredentialsPoliciesPreparer(ctx cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19592,7 +19592,7 @@ func (client AppsClient) ListBasicPublishingCredentialsPoliciesSlotPreparer(ctx 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19718,7 +19718,7 @@ func (client AppsClient) ListByResourceGroupPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19847,7 +19847,7 @@ func (client AppsClient) ListConfigurationsPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19974,7 +19974,7 @@ func (client AppsClient) ListConfigurationSnapshotInfoPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20104,7 +20104,7 @@ func (client AppsClient) ListConfigurationSnapshotInfoSlotPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20233,7 +20233,7 @@ func (client AppsClient) ListConfigurationsSlotPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20354,7 +20354,7 @@ func (client AppsClient) ListConnectionStringsPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20441,7 +20441,7 @@ func (client AppsClient) ListConnectionStringsSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20530,7 +20530,7 @@ func (client AppsClient) ListContinuousWebJobsPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20659,7 +20659,7 @@ func (client AppsClient) ListContinuousWebJobsSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20783,7 +20783,7 @@ func (client AppsClient) ListDeploymentLogPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20873,7 +20873,7 @@ func (client AppsClient) ListDeploymentLogSlotPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20962,7 +20962,7 @@ func (client AppsClient) ListDeploymentsPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -21091,7 +21091,7 @@ func (client AppsClient) ListDeploymentsSlotPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -21217,7 +21217,7 @@ func (client AppsClient) ListDomainOwnershipIdentifiersPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -21346,7 +21346,7 @@ func (client AppsClient) ListDomainOwnershipIdentifiersSlotPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -21469,7 +21469,7 @@ func (client AppsClient) ListFunctionKeysPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -21557,7 +21557,7 @@ func (client AppsClient) ListFunctionKeysSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -21646,7 +21646,7 @@ func (client AppsClient) ListFunctionsPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -21769,7 +21769,7 @@ func (client AppsClient) ListFunctionSecretsPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -21857,7 +21857,7 @@ func (client AppsClient) ListFunctionSecretsSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -21941,7 +21941,7 @@ func (client AppsClient) ListHostKeysPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22027,7 +22027,7 @@ func (client AppsClient) ListHostKeysSlotPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22116,7 +22116,7 @@ func (client AppsClient) ListHostNameBindingsPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22245,7 +22245,7 @@ func (client AppsClient) ListHostNameBindingsSlotPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22366,7 +22366,7 @@ func (client AppsClient) ListHybridConnectionsPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22452,7 +22452,7 @@ func (client AppsClient) ListHybridConnectionsSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22543,7 +22543,7 @@ func (client AppsClient) ListInstanceFunctionsSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22669,7 +22669,7 @@ func (client AppsClient) ListInstanceIdentifiersPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22797,7 +22797,7 @@ func (client AppsClient) ListInstanceIdentifiersSlotPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22927,7 +22927,7 @@ func (client AppsClient) ListInstanceProcessesPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23060,7 +23060,7 @@ func (client AppsClient) ListInstanceProcessesSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23192,7 +23192,7 @@ func (client AppsClient) ListInstanceProcessModulesPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23327,7 +23327,7 @@ func (client AppsClient) ListInstanceProcessModulesSlotPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23459,7 +23459,7 @@ func (client AppsClient) ListInstanceProcessThreadsPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23594,7 +23594,7 @@ func (client AppsClient) ListInstanceProcessThreadsSlotPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23715,7 +23715,7 @@ func (client AppsClient) ListMetadataPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23802,7 +23802,7 @@ func (client AppsClient) ListMetadataSlotPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23888,7 +23888,7 @@ func (client AppsClient) ListNetworkFeaturesPreparer(ctx context.Context, resour
 		"view":              autorest.Encode("path", view),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23978,7 +23978,7 @@ func (client AppsClient) ListNetworkFeaturesSlotPreparer(ctx context.Context, re
 		"view":              autorest.Encode("path", view),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24070,7 +24070,7 @@ func (client AppsClient) ListPerfMonCountersPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24204,7 +24204,7 @@ func (client AppsClient) ListPerfMonCountersSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24328,7 +24328,7 @@ func (client AppsClient) ListPremierAddOnsPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24415,7 +24415,7 @@ func (client AppsClient) ListPremierAddOnsSlotPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24505,7 +24505,7 @@ func (client AppsClient) ListProcessesPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24635,7 +24635,7 @@ func (client AppsClient) ListProcessesSlotPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24764,7 +24764,7 @@ func (client AppsClient) ListProcessModulesPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24896,7 +24896,7 @@ func (client AppsClient) ListProcessModulesSlotPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25025,7 +25025,7 @@ func (client AppsClient) ListProcessThreadsPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25157,7 +25157,7 @@ func (client AppsClient) ListProcessThreadsSlotPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25283,7 +25283,7 @@ func (client AppsClient) ListPublicCertificatesPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25412,7 +25412,7 @@ func (client AppsClient) ListPublicCertificatesSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25526,7 +25526,7 @@ func (client AppsClient) ListPublishingCredentialsPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25615,7 +25615,7 @@ func (client AppsClient) ListPublishingCredentialsSlotPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25711,7 +25711,7 @@ func (client AppsClient) ListPublishingProfileXMLWithSecretsPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25802,7 +25802,7 @@ func (client AppsClient) ListPublishingProfileXMLWithSecretsSlotPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25888,7 +25888,7 @@ func (client AppsClient) ListRelayServiceConnectionsPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25976,7 +25976,7 @@ func (client AppsClient) ListRelayServiceConnectionsSlotPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -26065,7 +26065,7 @@ func (client AppsClient) ListSiteBackupsPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -26194,7 +26194,7 @@ func (client AppsClient) ListSiteBackupsSlotPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -26320,7 +26320,7 @@ func (client AppsClient) ListSiteExtensionsPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -26448,7 +26448,7 @@ func (client AppsClient) ListSiteExtensionsSlotPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -26569,7 +26569,7 @@ func (client AppsClient) ListSitePushSettingsPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -26655,7 +26655,7 @@ func (client AppsClient) ListSitePushSettingsSlotPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -26740,7 +26740,7 @@ func (client AppsClient) ListSlotConfigurationNamesPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -26834,7 +26834,7 @@ func (client AppsClient) ListSlotDifferencesFromProductionPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -26968,7 +26968,7 @@ func (client AppsClient) ListSlotDifferencesSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -27096,7 +27096,7 @@ func (client AppsClient) ListSlotsPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -27222,7 +27222,7 @@ func (client AppsClient) ListSnapshotsPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -27348,7 +27348,7 @@ func (client AppsClient) ListSnapshotsFromDRSecondaryPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -27476,7 +27476,7 @@ func (client AppsClient) ListSnapshotsFromDRSecondarySlotPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -27604,7 +27604,7 @@ func (client AppsClient) ListSnapshotsSlotPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -27725,7 +27725,7 @@ func (client AppsClient) ListSyncFunctionTriggersPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -27811,7 +27811,7 @@ func (client AppsClient) ListSyncFunctionTriggersSlotPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -27895,7 +27895,7 @@ func (client AppsClient) ListSyncStatusPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -27980,7 +27980,7 @@ func (client AppsClient) ListSyncStatusSlotPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -28070,7 +28070,7 @@ func (client AppsClient) ListTriggeredWebJobHistoryPreparer(ctx context.Context,
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -28200,7 +28200,7 @@ func (client AppsClient) ListTriggeredWebJobHistorySlotPreparer(ctx context.Cont
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -28326,7 +28326,7 @@ func (client AppsClient) ListTriggeredWebJobsPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -28455,7 +28455,7 @@ func (client AppsClient) ListTriggeredWebJobsSlotPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -28584,7 +28584,7 @@ func (client AppsClient) ListUsagesPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -28719,7 +28719,7 @@ func (client AppsClient) ListUsagesSlotPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -28794,7 +28794,7 @@ func (client AppsClient) ListUsagesSlotComplete(ctx context.Context, resourceGro
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the app.
-func (client AppsClient) ListVnetConnections(ctx context.Context, resourceGroupName string, name string) (result ListVnetInfo, err error) {
+func (client AppsClient) ListVnetConnections(ctx context.Context, resourceGroupName string, name string) (result ListVnetInfoResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.ListVnetConnections")
 		defer func() {
@@ -28843,7 +28843,7 @@ func (client AppsClient) ListVnetConnectionsPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -28864,7 +28864,7 @@ func (client AppsClient) ListVnetConnectionsSender(req *http.Request) (*http.Res
 
 // ListVnetConnectionsResponder handles the response to the ListVnetConnections request. The method always
 // closes the http.Response Body.
-func (client AppsClient) ListVnetConnectionsResponder(resp *http.Response) (result ListVnetInfo, err error) {
+func (client AppsClient) ListVnetConnectionsResponder(resp *http.Response) (result ListVnetInfoResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -28880,7 +28880,7 @@ func (client AppsClient) ListVnetConnectionsResponder(resp *http.Response) (resu
 // name - name of the app.
 // slot - name of the deployment slot. If a slot is not specified, the API will get virtual network connections
 // for the production slot.
-func (client AppsClient) ListVnetConnectionsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result ListVnetInfo, err error) {
+func (client AppsClient) ListVnetConnectionsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result ListVnetInfoResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.ListVnetConnectionsSlot")
 		defer func() {
@@ -28930,7 +28930,7 @@ func (client AppsClient) ListVnetConnectionsSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -28951,7 +28951,7 @@ func (client AppsClient) ListVnetConnectionsSlotSender(req *http.Request) (*http
 
 // ListVnetConnectionsSlotResponder handles the response to the ListVnetConnectionsSlot request. The method always
 // closes the http.Response Body.
-func (client AppsClient) ListVnetConnectionsSlotResponder(resp *http.Response) (result ListVnetInfo, err error) {
+func (client AppsClient) ListVnetConnectionsSlotResponder(resp *http.Response) (result ListVnetInfoResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -29019,7 +29019,7 @@ func (client AppsClient) ListWebJobsPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -29148,7 +29148,7 @@ func (client AppsClient) ListWebJobsSlotPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -29266,7 +29266,7 @@ func (client AppsClient) MigrateMySQLPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -29361,7 +29361,7 @@ func (client AppsClient) MigrateStoragePreparer(ctx context.Context, subscriptio
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version":      APIVersion,
 		"subscriptionName": autorest.Encode("query", subscriptionName),
@@ -29459,7 +29459,7 @@ func (client AppsClient) PutPrivateAccessVnetPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -29549,7 +29549,7 @@ func (client AppsClient) PutPrivateAccessVnetSlotPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -29637,7 +29637,7 @@ func (client AppsClient) RecoverSiteConfigurationSnapshotPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -29725,7 +29725,7 @@ func (client AppsClient) RecoverSiteConfigurationSnapshotSlotPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -29809,7 +29809,7 @@ func (client AppsClient) ResetProductionSlotConfigPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -29896,7 +29896,7 @@ func (client AppsClient) ResetSlotConfigurationSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -29983,7 +29983,7 @@ func (client AppsClient) RestartPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -30078,7 +30078,7 @@ func (client AppsClient) RestartSlotPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -30168,7 +30168,7 @@ func (client AppsClient) RestorePreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -30261,7 +30261,7 @@ func (client AppsClient) RestoreFromBackupBlobPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -30357,7 +30357,7 @@ func (client AppsClient) RestoreFromBackupBlobSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -30445,7 +30445,7 @@ func (client AppsClient) RestoreFromDeletedAppPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -30535,7 +30535,7 @@ func (client AppsClient) RestoreFromDeletedAppSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -30633,7 +30633,7 @@ func (client AppsClient) RestoreSlotPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -30725,7 +30725,7 @@ func (client AppsClient) RestoreSnapshotPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -30819,7 +30819,7 @@ func (client AppsClient) RestoreSnapshotSlotPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -30915,7 +30915,7 @@ func (client AppsClient) RunTriggeredWebJobPreparer(ctx context.Context, resourc
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -31002,7 +31002,7 @@ func (client AppsClient) RunTriggeredWebJobSlotPreparer(ctx context.Context, res
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -31085,7 +31085,7 @@ func (client AppsClient) StartPreparer(ctx context.Context, resourceGroupName st
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -31170,7 +31170,7 @@ func (client AppsClient) StartContinuousWebJobPreparer(ctx context.Context, reso
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -31258,7 +31258,7 @@ func (client AppsClient) StartContinuousWebJobSlotPreparer(ctx context.Context, 
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -31337,7 +31337,7 @@ func (client AppsClient) StartNetworkTracePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -31437,7 +31437,7 @@ func (client AppsClient) StartNetworkTraceSlotPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -31541,7 +31541,7 @@ func (client AppsClient) StartSlotPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -31627,7 +31627,7 @@ func (client AppsClient) StartWebSiteNetworkTracePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -31716,7 +31716,7 @@ func (client AppsClient) StartWebSiteNetworkTraceOperationPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -31816,7 +31816,7 @@ func (client AppsClient) StartWebSiteNetworkTraceOperationSlotPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -31923,7 +31923,7 @@ func (client AppsClient) StartWebSiteNetworkTraceSlotPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -32016,7 +32016,7 @@ func (client AppsClient) StopPreparer(ctx context.Context, resourceGroupName str
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -32101,7 +32101,7 @@ func (client AppsClient) StopContinuousWebJobPreparer(ctx context.Context, resou
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -32189,7 +32189,7 @@ func (client AppsClient) StopContinuousWebJobSlotPreparer(ctx context.Context, r
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -32272,7 +32272,7 @@ func (client AppsClient) StopNetworkTracePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -32357,7 +32357,7 @@ func (client AppsClient) StopNetworkTraceSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -32442,7 +32442,7 @@ func (client AppsClient) StopSlotPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -32525,7 +32525,7 @@ func (client AppsClient) StopWebSiteNetworkTracePreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -32610,7 +32610,7 @@ func (client AppsClient) StopWebSiteNetworkTraceSlotPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -32692,7 +32692,7 @@ func (client AppsClient) SwapSlotSlotPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -32783,7 +32783,7 @@ func (client AppsClient) SwapSlotWithProductionPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -32877,7 +32877,7 @@ func (client AppsClient) SyncFunctionsPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -32962,7 +32962,7 @@ func (client AppsClient) SyncFunctionsSlotPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -33045,7 +33045,7 @@ func (client AppsClient) SyncFunctionTriggersPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -33130,7 +33130,7 @@ func (client AppsClient) SyncFunctionTriggersSlotPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -33213,7 +33213,7 @@ func (client AppsClient) SyncRepositoryPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -33298,7 +33298,7 @@ func (client AppsClient) SyncRepositorySlotPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -33384,7 +33384,7 @@ func (client AppsClient) UpdatePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -33471,7 +33471,7 @@ func (client AppsClient) UpdateApplicationSettingsPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -33561,7 +33561,7 @@ func (client AppsClient) UpdateApplicationSettingsSlotPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -33648,7 +33648,7 @@ func (client AppsClient) UpdateAuthSettingsPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -33737,7 +33737,7 @@ func (client AppsClient) UpdateAuthSettingsSlotPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -33825,7 +33825,7 @@ func (client AppsClient) UpdateAuthSettingsV2Preparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -33915,7 +33915,7 @@ func (client AppsClient) UpdateAuthSettingsV2SlotPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -34002,7 +34002,7 @@ func (client AppsClient) UpdateAzureStorageAccountsPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -34092,7 +34092,7 @@ func (client AppsClient) UpdateAzureStorageAccountsSlotPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -34188,7 +34188,7 @@ func (client AppsClient) UpdateBackupConfigurationPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -34287,7 +34287,7 @@ func (client AppsClient) UpdateBackupConfigurationSlotPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -34374,7 +34374,7 @@ func (client AppsClient) UpdateConfigurationPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -34464,7 +34464,7 @@ func (client AppsClient) UpdateConfigurationSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -34551,7 +34551,7 @@ func (client AppsClient) UpdateConnectionStringsPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -34641,7 +34641,7 @@ func (client AppsClient) UpdateConnectionStringsSlotPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -34744,7 +34744,7 @@ func (client AppsClient) UpdateDiagnosticLogsConfigPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -34850,7 +34850,7 @@ func (client AppsClient) UpdateDiagnosticLogsConfigSlotPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -34940,7 +34940,7 @@ func (client AppsClient) UpdateDomainOwnershipIdentifierPreparer(ctx context.Con
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -35033,7 +35033,7 @@ func (client AppsClient) UpdateDomainOwnershipIdentifierSlotPreparer(ctx context
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -35122,7 +35122,7 @@ func (client AppsClient) UpdateFtpAllowedPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -35212,7 +35212,7 @@ func (client AppsClient) UpdateFtpAllowedSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -35303,7 +35303,7 @@ func (client AppsClient) UpdateHybridConnectionPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -35396,7 +35396,7 @@ func (client AppsClient) UpdateHybridConnectionSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -35483,7 +35483,7 @@ func (client AppsClient) UpdateMetadataPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -35573,7 +35573,7 @@ func (client AppsClient) UpdateMetadataSlotPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -35662,7 +35662,7 @@ func (client AppsClient) UpdatePremierAddOnPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -35754,7 +35754,7 @@ func (client AppsClient) UpdatePremierAddOnSlotPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -35844,7 +35844,7 @@ func (client AppsClient) UpdateRelayServiceConnectionPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -35937,7 +35937,7 @@ func (client AppsClient) UpdateRelayServiceConnectionSlotPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -36026,7 +36026,7 @@ func (client AppsClient) UpdateScmAllowedPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -36116,7 +36116,7 @@ func (client AppsClient) UpdateScmAllowedSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -36206,7 +36206,7 @@ func (client AppsClient) UpdateSitePushSettingsPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -36298,7 +36298,7 @@ func (client AppsClient) UpdateSitePushSettingsSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -36390,7 +36390,7 @@ func (client AppsClient) UpdateSlotPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -36478,7 +36478,7 @@ func (client AppsClient) UpdateSlotConfigurationNamesPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -36565,7 +36565,7 @@ func (client AppsClient) UpdateSourceControlPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -36655,7 +36655,7 @@ func (client AppsClient) UpdateSourceControlSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -36745,7 +36745,7 @@ func (client AppsClient) UpdateSwiftVirtualNetworkConnectionWithCheckPreparer(ct
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -36838,7 +36838,7 @@ func (client AppsClient) UpdateSwiftVirtualNetworkConnectionWithCheckSlotPrepare
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -36878,7 +36878,7 @@ func (client AppsClient) UpdateSwiftVirtualNetworkConnectionWithCheckSlotRespond
 // name - name of the app.
 // vnetName - name of an existing Virtual Network.
 // connectionEnvelope - properties of the Virtual Network connection. See example.
-func (client AppsClient) UpdateVnetConnection(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfo) (result VnetInfo, err error) {
+func (client AppsClient) UpdateVnetConnection(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfoResource) (result VnetInfoResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.UpdateVnetConnection")
 		defer func() {
@@ -36920,7 +36920,7 @@ func (client AppsClient) UpdateVnetConnection(ctx context.Context, resourceGroup
 }
 
 // UpdateVnetConnectionPreparer prepares the UpdateVnetConnection request.
-func (client AppsClient) UpdateVnetConnectionPreparer(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfo) (*http.Request, error) {
+func (client AppsClient) UpdateVnetConnectionPreparer(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfoResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":              autorest.Encode("path", name),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -36928,7 +36928,7 @@ func (client AppsClient) UpdateVnetConnectionPreparer(ctx context.Context, resou
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -36951,7 +36951,7 @@ func (client AppsClient) UpdateVnetConnectionSender(req *http.Request) (*http.Re
 
 // UpdateVnetConnectionResponder handles the response to the UpdateVnetConnection request. The method always
 // closes the http.Response Body.
-func (client AppsClient) UpdateVnetConnectionResponder(resp *http.Response) (result VnetInfo, err error) {
+func (client AppsClient) UpdateVnetConnectionResponder(resp *http.Response) (result VnetInfoResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -37020,7 +37020,7 @@ func (client AppsClient) UpdateVnetConnectionGatewayPreparer(ctx context.Context
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -37115,7 +37115,7 @@ func (client AppsClient) UpdateVnetConnectionGatewaySlotPreparer(ctx context.Con
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -37157,7 +37157,7 @@ func (client AppsClient) UpdateVnetConnectionGatewaySlotResponder(resp *http.Res
 // connectionEnvelope - properties of the Virtual Network connection. See example.
 // slot - name of the deployment slot. If a slot is not specified, the API will add or update connections for
 // the production slot.
-func (client AppsClient) UpdateVnetConnectionSlot(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfo, slot string) (result VnetInfo, err error) {
+func (client AppsClient) UpdateVnetConnectionSlot(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfoResource, slot string) (result VnetInfoResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.UpdateVnetConnectionSlot")
 		defer func() {
@@ -37199,7 +37199,7 @@ func (client AppsClient) UpdateVnetConnectionSlot(ctx context.Context, resourceG
 }
 
 // UpdateVnetConnectionSlotPreparer prepares the UpdateVnetConnectionSlot request.
-func (client AppsClient) UpdateVnetConnectionSlotPreparer(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfo, slot string) (*http.Request, error) {
+func (client AppsClient) UpdateVnetConnectionSlotPreparer(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfoResource, slot string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":              autorest.Encode("path", name),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -37208,7 +37208,7 @@ func (client AppsClient) UpdateVnetConnectionSlotPreparer(ctx context.Context, r
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -37231,7 +37231,7 @@ func (client AppsClient) UpdateVnetConnectionSlotSender(req *http.Request) (*htt
 
 // UpdateVnetConnectionSlotResponder handles the response to the UpdateVnetConnectionSlot request. The method always
 // closes the http.Response Body.
-func (client AppsClient) UpdateVnetConnectionSlotResponder(resp *http.Response) (result VnetInfo, err error) {
+func (client AppsClient) UpdateVnetConnectionSlotResponder(resp *http.Response) (result VnetInfoResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

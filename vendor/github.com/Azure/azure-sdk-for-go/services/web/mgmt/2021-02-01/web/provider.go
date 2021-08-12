@@ -71,7 +71,7 @@ func (client ProviderClient) GetAvailableStacks(ctx context.Context, osTypeSelec
 
 // GetAvailableStacksPreparer prepares the GetAvailableStacks request.
 func (client ProviderClient) GetAvailableStacksPreparer(ctx context.Context, osTypeSelected string) (*http.Request, error) {
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -187,7 +187,7 @@ func (client ProviderClient) GetAvailableStacksOnPremPreparer(ctx context.Contex
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -301,7 +301,7 @@ func (client ProviderClient) GetFunctionAppStacks(ctx context.Context, stackOsTy
 
 // GetFunctionAppStacksPreparer prepares the GetFunctionAppStacks request.
 func (client ProviderClient) GetFunctionAppStacksPreparer(ctx context.Context, stackOsType string) (*http.Request, error) {
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -421,7 +421,7 @@ func (client ProviderClient) GetFunctionAppStacksForLocationPreparer(ctx context
 		"location": autorest.Encode("path", location),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -535,7 +535,7 @@ func (client ProviderClient) GetWebAppStacks(ctx context.Context, stackOsType st
 
 // GetWebAppStacksPreparer prepares the GetWebAppStacks request.
 func (client ProviderClient) GetWebAppStacksPreparer(ctx context.Context, stackOsType string) (*http.Request, error) {
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -654,7 +654,7 @@ func (client ProviderClient) GetWebAppStacksForLocationPreparer(ctx context.Cont
 		"location": autorest.Encode("path", location),
 	}
 
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -767,7 +767,7 @@ func (client ProviderClient) ListOperations(ctx context.Context) (result CsmOper
 
 // ListOperationsPreparer prepares the ListOperations request.
 func (client ProviderClient) ListOperationsPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2021-01-15"
+	const APIVersion = "2021-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
