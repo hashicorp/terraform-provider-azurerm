@@ -17,7 +17,6 @@ func TestAccAppServiceEnvironmentV3DataSource_basic(t *testing.T) {
 		{
 			Config: AppServiceEnvironmentV3DataSource{}.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("cluster_setting.#").HasValue("2"),
 				check.That(data.ResourceName).Key("cluster_setting.#").HasValue("3"),
 				check.That(data.ResourceName).Key("dns_suffix").HasValue(fmt.Sprintf("acctest-ase-%d.appserviceenvironment.net", data.RandomInteger)),
 				check.That(data.ResourceName).Key("ip_ssl_address_count").HasValue("0"),
