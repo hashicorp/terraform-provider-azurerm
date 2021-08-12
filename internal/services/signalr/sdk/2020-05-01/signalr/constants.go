@@ -58,6 +58,7 @@ const (
 	SignalRRequestTypeClientConnection SignalRRequestType = "ClientConnection"
 	SignalRRequestTypeRESTAPI          SignalRRequestType = "RESTAPI"
 	SignalRRequestTypeServerConnection SignalRRequestType = "ServerConnection"
+	SignalRRequestTypeTrace            SignalRRequestType = "Trace"
 )
 
 type SignalRSkuTier string

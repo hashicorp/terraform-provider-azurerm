@@ -34,19 +34,6 @@ func (r ListResponse) LoadMore(ctx context.Context) (resp ListResponse, err erro
 	return r.nextPageFunc(ctx, *r.nextLink)
 }
 
-type PrivateCloudPredicate struct {
-	// TODO: implement me
-}
-
-func (p PrivateCloudPredicate) Matches(input PrivateCloud) bool {
-	// TODO: implement me
-	// if p.Name != nil && input.Name != *p.Name {
-	// 	return false
-	// }
-
-	return true
-}
-
 // List ...
 func (c PrivateCloudsClient) List(ctx context.Context, id ResourceGroupId) (resp ListResponse, err error) {
 	req, err := c.preparerForList(ctx, id)
@@ -69,7 +56,7 @@ func (c PrivateCloudsClient) List(ctx context.Context, id ResourceGroupId) (resp
 	return
 }
 
-// ListCompleteMatchingPredicate retrieves all of the results into a single object
+// ListComplete retrieves all of the results into a single object
 func (c PrivateCloudsClient) ListComplete(ctx context.Context, id ResourceGroupId) (ListCompleteResult, error) {
 	return c.ListCompleteMatchingPredicate(ctx, id, PrivateCloudPredicate{})
 }
