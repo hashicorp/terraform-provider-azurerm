@@ -21,6 +21,7 @@ type Client struct {
 	WorkspaceAadAdminsClient                         *synapse.WorkspaceAadAdminsClient
 	WorkspaceManagedIdentitySQLControlSettingsClient *synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	WorkspaceSecurityAlertPolicyClient               *synapse.WorkspaceManagedSQLServerSecurityAlertPolicyClient
+	WorkspaceVulnerabilityAssessmentsClient          *synapse.WorkspaceManagedSQLServerVulnerabilityAssessmentsClient
 
 	synapseAuthorizer autorest.Authorizer
 }
@@ -57,6 +58,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	workspaceSecurityAlertPolicyClient := synapse.NewWorkspaceManagedSQLServerSecurityAlertPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceSecurityAlertPolicyClient.Client, o.ResourceManagerAuthorizer)
 
+	workspaceVulnerabilityAssessmentsClient := synapse.NewWorkspaceManagedSQLServerVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&workspaceVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		FirewallRulesClient:                              &firewallRuleClient,
 		PrivateLinkHubsClient:                            &privateLinkHubsClient,
@@ -68,6 +72,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		WorkspaceAadAdminsClient:                         &workspaceAadAdminsClient,
 		WorkspaceManagedIdentitySQLControlSettingsClient: &workspaceManagedIdentitySQLControlSettingsClient,
 		WorkspaceSecurityAlertPolicyClient:               &workspaceSecurityAlertPolicyClient,
+		WorkspaceVulnerabilityAssessmentsClient:          &workspaceVulnerabilityAssessmentsClient,
 
 		synapseAuthorizer: o.SynapseAuthorizer,
 	}
