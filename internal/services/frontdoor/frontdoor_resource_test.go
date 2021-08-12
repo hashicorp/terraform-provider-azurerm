@@ -865,7 +865,7 @@ resource "azurerm_frontdoor" "test" {
       cache_query_parameters = [
         "width",
         "height"
-        ]
+      ]
     }
   }
 
