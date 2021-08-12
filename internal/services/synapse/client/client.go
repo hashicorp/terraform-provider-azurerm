@@ -19,6 +19,7 @@ type Client struct {
 	WorkspaceClient                                  *synapse.WorkspacesClient
 	WorkspaceAadAdminsClient                         *synapse.WorkspaceAadAdminsClient
 	WorkspaceManagedIdentitySQLControlSettingsClient *synapse.WorkspaceManagedIdentitySQLControlSettingsClient
+	WorkspaceSecurityAlertPolicyClient               *synapse.WorkspaceManagedSQLServerSecurityAlertPolicyClient
 
 	synapseAuthorizer autorest.Authorizer
 }
@@ -49,6 +50,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	workspaceManagedIdentitySQLControlSettingsClient := synapse.NewWorkspaceManagedIdentitySQLControlSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceManagedIdentitySQLControlSettingsClient.Client, o.ResourceManagerAuthorizer)
 
+	workspaceSecurityAlertPolicyClient := synapse.NewWorkspaceManagedSQLServerSecurityAlertPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&workspaceSecurityAlertPolicyClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		FirewallRulesClient:                              &firewallRuleClient,
 		PrivateLinkHubsClient:                            &privateLinkHubsClient,
@@ -58,6 +62,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		WorkspaceClient:                                  &workspaceClient,
 		WorkspaceAadAdminsClient:                         &workspaceAadAdminsClient,
 		WorkspaceManagedIdentitySQLControlSettingsClient: &workspaceManagedIdentitySQLControlSettingsClient,
+		WorkspaceSecurityAlertPolicyClient:               &workspaceSecurityAlertPolicyClient,
 
 		synapseAuthorizer: o.SynapseAuthorizer,
 	}
