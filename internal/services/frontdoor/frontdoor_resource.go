@@ -229,9 +229,13 @@ func resourceFrontDoor() *pluginsdk.Resource {
 										}, false),
 									},
 									"cache_query_parameters": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:     pluginsdk.TypeList,
+										Required: true,
+										MaxItems: 25,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
 									},
 									"cache_duration": {
 										Type:         pluginsdk.TypeString,
@@ -1168,9 +1172,16 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId par
 	backendPoolName := v["backend_pool_name"].(string)
 	cacheUseDynamicCompression := v["cache_use_dynamic_compression"].(bool)
 	cacheQueryParameterStripDirective := v["cache_query_parameter_strip_directive"].(string)
-	cacheQueryParameters := v["cache_query_parameters"].(string)
+	cacheQueryParameters := v["cache_query_parameters"].([]interface{})
 	cacheDuration := v["cache_duration"].(string)
 	cacheEnabled := v["cache_enabled"].(bool)
+
+	// convert list of cache_query_parameters into an array into a comma-separated list
+	queryParametersArray := make([]string, 0)
+	for _, p := range cacheQueryParameters {
+		queryParametersArray = append(queryParametersArray, p.(string))
+	}
+	queryParametersString := strings.Join(queryParametersArray, ",")
 
 	backendPoolId := parse.NewBackendPoolID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, backendPoolName).ID()
 	backend := &frontdoor.SubResource{
@@ -1196,7 +1207,7 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId par
 		}
 		// set cacheQueryParameters to "" when StripDirective is "StripAll" or "StripNone"
 		if cacheQueryParameterStripDirective == "StripAll" || cacheQueryParameterStripDirective == "StripNone" {
-			cacheQueryParameters = ""
+			queryParametersString = ""
 		}
 
 		// Making sure that duration is empty when cacheDuration is empty
@@ -1210,7 +1221,7 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId par
 		forwardingConfiguration.CacheConfiguration = &frontdoor.CacheConfiguration{
 			DynamicCompression:           dynamicCompression,
 			QueryParameterStripDirective: frontdoor.Query(cacheQueryParameterStripDirective),
-			QueryParameters:              utils.String(cacheQueryParameters),
+			QueryParameters:              utils.String(queryParametersString),
 			CacheDuration:                duration,
 		}
 	}
@@ -1958,6 +1969,7 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 	cacheUseDynamicCompression := false
 
 	var cacheQueryParameters *string
+	var cacheQueryParametersArray []string
 	var cacheDuration *string
 
 	if cacheConfiguration := v.CacheConfiguration; cacheConfiguration != nil {
@@ -1969,7 +1981,7 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 			cacheUseDynamicCompression = string(dynamicCompression) == string(frontdoor.DynamicCompressionEnabledEnabled)
 		}
 		if queryParameters := cacheConfiguration.QueryParameters; queryParameters != nil {
-			cacheQueryParameters = queryParameters
+			cacheQueryParametersArray = strings.Split(*queryParameters, ",")
 		}
 		if duration := cacheConfiguration.CacheDuration; duration != nil {
 			cacheDuration = duration
@@ -1989,7 +2001,9 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 							cacheQueryParameterStripDirective = ofc["cache_query_parameter_strip_directive"].(string)
 							cacheUseDynamicCompression = ofc["cache_use_dynamic_compression"].(bool)
 							cacheDuration = utils.String(ofc["cache_duration"].(string))
+
 							cacheQueryParameters = utils.String(ofc["cache_query_parameters"].(string))
+							cacheQueryParametersArray = strings.Split(*cacheQueryParameters, ",")
 						}
 					}
 				}
@@ -2005,7 +2019,7 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 			"cache_enabled":                         cacheEnabled,
 			"cache_query_parameter_strip_directive": cacheQueryParameterStripDirective,
 			"cache_use_dynamic_compression":         cacheUseDynamicCompression,
-			"cache_query_parameters":                cacheQueryParameters,
+			"cache_query_parameters":                cacheQueryParametersArray,
 			"cache_duration":                        cacheDuration,
 		},
 	}, nil
