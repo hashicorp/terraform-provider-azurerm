@@ -17,6 +17,7 @@ type Client struct {
 	SqlPoolClient                                    *synapse.SQLPoolsClient
 	SqlPoolSecurityAlertPolicyClient                 *synapse.SQLPoolSecurityAlertPoliciesClient
 	SqlPoolTransparentDataEncryptionClient           *synapse.SQLPoolTransparentDataEncryptionsClient
+	SqlPoolVulnerabilityAssessmentsClient            *synapse.SQLPoolVulnerabilityAssessmentsClient
 	WorkspaceClient                                  *synapse.WorkspacesClient
 	WorkspaceAadAdminsClient                         *synapse.WorkspaceAadAdminsClient
 	WorkspaceManagedIdentitySQLControlSettingsClient *synapse.WorkspaceManagedIdentitySQLControlSettingsClient
@@ -46,6 +47,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	sqlPoolTransparentDataEncryptionClient := synapse.NewSQLPoolTransparentDataEncryptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolTransparentDataEncryptionClient.Client, o.ResourceManagerAuthorizer)
 
+	sqlPoolVulnerabilityAssessmentsClient := synapse.NewSQLPoolVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sqlPoolVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
+
 	workspaceClient := synapse.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceClient.Client, o.ResourceManagerAuthorizer)
 
@@ -68,6 +72,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		SqlPoolClient:                                    &sqlPoolClient,
 		SqlPoolSecurityAlertPolicyClient:                 &sqlPoolSecurityAlertPolicyClient,
 		SqlPoolTransparentDataEncryptionClient:           &sqlPoolTransparentDataEncryptionClient,
+		SqlPoolVulnerabilityAssessmentsClient:            &sqlPoolVulnerabilityAssessmentsClient,
 		WorkspaceClient:                                  &workspaceClient,
 		WorkspaceAadAdminsClient:                         &workspaceAadAdminsClient,
 		WorkspaceManagedIdentitySQLControlSettingsClient: &workspaceManagedIdentitySQLControlSettingsClient,

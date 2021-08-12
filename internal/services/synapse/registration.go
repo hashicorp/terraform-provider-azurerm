@@ -33,6 +33,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_synapse_spark_pool":                         resourceSynapseSparkPool(),
 		"azurerm_synapse_sql_pool":                           resourceSynapseSqlPool(),
 		"azurerm_synapse_sql_pool_security_alert_policy":     resourceSynapseSqlPoolSecurityAlertPolicy(),
+		"azurerm_synapse_sql_pool_vulnerability_assessment":  resourceSynapseSqlPoolVulnerabilityAssessment(),
 		"azurerm_synapse_workspace":                          resourceSynapseWorkspace(),
 		"azurerm_synapse_workspace_security_alert_policy":    resourceSynapseWorkspaceSecurityAlertPolicy(),
 		"azurerm_synapse_workspace_vulnerability_assessment": resourceSynapseWorkspaceVulnerabilityAssessment(),
