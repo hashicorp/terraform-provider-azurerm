@@ -1,15 +1,17 @@
 ## 2.73.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_vpn_gateway` [GH-12844]
 
 ENHANCEMENTS:
 
 * Dependencies: upgrade `azure-sdk-for-go` to v56.2.0 [GH-12969]
 * Dependencies: updating `web` to use API version `2021-02-01` [GH-12970]
 
-FEATURES:
+BUG FIXES:
 
-* **New Data Source:** `azurerm_vpn_gateway` [GH-12844]
-
+* `azurerm_redis_enterprise_cluster` - changing the tags property no longer creates a new resource [GH-12956]
 
 ## 2.72.0 (August 12, 2021)
 
