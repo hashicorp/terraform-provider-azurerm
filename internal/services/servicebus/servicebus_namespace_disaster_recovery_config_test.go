@@ -68,65 +68,18 @@ resource "azurerm_servicebus_namespace" "primary_namespace_test" {
   capacity            = "1"
 }
 
-resource "azurerm_servicebus_topic" "example" {
-  name                = "topic-test"
-  resource_group_name = azurerm_resource_group.primary.name
-  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
-}
-
-resource "azurerm_servicebus_queue" "example" {
-  name                = "queue-test"
-  resource_group_name = azurerm_resource_group.primary.name
-  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
-}
-
-resource "azurerm_servicebus_namespace_authorization_rule" "example" {
-  name                = "example_namespace_rule"
-  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
-  resource_group_name = azurerm_resource_group.primary.name
-  manage              = true
-  listen              = true
-  send                = true
-}
-
-resource "azurerm_servicebus_queue_authorization_rule" "example" {
-  name                = "example_queue_rule"
-  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
-  queue_name          = azurerm_servicebus_queue.example.name
-  resource_group_name = azurerm_resource_group.primary.name
-  manage              = true
-  listen              = true
-  send                = true
-}
-
-resource "azurerm_servicebus_topic_authorization_rule" "example" {
-  name                = "example_topic_rule"
-  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
-  topic_name          = azurerm_servicebus_topic.example.name
-  resource_group_name = azurerm_resource_group.primary.name
-  manage              = true
-  listen              = true
-  send                = true
-}
-
 resource "azurerm_servicebus_namespace" "secondary_namespace_test" {
   name                = "acctest2-%[1]d"
   location            = azurerm_resource_group.secondary.location
   resource_group_name = azurerm_resource_group.secondary.name
   sku                 = "Premium"
   capacity            = "1"
-
-  depends_on = [
-    azurerm_servicebus_topic_authorization_rule.example,
-    azurerm_servicebus_queue_authorization_rule.example,
-    azurerm_servicebus_namespace_authorization_rule.example
-  ]
 }
 
 resource "azurerm_servicebus_namespace_disaster_recovery_config" "pairing_test" {
   name                 = "acctest-alias-%[1]d"
   primary_namespace_id = azurerm_servicebus_namespace.primary_namespace_test.id
-  partner_namespace_id = azurerm_servicebus_namespace.secondary_namespace_test.id
+  partner_namespace_id = azurerm_servicebus_namespace.secondary_namespace_test.id 
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)

@@ -31,51 +31,6 @@ func TestAccDataSourceServiceBusNamespaceDisasterRecoveryConfig_basic(t *testing
 	})
 }
 
-func TestAccDataSourceServiceBusNamespaceDisasterRecoveryConfig_namespaceAuthorizationRule(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_namespace_disaster_recovery_config", "test")
-	r := ServiceBusNamespaceDisasterRecoveryDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.namespaceAliasPolicy(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("alias_primary_connection_string").Exists(),
-				check.That(data.ResourceName).Key("alias_secondary_connection_string").Exists(),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceServiceBusNamespaceDisasterRecoveryConfig_topicAuthorizationRule(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_namespace_disaster_recovery_config", "test")
-	r := ServiceBusNamespaceDisasterRecoveryDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.topicAliasPolicy(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("alias_primary_connection_string").Exists(),
-				check.That(data.ResourceName).Key("alias_secondary_connection_string").Exists(),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceServiceBusNamespaceDisasterRecoveryConfig_queueAuthorizationRule(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_namespace_disaster_recovery_config", "test")
-	r := ServiceBusNamespaceDisasterRecoveryDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.queueAliasPolicy(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("alias_primary_connection_string").Exists(),
-				check.That(data.ResourceName).Key("alias_secondary_connection_string").Exists(),
-			),
-		},
-	})
-}
-
 func (ServiceBusNamespaceDisasterRecoveryDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -84,44 +39,6 @@ data "azurerm_servicebus_namespace_disaster_recovery_config" "test" {
   name                = azurerm_servicebus_namespace_disaster_recovery_config.pairing_test.name
   resource_group_name = azurerm_resource_group.primary.name
   namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
-}
-`, ServiceBusNamespaceDisasterRecoveryConfigResource{}.basic(data))
-}
-
-func (ServiceBusNamespaceDisasterRecoveryDataSource) namespaceAliasPolicy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-	%s
-
-data "azurerm_servicebus_namespace_authorization_rule" "test" {
-  name                = "example_namespace_rule"
-  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
-  resource_group_name = azurerm_resource_group.primary.name
-}
-`, ServiceBusNamespaceDisasterRecoveryConfigResource{}.basic(data))
-}
-
-func (ServiceBusNamespaceDisasterRecoveryDataSource) topicAliasPolicy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_servicebus_topic_authorization_rule" "test" {
-  name                = "example_topic_rule"
-  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
-  resource_group_name = azurerm_resource_group.primary.name
-  topic_name          = "topic-test"
-}
-`, ServiceBusNamespaceDisasterRecoveryConfigResource{}.basic(data))
-}
-
-func (ServiceBusNamespaceDisasterRecoveryDataSource) queueAliasPolicy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_servicebus_queue_authorization_rule" "test" {
-  name                = "example_queue_rule"
-  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
-  resource_group_name = azurerm_resource_group.primary.name
-  topic_name          = "queue-test"
 }
 `, ServiceBusNamespaceDisasterRecoveryConfigResource{}.basic(data))
 }

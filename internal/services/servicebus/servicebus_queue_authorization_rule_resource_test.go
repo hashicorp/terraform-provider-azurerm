@@ -114,6 +114,23 @@ func TestAccServiceBusQueueAuthorizationRule_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccServiceBusQueueAuthorizationRule_withAliasConnectionString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue_authorization_rule", "test")
+	r := ServiceBusQueueAuthorizationRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withAliasConnectionString(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("primary_connection_string_alias").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string_alias").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t ServiceBusQueueAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.QueueAuthorizationRuleID(state.ID)
 	if err != nil {
@@ -182,4 +199,65 @@ resource "azurerm_servicebus_queue_authorization_rule" "import" {
   manage = azurerm_servicebus_queue_authorization_rule.test.manage
 }
 `, r.base(data, listen, send, manage))
+}
+
+func (ServiceBusQueueAuthorizationRuleResource) withAliasConnectionString(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "primary" {
+  name     = "acctest1RG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_resource_group" "secondary" {
+  name     = "acctest2RG-%[1]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_servicebus_namespace" "primary_namespace_test" {
+  name                = "acctest1-%[1]d"
+  location            = azurerm_resource_group.primary.location
+  resource_group_name = azurerm_resource_group.primary.name
+  sku                 = "Premium"
+  capacity            = "1"
+}
+
+resource "azurerm_servicebus_queue" "example" {
+  name                = "queue-test"
+  resource_group_name = azurerm_resource_group.primary.name
+  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
+}
+
+resource "azurerm_servicebus_queue_authorization_rule" "example" {
+  name                = "example_queue_rule"
+  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
+  queue_name          = azurerm_servicebus_queue.example.name
+  resource_group_name = azurerm_resource_group.primary.name
+  manage              = true
+  listen              = true
+  send                = true
+}
+
+resource "azurerm_servicebus_namespace" "secondary_namespace_test" {
+  name                = "acctest2-%[1]d"
+  location            = azurerm_resource_group.secondary.location
+  resource_group_name = azurerm_resource_group.secondary.name
+  sku                 = "Premium"
+  capacity            = "1"
+}
+
+resource "azurerm_servicebus_namespace_disaster_recovery_config" "pairing_test" {
+  name                 = "acctest-alias-%[1]d"
+  primary_namespace_id = azurerm_servicebus_namespace.primary_namespace_test.id
+  partner_namespace_id = azurerm_servicebus_namespace.secondary_namespace_test.id
+
+  depends_on = [
+    azurerm_servicebus_queue_authorization_rule.example
+  ]    
+}
+
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }

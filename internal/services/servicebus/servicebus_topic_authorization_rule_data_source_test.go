@@ -33,6 +33,24 @@ func TestAccDataSourceServiceBusTopicAuthorizationRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceServiceBusTopicAuthorizationRule_aliasConnectionString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_topic_authorization_rule", "test")
+	r := ServiceBusTopicAuthorizationRuleDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.topicAliasPolicy(data),
+		},
+		{
+			Config: r.topicAliasPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("alias_primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("alias_secondary_connection_string").Exists(),
+			),
+		},
+	})
+}
+
 func (ServiceBusTopicAuthorizationRuleDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -44,4 +62,17 @@ data "azurerm_servicebus_topic_authorization_rule" "test" {
   topic_name          = azurerm_servicebus_topic_authorization_rule.test.topic_name
 }
 `, ServiceBusTopicAuthorizationRuleResource{}.base(data, true, true, true))
+}
+
+func (ServiceBusTopicAuthorizationRuleDataSource) topicAliasPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_servicebus_topic_authorization_rule" "test" {
+  name                = azurerm_servicebus_topic_authorization_rule.example.name
+  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
+  resource_group_name = azurerm_resource_group.primary.name
+  topic_name          = azurerm_servicebus_topic.example.name
+}
+`, ServiceBusTopicAuthorizationRuleResource{}.withAliasConnectionString(data))
 }
