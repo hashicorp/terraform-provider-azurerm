@@ -55,8 +55,6 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						// API response includes the `Trace` type but it isn't in rest api client.
-						// https://github.com/Azure/azure-rest-api-specs/issues/14923
 						"allowed_request_types": {
 							Type:          pluginsdk.TypeSet,
 							Optional:      true,
@@ -67,7 +65,7 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 									string(signalr.SignalRRequestTypeClientConnection),
 									string(signalr.SignalRRequestTypeRESTAPI),
 									string(signalr.SignalRRequestTypeServerConnection),
-									"Trace",
+									string(signalr.SignalRRequestTypeTrace),
 								}, false),
 							},
 						},
@@ -82,7 +80,7 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 									string(signalr.SignalRRequestTypeClientConnection),
 									string(signalr.SignalRRequestTypeRESTAPI),
 									string(signalr.SignalRRequestTypeServerConnection),
-									"Trace",
+									string(signalr.SignalRRequestTypeTrace),
 								}, false),
 							},
 						},
@@ -101,8 +99,6 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 							ValidateFunc: networkValidate.PrivateEndpointID,
 						},
 
-						// API response includes the `Trace` type but it isn't in rest api client.
-						// https://github.com/Azure/azure-rest-api-specs/issues/14923
 						"allowed_request_types": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
@@ -112,7 +108,7 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 									string(signalr.SignalRRequestTypeClientConnection),
 									string(signalr.SignalRRequestTypeRESTAPI),
 									string(signalr.SignalRRequestTypeServerConnection),
-									"Trace",
+									string(signalr.SignalRRequestTypeTrace),
 								}, false),
 							},
 						},
@@ -126,7 +122,7 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 									string(signalr.SignalRRequestTypeClientConnection),
 									string(signalr.SignalRRequestTypeRESTAPI),
 									string(signalr.SignalRRequestTypeServerConnection),
-									"Trace",
+									string(signalr.SignalRRequestTypeTrace),
 								}, false),
 							},
 						},
@@ -271,7 +267,7 @@ func resourceSignalRServiceNetworkACLDelete(d *pluginsdk.ResourceData, meta inte
 		signalr.SignalRRequestTypeClientConnection,
 		signalr.SignalRRequestTypeRESTAPI,
 		signalr.SignalRRequestTypeServerConnection,
-		"Trace",
+		signalr.SignalRRequestTypeTrace,
 	}
 	networkACL := &signalr.SignalRNetworkACLs{
 		DefaultAction: &defaultAction,

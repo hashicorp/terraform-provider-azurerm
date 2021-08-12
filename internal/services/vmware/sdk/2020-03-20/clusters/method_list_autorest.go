@@ -34,19 +34,6 @@ func (r ListResponse) LoadMore(ctx context.Context) (resp ListResponse, err erro
 	return r.nextPageFunc(ctx, *r.nextLink)
 }
 
-type ClusterPredicate struct {
-	// TODO: implement me
-}
-
-func (p ClusterPredicate) Matches(input Cluster) bool {
-	// TODO: implement me
-	// if p.Name != nil && input.Name != *p.Name {
-	// 	return false
-	// }
-
-	return true
-}
-
 // List ...
 func (c ClustersClient) List(ctx context.Context, id PrivateCloudId) (resp ListResponse, err error) {
 	req, err := c.preparerForList(ctx, id)
@@ -69,7 +56,7 @@ func (c ClustersClient) List(ctx context.Context, id PrivateCloudId) (resp ListR
 	return
 }
 
-// ListCompleteMatchingPredicate retrieves all of the results into a single object
+// ListComplete retrieves all of the results into a single object
 func (c ClustersClient) ListComplete(ctx context.Context, id PrivateCloudId) (ListCompleteResult, error) {
 	return c.ListCompleteMatchingPredicate(ctx, id, ClusterPredicate{})
 }

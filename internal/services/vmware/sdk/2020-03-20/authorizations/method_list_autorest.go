@@ -34,19 +34,6 @@ func (r ListResponse) LoadMore(ctx context.Context) (resp ListResponse, err erro
 	return r.nextPageFunc(ctx, *r.nextLink)
 }
 
-type ExpressRouteAuthorizationPredicate struct {
-	// TODO: implement me
-}
-
-func (p ExpressRouteAuthorizationPredicate) Matches(input ExpressRouteAuthorization) bool {
-	// TODO: implement me
-	// if p.Name != nil && input.Name != *p.Name {
-	// 	return false
-	// }
-
-	return true
-}
-
 // List ...
 func (c AuthorizationsClient) List(ctx context.Context, id PrivateCloudId) (resp ListResponse, err error) {
 	req, err := c.preparerForList(ctx, id)
@@ -69,7 +56,7 @@ func (c AuthorizationsClient) List(ctx context.Context, id PrivateCloudId) (resp
 	return
 }
 
-// ListCompleteMatchingPredicate retrieves all of the results into a single object
+// ListComplete retrieves all of the results into a single object
 func (c AuthorizationsClient) ListComplete(ctx context.Context, id PrivateCloudId) (ListCompleteResult, error) {
 	return c.ListCompleteMatchingPredicate(ctx, id, ExpressRouteAuthorizationPredicate{})
 }
