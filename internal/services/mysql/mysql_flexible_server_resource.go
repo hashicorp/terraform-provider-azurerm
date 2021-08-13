@@ -186,7 +186,9 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(mysqlflexibleservers.HighAvailabilityModeEnabled),
 								string(mysqlflexibleservers.HighAvailabilityModeZoneRedundant),
+								string(mysqlflexibleservers.HighAvailabilityModeSameZone),
 							}, false),
 						},
 						"standby_availability_zone": azure.SchemaZoneComputed(),
@@ -218,7 +220,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 						"auto_grow_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  false,
+							Default:  true,
 						},
 					},
 				},
@@ -281,6 +283,12 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	if mysqlflexibleservers.CreateMode(createMode) == mysqlflexibleservers.CreateModeReplica {
+		if _, ok := d.GetOk("source_server_id"); !ok {
+			return fmt.Errorf("`source_server_id` is required when `create_mode` is `Replica`")
+		}
+	}
+
 	if createMode == "" || mysqlflexibleservers.CreateMode(createMode) == mysqlflexibleservers.CreateModeDefault {
 		if _, ok := d.GetOk("administrator_login"); !ok {
 			return fmt.Errorf("`administrator_login` is required when `create_mode` is `Default`")
@@ -290,12 +298,6 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		}
 		if _, ok := d.GetOk("sku_name"); !ok {
 			return fmt.Errorf("`sku_name` is required when `create_mode` is `Default`")
-		}
-		if _, ok := d.GetOk("version"); !ok {
-			return fmt.Errorf("`version` is required when `create_mode` is `Default`")
-		}
-		if _, ok := d.GetOk("storage.0.size_gb"); !ok {
-			return fmt.Errorf("`storage.0.size_gb` is required when `create_mode` is `Default`")
 		}
 	}
 
@@ -316,6 +318,10 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if parameters.ServerProperties.Storage.AutoGrow == mysqlflexibleservers.EnableStatusEnumDisabled && parameters.ServerProperties.HighAvailability.Mode != mysqlflexibleservers.HighAvailabilityModeDisabled {
+		return fmt.Errorf("`storage.0.auto_grow_enabled` must be `true` when `high_availability` is enabled ")
 	}
 
 	if v, ok := d.GetOk("administrator_login"); ok && v.(string) != "" {
