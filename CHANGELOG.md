@@ -7,12 +7,14 @@ FEATURES:
 ENHANCEMENTS:
 
 * Dependencies: upgrade `github.com/Azure/azure-sdk-for-go` to `v56.2.0` [GH-12969]
+* Dependencies: updating `frontdoor` to use API version `2020-05-01` [GH-12831]
 * Dependencies: updating `web` to use API version `2021-02-01` [GH-12970]
 * eventhub: updating to use the latest embedded SDK [GH-12946]
 
 
 BUG FIXES:
 
+* `azurerm_frontdoor` - expose support for `cache_duration` and `cache_query_parameters` fields [GH-12831]
 * `azurerm_redis_enterprise_cluster` - changing the tags property no longer creates a new resource [GH-12956]
 
 ## 2.72.0 (August 12, 2021)
