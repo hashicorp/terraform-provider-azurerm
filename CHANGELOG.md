@@ -6,7 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* Dependencies: upgrade `azure-sdk-for-go` to v56.2.0 [GH-12969]
+* Dependencies: upgrade `github.com/Azure/azure-sdk-for-go` to `v56.2.0` [GH-12969]
 * Dependencies: updating `web` to use API version `2021-02-01` [GH-12970]
 * eventhub: updating to use the latest embedded SDK [GH-12946]
 
