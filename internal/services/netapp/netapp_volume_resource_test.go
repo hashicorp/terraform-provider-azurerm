@@ -299,13 +299,13 @@ func (NetAppVolumeResource) crossRegionReplication(data acceptance.TestData) str
 
 resource "azurerm_netapp_volume" "test_primary" {
   name                = "acctest-NetAppVolume-primary-%[2]d"
-  location            = azurerm_resource_group.test_primary.location
-  resource_group_name = azurerm_resource_group.test_primary.name
-  account_name        = azurerm_netapp_account.test_primary.name
-  pool_name           = azurerm_netapp_pool.test_primary.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
   volume_path         = "my-unique-file-path-primary-%[2]d"
   service_level       = "Standard"
-  subnet_id           = azurerm_subnet.test_primary.id
+  subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
 
@@ -321,7 +321,7 @@ resource "azurerm_netapp_volume" "test_primary" {
 resource "azurerm_netapp_volume" "test_secondary" {
   name                       = "acctest-NetAppVolume-secondary-%[2]d"
   location                   = "%[3]s"
-  resource_group_name        = azurerm_resource_group.test_primary.name
+  resource_group_name        = azurerm_resource_group.test.name
   account_name               = azurerm_netapp_account.test_secondary.name
   pool_name                  = azurerm_netapp_pool.test_secondary.name
   volume_path                = "my-unique-file-path-secondary-%[2]d"
@@ -341,12 +341,12 @@ resource "azurerm_netapp_volume" "test_secondary" {
 
   data_protection_replication {
     endpoint_type             = "dst"
-    remote_volume_location    = azurerm_resource_group.test_primary.location
+    remote_volume_location    = azurerm_resource_group.test.location
     remote_volume_resource_id = azurerm_netapp_volume.test_primary.id
     replication_frequency     = "10minutes"
   }
 }
-`, template, data.RandomInteger, "westeurope")
+`, template, data.RandomInteger, "germanywestcentral")
 }
 
 func (NetAppVolumeResource) nfsv3FromSnapshot(data acceptance.TestData) string {
@@ -579,63 +579,18 @@ resource "azurerm_netapp_volume" "test" {
 
 func (r NetAppVolumeResource) templateForCrossRegionReplication(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-  provider "azurerm" {
-    features {}
-  }
-  
-  resource "azurerm_resource_group" "test_primary" {
-    name     = "acctestRG-netapp-%[2]d"
-    location = "%[1]s"
-  }
-  
-  resource "azurerm_virtual_network" "test_primary" {
-    name                = "acctest-VirtualNetwork-%[2]d"
-    location            = azurerm_resource_group.test_primary.location
-    resource_group_name = azurerm_resource_group.test_primary.name
-    address_space       = ["10.6.0.0/16"]
-  }
-  
-  resource "azurerm_subnet" "test_primary" {
-    name                 = "acctest-Subnet-%[2]d"
-    resource_group_name  = azurerm_resource_group.test_primary.name
-    virtual_network_name = azurerm_virtual_network.test_primary.name
-    address_prefix       = "10.6.2.0/24"
-  
-    delegation {
-      name = "testdelegation"
-  
-      service_delegation {
-        name    = "Microsoft.Netapp/volumes"
-        actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
-      }
-    }
-  }
-  
-  resource "azurerm_netapp_account" "test_primary" {
-    name                = "acctest-NetAppAccount-%[2]d"
-    location            = azurerm_resource_group.test_primary.location
-    resource_group_name = azurerm_resource_group.test_primary.name
-  }
-  
-  resource "azurerm_netapp_pool" "test_primary" {
-    name                = "acctest-NetAppPool-%[2]d"
-    location            = azurerm_resource_group.test_primary.location
-    resource_group_name = azurerm_resource_group.test_primary.name
-    account_name        = azurerm_netapp_account.test_primary.name
-    service_level       = "Standard"
-    size_in_tb          = 4
-  }
+%[1]s
 
 resource "azurerm_virtual_network" "test_secondary" {
   name                = "acctest-VirtualNetwork-secondary-%[2]d"
   location            = "%[3]s"
-  resource_group_name = azurerm_resource_group.test_primary.name
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.6.0.0/16"]
 }
 
 resource "azurerm_subnet" "test_secondary" {
   name                 = "acctest-Subnet-secondary-%[2]d"
-  resource_group_name  = azurerm_resource_group.test_primary.name
+  resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test_secondary.name
   address_prefix       = "10.6.2.0/24"
 
@@ -652,18 +607,18 @@ resource "azurerm_subnet" "test_secondary" {
 resource "azurerm_netapp_account" "test_secondary" {
   name                = "acctest-NetAppAccount-secondary-%[2]d"
   location            = "%[3]s"
-  resource_group_name = azurerm_resource_group.test_primary.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_netapp_pool" "test_secondary" {
   name                = "acctest-NetAppPool-secondary-%[2]d"
   location            = "%[3]s"
-  resource_group_name = azurerm_resource_group.test_primary.name
+  resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_netapp_account.test_secondary.name
   service_level       = "Standard"
   size_in_tb          = 4
 }
-`, "northeurope", data.RandomInteger, "westeurope")
+`, r.template(data), data.RandomInteger, "germanywestcentral")
 }
 
 func (NetAppVolumeResource) template(data acceptance.TestData) string {
