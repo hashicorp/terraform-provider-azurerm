@@ -208,7 +208,7 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
   servicebus_namespace      = azurerm_eventhub_namespace.test.name
   shared_access_policy_key  = azurerm_eventhub_namespace.test.default_primary_key
   shared_access_policy_name = "RootManageSharedAccessKey"
-  property_columns 			= [ "col1", "col2" ]
+  property_columns          = ["col1", "col2"]
 
   serialization {
     type            = "Csv"
