@@ -72,7 +72,7 @@ func (client ClustersClient) AddLanguageExtensionsPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -115,7 +115,7 @@ func (client ClustersClient) AddLanguageExtensionsResponder(resp *http.Response)
 
 // CheckNameAvailability checks that the cluster name is valid and is not already in use.
 // Parameters:
-// location - azure location.
+// location - azure location (region) name.
 // clusterName - the name of the cluster.
 func (client ClustersClient) CheckNameAvailability(ctx context.Context, location string, clusterName ClusterCheckNameRequest) (result CheckNameResult, err error) {
 	if tracing.IsEnabled() {
@@ -164,7 +164,7 @@ func (client ClustersClient) CheckNameAvailabilityPreparer(ctx context.Context, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -202,7 +202,11 @@ func (client ClustersClient) CheckNameAvailabilityResponder(resp *http.Response)
 // resourceGroupName - the name of the resource group containing the Kusto cluster.
 // clusterName - the name of the Kusto cluster.
 // parameters - the Kusto cluster parameters supplied to the CreateOrUpdate operation.
-func (client ClustersClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, clusterName string, parameters Cluster) (result ClustersCreateOrUpdateFuture, err error) {
+// ifMatch - the ETag of the cluster. Omit this value to always overwrite the current cluster. Specify the
+// last-seen ETag value to prevent accidentally overwriting concurrent changes.
+// ifNoneMatch - set to '*' to allow a new cluster to be created, but to prevent updating an existing cluster.
+// Other values will result in a 412 Pre-condition Failed response.
+func (client ClustersClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, clusterName string, parameters Cluster, ifMatch string, ifNoneMatch string) (result ClustersCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.CreateOrUpdate")
 		defer func() {
@@ -236,7 +240,7 @@ func (client ClustersClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 		return result, validation.NewError("kusto.ClustersClient", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, clusterName, parameters)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, clusterName, parameters, ifMatch, ifNoneMatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -252,18 +256,19 @@ func (client ClustersClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client ClustersClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, clusterName string, parameters Cluster) (*http.Request, error) {
+func (client ClustersClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, clusterName string, parameters Cluster, ifMatch string, ifNoneMatch string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"clusterName":       autorest.Encode("path", clusterName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	parameters.Etag = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -271,6 +276,14 @@ func (client ClustersClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
+	if len(ifMatch) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("If-Match", autorest.String(ifMatch)))
+	}
+	if len(ifNoneMatch) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("If-None-Match", autorest.String(ifNoneMatch)))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -339,7 +352,7 @@ func (client ClustersClient) DeletePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -424,7 +437,7 @@ func (client ClustersClient) DetachFollowerDatabasesPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -505,7 +518,7 @@ func (client ClustersClient) DiagnoseVirtualNetworkPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -590,7 +603,7 @@ func (client ClustersClient) GetPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -661,7 +674,7 @@ func (client ClustersClient) ListPreparer(ctx context.Context) (*http.Request, e
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -735,7 +748,7 @@ func (client ClustersClient) ListByResourceGroupPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -812,7 +825,7 @@ func (client ClustersClient) ListFollowerDatabasesPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -888,7 +901,7 @@ func (client ClustersClient) ListLanguageExtensionsPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -959,7 +972,7 @@ func (client ClustersClient) ListSkusPreparer(ctx context.Context) (*http.Reques
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1035,7 +1048,7 @@ func (client ClustersClient) ListSkusByResourcePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1105,7 +1118,7 @@ func (client ClustersClient) RemoveLanguageExtensionsPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1184,7 +1197,7 @@ func (client ClustersClient) StartPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1261,7 +1274,7 @@ func (client ClustersClient) StopPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1305,7 +1318,9 @@ func (client ClustersClient) StopResponder(resp *http.Response) (result autorest
 // resourceGroupName - the name of the resource group containing the Kusto cluster.
 // clusterName - the name of the Kusto cluster.
 // parameters - the Kusto cluster parameters supplied to the Update operation.
-func (client ClustersClient) Update(ctx context.Context, resourceGroupName string, clusterName string, parameters ClusterUpdate) (result ClustersUpdateFuture, err error) {
+// ifMatch - the ETag of the cluster. Omit this value to always overwrite the current cluster. Specify the
+// last-seen ETag value to prevent accidentally overwriting concurrent changes.
+func (client ClustersClient) Update(ctx context.Context, resourceGroupName string, clusterName string, parameters ClusterUpdate, ifMatch string) (result ClustersUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.Update")
 		defer func() {
@@ -1316,7 +1331,7 @@ func (client ClustersClient) Update(ctx context.Context, resourceGroupName strin
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, clusterName, parameters)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, clusterName, parameters, ifMatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "Update", nil, "Failure preparing request")
 		return
@@ -1332,14 +1347,14 @@ func (client ClustersClient) Update(ctx context.Context, resourceGroupName strin
 }
 
 // UpdatePreparer prepares the Update request.
-func (client ClustersClient) UpdatePreparer(ctx context.Context, resourceGroupName string, clusterName string, parameters ClusterUpdate) (*http.Request, error) {
+func (client ClustersClient) UpdatePreparer(ctx context.Context, resourceGroupName string, clusterName string, parameters ClusterUpdate, ifMatch string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"clusterName":       autorest.Encode("path", clusterName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1351,6 +1366,10 @@ func (client ClustersClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
+	if len(ifMatch) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("If-Match", autorest.String(ifMatch)))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 

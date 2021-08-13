@@ -11,13 +11,14 @@ import (
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
 
 // AttachedDatabaseConfiguration class representing an attached database configuration.
 type AttachedDatabaseConfiguration struct {
@@ -116,7 +117,7 @@ type AttachedDatabaseConfigurationListResult struct {
 // AttachedDatabaseConfigurationProperties class representing the an attached database configuration
 // properties of kind specific.
 type AttachedDatabaseConfigurationProperties struct {
-	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'ProvisioningStateRunning', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// DatabaseName - The name of the database which you would like to attach, use * if you want to follow all current and future databases.
 	DatabaseName *string `json:"databaseName,omitempty"`
@@ -126,6 +127,8 @@ type AttachedDatabaseConfigurationProperties struct {
 	AttachedDatabaseNames *[]string `json:"attachedDatabaseNames,omitempty"`
 	// DefaultPrincipalsModificationKind - The default principals modification kind. Possible values include: 'DefaultPrincipalsModificationKindUnion', 'DefaultPrincipalsModificationKindReplace', 'DefaultPrincipalsModificationKindNone'
 	DefaultPrincipalsModificationKind DefaultPrincipalsModificationKind `json:"defaultPrincipalsModificationKind,omitempty"`
+	// TableLevelSharingProperties - Table level sharing specifications
+	TableLevelSharingProperties *TableLevelSharingProperties `json:"tableLevelSharingProperties,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AttachedDatabaseConfigurationProperties.
@@ -142,6 +145,9 @@ func (adcp AttachedDatabaseConfigurationProperties) MarshalJSON() ([]byte, error
 	}
 	if adcp.DefaultPrincipalsModificationKind != "" {
 		objectMap["defaultPrincipalsModificationKind"] = adcp.DefaultPrincipalsModificationKind
+	}
+	if adcp.TableLevelSharingProperties != nil {
+		objectMap["tableLevelSharingProperties"] = adcp.TableLevelSharingProperties
 	}
 	return json.Marshal(objectMap)
 }
@@ -228,7 +234,7 @@ func (future *AttachedDatabaseConfigurationsDeleteFuture) result(client Attached
 
 // AzureCapacity azure capacity definition.
 type AzureCapacity struct {
-	// ScaleType - Scale type. Possible values include: 'Automatic', 'Manual', 'None'
+	// ScaleType - Scale type. Possible values include: 'AzureScaleTypeAutomatic', 'AzureScaleTypeManual', 'AzureScaleTypeNone'
 	ScaleType AzureScaleType `json:"scaleType,omitempty"`
 	// Minimum - Minimum allowed capacity.
 	Minimum *int32 `json:"minimum,omitempty"`
@@ -268,11 +274,11 @@ type AzureResourceSku struct {
 
 // AzureSku azure SKU definition.
 type AzureSku struct {
-	// Name - SKU name. Possible values include: 'StandardDS13V21TBPS', 'StandardDS13V22TBPS', 'StandardDS14V23TBPS', 'StandardDS14V24TBPS', 'StandardD13V2', 'StandardD14V2', 'StandardL8s', 'StandardL16s', 'StandardD11V2', 'StandardD12V2', 'StandardL4s', 'DevNoSLAStandardD11V2', 'StandardE64iV3', 'StandardE2aV4', 'StandardE4aV4', 'StandardE8aV4', 'StandardE16aV4', 'StandardE8asV41TBPS', 'StandardE8asV42TBPS', 'StandardE16asV43TBPS', 'StandardE16asV44TBPS', 'DevNoSLAStandardE2aV4'
+	// Name - SKU name. Possible values include: 'AzureSkuNameStandardDS13V21TBPS', 'AzureSkuNameStandardDS13V22TBPS', 'AzureSkuNameStandardDS14V23TBPS', 'AzureSkuNameStandardDS14V24TBPS', 'AzureSkuNameStandardD13V2', 'AzureSkuNameStandardD14V2', 'AzureSkuNameStandardL8s', 'AzureSkuNameStandardL16s', 'AzureSkuNameStandardL8sV2', 'AzureSkuNameStandardL16sV2', 'AzureSkuNameStandardD11V2', 'AzureSkuNameStandardD12V2', 'AzureSkuNameStandardL4s', 'AzureSkuNameDevNoSLAStandardD11V2', 'AzureSkuNameStandardE64iV3', 'AzureSkuNameStandardE80idsV4', 'AzureSkuNameStandardE2aV4', 'AzureSkuNameStandardE4aV4', 'AzureSkuNameStandardE8aV4', 'AzureSkuNameStandardE16aV4', 'AzureSkuNameStandardE8asV41TBPS', 'AzureSkuNameStandardE8asV42TBPS', 'AzureSkuNameStandardE16asV43TBPS', 'AzureSkuNameStandardE16asV44TBPS', 'AzureSkuNameDevNoSLAStandardE2aV4'
 	Name AzureSkuName `json:"name,omitempty"`
 	// Capacity - The number of instances of the cluster.
 	Capacity *int32 `json:"capacity,omitempty"`
-	// Tier - SKU tier. Possible values include: 'Basic', 'Standard'
+	// Tier - SKU tier. Possible values include: 'AzureSkuTierBasic', 'AzureSkuTierStandard'
 	Tier AzureSkuTier `json:"tier,omitempty"`
 }
 
@@ -280,7 +286,7 @@ type AzureSku struct {
 type CheckNameRequest struct {
 	// Name - Resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The type of resource, for instance Microsoft.Kusto/clusters/databases. Possible values include: 'MicrosoftKustoclustersdatabases', 'MicrosoftKustoclustersattachedDatabaseConfigurations'
+	// Type - The type of resource, for instance Microsoft.Kusto/clusters/databases. Possible values include: 'TypeMicrosoftKustoclustersdatabases', 'TypeMicrosoftKustoclustersattachedDatabaseConfigurations'
 	Type Type `json:"type,omitempty"`
 }
 
@@ -293,7 +299,7 @@ type CheckNameResult struct {
 	Name *string `json:"name,omitempty"`
 	// Message - Message indicating an unavailable name due to a conflict, or a description of the naming rules that are violated.
 	Message *string `json:"message,omitempty"`
-	// Reason - Message providing the reason why the given name is invalid. Possible values include: 'Invalid', 'AlreadyExists'
+	// Reason - Message providing the reason why the given name is invalid. Possible values include: 'ReasonInvalid', 'ReasonAlreadyExists'
 	Reason Reason `json:"reason,omitempty"`
 }
 
@@ -326,6 +332,8 @@ type Cluster struct {
 	Identity *Identity `json:"identity,omitempty"`
 	// ClusterProperties - The cluster properties.
 	*ClusterProperties `json:"properties,omitempty"`
+	// Etag - READ-ONLY; A unique read-only string that changes whenever the resource is updated.
+	Etag *string `json:"etag,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
 	// Location - The geo-location where the resource lives
@@ -406,6 +414,15 @@ func (c *Cluster) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				c.ClusterProperties = &clusterProperties
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				c.Etag = &etag
 			}
 		case "tags":
 			if v != nil {
@@ -645,7 +662,7 @@ func (future *ClusterPrincipalAssignmentsDeleteFuture) result(client ClusterPrin
 type ClusterPrincipalProperties struct {
 	// PrincipalID - The principal ID assigned to the cluster principal. It can be a user email, application ID, or security group name.
 	PrincipalID *string `json:"principalId,omitempty"`
-	// Role - Cluster principal role. Possible values include: 'AllDatabasesAdmin', 'AllDatabasesViewer'
+	// Role - Cluster principal role. Possible values include: 'ClusterPrincipalRoleAllDatabasesAdmin', 'ClusterPrincipalRoleAllDatabasesViewer'
 	Role ClusterPrincipalRole `json:"role,omitempty"`
 	// TenantID - The tenant id of the principal
 	TenantID *string `json:"tenantId,omitempty"`
@@ -655,7 +672,7 @@ type ClusterPrincipalProperties struct {
 	TenantName *string `json:"tenantName,omitempty"`
 	// PrincipalName - READ-ONLY; The principal name
 	PrincipalName *string `json:"principalName,omitempty"`
-	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'ProvisioningStateRunning', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
@@ -684,7 +701,7 @@ func (cpp ClusterPrincipalProperties) MarshalJSON() ([]byte, error) {
 type ClusterProperties struct {
 	// State - READ-ONLY; The state of the resource. Possible values include: 'StateCreating', 'StateUnavailable', 'StateRunning', 'StateDeleting', 'StateDeleted', 'StateStopping', 'StateStopped', 'StateStarting', 'StateUpdating'
 	State State `json:"state,omitempty"`
-	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'ProvisioningStateRunning', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// URI - READ-ONLY; The cluster URI.
 	URI *string `json:"uri,omitempty"`
@@ -710,7 +727,7 @@ type ClusterProperties struct {
 	LanguageExtensions *LanguageExtensionsList `json:"languageExtensions,omitempty"`
 	// EnableDoubleEncryption - A boolean value that indicates if double encryption is enabled.
 	EnableDoubleEncryption *bool `json:"enableDoubleEncryption,omitempty"`
-	// EngineType - The engine type. Possible values include: 'V2', 'V3'
+	// EngineType - The engine type. Possible values include: 'EngineTypeV2', 'EngineTypeV3'
 	EngineType EngineType `json:"engineType,omitempty"`
 }
 
@@ -1373,7 +1390,7 @@ func (dm *DatabaseModel) UnmarshalJSON(body []byte) error {
 
 // DatabasePrincipal a class representing database principal entity.
 type DatabasePrincipal struct {
-	// Role - Database principal role. Possible values include: 'Admin', 'Ingestor', 'Monitor', 'User', 'UnrestrictedViewers', 'Viewer'
+	// Role - Database principal role. Possible values include: 'DatabasePrincipalRoleAdmin', 'DatabasePrincipalRoleIngestor', 'DatabasePrincipalRoleMonitor', 'DatabasePrincipalRoleUser', 'DatabasePrincipalRoleUnrestrictedViewer', 'DatabasePrincipalRoleViewer'
 	Role DatabasePrincipalRole `json:"role,omitempty"`
 	// Name - Database principal name.
 	Name *string `json:"name,omitempty"`
@@ -1598,7 +1615,7 @@ type DatabasePrincipalListResult struct {
 type DatabasePrincipalProperties struct {
 	// PrincipalID - The principal ID assigned to the database principal. It can be a user email, application ID, or security group name.
 	PrincipalID *string `json:"principalId,omitempty"`
-	// Role - Database principal role. Possible values include: 'Admin', 'Ingestor', 'Monitor', 'User', 'UnrestrictedViewers', 'Viewer'
+	// Role - Database principal role. Possible values include: 'DatabasePrincipalRoleAdmin', 'DatabasePrincipalRoleIngestor', 'DatabasePrincipalRoleMonitor', 'DatabasePrincipalRoleUser', 'DatabasePrincipalRoleUnrestrictedViewer', 'DatabasePrincipalRoleViewer'
 	Role DatabasePrincipalRole `json:"role,omitempty"`
 	// TenantID - The tenant id of the principal
 	TenantID *string `json:"tenantId,omitempty"`
@@ -1608,7 +1625,7 @@ type DatabasePrincipalProperties struct {
 	TenantName *string `json:"tenantName,omitempty"`
 	// PrincipalName - READ-ONLY; The principal name
 	PrincipalName *string `json:"principalName,omitempty"`
-	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'ProvisioningStateRunning', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
@@ -1775,7 +1792,7 @@ type DataConnection struct {
 	autorest.Response `json:"-"`
 	// Location - Resource location.
 	Location *string `json:"location,omitempty"`
-	// Kind - Possible values include: 'KindDataConnection', 'KindEventHub', 'KindIotHub', 'KindEventGrid'
+	// Kind - Possible values include: 'KindBasicDataConnectionKindDataConnection', 'KindBasicDataConnectionKindEventHub', 'KindBasicDataConnectionKindIotHub', 'KindBasicDataConnectionKindEventGrid'
 	Kind KindBasicDataConnection `json:"kind,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
@@ -1793,15 +1810,15 @@ func unmarshalBasicDataConnection(body []byte) (BasicDataConnection, error) {
 	}
 
 	switch m["kind"] {
-	case string(KindEventHub):
+	case string(KindBasicDataConnectionKindEventHub):
 		var ehdc EventHubDataConnection
 		err := json.Unmarshal(body, &ehdc)
 		return ehdc, err
-	case string(KindIotHub):
+	case string(KindBasicDataConnectionKindIotHub):
 		var ihdc IotHubDataConnection
 		err := json.Unmarshal(body, &ihdc)
 		return ihdc, err
-	case string(KindEventGrid):
+	case string(KindBasicDataConnectionKindEventGrid):
 		var egdc EventGridDataConnection
 		err := json.Unmarshal(body, &egdc)
 		return egdc, err
@@ -1832,7 +1849,7 @@ func unmarshalBasicDataConnectionArray(body []byte) ([]BasicDataConnection, erro
 
 // MarshalJSON is the custom marshaler for DataConnection.
 func (dc DataConnection) MarshalJSON() ([]byte, error) {
-	dc.Kind = KindDataConnection
+	dc.Kind = KindBasicDataConnectionKindDataConnection
 	objectMap := make(map[string]interface{})
 	if dc.Location != nil {
 		objectMap["location"] = dc.Location
@@ -2161,13 +2178,13 @@ type EventGridConnectionProperties struct {
 	TableName *string `json:"tableName,omitempty"`
 	// MappingRuleName - The mapping rule to be used to ingest the data. Optionally the mapping information can be added to each message.
 	MappingRuleName *string `json:"mappingRuleName,omitempty"`
-	// DataFormat - The data format of the message. Optionally the data format can be added to each message. Possible values include: 'MULTIJSON', 'JSON', 'CSV', 'TSV', 'SCSV', 'SOHSV', 'PSV', 'TXT', 'RAW', 'SINGLEJSON', 'AVRO', 'TSVE', 'PARQUET', 'ORC', 'APACHEAVRO', 'W3CLOGFILE'
+	// DataFormat - The data format of the message. Optionally the data format can be added to each message. Possible values include: 'EventGridDataFormatMULTIJSON', 'EventGridDataFormatJSON', 'EventGridDataFormatCSV', 'EventGridDataFormatTSV', 'EventGridDataFormatSCSV', 'EventGridDataFormatSOHSV', 'EventGridDataFormatPSV', 'EventGridDataFormatTXT', 'EventGridDataFormatRAW', 'EventGridDataFormatSINGLEJSON', 'EventGridDataFormatAVRO', 'EventGridDataFormatTSVE', 'EventGridDataFormatPARQUET', 'EventGridDataFormatORC', 'EventGridDataFormatAPACHEAVRO', 'EventGridDataFormatW3CLOGFILE'
 	DataFormat EventGridDataFormat `json:"dataFormat,omitempty"`
 	// IgnoreFirstRecord - A Boolean value that, if set to true, indicates that ingestion should ignore the first record of every file
 	IgnoreFirstRecord *bool `json:"ignoreFirstRecord,omitempty"`
-	// BlobStorageEventType - The name of blob storage event type to process. Possible values include: 'MicrosoftStorageBlobCreated', 'MicrosoftStorageBlobRenamed'
+	// BlobStorageEventType - The name of blob storage event type to process. Possible values include: 'BlobStorageEventTypeMicrosoftStorageBlobCreated', 'BlobStorageEventTypeMicrosoftStorageBlobRenamed'
 	BlobStorageEventType BlobStorageEventType `json:"blobStorageEventType,omitempty"`
-	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'ProvisioningStateRunning', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
@@ -2177,7 +2194,7 @@ type EventGridDataConnection struct {
 	*EventGridConnectionProperties `json:"properties,omitempty"`
 	// Location - Resource location.
 	Location *string `json:"location,omitempty"`
-	// Kind - Possible values include: 'KindDataConnection', 'KindEventHub', 'KindIotHub', 'KindEventGrid'
+	// Kind - Possible values include: 'KindBasicDataConnectionKindDataConnection', 'KindBasicDataConnectionKindEventHub', 'KindBasicDataConnectionKindIotHub', 'KindBasicDataConnectionKindEventGrid'
 	Kind KindBasicDataConnection `json:"kind,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
@@ -2189,7 +2206,7 @@ type EventGridDataConnection struct {
 
 // MarshalJSON is the custom marshaler for EventGridDataConnection.
 func (egdc EventGridDataConnection) MarshalJSON() ([]byte, error) {
-	egdc.Kind = KindEventGrid
+	egdc.Kind = KindBasicDataConnectionKindEventGrid
 	objectMap := make(map[string]interface{})
 	if egdc.EventGridConnectionProperties != nil {
 		objectMap["properties"] = egdc.EventGridConnectionProperties
@@ -2313,8 +2330,10 @@ type EventHubConnectionProperties struct {
 	EventSystemProperties *[]string `json:"eventSystemProperties,omitempty"`
 	// Compression - The event hub messages compression type. Possible values include: 'CompressionNone', 'CompressionGZip'
 	Compression Compression `json:"compression,omitempty"`
-	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'ProvisioningStateRunning', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+	// ManagedIdentityResourceID - The resource ID of a managed identity (system or user assigned) to be used to authenticate with event hub.
+	ManagedIdentityResourceID *string `json:"managedIdentityResourceId,omitempty"`
 }
 
 // EventHubDataConnection class representing an event hub data connection.
@@ -2323,7 +2342,7 @@ type EventHubDataConnection struct {
 	*EventHubConnectionProperties `json:"properties,omitempty"`
 	// Location - Resource location.
 	Location *string `json:"location,omitempty"`
-	// Kind - Possible values include: 'KindDataConnection', 'KindEventHub', 'KindIotHub', 'KindEventGrid'
+	// Kind - Possible values include: 'KindBasicDataConnectionKindDataConnection', 'KindBasicDataConnectionKindEventHub', 'KindBasicDataConnectionKindIotHub', 'KindBasicDataConnectionKindEventGrid'
 	Kind KindBasicDataConnection `json:"kind,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
@@ -2335,7 +2354,7 @@ type EventHubDataConnection struct {
 
 // MarshalJSON is the custom marshaler for EventHubDataConnection.
 func (ehdc EventHubDataConnection) MarshalJSON() ([]byte, error) {
-	ehdc.Kind = KindEventHub
+	ehdc.Kind = KindBasicDataConnectionKindEventHub
 	objectMap := make(map[string]interface{})
 	if ehdc.EventHubConnectionProperties != nil {
 		objectMap["properties"] = ehdc.EventHubConnectionProperties
@@ -2526,7 +2545,7 @@ type IotHubConnectionProperties struct {
 	EventSystemProperties *[]string `json:"eventSystemProperties,omitempty"`
 	// SharedAccessPolicyName - The name of the share access policy
 	SharedAccessPolicyName *string `json:"sharedAccessPolicyName,omitempty"`
-	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'ProvisioningStateRunning', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
@@ -2536,7 +2555,7 @@ type IotHubDataConnection struct {
 	*IotHubConnectionProperties `json:"properties,omitempty"`
 	// Location - Resource location.
 	Location *string `json:"location,omitempty"`
-	// Kind - Possible values include: 'KindDataConnection', 'KindEventHub', 'KindIotHub', 'KindEventGrid'
+	// Kind - Possible values include: 'KindBasicDataConnectionKindDataConnection', 'KindBasicDataConnectionKindEventHub', 'KindBasicDataConnectionKindIotHub', 'KindBasicDataConnectionKindEventGrid'
 	Kind KindBasicDataConnection `json:"kind,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
@@ -2548,7 +2567,7 @@ type IotHubDataConnection struct {
 
 // MarshalJSON is the custom marshaler for IotHubDataConnection.
 func (ihdc IotHubDataConnection) MarshalJSON() ([]byte, error) {
-	ihdc.Kind = KindIotHub
+	ihdc.Kind = KindBasicDataConnectionKindIotHub
 	objectMap := make(map[string]interface{})
 	if ihdc.IotHubConnectionProperties != nil {
 		objectMap["properties"] = ihdc.IotHubConnectionProperties
@@ -2670,7 +2689,7 @@ type KeyVaultProperties struct {
 
 // LanguageExtension the language extension object.
 type LanguageExtension struct {
-	// LanguageExtensionName - The language extension name. Possible values include: 'PYTHON', 'R'
+	// LanguageExtensionName - The language extension name. Possible values include: 'LanguageExtensionNamePYTHON', 'LanguageExtensionNameR'
 	LanguageExtensionName LanguageExtensionName `json:"languageExtensionName,omitempty"`
 }
 
@@ -2863,6 +2882,154 @@ func NewOperationListResultPage(cur OperationListResult, getNextPage func(contex
 	}
 }
 
+// OperationResult operation Result Entity.
+type OperationResult struct {
+	autorest.Response `json:"-"`
+	// ID - READ-ONLY; ID of the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Status - status of the Operation result. Possible values include: 'StatusSucceeded', 'StatusCanceled', 'StatusFailed', 'StatusRunning'
+	Status Status `json:"status,omitempty"`
+	// StartTime - The operation start time
+	StartTime *date.Time `json:"startTime,omitempty"`
+	// EndTime - The operation end time
+	EndTime *date.Time `json:"endTime,omitempty"`
+	// PercentComplete - Percentage completed.
+	PercentComplete *float64 `json:"percentComplete,omitempty"`
+	// OperationResultProperties - Properties of the operation results
+	*OperationResultProperties `json:"properties,omitempty"`
+	// OperationResultErrorProperties - Object that contains the error code and message if the operation failed.
+	*OperationResultErrorProperties `json:"error,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationResult.
+func (or OperationResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if or.Status != "" {
+		objectMap["status"] = or.Status
+	}
+	if or.StartTime != nil {
+		objectMap["startTime"] = or.StartTime
+	}
+	if or.EndTime != nil {
+		objectMap["endTime"] = or.EndTime
+	}
+	if or.PercentComplete != nil {
+		objectMap["percentComplete"] = or.PercentComplete
+	}
+	if or.OperationResultProperties != nil {
+		objectMap["properties"] = or.OperationResultProperties
+	}
+	if or.OperationResultErrorProperties != nil {
+		objectMap["error"] = or.OperationResultErrorProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for OperationResult struct.
+func (or *OperationResult) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				or.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				or.Name = &name
+			}
+		case "status":
+			if v != nil {
+				var status Status
+				err = json.Unmarshal(*v, &status)
+				if err != nil {
+					return err
+				}
+				or.Status = status
+			}
+		case "startTime":
+			if v != nil {
+				var startTime date.Time
+				err = json.Unmarshal(*v, &startTime)
+				if err != nil {
+					return err
+				}
+				or.StartTime = &startTime
+			}
+		case "endTime":
+			if v != nil {
+				var endTime date.Time
+				err = json.Unmarshal(*v, &endTime)
+				if err != nil {
+					return err
+				}
+				or.EndTime = &endTime
+			}
+		case "percentComplete":
+			if v != nil {
+				var percentComplete float64
+				err = json.Unmarshal(*v, &percentComplete)
+				if err != nil {
+					return err
+				}
+				or.PercentComplete = &percentComplete
+			}
+		case "properties":
+			if v != nil {
+				var operationResultProperties OperationResultProperties
+				err = json.Unmarshal(*v, &operationResultProperties)
+				if err != nil {
+					return err
+				}
+				or.OperationResultProperties = &operationResultProperties
+			}
+		case "error":
+			if v != nil {
+				var operationResultErrorProperties OperationResultErrorProperties
+				err = json.Unmarshal(*v, &operationResultErrorProperties)
+				if err != nil {
+					return err
+				}
+				or.OperationResultErrorProperties = &operationResultErrorProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// OperationResultErrorProperties operation result error properties
+type OperationResultErrorProperties struct {
+	// Code - The code of the error.
+	Code *string `json:"code,omitempty"`
+	// Message - The error message.
+	Message *string `json:"message,omitempty"`
+}
+
+// OperationResultProperties operation result properties
+type OperationResultProperties struct {
+	// OperationKind - The kind of the operation.
+	OperationKind *string `json:"operationKind,omitempty"`
+	// OperationState - The state of the operation.
+	OperationState *string `json:"operationState,omitempty"`
+}
+
 // OptimizedAutoscale a class that contains the optimized auto scale definition.
 type OptimizedAutoscale struct {
 	// Version - The version of the template defined, for instance 1.
@@ -3015,7 +3182,7 @@ func (rofd *ReadOnlyFollowingDatabase) UnmarshalJSON(body []byte) error {
 
 // ReadOnlyFollowingDatabaseProperties class representing the Kusto database properties.
 type ReadOnlyFollowingDatabaseProperties struct {
-	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'ProvisioningStateRunning', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// SoftDeletePeriod - READ-ONLY; The time the data should be kept before it stops being accessible to queries in TimeSpan.
 	SoftDeletePeriod *string `json:"softDeletePeriod,omitempty"`
@@ -3169,7 +3336,7 @@ func (rwd *ReadWriteDatabase) UnmarshalJSON(body []byte) error {
 
 // ReadWriteDatabaseProperties class representing the Kusto database properties.
 type ReadWriteDatabaseProperties struct {
-	// ProvisioningState - The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'ProvisioningStateRunning', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// SoftDeletePeriod - The time the data should be kept before it stops being accessible to queries in TimeSpan.
 	SoftDeletePeriod *string `json:"softDeletePeriod,omitempty"`
@@ -3215,6 +3382,242 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// Script class representing a database script.
+type Script struct {
+	autorest.Response `json:"-"`
+	// ScriptProperties - The database script.
+	*ScriptProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Script.
+func (s Script) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if s.ScriptProperties != nil {
+		objectMap["properties"] = s.ScriptProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for Script struct.
+func (s *Script) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var scriptProperties ScriptProperties
+				err = json.Unmarshal(*v, &scriptProperties)
+				if err != nil {
+					return err
+				}
+				s.ScriptProperties = &scriptProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				s.SystemData = &systemData
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				s.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				s.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				s.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ScriptCheckNameRequest a script name availability request.
+type ScriptCheckNameRequest struct {
+	// Name - Script name.
+	Name *string `json:"name,omitempty"`
+	// Type - The type of resource, Microsoft.Kusto/clusters/databases/scripts.
+	Type *string `json:"type,omitempty"`
+}
+
+// ScriptListResult the list Kusto database script operation response.
+type ScriptListResult struct {
+	autorest.Response `json:"-"`
+	// Value - The list of Kusto scripts.
+	Value *[]Script `json:"value,omitempty"`
+}
+
+// ScriptProperties a class representing database script property.
+type ScriptProperties struct {
+	// ScriptURL - The url to the KQL script blob file.
+	ScriptURL *string `json:"scriptUrl,omitempty"`
+	// ScriptURLSasToken - The SaS token.
+	ScriptURLSasToken *string `json:"scriptUrlSasToken,omitempty"`
+	// ForceUpdateTag - A unique string. If changed the script will be applied again.
+	ForceUpdateTag *string `json:"forceUpdateTag,omitempty"`
+	// ContinueOnErrors - Flag that indicates whether to continue if one of the command fails.
+	ContinueOnErrors *bool `json:"continueOnErrors,omitempty"`
+	// ProvisioningState - The provisioned state of the resource. Possible values include: 'ProvisioningStateRunning', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving'
+	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// ScriptsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ScriptsCreateOrUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ScriptsClient) (Script, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ScriptsCreateOrUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ScriptsCreateOrUpdateFuture.Result.
+func (future *ScriptsCreateOrUpdateFuture) result(client ScriptsClient) (s Script, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ScriptsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		s.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("kusto.ScriptsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if s.Response.Response, err = future.GetResult(sender); err == nil && s.Response.Response.StatusCode != http.StatusNoContent {
+		s, err = client.CreateOrUpdateResponder(s.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "kusto.ScriptsCreateOrUpdateFuture", "Result", s.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ScriptsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ScriptsDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ScriptsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ScriptsDeleteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ScriptsDeleteFuture.Result.
+func (future *ScriptsDeleteFuture) result(client ScriptsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ScriptsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("kusto.ScriptsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// ScriptsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ScriptsUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ScriptsClient) (Script, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ScriptsUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ScriptsUpdateFuture.Result.
+func (future *ScriptsUpdateFuture) result(client ScriptsClient) (s Script, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ScriptsUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		s.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("kusto.ScriptsUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if s.Response.Response, err = future.GetResult(sender); err == nil && s.Response.Response.StatusCode != http.StatusNoContent {
+		s, err = client.UpdateResponder(s.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "kusto.ScriptsUpdateFuture", "Result", s.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // SkuDescription the Kusto SKU description of given resource type
 type SkuDescription struct {
 	// ResourceType - READ-ONLY; The resource type
@@ -3256,6 +3659,38 @@ type SkuLocationInfoItem struct {
 	Location *string `json:"location,omitempty"`
 	// Zones - The available zone of the SKU.
 	Zones *[]string `json:"zones,omitempty"`
+}
+
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - The identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - The identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The timestamp of resource last modification (UTC)
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
+}
+
+// TableLevelSharingProperties tables that will be included and excluded in the follower database
+type TableLevelSharingProperties struct {
+	// TablesToInclude - List of tables to include in the follower database
+	TablesToInclude *[]string `json:"tablesToInclude,omitempty"`
+	// TablesToExclude - List of tables to exclude from the follower database
+	TablesToExclude *[]string `json:"tablesToExclude,omitempty"`
+	// ExternalTablesToInclude - List of external tables to include in the follower database
+	ExternalTablesToInclude *[]string `json:"externalTablesToInclude,omitempty"`
+	// ExternalTablesToExclude - List of external tables exclude from the follower database
+	ExternalTablesToExclude *[]string `json:"externalTablesToExclude,omitempty"`
+	// MaterializedViewsToInclude - List of materialized views to include in the follower database
+	MaterializedViewsToInclude *[]string `json:"materializedViewsToInclude,omitempty"`
+	// MaterializedViewsToExclude - List of materialized views exclude from the follower database
+	MaterializedViewsToExclude *[]string `json:"materializedViewsToExclude,omitempty"`
 }
 
 // TrackedResource the resource model definition for an Azure Resource Manager tracked top level resource

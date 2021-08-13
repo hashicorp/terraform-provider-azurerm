@@ -87,7 +87,7 @@ func (client ClusterPrincipalAssignmentsClient) CheckNameAvailabilityPreparer(ct
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -168,7 +168,7 @@ func (client ClusterPrincipalAssignmentsClient) CreateOrUpdatePreparer(ctx conte
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -250,7 +250,7 @@ func (client ClusterPrincipalAssignmentsClient) DeletePreparer(ctx context.Conte
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -336,7 +336,7 @@ func (client ClusterPrincipalAssignmentsClient) GetPreparer(ctx context.Context,
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -412,7 +412,7 @@ func (client ClusterPrincipalAssignmentsClient) ListPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

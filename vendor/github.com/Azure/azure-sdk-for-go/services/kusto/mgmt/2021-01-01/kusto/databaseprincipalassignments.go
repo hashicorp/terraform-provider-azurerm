@@ -89,7 +89,7 @@ func (client DatabasePrincipalAssignmentsClient) CheckNameAvailabilityPreparer(c
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -172,7 +172,7 @@ func (client DatabasePrincipalAssignmentsClient) CreateOrUpdatePreparer(ctx cont
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -256,7 +256,7 @@ func (client DatabasePrincipalAssignmentsClient) DeletePreparer(ctx context.Cont
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -344,7 +344,7 @@ func (client DatabasePrincipalAssignmentsClient) GetPreparer(ctx context.Context
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -422,7 +422,7 @@ func (client DatabasePrincipalAssignmentsClient) ListPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-09-18"
+	const APIVersion = "2021-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

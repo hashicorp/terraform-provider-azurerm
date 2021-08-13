@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -62,28 +62,30 @@ func resourceKustoCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(kusto.DevNoSLAStandardD11V2),
-								string(kusto.DevNoSLAStandardE2aV4),
-								string(kusto.StandardD11V2),
-								string(kusto.StandardD12V2),
-								string(kusto.StandardD13V2),
-								string(kusto.StandardD14V2),
-								string(kusto.StandardDS13V21TBPS),
-								string(kusto.StandardDS13V22TBPS),
-								string(kusto.StandardDS14V23TBPS),
-								string(kusto.StandardDS14V24TBPS),
-								string(kusto.StandardE16asV43TBPS),
-								string(kusto.StandardE16asV44TBPS),
-								string(kusto.StandardE16aV4),
-								string(kusto.StandardE2aV4),
-								string(kusto.StandardE4aV4),
-								string(kusto.StandardE64iV3),
-								string(kusto.StandardE8asV41TBPS),
-								string(kusto.StandardE8asV42TBPS),
-								string(kusto.StandardE8aV4),
-								string(kusto.StandardL16s),
-								string(kusto.StandardL4s),
-								string(kusto.StandardL8s),
+								string(kusto.AzureSkuNameDevNoSLAStandardD11V2),
+								string(kusto.AzureSkuNameDevNoSLAStandardE2aV4),
+								string(kusto.AzureSkuNameStandardD11V2),
+								string(kusto.AzureSkuNameStandardD12V2),
+								string(kusto.AzureSkuNameStandardD13V2),
+								string(kusto.AzureSkuNameStandardD14V2),
+								string(kusto.AzureSkuNameStandardDS13V21TBPS),
+								string(kusto.AzureSkuNameStandardDS13V22TBPS),
+								string(kusto.AzureSkuNameStandardDS14V23TBPS),
+								string(kusto.AzureSkuNameStandardDS14V24TBPS),
+								string(kusto.AzureSkuNameStandardE16asV43TBPS),
+								string(kusto.AzureSkuNameStandardE16asV44TBPS),
+								string(kusto.AzureSkuNameStandardE16aV4),
+								string(kusto.AzureSkuNameStandardE2aV4),
+								string(kusto.AzureSkuNameStandardE4aV4),
+								string(kusto.AzureSkuNameStandardE64iV3),
+								string(kusto.AzureSkuNameStandardE8asV41TBPS),
+								string(kusto.AzureSkuNameStandardE8asV42TBPS),
+								string(kusto.AzureSkuNameStandardE8aV4),
+								string(kusto.AzureSkuNameStandardL16s),
+								string(kusto.AzureSkuNameStandardL4s),
+								string(kusto.AzureSkuNameStandardL8s),
+								string(kusto.AzureSkuNameStandardL16sV2),
+								string(kusto.AzureSkuNameStandardL8sV2),
 							}, false),
 						},
 
@@ -181,8 +183,8 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(kusto.PYTHON),
-						string(kusto.R),
+						string(kusto.LanguageExtensionNamePYTHON),
+						string(kusto.LanguageExtensionNameR),
 					}, false),
 				},
 			},
@@ -191,10 +193,10 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(kusto.V2),
+				Default:  string(kusto.EngineTypeV2),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(kusto.V2),
-					string(kusto.V3),
+					string(kusto.EngineTypeV2),
+					string(kusto.EngineTypeV3),
 				}, false),
 			},
 
@@ -309,7 +311,9 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		kustoCluster.Identity = kustoIdentity
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, kustoCluster)
+	ifMatch := ""
+	ifNoneMatch := ""
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, kustoCluster, ifMatch, ifNoneMatch)
 	if err != nil {
 		return fmt.Errorf("creating or updating Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
