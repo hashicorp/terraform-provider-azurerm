@@ -71,7 +71,14 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 					ForceNew: true,
 				},
 
-				"secret":         windowsSecretSchema(),
+				"secret": windowsSecretSchema(),
+
+				"timezone": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validate.VirtualMachineTimeZone(),
+				},
+
 				"winrm_listener": winRmListenerSchema(),
 			},
 		},
@@ -123,42 +130,23 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 	}
 }
 
-func ExpandOrchestratedVirtualMachineScaleSetOSProfile(input []interface{}) (*compute.VirtualMachineScaleSetOSProfile, error) {
-	if len(input) == 0 {
-		return nil, nil
-	}
-
-	raw := input[0].(map[string]interface{})
-
-	virtualMachineProfile := compute.VirtualMachineScaleSetOSProfile{}
-	windowsConfig := compute.WindowsConfiguration{}
-	linuxConfig := compute.LinuxConfiguration{}
-
-	virtualMachineProfile.CustomData = utils.String(raw["custom_data"].(string))
-	virtualMachineProfile.WindowsConfiguration = &windowsConfig
-	virtualMachineProfile.LinuxConfiguration = &linuxConfig
-
-	return &virtualMachineProfile, nil
-}
-
 func FlattenOrchestratedVirtualMachineScaleSetOSProfile(input *compute.VirtualMachineScaleSetOSProfile) ([]interface{}, error) {
 	if input == nil {
 		return []interface{}{}, nil
 	}
 
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 
 	if v := input.CustomData; v != nil {
 		result["custom_data"] = *v
 	}
 
 	if winConfig := input.WindowsConfiguration; winConfig != nil {
-		result["windows_configuration"], err = flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input)
+		result["windows_configuration"] = flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input)
 	}
 
-	compPrefix := ""
-	if v := input.ComputerNamePrefix; v != nil {
-		compPrefix = string(*v)
+	if linConfig := input.LinuxConfiguration; linConfig != nil {
+		result["linux_configuration"] = flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input)
 	}
 
 	return []interface{}{}, nil
@@ -261,12 +249,12 @@ func validatePasswordComplexityWindows(input interface{}, key string) (warnings 
 	}
 
 	if complexityMatch < 3 {
-		errors = append(errors, fmt.Errorf("%q did not meet minimum password complexity requirements. A password must contain at least 3 of the 4 following conditions: a lower case character, a upper case character, a digit and/or a special character. Got %q.", key, v))
+		errors = append(errors, fmt.Errorf("%q did not meet minimum password complexity requirements. A password must contain at least 3 of the 4 following conditions: a lower case character, a upper case character, a digit and/or a special character. Got %q", key, v))
 		return warnings, errors
 	}
 
 	if len(v) < 8 || len(v) > 123 {
-		errors = append(errors, fmt.Errorf("%q must be at least 8 characters long and shorter than 123 characters long. Got %q(%d characters).", key, v, len(v)))
+		errors = append(errors, fmt.Errorf("%q must be at least 8 characters long and shorter than 123 characters long. Got %q(%d characters)", key, v, len(v)))
 		return warnings, errors
 	}
 
@@ -315,12 +303,12 @@ func validatePasswordComplexityLinux(input interface{}, key string) (warnings []
 	}
 
 	if complexityMatch < 3 {
-		errors = append(errors, fmt.Errorf("%q did not meet minimum password complexity requirements. A password must contain at least 3 of the 4 following conditions: a lower case character, a upper case character, a digit and/or a special character. Got %q.", key, v))
+		errors = append(errors, fmt.Errorf("%q did not meet minimum password complexity requirements. A password must contain at least 3 of the 4 following conditions: a lower case character, a upper case character, a digit and/or a special character. Got %q", key, v))
 		return warnings, errors
 	}
 
 	if len(v) < 6 || len(v) > 72 {
-		errors = append(errors, fmt.Errorf("%q must be at least 6 characters long and shorter than 72 characters long. Got %q(%d characters).", key, v, len(v)))
+		errors = append(errors, fmt.Errorf("%q must be at least 6 characters long and shorter than 72 characters long. Got %q(%d characters)", key, v, len(v)))
 		return warnings, errors
 	}
 
@@ -340,56 +328,163 @@ func validatePasswordComplexityLinux(input interface{}, key string) (warnings []
 	return
 }
 
-func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *compute.VirtualMachineScaleSetOSProfile) ([]interface{}, error) {
-	if input == nil {
-		return []interface{}{}, nil
+func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(input map[string]interface{}) *compute.VirtualMachineScaleSetOSProfile {
+	osProfile := compute.VirtualMachineScaleSetOSProfile{}
+	winConfig := compute.WindowsConfiguration{}
+
+	if len(input) > 0 {
+		osProfile.AdminUsername = utils.String(input["admin_username"].(string))
+		osProfile.AdminPassword = utils.String(input["admin_password"].(string))
+		osProfile.ComputerNamePrefix = utils.String(input["computer_name_prefix"].(string))
+		osProfile.Secrets = expandWindowsSecrets(input["secret"].([]interface{}))
+
+		winConfig.AdditionalUnattendContent = expandWindowsConfigurationAdditionalUnattendContent(input["additional_unattend_content"].([]interface{}))
+		winConfig.EnableAutomaticUpdates = utils.Bool(input["enable_automatic_updates"].(bool))
+		winConfig.ProvisionVMAgent = utils.Bool(input["provision_vm_agent"].(bool))
+		winConfig.TimeZone = utils.String(input["timezone"].(string))
+		winConfig.WinRM = expandWinRMListener(input["winrm_listener"].([]interface{}))
 	}
 
-	result := make(map[string]interface{}, 0)
+	osProfile.WindowsConfiguration = &winConfig
+
+	return &osProfile
+}
+
+func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(input map[string]interface{}) *compute.VirtualMachineScaleSetOSProfile {
+	osProfile := compute.VirtualMachineScaleSetOSProfile{}
+	linConfig := compute.LinuxConfiguration{}
+
+	if len(input) > 0 {
+		osProfile.AdminUsername = utils.String(input["admin_username"].(string))
+
+		if input["admin_password"].(string) != "" {
+			osProfile.AdminPassword = utils.String(input["admin_password"].(string))
+		}
+
+		osProfile.ComputerNamePrefix = utils.String(input["computer_name_prefix"].(string))
+		osProfile.Secrets = expandLinuxSecrets(input["secret"].([]interface{}))
+
+		sshPublicKeys := ExpandSSHKeys(input["admin_ssh_key"].([]interface{}))
+		linConfig.SSH.PublicKeys = &sshPublicKeys
+
+		linConfig.DisablePasswordAuthentication = utils.Bool(input["disable_password_authentication"].(bool))
+		linConfig.ProvisionVMAgent = utils.Bool(input["provision_vm_agent"].(bool))
+	}
+
+	osProfile.LinuxConfiguration = &linConfig
+
+	return &osProfile
+}
+
+func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *compute.VirtualMachineScaleSetOSProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
 	winConfig := input.WindowsConfiguration
 
-	// "admin_username": {
-	// "admin_password": {
-	// "computer_name_prefix": OrchestratedVirtualMachineScaleSetComputerPrefixWindowsSchema(),
-	// "additional_unattend_content": additionalUnattendContentSchema(),
-	// "enable_automatic_updates": {
-	// "provision_vm_agent": {
-	// "secret":         windowsSecretSchema(),
-	// "winrm_listener": winRmListenerSchema(),
-
 	if v := input.AdminUsername; v != nil {
-		result["admin_username"] = *v
+		output["admin_username"] = *v
 	}
 
 	if v := input.AdminPassword; v != nil {
-		result["admin_password"] = *v
+		output["admin_password"] = *v
 	}
 
 	if v := input.ComputerNamePrefix; v != nil {
-		result["computer_name_prefix"] = *v
+		output["computer_name_prefix"] = *v
+	}
+
+	if v := winConfig.AdditionalUnattendContent; v != nil {
+		output["additional_unattend_content"] = flattenWindowsConfigurationAdditionalUnattendContent(winConfig)
+	}
+
+	if v := winConfig.EnableAutomaticUpdates; v != nil {
+		output["enable_automatic_updates"] = *v
+	}
+
+	if v := winConfig.ProvisionVMAgent; v != nil {
+		output["provision_vm_agent"] = *v
+	}
+
+	if v := input.Secrets; v != nil {
+		output["secret"] = flattenWindowsSecrets(v)
+	}
+
+	if v := winConfig.WinRM; v != nil {
+		output["winrm_listener"] = flattenWinRMListener(winConfig.WinRM)
+	}
+
+	if v := winConfig.TimeZone; v != nil {
+		output["timezone"] = v
+	}
+
+	if v := winConfig.PatchSettings; v != nil {
+		output["winrm_listener"] = flattenWinRMListener(winConfig.WinRM)
+	}
+
+	return []interface{}{output}
+}
+
+func flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input *compute.VirtualMachineScaleSetOSProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
+	linConfig := input.LinuxConfiguration
+
+	if v := input.AdminUsername; v != nil {
+		output["admin_username"] = *v
+	}
+
+	if v := input.AdminPassword; v != nil {
+		output["admin_password"] = *v
+	}
+
+	if v := linConfig.SSH; v != nil {
+		if sshKeys, _ := FlattenSSHKeys(v); sshKeys != nil {
+			output["admin_ssh_key"] = sshKeys
+		}
 	}
 
 	if v := input.ComputerNamePrefix; v != nil {
-		result["additional_unattend_content"] = flattenWindowsConfigurationAdditionalUnattendContent(winConfig)
+		output["computer_name_prefix"] = *v
 	}
 
-	if v := input.ComputerNamePrefix; v != nil {
-		result["computer_name_prefix"] = *v
+	if v := linConfig.DisablePasswordAuthentication; v != nil {
+		output["disable_password_authentication"] = *v
 	}
 
-	if v := input.ComputerNamePrefix; v != nil {
-		result["computer_name_prefix"] = *v
+	if v := linConfig.ProvisionVMAgent; v != nil {
+		output["provision_vm_agent"] = *v
 	}
 
-	if v := input.ComputerNamePrefix; v != nil {
-		result["computer_name_prefix"] = *v
+	if v := input.Secrets; v != nil {
+		output["secret"] = flattenLinuxSecrets(v)
 	}
 
-	if v := input.ComputerNamePrefix; v != nil {
-		result["computer_name_prefix"] = *v
+	return []interface{}{output}
+}
+
+func expandWindowsConfigurationAdditionalUnattendContent(input []interface{}) *[]compute.AdditionalUnattendContent {
+	output := make([]compute.AdditionalUnattendContent, 0)
+
+	for _, v := range input {
+		raw := v.(map[string]interface{})
+
+		output = append(output, compute.AdditionalUnattendContent{
+			SettingName: compute.SettingNames(raw["setting"].(string)),
+			Content:     utils.String(raw["content"].(string)),
+
+			// no other possible values
+			PassName:      compute.OobeSystem,
+			ComponentName: compute.MicrosoftWindowsShellSetup,
+		})
 	}
 
-	return []interface{}{}, nil
+	return &output
 }
 
 func flattenWindowsConfigurationAdditionalUnattendContent(input *compute.WindowsConfiguration) []interface{} {

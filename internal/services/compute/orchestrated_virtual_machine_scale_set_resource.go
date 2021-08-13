@@ -148,13 +148,6 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"provision_vm_agent": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-				ForceNew: true,
-			},
-
 			"proximity_placement_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -178,14 +171,6 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"source_image_reference": sourceImageReferenceSchema(false),
 
-			"timezone": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: computeValidate.VirtualMachineTimeZone(),
-			},
-
-			"winrm_listener": winRmListenerSchema(),
-
 			"zone_balance": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -197,13 +182,13 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"zones": azure.SchemaZones(),
 
+			"tags": tags.Schema(),
+
 			// Computed
 			"unique_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
-
-			"tags": tags.Schema(),
 		},
 	}
 }
@@ -232,9 +217,49 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	// TODO: Pull this from the Win Config section
-	additionalUnattendContentRaw := d.Get("additional_unattend_content").([]interface{})
-	additionalUnattendContent := expandAdditionalUnattendContent(additionalUnattendContentRaw)
+	var winConfigRaw []interface{}
+	var linConfigRaw []interface{}
+	var vmssOsProfile *compute.VirtualMachineScaleSetOSProfile
+	osProfileRaw := d.Get("os_profile").([]interface{})
+
+	if len(osProfileRaw) > 0 {
+		//custom_data is on the osProfileRaw
+		osProfile := osProfileRaw[0].(map[string]interface{})
+		winConfigRaw = osProfile["windows_configuration"].([]interface{})
+		linConfigRaw = osProfile["linux_configuration"].([]interface{})
+
+		if len(winConfigRaw) > 0 {
+			winConfig := winConfigRaw[0].(map[string]interface{})
+			vmssOsProfile = expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(winConfig)
+
+			// if the Computer Prefix Name was not defined use the computer name
+			if len(*vmssOsProfile.ComputerNamePrefix) == 0 {
+				// validate that the computer name is a valid Computer Prefix Name
+				_, errs := computeValidate.WindowsComputerNamePrefix(name, "computer_name_prefix")
+				if len(errs) > 0 {
+					return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
+				}
+				vmssOsProfile.ComputerNamePrefix = utils.String(name)
+			}
+		}
+
+		if len(linConfigRaw) > 0 {
+			linConfig := linConfigRaw[0].(map[string]interface{})
+			vmssOsProfile = expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(linConfig)
+
+			// if the Computer Prefix Name was not defined use the computer name
+			if len(*vmssOsProfile.ComputerNamePrefix) == 0 {
+				// validate that the computer name is a valid Computer Prefix Name
+				_, errs := computeValidate.LinuxComputerNamePrefix(name, "computer_name_prefix")
+				if len(errs) > 0 {
+					return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
+				}
+				vmssOsProfile.ComputerNamePrefix = utils.String(name)
+			}
+		}
+
+		vmssOsProfile.CustomData = utils.String(osProfile["custom_data"].(string))
+	}
 
 	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
 	bootDiagnostics := expandBootDiagnostics(bootDiagnosticsRaw)
@@ -271,29 +296,8 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		return err
 	}
 
-	winRmListenersRaw := d.Get("winrm_listener").(*pluginsdk.Set).List()
-	winRmListeners := expandWinRMListener(winRmListenersRaw)
-
-	// TODO: Pull this value from the os profile section
-	// there is on in win and linux configs
-	secretsRaw := d.Get("secret").([]interface{})
-	secrets := expandWindowsSecrets(secretsRaw)
-
 	zonesRaw := d.Get("zones").([]interface{})
 	zones := azure.ExpandZones(zonesRaw)
-
-	// TODO: Pull this value from the os profile section
-	// there is on in win and linux configs
-	var computerNamePrefix string
-	if v, ok := d.GetOk("computer_name_prefix"); ok && len(v.(string)) > 0 {
-		computerNamePrefix = v.(string)
-	} else {
-		_, errs := computeValidate.WindowsComputerNamePrefix(d.Get("name"), "computer_name_prefix")
-		if len(errs) > 0 {
-			return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
-		}
-		computerNamePrefix = name
-	}
 
 	networkProfile := &compute.VirtualMachineScaleSetNetworkProfile{
 		NetworkInterfaceConfigurations: networkInterfaces,
@@ -302,17 +306,8 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
 	// TODO: Make two blocks here one for win one for linux
 	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
-		Priority: priority,
-		OsProfile: &compute.VirtualMachineScaleSetOSProfile{
-			AdminPassword:      utils.String(d.Get("admin_password").(string)),
-			AdminUsername:      utils.String(d.Get("admin_username").(string)),
-			ComputerNamePrefix: utils.String(computerNamePrefix),
-			WindowsConfiguration: &compute.WindowsConfiguration{
-				ProvisionVMAgent: utils.Bool(d.Get("provision_vm_agent").(bool)),
-				WinRM:            winRmListeners,
-			},
-			Secrets: secrets,
-		},
+		Priority:           priority,
+		OsProfile:          vmssOsProfile,
 		DiagnosticsProfile: bootDiagnostics,
 		NetworkProfile:     networkProfile,
 		StorageProfile: &compute.VirtualMachineScaleSetStorageProfile{
@@ -336,10 +331,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(v.(string))
 	}
 
-	// TODO: Move this to get from Windows Config Section
-	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
-	virtualMachineProfile.OsProfile.WindowsConfiguration.EnableAutomaticUpdates = utils.Bool(enableAutomaticUpdates)
-
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
 		if priority != compute.Spot {
 			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
@@ -350,10 +341,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 	}
 
-	if v, ok := d.GetOk("custom_data"); ok {
-		virtualMachineProfile.OsProfile.CustomData = utils.String(v.(string))
-	}
-
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
 		virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{
 			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
@@ -362,24 +349,15 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
 		if virtualMachineProfile.Priority != compute.Spot {
-			return fmt.Errorf("An `eviction_policy` can only be specified when `priority` is set to `Spot`")
+			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 		virtualMachineProfile.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
 	} else if priority == compute.Spot {
-		return fmt.Errorf("An `eviction_policy` must be specified when `priority` is set to `Spot`")
-	}
-
-	// TODO: Move this the the Win Config section
-	if len(additionalUnattendContentRaw) > 0 {
-		virtualMachineProfile.OsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
+		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
 	if v, ok := d.GetOk("license_type"); ok {
 		virtualMachineProfile.LicenseType = utils.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("timezone"); ok {
-		virtualMachineProfile.OsProfile.WindowsConfiguration.TimeZone = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("terminate_notification"); ok {
