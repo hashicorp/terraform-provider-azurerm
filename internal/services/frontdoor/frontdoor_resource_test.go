@@ -157,39 +157,27 @@ func TestAccFrontDoor_EnableDisableCache(t *testing.T) {
 			Config: r.EnableCache(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression").HasValue("false"),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive").HasValue("StripAll"),
 			),
 		},
+		data.ImportStep("explicit_resource_order"),
 		{
 			Config: r.DisableCache(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression").HasValue("false"),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive").HasValue("StripAll"),
 			),
 		},
+		data.ImportStep("explicit_resource_order"),
 		{
 			Config: r.EnableCache(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression").HasValue("false"),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive").HasValue("StripAll"),
 			),
 		},
+		data.ImportStep("explicit_resource_order"),
 		{
-
 			Config: r.testWithCachingEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression").HasValue("false"),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive").HasValue("StripAllExcept"),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameters").HasValue("width,height"),
-				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_duration").HasValue("P90D"),
 			),
 		},
 		data.ImportStep("explicit_resource_order"),
