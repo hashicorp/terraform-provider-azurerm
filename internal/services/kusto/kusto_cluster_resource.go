@@ -311,7 +311,9 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		kustoCluster.Identity = kustoIdentity
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, kustoCluster, "", "")
+	ifMatch := ""
+	ifNoneMatch := ""
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, kustoCluster, ifMatch, ifNoneMatch)
 	if err != nil {
 		return fmt.Errorf("creating or updating Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
