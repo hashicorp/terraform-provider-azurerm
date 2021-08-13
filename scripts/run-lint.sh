@@ -2,7 +2,7 @@
 
 function runLinters {
   echo "==> Checking source code against linters..."
-  golangci-lint run ./...
+  golangci-lint run -v ./...
 }
 
 function main {

@@ -39,10 +39,10 @@ func NewReservationsSummariesClientWithBaseURI(baseURI string, subscriptionID st
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}' for
 // BillingProfile scope (modern).
 // grain - can be daily or monthly
-// startDate - start date. Only applicable when querying with billing profile
-// endDate - end date. Only applicable when querying with billing profile
-// filter - required only for daily grain. The properties/UsageDate for start date and end date. The filter
-// supports 'le' and  'ge'. Not applicable when querying with billing profile
+// startDate - start date. Required only when querying with billing profile
+// endDate - end date. Required only when querying with billing profile
+// filter - the properties/UsageDate for start date and end date. The filter supports 'le' and  'ge'. Not
+// required when querying with billing profile
 // reservationID - reservation Id GUID. Only valid if reservationOrderId is also provided. Filter to a specific
 // reservation
 // reservationOrderID - reservation Order Id GUID. Required if reservationId is provided. Filter to a specific

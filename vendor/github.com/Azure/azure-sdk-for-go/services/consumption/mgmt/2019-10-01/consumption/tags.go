@@ -104,7 +104,7 @@ func (client TagsClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client TagsClient) GetResponder(resp *http.Response) (result TagsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
