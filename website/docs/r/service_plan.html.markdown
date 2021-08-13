@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `os_type` - (Optional) The O/S type for the App Services to be hosted in this plan. Possible values include `Windows` (default), `Linux`, and `WindowsContainer`.
 
-* `per_site_scaling` - (Optional) Should Per Site Scaling be enabled. Defaults to `false`.
+* `per_site_scaling_enabled` - (Optional) Should Per Site Scaling be enabled. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the AppService.
 

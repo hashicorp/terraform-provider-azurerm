@@ -36,7 +36,7 @@ type SiteConfigWindows struct {
 	RemoteDebugging          bool                      `tfschema:"remote_debugging"`
 	RemoteDebuggingVersion   string                    `tfschema:"remote_debugging_version"`
 	ScmType                  string                    `tfschema:"scm_type"`
-	Use32BitWorker           bool                      `tfschema:"use_32_bit_worker"`
+	Use32BitWorker           bool                      `tfschema:"32_bit_worker"`
 	WebSockets               bool                      `tfschema:"websockets"`
 	FtpsState                string                    `tfschema:"ftps_state"`
 	HealthCheckPath          string                    `tfschema:"health_check_path"`
@@ -73,7 +73,7 @@ type SiteConfigLinux struct {
 	RemoteDebugging         bool                    `tfschema:"remote_debugging"`
 	RemoteDebuggingVersion  string                  `tfschema:"remote_debugging_version"`
 	ScmType                 string                  `tfschema:"scm_type"`
-	Use32BitWorker          bool                    `tfschema:"use_32_bit_worker"`
+	Use32BitWorker          bool                    `tfschema:"32_bit_worker"`
 	WebSockets              bool                    `tfschema:"websockets"`
 	FtpsState               string                  `tfschema:"ftps_state"`
 	HealthCheckPath         string                  `tfschema:"health_check_path"`
@@ -214,7 +214,7 @@ func siteConfigSchemaWindows() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"use_32_bit_worker": {
+				"32_bit_worker": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -392,7 +392,7 @@ func siteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"use_32_bit_worker": {
+				"32_bit_worker": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -581,7 +581,7 @@ func siteConfigSchemaLinux() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"use_32_bit_worker": {
+				"32_bit_worker": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -757,7 +757,7 @@ func siteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"use_32_bit_worker": {
+				"32_bit_worker": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},

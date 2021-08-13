@@ -437,7 +437,7 @@ A `site_config` block supports the following:
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Linux Web App `ip_restriction` configuration be used for the SCM also.
 
-* `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker.
+* `32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker.
 
 * `websockets` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 

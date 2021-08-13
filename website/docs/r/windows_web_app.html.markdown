@@ -447,7 +447,7 @@ A `site_config` block supports the following:
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Windows Web App `ip_restriction` configuration be used for the SCM also.
 
-* `use_32_bit_worker` - (Optional) Should the Windows Web App use a 32-bit worker.
+* `32_bit_worker` - (Optional) Should the Windows Web App use a 32-bit worker.
 
 * `virtual_application` - (Optional) One or more `virtual_application` blocks as defined below.
 

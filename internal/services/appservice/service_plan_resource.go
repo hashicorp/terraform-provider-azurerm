@@ -40,7 +40,7 @@ type AppServicePlanModel struct {
 	OSType                    OSType            `tfschema:"os_type"`
 	Sku                       string            `tfschema:"sku_name"`
 	AppServiceEnvironmentId   string            `tfschema:"app_service_environment_id"`
-	PerSiteScaling            bool              `tfschema:"per_site_scaling"`
+	PerSiteScaling            bool              `tfschema:"per_site_scaling_enabled"`
 	Reserved                  bool              `tfschema:"reserved"` // Computed Only?
 	NumberOfWorkers           int               `tfschema:"number_of_workers"`
 	MaximumElasticWorkerCount int               `tfschema:"maximum_elastic_worker_count"`
@@ -99,7 +99,7 @@ func (r AppServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: webValidate.AppServiceEnvironmentID, // TODO - Bring over to this service
 		},
 
-		"per_site_scaling": {
+		"per_site_scaling_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
