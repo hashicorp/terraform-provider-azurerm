@@ -17,7 +17,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&integrationAccountClient.Client, o.ResourceManagerAuthorizer)
 
 	integrationAccountSessionClient := logic.NewIntegrationAccountSessionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&integrationAccountClient.Client, o.ResourceManagerAuthorizer)
+	o.ConfigureClient(&integrationAccountSessionClient.Client, o.ResourceManagerAuthorizer)
 
 	integrationServiceEnvironmentClient := logic.NewIntegrationServiceEnvironmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&integrationServiceEnvironmentClient.Client, o.ResourceManagerAuthorizer)

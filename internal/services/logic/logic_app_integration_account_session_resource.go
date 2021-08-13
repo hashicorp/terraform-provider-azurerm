@@ -9,10 +9,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -23,7 +21,7 @@ func resourceLogicAppIntegrationAccountSession() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceLogicAppIntegrationAccountSessionCreateUpdate,
 		Read:   resourceLogicAppIntegrationAccountSessionRead,
-		Update: resourceLogicAppIntegrationAccountCreateUpdate,
+		Update: resourceLogicAppIntegrationAccountSessionCreateUpdate,
 		Delete: resourceLogicAppIntegrationAccountSessionDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -47,8 +45,6 @@ func resourceLogicAppIntegrationAccountSession() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
-
 			"integration_account_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -58,12 +54,10 @@ func resourceLogicAppIntegrationAccountSession() *pluginsdk.Resource {
 
 			"content": {
 				Type:             pluginsdk.TypeString,
-				Optional:         true,
+				Required:         true,
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
-
-			"tags": tags.Schema(),
 		},
 	}
 }
@@ -88,20 +82,15 @@ func resourceLogicAppIntegrationAccountSessionCreateUpdate(d *pluginsdk.Resource
 		}
 	}
 
-	parameters := logic.IntegrationAccountSession{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	content, err := pluginsdk.ExpandJsonFromString(d.Get("content").(string))
+	if err != nil {
+		return fmt.Errorf("expanding JSON for `content`: %+v", err)
 	}
 
-	if v, ok := d.GetOk("content"); ok {
-		content, err := pluginsdk.ExpandJsonFromString(v.(string))
-		if err != nil {
-			return fmt.Errorf("expanding JSON for `content`: %+v", err)
-		}
-
-		parameters.IntegrationAccountSessionProperties = &logic.IntegrationAccountSessionProperties{
+	parameters := logic.IntegrationAccountSession{
+		IntegrationAccountSessionProperties: &logic.IntegrationAccountSessionProperties{
 			Content: content,
-		}
+		},
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IntegrationAccountName, id.SessionName, parameters); err != nil {
@@ -135,7 +124,6 @@ func resourceLogicAppIntegrationAccountSessionRead(d *pluginsdk.ResourceData, me
 	d.Set("name", id.SessionName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("integration_account_name", id.IntegrationAccountName)
-	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.IntegrationAccountSessionProperties; props != nil {
 		if props.Content != nil {
@@ -145,7 +133,7 @@ func resourceLogicAppIntegrationAccountSessionRead(d *pluginsdk.ResourceData, me
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceLogicAppIntegrationAccountSessionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
