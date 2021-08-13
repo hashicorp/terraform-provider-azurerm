@@ -223,7 +223,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	osProfileRaw := d.Get("os_profile").([]interface{})
 
 	if len(osProfileRaw) > 0 {
-		//custom_data is on the osProfileRaw
+		// custom_data is on the osProfileRaw
 		osProfile := osProfileRaw[0].(map[string]interface{})
 		winConfigRaw = osProfile["windows_configuration"].([]interface{})
 		linConfigRaw = osProfile["linux_configuration"].([]interface{})

@@ -224,7 +224,7 @@ func validatePasswordComplexityWindows(input interface{}, key string) (warnings 
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
+		return warnings, errors
 	}
 
 	complexityMatch := 0
@@ -271,14 +271,14 @@ func validatePasswordComplexityWindows(input interface{}, key string) (warnings 
 		}
 	}
 
-	return
+	return warnings, errors
 }
 
 func validatePasswordComplexityLinux(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
+		return warnings, errors
 	}
 
 	complexityMatch := 0
@@ -325,7 +325,7 @@ func validatePasswordComplexityLinux(input interface{}, key string) (warnings []
 		}
 	}
 
-	return
+	return warnings, errors
 }
 
 func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(input map[string]interface{}) *compute.VirtualMachineScaleSetOSProfile {
