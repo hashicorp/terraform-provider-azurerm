@@ -17,7 +17,7 @@ import (
 
 type ApiManagementNotificationRecipientEmailModel struct {
 	ApiManagementId  string `tfschema:"api_management_id"`
-	NotificationName string `tfschema:"notification_name"`
+	NotificationName string `tfschema:"notification_type"`
 	Email            string `tfschema:"email"`
 }
 
@@ -34,7 +34,7 @@ func (r ApiManagementNotificationRecipientEmailResource) Arguments() map[string]
 			ValidateFunc: validate.ApiManagementID,
 		},
 
-		"notification_name": {
+		"notification_type": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,

@@ -30,7 +30,7 @@ resource "azurerm_api_management" "example" {
 
 resource "azurerm_api_management_notification_recipient_email" "example" {
   api_management_id = azurerm_api_management.example.id
-  notification_name = "AccountClosedPublisher"
+  notification_type = "AccountClosedPublisher"
   email             = "foo@bar.com"
 }
 ```
@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `email` - (Required) The recipient email address. Changing this forces a new API Management Notification Recipient Email to be created.
 
-* `notification_name` - (Required) The Notification Name to be received. Changing this forces a new API Management Notification Recipient Email to be created. Possible values are `AccountClosedPublisher`, `BCC`, `NewApplicationNotificationMessage`, `NewIssuePublisherNotificationMessage`, `PurchasePublisherNotificationMessage`, `QuotaLimitApproachingPublisherNotificationMessage`, and `RequestPublisherNotificationMessage`.
+* `notification_type` - (Required) The Notification Name to be received. Changing this forces a new API Management Notification Recipient Email to be created. Possible values are `AccountClosedPublisher`, `BCC`, `NewApplicationNotificationMessage`, `NewIssuePublisherNotificationMessage`, `PurchasePublisherNotificationMessage`, `QuotaLimitApproachingPublisherNotificationMessage`, and `RequestPublisherNotificationMessage`.
 
 ## Attributes Reference
 

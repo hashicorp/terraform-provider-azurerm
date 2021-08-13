@@ -73,7 +73,7 @@ func (r ApiManagementNotificationRecipientEmailResource) basic(data acceptance.T
 %s
 resource "azurerm_api_management_notification_recipient_email" "test" {
   api_management_id = azurerm_api_management.test.id
-  notification_name = "AccountClosedPublisher"
+  notification_type = "AccountClosedPublisher"
   email             = "foo@bar.com"
 }
 `, ApiManagementResource{}.basic(data))
@@ -85,7 +85,7 @@ func (r ApiManagementNotificationRecipientEmailResource) requiresImport(data acc
 
 resource "azurerm_api_management_notification_recipient_email" "import" {
   api_management_id = azurerm_api_management.test.id
-  notification_name = azurerm_api_management_notification_recipient_email.test.notification_name
+  notification_type = azurerm_api_management_notification_recipient_email.test.notification_type
   email             = azurerm_api_management_notification_recipient_email.test.email
 }
 `, r.basic(data))
