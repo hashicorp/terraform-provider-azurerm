@@ -1,4 +1,4 @@
-// Package machinelearningservices implements the Azure ARM Machinelearningservices service API version 2021-04-01.
+// Package machinelearningservices implements the Azure ARM Machinelearningservices service API version 2021-07-01.
 //
 // These APIs allow end users to operate on Azure Machine Learning Workspace resources.
 package machinelearningservices

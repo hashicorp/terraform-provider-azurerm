@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -34,11 +35,11 @@ func NewWorkspaceConnectionsClientWithBaseURI(baseURI string, subscriptionID str
 
 // Create add a new workspace connection.
 // Parameters:
-// resourceGroupName - name of the resource group in which workspace is located.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - name of Azure Machine Learning workspace.
 // connectionName - friendly name of the workspace connection
 // parameters - the object for creating or updating a new workspace connection
-func (client WorkspaceConnectionsClient) Create(ctx context.Context, resourceGroupName string, workspaceName string, connectionName string, parameters WorkspaceConnectionDto) (result WorkspaceConnection, err error) {
+func (client WorkspaceConnectionsClient) Create(ctx context.Context, resourceGroupName string, workspaceName string, connectionName string, parameters WorkspaceConnection) (result WorkspaceConnection, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspaceConnectionsClient.Create")
 		defer func() {
@@ -49,6 +50,15 @@ func (client WorkspaceConnectionsClient) Create(ctx context.Context, resourceGro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspaceConnectionsClient", "Create", err.Error())
+	}
+
 	req, err := client.CreatePreparer(ctx, resourceGroupName, workspaceName, connectionName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspaceConnectionsClient", "Create", nil, "Failure preparing request")
@@ -72,7 +82,7 @@ func (client WorkspaceConnectionsClient) Create(ctx context.Context, resourceGro
 }
 
 // CreatePreparer prepares the Create request.
-func (client WorkspaceConnectionsClient) CreatePreparer(ctx context.Context, resourceGroupName string, workspaceName string, connectionName string, parameters WorkspaceConnectionDto) (*http.Request, error) {
+func (client WorkspaceConnectionsClient) CreatePreparer(ctx context.Context, resourceGroupName string, workspaceName string, connectionName string, parameters WorkspaceConnection) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"connectionName":    autorest.Encode("path", connectionName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -80,11 +90,14 @@ func (client WorkspaceConnectionsClient) CreatePreparer(ctx context.Context, res
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	parameters.ID = nil
+	parameters.Name = nil
+	parameters.Type = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -115,7 +128,7 @@ func (client WorkspaceConnectionsClient) CreateResponder(resp *http.Response) (r
 
 // Delete delete a workspace connection.
 // Parameters:
-// resourceGroupName - name of the resource group in which workspace is located.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - name of Azure Machine Learning workspace.
 // connectionName - friendly name of the workspace connection
 func (client WorkspaceConnectionsClient) Delete(ctx context.Context, resourceGroupName string, workspaceName string, connectionName string) (result autorest.Response, err error) {
@@ -129,6 +142,15 @@ func (client WorkspaceConnectionsClient) Delete(ctx context.Context, resourceGro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspaceConnectionsClient", "Delete", err.Error())
+	}
+
 	req, err := client.DeletePreparer(ctx, resourceGroupName, workspaceName, connectionName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspaceConnectionsClient", "Delete", nil, "Failure preparing request")
@@ -160,7 +182,7 @@ func (client WorkspaceConnectionsClient) DeletePreparer(ctx context.Context, res
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -192,7 +214,7 @@ func (client WorkspaceConnectionsClient) DeleteResponder(resp *http.Response) (r
 
 // Get get the detail of a workspace connection.
 // Parameters:
-// resourceGroupName - name of the resource group in which workspace is located.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - name of Azure Machine Learning workspace.
 // connectionName - friendly name of the workspace connection
 func (client WorkspaceConnectionsClient) Get(ctx context.Context, resourceGroupName string, workspaceName string, connectionName string) (result WorkspaceConnection, err error) {
@@ -206,6 +228,15 @@ func (client WorkspaceConnectionsClient) Get(ctx context.Context, resourceGroupN
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspaceConnectionsClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceGroupName, workspaceName, connectionName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspaceConnectionsClient", "Get", nil, "Failure preparing request")
@@ -237,7 +268,7 @@ func (client WorkspaceConnectionsClient) GetPreparer(ctx context.Context, resour
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -270,7 +301,7 @@ func (client WorkspaceConnectionsClient) GetResponder(resp *http.Response) (resu
 
 // List list all connections under a AML workspace.
 // Parameters:
-// resourceGroupName - name of the resource group in which workspace is located.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - name of Azure Machine Learning workspace.
 // target - target of the workspace connection.
 // category - category of the workspace connection.
@@ -285,6 +316,15 @@ func (client WorkspaceConnectionsClient) List(ctx context.Context, resourceGroup
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspaceConnectionsClient", "List", err.Error())
+	}
+
 	req, err := client.ListPreparer(ctx, resourceGroupName, workspaceName, target, category)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspaceConnectionsClient", "List", nil, "Failure preparing request")
@@ -315,7 +355,7 @@ func (client WorkspaceConnectionsClient) ListPreparer(ctx context.Context, resou
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

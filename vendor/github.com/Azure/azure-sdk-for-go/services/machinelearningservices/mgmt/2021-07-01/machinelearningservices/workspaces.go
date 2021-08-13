@@ -33,7 +33,7 @@ func NewWorkspacesClientWithBaseURI(baseURI string, subscriptionID string) Works
 
 // CreateOrUpdate creates or updates a workspace with the specified parameters.
 // Parameters:
-// resourceGroupName - name of the resource group in which workspace is located.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - name of Azure Machine Learning workspace.
 // parameters - the parameters for creating or updating a machine learning workspace.
 func (client WorkspacesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, workspaceName string, parameters Workspace) (result WorkspacesCreateOrUpdateFuture, err error) {
@@ -48,6 +48,11 @@ func (client WorkspacesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.WorkspaceProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Encryption", Name: validation.Null, Rule: false,
@@ -83,7 +88,7 @@ func (client WorkspacesClient) CreateOrUpdatePreparer(ctx context.Context, resou
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -118,7 +123,7 @@ func (client WorkspacesClient) CreateOrUpdateSender(req *http.Request) (future W
 func (client WorkspacesClient) CreateOrUpdateResponder(resp *http.Response) (result Workspace, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -127,7 +132,7 @@ func (client WorkspacesClient) CreateOrUpdateResponder(resp *http.Response) (res
 
 // Delete deletes a machine learning workspace.
 // Parameters:
-// resourceGroupName - name of the resource group in which workspace is located.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - name of Azure Machine Learning workspace.
 func (client WorkspacesClient) Delete(ctx context.Context, resourceGroupName string, workspaceName string) (result WorkspacesDeleteFuture, err error) {
 	if tracing.IsEnabled() {
@@ -140,6 +145,15 @@ func (client WorkspacesClient) Delete(ctx context.Context, resourceGroupName str
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspacesClient", "Delete", err.Error())
+	}
+
 	req, err := client.DeletePreparer(ctx, resourceGroupName, workspaceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "Delete", nil, "Failure preparing request")
@@ -163,7 +177,7 @@ func (client WorkspacesClient) DeletePreparer(ctx context.Context, resourceGroup
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -202,9 +216,102 @@ func (client WorkspacesClient) DeleteResponder(resp *http.Response) (result auto
 	return
 }
 
+// Diagnose sends the diagnose request.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - name of Azure Machine Learning workspace.
+// parameters - the parameter of diagnosing workspace health
+func (client WorkspacesClient) Diagnose(ctx context.Context, resourceGroupName string, workspaceName string, parameters *DiagnoseWorkspaceParameters) (result WorkspacesDiagnoseFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.Diagnose")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspacesClient", "Diagnose", err.Error())
+	}
+
+	req, err := client.DiagnosePreparer(ctx, resourceGroupName, workspaceName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "Diagnose", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.DiagnoseSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "Diagnose", nil, "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// DiagnosePreparer prepares the Diagnose request.
+func (client WorkspacesClient) DiagnosePreparer(ctx context.Context, resourceGroupName string, workspaceName string, parameters *DiagnoseWorkspaceParameters) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":     autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2021-07-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MachineLearningServices/workspaces/{workspaceName}/diagnose", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	if parameters != nil {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithJSON(parameters))
+	}
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DiagnoseSender sends the Diagnose request. The method will close the
+// http.Response Body if it receives an error.
+func (client WorkspacesClient) DiagnoseSender(req *http.Request) (future WorkspacesDiagnoseFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// DiagnoseResponder handles the response to the Diagnose request. The method always
+// closes the http.Response Body.
+func (client WorkspacesClient) DiagnoseResponder(resp *http.Response) (result DiagnoseResponseResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // Get gets the properties of the specified machine learning workspace.
 // Parameters:
-// resourceGroupName - name of the resource group in which workspace is located.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - name of Azure Machine Learning workspace.
 func (client WorkspacesClient) Get(ctx context.Context, resourceGroupName string, workspaceName string) (result Workspace, err error) {
 	if tracing.IsEnabled() {
@@ -217,6 +324,15 @@ func (client WorkspacesClient) Get(ctx context.Context, resourceGroupName string
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspacesClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceGroupName, workspaceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "Get", nil, "Failure preparing request")
@@ -247,7 +363,7 @@ func (client WorkspacesClient) GetPreparer(ctx context.Context, resourceGroupNam
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -280,7 +396,7 @@ func (client WorkspacesClient) GetResponder(resp *http.Response) (result Workspa
 
 // ListByResourceGroup lists all the available machine learning workspaces under the specified resource group.
 // Parameters:
-// resourceGroupName - name of the resource group in which workspace is located.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // skip - continuation token for pagination.
 func (client WorkspacesClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, skip string) (result WorkspaceListResultPage, err error) {
 	if tracing.IsEnabled() {
@@ -293,6 +409,15 @@ func (client WorkspacesClient) ListByResourceGroup(ctx context.Context, resource
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspacesClient", "ListByResourceGroup", err.Error())
+	}
+
 	result.fn = client.listByResourceGroupNextResults
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName, skip)
 	if err != nil {
@@ -327,7 +452,7 @@ func (client WorkspacesClient) ListByResourceGroupPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -412,6 +537,12 @@ func (client WorkspacesClient) ListBySubscription(ctx context.Context, skip stri
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspacesClient", "ListBySubscription", err.Error())
+	}
+
 	result.fn = client.listBySubscriptionNextResults
 	req, err := client.ListBySubscriptionPreparer(ctx, skip)
 	if err != nil {
@@ -445,7 +576,7 @@ func (client WorkspacesClient) ListBySubscriptionPreparer(ctx context.Context, s
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -519,7 +650,7 @@ func (client WorkspacesClient) ListBySubscriptionComplete(ctx context.Context, s
 // ListKeys lists all the keys associated with this workspace. This includes keys for the storage account, app insights
 // and password for container registry
 // Parameters:
-// resourceGroupName - name of the resource group in which workspace is located.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - name of Azure Machine Learning workspace.
 func (client WorkspacesClient) ListKeys(ctx context.Context, resourceGroupName string, workspaceName string) (result ListWorkspaceKeysResult, err error) {
 	if tracing.IsEnabled() {
@@ -532,6 +663,15 @@ func (client WorkspacesClient) ListKeys(ctx context.Context, resourceGroupName s
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspacesClient", "ListKeys", err.Error())
+	}
+
 	req, err := client.ListKeysPreparer(ctx, resourceGroupName, workspaceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ListKeys", nil, "Failure preparing request")
@@ -562,7 +702,7 @@ func (client WorkspacesClient) ListKeysPreparer(ctx context.Context, resourceGro
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -595,7 +735,7 @@ func (client WorkspacesClient) ListKeysResponder(resp *http.Response) (result Li
 
 // ListNotebookAccessToken return notebook access token and refresh token
 // Parameters:
-// resourceGroupName - name of the resource group in which workspace is located.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - name of Azure Machine Learning workspace.
 func (client WorkspacesClient) ListNotebookAccessToken(ctx context.Context, resourceGroupName string, workspaceName string) (result NotebookAccessTokenResult, err error) {
 	if tracing.IsEnabled() {
@@ -608,6 +748,15 @@ func (client WorkspacesClient) ListNotebookAccessToken(ctx context.Context, reso
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspacesClient", "ListNotebookAccessToken", err.Error())
+	}
+
 	req, err := client.ListNotebookAccessTokenPreparer(ctx, resourceGroupName, workspaceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ListNotebookAccessToken", nil, "Failure preparing request")
@@ -638,7 +787,7 @@ func (client WorkspacesClient) ListNotebookAccessTokenPreparer(ctx context.Conte
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -669,10 +818,352 @@ func (client WorkspacesClient) ListNotebookAccessTokenResponder(resp *http.Respo
 	return
 }
 
+// ListNotebookKeys list keys of a notebook.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - name of Azure Machine Learning workspace.
+func (client WorkspacesClient) ListNotebookKeys(ctx context.Context, resourceGroupName string, workspaceName string) (result ListNotebookKeysResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.ListNotebookKeys")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspacesClient", "ListNotebookKeys", err.Error())
+	}
+
+	req, err := client.ListNotebookKeysPreparer(ctx, resourceGroupName, workspaceName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ListNotebookKeys", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListNotebookKeysSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ListNotebookKeys", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListNotebookKeysResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ListNotebookKeys", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ListNotebookKeysPreparer prepares the ListNotebookKeys request.
+func (client WorkspacesClient) ListNotebookKeysPreparer(ctx context.Context, resourceGroupName string, workspaceName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":     autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2021-07-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MachineLearningServices/workspaces/{workspaceName}/listNotebookKeys", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListNotebookKeysSender sends the ListNotebookKeys request. The method will close the
+// http.Response Body if it receives an error.
+func (client WorkspacesClient) ListNotebookKeysSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListNotebookKeysResponder handles the response to the ListNotebookKeys request. The method always
+// closes the http.Response Body.
+func (client WorkspacesClient) ListNotebookKeysResponder(resp *http.Response) (result ListNotebookKeysResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ListOutboundNetworkDependenciesEndpoints sends the list outbound network dependencies endpoints request.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - name of Azure Machine Learning workspace.
+func (client WorkspacesClient) ListOutboundNetworkDependenciesEndpoints(ctx context.Context, resourceGroupName string, workspaceName string) (result ExternalFQDNResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.ListOutboundNetworkDependenciesEndpoints")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspacesClient", "ListOutboundNetworkDependenciesEndpoints", err.Error())
+	}
+
+	req, err := client.ListOutboundNetworkDependenciesEndpointsPreparer(ctx, resourceGroupName, workspaceName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ListOutboundNetworkDependenciesEndpoints", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListOutboundNetworkDependenciesEndpointsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ListOutboundNetworkDependenciesEndpoints", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListOutboundNetworkDependenciesEndpointsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ListOutboundNetworkDependenciesEndpoints", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ListOutboundNetworkDependenciesEndpointsPreparer prepares the ListOutboundNetworkDependenciesEndpoints request.
+func (client WorkspacesClient) ListOutboundNetworkDependenciesEndpointsPreparer(ctx context.Context, resourceGroupName string, workspaceName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":     autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2021-07-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MachineLearningServices/workspaces/{workspaceName}/outboundNetworkDependenciesEndpoints", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListOutboundNetworkDependenciesEndpointsSender sends the ListOutboundNetworkDependenciesEndpoints request. The method will close the
+// http.Response Body if it receives an error.
+func (client WorkspacesClient) ListOutboundNetworkDependenciesEndpointsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListOutboundNetworkDependenciesEndpointsResponder handles the response to the ListOutboundNetworkDependenciesEndpoints request. The method always
+// closes the http.Response Body.
+func (client WorkspacesClient) ListOutboundNetworkDependenciesEndpointsResponder(resp *http.Response) (result ExternalFQDNResponse, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ListStorageAccountKeys list storage account keys of a workspace.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - name of Azure Machine Learning workspace.
+func (client WorkspacesClient) ListStorageAccountKeys(ctx context.Context, resourceGroupName string, workspaceName string) (result ListStorageAccountKeysResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.ListStorageAccountKeys")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspacesClient", "ListStorageAccountKeys", err.Error())
+	}
+
+	req, err := client.ListStorageAccountKeysPreparer(ctx, resourceGroupName, workspaceName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ListStorageAccountKeys", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListStorageAccountKeysSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ListStorageAccountKeys", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListStorageAccountKeysResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ListStorageAccountKeys", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// ListStorageAccountKeysPreparer prepares the ListStorageAccountKeys request.
+func (client WorkspacesClient) ListStorageAccountKeysPreparer(ctx context.Context, resourceGroupName string, workspaceName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":     autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2021-07-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MachineLearningServices/workspaces/{workspaceName}/listStorageAccountKeys", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListStorageAccountKeysSender sends the ListStorageAccountKeys request. The method will close the
+// http.Response Body if it receives an error.
+func (client WorkspacesClient) ListStorageAccountKeysSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListStorageAccountKeysResponder handles the response to the ListStorageAccountKeys request. The method always
+// closes the http.Response Body.
+func (client WorkspacesClient) ListStorageAccountKeysResponder(resp *http.Response) (result ListStorageAccountKeysResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// PrepareNotebook prepare a notebook.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - name of Azure Machine Learning workspace.
+func (client WorkspacesClient) PrepareNotebook(ctx context.Context, resourceGroupName string, workspaceName string) (result WorkspacesPrepareNotebookFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.PrepareNotebook")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspacesClient", "PrepareNotebook", err.Error())
+	}
+
+	req, err := client.PrepareNotebookPreparer(ctx, resourceGroupName, workspaceName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "PrepareNotebook", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.PrepareNotebookSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "PrepareNotebook", nil, "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// PrepareNotebookPreparer prepares the PrepareNotebook request.
+func (client WorkspacesClient) PrepareNotebookPreparer(ctx context.Context, resourceGroupName string, workspaceName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":     autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2021-07-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MachineLearningServices/workspaces/{workspaceName}/prepareNotebook", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// PrepareNotebookSender sends the PrepareNotebook request. The method will close the
+// http.Response Body if it receives an error.
+func (client WorkspacesClient) PrepareNotebookSender(req *http.Request) (future WorkspacesPrepareNotebookFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// PrepareNotebookResponder handles the response to the PrepareNotebook request. The method always
+// closes the http.Response Body.
+func (client WorkspacesClient) PrepareNotebookResponder(resp *http.Response) (result NotebookResourceInfo, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // ResyncKeys resync all the keys associated with this workspace. This includes keys for the storage account, app
 // insights and password for container registry
 // Parameters:
-// resourceGroupName - name of the resource group in which workspace is located.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - name of Azure Machine Learning workspace.
 func (client WorkspacesClient) ResyncKeys(ctx context.Context, resourceGroupName string, workspaceName string) (result WorkspacesResyncKeysFuture, err error) {
 	if tracing.IsEnabled() {
@@ -685,6 +1176,15 @@ func (client WorkspacesClient) ResyncKeys(ctx context.Context, resourceGroupName
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspacesClient", "ResyncKeys", err.Error())
+	}
+
 	req, err := client.ResyncKeysPreparer(ctx, resourceGroupName, workspaceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "ResyncKeys", nil, "Failure preparing request")
@@ -708,7 +1208,7 @@ func (client WorkspacesClient) ResyncKeysPreparer(ctx context.Context, resourceG
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -749,7 +1249,7 @@ func (client WorkspacesClient) ResyncKeysResponder(resp *http.Response) (result 
 
 // Update updates a machine learning workspace with the specified parameters.
 // Parameters:
-// resourceGroupName - name of the resource group in which workspace is located.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - name of Azure Machine Learning workspace.
 // parameters - the parameters for updating a machine learning workspace.
 func (client WorkspacesClient) Update(ctx context.Context, resourceGroupName string, workspaceName string, parameters WorkspaceUpdateParameters) (result Workspace, err error) {
@@ -763,6 +1263,15 @@ func (client WorkspacesClient) Update(ctx context.Context, resourceGroupName str
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspacesClient", "Update", err.Error())
+	}
+
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, workspaceName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "Update", nil, "Failure preparing request")
@@ -793,7 +1302,7 @@ func (client WorkspacesClient) UpdatePreparer(ctx context.Context, resourceGroup
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

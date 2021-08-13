@@ -33,9 +33,102 @@ func NewPrivateEndpointConnectionsClientWithBaseURI(baseURI string, subscription
 	return PrivateEndpointConnectionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// CreateOrUpdate update the state of specified private endpoint connection associated with the workspace.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - name of Azure Machine Learning workspace.
+// privateEndpointConnectionName - the name of the private endpoint connection associated with the workspace
+// properties - the private endpoint connection properties.
+func (client PrivateEndpointConnectionsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, workspaceName string, privateEndpointConnectionName string, properties PrivateEndpointConnection) (result PrivateEndpointConnection, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionsClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: properties,
+			Constraints: []validation.Constraint{{Target: "properties.PrivateEndpointConnectionProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "properties.PrivateEndpointConnectionProperties.PrivateLinkServiceConnectionState", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.PrivateEndpointConnectionsClient", "CreateOrUpdate", err.Error())
+	}
+
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, workspaceName, privateEndpointConnectionName, properties)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateEndpointConnectionsClient", "CreateOrUpdate", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.CreateOrUpdateSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateEndpointConnectionsClient", "CreateOrUpdate", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.CreateOrUpdateResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateEndpointConnectionsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// CreateOrUpdatePreparer prepares the CreateOrUpdate request.
+func (client PrivateEndpointConnectionsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, workspaceName string, privateEndpointConnectionName string, properties PrivateEndpointConnection) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),
+		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
+		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":                 autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2021-07-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPut(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MachineLearningServices/workspaces/{workspaceName}/privateEndpointConnections/{privateEndpointConnectionName}", pathParameters),
+		autorest.WithJSON(properties),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
+// http.Response Body if it receives an error.
+func (client PrivateEndpointConnectionsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
+// closes the http.Response Body.
+func (client PrivateEndpointConnectionsClient) CreateOrUpdateResponder(resp *http.Response) (result PrivateEndpointConnection, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // Delete deletes the specified private endpoint connection associated with the workspace.
 // Parameters:
-// resourceGroupName - name of the resource group in which workspace is located.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - name of Azure Machine Learning workspace.
 // privateEndpointConnectionName - the name of the private endpoint connection associated with the workspace
 func (client PrivateEndpointConnectionsClient) Delete(ctx context.Context, resourceGroupName string, workspaceName string, privateEndpointConnectionName string) (result autorest.Response, err error) {
@@ -49,6 +142,15 @@ func (client PrivateEndpointConnectionsClient) Delete(ctx context.Context, resou
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.PrivateEndpointConnectionsClient", "Delete", err.Error())
+	}
+
 	req, err := client.DeletePreparer(ctx, resourceGroupName, workspaceName, privateEndpointConnectionName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateEndpointConnectionsClient", "Delete", nil, "Failure preparing request")
@@ -80,7 +182,7 @@ func (client PrivateEndpointConnectionsClient) DeletePreparer(ctx context.Contex
 		"workspaceName":                 autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -112,7 +214,7 @@ func (client PrivateEndpointConnectionsClient) DeleteResponder(resp *http.Respon
 
 // Get gets the specified private endpoint connection associated with the workspace.
 // Parameters:
-// resourceGroupName - name of the resource group in which workspace is located.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - name of Azure Machine Learning workspace.
 // privateEndpointConnectionName - the name of the private endpoint connection associated with the workspace
 func (client PrivateEndpointConnectionsClient) Get(ctx context.Context, resourceGroupName string, workspaceName string, privateEndpointConnectionName string) (result PrivateEndpointConnection, err error) {
@@ -126,6 +228,15 @@ func (client PrivateEndpointConnectionsClient) Get(ctx context.Context, resource
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.PrivateEndpointConnectionsClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceGroupName, workspaceName, privateEndpointConnectionName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateEndpointConnectionsClient", "Get", nil, "Failure preparing request")
@@ -157,7 +268,7 @@ func (client PrivateEndpointConnectionsClient) GetPreparer(ctx context.Context, 
 		"workspaceName":                 autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -188,15 +299,13 @@ func (client PrivateEndpointConnectionsClient) GetResponder(resp *http.Response)
 	return
 }
 
-// Put update the state of specified private endpoint connection associated with the workspace.
+// List list all the private endpoint connections associated with the workspace.
 // Parameters:
-// resourceGroupName - name of the resource group in which workspace is located.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - name of Azure Machine Learning workspace.
-// privateEndpointConnectionName - the name of the private endpoint connection associated with the workspace
-// properties - the private endpoint connection properties.
-func (client PrivateEndpointConnectionsClient) Put(ctx context.Context, resourceGroupName string, workspaceName string, privateEndpointConnectionName string, properties PrivateEndpointConnection) (result PrivateEndpointConnection, err error) {
+func (client PrivateEndpointConnectionsClient) List(ctx context.Context, resourceGroupName string, workspaceName string) (result PrivateEndpointConnectionListResult, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionsClient.Put")
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionsClient.List")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -206,67 +315,66 @@ func (client PrivateEndpointConnectionsClient) Put(ctx context.Context, resource
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: properties,
-			Constraints: []validation.Constraint{{Target: "properties.PrivateEndpointConnectionProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "properties.PrivateEndpointConnectionProperties.PrivateLinkServiceConnectionState", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewError("machinelearningservices.PrivateEndpointConnectionsClient", "Put", err.Error())
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.PrivateEndpointConnectionsClient", "List", err.Error())
 	}
 
-	req, err := client.PutPreparer(ctx, resourceGroupName, workspaceName, privateEndpointConnectionName, properties)
+	req, err := client.ListPreparer(ctx, resourceGroupName, workspaceName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateEndpointConnectionsClient", "Put", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateEndpointConnectionsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.PutSender(req)
+	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateEndpointConnectionsClient", "Put", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateEndpointConnectionsClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.PutResponder(resp)
+	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateEndpointConnectionsClient", "Put", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateEndpointConnectionsClient", "List", resp, "Failure responding to request")
 		return
 	}
 
 	return
 }
 
-// PutPreparer prepares the Put request.
-func (client PrivateEndpointConnectionsClient) PutPreparer(ctx context.Context, resourceGroupName string, workspaceName string, privateEndpointConnectionName string, properties PrivateEndpointConnection) (*http.Request, error) {
+// ListPreparer prepares the List request.
+func (client PrivateEndpointConnectionsClient) ListPreparer(ctx context.Context, resourceGroupName string, workspaceName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),
-		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
-		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
-		"workspaceName":                 autorest.Encode("path", workspaceName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsPut(),
+		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MachineLearningServices/workspaces/{workspaceName}/privateEndpointConnections/{privateEndpointConnectionName}", pathParameters),
-		autorest.WithJSON(properties),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.MachineLearningServices/workspaces/{workspaceName}/privateEndpointConnections", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// PutSender sends the Put request. The method will close the
+// ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client PrivateEndpointConnectionsClient) PutSender(req *http.Request) (*http.Response, error) {
+func (client PrivateEndpointConnectionsClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
-// PutResponder handles the response to the Put request. The method always
+// ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client PrivateEndpointConnectionsClient) PutResponder(resp *http.Response) (result PrivateEndpointConnection, err error) {
+func (client PrivateEndpointConnectionsClient) ListResponder(resp *http.Response) (result PrivateEndpointConnectionListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

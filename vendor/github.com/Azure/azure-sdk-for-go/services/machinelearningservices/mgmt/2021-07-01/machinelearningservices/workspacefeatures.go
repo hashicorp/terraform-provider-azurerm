@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -33,7 +34,7 @@ func NewWorkspaceFeaturesClientWithBaseURI(baseURI string, subscriptionID string
 
 // List lists all enabled features for a workspace
 // Parameters:
-// resourceGroupName - name of the resource group in which workspace is located.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - name of Azure Machine Learning workspace.
 func (client WorkspaceFeaturesClient) List(ctx context.Context, resourceGroupName string, workspaceName string) (result ListAmlUserFeatureResultPage, err error) {
 	if tracing.IsEnabled() {
@@ -46,6 +47,15 @@ func (client WorkspaceFeaturesClient) List(ctx context.Context, resourceGroupNam
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspaceFeaturesClient", "List", err.Error())
+	}
+
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, resourceGroupName, workspaceName)
 	if err != nil {
@@ -81,7 +91,7 @@ func (client WorkspaceFeaturesClient) ListPreparer(ctx context.Context, resource
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
