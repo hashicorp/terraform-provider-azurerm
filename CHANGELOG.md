@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * Dependencies: upgrade `github.com/Azure/azure-sdk-for-go` to `v56.2.0` [GH-12969]
 * Dependencies: updating `frontdoor` to use API version `2020-05-01` [GH-12831]
 * Dependencies: updating `web` to use API version `2021-02-01` [GH-12970]
+* Dependencies: updating `kusto` to use API version `2021-01-01` [GH-12967]
 * eventhub: updating to use the latest embedded SDK [GH-12946]
 
 
