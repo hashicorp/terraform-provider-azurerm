@@ -108,7 +108,7 @@ func (c ConfigurationStoresClient) preparerForListKeys(ctx context.Context, id C
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsGet(),
+		autorest.AsPost(),
 		autorest.WithBaseURL(c.baseUri),
 		autorest.WithPath(fmt.Sprintf("%s/ListKeys", id.ID())),
 		autorest.WithQueryParameters(queryParameters))
@@ -133,7 +133,7 @@ func (c ConfigurationStoresClient) preparerForListKeysWithNextLink(ctx context.C
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsGet(),
+		autorest.AsPost(),
 		autorest.WithBaseURL(c.baseUri),
 		autorest.WithPath(uri.Path),
 		autorest.WithQueryParameters(queryParameters))
