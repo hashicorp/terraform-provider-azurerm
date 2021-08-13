@@ -299,6 +299,7 @@ func TestAccMySqlFlexibleServer_replica(t *testing.T) {
 				check.That("azurerm_mysql_flexible_server.replica").Key("fqdn").Exists(),
 				check.That("azurerm_mysql_flexible_server.replica").Key("public_network_access_enabled").Exists(),
 				check.That("azurerm_mysql_flexible_server.replica").Key("replica_capacity").Exists(),
+				check.That("azurerm_mysql_flexible_server.replica").Key("replication_role").HasValue("Replica"),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
@@ -697,6 +698,22 @@ resource "azurerm_mysql_flexible_server" "replica" {
 `, r.basic(data), data.RandomInteger)
 }
 
+func (r MySqlFlexibleServerResource) geoRestoreSource(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_flexible_server" "test" {
+  name                         = "acctest-fs-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "adminTerraform"
+  administrator_password       = "QAZwsx123"
+  sku_name                     = "B_Standard_B1s"
+  geo_redundant_backup_enabled = true
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r MySqlFlexibleServerResource) geoRestore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -708,5 +725,5 @@ resource "azurerm_mysql_flexible_server" "geo_restore" {
   create_mode         = "GeoRestore"
   source_server_id    = azurerm_mysql_flexible_server.test.id
 }
-`, r.basic(data), data.RandomInteger)
+`, r.geoRestoreSource(data), data.RandomInteger)
 }

@@ -49,9 +49,10 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.FlexibleServerName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -272,24 +273,22 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		return tf.ImportAsExistsError("azurerm_mysql_flexible_server", id.ID())
 	}
 
-	createMode := d.Get("create_mode").(string)
+	createMode := mysqlflexibleservers.CreateMode(d.Get("create_mode").(string))
 
-	if mysqlflexibleservers.CreateMode(createMode) == mysqlflexibleservers.CreateModePointInTimeRestore {
-		if _, ok := d.GetOk("source_server_id"); !ok {
-			return fmt.Errorf("`source_server_id` is required when `create_mode` is `PointInTimeRestore`")
+	if _, ok := d.GetOk("source_server_id"); !ok {
+		if createMode == mysqlflexibleservers.CreateModePointInTimeRestore || createMode == mysqlflexibleservers.CreateModeReplica || createMode == mysqlflexibleservers.CreateModeGeoRestore {
+			return fmt.Errorf("`source_server_id` is required when `create_mode` is `PointInTimeRestore`, `GeoRestore`, or `Replica`")
 		}
+
+	}
+
+	if createMode == mysqlflexibleservers.CreateModePointInTimeRestore {
 		if _, ok := d.GetOk("point_in_time_restore_time_in_utc"); !ok {
 			return fmt.Errorf("`point_in_time_restore_time_in_utc` is required when `create_mode` is `PointInTimeRestore`")
 		}
 	}
 
-	if mysqlflexibleservers.CreateMode(createMode) == mysqlflexibleservers.CreateModeReplica {
-		if _, ok := d.GetOk("source_server_id"); !ok {
-			return fmt.Errorf("`source_server_id` is required when `create_mode` is `Replica`")
-		}
-	}
-
-	if createMode == "" || mysqlflexibleservers.CreateMode(createMode) == mysqlflexibleservers.CreateModeDefault {
+	if createMode == "" || createMode == mysqlflexibleservers.CreateModeDefault {
 		if _, ok := d.GetOk("administrator_login"); !ok {
 			return fmt.Errorf("`administrator_login` is required when `create_mode` is `Default`")
 		}
@@ -309,7 +308,7 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 	parameters := mysqlflexibleservers.Server{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		ServerProperties: &mysqlflexibleservers.ServerProperties{
-			CreateMode:       mysqlflexibleservers.CreateMode(d.Get("create_mode").(string)),
+			CreateMode:       createMode,
 			Version:          mysqlflexibleservers.ServerVersion(d.Get("version").(string)),
 			Storage:          expandArmServerStorage(d.Get("storage").([]interface{})),
 			Network:          expandArmServerNetwork(d),
