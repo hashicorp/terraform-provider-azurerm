@@ -47,13 +47,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Logic App Integration Account Session should exist. Changing this forces a new Logic App Integration Account Session to be created.
 
-* `location` - (Required) The Azure Region where the Logic App Integration Account Session should exist. Changing this forces a new Logic App Integration Account Session to be created.
-
 * `integration_account_name` - (Required) The name of the Logic App Integration Account. Changing this forces a new Logic App Integration Account Session to be created.
 
 * `content` - (Optional) The content of the Logic App Integration Account Session.
-
-* `tags` - (Optional) A mapping of tags which should be assigned to the Logic App Integration Account Session.
 
 ## Attributes Reference
 
