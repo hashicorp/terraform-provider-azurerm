@@ -57,19 +57,6 @@ func (o ListByNamespaceOptions) toQueryString() map[string]interface{} {
 	return out
 }
 
-type EventhubPredicate struct {
-	// TODO: implement me
-}
-
-func (p EventhubPredicate) Matches(input Eventhub) bool {
-	// TODO: implement me
-	// if p.Name != nil && input.Name != *p.Name {
-	// 	return false
-	// }
-
-	return true
-}
-
 // ListByNamespace ...
 func (c EventHubsClient) ListByNamespace(ctx context.Context, id NamespaceId, options ListByNamespaceOptions) (resp ListByNamespaceResponse, err error) {
 	req, err := c.preparerForListByNamespace(ctx, id, options)
@@ -92,7 +79,7 @@ func (c EventHubsClient) ListByNamespace(ctx context.Context, id NamespaceId, op
 	return
 }
 
-// ListByNamespaceCompleteMatchingPredicate retrieves all of the results into a single object
+// ListByNamespaceComplete retrieves all of the results into a single object
 func (c EventHubsClient) ListByNamespaceComplete(ctx context.Context, id NamespaceId, options ListByNamespaceOptions) (ListByNamespaceCompleteResult, error) {
 	return c.ListByNamespaceCompleteMatchingPredicate(ctx, id, options, EventhubPredicate{})
 }

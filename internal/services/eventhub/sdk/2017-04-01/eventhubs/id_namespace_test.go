@@ -16,7 +16,7 @@ func TestNamespaceIDFormatter(t *testing.T) {
 	}
 }
 
-func TestNamespaceID(t *testing.T) {
+func TestParseNamespaceID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -85,7 +85,7 @@ func TestNamespaceID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := NamespaceID(v.Input)
+		actual, err := ParseNamespaceID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -109,7 +109,7 @@ func TestNamespaceID(t *testing.T) {
 	}
 }
 
-func TestNamespaceIDInsensitively(t *testing.T) {
+func TestParseNamespaceIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -202,7 +202,7 @@ func TestNamespaceIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := NamespaceIDInsensitively(v.Input)
+		actual, err := ParseNamespaceIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

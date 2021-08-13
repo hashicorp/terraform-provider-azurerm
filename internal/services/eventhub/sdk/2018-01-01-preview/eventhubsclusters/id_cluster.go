@@ -35,8 +35,8 @@ func (id ClusterId) ID() string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
-// ClusterID parses a Cluster ID into an ClusterId struct
-func ClusterID(input string) (*ClusterId, error) {
+// ParseClusterID parses a Cluster ID into an ClusterId struct
+func ParseClusterID(input string) (*ClusterId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
@@ -66,10 +66,10 @@ func ClusterID(input string) (*ClusterId, error) {
 	return &resourceId, nil
 }
 
-// ClusterIDInsensitively parses an Cluster ID into an ClusterId struct, insensitively
+// ParseClusterIDInsensitively parses an Cluster ID into an ClusterId struct, insensitively
 // This should only be used to parse an ID for rewriting to a consistent casing,
-// the ClusterID method should be used instead for validation etc.
-func ClusterIDInsensitively(input string) (*ClusterId, error) {
+// the ParseClusterID method should be used instead for validation etc.
+func ParseClusterIDInsensitively(input string) (*ClusterId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err

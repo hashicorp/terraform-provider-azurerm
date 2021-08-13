@@ -16,7 +16,7 @@ func TestDisasterRecoveryConfigIDFormatter(t *testing.T) {
 	}
 }
 
-func TestDisasterRecoveryConfigID(t *testing.T) {
+func TestParseDisasterRecoveryConfigID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -98,7 +98,7 @@ func TestDisasterRecoveryConfigID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := DisasterRecoveryConfigID(v.Input)
+		actual, err := ParseDisasterRecoveryConfigID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -125,7 +125,7 @@ func TestDisasterRecoveryConfigID(t *testing.T) {
 	}
 }
 
-func TestDisasterRecoveryConfigIDInsensitively(t *testing.T) {
+func TestParseDisasterRecoveryConfigIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -234,7 +234,7 @@ func TestDisasterRecoveryConfigIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := DisasterRecoveryConfigIDInsensitively(v.Input)
+		actual, err := ParseDisasterRecoveryConfigIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
