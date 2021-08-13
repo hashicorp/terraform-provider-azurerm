@@ -320,10 +320,6 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if parameters.ServerProperties.Storage.AutoGrow == mysqlflexibleservers.EnableStatusEnumDisabled && parameters.ServerProperties.HighAvailability.Mode != mysqlflexibleservers.HighAvailabilityModeDisabled {
-		return fmt.Errorf("`storage.0.auto_grow_enabled` must be `true` when `high_availability` is enabled ")
-	}
-
 	if v, ok := d.GetOk("administrator_login"); ok && v.(string) != "" {
 		parameters.ServerProperties.AdministratorLogin = utils.String(v.(string))
 	}
