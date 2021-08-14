@@ -130,379 +130,72 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 	}
 }
 
-func FlattenOrchestratedVirtualMachineScaleSetOSProfile(input *compute.VirtualMachineScaleSetOSProfile) ([]interface{}, error) {
-	if input == nil {
-		return []interface{}{}, nil
+func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
+		Optional: true,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"publisher": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"type": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"type_handler_version": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"auto_upgrade_minor_version": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
+
+				"force_update_tag": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+
+				"protected_settings": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsJSON,
+				},
+
+				"provision_after_extensions": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"settings": {
+					Type:             pluginsdk.TypeString,
+					Optional:         true,
+					ValidateFunc:     validation.StringIsJSON,
+					DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+				},
+			},
+		},
 	}
-
-	result := make(map[string]interface{})
-
-	if v := input.CustomData; v != nil {
-		result["custom_data"] = *v
-	}
-
-	if winConfig := input.WindowsConfiguration; winConfig != nil {
-		result["windows_configuration"] = flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input)
-	}
-
-	if linConfig := input.LinuxConfiguration; linConfig != nil {
-		result["linux_configuration"] = flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input)
-	}
-
-	return []interface{}{}, nil
-}
-
-func validateAdminUsernameWindows(input interface{}, key string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
-	}
-
-	// **Disallowed values:**
-	invalidUserNames := []string{
-		" ", "administrator", "admin", "user", "user1", "test", "user2", "test1", "user3", "admin1", "1", "123", "a",
-		"actuser", "adm", "admin2", "aspnet", "backup", "console", "david", "guest", "john", "owner", "root", "server",
-		"sql", "support", "support_388945a0", "sys", "test2", "test3", "user4", "user5",
-	}
-
-	for _, str := range invalidUserNames {
-		if strings.EqualFold(v, str) {
-			errors = append(errors, fmt.Errorf("%q can not be one of %v, got %q", key, invalidUserNames, v))
-			return warnings, errors
-		}
-	}
-
-	// Cannot end in "."
-	if strings.HasSuffix(input.(string), ".") {
-		errors = append(errors, fmt.Errorf("%q can not end with a '.', got %q", key, v))
-		return warnings, errors
-	}
-
-	if len(v) < 1 || len(v) > 20 {
-		errors = append(errors, fmt.Errorf("%q must be between 1 and 20 characters in length, got %q(%d characters)", key, v, len(v)))
-		return warnings, errors
-	}
-
-	return
-}
-
-func validateAdminUsernameLinux(input interface{}, key string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
-	}
-
-	// **Disallowed values:**
-	invalidUserNames := []string{
-		" ", "abrt", "adm", "admin", "audio", "backup", "bin", "cdrom", "cgred", "console", "crontab", "daemon", "dbus", "dialout", "dip",
-		"disk", "fax", "floppy", "ftp", "fuse", "games", "gnats", "gopher", "haldaemon", "halt", "irc", "kmem", "landscape", "libuuid", "list",
-		"lock", "lp", "mail", "maildrop", "man", "mem", "messagebus", "mlocate", "modem", "netdev", "news", "nfsnobody", "nobody", "nogroup",
-		"ntp", "operator", "oprofile", "plugdev", "polkituser", "postdrop", "postfix", "proxy", "public", "qpidd", "root", "rpc", "rpcuser",
-		"sasl", "saslauth", "shadow", "shutdown", "slocate", "src", "ssh", "sshd", "staff", "stapdev", "stapusr", "sudo", "sync", "sys", "syslog",
-		"tape", "tcpdump", "test", "trusted", "tty", "users", "utempter", "utmp", "uucp", "uuidd", "vcsa", "video", "voice", "wheel", "whoopsie",
-		"www", "www-data", "wwwrun", "xok",
-	}
-
-	for _, str := range invalidUserNames {
-		if strings.EqualFold(v, str) {
-			errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, azure.QuotedStringSlice(invalidUserNames), v))
-			return warnings, errors
-		}
-	}
-
-	if len(v) < 1 || len(v) > 64 {
-		errors = append(errors, fmt.Errorf("%q must be between 1 and 64 characters in length, got %q(%d characters)", key, v, len(v)))
-		return warnings, errors
-	}
-
-	return
-}
-
-func validatePasswordComplexityWindows(input interface{}, key string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return warnings, errors
-	}
-
-	complexityMatch := 0
-	re := regexp.MustCompile(`[a-z]{1,}`)
-	if re != nil && re.MatchString(v) {
-		complexityMatch++
-	}
-
-	re = regexp.MustCompile(`[A-Z]{1,}`)
-	if re != nil && re.MatchString(v) {
-		complexityMatch++
-	}
-
-	re = regexp.MustCompile(`[0-9]{1,}`)
-	if re != nil && re.MatchString(v) {
-		complexityMatch++
-	}
-
-	re = regexp.MustCompile(`[\W_]{1,}`)
-	if re != nil && re.MatchString(v) {
-		complexityMatch++
-	}
-
-	if complexityMatch < 3 {
-		errors = append(errors, fmt.Errorf("%q did not meet minimum password complexity requirements. A password must contain at least 3 of the 4 following conditions: a lower case character, a upper case character, a digit and/or a special character. Got %q", key, v))
-		return warnings, errors
-	}
-
-	if len(v) < 8 || len(v) > 123 {
-		errors = append(errors, fmt.Errorf("%q must be at least 8 characters long and shorter than 123 characters long. Got %q(%d characters)", key, v, len(v)))
-		return warnings, errors
-	}
-
-	// NOTE: I realize that some of these will not pass the above complexity checks, but they are in the API so I am checking
-	// the same values that the API is...
-	disallowedValues := []string{
-		"abc@123", "P@$$w0rd", "P@ssw0rd", "P@ssword123", "Pa$$word", "pass@word1", "Password!", "Password1", "Password22", "iloveyou!",
-	}
-
-	for _, str := range disallowedValues {
-		if v == str {
-			errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, azure.QuotedStringSlice(disallowedValues), v))
-			return warnings, errors
-		}
-	}
-
-	return warnings, errors
-}
-
-func validatePasswordComplexityLinux(input interface{}, key string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return warnings, errors
-	}
-
-	complexityMatch := 0
-	re := regexp.MustCompile(`[a-z]{1,}`)
-	if re != nil && re.MatchString(v) {
-		complexityMatch++
-	}
-
-	re = regexp.MustCompile(`[A-Z]{1,}`)
-	if re != nil && re.MatchString(v) {
-		complexityMatch++
-	}
-
-	re = regexp.MustCompile(`[0-9]{1,}`)
-	if re != nil && re.MatchString(v) {
-		complexityMatch++
-	}
-
-	re = regexp.MustCompile(`[\W_]{1,}`)
-	if re != nil && re.MatchString(v) {
-		complexityMatch++
-	}
-
-	if complexityMatch < 3 {
-		errors = append(errors, fmt.Errorf("%q did not meet minimum password complexity requirements. A password must contain at least 3 of the 4 following conditions: a lower case character, a upper case character, a digit and/or a special character. Got %q", key, v))
-		return warnings, errors
-	}
-
-	if len(v) < 6 || len(v) > 72 {
-		errors = append(errors, fmt.Errorf("%q must be at least 6 characters long and shorter than 72 characters long. Got %q(%d characters)", key, v, len(v)))
-		return warnings, errors
-	}
-
-	// NOTE: I realize that some of these will not pass the above complexity checks, but they are in the API so I am checking
-	// the same values that the API is...
-	disallowedValues := []string{
-		"abc@123", "P@$$w0rd", "P@ssw0rd", "P@ssword123", "Pa$$word", "pass@word1", "Password!", "Password1", "Password22", "iloveyou!",
-	}
-
-	for _, str := range disallowedValues {
-		if v == str {
-			errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, azure.QuotedStringSlice(disallowedValues), v))
-			return warnings, errors
-		}
-	}
-
-	return warnings, errors
-}
-
-func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(input map[string]interface{}) *compute.VirtualMachineScaleSetOSProfile {
-	osProfile := compute.VirtualMachineScaleSetOSProfile{}
-	winConfig := compute.WindowsConfiguration{}
-
-	if len(input) > 0 {
-		osProfile.AdminUsername = utils.String(input["admin_username"].(string))
-		osProfile.AdminPassword = utils.String(input["admin_password"].(string))
-		osProfile.ComputerNamePrefix = utils.String(input["computer_name_prefix"].(string))
-		osProfile.Secrets = expandWindowsSecrets(input["secret"].([]interface{}))
-
-		winConfig.AdditionalUnattendContent = expandWindowsConfigurationAdditionalUnattendContent(input["additional_unattend_content"].([]interface{}))
-		winConfig.EnableAutomaticUpdates = utils.Bool(input["enable_automatic_updates"].(bool))
-		winConfig.ProvisionVMAgent = utils.Bool(input["provision_vm_agent"].(bool))
-		winConfig.TimeZone = utils.String(input["timezone"].(string))
-		winConfig.WinRM = expandWinRMListener(input["winrm_listener"].([]interface{}))
-	}
-
-	osProfile.WindowsConfiguration = &winConfig
-
-	return &osProfile
-}
-
-func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(input map[string]interface{}) *compute.VirtualMachineScaleSetOSProfile {
-	osProfile := compute.VirtualMachineScaleSetOSProfile{}
-	linConfig := compute.LinuxConfiguration{}
-
-	if len(input) > 0 {
-		osProfile.AdminUsername = utils.String(input["admin_username"].(string))
-
-		if input["admin_password"].(string) != "" {
-			osProfile.AdminPassword = utils.String(input["admin_password"].(string))
-		}
-
-		osProfile.ComputerNamePrefix = utils.String(input["computer_name_prefix"].(string))
-		osProfile.Secrets = expandLinuxSecrets(input["secret"].([]interface{}))
-
-		sshPublicKeys := ExpandSSHKeys(input["admin_ssh_key"].([]interface{}))
-		linConfig.SSH.PublicKeys = &sshPublicKeys
-
-		linConfig.DisablePasswordAuthentication = utils.Bool(input["disable_password_authentication"].(bool))
-		linConfig.ProvisionVMAgent = utils.Bool(input["provision_vm_agent"].(bool))
-	}
-
-	osProfile.LinuxConfiguration = &linConfig
-
-	return &osProfile
-}
-
-func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *compute.VirtualMachineScaleSetOSProfile) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	output := make(map[string]interface{})
-	winConfig := input.WindowsConfiguration
-
-	if v := input.AdminUsername; v != nil {
-		output["admin_username"] = *v
-	}
-
-	if v := input.AdminPassword; v != nil {
-		output["admin_password"] = *v
-	}
-
-	if v := input.ComputerNamePrefix; v != nil {
-		output["computer_name_prefix"] = *v
-	}
-
-	if v := winConfig.AdditionalUnattendContent; v != nil {
-		output["additional_unattend_content"] = flattenWindowsConfigurationAdditionalUnattendContent(winConfig)
-	}
-
-	if v := winConfig.EnableAutomaticUpdates; v != nil {
-		output["enable_automatic_updates"] = *v
-	}
-
-	if v := winConfig.ProvisionVMAgent; v != nil {
-		output["provision_vm_agent"] = *v
-	}
-
-	if v := input.Secrets; v != nil {
-		output["secret"] = flattenWindowsSecrets(v)
-	}
-
-	if v := winConfig.WinRM; v != nil {
-		output["winrm_listener"] = flattenWinRMListener(winConfig.WinRM)
-	}
-
-	if v := winConfig.TimeZone; v != nil {
-		output["timezone"] = v
-	}
-
-	if v := winConfig.PatchSettings; v != nil {
-		output["winrm_listener"] = flattenWinRMListener(winConfig.WinRM)
-	}
-
-	return []interface{}{output}
-}
-
-func flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input *compute.VirtualMachineScaleSetOSProfile) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	output := make(map[string]interface{})
-	linConfig := input.LinuxConfiguration
-
-	if v := input.AdminUsername; v != nil {
-		output["admin_username"] = *v
-	}
-
-	if v := input.AdminPassword; v != nil {
-		output["admin_password"] = *v
-	}
-
-	if v := linConfig.SSH; v != nil {
-		if sshKeys, _ := FlattenSSHKeys(v); sshKeys != nil {
-			output["admin_ssh_key"] = sshKeys
-		}
-	}
-
-	if v := input.ComputerNamePrefix; v != nil {
-		output["computer_name_prefix"] = *v
-	}
-
-	if v := linConfig.DisablePasswordAuthentication; v != nil {
-		output["disable_password_authentication"] = *v
-	}
-
-	if v := linConfig.ProvisionVMAgent; v != nil {
-		output["provision_vm_agent"] = *v
-	}
-
-	if v := input.Secrets; v != nil {
-		output["secret"] = flattenLinuxSecrets(v)
-	}
-
-	return []interface{}{output}
-}
-
-func expandWindowsConfigurationAdditionalUnattendContent(input []interface{}) *[]compute.AdditionalUnattendContent {
-	output := make([]compute.AdditionalUnattendContent, 0)
-
-	for _, v := range input {
-		raw := v.(map[string]interface{})
-
-		output = append(output, compute.AdditionalUnattendContent{
-			SettingName: compute.SettingNames(raw["setting"].(string)),
-			Content:     utils.String(raw["content"].(string)),
-
-			// no other possible values
-			PassName:      compute.OobeSystem,
-			ComponentName: compute.MicrosoftWindowsShellSetup,
-		})
-	}
-
-	return &output
-}
-
-func flattenWindowsConfigurationAdditionalUnattendContent(input *compute.WindowsConfiguration) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	output := make([]interface{}, 0)
-	for _, v := range *input.AdditionalUnattendContent {
-		// content isn't returned by the API since it's sensitive data so we need to look it up later
-		// where we can pull it out of the state file.
-		output = append(output, map[string]interface{}{
-			"content": "",
-			"setting": string(v.SettingName),
-		})
-	}
-
-	return output
 }
 
 func OrchestratedVirtualMachineScaleSetIdentitySchema() *pluginsdk.Schema {
@@ -537,67 +230,6 @@ func OrchestratedVirtualMachineScaleSetIdentitySchema() *pluginsdk.Schema {
 			},
 		},
 	}
-}
-
-func ExpandOrchestratedVirtualMachineScaleSetIdentity(input []interface{}) (*compute.VirtualMachineScaleSetIdentity, error) {
-	if len(input) == 0 {
-		// TODO: Does this want to be this, or nil?
-		return &compute.VirtualMachineScaleSetIdentity{
-			Type: compute.ResourceIdentityTypeNone,
-		}, nil
-	}
-
-	raw := input[0].(map[string]interface{})
-
-	identity := compute.VirtualMachineScaleSetIdentity{
-		Type: compute.ResourceIdentityType(raw["type"].(string)),
-	}
-
-	identityIdsRaw := raw["identity_ids"].(*pluginsdk.Set).List()
-	identityIds := make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue)
-	for _, v := range identityIdsRaw {
-		identityIds[v.(string)] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{}
-	}
-
-	if len(identityIds) > 0 {
-		if identity.Type != compute.ResourceIdentityTypeUserAssigned && identity.Type != compute.ResourceIdentityTypeSystemAssignedUserAssigned {
-			return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`")
-		}
-
-		identity.UserAssignedIdentities = identityIds
-	}
-
-	return &identity, nil
-}
-
-func FlattenOrchestratedVirtualMachineScaleSetIdentity(input *compute.VirtualMachineScaleSetIdentity) ([]interface{}, error) {
-	if input == nil || input.Type == compute.ResourceIdentityTypeNone {
-		return []interface{}{}, nil
-	}
-
-	identityIds := make([]string, 0)
-	if input.UserAssignedIdentities != nil {
-		for key := range input.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
-		}
-	}
-
-	principalId := ""
-	if input.PrincipalID != nil {
-		principalId = *input.PrincipalID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(input.Type),
-			"identity_ids": identityIds,
-			"principal_id": principalId,
-		},
-	}, nil
 }
 
 func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
@@ -870,6 +502,500 @@ func orchestratedVirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema
 	}
 }
 
+func computerPrefixWindowsSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeString,
+		Optional: true,
+
+		// Computed since we reuse the VM name if one's not specified
+		Computed:     true,
+		ForceNew:     true,
+		ValidateFunc: validate.WindowsComputerNamePrefix,
+	}
+}
+
+func computerPrefixLinuxSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeString,
+		Optional: true,
+
+		// Computed since we reuse the VM name if one's not specified
+		Computed:     true,
+		ForceNew:     true,
+		ValidateFunc: validate.LinuxComputerNamePrefix,
+	}
+}
+
+func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		// TODO: does this want to be a Set?
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"caching": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.CachingTypesNone),
+						string(compute.CachingTypesReadOnly),
+						string(compute.CachingTypesReadWrite),
+					}, false),
+				},
+
+				"create_option": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.DiskCreateOptionTypesEmpty),
+						string(compute.DiskCreateOptionTypesFromImage),
+					}, false),
+					Default: string(compute.DiskCreateOptionTypesEmpty),
+				},
+
+				"disk_encryption_set_id": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					// whilst the API allows updating this value, it's never actually set at Azure's end
+					// presumably this'll take effect once key rotation is supported a few months post-GA?
+					// however for now let's make this ForceNew since it can't be (successfully) updated
+					ForceNew:     true,
+					ValidateFunc: validate.DiskEncryptionSetID,
+				},
+
+				"disk_size_gb": {
+					Type:         pluginsdk.TypeInt,
+					Required:     true,
+					ValidateFunc: validation.IntBetween(1, 32767),
+				},
+
+				"lun": {
+					Type:         pluginsdk.TypeInt,
+					Required:     true,
+					ValidateFunc: validation.IntBetween(0, 2000), // TODO: confirm upper bounds
+				},
+
+				"storage_account_type": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.StorageAccountTypesPremiumLRS),
+						string(compute.StorageAccountTypesStandardLRS),
+						string(compute.StorageAccountTypesStandardSSDLRS),
+						string(compute.StorageAccountTypesUltraSSDLRS),
+					}, false),
+				},
+
+				"write_accelerator_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				// TODO 3.0 - change this to ultra_ssd_disk_iops_read_write
+				"disk_iops_read_write": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+
+				// TODO 3.0 - change this to ultra_ssd_disk_iops_read_write
+				"disk_mbps_read_write": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Required: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"caching": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.CachingTypesNone),
+						string(compute.CachingTypesReadOnly),
+						string(compute.CachingTypesReadWrite),
+					}, false),
+				},
+				"storage_account_type": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					// whilst this appears in the Update block the API returns this when changing:
+					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						// note: OS Disks don't support Ultra SSDs
+						string(compute.StorageAccountTypesPremiumLRS),
+						string(compute.StorageAccountTypesStandardLRS),
+						string(compute.StorageAccountTypesStandardSSDLRS),
+					}, false),
+				},
+
+				"diff_disk_settings": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					ForceNew: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"option": {
+								Type:     pluginsdk.TypeString,
+								Required: true,
+								ForceNew: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(compute.Local),
+								}, false),
+							},
+						},
+					},
+				},
+
+				"disk_encryption_set_id": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					// whilst the API allows updating this value, it's never actually set at Azure's end
+					// presumably this'll take effect once key rotation is supported a few months post-GA?
+					// however for now let's make this ForceNew since it can't be (successfully) updated
+					ForceNew:     true,
+					ValidateFunc: validate.DiskEncryptionSetID,
+				},
+
+				"disk_size_gb": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntBetween(0, 4095),
+				},
+
+				"write_accelerator_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+			},
+		},
+	}
+}
+
+func OrchestratedVirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"enabled": {
+					Type:     pluginsdk.TypeBool,
+					Required: true,
+				},
+				"timeout": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: azValidate.ISO8601Duration,
+					Default:      "PT5M",
+				},
+			},
+		},
+	}
+}
+
+func OrchestratedVirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"enabled": {
+					Type:     pluginsdk.TypeBool,
+					Required: true,
+				},
+				"grace_period": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  "PT30M",
+					// this field actually has a range from 30m to 90m, is there a function that can do this validation?
+					ValidateFunc: azValidate.ISO8601Duration,
+				},
+			},
+		},
+	}
+}
+
+func FlattenOrchestratedVirtualMachineScaleSetOSProfile(input *compute.VirtualMachineScaleSetOSProfile, d *pluginsdk.ResourceData) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
+
+	if v := input.CustomData; v != nil {
+		output["custom_data"] = *v
+	}
+
+	if winConfig := input.WindowsConfiguration; winConfig != nil {
+		output["windows_configuration"] = flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input, d)
+	}
+
+	if linConfig := input.LinuxConfiguration; linConfig != nil {
+		output["linux_configuration"] = flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input)
+	}
+
+	return []interface{}{output}
+}
+
+func validateAdminUsernameWindows(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	// **Disallowed values:**
+	invalidUserNames := []string{
+		" ", "administrator", "admin", "user", "user1", "test", "user2", "test1", "user3", "admin1", "1", "123", "a",
+		"actuser", "adm", "admin2", "aspnet", "backup", "console", "david", "guest", "john", "owner", "root", "server",
+		"sql", "support", "support_388945a0", "sys", "test2", "test3", "user4", "user5",
+	}
+
+	for _, str := range invalidUserNames {
+		if strings.EqualFold(v, str) {
+			errors = append(errors, fmt.Errorf("%q can not be one of %v, got %q", key, invalidUserNames, v))
+			return warnings, errors
+		}
+	}
+
+	// Cannot end in "."
+	if strings.HasSuffix(input.(string), ".") {
+		errors = append(errors, fmt.Errorf("%q can not end with a '.', got %q", key, v))
+		return warnings, errors
+	}
+
+	if len(v) < 1 || len(v) > 20 {
+		errors = append(errors, fmt.Errorf("%q must be between 1 and 20 characters in length, got %q(%d characters)", key, v, len(v)))
+		return warnings, errors
+	}
+
+	return
+}
+
+func validateAdminUsernameLinux(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	// **Disallowed values:**
+	invalidUserNames := []string{
+		" ", "abrt", "adm", "admin", "audio", "backup", "bin", "cdrom", "cgred", "console", "crontab", "daemon", "dbus", "dialout", "dip",
+		"disk", "fax", "floppy", "ftp", "fuse", "games", "gnats", "gopher", "haldaemon", "halt", "irc", "kmem", "landscape", "libuuid", "list",
+		"lock", "lp", "mail", "maildrop", "man", "mem", "messagebus", "mlocate", "modem", "netdev", "news", "nfsnobody", "nobody", "nogroup",
+		"ntp", "operator", "oprofile", "plugdev", "polkituser", "postdrop", "postfix", "proxy", "public", "qpidd", "root", "rpc", "rpcuser",
+		"sasl", "saslauth", "shadow", "shutdown", "slocate", "src", "ssh", "sshd", "staff", "stapdev", "stapusr", "sudo", "sync", "sys", "syslog",
+		"tape", "tcpdump", "test", "trusted", "tty", "users", "utempter", "utmp", "uucp", "uuidd", "vcsa", "video", "voice", "wheel", "whoopsie",
+		"www", "www-data", "wwwrun", "xok",
+	}
+
+	for _, str := range invalidUserNames {
+		if strings.EqualFold(v, str) {
+			errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, azure.QuotedStringSlice(invalidUserNames), v))
+			return warnings, errors
+		}
+	}
+
+	if len(v) < 1 || len(v) > 64 {
+		errors = append(errors, fmt.Errorf("%q must be between 1 and 64 characters in length, got %q(%d characters)", key, v, len(v)))
+		return warnings, errors
+	}
+
+	return
+}
+
+func validatePasswordComplexityWindows(input interface{}, key string) (warnings []string, errors []error) {
+	return validatePasswordComplexity(input, key, 8, 123)
+}
+
+func validatePasswordComplexityLinux(input interface{}, key string) (warnings []string, errors []error) {
+	return validatePasswordComplexity(input, key, 6, 72)
+}
+
+func validatePasswordComplexity(input interface{}, key string, min int, max int) (warnings []string, errors []error) {
+	password, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return warnings, errors
+	}
+
+	complexityMatch := 0
+	re := regexp.MustCompile(`[a-z]{1,}`)
+	if re != nil && re.MatchString(password) {
+		complexityMatch++
+	}
+
+	re = regexp.MustCompile(`[A-Z]{1,}`)
+	if re != nil && re.MatchString(password) {
+		complexityMatch++
+	}
+
+	re = regexp.MustCompile(`[0-9]{1,}`)
+	if re != nil && re.MatchString(password) {
+		complexityMatch++
+	}
+
+	re = regexp.MustCompile(`[\W_]{1,}`)
+	if re != nil && re.MatchString(password) {
+		complexityMatch++
+	}
+
+	if complexityMatch < 3 {
+		errors = append(errors, fmt.Errorf("%q did not meet minimum password complexity requirements. A password must contain at least 3 of the 4 following conditions: a lower case character, a upper case character, a digit and/or a special character. Got %q", key, password))
+		return warnings, errors
+	}
+
+	if len(password) < min || len(password) > max {
+		errors = append(errors, fmt.Errorf("%q must be at least 6 characters long and shorter than 72 characters long. Got %q(%d characters)", key, password, len(password)))
+		return warnings, errors
+	}
+
+	// NOTE: I realize that some of these will not pass the above complexity checks, but they are in the API so I am checking
+	// the same values that the API is...
+	disallowedValues := []string{
+		"abc@123", "P@$$w0rd", "P@ssw0rd", "P@ssword123", "Pa$$word", "pass@word1", "Password!", "Password1", "Password22", "iloveyou!",
+	}
+
+	for _, str := range disallowedValues {
+		if password == str {
+			errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, azure.QuotedStringSlice(disallowedValues), password))
+			return warnings, errors
+		}
+	}
+
+	return warnings, errors
+}
+
+func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(input map[string]interface{}) *compute.VirtualMachineScaleSetOSProfile {
+	osProfile := compute.VirtualMachineScaleSetOSProfile{}
+	winConfig := compute.WindowsConfiguration{}
+
+	if len(input) > 0 {
+		osProfile.AdminUsername = utils.String(input["admin_username"].(string))
+		osProfile.AdminPassword = utils.String(input["admin_password"].(string))
+
+		if computerPrefix := input["computer_name_prefix"].(string); computerPrefix != "" {
+			osProfile.ComputerNamePrefix = utils.String(computerPrefix)
+		}
+
+		if secrets := input["secret"].([]interface{}); len(secrets) > 0 {
+			osProfile.Secrets = expandWindowsSecrets(secrets)
+		}
+
+		winConfig.AdditionalUnattendContent = expandWindowsConfigurationAdditionalUnattendContent(input["additional_unattend_content"].([]interface{}))
+		winConfig.EnableAutomaticUpdates = utils.Bool(input["enable_automatic_updates"].(bool))
+		winConfig.ProvisionVMAgent = utils.Bool(input["provision_vm_agent"].(bool))
+		winConfig.TimeZone = utils.String(input["timezone"].(string))
+		winRmListenersRaw := input["winrm_listener"].(*pluginsdk.Set).List()
+		winConfig.WinRM = expandWinRMListener(winRmListenersRaw)
+	}
+
+	osProfile.WindowsConfiguration = &winConfig
+
+	return &osProfile
+}
+
+func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(input map[string]interface{}) *compute.VirtualMachineScaleSetOSProfile {
+	osProfile := compute.VirtualMachineScaleSetOSProfile{}
+	linConfig := compute.LinuxConfiguration{}
+
+	if len(input) > 0 {
+		osProfile.AdminUsername = utils.String(input["admin_username"].(string))
+
+		if adminPassword := input["admin_password"].(string); adminPassword != "" {
+			osProfile.AdminPassword = utils.String(adminPassword)
+		}
+
+		if computerPrefix := input["computer_name_prefix"].(string); computerPrefix != "" {
+			osProfile.ComputerNamePrefix = utils.String(computerPrefix)
+		}
+
+		if secrets := input["secret"].([]interface{}); len(secrets) > 0 {
+			osProfile.Secrets = expandLinuxSecrets(secrets)
+		}
+
+		if sshPublicKeys := ExpandSSHKeys(input["admin_ssh_key"].([]interface{})); len(sshPublicKeys) > 0 {
+			linConfig.SSH.PublicKeys = &sshPublicKeys
+		}
+
+		linConfig.DisablePasswordAuthentication = utils.Bool(input["disable_password_authentication"].(bool))
+		linConfig.ProvisionVMAgent = utils.Bool(input["provision_vm_agent"].(bool))
+	}
+
+	osProfile.LinuxConfiguration = &linConfig
+
+	return &osProfile
+}
+
+func expandWindowsConfigurationAdditionalUnattendContent(input []interface{}) *[]compute.AdditionalUnattendContent {
+	output := make([]compute.AdditionalUnattendContent, 0)
+
+	for _, v := range input {
+		raw := v.(map[string]interface{})
+
+		output = append(output, compute.AdditionalUnattendContent{
+			SettingName: compute.SettingNames(raw["setting"].(string)),
+			Content:     utils.String(raw["content"].(string)),
+
+			// no other possible values
+			PassName:      compute.OobeSystem,
+			ComponentName: compute.MicrosoftWindowsShellSetup,
+		})
+	}
+
+	return &output
+}
+
+func ExpandOrchestratedVirtualMachineScaleSetIdentity(input []interface{}) (*compute.VirtualMachineScaleSetIdentity, error) {
+	if len(input) == 0 {
+		// TODO: Does this want to be this, or nil?
+		return &compute.VirtualMachineScaleSetIdentity{
+			Type: compute.ResourceIdentityTypeNone,
+		}, nil
+	}
+
+	raw := input[0].(map[string]interface{})
+
+	identity := compute.VirtualMachineScaleSetIdentity{
+		Type: compute.ResourceIdentityType(raw["type"].(string)),
+	}
+
+	identityIdsRaw := raw["identity_ids"].(*pluginsdk.Set).List()
+	identityIds := make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue)
+	for _, v := range identityIdsRaw {
+		identityIds[v.(string)] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{}
+	}
+
+	if len(identityIds) > 0 {
+		if identity.Type != compute.ResourceIdentityTypeUserAssigned && identity.Type != compute.ResourceIdentityTypeSystemAssignedUserAssigned {
+			return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`")
+		}
+
+		identity.UserAssignedIdentities = identityIds
+	}
+
+	return &identity, nil
+}
+
 func ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(input []interface{}) (*[]compute.VirtualMachineScaleSetNetworkConfiguration, error) {
 	output := make([]compute.VirtualMachineScaleSetNetworkConfiguration, 0)
 
@@ -1105,248 +1231,6 @@ func expandOrchestratedVirtualMachineScaleSetPublicIPAddressUpdate(raw map[strin
 	return &publicIPAddressConfig
 }
 
-func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachineScaleSetNetworkConfiguration) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	results := make([]interface{}, 0)
-	for _, v := range *input {
-		var name, networkSecurityGroupId string
-		if v.Name != nil {
-			name = *v.Name
-		}
-		if v.NetworkSecurityGroup != nil && v.NetworkSecurityGroup.ID != nil {
-			networkSecurityGroupId = *v.NetworkSecurityGroup.ID
-		}
-
-		var enableAcceleratedNetworking, enableIPForwarding, primary bool
-		if v.EnableAcceleratedNetworking != nil {
-			enableAcceleratedNetworking = *v.EnableAcceleratedNetworking
-		}
-		if v.EnableIPForwarding != nil {
-			enableIPForwarding = *v.EnableIPForwarding
-		}
-		if v.Primary != nil {
-			primary = *v.Primary
-		}
-
-		var dnsServers []interface{}
-		if settings := v.DNSSettings; settings != nil {
-			dnsServers = utils.FlattenStringSlice(v.DNSSettings.DNSServers)
-		}
-
-		var ipConfigurations []interface{}
-		if v.IPConfigurations != nil {
-			for _, configRaw := range *v.IPConfigurations {
-				config := FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(configRaw)
-				ipConfigurations = append(ipConfigurations, config)
-			}
-		}
-
-		results = append(results, map[string]interface{}{
-			"name":                          name,
-			"dns_servers":                   dnsServers,
-			"enable_accelerated_networking": enableAcceleratedNetworking,
-			"enable_ip_forwarding":          enableIPForwarding,
-			"ip_configuration":              ipConfigurations,
-			"network_security_group_id":     networkSecurityGroupId,
-			"primary":                       primary,
-		})
-	}
-
-	return results
-}
-
-func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input compute.VirtualMachineScaleSetIPConfiguration) map[string]interface{} {
-	var name, subnetId string
-	if input.Name != nil {
-		name = *input.Name
-	}
-	if input.Subnet != nil && input.Subnet.ID != nil {
-		subnetId = *input.Subnet.ID
-	}
-
-	var primary bool
-	if input.Primary != nil {
-		primary = *input.Primary
-	}
-
-	var publicIPAddresses []interface{}
-	if input.PublicIPAddressConfiguration != nil {
-		publicIPAddresses = append(publicIPAddresses, FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(*input.PublicIPAddressConfiguration))
-	}
-
-	applicationGatewayBackendAddressPoolIds := flattenSubResourcesToIDs(input.ApplicationGatewayBackendAddressPools)
-	applicationSecurityGroupIds := flattenSubResourcesToIDs(input.ApplicationSecurityGroups)
-	loadBalancerBackendAddressPoolIds := flattenSubResourcesToIDs(input.LoadBalancerBackendAddressPools)
-
-	return map[string]interface{}{
-		"name":              name,
-		"primary":           primary,
-		"public_ip_address": publicIPAddresses,
-		"subnet_id":         subnetId,
-		"version":           string(input.PrivateIPAddressVersion),
-		"application_gateway_backend_address_pool_ids": applicationGatewayBackendAddressPoolIds,
-		"application_security_group_ids":               applicationSecurityGroupIds,
-		"load_balancer_backend_address_pool_ids":       loadBalancerBackendAddressPoolIds,
-	}
-}
-
-func FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input compute.VirtualMachineScaleSetPublicIPAddressConfiguration) map[string]interface{} {
-	ipTags := make([]interface{}, 0)
-	if input.IPTags != nil {
-		for _, rawTag := range *input.IPTags {
-			var tag, tagType string
-
-			if rawTag.IPTagType != nil {
-				tagType = *rawTag.IPTagType
-			}
-
-			if rawTag.Tag != nil {
-				tag = *rawTag.Tag
-			}
-
-			ipTags = append(ipTags, map[string]interface{}{
-				"tag":  tag,
-				"type": tagType,
-			})
-		}
-	}
-
-	var domainNameLabel, name, publicIPPrefixId string
-	if input.DNSSettings != nil && input.DNSSettings.DomainNameLabel != nil {
-		domainNameLabel = *input.DNSSettings.DomainNameLabel
-	}
-	if input.Name != nil {
-		name = *input.Name
-	}
-	if input.PublicIPPrefix != nil && input.PublicIPPrefix.ID != nil {
-		publicIPPrefixId = *input.PublicIPPrefix.ID
-	}
-
-	var idleTimeoutInMinutes int
-	if input.IdleTimeoutInMinutes != nil {
-		idleTimeoutInMinutes = int(*input.IdleTimeoutInMinutes)
-	}
-
-	return map[string]interface{}{
-		"name":                    name,
-		"domain_name_label":       domainNameLabel,
-		"idle_timeout_in_minutes": idleTimeoutInMinutes,
-		"ip_tag":                  ipTags,
-		"public_ip_prefix_id":     publicIPPrefixId,
-	}
-}
-
-func computerPrefixWindowsSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeString,
-		Optional: true,
-
-		// Computed since we reuse the VM name if one's not specified
-		Computed:     true,
-		ForceNew:     true,
-		ValidateFunc: validate.WindowsComputerNamePrefix,
-	}
-}
-
-func computerPrefixLinuxSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeString,
-		Optional: true,
-
-		// Computed since we reuse the VM name if one's not specified
-		Computed:     true,
-		ForceNew:     true,
-		ValidateFunc: validate.LinuxComputerNamePrefix,
-	}
-}
-
-func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		// TODO: does this want to be a Set?
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"caching": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.CachingTypesNone),
-						string(compute.CachingTypesReadOnly),
-						string(compute.CachingTypesReadWrite),
-					}, false),
-				},
-
-				"create_option": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.DiskCreateOptionTypesEmpty),
-						string(compute.DiskCreateOptionTypesFromImage),
-					}, false),
-					Default: string(compute.DiskCreateOptionTypesEmpty),
-				},
-
-				"disk_encryption_set_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// whilst the API allows updating this value, it's never actually set at Azure's end
-					// presumably this'll take effect once key rotation is supported a few months post-GA?
-					// however for now let's make this ForceNew since it can't be (successfully) updated
-					ForceNew:     true,
-					ValidateFunc: validate.DiskEncryptionSetID,
-				},
-
-				"disk_size_gb": {
-					Type:         pluginsdk.TypeInt,
-					Required:     true,
-					ValidateFunc: validation.IntBetween(1, 32767),
-				},
-
-				"lun": {
-					Type:         pluginsdk.TypeInt,
-					Required:     true,
-					ValidateFunc: validation.IntBetween(0, 2000), // TODO: confirm upper bounds
-				},
-
-				"storage_account_type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.StorageAccountTypesPremiumLRS),
-						string(compute.StorageAccountTypesStandardLRS),
-						string(compute.StorageAccountTypesStandardSSDLRS),
-						string(compute.StorageAccountTypesUltraSSDLRS),
-					}, false),
-				},
-
-				"write_accelerator_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
-
-				// TODO 3.0 - change this to ultra_ssd_disk_iops_read_write
-				"disk_iops_read_write": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Computed: true,
-				},
-
-				// TODO 3.0 - change this to ultra_ssd_disk_iops_read_write
-				"disk_mbps_read_write": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
 func ExpandOrchestratedVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled bool) (*[]compute.VirtualMachineScaleSetDataDisk, error) {
 	disks := make([]compute.VirtualMachineScaleSetDataDisk, 0)
 
@@ -1388,140 +1272,6 @@ func ExpandOrchestratedVirtualMachineScaleSetDataDisk(input []interface{}, ultra
 	}
 
 	return &disks, nil
-}
-
-func FlattenOrchestratedVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleSetDataDisk) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	output := make([]interface{}, 0)
-
-	for _, v := range *input {
-		diskSizeGb := 0
-		if v.DiskSizeGB != nil && *v.DiskSizeGB != 0 {
-			diskSizeGb = int(*v.DiskSizeGB)
-		}
-
-		lun := 0
-		if v.Lun != nil {
-			lun = int(*v.Lun)
-		}
-
-		storageAccountType := ""
-		diskEncryptionSetId := ""
-		if v.ManagedDisk != nil {
-			storageAccountType = string(v.ManagedDisk.StorageAccountType)
-			if v.ManagedDisk.DiskEncryptionSet != nil && v.ManagedDisk.DiskEncryptionSet.ID != nil {
-				diskEncryptionSetId = *v.ManagedDisk.DiskEncryptionSet.ID
-			}
-		}
-
-		writeAcceleratorEnabled := false
-		if v.WriteAcceleratorEnabled != nil {
-			writeAcceleratorEnabled = *v.WriteAcceleratorEnabled
-		}
-
-		iops := 0
-		if v.DiskIOPSReadWrite != nil {
-			iops = int(*v.DiskIOPSReadWrite)
-		}
-
-		mbps := 0
-		if v.DiskMBpsReadWrite != nil {
-			mbps = int(*v.DiskMBpsReadWrite)
-		}
-
-		output = append(output, map[string]interface{}{
-			"caching":                   string(v.Caching),
-			"create_option":             string(v.CreateOption),
-			"lun":                       lun,
-			"disk_encryption_set_id":    diskEncryptionSetId,
-			"disk_size_gb":              diskSizeGb,
-			"storage_account_type":      storageAccountType,
-			"write_accelerator_enabled": writeAcceleratorEnabled,
-			"disk_iops_read_write":      iops,
-			"disk_mbps_read_write":      mbps,
-		})
-	}
-
-	return output
-}
-
-func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Required: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"caching": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.CachingTypesNone),
-						string(compute.CachingTypesReadOnly),
-						string(compute.CachingTypesReadWrite),
-					}, false),
-				},
-				"storage_account_type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					// whilst this appears in the Update block the API returns this when changing:
-					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						// note: OS Disks don't support Ultra SSDs
-						string(compute.StorageAccountTypesPremiumLRS),
-						string(compute.StorageAccountTypesStandardLRS),
-						string(compute.StorageAccountTypesStandardSSDLRS),
-					}, false),
-				},
-
-				"diff_disk_settings": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					ForceNew: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"option": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ForceNew: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(compute.Local),
-								}, false),
-							},
-						},
-					},
-				},
-
-				"disk_encryption_set_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// whilst the API allows updating this value, it's never actually set at Azure's end
-					// presumably this'll take effect once key rotation is supported a few months post-GA?
-					// however for now let's make this ForceNew since it can't be (successfully) updated
-					ForceNew:     true,
-					ValidateFunc: validate.DiskEncryptionSetID,
-				},
-
-				"disk_size_gb": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 4095),
-				},
-
-				"write_accelerator_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
-			},
-		},
-	}
 }
 
 func ExpandOrchestratedVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.OperatingSystemTypes) *compute.VirtualMachineScaleSetOSDisk {
@@ -1581,72 +1331,6 @@ func ExpandOrchestratedVirtualMachineScaleSetOSDiskUpdate(input []interface{}) *
 	return &disk
 }
 
-func FlattenOrchestratedVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOSDisk) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	diffDiskSettings := make([]interface{}, 0)
-	if input.DiffDiskSettings != nil {
-		diffDiskSettings = append(diffDiskSettings, map[string]interface{}{
-			"option": string(input.DiffDiskSettings.Option),
-		})
-	}
-
-	diskSizeGb := 0
-	if input.DiskSizeGB != nil && *input.DiskSizeGB != 0 {
-		diskSizeGb = int(*input.DiskSizeGB)
-	}
-
-	storageAccountType := ""
-	diskEncryptionSetId := ""
-	if input.ManagedDisk != nil {
-		storageAccountType = string(input.ManagedDisk.StorageAccountType)
-		if input.ManagedDisk.DiskEncryptionSet != nil && input.ManagedDisk.DiskEncryptionSet.ID != nil {
-			diskEncryptionSetId = *input.ManagedDisk.DiskEncryptionSet.ID
-		}
-	}
-
-	writeAcceleratorEnabled := false
-	if input.WriteAcceleratorEnabled != nil {
-		writeAcceleratorEnabled = *input.WriteAcceleratorEnabled
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"caching":                   string(input.Caching),
-			"disk_size_gb":              diskSizeGb,
-			"diff_disk_settings":        diffDiskSettings,
-			"storage_account_type":      storageAccountType,
-			"write_accelerator_enabled": writeAcceleratorEnabled,
-			"disk_encryption_set_id":    diskEncryptionSetId,
-		},
-	}
-}
-
-func OrchestratedVirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"enabled": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
-				},
-				"timeout": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: azValidate.ISO8601Duration,
-					Default:      "PT5M",
-				},
-			},
-		},
-	}
-}
-
 func ExpandOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input []interface{}) *compute.ScheduledEventsProfile {
 	if len(input) == 0 {
 		return nil
@@ -1664,52 +1348,6 @@ func ExpandOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input []inte
 	}
 }
 
-func FlattenOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input *compute.ScheduledEventsProfile) []interface{} {
-	// if enabled is set to false, there will be no ScheduledEventsProfile in response, to avoid plan non empty when
-	// a user explicitly set enabled to false, we need to assign a default block to this field
-
-	enabled := false
-	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.Enable != nil {
-		enabled = *input.TerminateNotificationProfile.Enable
-	}
-
-	timeout := "PT5M"
-	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.NotBeforeTimeout != nil {
-		timeout = *input.TerminateNotificationProfile.NotBeforeTimeout
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"enabled": enabled,
-			"timeout": timeout,
-		},
-	}
-}
-
-func OrchestratedVirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"enabled": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
-				},
-				"grace_period": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "PT30M",
-					// this field actually has a range from 30m to 90m, is there a function that can do this validation?
-					ValidateFunc: azValidate.ISO8601Duration,
-				},
-			},
-		},
-	}
-}
-
 func ExpandOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(input []interface{}) *compute.AutomaticRepairsPolicy {
 	if len(input) == 0 {
 		return nil
@@ -1720,96 +1358,6 @@ func ExpandOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(input []inte
 	return &compute.AutomaticRepairsPolicy{
 		Enabled:     utils.Bool(raw["enabled"].(bool)),
 		GracePeriod: utils.String(raw["grace_period"].(string)),
-	}
-}
-
-func FlattenOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(input *compute.AutomaticRepairsPolicy) []interface{} {
-	// if enabled is set to false, there will be no AutomaticRepairsPolicy in response, to avoid plan non empty when
-	// a user explicitly set enabled to false, we need to assign a default block to this field
-
-	enabled := false
-	if input != nil && input.Enabled != nil {
-		enabled = *input.Enabled
-	}
-
-	gracePeriod := "PT30M"
-	if input != nil && input.GracePeriod != nil {
-		gracePeriod = *input.GracePeriod
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"enabled":      enabled,
-			"grace_period": gracePeriod,
-		},
-	}
-}
-
-func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
-		Optional: true,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"publisher": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"type": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"type_handler_version": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"auto_upgrade_minor_version": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
-				},
-
-				"force_update_tag": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-				},
-
-				"protected_settings": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Sensitive:    true,
-					ValidateFunc: validation.StringIsJSON,
-				},
-
-				"provision_after_extensions": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-
-				"settings": {
-					Type:             pluginsdk.TypeString,
-					Optional:         true,
-					ValidateFunc:     validation.StringIsJSON,
-					DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-				},
-			},
-		},
 	}
 }
 
@@ -1942,4 +1490,419 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *compute.VirtualM
 		})
 	}
 	return result, nil
+}
+
+func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input compute.VirtualMachineScaleSetIPConfiguration) map[string]interface{} {
+	var name, subnetId string
+	if input.Name != nil {
+		name = *input.Name
+	}
+	if input.Subnet != nil && input.Subnet.ID != nil {
+		subnetId = *input.Subnet.ID
+	}
+
+	var primary bool
+	if input.Primary != nil {
+		primary = *input.Primary
+	}
+
+	var publicIPAddresses []interface{}
+	if input.PublicIPAddressConfiguration != nil {
+		publicIPAddresses = append(publicIPAddresses, FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(*input.PublicIPAddressConfiguration))
+	}
+
+	applicationGatewayBackendAddressPoolIds := flattenSubResourcesToIDs(input.ApplicationGatewayBackendAddressPools)
+	applicationSecurityGroupIds := flattenSubResourcesToIDs(input.ApplicationSecurityGroups)
+	loadBalancerBackendAddressPoolIds := flattenSubResourcesToIDs(input.LoadBalancerBackendAddressPools)
+
+	return map[string]interface{}{
+		"name":              name,
+		"primary":           primary,
+		"public_ip_address": publicIPAddresses,
+		"subnet_id":         subnetId,
+		"version":           string(input.PrivateIPAddressVersion),
+		"application_gateway_backend_address_pool_ids": applicationGatewayBackendAddressPoolIds,
+		"application_security_group_ids":               applicationSecurityGroupIds,
+		"load_balancer_backend_address_pool_ids":       loadBalancerBackendAddressPoolIds,
+	}
+}
+
+func FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input compute.VirtualMachineScaleSetPublicIPAddressConfiguration) map[string]interface{} {
+	ipTags := make([]interface{}, 0)
+	if input.IPTags != nil {
+		for _, rawTag := range *input.IPTags {
+			var tag, tagType string
+
+			if rawTag.IPTagType != nil {
+				tagType = *rawTag.IPTagType
+			}
+
+			if rawTag.Tag != nil {
+				tag = *rawTag.Tag
+			}
+
+			ipTags = append(ipTags, map[string]interface{}{
+				"tag":  tag,
+				"type": tagType,
+			})
+		}
+	}
+
+	var domainNameLabel, name, publicIPPrefixId string
+	if input.DNSSettings != nil && input.DNSSettings.DomainNameLabel != nil {
+		domainNameLabel = *input.DNSSettings.DomainNameLabel
+	}
+	if input.Name != nil {
+		name = *input.Name
+	}
+	if input.PublicIPPrefix != nil && input.PublicIPPrefix.ID != nil {
+		publicIPPrefixId = *input.PublicIPPrefix.ID
+	}
+
+	var idleTimeoutInMinutes int
+	if input.IdleTimeoutInMinutes != nil {
+		idleTimeoutInMinutes = int(*input.IdleTimeoutInMinutes)
+	}
+
+	return map[string]interface{}{
+		"name":                    name,
+		"domain_name_label":       domainNameLabel,
+		"idle_timeout_in_minutes": idleTimeoutInMinutes,
+		"ip_tag":                  ipTags,
+		"public_ip_prefix_id":     publicIPPrefixId,
+	}
+}
+
+func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *compute.VirtualMachineScaleSetOSProfile, d *pluginsdk.ResourceData) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
+	winConfig := input.WindowsConfiguration
+
+	if v := input.AdminUsername; v != nil {
+		output["admin_username"] = *v
+	}
+
+	if v := d.Get("admin_password").(string); v != "" {
+		output["admin_password"] = v
+	}
+
+	if v := input.ComputerNamePrefix; v != nil {
+		output["computer_name_prefix"] = *v
+	}
+
+	if v := winConfig.AdditionalUnattendContent; v != nil {
+		output["additional_unattend_content"] = flattenWindowsConfigurationAdditionalUnattendContent(winConfig)
+	}
+
+	if v := winConfig.EnableAutomaticUpdates; v != nil {
+		output["enable_automatic_updates"] = *v
+	}
+
+	if v := winConfig.ProvisionVMAgent; v != nil {
+		output["provision_vm_agent"] = *v
+	}
+
+	if v := input.Secrets; v != nil {
+		output["secret"] = flattenWindowsSecrets(v)
+	}
+
+	if v := winConfig.WinRM; v != nil {
+		output["winrm_listener"] = flattenWinRMListener(winConfig.WinRM)
+	}
+
+	if v := winConfig.TimeZone; v != nil {
+		output["timezone"] = v
+	}
+
+	return []interface{}{output}
+}
+
+func flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input *compute.VirtualMachineScaleSetOSProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
+	linConfig := input.LinuxConfiguration
+
+	if v := input.AdminUsername; v != nil {
+		output["admin_username"] = *v
+	}
+
+	if v := input.AdminPassword; v != nil {
+		output["admin_password"] = *v
+	}
+
+	if v := linConfig.SSH; v != nil {
+		if sshKeys, _ := FlattenSSHKeys(v); sshKeys != nil {
+			output["admin_ssh_key"] = sshKeys
+		}
+	}
+
+	if v := input.ComputerNamePrefix; v != nil {
+		output["computer_name_prefix"] = *v
+	}
+
+	if v := linConfig.DisablePasswordAuthentication; v != nil {
+		output["disable_password_authentication"] = *v
+	}
+
+	if v := linConfig.ProvisionVMAgent; v != nil {
+		output["provision_vm_agent"] = *v
+	}
+
+	if v := input.Secrets; v != nil {
+		output["secret"] = flattenLinuxSecrets(v)
+	}
+
+	return []interface{}{output}
+}
+
+func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachineScaleSetNetworkConfiguration) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	results := make([]interface{}, 0)
+	for _, v := range *input {
+		var name, networkSecurityGroupId string
+		if v.Name != nil {
+			name = *v.Name
+		}
+		if v.NetworkSecurityGroup != nil && v.NetworkSecurityGroup.ID != nil {
+			networkSecurityGroupId = *v.NetworkSecurityGroup.ID
+		}
+
+		var enableAcceleratedNetworking, enableIPForwarding, primary bool
+		if v.EnableAcceleratedNetworking != nil {
+			enableAcceleratedNetworking = *v.EnableAcceleratedNetworking
+		}
+		if v.EnableIPForwarding != nil {
+			enableIPForwarding = *v.EnableIPForwarding
+		}
+		if v.Primary != nil {
+			primary = *v.Primary
+		}
+
+		var dnsServers []interface{}
+		if settings := v.DNSSettings; settings != nil {
+			dnsServers = utils.FlattenStringSlice(v.DNSSettings.DNSServers)
+		}
+
+		var ipConfigurations []interface{}
+		if v.IPConfigurations != nil {
+			for _, configRaw := range *v.IPConfigurations {
+				config := FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(configRaw)
+				ipConfigurations = append(ipConfigurations, config)
+			}
+		}
+
+		results = append(results, map[string]interface{}{
+			"name":                          name,
+			"dns_servers":                   dnsServers,
+			"enable_accelerated_networking": enableAcceleratedNetworking,
+			"enable_ip_forwarding":          enableIPForwarding,
+			"ip_configuration":              ipConfigurations,
+			"network_security_group_id":     networkSecurityGroupId,
+			"primary":                       primary,
+		})
+	}
+
+	return results
+}
+
+func FlattenOrchestratedVirtualMachineScaleSetIdentity(input *compute.VirtualMachineScaleSetIdentity) ([]interface{}, error) {
+	if input == nil || input.Type == compute.ResourceIdentityTypeNone {
+		return []interface{}{}, nil
+	}
+
+	identityIds := make([]string, 0)
+	if input.UserAssignedIdentities != nil {
+		for key := range input.UserAssignedIdentities {
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
+		}
+	}
+
+	principalId := ""
+	if input.PrincipalID != nil {
+		principalId = *input.PrincipalID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         string(input.Type),
+			"identity_ids": identityIds,
+			"principal_id": principalId,
+		},
+	}, nil
+}
+
+func FlattenOrchestratedVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleSetDataDisk) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, v := range *input {
+		diskSizeGb := 0
+		if v.DiskSizeGB != nil && *v.DiskSizeGB != 0 {
+			diskSizeGb = int(*v.DiskSizeGB)
+		}
+
+		lun := 0
+		if v.Lun != nil {
+			lun = int(*v.Lun)
+		}
+
+		storageAccountType := ""
+		diskEncryptionSetId := ""
+		if v.ManagedDisk != nil {
+			storageAccountType = string(v.ManagedDisk.StorageAccountType)
+			if v.ManagedDisk.DiskEncryptionSet != nil && v.ManagedDisk.DiskEncryptionSet.ID != nil {
+				diskEncryptionSetId = *v.ManagedDisk.DiskEncryptionSet.ID
+			}
+		}
+
+		writeAcceleratorEnabled := false
+		if v.WriteAcceleratorEnabled != nil {
+			writeAcceleratorEnabled = *v.WriteAcceleratorEnabled
+		}
+
+		iops := 0
+		if v.DiskIOPSReadWrite != nil {
+			iops = int(*v.DiskIOPSReadWrite)
+		}
+
+		mbps := 0
+		if v.DiskMBpsReadWrite != nil {
+			mbps = int(*v.DiskMBpsReadWrite)
+		}
+
+		output = append(output, map[string]interface{}{
+			"caching":                   string(v.Caching),
+			"create_option":             string(v.CreateOption),
+			"lun":                       lun,
+			"disk_encryption_set_id":    diskEncryptionSetId,
+			"disk_size_gb":              diskSizeGb,
+			"storage_account_type":      storageAccountType,
+			"write_accelerator_enabled": writeAcceleratorEnabled,
+			"disk_iops_read_write":      iops,
+			"disk_mbps_read_write":      mbps,
+		})
+	}
+
+	return output
+}
+
+func flattenWindowsConfigurationAdditionalUnattendContent(input *compute.WindowsConfiguration) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+	for _, v := range *input.AdditionalUnattendContent {
+		// content isn't returned by the API since it's sensitive data so we need to look it up later
+		// where we can pull it out of the state file.
+		output = append(output, map[string]interface{}{
+			"content": "",
+			"setting": string(v.SettingName),
+		})
+	}
+
+	return output
+}
+
+func FlattenOrchestratedVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOSDisk) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	diffDiskSettings := make([]interface{}, 0)
+	if input.DiffDiskSettings != nil {
+		diffDiskSettings = append(diffDiskSettings, map[string]interface{}{
+			"option": string(input.DiffDiskSettings.Option),
+		})
+	}
+
+	diskSizeGb := 0
+	if input.DiskSizeGB != nil && *input.DiskSizeGB != 0 {
+		diskSizeGb = int(*input.DiskSizeGB)
+	}
+
+	storageAccountType := ""
+	diskEncryptionSetId := ""
+	if input.ManagedDisk != nil {
+		storageAccountType = string(input.ManagedDisk.StorageAccountType)
+		if input.ManagedDisk.DiskEncryptionSet != nil && input.ManagedDisk.DiskEncryptionSet.ID != nil {
+			diskEncryptionSetId = *input.ManagedDisk.DiskEncryptionSet.ID
+		}
+	}
+
+	writeAcceleratorEnabled := false
+	if input.WriteAcceleratorEnabled != nil {
+		writeAcceleratorEnabled = *input.WriteAcceleratorEnabled
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"caching":                   string(input.Caching),
+			"disk_size_gb":              diskSizeGb,
+			"diff_disk_settings":        diffDiskSettings,
+			"storage_account_type":      storageAccountType,
+			"write_accelerator_enabled": writeAcceleratorEnabled,
+			"disk_encryption_set_id":    diskEncryptionSetId,
+		},
+	}
+}
+
+func FlattenOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input *compute.ScheduledEventsProfile) []interface{} {
+	// if enabled is set to false, there will be no ScheduledEventsProfile in response, to avoid plan non empty when
+	// a user explicitly set enabled to false, we need to assign a default block to this field
+
+	enabled := false
+	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.Enable != nil {
+		enabled = *input.TerminateNotificationProfile.Enable
+	}
+
+	timeout := "PT5M"
+	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.NotBeforeTimeout != nil {
+		timeout = *input.TerminateNotificationProfile.NotBeforeTimeout
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled": enabled,
+			"timeout": timeout,
+		},
+	}
+}
+
+func FlattenOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(input *compute.AutomaticRepairsPolicy) []interface{} {
+	// if enabled is set to false, there will be no AutomaticRepairsPolicy in response, to avoid plan non empty when
+	// a user explicitly set enabled to false, we need to assign a default block to this field
+
+	enabled := false
+	if input != nil && input.Enabled != nil {
+		enabled = *input.Enabled
+	}
+
+	gracePeriod := "PT30M"
+	if input != nil && input.GracePeriod != nil {
+		gracePeriod = *input.GracePeriod
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled":      enabled,
+			"grace_period": gracePeriod,
+		},
+	}
 }

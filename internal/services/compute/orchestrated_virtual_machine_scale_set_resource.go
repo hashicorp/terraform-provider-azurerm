@@ -223,7 +223,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	osProfileRaw := d.Get("os_profile").([]interface{})
 
 	if len(osProfileRaw) > 0 {
-		// custom_data is on the osProfileRaw
 		osProfile := osProfileRaw[0].(map[string]interface{})
 		winConfigRaw = osProfile["windows_configuration"].([]interface{})
 		linConfigRaw = osProfile["linux_configuration"].([]interface{})
@@ -304,7 +303,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
-	// TODO: Make two blocks here one for win one for linux
 	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
 		Priority:           priority,
 		OsProfile:          vmssOsProfile,
@@ -803,25 +801,8 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		}
 
 		if osProfile := profile.OsProfile; osProfile != nil {
-			// admin_password isn't returned, but it's a top level field so we can ignore it without consequence
-			d.Set("admin_username", osProfile.AdminUsername)
-			d.Set("computer_name_prefix", osProfile.ComputerNamePrefix)
-
-			if err := d.Set("secret", flattenWindowsSecrets(osProfile.Secrets)); err != nil {
-				return fmt.Errorf("setting `secret`: %+v", err)
-			}
-
-			if windows := osProfile.WindowsConfiguration; windows != nil {
-				if err := d.Set("additional_unattend_content", flattenAdditionalUnattendContent(windows.AdditionalUnattendContent, d)); err != nil {
-					return fmt.Errorf("setting `additional_unattend_content`: %+v", err)
-				}
-
-				d.Set("provision_vm_agent", windows.ProvisionVMAgent)
-				d.Set("timezone", windows.TimeZone)
-
-				if err := d.Set("winrm_listener", flattenWinRMListener(windows.WinRM)); err != nil {
-					return fmt.Errorf("setting `winrm_listener`: %+v", err)
-				}
+			if err := d.Set("os_profile", FlattenOrchestratedVirtualMachineScaleSetOSProfile(osProfile, d)); err != nil {
+				return fmt.Errorf("setting `os_profile`: %+v", err)
 			}
 		}
 
