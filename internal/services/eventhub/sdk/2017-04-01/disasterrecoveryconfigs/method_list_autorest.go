@@ -34,19 +34,6 @@ func (r ListResponse) LoadMore(ctx context.Context) (resp ListResponse, err erro
 	return r.nextPageFunc(ctx, *r.nextLink)
 }
 
-type ArmDisasterRecoveryPredicate struct {
-	// TODO: implement me
-}
-
-func (p ArmDisasterRecoveryPredicate) Matches(input ArmDisasterRecovery) bool {
-	// TODO: implement me
-	// if p.Name != nil && input.Name != *p.Name {
-	// 	return false
-	// }
-
-	return true
-}
-
 // List ...
 func (c DisasterRecoveryConfigsClient) List(ctx context.Context, id NamespaceId) (resp ListResponse, err error) {
 	req, err := c.preparerForList(ctx, id)
@@ -69,7 +56,7 @@ func (c DisasterRecoveryConfigsClient) List(ctx context.Context, id NamespaceId)
 	return
 }
 
-// ListCompleteMatchingPredicate retrieves all of the results into a single object
+// ListComplete retrieves all of the results into a single object
 func (c DisasterRecoveryConfigsClient) ListComplete(ctx context.Context, id NamespaceId) (ListCompleteResult, error) {
 	return c.ListCompleteMatchingPredicate(ctx, id, ArmDisasterRecoveryPredicate{})
 }

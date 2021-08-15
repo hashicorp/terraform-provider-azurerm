@@ -35,8 +35,8 @@ func (id NamespaceId) ID() string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
-// NamespaceID parses a Namespace ID into an NamespaceId struct
-func NamespaceID(input string) (*NamespaceId, error) {
+// ParseNamespaceID parses a Namespace ID into an NamespaceId struct
+func ParseNamespaceID(input string) (*NamespaceId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
@@ -66,10 +66,10 @@ func NamespaceID(input string) (*NamespaceId, error) {
 	return &resourceId, nil
 }
 
-// NamespaceIDInsensitively parses an Namespace ID into an NamespaceId struct, insensitively
+// ParseNamespaceIDInsensitively parses an Namespace ID into an NamespaceId struct, insensitively
 // This should only be used to parse an ID for rewriting to a consistent casing,
-// the NamespaceID method should be used instead for validation etc.
-func NamespaceIDInsensitively(input string) (*NamespaceId, error) {
+// the ParseNamespaceID method should be used instead for validation etc.
+func ParseNamespaceIDInsensitively(input string) (*NamespaceId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err

@@ -23,16 +23,7 @@ const (
 type KeySource string
 
 const (
-	KeySourceMicrosoftKeyVault KeySource = "Microsoft.KeyVault"
-)
-
-type ManagedServiceIdentityType string
-
-const (
-	ManagedServiceIdentityTypeNone                       ManagedServiceIdentityType = "None"
-	ManagedServiceIdentityTypeSystemAssigned             ManagedServiceIdentityType = "SystemAssigned"
-	ManagedServiceIdentityTypeSystemAssignedUserAssigned ManagedServiceIdentityType = "SystemAssigned, UserAssigned"
-	ManagedServiceIdentityTypeUserAssigned               ManagedServiceIdentityType = "UserAssigned"
+	KeySourceMicrosoftPointKeyVault KeySource = "Microsoft.KeyVault"
 )
 
 type PrivateLinkConnectionStatus string

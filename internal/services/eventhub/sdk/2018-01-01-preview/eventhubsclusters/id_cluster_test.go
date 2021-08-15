@@ -16,7 +16,7 @@ func TestClusterIDFormatter(t *testing.T) {
 	}
 }
 
-func TestClusterID(t *testing.T) {
+func TestParseClusterID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -85,7 +85,7 @@ func TestClusterID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ClusterID(v.Input)
+		actual, err := ParseClusterID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -109,7 +109,7 @@ func TestClusterID(t *testing.T) {
 	}
 }
 
-func TestClusterIDInsensitively(t *testing.T) {
+func TestParseClusterIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -202,7 +202,7 @@ func TestClusterIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ClusterIDInsensitively(v.Input)
+		actual, err := ParseClusterIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

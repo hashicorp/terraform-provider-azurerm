@@ -38,8 +38,8 @@ func (id AuthorizationRuleId) ID() string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.Name)
 }
 
-// AuthorizationRuleID parses a AuthorizationRule ID into an AuthorizationRuleId struct
-func AuthorizationRuleID(input string) (*AuthorizationRuleId, error) {
+// ParseAuthorizationRuleID parses a AuthorizationRule ID into an AuthorizationRuleId struct
+func ParseAuthorizationRuleID(input string) (*AuthorizationRuleId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
@@ -72,10 +72,10 @@ func AuthorizationRuleID(input string) (*AuthorizationRuleId, error) {
 	return &resourceId, nil
 }
 
-// AuthorizationRuleIDInsensitively parses an AuthorizationRule ID into an AuthorizationRuleId struct, insensitively
+// ParseAuthorizationRuleIDInsensitively parses an AuthorizationRule ID into an AuthorizationRuleId struct, insensitively
 // This should only be used to parse an ID for rewriting to a consistent casing,
-// the AuthorizationRuleID method should be used instead for validation etc.
-func AuthorizationRuleIDInsensitively(input string) (*AuthorizationRuleId, error) {
+// the ParseAuthorizationRuleID method should be used instead for validation etc.
+func ParseAuthorizationRuleIDInsensitively(input string) (*AuthorizationRuleId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err

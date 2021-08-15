@@ -345,7 +345,7 @@ func TestAccEventHub_eventhubStatus(t *testing.T) {
 }
 
 func (EventHubResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := eventhubs.EventhubID(state.ID)
+	id, err := eventhubs.ParseEventhubID(state.ID)
 	if err != nil {
 		return nil, err
 	}

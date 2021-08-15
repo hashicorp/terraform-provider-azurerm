@@ -114,7 +114,7 @@ func EventHubNamespaceDataSourceAuthorizationRuleRead(d *pluginsdk.ResourceData,
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			listen, send, manage := flattenEventHubAuthorizationRuleRights(props.Rights)
+			listen, send, manage := flattenEventHubNamespaceAuthorizationRuleRights(props.Rights)
 			d.Set("manage", manage)
 			d.Set("listen", listen)
 			d.Set("send", send)

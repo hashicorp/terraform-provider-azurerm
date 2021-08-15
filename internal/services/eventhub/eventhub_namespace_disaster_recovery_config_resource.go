@@ -124,7 +124,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := disasterrecoveryconfigs.DisasterRecoveryConfigID(d.Id())
+	id, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -169,7 +169,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := disasterrecoveryconfigs.DisasterRecoveryConfigID(d.Id())
+	id, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -200,7 +200,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := disasterrecoveryconfigs.DisasterRecoveryConfigID(d.Id())
+	id, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(d.Id())
 	if err != nil {
 		return err
 	}
