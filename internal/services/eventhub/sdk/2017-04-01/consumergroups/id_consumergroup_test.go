@@ -16,7 +16,7 @@ func TestConsumergroupIDFormatter(t *testing.T) {
 	}
 }
 
-func TestConsumergroupID(t *testing.T) {
+func TestParseConsumergroupID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -111,7 +111,7 @@ func TestConsumergroupID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ConsumergroupID(v.Input)
+		actual, err := ParseConsumergroupID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -141,7 +141,7 @@ func TestConsumergroupID(t *testing.T) {
 	}
 }
 
-func TestConsumergroupIDInsensitively(t *testing.T) {
+func TestParseConsumergroupIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -266,7 +266,7 @@ func TestConsumergroupIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ConsumergroupIDInsensitively(v.Input)
+		actual, err := ParseConsumergroupIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

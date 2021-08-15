@@ -22,7 +22,7 @@ type EHNamespaceProperties struct {
 	ZoneRedundant              *bool                        `json:"zoneRedundant,omitempty"`
 }
 
-func (o EHNamespaceProperties) ListCreatedAtAsTime() (*time.Time, error) {
+func (o EHNamespaceProperties) GetCreatedAtAsTime() (*time.Time, error) {
 	return formatting.ParseAsDateFormat(o.CreatedAt, "2006-01-02T15:04:05Z07:00")
 }
 
@@ -31,7 +31,7 @@ func (o EHNamespaceProperties) SetCreatedAtAsTime(input time.Time) {
 	o.CreatedAt = &formatted
 }
 
-func (o EHNamespaceProperties) ListUpdatedAtAsTime() (*time.Time, error) {
+func (o EHNamespaceProperties) GetUpdatedAtAsTime() (*time.Time, error) {
 	return formatting.ParseAsDateFormat(o.UpdatedAt, "2006-01-02T15:04:05Z07:00")
 }
 

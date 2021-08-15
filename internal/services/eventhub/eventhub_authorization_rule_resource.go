@@ -130,7 +130,7 @@ func resourceEventHubAuthorizationRuleRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := eventhubs.AuthorizationRuleID(d.Id())
+	id, err := eventhubs.ParseAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -181,7 +181,7 @@ func resourceEventHubAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := eventhubs.AuthorizationRuleID(d.Id())
+	id, err := eventhubs.ParseAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -199,4 +199,41 @@ func resourceEventHubAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	return nil
+}
+
+func expandEventHubAuthorizationRuleRights(d *pluginsdk.ResourceData) []authorizationruleseventhubs.AccessRights {
+	rights := make([]authorizationruleseventhubs.AccessRights, 0)
+
+	if d.Get("listen").(bool) {
+		rights = append(rights, authorizationruleseventhubs.AccessRightsListen)
+	}
+
+	if d.Get("send").(bool) {
+		rights = append(rights, authorizationruleseventhubs.AccessRightsSend)
+	}
+
+	if d.Get("manage").(bool) {
+		rights = append(rights, authorizationruleseventhubs.AccessRightsManage)
+	}
+
+	return rights
+}
+
+func flattenEventHubAuthorizationRuleRights(rights []eventhubs.AccessRights) (listen, send, manage bool) {
+	// zero (initial) value for a bool in go is false
+
+	for _, right := range rights {
+		switch right {
+		case eventhubs.AccessRightsListen:
+			listen = true
+		case eventhubs.AccessRightsSend:
+			send = true
+		case eventhubs.AccessRightsManage:
+			manage = true
+		default:
+			log.Printf("[DEBUG] Unknown Authorization Rule Right '%s'", right)
+		}
+	}
+
+	return listen, send, manage
 }

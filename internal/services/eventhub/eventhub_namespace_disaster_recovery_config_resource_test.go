@@ -57,7 +57,7 @@ func TestAccEventHubNamespaceDisasterRecoveryConfig_update(t *testing.T) {
 }
 
 func (EventHubNamespaceDisasterRecoveryConfigResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := disasterrecoveryconfigs.DisasterRecoveryConfigID(state.ID)
+	id, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(state.ID)
 	if err != nil {
 		return nil, err
 	}

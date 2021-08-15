@@ -57,19 +57,6 @@ func (o ListByEventHubOptions) toQueryString() map[string]interface{} {
 	return out
 }
 
-type ConsumerGroupPredicate struct {
-	// TODO: implement me
-}
-
-func (p ConsumerGroupPredicate) Matches(input ConsumerGroup) bool {
-	// TODO: implement me
-	// if p.Name != nil && input.Name != *p.Name {
-	// 	return false
-	// }
-
-	return true
-}
-
 // ListByEventHub ...
 func (c ConsumerGroupsClient) ListByEventHub(ctx context.Context, id EventhubId, options ListByEventHubOptions) (resp ListByEventHubResponse, err error) {
 	req, err := c.preparerForListByEventHub(ctx, id, options)
@@ -92,7 +79,7 @@ func (c ConsumerGroupsClient) ListByEventHub(ctx context.Context, id EventhubId,
 	return
 }
 
-// ListByEventHubCompleteMatchingPredicate retrieves all of the results into a single object
+// ListByEventHubComplete retrieves all of the results into a single object
 func (c ConsumerGroupsClient) ListByEventHubComplete(ctx context.Context, id EventhubId, options ListByEventHubOptions) (ListByEventHubCompleteResult, error) {
 	return c.ListByEventHubCompleteMatchingPredicate(ctx, id, options, ConsumerGroupPredicate{})
 }

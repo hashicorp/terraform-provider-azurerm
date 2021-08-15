@@ -37,7 +37,8 @@ resource "azurerm_application_insights_smart_detection_rule" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Application Insights Smart Detection Rule. Valid values include `Slow page load time`, `Slow server response time`, 
-`Long dependency duration`.  Changing this forces a new resource to be created.
+`Long dependency duration`, `Degradation in server response time`, `Degradation in dependency duration`, `Degradation in trace severity ratio`, `Abnormal rise in exception volume`,
+ `Potential memory leak detected`, `Potential security issue detected`, `Abnormal rise in daily data volume`.  Changing this forces a new resource to be created.
 
 * `application_insights_id` - (Required) The ID of the Application Insights component on which the Smart Detection Rule operates. Changing this forces a new resource to be created.
 

@@ -54,7 +54,7 @@ func (c EventHubsClient) preparerForDeleteAuthorizationRule(ctx context.Context,
 func (c EventHubsClient) responderForDeleteAuthorizationRule(resp *http.Response) (result DeleteAuthorizationRuleResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
 	return

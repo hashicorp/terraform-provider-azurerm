@@ -1,5 +1,13 @@
 package eventhubs
 
+type AccessRights string
+
+const (
+	AccessRightsListen AccessRights = "Listen"
+	AccessRightsManage AccessRights = "Manage"
+	AccessRightsSend   AccessRights = "Send"
+)
+
 type EncodingCaptureDescription string
 
 const (

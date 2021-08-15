@@ -113,7 +113,7 @@ func (r ConsumerGroupResource) Create() sdk.ResourceFunc {
 func (r ConsumerGroupResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := consumergroups.ConsumergroupID(metadata.ResourceData.Id())
+			id, err := consumergroups.ParseConsumergroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -148,7 +148,7 @@ func (r ConsumerGroupResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Eventhub.ConsumerGroupClient
-			id, err := consumergroups.ConsumergroupID(metadata.ResourceData.Id())
+			id, err := consumergroups.ParseConsumergroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -183,7 +183,7 @@ func (r ConsumerGroupResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Eventhub.ConsumerGroupClient
-			id, err := consumergroups.ConsumergroupID(metadata.ResourceData.Id())
+			id, err := consumergroups.ParseConsumergroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
