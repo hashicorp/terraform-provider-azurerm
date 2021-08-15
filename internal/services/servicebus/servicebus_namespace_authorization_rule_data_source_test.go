@@ -37,10 +37,8 @@ func TestAccDataSourceServiceBusNamespaceAuthorizationRule_withAliasConnectionSt
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			// `primary_connection_string_alias` and `secondary_connection_string_alias` are still `nil` while `data.azurerm_servicebus_namespace_authorization_rule` is retrieving acceptance. since `azurerm_servicebus_namespace_disaster_recovery_config` hasn't been created.
-			// So these two properties should be checked in the second run.
-			// And `depends_on` cannot be applied to `azurerm_servicebus_namespace_authorization_rule`.
-			// Because it would throw error message `BreakPairing operation is only allowed on primary namespace with valid secondary namespace.` while destroying `azurerm_servicebus_namespace_disaster_recovery_config` if `depends_on` is applied.
+			// `primary_connection_string_alias` and `secondary_connection_string_alias` are still `nil` while `data.azurerm_servicebus_namespace_authorization_rule` is retrieving acceptance.
+			// `depends_on` cannot be applied to `azurerm_servicebus_namespace_authorization_rule` as throws error message `BreakPairing operation is only allowed on primary namespace...` while destroying disaster recovery config, so these two properties should be checked in the second run.
 			Config: r.namespaceAliasPolicy(data),
 		},
 		{
