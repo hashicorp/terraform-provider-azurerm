@@ -124,8 +124,13 @@ func TestAccServiceBusTopicAuthorizationRule_withAliasConnectionString(t *testin
 			Config: r.withAliasConnectionString(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("primary_connection_string_alias").Exists(),
-				check.That(data.ResourceName).Key("secondary_connection_string_alias").Exists(),
+			),
+		},
+		{
+			Config: r.withAliasConnectionString(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("alias_primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("alias_secondary_connection_string").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -245,18 +250,14 @@ resource "azurerm_servicebus_namespace_disaster_recovery_config" "pairing_test" 
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "test" {
-	name                = "example_topic_rule"
-	namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
-	topic_name          = azurerm_servicebus_topic.example.name
-	resource_group_name = azurerm_resource_group.primary.name
-	manage              = true
-	listen              = true
-	send                = true
-
-	depends_on = [
-		azurerm_servicebus_namespace_disaster_recovery_config.pairing_test
-	  ]    	
-  }
+  name                = "example_topic_rule"
+  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
+  topic_name          = azurerm_servicebus_topic.example.name
+  resource_group_name = azurerm_resource_group.primary.name
+  manage              = true
+  listen              = true
+  send                = true
+}
 
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }

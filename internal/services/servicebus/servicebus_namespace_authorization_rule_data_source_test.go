@@ -11,7 +11,7 @@ import (
 type ServiceBusNamespaceAuthorizationRuleDataSource struct {
 }
 
-func TestAccDataSourceServiceBusNamespaceRule_basic(t *testing.T) {
+func TestAccDataSourceServiceBusNamespaceAuthorizationRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_namespace_authorization_rule", "test")
 	r := ServiceBusNamespaceAuthorizationRuleDataSource{}
 
@@ -31,7 +31,7 @@ func TestAccDataSourceServiceBusNamespaceRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceServiceBusNamespaceRule_withAliasConnectionString(t *testing.T) {
+func TestAccDataSourceServiceBusNamespaceAuthorizationRule_withAliasConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_namespace_authorization_rule", "test")
 	r := ServiceBusNamespaceAuthorizationRuleDataSource{}
 

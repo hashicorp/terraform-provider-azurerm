@@ -103,23 +103,6 @@ func TestAccServiceBusNamespaceAuthorizationRule_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccServiceBusNamespaceAuthorizationRule_withAliasConnectionString(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_authorization_rule", "test")
-	r := ServiceBusNamespaceAuthorizationRuleResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withAliasConnectionString(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("primary_connection_string_alias").Exists(),
-				check.That(data.ResourceName).Key("secondary_connection_string_alias").Exists(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (t ServiceBusNamespaceAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.NamespaceAuthorizationRuleID(state.ID)
 	if err != nil {
@@ -219,17 +202,13 @@ resource "azurerm_servicebus_namespace_disaster_recovery_config" "pairing_test" 
 }
 
 resource "azurerm_servicebus_namespace_authorization_rule" "test" {
-	name                = "example_namespace_rule"
-	namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
-	resource_group_name = azurerm_resource_group.primary.name
-	manage              = true
-	listen              = true
-	send                = true
-
-	depends_on = [
-		azurerm_servicebus_namespace_disaster_recovery_config.pairing_test
-	  ]    	
-  }
+  name                = "namespace_rule_test"
+  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
+  resource_group_name = azurerm_resource_group.primary.name
+  listen              = true
+  send                = true
+  manage              = true
+}
 
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
