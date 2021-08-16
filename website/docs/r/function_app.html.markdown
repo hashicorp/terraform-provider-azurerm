@@ -196,7 +196,13 @@ The following arguments are supported:
 
 * `always_on` - (Optional) Should the Function App be loaded at all times? Defaults to `false`.
 
+* `app_scale_limit` - (Optional) The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.
+
 * `cors` - (Optional) A `cors` block as defined below.
+
+* `dotnet_framework_version` - (Optional) The version of the .net framework's CLR used in this function app. Possible values are `v4.0` (including .NET Core 2.1 and 3.1), `v5.0` and `v6.0`. [For more information on which .net Framework version to use based on the runtime version you're targeting - please see this table](https://docs.microsoft.com/en-us/azure/azure-functions/functions-dotnet-class-library#supported-versions). Defaults to `v4.0`.
+
+* `elastic_instance_minimum` - (Optional) The number of minimum instances for this function app. Only affects apps on the Premium plan.
 
 * `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `AllAllowed`.
 
@@ -215,6 +221,8 @@ The following arguments are supported:
 * `min_tls_version` - (Optional) The minimum supported TLS version for the function app. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new function apps.
 
 * `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this function app. Only affects apps on the Premium plan.
+
+* `runtime_scale_monitoring_enabled` - (Optional) Should Runtime Scale Monitoring be enabled?. Only applicable to apps on the Premium plan. Defaults to `false`.
 
 * `scm_ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
 

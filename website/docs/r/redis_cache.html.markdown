@@ -13,7 +13,7 @@ Manages a Redis Cache.
 
 ## Example Usage
 
-This example provisions a Standard Redis Cache. Other examples of the `azurerm_redis_cache` resource can be found in [the `./examples/redis-cache` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/redis-cache)
+This example provisions a Standard Redis Cache. Other examples of the `azurerm_redis_cache` resource can be found in [the `./examples/redis-cache` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/redis-cache)
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -156,7 +156,7 @@ redis_configuration {
 | maxmemory_delta                 | 2            | 50           | 200          |
 | maxmemory_policy                | volatile-lru | volatile-lru | volatile-lru |
 
-~> **NOTE:** The `maxmemory_reserved`, `maxmemory_delta` and `maxfragmentationmemory-reserved` settings are only available for Standard and Premium caches. More details are available in the Relevant Links section below._
+~> **NOTE:** The `maxmemory_reserved`, `maxmemory_delta` and `maxfragmentationmemory_reserved` settings are only available for Standard and Premium caches. More details are available in the Relevant Links section below.
 
 ---
 

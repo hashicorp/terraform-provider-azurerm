@@ -39,7 +39,7 @@ resource "azurerm_servicebus_namespace" "secondary" {
 resource "azurerm_servicebus_namespace_disaster_recovery_config" "example" {
   name                 = "servicebus-alias-name"
   primary_namespace_id = azurerm_servicebus_namespace.primary.id
-  partner_namespace_id = azurerm_resource_group.secondary.id
+  partner_namespace_id = azurerm_servicebus_namespace.secondary.id
 }
 
 ```

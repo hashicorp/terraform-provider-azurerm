@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) A list of a one or more Availability Zones, where the Redis Cache should be allocated. Possible values are: `1`, `2` and `3`. Changing this forces a new Redis Enterprise Cluster to be created.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Redis Enterprise Cluster. Changing this forces a new Redis Enterprise Cluster to be created.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Redis Enterprise Cluster.
 
 ## Attributes Reference
 

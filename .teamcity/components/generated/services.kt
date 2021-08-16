@@ -92,5 +92,6 @@ var services = mapOf(
         "iottimeseriesinsights" to "Time Series Insights",
         "trafficmanager" to "Traffic Manager",
         "vmware" to "VMware",
+        "videoanalyzer" to "Video Analyzer",
         "web" to "Web"
 )

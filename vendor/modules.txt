@@ -9,14 +9,14 @@ cloud.google.com/go/internal/version
 # cloud.google.com/go/storage v1.16.0
 ## explicit
 cloud.google.com/go/storage
-# github.com/Azure/azure-sdk-for-go v56.0.0+incompatible
+# github.com/Azure/azure-sdk-for-go v56.2.0+incompatible
 ## explicit
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
 github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad
 github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor
 github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement
 github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2020-06-01/appconfiguration
-github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights
+github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights
 github.com/Azure/azure-sdk-for-go/services/attestation/mgmt/2018-09-01/attestation
 github.com/Azure/azure-sdk-for-go/services/azurestackhci/mgmt/2020-10-01/azurestackhci
 github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batch
@@ -44,7 +44,7 @@ github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl
 github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-10-31/digitaltwins
 github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns
 github.com/Azure/azure-sdk-for-go/services/domainservices/mgmt/2020-01-01/aad
-github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor
+github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-05-01/frontdoor
 github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac
 github.com/Azure/azure-sdk-for-go/services/guestconfiguration/mgmt/2020-06-25/guestconfiguration
 github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight
@@ -53,7 +53,7 @@ github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2020-03-30/health
 github.com/Azure/azure-sdk-for-go/services/iotcentral/mgmt/2018-09-01/iotcentral
 github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices
 github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault
-github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto
+github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto
 github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic
 github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-04-01/machinelearningservices
 github.com/Azure/azure-sdk-for-go/services/maintenance/mgmt/2021-05-01/maintenance
@@ -101,6 +101,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-0
 github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/2019-06-01-preview/managedvirtualnetwork
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-08-01-preview/accesscontrol
+github.com/Azure/azure-sdk-for-go/services/preview/videoanalyzer/mgmt/2021-05-01-preview/videoanalyzer
 github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns
 github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices
@@ -123,7 +124,7 @@ github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscrip
 github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse
 github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights
 github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-08-01/trafficmanager
-github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web
+github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web
 github.com/Azure/azure-sdk-for-go/version
 # github.com/Azure/go-autorest v14.2.0+incompatible
 github.com/Azure/go-autorest

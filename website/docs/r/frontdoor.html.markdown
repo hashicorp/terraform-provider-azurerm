@@ -17,7 +17,7 @@ Below are some of the key scenarios that Azure Front Door Service addresses:
 * Use Front Door to improve application performance with SSL offload and routing requests to the fastest available application backend.
 * Use Front Door for application layer security and DDoS protection for your application.
 
-!> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April which may cause issues with the CDN/FrontDoor resources. [More information is available in this Github issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the Github issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
+!> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April which may cause issues with the CDN/FrontDoor resources. [More information is available in this Github issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the Github issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
 
 !> **BREAKING CHANGE:** The `custom_https_provisioning_enabled` field and the `custom_https_configuration` block have been removed from the `azurerm_frontdoor` resource in the `v2.58.0` provider due to changes made by the service team. If you wish to enable the custom https configuration functionality within your `azurerm_frontdoor` resource moving forward you will need to define a separate `azurerm_frontdoor_custom_https_configuration` block in your configuration file.
 
@@ -33,7 +33,6 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_frontdoor" "example" {
   name                                         = "example-FrontDoor"
-  location                                     = "EastUS2"
   resource_group_name                          = azurerm_resource_group.example.name
   enforce_backend_pools_certificate_name_check = false
 
@@ -82,7 +81,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Front Door service. Must be globally unique. Changing this forces a new resource to be created. 
 
-* `location` -  (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created
+* `location` -  (Deprecated) The `location` argument is deprecated and is now always set to `global`.
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door service should exist. Changing this forces a new resource to be created.
 
@@ -212,7 +211,11 @@ The `forwarding_configuration` block supports the following:
 
 * `cache_use_dynamic_compression` - (Optional) Whether to use dynamic compression when caching. Valid options are `true` or `false`. Defaults to `false`.
 
-* `cache_query_parameter_strip_directive` - (Optional) Defines cache behaviour in relation to query string parameters. Valid options are `StripAll` or `StripNone`. Defaults to `StripAll`.
+* `cache_query_parameter_strip_directive` - (Optional) Defines cache behaviour in relation to query string parameters. Valid options are `StripAll`, `StripAllExcept`, `StripOnly` or `StripNone`. Defaults to `StripAll`.
+
+* `cache_query_parameters` - (Optional) Specify query parameters (array). Works only in combination with `cache_query_parameter_strip_directive` set to `StripAllExcept` or `StripOnly`.
+
+* `cache_duration` - (Optional) Specify the caching duration (in ISO8601 notation e.g. `P1DT2H` for 1 day and 2 hours). Needs to be greater than 0 and smaller than 365 days. `cache_duration` works only in combination with `cache_enabled` set to `true`.
 
 * `custom_forwarding_path` - (Optional) Path to use when constructing the request to forward to the backend. This functions as a URL Rewrite. Default behaviour preserves the URL path.
 

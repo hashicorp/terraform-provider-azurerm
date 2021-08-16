@@ -67,7 +67,7 @@ A `value_from_key_vault` block supports the following:
 
 * `secret_id` - (Required) The resource ID of the Key Vault Secret.
 
-* `identity_client_id` - (Required) The client ID of the System Assigned Identity, or User Assigned Identity, for the API Management Service, which will be used to access the key vault secret.
+* `identity_client_id` - (Optional) The client ID of User Assigned Identity, for the API Management Service, which will be used to access the key vault secret. The System Assigned Identity will be used in absence.
 
 ## Attributes Reference
 
