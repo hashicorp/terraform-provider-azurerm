@@ -472,6 +472,7 @@ resource "azurerm_key_vault_certificate" "test" {
       validity_in_months = 1
     }
   }
+  depends_on = [azurerm_key_vault_access_policy.test2]
 }
 `, data.RandomInteger, "westeurope", data.RandomInteger, data.RandomInteger)
 }
