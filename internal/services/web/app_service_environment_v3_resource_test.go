@@ -89,6 +89,9 @@ func TestAccAppServiceEnvironmentV3_completeUpdate(t *testing.T) {
 }
 
 func TestAccAppServiceEnvironmentV3_updateVnet(t *testing.T) {
+	if true {
+		t.Skip("Skipping as `ChangeVnet` func not actually implemented in service")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment_v3", "test")
 	r := AppServiceEnvironmentV3Resource{}
 
