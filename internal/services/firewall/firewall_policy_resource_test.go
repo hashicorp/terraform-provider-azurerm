@@ -399,6 +399,41 @@ resource "azurerm_key_vault_access_policy" "test" {
     "recover"
   ]
 }
+resource "azurerm_key_vault_access_policy" "test2" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+  key_permissions = [
+    "backup",
+    "create",
+    "delete",
+    "get",
+    "import",
+    "list",
+    "purge",
+    "recover",
+    "restore",
+    "update"
+  ]
+  certificate_permissions = [
+    "backup",
+    "create",
+    "get",
+    "list",
+    "import",
+    "purge",
+    "delete",
+    "recover",
+  ]
+  secret_permissions = [
+    "get",
+    "list",
+    "set",
+    "purge",
+    "delete",
+    "recover"
+  ]
+}
 resource "azurerm_key_vault_certificate" "test" {
   name         = "AzureFirewallPolicyCertificate"
   key_vault_id = azurerm_key_vault.test.id
