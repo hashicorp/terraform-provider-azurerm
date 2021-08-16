@@ -601,6 +601,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"None",
 					}, false),
 				),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"role_based_access_control": {
