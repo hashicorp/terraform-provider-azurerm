@@ -75,7 +75,7 @@ resource "azurerm_app_service_environment_v3" "example" {
 
 * `resource_group_name` - (Required) The name of the Resource Group where the App Service Environment exists. Defaults to the Resource Group of the Subnet (specified by `subnet_id`).
 
-* `subnet_id` - (Required) The ID of the Subnet which the App Service Environment should be connected to.
+* `subnet_id` - (Required) The ID of the Subnet which the App Service Environment should be connected to. Changing this forces a new resource to be created. 
 
 ~> **NOTE** a /24 or larger CIDR is required. Once associated with an ASE, this size cannot be changed.
 
@@ -111,7 +111,11 @@ A `cluster_setting` block supports the following:
 
 * `dns_suffix` - the DNS suffix for this App Service Environment V3. 
 
+* `external_inbound_ip_addresses` - The external outbound IP addresses of the App Service Environment V3. 
+
 * `inbound_network_dependencies` - An Inbound Network Dependencies block as defined below.
+
+* `internal_inbound_ip_addresses` - The internal outbound IP addresses of the App Service Environment V3.
 
 * `ip_ssl_address_count` - The number of IP SSL addresses reserved for the App Service Environment V3.
 

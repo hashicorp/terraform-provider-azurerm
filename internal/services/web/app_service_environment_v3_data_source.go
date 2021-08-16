@@ -66,6 +66,14 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 			Computed: true,
 		},
 
+		"external_inbound_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
 		"inbound_network_dependencies": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -92,6 +100,14 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 						},
 					},
 				},
+			},
+		},
+
+		"internal_inbound_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
 		},
 

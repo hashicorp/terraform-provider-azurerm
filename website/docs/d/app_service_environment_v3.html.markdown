@@ -45,7 +45,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `dns_suffix` - the DNS suffix for this App Service Environment V3.
 
+* `external_inbound_ip_addresses` - The external outbound IP addresses of the App Service Environment V3.
+
 * `inbound_network_dependencies` - An Inbound Network Dependencies block as defined below.
+
+* `internal_inbound_ip_addresses` - The internal outbound IP addresses of the App Service Environment V3.
 
 * `internal_load_balancing_mode` - The Internal Load Balancing Mode of this ASEv3.  
 

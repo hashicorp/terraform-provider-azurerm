@@ -35,15 +35,17 @@ type AppServiceEnvironmentV3Model struct {
 	ClusterSetting                     []ClusterSettingModel             `tfschema:"cluster_setting"`
 	DedicatedHostCount                 int                               `tfschema:"dedicated_host_count"`
 	InternalLoadBalancingMode          string                            `tfschema:"internal_load_balancing_mode"`
-	Location                           string                            `tfschema:"location"`
-	DnsSuffix                          string                            `tfschema:"dns_suffix"`
-	IpSSLAddressCount                  int                               `tfschema:"ip_ssl_address_count"`
-	PricingTier                        string                            `tfschema:"pricing_tier"`
-	WindowsOutboundIPAddresses         []string                          `tfschema:"windows_outbound_ip_addresses"`
-	LinuxOutboundIPAddresses           []string                          `tfschema:"linux_outbound_ip_addresses"`
-	InboundNetworkDependencies         []AppServiceV3InboundDependencies `tfschema:"inbound_network_dependencies"`
 	ZoneRedundant                      bool                              `tfschema:"zone_redundant"`
 	Tags                               map[string]interface{}            `tfschema:"tags"`
+	DnsSuffix                          string                            `tfschema:"dns_suffix"`
+	ExternalInboundIPAddresses         []string                          `tfschema:"external_inbound_ip_addresses"`
+	InboundNetworkDependencies         []AppServiceV3InboundDependencies `tfschema:"inbound_network_dependencies"`
+	InternalInboundIPAddresses         []string                          `tfschema:"internal_inbound_ip_addresses"`
+	IpSSLAddressCount                  int                               `tfschema:"ip_ssl_address_count"`
+	LinuxOutboundIPAddresses           []string                          `tfschema:"linux_outbound_ip_addresses"`
+	Location                           string                            `tfschema:"location"`
+	PricingTier                        string                            `tfschema:"pricing_tier"`
+	WindowsOutboundIPAddresses         []string                          `tfschema:"windows_outbound_ip_addresses"`
 }
 
 type AppServiceV3InboundDependencies struct {
@@ -70,9 +72,10 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
-		"subnet_id": {
+		"subnet_id": { // (@jackofallops) - This _should_ be updatable via `ChangeVnet`, but the service returns Code="NotImplemented" Message="The requested method is not implemented."
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: networkValidate.SubnetID,
 		},
 
@@ -144,6 +147,14 @@ func (r AppServiceEnvironmentV3Resource) Attributes() map[string]*pluginsdk.Sche
 			Computed: true,
 		},
 
+		"external_inbound_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
 		"inbound_network_dependencies": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -170,6 +181,14 @@ func (r AppServiceEnvironmentV3Resource) Attributes() map[string]*pluginsdk.Sche
 						},
 					},
 				},
+			},
+		},
+
+		"internal_inbound_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
 		},
 
@@ -354,6 +373,8 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 			if props := existingNetwork.AseV3NetworkingConfigurationProperties; props != nil {
 				model.WindowsOutboundIPAddresses = *props.WindowsOutboundIPAddresses
 				model.LinuxOutboundIPAddresses = *props.LinuxOutboundIPAddresses
+				model.InternalInboundIPAddresses = *props.InternalInboundIPAddresses
+				model.ExternalInboundIPAddresses = *props.ExternalInboundIPAddresses
 				model.AllowNewPrivateEndpointConnections = *props.AllowNewPrivateEndpointConnections
 			}
 
@@ -429,21 +450,6 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 
 			if _, err = client.Update(ctx, id.ResourceGroup, id.HostingEnvironmentName, patch); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
-			if metadata.ResourceData.HasChange("subnet_id") {
-				vnetInfo := web.VirtualNetworkProfile{
-					ID: utils.String(state.SubnetId),
-				}
-
-				updateFuture, err := client.ChangeVnet(ctx, id.ResourceGroup, id.HostingEnvironmentName, vnetInfo)
-				if err != nil {
-					return fmt.Errorf("updating Virtual Network location for %s: %+v", id, err)
-				}
-
-				if err := updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting for update of Virtual Network location for %s: %+v", id, err)
-				}
 			}
 
 			return nil
