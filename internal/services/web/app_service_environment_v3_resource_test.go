@@ -211,13 +211,14 @@ func (r AppServiceEnvironmentV3Resource) completeUpdate(data acceptance.TestData
 	return fmt.Sprintf(`
 %s
 resource "azurerm_app_service_environment_v3" "test" {
-  name                = "acctest-ase-%d"
-  resource_group_name = azurerm_resource_group.test2.name
-  subnet_id           = azurerm_subnet.test.id
+  name                         = "acctest-ase-%d"
+  resource_group_name          = azurerm_resource_group.test2.name
+  subnet_id                    = azurerm_subnet.test.id
+  internal_load_balancing_mode = "Web, Publishing"
 
   cluster_setting {
     name  = "InternalEncryption"
-    value = "false"
+    value = "true"
   }
 
   cluster_setting {
@@ -227,7 +228,7 @@ resource "azurerm_app_service_environment_v3" "test" {
 
   cluster_setting {
     name  = "FrontEndSSLCipherSuiteOrder"
-    value = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+    value = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384_P256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256_P256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384_P256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA_P256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA_P256"
   }
 
   tags = {
