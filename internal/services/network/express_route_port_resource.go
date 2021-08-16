@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -39,19 +39,12 @@ var expressRoutePortSchema = &pluginsdk.Schema{
 			"macsec_cipher": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-
-				// TODO: The following hardcode can be replaced by SDK types once following is merged:
-				// 	https://github.com/Azure/azure-rest-api-specs/pull/12329
-				Default: "GcmAes128",
-				// Default: string(network.GcmAes128),
-
-				// TODO: The following hardcode can be replaced by SDK types once following is merged:
-				// 	https://github.com/Azure/azure-rest-api-specs/pull/12329
+				Default:  string(network.ExpressRouteLinkMacSecCipherGcmAes128),
 				ValidateFunc: validation.StringInSlice([]string{
-					"GcmAes128",
-					"GcmAes256",
-					// string(network.GcmAes128),
-					// string(network.GcmAes256),
+					string(network.ExpressRouteLinkMacSecCipherGcmAes128),
+					string(network.ExpressRouteLinkMacSecCipherGcmAes256),
+					string(network.ExpressRouteLinkMacSecCipherGcmAesXpn128),
+					string(network.ExpressRouteLinkMacSecCipherGcmAesXpn256),
 				}, false),
 			},
 			"macsec_ckn_keyvault_secret_id": {
@@ -63,6 +56,11 @@ var expressRoutePortSchema = &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"macsec_sci_state": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 			"id": {
 				Type:     pluginsdk.TypeString,
@@ -413,13 +411,19 @@ func expandExpressRoutePortLink(idx int, input []interface{}) *network.ExpressRo
 		adminState = network.ExpressRouteLinkAdminStateEnabled
 	}
 
+	sciState := network.ExpressRouteLinkMacSecSciStateDisabled
+	if b["macsec_sci_state"].(bool) {
+		sciState = network.ExpressRouteLinkMacSecSciStateEnabled
+	}
+
 	link := network.ExpressRouteLink{
 		// The link name is fixed
 		Name: utils.String(fmt.Sprintf("link%d", idx)),
 		ExpressRouteLinkPropertiesFormat: &network.ExpressRouteLinkPropertiesFormat{
 			AdminState: adminState,
 			MacSecConfig: &network.ExpressRouteLinkMacSecConfig{
-				Cipher: network.ExpressRouteLinkMacSecCipher(b["macsec_cipher"].(string)),
+				Cipher:   network.ExpressRouteLinkMacSecCipher(b["macsec_cipher"].(string)),
+				SciState: sciState,
 			},
 		},
 	}
@@ -461,6 +465,7 @@ func flattenExpressRoutePortLink(link network.ExpressRouteLink) []interface{} {
 		cknSecretId   string
 		cakSecretId   string
 		cipher        string
+		sciState      bool
 	)
 
 	if prop := link.ExpressRouteLinkPropertiesFormat; prop != nil {
@@ -486,6 +491,7 @@ func flattenExpressRoutePortLink(link network.ExpressRouteLink) []interface{} {
 				cakSecretId = *cfg.CakSecretIdentifier
 			}
 			cipher = string(cfg.Cipher)
+			sciState = cfg.SciState == network.ExpressRouteLinkMacSecSciStateEnabled
 		}
 	}
 
@@ -501,6 +507,7 @@ func flattenExpressRoutePortLink(link network.ExpressRouteLink) []interface{} {
 			"macsec_ckn_keyvault_secret_id": cknSecretId,
 			"macsec_cak_keyvault_secret_id": cakSecretId,
 			"macsec_cipher":                 cipher,
+			"macsec_sci_state":              sciState,
 		},
 	}
 }
