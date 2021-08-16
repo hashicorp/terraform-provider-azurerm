@@ -607,7 +607,10 @@ func expandFirewallPolicyIdentity(input []interface{}) *network.ManagedServiceId
 	v := input[0].(map[string]interface{})
 
 	return &network.ManagedServiceIdentity{
-		Type: network.ResourceIdentityType(v["type"].(string)),
+		Type:                   network.ResourceIdentityType(v["type"].(string)),
+		PrincipalID:            utils.String(v["principal_id"].(string)),
+		TenantID:               utils.String(v["tenant_id"].(string)),
+		UserAssignedIdentities: v["identity_ids"].(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue),
 	}
 }
 
@@ -694,10 +697,10 @@ func flattenFirewallPolicyIdentity(identity *network.ManagedServiceIdentity) []i
 
 	return []interface{}{
 		map[string]interface{}{
-			"type":                            string(identity.Type),
-			"principal_id":                    principalID,
-			"tenant_id":                       tenantID,
-			"user_assigned_managed_identites": userAssignedIdentities,
+			"type":         string(identity.Type),
+			"principal_id": principalID,
+			"tenant_id":    tenantID,
+			"identity_ids": userAssignedIdentities,
 		},
 	}
 }
