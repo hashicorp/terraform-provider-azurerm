@@ -2,8 +2,9 @@ package validate
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func IntegrationAccountCertificateName() pluginsdk.SchemaValidateFunc {
