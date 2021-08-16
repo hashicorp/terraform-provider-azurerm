@@ -30,7 +30,7 @@ func dataSourceIotHub() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"hostname": {
-				Type: pluginsdk.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
