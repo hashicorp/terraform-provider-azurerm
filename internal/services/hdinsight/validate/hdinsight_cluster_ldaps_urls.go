@@ -2,7 +2,7 @@ package validate
 
 import (
 	"fmt"
-	"strings"
+	"net/url"
 )
 
 func HDInsightClusterLdapsUrls(i interface{}, k string) (warnings []string, errors []error) {
@@ -12,8 +12,14 @@ func HDInsightClusterLdapsUrls(i interface{}, k string) (warnings []string, erro
 		return
 	}
 
-	if !strings.HasPrefix(v, "ldaps://") {
-		errors = append(errors, fmt.Errorf(`%s should start with "ldaps://"`, k))
+	ldapsUrl, err := url.Parse(v)
+	if err != nil {
+		errors = append(errors, fmt.Errorf("parsing %q: %q", k, v))
+		return
+	}
+
+	if ldapsUrl.Scheme != "ldaps" {
+		errors = append(errors, fmt.Errorf(`%s should start with "ldaps"`, k))
 		return
 	}
 
