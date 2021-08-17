@@ -40,10 +40,52 @@ The following attributes are exported:
 
 * `input_schema` - The schema in which incoming events will be published to this domain. Possible values are `CloudEventSchemaV1_0`, `CustomEventSchema`, or `EventGridSchema`.
 
-* `input_mapping_fields` - 
+* `input_mapping_fields` - A `input_mapping_fields` block as defined below.
+
+* `input_mapping_default_values` - A `input_mapping_default_values` block as defined below.
+
+* `public_network_access_enabled` - Whether or not public network access is allowed for this server.
+
+* `inbound_ip_rule` - One or more `inbound_ip_rule` blocks as defined below.
+
+* `tags` - A mapping of tags assigned to the resource.
+
+---
+
+A `input_mapping_fields` supports the following:
+
+* `id` - Specifies the id of the EventGrid Event associated with the domain.
+
+* `topic` - Specifies the topic of the EventGrid Event associated with the domain.
+
+* `event_type` - Specifies the event type of the EventGrid Event associated with the domain.
+
+* `event_time` - Specifies the event time of the EventGrid Event associated with the domain.
+
+* `data_version` - Specifies the data version of the EventGrid Event associated with the domain.
+
+* `subject` - Specifies the subject of the EventGrid Event associated with the domain.
+
+---
+
+A `input_mapping_default_values` supports the following:
+
+* `event_type` - Specifies the default event type of the EventGrid Event associated with the domain.
+
+* `data_version` - Specifies the default data version of the EventGrid Event associated with the domain.
+
+* `subject` - Specifies the default subject of the EventGrid Event associated with the domain.
+
+---
+
+A `inbound_ip_rule` block supports the following:
+
+* `ip_mask` - The ip mask (CIDR) to match on.
+
+* `action` - The action to take when the rule is matched. Possible values are `Allow`.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventGrid Domain.
-
