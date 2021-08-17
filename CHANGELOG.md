@@ -24,6 +24,7 @@ BUG FIXES:
 * `azurerm_frontdoor` - expose support for `cache_duration` and `cache_query_parameters` fields [GH-12831]
 * `azurerm_redis_enterprise_cluster` - changing the tags property no longer creates a new resource [GH-12956]
 * `azurerm_storage_account` - allow 0 for the `cors.max_age_in_seconds` property [GH-13010]
+* `azurerm_virtual_hub_connection` - will not correctly lock it's cirtual network during updates [GH-12999]
 
 ## 2.72.0 (August 12, 2021)
 
