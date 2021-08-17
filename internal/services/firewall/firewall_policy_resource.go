@@ -606,11 +606,21 @@ func expandFirewallPolicyIdentity(input []interface{}) *network.ManagedServiceId
 
 	v := input[0].(map[string]interface{})
 
+	var identityIDSet []interface{}
+	if identityIds, exists := v["identity_ids"]; exists {
+		identityIDSet = identityIds.(*pluginsdk.Set).List()
+	}
+
+	userAssignedIdentities := make(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue)
+	for _, id := range identityIDSet {
+		userAssignedIdentities[id.(string)] = &network.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+	}
+
 	return &network.ManagedServiceIdentity{
 		Type:                   network.ResourceIdentityType(v["type"].(string)),
 		PrincipalID:            utils.String(v["principal_id"].(string)),
 		TenantID:               utils.String(v["tenant_id"].(string)),
-		UserAssignedIdentities: v["identity_ids"].(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue),
+		UserAssignedIdentities: userAssignedIdentities,
 	}
 }
 
