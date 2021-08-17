@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * eventhub: updating to use the latest embedded SDK [GH-12946]
 * Data Source: `azurerm_iothub` - support for the property `hostname` [GH-13001]
 * `azurerm_stream_analytics_output_eventhub` - support for the `property_columns` property [GH-12947]
+* `azurerm_netapp_volume` - support for the `snapshot_directory_visible` property [GH-12961]
 
 BUG FIXES:
 
