@@ -23,7 +23,7 @@ resource "azurerm_purview_account" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   sku_name            = "Standard_4"
-  
+
   identity {
     type = "SystemAssigned"
   }
