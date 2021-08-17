@@ -359,7 +359,7 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("failure flattening `component_version`: %+v", err)
 			}
 
-			if err := d.Set("gateway", FlattenHDInsightsConfigurations(gateway)); err != nil {
+			if err := d.Set("gateway", FlattenHDInsightsConfigurations(gateway, d)); err != nil {
 				return fmt.Errorf("failure flattening `gateway`: %+v", err)
 			}
 
@@ -398,7 +398,7 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf(`failed setting "rest_proxy" for HDInsight Kafka Cluster %q (Resource Group %q): %+v`, name, resourceGroup, err)
 		}
 
-		if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile)); err != nil {
+		if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile, d)); err != nil {
 			return fmt.Errorf("setting `security_profile`: %+v", err)
 		}
 	}

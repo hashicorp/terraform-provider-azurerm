@@ -463,7 +463,7 @@ func FlattenHDInsightsNetwork(input *hdinsight.NetworkProperties) []interface{} 
 	}
 }
 
-func FlattenHDInsightsConfigurations(input map[string]*string) []interface{} {
+func FlattenHDInsightsConfigurations(input map[string]*string, d *pluginsdk.ResourceData) []interface{} {
 	enabled := true
 
 	username := ""
@@ -474,6 +474,8 @@ func FlattenHDInsightsConfigurations(input map[string]*string) []interface{} {
 	password := ""
 	if v, exists := input["restAuthCredential.password"]; exists && v != nil {
 		password = *v
+	} else {
+		password = d.Get("gateway.0.password").(string)
 	}
 
 	return []interface{}{
@@ -1305,7 +1307,7 @@ func FlattenHDInsightAutoscaleRecurrenceDefinition(input *hdinsight.AutoscaleRec
 	}
 }
 
-func flattenHDInsightSecurityProfile(input *hdinsight.SecurityProfile) []interface{} {
+func flattenHDInsightSecurityProfile(input *hdinsight.SecurityProfile, d *pluginsdk.ResourceData) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -1336,6 +1338,7 @@ func flattenHDInsightSecurityProfile(input *hdinsight.SecurityProfile) []interfa
 			"cluster_users_group_dns": utils.FlattenStringSlice(input.ClusterUsersGroupDNS),
 			"domain_name":             domain,
 			"domain_username":         domainUsername,
+			"domain_user_password":    d.Get("security_profile.0.domain_user_password"),
 			"ldaps_urls":              utils.FlattenStringSlice(input.LdapsUrls),
 			"msi_resource_id":         msiResourceId,
 		},

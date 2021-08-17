@@ -305,7 +305,7 @@ func resourceHDInsightHBaseClusterRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("failure flattening `component_version`: %+v", err)
 			}
 
-			if err := d.Set("gateway", FlattenHDInsightsConfigurations(gateway)); err != nil {
+			if err := d.Set("gateway", FlattenHDInsightsConfigurations(gateway, d)); err != nil {
 				return fmt.Errorf("failure flattening `gateway`: %+v", err)
 			}
 
@@ -334,7 +334,7 @@ func resourceHDInsightHBaseClusterRead(d *pluginsdk.ResourceData, meta interface
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
 
-		if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile)); err != nil {
+		if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile, d)); err != nil {
 			return fmt.Errorf("setting `security_profile`: %+v", err)
 		}
 	}

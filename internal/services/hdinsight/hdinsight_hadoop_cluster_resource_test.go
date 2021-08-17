@@ -608,7 +608,9 @@ func TestAccHDInsightHadoopCluster_securityProfile(t *testing.T) {
 			"roles.0.worker_node.0.vm_size",
 			"roles.0.zookeeper_node.0.password",
 			"roles.0.zookeeper_node.0.vm_size",
-			"storage_account"),
+			"storage_account",
+			"security_profile.0.domain_user_password",
+			"gateway.0.password"),
 	})
 }
 
@@ -2292,13 +2294,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   depends_on = [
     azurerm_virtual_network_dns_servers.test,
   ]
-
-  lifecycle {
-    ignore_changes = [
-      security_profile.0.domain_user_password,
-      gateway.0.password
-    ]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
 }
