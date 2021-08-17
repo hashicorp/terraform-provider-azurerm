@@ -58,8 +58,9 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"Standard_4",
-					"Standard_16",
+					"Standard_1",  // @tombuildsstuff: temporarily adding this to workaround https://github.com/Azure/azure-rest-api-specs/issues/15675
+					"Standard_4",  // @tombuildsstuff: the API converts this `4` to `(Standard_)1` as of 2021-08-17 - appears to be a bug: https://github.com/Azure/azure-rest-api-specs/issues/15675
+					"Standard_16", // @tombuildsstuff: the API converts this `16` to `(Standard_)1` as of 2021-08-17 - appears to be a bug: https://github.com/Azure/azure-rest-api-specs/issues/15675
 				}, false),
 			},
 

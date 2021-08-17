@@ -47,6 +47,42 @@ func TestAccPurviewAccount_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccPurviewAccount_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
+	r := PurviewAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+func TestAccPurviewAccount_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
+	r := PurviewAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r PurviewAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := account.ParseAccountID(state.ID)
 	if err != nil {
@@ -80,7 +116,7 @@ resource "azurerm_purview_account" "test" {
   name                = "acctestpa%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "Standard_4"
+  sku_name            = "Standard_1"
 
   identity {
     type = "SystemAssigned"
@@ -105,4 +141,33 @@ resource "azurerm_purview_account" "import" {
   }
 }
 `, template)
+}
+
+func (r PurviewAccountResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-purview-%d"
+  location = "%s"
+}
+
+
+resource "azurerm_purview_account" "test" {
+  name                = "acctestpa%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Standard_1"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags {
+    hello = "World"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
