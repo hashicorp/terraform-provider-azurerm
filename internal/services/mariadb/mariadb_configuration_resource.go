@@ -77,16 +77,16 @@ func resourceMariaDbConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for MariaDb Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("issuing create/update request for MariaDb Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for create/update of MariaDb Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("waiting for create/update of MariaDb Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		return fmt.Errorf("Error issuing get request for MariaDb Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("issuing get request for MariaDb Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read MariaDb Configuration %s (resource group %s, server name %s) ID", name, resourceGroup, serverName)
@@ -118,7 +118,7 @@ func resourceMariaDbConfigurationRead(d *pluginsdk.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure MariaDb Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure MariaDb Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -145,7 +145,7 @@ func resourceMariaDbConfigurationDelete(d *pluginsdk.ResourceData, meta interfac
 	// "delete" = resetting this to the default value
 	resp, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving MariaDb Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving MariaDb Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	properties := mariadb.Configuration{

@@ -106,7 +106,7 @@ func resourceDevSpaceControllerCreate(d *pluginsdk.ResourceData, meta interface{
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing DevSpace Controller %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing DevSpace Controller %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -120,7 +120,7 @@ func resourceDevSpaceControllerCreate(d *pluginsdk.ResourceData, meta interface{
 
 	sku, err := expandControllerSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("error expanding `sku_name` for DevSpace Controller %s (Resource Group %q): %v", name, resourceGroup, err)
+		return fmt.Errorf("expanding `sku_name` for DevSpace Controller %s (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
 	controller := devspaces.Controller{
@@ -135,16 +135,16 @@ func resourceDevSpaceControllerCreate(d *pluginsdk.ResourceData, meta interface{
 
 	future, err := client.Create(ctx, resourceGroup, name, controller)
 	if err != nil {
-		return fmt.Errorf("Error creating DevSpace Controller %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating DevSpace Controller %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of DevSpace Controller %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of DevSpace Controller %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	result, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving DevSpace %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving DevSpace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if result.ID == nil {
@@ -172,7 +172,7 @@ func resourceDevSpaceControllerUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	result, err := client.Update(ctx, id.ResourceGroup, id.Name, params)
 	if err != nil {
-		return fmt.Errorf("Error updating DevSpace Controller %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating DevSpace Controller %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if result.ID == nil {
@@ -201,7 +201,7 @@ func resourceDevSpaceControllerRead(d *pluginsdk.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on DevSpace Controller %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on DevSpace Controller %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -235,11 +235,11 @@ func resourceDevSpaceControllerDelete(d *pluginsdk.ResourceData, meta interface{
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting DevSpace Controller %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting DevSpace Controller %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the deletion of DevSpace Controller %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of DevSpace Controller %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

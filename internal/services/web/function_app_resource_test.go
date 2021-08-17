@@ -1000,6 +1000,54 @@ func TestAccFunctionApp_runtimeScaleMonitoringEnabled(t *testing.T) {
 	})
 }
 
+func TestAccFunctionApp_dotnetVersion4(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dotnetVersion(data, "~1", "v4.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v4.0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFunctionApp_dotnetVersion5(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dotnetVersion(data, "~3", "v5.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v5.0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFunctionApp_dotnetVersion6(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dotnetVersion(data, "~4", "v6.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v6.0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r FunctionAppResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FunctionAppID(state.ID)
 	if err != nil {
@@ -3268,4 +3316,51 @@ resource "azurerm_function_app" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func (r FunctionAppResource) dotnetVersion(data acceptance.TestData, functionVersion string, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                       = "acctest-%d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  version = "%s"
+
+  site_config {
+    dotnet_framework_version = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, functionVersion, version)
 }

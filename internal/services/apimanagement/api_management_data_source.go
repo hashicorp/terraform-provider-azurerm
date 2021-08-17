@@ -225,7 +225,7 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	id, err := parse.ApiManagementID(*resp.ID)
 	if err != nil {
-		return fmt.Errorf("Error parsing API Management ID: %q", *resp.ID)
+		return fmt.Errorf("parsing API Management ID: %q", *resp.ID)
 	}
 
 	d.SetId(id.ID())

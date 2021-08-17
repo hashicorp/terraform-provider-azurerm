@@ -152,10 +152,10 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 		roleName := v.(string)
 		roleDefinitions, err := roleDefinitionsClient.List(ctx, scope, fmt.Sprintf("roleName eq '%s'", roleName))
 		if err != nil {
-			return fmt.Errorf("Error loading Role Definition List: %+v", err)
+			return fmt.Errorf("loading Role Definition List: %+v", err)
 		}
 		if len(roleDefinitions.Values()) != 1 {
-			return fmt.Errorf("Error loading Role Definition List: could not find role '%s'", roleName)
+			return fmt.Errorf("loading Role Definition List: could not find role '%s'", roleName)
 		}
 		roleDefinitionId = *roleDefinitions.Values()[0].ID
 	} else {
@@ -168,7 +168,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	if name == "" {
 		uuid, err := uuid.GenerateUUID()
 		if err != nil {
-			return fmt.Errorf("Error generating UUID for Role Assignment: %+v", err)
+			return fmt.Errorf("generating UUID for Role Assignment: %+v", err)
 		}
 
 		name = uuid
@@ -187,7 +187,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	existing, err := roleAssignmentsClient.Get(ctx, scope, name, tenantId)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Role Assignment ID for %q (Scope %q): %+v", name, scope, err)
+			return fmt.Errorf("checking for presence of existing Role Assignment ID for %q (Scope %q): %+v", name, scope, err)
 		}
 	}
 
@@ -256,7 +256,7 @@ func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("Error loading Role Assignment %q: %+v", d.Id(), err)
+		return fmt.Errorf("loading Role Assignment %q: %+v", d.Id(), err)
 	}
 
 	d.Set("name", resp.Name)
@@ -275,7 +275,7 @@ func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if roleId := props.RoleDefinitionID; roleId != nil {
 			roleResp, err := roleDefinitionsClient.GetByID(ctx, *roleId)
 			if err != nil {
-				return fmt.Errorf("Error loading Role Definition %q: %+v", *roleId, err)
+				return fmt.Errorf("loading Role Definition %q: %+v", *roleId, err)
 			}
 
 			if roleProps := roleResp.RoleDefinitionProperties; roleProps != nil {

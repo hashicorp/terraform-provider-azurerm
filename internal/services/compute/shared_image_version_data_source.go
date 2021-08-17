@@ -124,7 +124,7 @@ func dataSourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{
 			d.Set("exclude_from_latest", profile.ExcludeFromLatest)
 
 			if err := d.Set("target_region", flattenSharedImageVersionDataSourceTargetRegions(profile.TargetRegions)); err != nil {
-				return fmt.Errorf("Error setting `target_region`: %+v", err)
+				return fmt.Errorf("setting `target_region`: %+v", err)
 			}
 		}
 
@@ -203,7 +203,7 @@ func obtainImage(client *compute.GalleryImageVersionsClient, ctx context.Context
 			if utils.ResponseWasNotFound(image.Response) {
 				return nil, notFoundError
 			}
-			return nil, fmt.Errorf("Error retrieving Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", galleryImageVersionName, galleryImageName, galleryName, resourceGroup, err)
+			return nil, fmt.Errorf("retrieving Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", galleryImageVersionName, galleryImageName, galleryName, resourceGroup, err)
 		}
 
 		return &image, nil

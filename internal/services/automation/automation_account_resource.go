@@ -90,7 +90,7 @@ func resourceAutomationAccountCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Automation Account %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Automation Account %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -111,12 +111,12 @@ func resourceAutomationAccountCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("Error creating/updating Automation Account %q (Resource Group %q) %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating Automation Account %q (Resource Group %q) %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Automation Account %q (Resource Group %q) %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Automation Account %q (Resource Group %q) %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -149,7 +149,7 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Automation Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Automation Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	keysResp, err := registrationClient.Get(ctx, resourceGroup, name)
@@ -160,7 +160,7 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request for Agent Registration Info for Automation Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request for Agent Registration Info for Automation Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -171,10 +171,10 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if sku := resp.Sku; sku != nil {
 		if err := d.Set("sku_name", string(sku.Name)); err != nil {
-			return fmt.Errorf("Error setting 'sku_name': %+v", err)
+			return fmt.Errorf("setting 'sku_name': %+v", err)
 		}
 	} else {
-		return fmt.Errorf("Error making Read request on Automation Account %q (Resource Group %q): Unable to retrieve 'sku' value", name, resourceGroup)
+		return fmt.Errorf("making Read request on Automation Account %q (Resource Group %q): Unable to retrieve 'sku' value", name, resourceGroup)
 	}
 
 	d.Set("dsc_server_endpoint", keysResp.Endpoint)
@@ -208,7 +208,7 @@ func resourceAutomationAccountDelete(d *pluginsdk.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for Automation Account '%s': %+v", name, err)
+		return fmt.Errorf("issuing AzureRM delete request for Automation Account '%s': %+v", name, err)
 	}
 
 	return nil

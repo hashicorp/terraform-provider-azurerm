@@ -3,7 +3,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/namespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
 )
 
 func NamespaceID(input interface{}, key string) (warnings []string, errors []error) {

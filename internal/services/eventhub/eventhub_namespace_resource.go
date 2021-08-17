@@ -12,11 +12,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/authorizationrulesnamespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/namespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/networkrulesets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/networkrulesets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -32,6 +33,8 @@ var (
 	eventHubNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
 	eventHubNamespaceResourceName             = "azurerm_eventhub_namespace"
 )
+
+type eventhubNamespaceIdentityType = identity.SystemAssigned
 
 func resourceEventHubNamespace() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -101,32 +104,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				ValidateFunc: validate.ClusterID,
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(namespaces.ManagedServiceIdentityTypeSystemAssigned),
-							}, false),
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": eventhubNamespaceIdentityType{}.Schema(),
 
 			"maximum_throughput_units": {
 				Type:         pluginsdk.TypeInt,
@@ -296,6 +274,11 @@ func resourceEventHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
 	zoneRedundant := d.Get("zone_redundant").(bool)
 
+	identity, err := expandEventHubIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	parameters := namespaces.EHNamespace{
 		Location: &location,
 		Sku: &namespaces.Sku{
@@ -306,7 +289,7 @@ func resourceEventHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 			}(),
 			Capacity: utils.Int64(int64(capacity)),
 		},
-		Identity: expandEventHubIdentity(d.Get("identity").([]interface{})),
+		Identity: identity,
 		Properties: &namespaces.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
 			ZoneRedundant:        utils.Bool(zoneRedundant),
@@ -419,7 +402,7 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if err := d.Set("network_rulesets", flattenEventHubNamespaceNetworkRuleset(ruleset)); err != nil {
-		return fmt.Errorf("Error setting `network_ruleset` for Evenhub Namespace %s: %v", id.Name, err)
+		return fmt.Errorf("setting `network_ruleset` for Evenhub Namespace %s: %v", id.Name, err)
 	}
 
 	authorizationRuleId := authorizationrulesnamespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.Name, eventHubNamespaceDefaultAuthorizationRule)
@@ -610,45 +593,22 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 	}}
 }
 
-func expandEventHubIdentity(input []interface{}) *namespaces.Identity {
-	if len(input) == 0 {
-		return nil
+func expandEventHubIdentity(input []interface{}) (*identity.SystemUserAssignedIdentityMap, error) {
+	expanded, err := eventhubNamespaceIdentityType{}.Expand(input)
+	if err != nil {
+		return nil, err
 	}
 
-	v := input[0].(map[string]interface{})
-	return &namespaces.Identity{
-		Type: func() *namespaces.ManagedServiceIdentityType {
-			v := namespaces.ManagedServiceIdentityType(v["type"].(string))
-			return &v
-		}(),
-	}
+	result := identity.SystemUserAssignedIdentityMap{}
+	result.FromExpandedConfig(*expanded)
+	return &result, nil
 }
 
-func flattenEventHubIdentity(input *namespaces.Identity) []interface{} {
+func flattenEventHubIdentity(input *identity.SystemUserAssignedIdentityMap) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
-	identityType := ""
-	if input.Type != nil {
-		identityType = string(*input.Type)
-	}
-
-	principalID := ""
-	if input.PrincipalId != nil {
-		principalID = *input.PrincipalId
-	}
-
-	tenantID := ""
-	if input.TenantId != nil {
-		tenantID = *input.TenantId
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         identityType,
-			"principal_id": principalID,
-			"tenant_id":    tenantID,
-		},
-	}
+	config := input.ToExpandedConfig()
+	return eventhubNamespaceIdentityType{}.Flatten(&config)
 }

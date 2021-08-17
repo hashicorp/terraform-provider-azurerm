@@ -115,7 +115,7 @@ func dataSourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("Shared Image %q was not found in Gallery %q / Resource Group %q", name, galleryName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+		return fmt.Errorf("making Read request on Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -137,7 +137,7 @@ func dataSourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("release_note_uri", props.ReleaseNoteURI)
 
 		if err := d.Set("identifier", flattenGalleryImageDataSourceIdentifier(props.Identifier)); err != nil {
-			return fmt.Errorf("Error setting `identifier`: %+v", err)
+			return fmt.Errorf("setting `identifier`: %+v", err)
 		}
 	}
 

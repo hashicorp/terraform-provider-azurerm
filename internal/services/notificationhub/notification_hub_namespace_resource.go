@@ -210,7 +210,7 @@ func resourceNotificationHubNamespaceDelete(d *pluginsdk.ResourceData, meta inte
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Notification Hub Namespace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Notification Hub Namespace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
@@ -224,7 +224,7 @@ func resourceNotificationHubNamespaceDelete(d *pluginsdk.ResourceData, meta inte
 		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
 	}
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for Notification Hub %q (Resource Group %q) to be deleted: %s", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for Notification Hub %q (Resource Group %q) to be deleted: %s", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

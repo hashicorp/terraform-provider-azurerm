@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -313,7 +313,7 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 			privateIpRanges = utils.FlattenStringSlice(prop.Snat.PrivateRanges)
 		}
 		if err := d.Set("private_ip_ranges", privateIpRanges); err != nil {
-			return fmt.Errorf("Error setting `private_ip_ranges`: %+v", err)
+			return fmt.Errorf("setting `private_ip_ranges`: %+v", err)
 		}
 	}
 

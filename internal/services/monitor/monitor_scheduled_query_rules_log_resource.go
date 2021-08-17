@@ -132,7 +132,7 @@ func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *pluginsdk.ResourceData
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Monitor Scheduled Query Rules %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Monitor Scheduled Query Rules %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -168,7 +168,7 @@ func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("Error creating or updating Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating or updating Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
@@ -202,7 +202,7 @@ func resourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta i
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error getting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("getting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -223,7 +223,7 @@ func resourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("Wrong action type in Scheduled Query Rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
 	}
 	if err = d.Set("criteria", flattenAzureRmScheduledQueryRulesLogCriteria(action.Criteria)); err != nil {
-		return fmt.Errorf("Error setting `criteria`: %+v", err)
+		return fmt.Errorf("setting `criteria`: %+v", err)
 	}
 
 	if source := resp.Source; source != nil {
@@ -252,7 +252,7 @@ func resourceMonitorScheduledQueryRulesLogDelete(d *pluginsdk.ResourceData, meta
 
 	if resp, err := client.Delete(ctx, resourceGroup, name); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("deleting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 		}
 	}
 

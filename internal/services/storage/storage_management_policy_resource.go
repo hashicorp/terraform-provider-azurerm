@@ -242,7 +242,7 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 
 	armRules, err := expandStorageManagementPolicyRules(d)
 	if err != nil {
-		return fmt.Errorf("Error expanding Azure Storage Management Policy Rules %q: %+v", storageAccountId, err)
+		return fmt.Errorf("expanding Azure Storage Management Policy Rules %q: %+v", storageAccountId, err)
 	}
 
 	parameters.ManagementPolicyProperties = &storage.ManagementPolicyProperties{

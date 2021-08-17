@@ -210,7 +210,7 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *pluginsdk.ResourceData, me
 		existing, err := client.Get(ctx, resourceGroup, profileName, endpointType, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Traffic Manager Endpoint %q (Resource Group %q): %v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Traffic Manager Endpoint %q (Resource Group %q): %v", name, resourceGroup, err)
 			}
 		}
 

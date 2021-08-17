@@ -113,7 +113,7 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("Search Service %q (Resource Group %q) was not found", id.Name, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("Error reading Search Service: %+v", err)
+		return fmt.Errorf("reading Search Service: %+v", err)
 	}
 
 	d.SetId(id.ID())

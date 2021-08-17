@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -263,9 +263,9 @@ func resourceArmLoadBalancerProbeDelete(d *pluginsdk.ResourceData, meta interfac
 		return nil
 	}
 
-	oldProbes := *loadBalancer.LoadBalancerPropertiesFormat.Probes
-	newProbes := append(oldProbes[:index], oldProbes[index+1:]...)
-	loadBalancer.LoadBalancerPropertiesFormat.Probes = &newProbes
+	probes := *loadBalancer.LoadBalancerPropertiesFormat.Probes
+	probes = append(probes[:index], probes[index+1:]...)
+	loadBalancer.LoadBalancerPropertiesFormat.Probes = &probes
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
 	if err != nil {

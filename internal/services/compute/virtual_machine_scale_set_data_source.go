@@ -76,11 +76,11 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 			return fmt.Errorf("Error: Virtual Machine Scale Set %q (Resource Group %q) was not found", name, resGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("making Read request on Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Error reading Virtual Machine Scale Set %q (Resource Group %q): ID is empty or nil", name, resGroup)
+		return fmt.Errorf("reading Virtual Machine Scale Set %q (Resource Group %q): ID is empty or nil", name, resGroup)
 	}
 	d.SetId(*resp.ID)
 
@@ -88,7 +88,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 		if nwProfile := profile.NetworkProfile; nwProfile != nil {
 			flattenedNics := FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
 			if err := d.Set("network_interface", flattenedNics); err != nil {
-				return fmt.Errorf("Error setting `network_interface`: %+v", err)
+				return fmt.Errorf("setting `network_interface`: %+v", err)
 			}
 		}
 	}

@@ -78,7 +78,7 @@ func resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate(d *pluginsdk.Resour
 		existing, err := client.Get(ctx, resourceGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Date Lake Store Firewall Rule %q (Account %q / Resource Group %q): %s", name, accountName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Date Lake Store Firewall Rule %q (Account %q / Resource Group %q): %s", name, accountName, resourceGroup, err)
 			}
 		}
 
@@ -100,12 +100,12 @@ func resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, name, dateLakeStore); err != nil {
-		return fmt.Errorf("Error issuing create request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("issuing create request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, accountName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Lake Store Firewall Rule %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+		return fmt.Errorf("retrieving Data Lake Store Firewall Rule %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Data Lake Store %q (Account %q / Resource Group %q) ID", name, accountName, resourceGroup)
@@ -136,7 +136,7 @@ func resourceArmDateLakeStoreAccountFirewallRuleRead(d *pluginsdk.ResourceData, 
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Data Lake Store Firewall Rule %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Data Lake Store Firewall Rule %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -170,7 +170,7 @@ func resourceArmDateLakeStoreAccountFirewallRuleDelete(d *pluginsdk.ResourceData
 		if response.WasNotFound(resp.Response) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing delete request for Data Lake Store Firewall Rule %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+		return fmt.Errorf("issuing delete request for Data Lake Store Firewall Rule %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 	}
 
 	return nil

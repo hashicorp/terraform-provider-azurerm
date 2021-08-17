@@ -58,7 +58,7 @@ func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	secretList, err := client.GetSecretsComplete(ctx, *keyVaultBaseUri, utils.Int32(25))
 	if err != nil {
-		return fmt.Errorf("Error making Read request on Azure KeyVault %q: %+v", *keyVaultId, err)
+		return fmt.Errorf("making Read request on Azure KeyVault %q: %+v", *keyVaultId, err)
 	}
 
 	d.SetId(keyVaultId.ID())

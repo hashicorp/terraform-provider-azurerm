@@ -120,12 +120,12 @@ func dataSourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if props := credentials.PnsCredentialsProperties; props != nil {
 		apns := flattenNotificationHubsDataSourceAPNSCredentials(props.ApnsCredential)
 		if setErr := d.Set("apns_credential", apns); setErr != nil {
-			return fmt.Errorf("Error setting `apns_credential`: %+v", err)
+			return fmt.Errorf("setting `apns_credential`: %+v", err)
 		}
 
 		gcm := flattenNotificationHubsDataSourceGCMCredentials(props.GcmCredential)
 		if setErr := d.Set("gcm_credential", gcm); setErr != nil {
-			return fmt.Errorf("Error setting `gcm_credential`: %+v", err)
+			return fmt.Errorf("setting `gcm_credential`: %+v", err)
 		}
 	}
 

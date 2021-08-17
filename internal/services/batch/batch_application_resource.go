@@ -105,12 +105,12 @@ func resourceBatchApplicationCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if _, err := client.Create(ctx, resourceGroup, accountName, name, &parameters); err != nil {
-		return fmt.Errorf("Error creating Batch Application %q (Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+		return fmt.Errorf("creating Batch Application %q (Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 	}
 
 	resp, err = client.Get(ctx, resourceGroup, accountName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Batch Application %q (Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+		return fmt.Errorf("retrieving Batch Application %q (Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 	}
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read Batch Application %q (Account Name %q / Resource Group %q) ID", name, accountName, resourceGroup)
@@ -137,7 +137,7 @@ func resourceBatchApplicationRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.BatchAccountName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.BatchAccountName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -175,7 +175,7 @@ func resourceBatchApplicationUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BatchAccountName, id.Name, parameters); err != nil {
-		return fmt.Errorf("Error updating Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.BatchAccountName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.BatchAccountName, id.ResourceGroup, err)
 	}
 
 	return resourceBatchApplicationRead(d, meta)
@@ -192,7 +192,7 @@ func resourceBatchApplicationDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
-		return fmt.Errorf("Error deleting Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.BatchAccountName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.BatchAccountName, id.ResourceGroup, err)
 	}
 
 	return nil

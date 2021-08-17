@@ -110,7 +110,7 @@ func resourceSiteRecoveryNetworkMappingCreate(d *pluginsdk.ResourceData, meta in
 				// todo this workaround can be removed when this bug is fixed
 				// https://github.com/Azure/azure-sdk-for-go/issues/8705
 				!utils.ResponseWasStatusCode(existing.Response, http.StatusBadRequest) {
-				return fmt.Errorf("Error checking for presence of existing site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
+				return fmt.Errorf("checking for presence of existing site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 			}
 		}
 
@@ -130,15 +130,15 @@ func resourceSiteRecoveryNetworkMappingCreate(d *pluginsdk.ResourceData, meta in
 	}
 	future, err := client.Create(ctx, fabricName, sourceNetworkName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("creating site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error creating site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("creating site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	resp, err := client.Get(ctx, fabricName, sourceNetworkName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("retrieving site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
@@ -168,7 +168,7 @@ func resourceSiteRecoveryNetworkMappingRead(d *pluginsdk.ResourceData, meta inte
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("making Read request on site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.Set("resource_group_name", resGroup)
@@ -207,11 +207,11 @@ func resourceSiteRecoveryNetworkMappingDelete(d *pluginsdk.ResourceData, meta in
 
 	future, err := client.Delete(ctx, fabricName, networkName, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("deleting site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of site recovery network mapping  %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("waiting for deletion of site recovery network mapping  %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	return nil

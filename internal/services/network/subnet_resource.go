@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -374,7 +374,7 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		delegation := flattenSubnetDelegation(props.Delegations)
 		if err := d.Set("delegation", delegation); err != nil {
-			return fmt.Errorf("Error flattening `delegation`: %+v", err)
+			return fmt.Errorf("flattening `delegation`: %+v", err)
 		}
 
 		d.Set("enforce_private_link_endpoint_network_policies", flattenSubnetPrivateLinkNetworkPolicy(string(props.PrivateEndpointNetworkPolicies)))
@@ -382,12 +382,12 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
 		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
-			return fmt.Errorf("Error setting `service_endpoints`: %+v", err)
+			return fmt.Errorf("setting `service_endpoints`: %+v", err)
 		}
 
 		serviceEndpointPolicies := flattenSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)
 		if err := d.Set("service_endpoint_policy_ids", serviceEndpointPolicies); err != nil {
-			return fmt.Errorf("Error setting `service_endpoint_policy_ids`: %+v", err)
+			return fmt.Errorf("setting `service_endpoint_policy_ids`: %+v", err)
 		}
 	}
 

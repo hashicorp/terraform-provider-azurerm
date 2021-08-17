@@ -74,7 +74,7 @@ func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface
 		existing, err := client.GetEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %s", name, endpointName, iotHubName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %s", name, endpointName, iotHubName, resourceGroup, err)
 			}
 		}
 
@@ -84,12 +84,12 @@ func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if _, err := client.CreateEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name); err != nil {
-		return fmt.Errorf("Error creating Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
+		return fmt.Errorf("creating Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
 	}
 
 	read, err := client.GetEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
+		return fmt.Errorf("retrieving Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -122,7 +122,7 @@ func resourceIotHubConsumerGroupRead(d *pluginsdk.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("Error making read request for Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
+		return fmt.Errorf("making read request for Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -153,7 +153,7 @@ func resourceIotHubConsumerGroupDelete(d *pluginsdk.ResourceData, meta interface
 	resp, err := client.DeleteEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
+			return fmt.Errorf("deleting Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
 		}
 	}
 

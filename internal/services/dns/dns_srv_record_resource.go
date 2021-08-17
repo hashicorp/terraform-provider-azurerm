@@ -108,7 +108,7 @@ func resourceDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.SRV)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 			}
 		}
 
@@ -132,7 +132,7 @@ func resourceDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
 	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.SRV, parameters, eTag, ifNoneMatch); err != nil {
-		return fmt.Errorf("Error creating/updating DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+		return fmt.Errorf("creating/updating DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -156,7 +156,7 @@ func resourceDnsSrvRecordRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS SRV record %s: %v", id.SRVName, err)
+		return fmt.Errorf("reading DNS SRV record %s: %v", id.SRVName, err)
 	}
 
 	d.Set("name", id.SRVName)
@@ -183,7 +183,7 @@ func resourceDnsSrvRecordDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.SRVName, dns.SRV, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS SRV Record %s: %+v", id.SRVName, err)
+		return fmt.Errorf("deleting DNS SRV Record %s: %+v", id.SRVName, err)
 	}
 
 	return nil

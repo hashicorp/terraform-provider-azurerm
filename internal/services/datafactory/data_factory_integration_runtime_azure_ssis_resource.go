@@ -420,7 +420,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisCreateUpdate(d *pluginsdk.Res
 		existing, err := client.Get(ctx, resourceGroup, factoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %s", name, resourceGroup, factoryName, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %s", name, resourceGroup, factoryName, err)
 			}
 		}
 
@@ -447,12 +447,12 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisCreateUpdate(d *pluginsdk.Res
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, factoryName, name, integrationRuntime, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+		return fmt.Errorf("creating/updating Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, factoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+		return fmt.Errorf("retrieving Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
 	}
 
 	if resp.ID == nil {
@@ -484,7 +484,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+		return fmt.Errorf("retrieving Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
 	}
 
 	d.Set("name", name)
@@ -493,7 +493,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 
 	managedIntegrationRuntime, convertSuccess := resp.Properties.AsManagedIntegrationRuntime()
 	if !convertSuccess {
-		return fmt.Errorf("Error converting integration runtime to Azure-SSIS integration runtime %q (Resource Group %q, Data Factory %q)", name, resourceGroup, factoryName)
+		return fmt.Errorf("converting integration runtime to Azure-SSIS integration runtime %q (Resource Group %q, Data Factory %q)", name, resourceGroup, factoryName)
 	}
 
 	if managedIntegrationRuntime.Description != nil {
@@ -518,7 +518,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 		}
 
 		if err := d.Set("vnet_integration", flattenDataFactoryIntegrationRuntimeAzureSsisVnetIntegration(computeProps.VNetProperties)); err != nil {
-			return fmt.Errorf("Error setting `vnet_integration`: %+v", err)
+			return fmt.Errorf("setting `vnet_integration`: %+v", err)
 		}
 	}
 
@@ -566,7 +566,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisDelete(d *pluginsdk.ResourceD
 	response, err := client.Delete(ctx, resourceGroup, factoryName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+			return fmt.Errorf("deleting Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
 		}
 	}
 

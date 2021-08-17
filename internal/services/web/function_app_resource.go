@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -264,7 +264,7 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Function App %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing Function App %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
 	}
 
@@ -278,7 +278,7 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
 	if err != nil {
-		return fmt.Errorf("Error checking if the name %q was available: %+v", name, err)
+		return fmt.Errorf("checking if the name %q was available: %+v", name, err)
 	}
 
 	if !*available.NameAvailable {
@@ -314,7 +314,7 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
-		return fmt.Errorf("Error expanding `site_config` for Function App %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("expanding `site_config` for Function App %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	siteConfig.AppSettings = &basicAppSettings
@@ -388,7 +388,7 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if _, err := client.UpdateAuthSettings(ctx, resourceGroup, name, auth); err != nil {
-		return fmt.Errorf("Error updating auth settings for Function App %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("updating auth settings for Function App %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	return resourceFunctionAppUpdate(d, meta)
@@ -434,7 +434,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
-		return fmt.Errorf("Error expanding `site_config` for Function App %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("expanding `site_config` for Function App %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 	}
 
 	siteConfig.AppSettings = &basicAppSettings
@@ -466,11 +466,11 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 	if err != nil {
-		return fmt.Errorf("Error updating Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
 	appSettings, err := expandFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
@@ -482,7 +482,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if _, err = client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, settings); err != nil {
-		return fmt.Errorf("Error updating Application Settings for Function App %q: %+v", id.SiteName, err)
+		return fmt.Errorf("updating Application Settings for Function App %q: %+v", id.SiteName, err)
 	}
 
 	// If `source_control` is defined, we need to set site_config.0.scm_type to "None" or we cannot update it
@@ -494,7 +494,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if d.HasChange("site_config") || hasSourceControl {
 		siteConfig, err := expandFunctionAppSiteConfig(d)
 		if err != nil {
-			return fmt.Errorf("Error expanding `site_config` for Function App %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
+			return fmt.Errorf("expanding `site_config` for Function App %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 		}
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
@@ -507,7 +507,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, siteConfigResource); err != nil {
-			return fmt.Errorf("Error updating Configuration for Function App %q: %+v", id.SiteName, err)
+			return fmt.Errorf("updating Configuration for Function App %q: %+v", id.SiteName, err)
 		}
 	}
 
@@ -541,7 +541,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, authSettings); err != nil {
-			return fmt.Errorf("Error updating Authentication Settings for Function App %q: %+v", id.SiteName, err)
+			return fmt.Errorf("updating Authentication Settings for Function App %q: %+v", id.SiteName, err)
 		}
 	}
 
@@ -553,7 +553,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, properties); err != nil {
-			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", id.SiteName, err)
+			return fmt.Errorf("updating Connection Strings for App Service %q: %+v", id.SiteName, err)
 		}
 	}
 
@@ -577,7 +577,7 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Function App %q: %+v", id.SiteName, err)
+		return fmt.Errorf("making Read request on AzureRM Function App %q: %+v", id.SiteName, err)
 	}
 
 	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
@@ -587,12 +587,12 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Function App AppSettings %q: %+v", id.SiteName, err)
+		return fmt.Errorf("making Read request on AzureRM Function App AppSettings %q: %+v", id.SiteName, err)
 	}
 
 	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM Function App ConnectionStrings %q: %+v", id.SiteName, err)
+		return fmt.Errorf("making Read request on AzureRM Function App ConnectionStrings %q: %+v", id.SiteName, err)
 	}
 
 	siteCredFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
@@ -605,11 +605,11 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", id.SiteName, err)
+		return fmt.Errorf("making Read request on AzureRM App Service Site Credential %q: %+v", id.SiteName, err)
 	}
 	authResp, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving the AuthSettings for Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving the AuthSettings for Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.SiteName)
@@ -700,12 +700,12 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return err
 	}
 	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("Error setting `identity`: %s", err)
+		return fmt.Errorf("setting `identity`: %s", err)
 	}
 
 	configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
+		return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
 	}
 
 	siteConfig := flattenFunctionAppSiteConfig(configResp.SiteConfig)
@@ -715,16 +715,16 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	authSettings := flattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
 	if err := d.Set("auth_settings", authSettings); err != nil {
-		return fmt.Errorf("Error setting `auth_settings`: %s", err)
+		return fmt.Errorf("setting `auth_settings`: %s", err)
 	}
 
 	scmResp, err := client.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on Function App Source Control %q: %+v", id.SiteName, err)
+		return fmt.Errorf("making Read request on Function App Source Control %q: %+v", id.SiteName, err)
 	}
 	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
 	if err := d.Set("source_control", scm); err != nil {
-		return fmt.Errorf("Error setting `source_control`: %s", err)
+		return fmt.Errorf("setting `source_control`: %s", err)
 	}
 
 	siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)

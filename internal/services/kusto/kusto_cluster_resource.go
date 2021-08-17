@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -62,28 +62,30 @@ func resourceKustoCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(kusto.DevNoSLAStandardD11V2),
-								string(kusto.DevNoSLAStandardE2aV4),
-								string(kusto.StandardD11V2),
-								string(kusto.StandardD12V2),
-								string(kusto.StandardD13V2),
-								string(kusto.StandardD14V2),
-								string(kusto.StandardDS13V21TBPS),
-								string(kusto.StandardDS13V22TBPS),
-								string(kusto.StandardDS14V23TBPS),
-								string(kusto.StandardDS14V24TBPS),
-								string(kusto.StandardE16asV43TBPS),
-								string(kusto.StandardE16asV44TBPS),
-								string(kusto.StandardE16aV4),
-								string(kusto.StandardE2aV4),
-								string(kusto.StandardE4aV4),
-								string(kusto.StandardE64iV3),
-								string(kusto.StandardE8asV41TBPS),
-								string(kusto.StandardE8asV42TBPS),
-								string(kusto.StandardE8aV4),
-								string(kusto.StandardL16s),
-								string(kusto.StandardL4s),
-								string(kusto.StandardL8s),
+								string(kusto.AzureSkuNameDevNoSLAStandardD11V2),
+								string(kusto.AzureSkuNameDevNoSLAStandardE2aV4),
+								string(kusto.AzureSkuNameStandardD11V2),
+								string(kusto.AzureSkuNameStandardD12V2),
+								string(kusto.AzureSkuNameStandardD13V2),
+								string(kusto.AzureSkuNameStandardD14V2),
+								string(kusto.AzureSkuNameStandardDS13V21TBPS),
+								string(kusto.AzureSkuNameStandardDS13V22TBPS),
+								string(kusto.AzureSkuNameStandardDS14V23TBPS),
+								string(kusto.AzureSkuNameStandardDS14V24TBPS),
+								string(kusto.AzureSkuNameStandardE16asV43TBPS),
+								string(kusto.AzureSkuNameStandardE16asV44TBPS),
+								string(kusto.AzureSkuNameStandardE16aV4),
+								string(kusto.AzureSkuNameStandardE2aV4),
+								string(kusto.AzureSkuNameStandardE4aV4),
+								string(kusto.AzureSkuNameStandardE64iV3),
+								string(kusto.AzureSkuNameStandardE8asV41TBPS),
+								string(kusto.AzureSkuNameStandardE8asV42TBPS),
+								string(kusto.AzureSkuNameStandardE8aV4),
+								string(kusto.AzureSkuNameStandardL16s),
+								string(kusto.AzureSkuNameStandardL4s),
+								string(kusto.AzureSkuNameStandardL8s),
+								string(kusto.AzureSkuNameStandardL16sV2),
+								string(kusto.AzureSkuNameStandardL8sV2),
 							}, false),
 						},
 
@@ -181,8 +183,8 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(kusto.PYTHON),
-						string(kusto.R),
+						string(kusto.LanguageExtensionNamePYTHON),
+						string(kusto.LanguageExtensionNameR),
 					}, false),
 				},
 			},
@@ -191,10 +193,10 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(kusto.V2),
+				Default:  string(kusto.EngineTypeV2),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(kusto.V2),
-					string(kusto.V3),
+					string(kusto.EngineTypeV2),
+					string(kusto.EngineTypeV3),
 				}, false),
 			},
 
@@ -229,7 +231,7 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		server, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(server.Response) {
-				return fmt.Errorf("Error checking for presence of existing Kusto Cluster %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Kusto Cluster %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -309,18 +311,20 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		kustoCluster.Identity = kustoIdentity
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, kustoCluster)
+	ifMatch := ""
+	ifNoneMatch := ""
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, kustoCluster, ifMatch, ifNoneMatch)
 	if err != nil {
-		return fmt.Errorf("Error creating or updating Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating or updating Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, getDetailsErr := client.Get(ctx, resourceGroup, name)
 	if getDetailsErr != nil {
-		return fmt.Errorf("Error retrieving Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
@@ -334,7 +338,7 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 		currentLanguageExtensions, err := client.ListLanguageExtensions(ctx, resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Error reading current added language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("reading current added language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		languageExtensionsToAdd := diffLanguageExtensions(*languageExtensions.Value, *currentLanguageExtensions.Value)
@@ -345,11 +349,11 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 			addLanguageExtensionsFuture, err := client.AddLanguageExtensions(ctx, resourceGroup, name, languageExtensionsListToAdd)
 			if err != nil {
-				return fmt.Errorf("Error adding language extensions to Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("adding language extensions to Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 
 			if err = addLanguageExtensionsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("Error waiting for completion of adding language extensions to Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("waiting for completion of adding language extensions to Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -361,10 +365,10 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 			removeLanguageExtensionsFuture, err := client.RemoveLanguageExtensions(ctx, resourceGroup, name, languageExtensionsListToRemove)
 			if err != nil {
-				return fmt.Errorf("Error removing language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("removing language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 			if err = removeLanguageExtensionsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("Error waiting for completion of removing language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("waiting for completion of removing language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 	}
@@ -388,7 +392,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Kusto Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Kusto Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -403,18 +407,18 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("Error setting `identity`: %s", err)
+		return fmt.Errorf("setting `identity`: %s", err)
 	}
 
 	if err := d.Set("sku", flattenKustoClusterSku(clusterResponse.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
+		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 
 	if err := d.Set("zones", azure.FlattenZones(clusterResponse.Zones)); err != nil {
-		return fmt.Errorf("Error setting `zones`: %+v", err)
+		return fmt.Errorf("setting `zones`: %+v", err)
 	}
 	if err := d.Set("optimized_auto_scale", flattenOptimizedAutoScale(clusterResponse.OptimizedAutoscale)); err != nil {
-		return fmt.Errorf("Error setting `optimized_auto_scale`: %+v", err)
+		return fmt.Errorf("setting `optimized_auto_scale`: %+v", err)
 	}
 
 	if clusterProperties := clusterResponse.ClusterProperties; clusterProperties != nil {
@@ -445,11 +449,11 @@ func resourceKustoClusterDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Kusto Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Kusto Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Kusto Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Kusto Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

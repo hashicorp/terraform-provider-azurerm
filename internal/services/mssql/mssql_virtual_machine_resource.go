@@ -472,7 +472,7 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		if err := d.Set("storage_configuration", flattenSqlVirtualMachineStorageConfigurationSettings(props.StorageConfigurationSettings, storageWorkloadType)); err != nil {
-			return fmt.Errorf("error setting `storage_configuration`: %+v", err)
+			return fmt.Errorf("setting `storage_configuration`: %+v", err)
 		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)

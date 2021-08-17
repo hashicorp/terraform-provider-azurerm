@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -85,7 +85,7 @@ func resourceNetworkInterfaceBackendAddressPoolAssociationCreate(d *pluginsdk.Re
 			return fmt.Errorf("Network Interface %q (Resource Group %q) was not found!", networkInterfaceName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
+		return fmt.Errorf("retrieving Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
 	props := read.InterfacePropertiesFormat
@@ -135,11 +135,11 @@ func resourceNetworkInterfaceBackendAddressPoolAssociationCreate(d *pluginsdk.Re
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, networkInterfaceName, read)
 	if err != nil {
-		return fmt.Errorf("Error updating Backend Address Pool Association for Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
+		return fmt.Errorf("updating Backend Address Pool Association for Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Backend Address Pool Association for NIC %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of Backend Address Pool Association for NIC %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
 	d.SetId(resourceId)
@@ -175,7 +175,7 @@ func resourceNetworkInterfaceBackendAddressPoolAssociationRead(d *pluginsdk.Reso
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
+		return fmt.Errorf("retrieving Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
 	nicProps := read.InterfacePropertiesFormat
@@ -254,7 +254,7 @@ func resourceNetworkInterfaceBackendAddressPoolAssociationDelete(d *pluginsdk.Re
 			return fmt.Errorf("Network Interface %q (Resource Group %q) was not found!", networkInterfaceName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
+		return fmt.Errorf("retrieving Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
 	nicProps := read.InterfacePropertiesFormat
@@ -295,11 +295,11 @@ func resourceNetworkInterfaceBackendAddressPoolAssociationDelete(d *pluginsdk.Re
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, networkInterfaceName, read)
 	if err != nil {
-		return fmt.Errorf("Error removing Backend Address Pool Association for Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
+		return fmt.Errorf("removing Backend Address Pool Association for Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for removal of Backend Address Pool Association for NIC %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
+		return fmt.Errorf("waiting for removal of Backend Address Pool Association for NIC %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
 	return nil

@@ -20,11 +20,11 @@ func importVirtualMachine(osType compute.OperatingSystemTypes, resourceType stri
 		client := meta.(*clients.Client).Compute.VMClient
 		vm, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if vm.VirtualMachineProperties == nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 		}
 
 		isCorrectOS := false

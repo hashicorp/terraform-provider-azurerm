@@ -58,7 +58,7 @@ func resourceLogicAppActionCustomCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	var body map[string]interface{}
 	if err := json.Unmarshal([]byte(bodyRaw), &body); err != nil {
-		return fmt.Errorf("Error unmarshalling JSON for Custom Action %q: %+v", name, err)
+		return fmt.Errorf("unmarshalling JSON for Custom Action %q: %+v", name, err)
 	}
 
 	if err := resourceLogicAppActionUpdate(d, meta, logicAppId, name, body, "azurerm_logic_app_action_custom"); err != nil {
@@ -96,11 +96,11 @@ func resourceLogicAppActionCustomRead(d *pluginsdk.ResourceData, meta interface{
 
 	body, err := json.Marshal(action)
 	if err != nil {
-		return fmt.Errorf("Error serializing `body` for Action %q: %+v", name, err)
+		return fmt.Errorf("serializing `body` for Action %q: %+v", name, err)
 	}
 
 	if err := d.Set("body", string(body)); err != nil {
-		return fmt.Errorf("Error setting `body` for Action %q: %+v", name, err)
+		return fmt.Errorf("setting `body` for Action %q: %+v", name, err)
 	}
 
 	return nil
@@ -118,7 +118,7 @@ func resourceLogicAppActionCustomDelete(d *pluginsdk.ResourceData, meta interfac
 
 	err = resourceLogicAppActionRemove(d, meta, resourceGroup, logicAppName, name)
 	if err != nil {
-		return fmt.Errorf("Error removing Action %q from Logic App %q (Resource Group %q): %+v", name, logicAppName, resourceGroup, err)
+		return fmt.Errorf("removing Action %q from Logic App %q (Resource Group %q): %+v", name, logicAppName, resourceGroup, err)
 	}
 
 	return nil

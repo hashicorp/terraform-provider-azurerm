@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -84,7 +83,7 @@ func resourcePostgreSQLVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData,
 		existing, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 			}
 		}
 
@@ -126,12 +125,12 @@ func resourcePostgreSQLVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q) to be created or updated: %+v", name, serverName, resourceGroup, err)
+		return fmt.Errorf("waiting for PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q) to be created or updated: %+v", name, serverName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+		return fmt.Errorf("retrieving PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -184,17 +183,11 @@ func resourcePostgreSQLVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta 
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 
 		return fmt.Errorf("deleting PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 
 		return fmt.Errorf("waiting for deletion of Virtual Network Rule %q (PostgreSQL Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
@@ -211,7 +204,7 @@ func postgreSQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, cli
 				return nil, "ResponseNotFound", nil
 			}
 
-			return nil, "", fmt.Errorf("Error polling for the state of the PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+			return nil, "", fmt.Errorf("polling for the state of the PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 		}
 
 		if props := resp.VirtualNetworkRuleProperties; props != nil {

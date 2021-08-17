@@ -86,7 +86,7 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Batch account %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Batch account %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM Batch account %q: %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -119,7 +119,7 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("key_vault_reference", []interface{}{})
 		} else if poolAllocationMode == string(batch.UserSubscription) {
 			if err := d.Set("key_vault_reference", flattenBatchAccountKeyvaultReference(props.KeyVaultReference)); err != nil {
-				return fmt.Errorf("Error flattening `key_vault_reference`: %+v", err)
+				return fmt.Errorf("flattening `key_vault_reference`: %+v", err)
 			}
 		}
 	}

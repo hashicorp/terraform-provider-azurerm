@@ -118,7 +118,7 @@ func resourceNetAppAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing NetApp Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing NetApp Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -139,15 +139,15 @@ func resourceNetAppAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	future, err := client.CreateOrUpdate(ctx, accountParameters, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error creating NetApp Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating NetApp Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of NetApp Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of NetApp Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving NetApp Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving NetApp Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read NetApp Account %q (Resource Group %q) ID", name, resourceGroup)
@@ -174,7 +174,7 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading NetApp Accounts %q (Resource Group %q): %+v", id.NetAppAccountName, id.ResourceGroup, err)
+		return fmt.Errorf("reading NetApp Accounts %q (Resource Group %q): %+v", id.NetAppAccountName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -198,12 +198,12 @@ func resourceNetAppAccountDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName)
 	if err != nil {
-		return fmt.Errorf("Error deleting NetApp Account %q (Resource Group %q): %+v", id.NetAppAccountName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting NetApp Account %q (Resource Group %q): %+v", id.NetAppAccountName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting NetApp Account %q (Resource Group %q): %+v", id.NetAppAccountName, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for deleting NetApp Account %q (Resource Group %q): %+v", id.NetAppAccountName, id.ResourceGroup, err)
 		}
 	}
 

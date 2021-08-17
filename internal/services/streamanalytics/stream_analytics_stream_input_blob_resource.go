@@ -124,7 +124,7 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 	serializationRaw := d.Get("serialization").([]interface{})
 	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
-		return fmt.Errorf("Error expanding `serialization`: %+v", err)
+		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
 
 	props := streamanalytics.Input{

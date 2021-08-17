@@ -3,49 +3,10 @@ package eventhub
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
-
-// schema
-func expandEventHubAuthorizationRuleRights(d *pluginsdk.ResourceData) []string {
-	rights := make([]string, 0)
-
-	if d.Get("listen").(bool) {
-		rights = append(rights, "Listen")
-	}
-
-	if d.Get("send").(bool) {
-		rights = append(rights, "Send")
-	}
-
-	if d.Get("manage").(bool) {
-		rights = append(rights, "Manage")
-	}
-
-	return rights
-}
-
-func flattenEventHubAuthorizationRuleRights(rights []string) (listen, send, manage bool) {
-	// zero (initial) value for a bool in go is false
-
-	for _, right := range rights {
-		switch right {
-		case "Listen":
-			listen = true
-		case "Send":
-			send = true
-		case "Manage":
-			manage = true
-		default:
-			log.Printf("[DEBUG] Unknown Authorization Rule Right '%s'", right)
-		}
-	}
-
-	return listen, send, manage
-}
 
 func eventHubAuthorizationRuleSchemaFrom(s map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
 	authSchema := map[string]*pluginsdk.Schema{

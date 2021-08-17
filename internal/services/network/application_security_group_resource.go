@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -60,7 +60,7 @@ func resourceApplicationSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, met
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Application Security Group %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Application Security Group %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -78,11 +78,11 @@ func resourceApplicationSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, securityGroup)
 	if err != nil {
-		return fmt.Errorf("Error creating Application Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Application Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the Application Security Group %q (Resource Group %q) to finish creating: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the Application Security Group %q (Resource Group %q) to finish creating: %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
@@ -117,7 +117,7 @@ func resourceApplicationSecurityGroupRead(d *pluginsdk.ResourceData, meta interf
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Application Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Application Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -145,13 +145,13 @@ func resourceApplicationSecurityGroupDelete(d *pluginsdk.ResourceData, meta inte
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error issuing delete request for Application Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("issuing delete request for Application Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deletion of Application Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for deletion of Application Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 

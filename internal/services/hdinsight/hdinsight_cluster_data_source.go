@@ -118,12 +118,12 @@ func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("HDInsight Cluster %q was not found in Resource Group %q", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	configuration, err := configurationsClient.Get(ctx, resourceGroup, name, "gateway")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Configuration for HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Configuration for HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -145,7 +145,7 @@ func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta interface{})
 				d.Set("kind", strings.ToLower(*kind))
 			}
 			if err := d.Set("gateway", FlattenHDInsightsConfigurations(configuration.Value, d)); err != nil {
-				return fmt.Errorf("Error flattening `gateway`: %+v", err)
+				return fmt.Errorf("flattening `gateway`: %+v", err)
 			}
 		}
 

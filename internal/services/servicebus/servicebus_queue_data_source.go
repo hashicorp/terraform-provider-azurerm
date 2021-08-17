@@ -131,7 +131,7 @@ func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Service Bus Queue %q was not found in Resource Group %q Namespace %q", name, resourceGroup, namespaceName)
 		}
-		return fmt.Errorf("Error making Read request on Azure Service Bus Queue %q in Resource Group %q Namespace %q: %v", name, resourceGroup, namespaceName, err)
+		return fmt.Errorf("making Read request on Azure Service Bus Queue %q in Resource Group %q Namespace %q: %v", name, resourceGroup, namespaceName, err)
 	}
 
 	d.SetId(id.ID())

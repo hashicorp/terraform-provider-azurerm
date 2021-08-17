@@ -6,15 +6,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/namespaces"
-
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	relayParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
 	relayValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -118,7 +117,7 @@ func resourceAppServiceHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, m
 	relayArmURI := d.Get("relay_id").(string)
 	relayId, err := relayParse.HybridConnectionID(relayArmURI)
 	if err != nil {
-		return fmt.Errorf("Error parsing relay ID %q: %s", relayArmURI, err)
+		return fmt.Errorf("parsing relay ID %q: %s", relayArmURI, err)
 	}
 	namespaceName := relayId.NamespaceName
 	relayName := relayId.Name
@@ -127,7 +126,7 @@ func resourceAppServiceHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, m
 		existing, err := client.GetHybridConnection(ctx, resourceGroup, name, namespaceName, relayName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing App Service Hybrid Connection %q (Resource Group %q, Namespace %q, Relay Name %q): %s", name, resourceGroup, namespaceName, relayName, err)
+				return fmt.Errorf("checking for presence of existing App Service Hybrid Connection %q (Resource Group %q, Namespace %q, Relay Name %q): %s", name, resourceGroup, namespaceName, relayName, err)
 			}
 		}
 

@@ -85,7 +85,7 @@ func dataSourceMsSqlElasticpoolRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("Error: Elasticpool %q (Resource Group %q, SQL Server %q) was not found", elasticPoolName, resourceGroup, serverName)
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Elasticpool %s (Resource Group %q, SQL Server %q): %+v", elasticPoolName, resourceGroup, serverName, err)
+		return fmt.Errorf("making Read request on AzureRM Elasticpool %s (Resource Group %q, SQL Server %q): %+v", elasticPoolName, resourceGroup, serverName, err)
 	}
 
 	if id := resp.ID; id != nil {

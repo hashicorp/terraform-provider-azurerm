@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -104,7 +104,7 @@ func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Bastion Host %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Bastion Host %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -123,16 +123,16 @@ func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation/update of Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*read.ID)
@@ -172,7 +172,7 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 		if ipConfigs := props.IPConfigurations; ipConfigs != nil {
 			if err := d.Set("ip_configuration", flattenBastionHostIPConfiguration(ipConfigs)); err != nil {
-				return fmt.Errorf("Error flattening `ip_configuration`: %+v", err)
+				return fmt.Errorf("flattening `ip_configuration`: %+v", err)
 			}
 		}
 	}

@@ -659,7 +659,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	identityRaw := d.Get("identity").([]interface{})
 	identity, err := expandAzureRmApiManagementIdentity(identityRaw)
 	if err != nil {
-		return fmt.Errorf("Error expanding `identity`: %+v", err)
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 	properties.Identity = identity
 
@@ -978,7 +978,7 @@ func apiManagementRefreshFunc(ctx context.Context, client *apimanagement.Service
 				return nil, "NotFound", nil
 			}
 
-			return nil, "", fmt.Errorf("Error polling for the state of the API Management Service %q (Resource Group: %q): %+v", serviceName, resourceGroup, err)
+			return nil, "", fmt.Errorf("polling for the state of the API Management Service %q (Resource Group: %q): %+v", serviceName, resourceGroup, err)
 		}
 
 		state := ""

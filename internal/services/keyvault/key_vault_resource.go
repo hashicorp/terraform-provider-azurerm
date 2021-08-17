@@ -383,7 +383,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 
 			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("Error waiting for %s to become available: %s", id, err)
+				return fmt.Errorf("waiting for %s to become available: %s", id, err)
 			}
 		}
 	}
@@ -810,7 +810,7 @@ func keyVaultRefreshFunc(vaultUri string) pluginsdk.StateRefreshFunc {
 		conn, err := client.Get(vaultUri)
 		if err != nil {
 			log.Printf("[DEBUG] Didn't find KeyVault at %q", vaultUri)
-			return nil, "pending", fmt.Errorf("Error connecting to %q: %s", vaultUri, err)
+			return nil, "pending", fmt.Errorf("connecting to %q: %s", vaultUri, err)
 		}
 
 		defer conn.Body.Close()

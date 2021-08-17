@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
@@ -119,7 +118,7 @@ func resourcePostgreSQLConfigurationRead(d *pluginsdk.ResourceData, meta interfa
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure PostgreSQL Configuration %s: %+v", id.Name, err)
+		return fmt.Errorf("making Read request on Azure PostgreSQL Configuration %s: %+v", id.Name, err)
 	}
 
 	d.Set("name", id.Name)
@@ -146,7 +145,7 @@ func resourcePostgreSQLConfigurationDelete(d *pluginsdk.ResourceData, meta inter
 	// "delete" = resetting this to the default value
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Postgresql Configuration '%s': %+v", id.Name, err)
+		return fmt.Errorf("retrieving Postgresql Configuration '%s': %+v", id.Name, err)
 	}
 
 	properties := postgresql.Configuration{
@@ -158,16 +157,12 @@ func resourcePostgreSQLConfigurationDelete(d *pluginsdk.ResourceData, meta inter
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
+
 		return err
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
+
 		return err
 	}
 

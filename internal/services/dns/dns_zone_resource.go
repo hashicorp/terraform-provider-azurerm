@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -162,7 +161,7 @@ func resourceDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
@@ -182,7 +181,7 @@ func resourceDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	etag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
 	if _, err := client.CreateOrUpdate(ctx, resGroup, name, parameters, etag, ifNoneMatch); err != nil {
-		return fmt.Errorf("Error creating/updating DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
+		return fmt.Errorf("creating/updating DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
 	if v, ok := d.GetOk("soa_record"); ok {
@@ -226,7 +225,7 @@ func resourceDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS Zone %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("reading DNS Zone %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -268,17 +267,11 @@ func resourceDnsZoneDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	etag := ""
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, etag)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error deleting DNS zone %s (resource group %s): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting DNS Zone %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error deleting DNS zone %s (resource group %s): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of DNS Zone %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

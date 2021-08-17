@@ -360,10 +360,18 @@ func (br assignmentBaseResource) expandIdentity(input []interface{}) (*policy.Id
 func (br assignmentBaseResource) flattenIdentity(input *policy.Identity) []interface{} {
 	var config *identity.ExpandedConfig
 	if input != nil {
+		principalId := ""
+		if input.PrincipalID != nil {
+			principalId = *input.PrincipalID
+		}
+		tenantId := ""
+		if input.TenantID != nil {
+			tenantId = *input.TenantID
+		}
 		config = &identity.ExpandedConfig{
 			Type:        identity.Type(string(input.Type)),
-			PrincipalId: input.PrincipalID,
-			TenantId:    input.TenantID,
+			PrincipalId: principalId,
+			TenantId:    tenantId,
 		}
 	}
 	return policyAssignmentIdentity{}.Flatten(config)

@@ -673,7 +673,7 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 
 		uri, err := url.Parse(storageContainerID)
 		if err != nil {
-			return nil, nil, fmt.Errorf("Error parsing %q: %s", storageContainerID, err)
+			return nil, nil, fmt.Errorf("parsing %q: %s", storageContainerID, err)
 		}
 
 		result := hdinsight.StorageAccount{
@@ -696,7 +696,7 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 
 		uri, err := url.Parse(fileSystemID)
 		if err != nil {
-			return nil, nil, fmt.Errorf("Error parsing %q: %s", fileSystemID, err)
+			return nil, nil, fmt.Errorf("parsing %q: %s", fileSystemID, err)
 		}
 
 		if clusterIndentity == nil {

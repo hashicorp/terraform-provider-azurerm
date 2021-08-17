@@ -77,7 +77,7 @@ func resourceDataLakeStoreVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceDa
 		existing, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Lake Store Virtual Network Rule %q (Account: %q, Resource Group: %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Data Lake Store Virtual Network Rule %q (Account: %q, Resource Group: %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
 			}
 		}
 
@@ -93,7 +93,7 @@ func resourceDataLakeStoreVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AccountName, id.Name, parameters); err != nil {
-		return fmt.Errorf("Error creating Data Lake Store Virtual Network Rule %q (Account: %q, Resource Group: %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+		return fmt.Errorf("creating Data Lake Store Virtual Network Rule %q (Account: %q, Resource Group: %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
 	}
 
 	d.SetId(id.ID())
