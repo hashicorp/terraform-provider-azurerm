@@ -1164,9 +1164,9 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	var allowSharedKeyAccess interface{} = true
+	allowSharedKeyAccess := true
 	if d.HasChange("allow_shared_key_access") {
-		allowSharedKeyAccess = d.Get("allow_shared_key_access")
+		allowSharedKeyAccess = d.Get("allow_shared_key_access").(bool)
 
 		// If AllowSharedKeyAccess is nil that breaks the Portal UI as reported in https://github.com/hashicorp/terraform-provider-azurerm/issues/11689
 		// currently the Portal UI reports nil as false, and per the ARM API documentation nil is true. This manifests itself in the Portal UI
@@ -1180,9 +1180,8 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
 		if err == nil {
 			if sharedKeyAccess := existing.AccountProperties.AllowSharedKeyAccess; sharedKeyAccess != nil {
-				allowSharedKeyAccess = sharedKeyAccess
+				allowSharedKeyAccess = *sharedKeyAccess
 			}
-
 		} else {
 			// Should never hit this, but added due to an abundance of caution
 			return fmt.Errorf("retrieving Azure Storage Account %q AllowSharedKeyAccess: %+v", storageAccountName, err)
@@ -1190,10 +1189,9 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	// TODO: end remove changes when Portal UI team fixed their code
 
-	allowSharedKeyAccessValue := allowSharedKeyAccess.(bool)
 	opts := storage.AccountUpdateParameters{
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-			AllowSharedKeyAccess: &allowSharedKeyAccessValue,
+			AllowSharedKeyAccess: &allowSharedKeyAccess,
 		},
 	}
 
@@ -1517,8 +1515,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageAccountName := d.Get("name").(string)
-	resourceGroupName := d.Get("resource_group_name").(string)
+	id, err := parse.StorageAccountID(d.Id())
+	if err != nil {
+		return err
+	}
+	storageAccountName := id.Name
+	resourceGroupName := id.ResourceGroup
 
 	resp, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
 	if err != nil {
