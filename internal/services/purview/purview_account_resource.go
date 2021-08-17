@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type purviewAccountIdentity = identity.SystemAssigned
+type purviewAccountIdentity = identity.SystemAssignedRequired
 
 func resourcePurviewAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

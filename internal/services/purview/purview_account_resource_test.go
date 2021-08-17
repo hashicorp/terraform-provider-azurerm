@@ -65,17 +65,28 @@ func (r PurviewAccountResource) Exists(ctx context.Context, client *clients.Clie
 }
 
 func (r PurviewAccountResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-purview-%d"
+  location = "%s"
+}
+
 
 resource "azurerm_purview_account" "test" {
-  name                = "acctestsw%d"
+  name                = "acctestpa%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Standard_4"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
-`, template, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (r PurviewAccountResource) requiresImport(data acceptance.TestData) string {
@@ -88,19 +99,10 @@ resource "azurerm_purview_account" "import" {
   resource_group_name = azurerm_purview_account.test.resource_group_name
   location            = azurerm_purview_account.test.location
   sku_name            = azurerm_purview_account.test.sku_name
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, template)
-}
-
-func (r PurviewAccountResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-purview-%d"
-  location = "%s"
-}
-`, data.RandomInteger, data.Locations.Primary)
 }

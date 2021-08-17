@@ -23,6 +23,10 @@ resource "azurerm_purview_account" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   sku_name            = "Standard_4"
+  
+  identity {
+    type = "SystemAssigned"
+  }
 }
 ```
 
@@ -40,9 +44,21 @@ The following arguments are supported:
 
 ---
 
+* `identity` - (Required) An `identity` block as defined below.
+
 * `public_network_enabled` - (Optional) Should the Purview Account be visible to the public network? Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Purview Account.
+
+---
+
+A `identity` block supports the following:
+
+* `principal_id` - The ID of the Principal (Client) in Azure Active Directory.
+
+* `tenant_id` - The ID of the Azure Active Directory Tenant within which the Principal exists.
+
+* `type` - (Required) The Type of Managed Identity assigned to this Purview Account. At this time the only supported value is `SystemAssigned`.
 
 ## Attributes Reference
 
@@ -50,27 +66,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Purview Account.
 
-* `atlas_kafka_endpoint_primary_connection_string` - Atlas Kafka endpoint primary connection string.
+* `atlas_kafka_endpoint_primary_connection_string` - The Primary Connection String which can be used to access Atlas Kafka for this Purview Account.
 
-* `atlas_kafka_endpoint_secondary_connection_string` - Atlas Kafka endpoint secondary connection string.
+* `atlas_kafka_endpoint_secondary_connection_string` - The Secondary Connection String which can be used to access Atlas Kafka for this Purview Account.
 
-* `catalog_endpoint` - Catalog endpoint.
+* `catalog_endpoint` - The Catalog endpoint for this Purview Account.
 
-* `guardian_endpoint` - Guardian endpoint.
+* `guardian_endpoint` - The Guardian endpoint for this Purview Account.
 
-* `scan_endpoint` - Scan endpoint.
-
-* `identity` - A `identity` block as defined below.
-
----
-
-A `identity` block exports the following:
-
-* `principal_id` - The ID of the Principal (Client) in Azure Active Directory.
-
-* `tenant_id` - The ID of the Azure Active Directory Tenant.
-
-* `type` - The type of Managed Identity assigned to this Purview Account.
+* `scan_endpoint` - The Scan endpoint for this Purview Account.
 
 ## Timeouts
 
