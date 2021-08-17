@@ -601,7 +601,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"None",
 					}, false),
 				),
-				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"role_based_access_control": {
@@ -1490,7 +1489,14 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
 			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
-			d.Set("private_dns_zone_id", accessProfile.PrivateDNSZone)
+			switch {
+			case accessProfile.PrivateDNSZone != nil && strings.EqualFold("System", *accessProfile.PrivateDNSZone):
+				d.Set("private_dns_zone_id", "System")
+			case accessProfile.PrivateDNSZone != nil && strings.EqualFold("None", *accessProfile.PrivateDNSZone):
+				d.Set("private_dns_zone_id", "None")
+			default:
+				d.Set("private_dns_zone_id", accessProfile.PrivateDNSZone)
+			}
 		}
 
 		addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)
