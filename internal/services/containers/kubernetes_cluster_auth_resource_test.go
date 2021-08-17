@@ -271,6 +271,51 @@ func testAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged(t *testin
 	})
 }
 
+
+func TestAccKubernetesCluster_roleBasedAccessControlAADRemove(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_roleBasedAccessControlAADRemove(t)
+}
+
+
+func testAccKubernetesCluster_roleBasedAccessControlAADRemove(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	clientData := data.Client()
+	auth := clientData.Default
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.roleBasedAccessControlAADConfig(data, auth.ClientID, auth.ClientSecret, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("1"),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.client_app_id").Exists(),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.server_app_id").Exists(),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.server_app_secret").Exists(),
+				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("1"),
+				check.That(data.ResourceName).Key("kube_admin_config_raw").Exists(),
+			),
+		},
+		data.ImportStep(
+			"role_based_access_control.0.azure_active_directory.0.server_app_secret",
+		),
+		{
+			Config: r.roleBasedAccessControlRemoveAADConfig(data, "", "", ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("0"),
+				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("1"),
+				check.That(data.ResourceName).Key("kube_admin_config_raw").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_roleBasedAccessControlAADManaged(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccKubernetesCluster_roleBasedAccessControlAADManaged(t)
@@ -929,6 +974,48 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, tenantId, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret, clientId)
+}
+
+func (KubernetesClusterResource) roleBasedAccessControlRemoveAADConfig(data acceptance.TestData, clientId, clientSecret, tenantId string) string {
+	return fmt.Sprintf(`
+variable "tenant_id" {
+  default = "%s"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_prefix          = "acctestaks%d"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  role_based_access_control {
+    enabled = true
+  }
+}
+`, tenantId, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) roleBasedAccessControlAADManagedConfig(data acceptance.TestData, tenantId string) string {
