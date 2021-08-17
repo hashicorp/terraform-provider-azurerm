@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * Dependencies: updating `web` to use API version `2021-02-01` [GH-12970]
 * Dependencies: updating `kusto` to use API version `2021-01-01` [GH-12967]
 * Dependencies: updating `machinelearning` to use API version `2021-07-01` [GH-12833]
+* Dependencies: updating `network` to use API version `2021-02-01` [GH-13002]
 * eventhub: updating to use the latest embedded SDK [GH-12946]
 * Data Source: `azurerm_iothub` - support for the property `hostname` [GH-13001]
 * `azurerm_stream_analytics_output_eventhub` - support for the `property_columns` property [GH-12947]
