@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -32,13 +33,13 @@ func NewPrivateLinkResourcesClientWithBaseURI(baseURI string, subscriptionID str
 	return PrivateLinkResourcesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// ListByWorkspace gets the private link resources that need to be created for a workspace.
+// List gets the private link resources that need to be created for a workspace.
 // Parameters:
-// resourceGroupName - name of the resource group in which workspace is located.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - name of Azure Machine Learning workspace.
-func (client PrivateLinkResourcesClient) ListByWorkspace(ctx context.Context, resourceGroupName string, workspaceName string) (result PrivateLinkResourceListResult, err error) {
+func (client PrivateLinkResourcesClient) List(ctx context.Context, resourceGroupName string, workspaceName string) (result PrivateLinkResourceListResult, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkResourcesClient.ListByWorkspace")
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkResourcesClient.List")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -47,37 +48,46 @@ func (client PrivateLinkResourcesClient) ListByWorkspace(ctx context.Context, re
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListByWorkspacePreparer(ctx, resourceGroupName, workspaceName)
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.PrivateLinkResourcesClient", "List", err.Error())
+	}
+
+	req, err := client.ListPreparer(ctx, resourceGroupName, workspaceName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateLinkResourcesClient", "ListByWorkspace", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateLinkResourcesClient", "List", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.ListByWorkspaceSender(req)
+	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateLinkResourcesClient", "ListByWorkspace", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateLinkResourcesClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListByWorkspaceResponder(resp)
+	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateLinkResourcesClient", "ListByWorkspace", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateLinkResourcesClient", "List", resp, "Failure responding to request")
 		return
 	}
 
 	return
 }
 
-// ListByWorkspacePreparer prepares the ListByWorkspace request.
-func (client PrivateLinkResourcesClient) ListByWorkspacePreparer(ctx context.Context, resourceGroupName string, workspaceName string) (*http.Request, error) {
+// ListPreparer prepares the List request.
+func (client PrivateLinkResourcesClient) ListPreparer(ctx context.Context, resourceGroupName string, workspaceName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -90,15 +100,15 @@ func (client PrivateLinkResourcesClient) ListByWorkspacePreparer(ctx context.Con
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// ListByWorkspaceSender sends the ListByWorkspace request. The method will close the
+// ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client PrivateLinkResourcesClient) ListByWorkspaceSender(req *http.Request) (*http.Response, error) {
+func (client PrivateLinkResourcesClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
-// ListByWorkspaceResponder handles the response to the ListByWorkspace request. The method always
+// ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client PrivateLinkResourcesClient) ListByWorkspaceResponder(resp *http.Response) (result PrivateLinkResourceListResult, err error) {
+func (client PrivateLinkResourcesClient) ListResponder(resp *http.Response) (result PrivateLinkResourceListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

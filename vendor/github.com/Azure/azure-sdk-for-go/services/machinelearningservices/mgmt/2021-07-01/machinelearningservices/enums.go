@@ -125,6 +125,8 @@ const (
 	ComputeTypeDataLakeAnalytics ComputeType = "DataLakeAnalytics"
 	// ComputeTypeHDInsight ...
 	ComputeTypeHDInsight ComputeType = "HDInsight"
+	// ComputeTypeKubernetes ...
+	ComputeTypeKubernetes ComputeType = "Kubernetes"
 	// ComputeTypeSynapseSpark ...
 	ComputeTypeSynapseSpark ComputeType = "SynapseSpark"
 	// ComputeTypeVirtualMachine ...
@@ -133,7 +135,7 @@ const (
 
 // PossibleComputeTypeValues returns an array of possible values for the ComputeType const type.
 func PossibleComputeTypeValues() []ComputeType {
-	return []ComputeType{ComputeTypeAKS, ComputeTypeAmlCompute, ComputeTypeComputeInstance, ComputeTypeDatabricks, ComputeTypeDataFactory, ComputeTypeDataLakeAnalytics, ComputeTypeHDInsight, ComputeTypeSynapseSpark, ComputeTypeVirtualMachine}
+	return []ComputeType{ComputeTypeAKS, ComputeTypeAmlCompute, ComputeTypeComputeInstance, ComputeTypeDatabricks, ComputeTypeDataFactory, ComputeTypeDataLakeAnalytics, ComputeTypeHDInsight, ComputeTypeKubernetes, ComputeTypeSynapseSpark, ComputeTypeVirtualMachine}
 }
 
 // ComputeTypeBasicCompute enumerates the values for compute type basic compute.
@@ -156,103 +158,66 @@ const (
 	ComputeTypeBasicComputeComputeTypeDataLakeAnalytics ComputeTypeBasicCompute = "DataLakeAnalytics"
 	// ComputeTypeBasicComputeComputeTypeHDInsight ...
 	ComputeTypeBasicComputeComputeTypeHDInsight ComputeTypeBasicCompute = "HDInsight"
+	// ComputeTypeBasicComputeComputeTypeSynapseSpark ...
+	ComputeTypeBasicComputeComputeTypeSynapseSpark ComputeTypeBasicCompute = "SynapseSpark"
 	// ComputeTypeBasicComputeComputeTypeVirtualMachine ...
 	ComputeTypeBasicComputeComputeTypeVirtualMachine ComputeTypeBasicCompute = "VirtualMachine"
 )
 
 // PossibleComputeTypeBasicComputeValues returns an array of possible values for the ComputeTypeBasicCompute const type.
 func PossibleComputeTypeBasicComputeValues() []ComputeTypeBasicCompute {
-	return []ComputeTypeBasicCompute{ComputeTypeBasicComputeComputeTypeAKS, ComputeTypeBasicComputeComputeTypeAmlCompute, ComputeTypeBasicComputeComputeTypeCompute, ComputeTypeBasicComputeComputeTypeComputeInstance, ComputeTypeBasicComputeComputeTypeDatabricks, ComputeTypeBasicComputeComputeTypeDataFactory, ComputeTypeBasicComputeComputeTypeDataLakeAnalytics, ComputeTypeBasicComputeComputeTypeHDInsight, ComputeTypeBasicComputeComputeTypeVirtualMachine}
-}
-
-// ComputeTypeBasicComputeNodesInformation enumerates the values for compute type basic compute nodes
-// information.
-type ComputeTypeBasicComputeNodesInformation string
-
-const (
-	// ComputeTypeBasicComputeNodesInformationComputeTypeAmlCompute ...
-	ComputeTypeBasicComputeNodesInformationComputeTypeAmlCompute ComputeTypeBasicComputeNodesInformation = "AmlCompute"
-	// ComputeTypeBasicComputeNodesInformationComputeTypeComputeNodesInformation ...
-	ComputeTypeBasicComputeNodesInformationComputeTypeComputeNodesInformation ComputeTypeBasicComputeNodesInformation = "ComputeNodesInformation"
-)
-
-// PossibleComputeTypeBasicComputeNodesInformationValues returns an array of possible values for the ComputeTypeBasicComputeNodesInformation const type.
-func PossibleComputeTypeBasicComputeNodesInformationValues() []ComputeTypeBasicComputeNodesInformation {
-	return []ComputeTypeBasicComputeNodesInformation{ComputeTypeBasicComputeNodesInformationComputeTypeAmlCompute, ComputeTypeBasicComputeNodesInformationComputeTypeComputeNodesInformation}
+	return []ComputeTypeBasicCompute{ComputeTypeBasicComputeComputeTypeAKS, ComputeTypeBasicComputeComputeTypeAmlCompute, ComputeTypeBasicComputeComputeTypeCompute, ComputeTypeBasicComputeComputeTypeComputeInstance, ComputeTypeBasicComputeComputeTypeDatabricks, ComputeTypeBasicComputeComputeTypeDataFactory, ComputeTypeBasicComputeComputeTypeDataLakeAnalytics, ComputeTypeBasicComputeComputeTypeHDInsight, ComputeTypeBasicComputeComputeTypeSynapseSpark, ComputeTypeBasicComputeComputeTypeVirtualMachine}
 }
 
 // ComputeTypeBasicComputeSecrets enumerates the values for compute type basic compute secrets.
 type ComputeTypeBasicComputeSecrets string
 
 const (
-	// ComputeTypeBasicComputeSecretsComputeTypeAKS ...
-	ComputeTypeBasicComputeSecretsComputeTypeAKS ComputeTypeBasicComputeSecrets = "AKS"
 	// ComputeTypeBasicComputeSecretsComputeTypeComputeSecrets ...
 	ComputeTypeBasicComputeSecretsComputeTypeComputeSecrets ComputeTypeBasicComputeSecrets = "ComputeSecrets"
-	// ComputeTypeBasicComputeSecretsComputeTypeDatabricks ...
-	ComputeTypeBasicComputeSecretsComputeTypeDatabricks ComputeTypeBasicComputeSecrets = "Databricks"
 	// ComputeTypeBasicComputeSecretsComputeTypeVirtualMachine ...
 	ComputeTypeBasicComputeSecretsComputeTypeVirtualMachine ComputeTypeBasicComputeSecrets = "VirtualMachine"
 )
 
 // PossibleComputeTypeBasicComputeSecretsValues returns an array of possible values for the ComputeTypeBasicComputeSecrets const type.
 func PossibleComputeTypeBasicComputeSecretsValues() []ComputeTypeBasicComputeSecrets {
-	return []ComputeTypeBasicComputeSecrets{ComputeTypeBasicComputeSecretsComputeTypeAKS, ComputeTypeBasicComputeSecretsComputeTypeComputeSecrets, ComputeTypeBasicComputeSecretsComputeTypeDatabricks, ComputeTypeBasicComputeSecretsComputeTypeVirtualMachine}
+	return []ComputeTypeBasicComputeSecrets{ComputeTypeBasicComputeSecretsComputeTypeComputeSecrets, ComputeTypeBasicComputeSecretsComputeTypeVirtualMachine}
 }
 
-// ComputeTypeBasicCreateServiceRequest enumerates the values for compute type basic create service request.
-type ComputeTypeBasicCreateServiceRequest string
+// CreatedByType enumerates the values for created by type.
+type CreatedByType string
 
 const (
-	// ComputeTypeBasicCreateServiceRequestComputeTypeACI ...
-	ComputeTypeBasicCreateServiceRequestComputeTypeACI ComputeTypeBasicCreateServiceRequest = "ACI"
-	// ComputeTypeBasicCreateServiceRequestComputeTypeAKS ...
-	ComputeTypeBasicCreateServiceRequestComputeTypeAKS ComputeTypeBasicCreateServiceRequest = "AKS"
-	// ComputeTypeBasicCreateServiceRequestComputeTypeCreateServiceRequest ...
-	ComputeTypeBasicCreateServiceRequestComputeTypeCreateServiceRequest ComputeTypeBasicCreateServiceRequest = "CreateServiceRequest"
-	// ComputeTypeBasicCreateServiceRequestComputeTypeCustom ...
-	ComputeTypeBasicCreateServiceRequestComputeTypeCustom ComputeTypeBasicCreateServiceRequest = "Custom"
+	// CreatedByTypeApplication ...
+	CreatedByTypeApplication CreatedByType = "Application"
+	// CreatedByTypeKey ...
+	CreatedByTypeKey CreatedByType = "Key"
+	// CreatedByTypeManagedIdentity ...
+	CreatedByTypeManagedIdentity CreatedByType = "ManagedIdentity"
+	// CreatedByTypeUser ...
+	CreatedByTypeUser CreatedByType = "User"
 )
 
-// PossibleComputeTypeBasicCreateServiceRequestValues returns an array of possible values for the ComputeTypeBasicCreateServiceRequest const type.
-func PossibleComputeTypeBasicCreateServiceRequestValues() []ComputeTypeBasicCreateServiceRequest {
-	return []ComputeTypeBasicCreateServiceRequest{ComputeTypeBasicCreateServiceRequestComputeTypeACI, ComputeTypeBasicCreateServiceRequestComputeTypeAKS, ComputeTypeBasicCreateServiceRequestComputeTypeCreateServiceRequest, ComputeTypeBasicCreateServiceRequestComputeTypeCustom}
+// PossibleCreatedByTypeValues returns an array of possible values for the CreatedByType const type.
+func PossibleCreatedByTypeValues() []CreatedByType {
+	return []CreatedByType{CreatedByTypeApplication, CreatedByTypeKey, CreatedByTypeManagedIdentity, CreatedByTypeUser}
 }
 
-// ComputeTypeBasicServiceResponseBase enumerates the values for compute type basic service response base.
-type ComputeTypeBasicServiceResponseBase string
+// DiagnoseResultLevel enumerates the values for diagnose result level.
+type DiagnoseResultLevel string
 
 const (
-	// ComputeTypeBasicServiceResponseBaseComputeTypeACI ...
-	ComputeTypeBasicServiceResponseBaseComputeTypeACI ComputeTypeBasicServiceResponseBase = "ACI"
-	// ComputeTypeBasicServiceResponseBaseComputeTypeAKS ...
-	ComputeTypeBasicServiceResponseBaseComputeTypeAKS ComputeTypeBasicServiceResponseBase = "AKS"
-	// ComputeTypeBasicServiceResponseBaseComputeTypeCustom ...
-	ComputeTypeBasicServiceResponseBaseComputeTypeCustom ComputeTypeBasicServiceResponseBase = "Custom"
-	// ComputeTypeBasicServiceResponseBaseComputeTypeServiceResponseBase ...
-	ComputeTypeBasicServiceResponseBaseComputeTypeServiceResponseBase ComputeTypeBasicServiceResponseBase = "ServiceResponseBase"
+	// DiagnoseResultLevelError ...
+	DiagnoseResultLevelError DiagnoseResultLevel = "Error"
+	// DiagnoseResultLevelInformation ...
+	DiagnoseResultLevelInformation DiagnoseResultLevel = "Information"
+	// DiagnoseResultLevelWarning ...
+	DiagnoseResultLevelWarning DiagnoseResultLevel = "Warning"
 )
 
-// PossibleComputeTypeBasicServiceResponseBaseValues returns an array of possible values for the ComputeTypeBasicServiceResponseBase const type.
-func PossibleComputeTypeBasicServiceResponseBaseValues() []ComputeTypeBasicServiceResponseBase {
-	return []ComputeTypeBasicServiceResponseBase{ComputeTypeBasicServiceResponseBaseComputeTypeACI, ComputeTypeBasicServiceResponseBaseComputeTypeAKS, ComputeTypeBasicServiceResponseBaseComputeTypeCustom, ComputeTypeBasicServiceResponseBaseComputeTypeServiceResponseBase}
-}
-
-// DeploymentType enumerates the values for deployment type.
-type DeploymentType string
-
-const (
-	// DeploymentTypeBatch ...
-	DeploymentTypeBatch DeploymentType = "Batch"
-	// DeploymentTypeGRPCRealtimeEndpoint ...
-	DeploymentTypeGRPCRealtimeEndpoint DeploymentType = "GRPCRealtimeEndpoint"
-	// DeploymentTypeHTTPRealtimeEndpoint ...
-	DeploymentTypeHTTPRealtimeEndpoint DeploymentType = "HttpRealtimeEndpoint"
-)
-
-// PossibleDeploymentTypeValues returns an array of possible values for the DeploymentType const type.
-func PossibleDeploymentTypeValues() []DeploymentType {
-	return []DeploymentType{DeploymentTypeBatch, DeploymentTypeGRPCRealtimeEndpoint, DeploymentTypeHTTPRealtimeEndpoint}
+// PossibleDiagnoseResultLevelValues returns an array of possible values for the DiagnoseResultLevel const type.
+func PossibleDiagnoseResultLevelValues() []DiagnoseResultLevel {
+	return []DiagnoseResultLevel{DiagnoseResultLevelError, DiagnoseResultLevelInformation, DiagnoseResultLevelWarning}
 }
 
 // EncryptionStatus enumerates the values for encryption status.
@@ -268,25 +233,6 @@ const (
 // PossibleEncryptionStatusValues returns an array of possible values for the EncryptionStatus const type.
 func PossibleEncryptionStatusValues() []EncryptionStatus {
 	return []EncryptionStatus{EncryptionStatusDisabled, EncryptionStatusEnabled}
-}
-
-// IdentityType enumerates the values for identity type.
-type IdentityType string
-
-const (
-	// IdentityTypeApplication ...
-	IdentityTypeApplication IdentityType = "Application"
-	// IdentityTypeKey ...
-	IdentityTypeKey IdentityType = "Key"
-	// IdentityTypeManagedIdentity ...
-	IdentityTypeManagedIdentity IdentityType = "ManagedIdentity"
-	// IdentityTypeUser ...
-	IdentityTypeUser IdentityType = "User"
-)
-
-// PossibleIdentityTypeValues returns an array of possible values for the IdentityType const type.
-func PossibleIdentityTypeValues() []IdentityType {
-	return []IdentityType{IdentityTypeApplication, IdentityTypeKey, IdentityTypeManagedIdentity, IdentityTypeUser}
 }
 
 // LoadBalancerType enumerates the values for load balancer type.
@@ -377,25 +323,6 @@ func PossibleOperationStatusValues() []OperationStatus {
 	return []OperationStatus{OperationStatusCreateFailed, OperationStatusDeleteFailed, OperationStatusInProgress, OperationStatusReimageFailed, OperationStatusRestartFailed, OperationStatusStartFailed, OperationStatusStopFailed, OperationStatusSucceeded}
 }
 
-// OrderString enumerates the values for order string.
-type OrderString string
-
-const (
-	// OrderStringCreatedAtAsc ...
-	OrderStringCreatedAtAsc OrderString = "CreatedAtAsc"
-	// OrderStringCreatedAtDesc ...
-	OrderStringCreatedAtDesc OrderString = "CreatedAtDesc"
-	// OrderStringUpdatedAtAsc ...
-	OrderStringUpdatedAtAsc OrderString = "UpdatedAtAsc"
-	// OrderStringUpdatedAtDesc ...
-	OrderStringUpdatedAtDesc OrderString = "UpdatedAtDesc"
-)
-
-// PossibleOrderStringValues returns an array of possible values for the OrderString const type.
-func PossibleOrderStringValues() []OrderString {
-	return []OrderString{OrderStringCreatedAtAsc, OrderStringCreatedAtDesc, OrderStringUpdatedAtAsc, OrderStringUpdatedAtDesc}
-}
-
 // OsType enumerates the values for os type.
 type OsType string
 
@@ -475,6 +402,21 @@ const (
 // PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
 func PossibleProvisioningStateValues() []ProvisioningState {
 	return []ProvisioningState{ProvisioningStateCanceled, ProvisioningStateCreating, ProvisioningStateDeleting, ProvisioningStateFailed, ProvisioningStateSucceeded, ProvisioningStateUnknown, ProvisioningStateUpdating}
+}
+
+// PublicNetworkAccess enumerates the values for public network access.
+type PublicNetworkAccess string
+
+const (
+	// PublicNetworkAccessDisabled ...
+	PublicNetworkAccessDisabled PublicNetworkAccess = "Disabled"
+	// PublicNetworkAccessEnabled ...
+	PublicNetworkAccessEnabled PublicNetworkAccess = "Enabled"
+)
+
+// PossiblePublicNetworkAccessValues returns an array of possible values for the PublicNetworkAccess const type.
+func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
+	return []PublicNetworkAccess{PublicNetworkAccessDisabled, PublicNetworkAccessEnabled}
 }
 
 // QuotaUnit enumerates the values for quota unit.
@@ -643,21 +585,6 @@ func PossibleValueFormatValues() []ValueFormat {
 	return []ValueFormat{ValueFormatJSON}
 }
 
-// VariantType enumerates the values for variant type.
-type VariantType string
-
-const (
-	// VariantTypeControl ...
-	VariantTypeControl VariantType = "Control"
-	// VariantTypeTreatment ...
-	VariantTypeTreatment VariantType = "Treatment"
-)
-
-// PossibleVariantTypeValues returns an array of possible values for the VariantType const type.
-func PossibleVariantTypeValues() []VariantType {
-	return []VariantType{VariantTypeControl, VariantTypeTreatment}
-}
-
 // VMPriceOSType enumerates the values for vm price os type.
 type VMPriceOSType string
 
@@ -703,25 +630,4 @@ const (
 // PossibleVMTierValues returns an array of possible values for the VMTier const type.
 func PossibleVMTierValues() []VMTier {
 	return []VMTier{VMTierLowPriority, VMTierSpot, VMTierStandard}
-}
-
-// WebServiceState enumerates the values for web service state.
-type WebServiceState string
-
-const (
-	// WebServiceStateFailed ...
-	WebServiceStateFailed WebServiceState = "Failed"
-	// WebServiceStateHealthy ...
-	WebServiceStateHealthy WebServiceState = "Healthy"
-	// WebServiceStateTransitioning ...
-	WebServiceStateTransitioning WebServiceState = "Transitioning"
-	// WebServiceStateUnhealthy ...
-	WebServiceStateUnhealthy WebServiceState = "Unhealthy"
-	// WebServiceStateUnschedulable ...
-	WebServiceStateUnschedulable WebServiceState = "Unschedulable"
-)
-
-// PossibleWebServiceStateValues returns an array of possible values for the WebServiceState const type.
-func PossibleWebServiceStateValues() []WebServiceState {
-	return []WebServiceState{WebServiceStateFailed, WebServiceStateHealthy, WebServiceStateTransitioning, WebServiceStateUnhealthy, WebServiceStateUnschedulable}
 }

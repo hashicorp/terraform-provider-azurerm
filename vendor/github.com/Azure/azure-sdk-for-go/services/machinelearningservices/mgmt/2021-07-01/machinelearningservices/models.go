@@ -18,357 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-04-01/machinelearningservices"
-
-// ACIServiceCreateRequest ...
-type ACIServiceCreateRequest struct {
-	// ContainerResourceRequirements - The container resource requirements.
-	ContainerResourceRequirements *ContainerResourceRequirements `json:"containerResourceRequirements,omitempty"`
-	// AuthEnabled - Whether or not authentication is enabled on the service.
-	AuthEnabled *bool `json:"authEnabled,omitempty"`
-	// SslEnabled - Whether or not SSL is enabled.
-	SslEnabled *bool `json:"sslEnabled,omitempty"`
-	// AppInsightsEnabled - Whether or not Application Insights is enabled.
-	AppInsightsEnabled *bool `json:"appInsightsEnabled,omitempty"`
-	// DataCollection - Details of the data collection options specified.
-	DataCollection *ACIServiceCreateRequestDataCollection `json:"dataCollection,omitempty"`
-	// SslCertificate - The public SSL certificate in PEM format to use if SSL is enabled.
-	SslCertificate *string `json:"sslCertificate,omitempty"`
-	// SslKey - The public SSL key in PEM format for the certificate.
-	SslKey *string `json:"sslKey,omitempty"`
-	// Cname - The CName for the service.
-	Cname *string `json:"cname,omitempty"`
-	// DNSNameLabel - The Dns label for the service.
-	DNSNameLabel *string `json:"dnsNameLabel,omitempty"`
-	// VnetConfiguration - The virtual network configuration.
-	VnetConfiguration *ACIServiceCreateRequestVnetConfiguration `json:"vnetConfiguration,omitempty"`
-	// EncryptionProperties - The encryption properties.
-	EncryptionProperties *ACIServiceCreateRequestEncryptionProperties `json:"encryptionProperties,omitempty"`
-	// Description - The description of the service.
-	Description *string `json:"description,omitempty"`
-	// KvTags - The service tag dictionary. Tags are mutable.
-	KvTags map[string]*string `json:"kvTags"`
-	// Properties - The service properties dictionary. Properties are immutable.
-	Properties map[string]*string `json:"properties"`
-	// Keys - The authentication keys.
-	Keys *CreateServiceRequestKeys `json:"keys,omitempty"`
-	// EnvironmentImageRequest - The Environment, models and assets needed for inferencing.
-	EnvironmentImageRequest *CreateServiceRequestEnvironmentImageRequest `json:"environmentImageRequest,omitempty"`
-	// Location - The name of the Azure location/region.
-	Location *string `json:"location,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicCreateServiceRequestComputeTypeCreateServiceRequest', 'ComputeTypeBasicCreateServiceRequestComputeTypeACI', 'ComputeTypeBasicCreateServiceRequestComputeTypeAKS', 'ComputeTypeBasicCreateServiceRequestComputeTypeCustom'
-	ComputeType ComputeTypeBasicCreateServiceRequest `json:"computeType,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ACIServiceCreateRequest.
-func (ascr ACIServiceCreateRequest) MarshalJSON() ([]byte, error) {
-	ascr.ComputeType = ComputeTypeBasicCreateServiceRequestComputeTypeACI
-	objectMap := make(map[string]interface{})
-	if ascr.ContainerResourceRequirements != nil {
-		objectMap["containerResourceRequirements"] = ascr.ContainerResourceRequirements
-	}
-	if ascr.AuthEnabled != nil {
-		objectMap["authEnabled"] = ascr.AuthEnabled
-	}
-	if ascr.SslEnabled != nil {
-		objectMap["sslEnabled"] = ascr.SslEnabled
-	}
-	if ascr.AppInsightsEnabled != nil {
-		objectMap["appInsightsEnabled"] = ascr.AppInsightsEnabled
-	}
-	if ascr.DataCollection != nil {
-		objectMap["dataCollection"] = ascr.DataCollection
-	}
-	if ascr.SslCertificate != nil {
-		objectMap["sslCertificate"] = ascr.SslCertificate
-	}
-	if ascr.SslKey != nil {
-		objectMap["sslKey"] = ascr.SslKey
-	}
-	if ascr.Cname != nil {
-		objectMap["cname"] = ascr.Cname
-	}
-	if ascr.DNSNameLabel != nil {
-		objectMap["dnsNameLabel"] = ascr.DNSNameLabel
-	}
-	if ascr.VnetConfiguration != nil {
-		objectMap["vnetConfiguration"] = ascr.VnetConfiguration
-	}
-	if ascr.EncryptionProperties != nil {
-		objectMap["encryptionProperties"] = ascr.EncryptionProperties
-	}
-	if ascr.Description != nil {
-		objectMap["description"] = ascr.Description
-	}
-	if ascr.KvTags != nil {
-		objectMap["kvTags"] = ascr.KvTags
-	}
-	if ascr.Properties != nil {
-		objectMap["properties"] = ascr.Properties
-	}
-	if ascr.Keys != nil {
-		objectMap["keys"] = ascr.Keys
-	}
-	if ascr.EnvironmentImageRequest != nil {
-		objectMap["environmentImageRequest"] = ascr.EnvironmentImageRequest
-	}
-	if ascr.Location != nil {
-		objectMap["location"] = ascr.Location
-	}
-	if ascr.ComputeType != "" {
-		objectMap["computeType"] = ascr.ComputeType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsACIServiceCreateRequest is the BasicCreateServiceRequest implementation for ACIServiceCreateRequest.
-func (ascr ACIServiceCreateRequest) AsACIServiceCreateRequest() (*ACIServiceCreateRequest, bool) {
-	return &ascr, true
-}
-
-// AsAKSServiceCreateRequest is the BasicCreateServiceRequest implementation for ACIServiceCreateRequest.
-func (ascr ACIServiceCreateRequest) AsAKSServiceCreateRequest() (*AKSServiceCreateRequest, bool) {
-	return nil, false
-}
-
-// AsCreateEndpointVariantRequest is the BasicCreateServiceRequest implementation for ACIServiceCreateRequest.
-func (ascr ACIServiceCreateRequest) AsCreateEndpointVariantRequest() (*CreateEndpointVariantRequest, bool) {
-	return nil, false
-}
-
-// AsBasicCreateEndpointVariantRequest is the BasicCreateServiceRequest implementation for ACIServiceCreateRequest.
-func (ascr ACIServiceCreateRequest) AsBasicCreateEndpointVariantRequest() (BasicCreateEndpointVariantRequest, bool) {
-	return nil, false
-}
-
-// AsCreateServiceRequest is the BasicCreateServiceRequest implementation for ACIServiceCreateRequest.
-func (ascr ACIServiceCreateRequest) AsCreateServiceRequest() (*CreateServiceRequest, bool) {
-	return nil, false
-}
-
-// AsBasicCreateServiceRequest is the BasicCreateServiceRequest implementation for ACIServiceCreateRequest.
-func (ascr ACIServiceCreateRequest) AsBasicCreateServiceRequest() (BasicCreateServiceRequest, bool) {
-	return &ascr, true
-}
-
-// ACIServiceCreateRequestDataCollection details of the data collection options specified.
-type ACIServiceCreateRequestDataCollection struct {
-	// EventHubEnabled - Option for enabling/disabling Event Hub.
-	EventHubEnabled *bool `json:"eventHubEnabled,omitempty"`
-	// StorageEnabled - Option for enabling/disabling storage.
-	StorageEnabled *bool `json:"storageEnabled,omitempty"`
-}
-
-// ACIServiceCreateRequestEncryptionProperties the encryption properties.
-type ACIServiceCreateRequestEncryptionProperties struct {
-	// VaultBaseURL - vault base Url
-	VaultBaseURL *string `json:"vaultBaseUrl,omitempty"`
-	// KeyName - Encryption Key name
-	KeyName *string `json:"keyName,omitempty"`
-	// KeyVersion - Encryption Key Version
-	KeyVersion *string `json:"keyVersion,omitempty"`
-}
-
-// ACIServiceCreateRequestVnetConfiguration the virtual network configuration.
-type ACIServiceCreateRequestVnetConfiguration struct {
-	// VnetName - The name of the virtual network.
-	VnetName *string `json:"vnetName,omitempty"`
-	// SubnetName - The name of the virtual network subnet.
-	SubnetName *string `json:"subnetName,omitempty"`
-}
-
-// ACIServiceResponse the response for an ACI service.
-type ACIServiceResponse struct {
-	// ContainerResourceRequirements - The container resource requirements.
-	ContainerResourceRequirements *ContainerResourceRequirements `json:"containerResourceRequirements,omitempty"`
-	// ScoringURI - READ-ONLY; The Uri for sending scoring requests.
-	ScoringURI *string `json:"scoringUri,omitempty"`
-	// Location - The name of the Azure location/region.
-	Location *string `json:"location,omitempty"`
-	// AuthEnabled - Whether or not authentication is enabled on the service.
-	AuthEnabled *bool `json:"authEnabled,omitempty"`
-	// SslEnabled - Whether or not SSL is enabled.
-	SslEnabled *bool `json:"sslEnabled,omitempty"`
-	// AppInsightsEnabled - Whether or not Application Insights is enabled.
-	AppInsightsEnabled *bool `json:"appInsightsEnabled,omitempty"`
-	// DataCollection - Details of the data collection options specified.
-	DataCollection *ACIServiceResponseDataCollection `json:"dataCollection,omitempty"`
-	// SslCertificate - The public SSL certificate in PEM format to use if SSL is enabled.
-	SslCertificate *string `json:"sslCertificate,omitempty"`
-	// SslKey - The public SSL key in PEM format for the certificate.
-	SslKey *string `json:"sslKey,omitempty"`
-	// Cname - The CName for the service.
-	Cname *string `json:"cname,omitempty"`
-	// PublicIP - The public IP address for the service.
-	PublicIP *string `json:"publicIp,omitempty"`
-	// PublicFqdn - The public Fqdn for the service.
-	PublicFqdn *string `json:"publicFqdn,omitempty"`
-	// SwaggerURI - READ-ONLY; The Uri for sending swagger requests.
-	SwaggerURI *string `json:"swaggerUri,omitempty"`
-	// ModelConfigMap - READ-ONLY; Details on the models and configurations.
-	ModelConfigMap map[string]interface{} `json:"modelConfigMap"`
-	// ModelsProperty - The list of models.
-	ModelsProperty *[]Model `json:"models,omitempty"`
-	// EnvironmentImageRequest - The Environment, models and assets used for inferencing.
-	EnvironmentImageRequest *ACIServiceResponseEnvironmentImageRequest `json:"environmentImageRequest,omitempty"`
-	// VnetConfiguration - The virtual network configuration.
-	VnetConfiguration *ACIServiceResponseVnetConfiguration `json:"vnetConfiguration,omitempty"`
-	// EncryptionProperties - The encryption properties.
-	EncryptionProperties *ACIServiceResponseEncryptionProperties `json:"encryptionProperties,omitempty"`
-	// Description - The service description.
-	Description *string `json:"description,omitempty"`
-	// KvTags - The service tag dictionary. Tags are mutable.
-	KvTags map[string]*string `json:"kvTags"`
-	// Properties - The service property dictionary. Properties are immutable.
-	Properties map[string]*string `json:"properties"`
-	// State - READ-ONLY; The current state of the service. Possible values include: 'WebServiceStateTransitioning', 'WebServiceStateHealthy', 'WebServiceStateUnhealthy', 'WebServiceStateFailed', 'WebServiceStateUnschedulable'
-	State WebServiceState `json:"state,omitempty"`
-	// Error - READ-ONLY; The error details.
-	Error *ServiceResponseBaseError `json:"error,omitempty"`
-	// DeploymentType - The deployment type for the service. Possible values include: 'DeploymentTypeGRPCRealtimeEndpoint', 'DeploymentTypeHTTPRealtimeEndpoint', 'DeploymentTypeBatch'
-	DeploymentType DeploymentType `json:"deploymentType,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicServiceResponseBaseComputeTypeServiceResponseBase', 'ComputeTypeBasicServiceResponseBaseComputeTypeACI', 'ComputeTypeBasicServiceResponseBaseComputeTypeCustom', 'ComputeTypeBasicServiceResponseBaseComputeTypeAKS'
-	ComputeType ComputeTypeBasicServiceResponseBase `json:"computeType,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ACIServiceResponse.
-func (asr ACIServiceResponse) MarshalJSON() ([]byte, error) {
-	asr.ComputeType = ComputeTypeBasicServiceResponseBaseComputeTypeACI
-	objectMap := make(map[string]interface{})
-	if asr.ContainerResourceRequirements != nil {
-		objectMap["containerResourceRequirements"] = asr.ContainerResourceRequirements
-	}
-	if asr.Location != nil {
-		objectMap["location"] = asr.Location
-	}
-	if asr.AuthEnabled != nil {
-		objectMap["authEnabled"] = asr.AuthEnabled
-	}
-	if asr.SslEnabled != nil {
-		objectMap["sslEnabled"] = asr.SslEnabled
-	}
-	if asr.AppInsightsEnabled != nil {
-		objectMap["appInsightsEnabled"] = asr.AppInsightsEnabled
-	}
-	if asr.DataCollection != nil {
-		objectMap["dataCollection"] = asr.DataCollection
-	}
-	if asr.SslCertificate != nil {
-		objectMap["sslCertificate"] = asr.SslCertificate
-	}
-	if asr.SslKey != nil {
-		objectMap["sslKey"] = asr.SslKey
-	}
-	if asr.Cname != nil {
-		objectMap["cname"] = asr.Cname
-	}
-	if asr.PublicIP != nil {
-		objectMap["publicIp"] = asr.PublicIP
-	}
-	if asr.PublicFqdn != nil {
-		objectMap["publicFqdn"] = asr.PublicFqdn
-	}
-	if asr.ModelsProperty != nil {
-		objectMap["models"] = asr.ModelsProperty
-	}
-	if asr.EnvironmentImageRequest != nil {
-		objectMap["environmentImageRequest"] = asr.EnvironmentImageRequest
-	}
-	if asr.VnetConfiguration != nil {
-		objectMap["vnetConfiguration"] = asr.VnetConfiguration
-	}
-	if asr.EncryptionProperties != nil {
-		objectMap["encryptionProperties"] = asr.EncryptionProperties
-	}
-	if asr.Description != nil {
-		objectMap["description"] = asr.Description
-	}
-	if asr.KvTags != nil {
-		objectMap["kvTags"] = asr.KvTags
-	}
-	if asr.Properties != nil {
-		objectMap["properties"] = asr.Properties
-	}
-	if asr.DeploymentType != "" {
-		objectMap["deploymentType"] = asr.DeploymentType
-	}
-	if asr.ComputeType != "" {
-		objectMap["computeType"] = asr.ComputeType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsACIServiceResponse is the BasicServiceResponseBase implementation for ACIServiceResponse.
-func (asr ACIServiceResponse) AsACIServiceResponse() (*ACIServiceResponse, bool) {
-	return &asr, true
-}
-
-// AsAKSVariantResponse is the BasicServiceResponseBase implementation for ACIServiceResponse.
-func (asr ACIServiceResponse) AsAKSVariantResponse() (*AKSVariantResponse, bool) {
-	return nil, false
-}
-
-// AsBasicAKSVariantResponse is the BasicServiceResponseBase implementation for ACIServiceResponse.
-func (asr ACIServiceResponse) AsBasicAKSVariantResponse() (BasicAKSVariantResponse, bool) {
-	return nil, false
-}
-
-// AsAKSServiceResponse is the BasicServiceResponseBase implementation for ACIServiceResponse.
-func (asr ACIServiceResponse) AsAKSServiceResponse() (*AKSServiceResponse, bool) {
-	return nil, false
-}
-
-// AsServiceResponseBase is the BasicServiceResponseBase implementation for ACIServiceResponse.
-func (asr ACIServiceResponse) AsServiceResponseBase() (*ServiceResponseBase, bool) {
-	return nil, false
-}
-
-// AsBasicServiceResponseBase is the BasicServiceResponseBase implementation for ACIServiceResponse.
-func (asr ACIServiceResponse) AsBasicServiceResponseBase() (BasicServiceResponseBase, bool) {
-	return &asr, true
-}
-
-// ACIServiceResponseDataCollection details of the data collection options specified.
-type ACIServiceResponseDataCollection struct {
-	// EventHubEnabled - Option for enabling/disabling Event Hub.
-	EventHubEnabled *bool `json:"eventHubEnabled,omitempty"`
-	// StorageEnabled - Option for enabling/disabling storage.
-	StorageEnabled *bool `json:"storageEnabled,omitempty"`
-}
-
-// ACIServiceResponseEncryptionProperties the encryption properties.
-type ACIServiceResponseEncryptionProperties struct {
-	// VaultBaseURL - vault base Url
-	VaultBaseURL *string `json:"vaultBaseUrl,omitempty"`
-	// KeyName - Encryption Key name
-	KeyName *string `json:"keyName,omitempty"`
-	// KeyVersion - Encryption Key Version
-	KeyVersion *string `json:"keyVersion,omitempty"`
-}
-
-// ACIServiceResponseEnvironmentImageRequest the Environment, models and assets used for inferencing.
-type ACIServiceResponseEnvironmentImageRequest struct {
-	// DriverProgram - The name of the driver file.
-	DriverProgram *string `json:"driverProgram,omitempty"`
-	// Assets - The list of assets.
-	Assets *[]ImageAsset `json:"assets,omitempty"`
-	// ModelIds - The list of model Ids.
-	ModelIds *[]string `json:"modelIds,omitempty"`
-	// ModelsProperty - The list of models.
-	ModelsProperty *[]Model `json:"models,omitempty"`
-	// Environment - The details of the AZURE ML environment.
-	Environment *EnvironmentImageResponseEnvironment `json:"environment,omitempty"`
-	// EnvironmentReference - The unique identifying details of the AZURE ML environment.
-	EnvironmentReference *EnvironmentImageResponseEnvironmentReference `json:"environmentReference,omitempty"`
-}
-
-// ACIServiceResponseVnetConfiguration the virtual network configuration.
-type ACIServiceResponseVnetConfiguration struct {
-	// VnetName - The name of the virtual network.
-	VnetName *string `json:"vnetName,omitempty"`
-	// SubnetName - The name of the virtual network subnet.
-	SubnetName *string `json:"subnetName,omitempty"`
-}
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices"
 
 // AKS a Machine Learning compute based on AKS.
 type AKS struct {
@@ -387,12 +37,12 @@ type AKS struct {
 	// ResourceID - ARM resource id of the underlying compute
 	ResourceID *string `json:"resourceId,omitempty"`
 	// ProvisioningErrors - READ-ONLY; Errors during provisioning
-	ProvisioningErrors *[]Error `json:"provisioningErrors,omitempty"`
+	ProvisioningErrors *[]ErrorResponse `json:"provisioningErrors,omitempty"`
 	// IsAttachedCompute - READ-ONLY; Indicating whether the compute was provisioned by user and brought from outside if true, or machine learning service provisioned it if false.
 	IsAttachedCompute *bool `json:"isAttachedCompute,omitempty"`
 	// DisableLocalAuth - Opt-out of local authentication and ensure customers can use only MSI and AAD exclusively for authentication.
 	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics'
+	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics', 'ComputeTypeBasicComputeComputeTypeSynapseSpark'
 	ComputeType ComputeTypeBasicCompute `json:"computeType,omitempty"`
 }
 
@@ -461,6 +111,11 @@ func (a AKS) AsDataLakeAnalytics() (*DataLakeAnalytics, bool) {
 	return nil, false
 }
 
+// AsSynapseSpark is the BasicCompute implementation for AKS.
+func (a AKS) AsSynapseSpark() (*SynapseSpark, bool) {
+	return nil, false
+}
+
 // AsCompute is the BasicCompute implementation for AKS.
 func (a AKS) AsCompute() (*Compute, bool) {
 	return nil, false
@@ -473,58 +128,24 @@ func (a AKS) AsBasicCompute() (BasicCompute, bool) {
 
 // AksComputeSecrets secrets related to a Machine Learning compute based on AKS.
 type AksComputeSecrets struct {
+	// ComputeType - The type of compute. Possible values include: 'ComputeTypeAKS', 'ComputeTypeKubernetes', 'ComputeTypeAmlCompute', 'ComputeTypeComputeInstance', 'ComputeTypeDataFactory', 'ComputeTypeVirtualMachine', 'ComputeTypeHDInsight', 'ComputeTypeDatabricks', 'ComputeTypeDataLakeAnalytics', 'ComputeTypeSynapseSpark'
+	ComputeType ComputeType `json:"computeType,omitempty"`
 	// UserKubeConfig - Content of kubeconfig file that can be used to connect to the Kubernetes cluster.
 	UserKubeConfig *string `json:"userKubeConfig,omitempty"`
 	// AdminKubeConfig - Content of kubeconfig file that can be used to connect to the Kubernetes cluster.
 	AdminKubeConfig *string `json:"adminKubeConfig,omitempty"`
 	// ImagePullSecretName - Image registry pull secret.
 	ImagePullSecretName *string `json:"imagePullSecretName,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicComputeSecretsComputeTypeComputeSecrets', 'ComputeTypeBasicComputeSecretsComputeTypeAKS', 'ComputeTypeBasicComputeSecretsComputeTypeVirtualMachine', 'ComputeTypeBasicComputeSecretsComputeTypeDatabricks'
-	ComputeType ComputeTypeBasicComputeSecrets `json:"computeType,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for AksComputeSecrets.
-func (acs AksComputeSecrets) MarshalJSON() ([]byte, error) {
-	acs.ComputeType = ComputeTypeBasicComputeSecretsComputeTypeAKS
-	objectMap := make(map[string]interface{})
-	if acs.UserKubeConfig != nil {
-		objectMap["userKubeConfig"] = acs.UserKubeConfig
-	}
-	if acs.AdminKubeConfig != nil {
-		objectMap["adminKubeConfig"] = acs.AdminKubeConfig
-	}
-	if acs.ImagePullSecretName != nil {
-		objectMap["imagePullSecretName"] = acs.ImagePullSecretName
-	}
-	if acs.ComputeType != "" {
-		objectMap["computeType"] = acs.ComputeType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsAksComputeSecrets is the BasicComputeSecrets implementation for AksComputeSecrets.
-func (acs AksComputeSecrets) AsAksComputeSecrets() (*AksComputeSecrets, bool) {
-	return &acs, true
-}
-
-// AsVirtualMachineSecrets is the BasicComputeSecrets implementation for AksComputeSecrets.
-func (acs AksComputeSecrets) AsVirtualMachineSecrets() (*VirtualMachineSecrets, bool) {
-	return nil, false
-}
-
-// AsDatabricksComputeSecrets is the BasicComputeSecrets implementation for AksComputeSecrets.
-func (acs AksComputeSecrets) AsDatabricksComputeSecrets() (*DatabricksComputeSecrets, bool) {
-	return nil, false
-}
-
-// AsComputeSecrets is the BasicComputeSecrets implementation for AksComputeSecrets.
-func (acs AksComputeSecrets) AsComputeSecrets() (*ComputeSecrets, bool) {
-	return nil, false
-}
-
-// AsBasicComputeSecrets is the BasicComputeSecrets implementation for AksComputeSecrets.
-func (acs AksComputeSecrets) AsBasicComputeSecrets() (BasicComputeSecrets, bool) {
-	return &acs, true
+// AksComputeSecretsProperties properties of AksComputeSecrets
+type AksComputeSecretsProperties struct {
+	// UserKubeConfig - Content of kubeconfig file that can be used to connect to the Kubernetes cluster.
+	UserKubeConfig *string `json:"userKubeConfig,omitempty"`
+	// AdminKubeConfig - Content of kubeconfig file that can be used to connect to the Kubernetes cluster.
+	AdminKubeConfig *string `json:"adminKubeConfig,omitempty"`
+	// ImagePullSecretName - Image registry pull secret.
+	ImagePullSecretName *string `json:"imagePullSecretName,omitempty"`
 }
 
 // AksNetworkingConfiguration advance configuration for AKS networking
@@ -591,585 +212,9 @@ func (a AKSProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// AKSReplicaStatus ...
-type AKSReplicaStatus struct {
-	// DesiredReplicas - The desired number of replicas.
-	DesiredReplicas *int32 `json:"desiredReplicas,omitempty"`
-	// UpdatedReplicas - The number of updated replicas.
-	UpdatedReplicas *int32 `json:"updatedReplicas,omitempty"`
-	// AvailableReplicas - The number of available replicas.
-	AvailableReplicas *int32 `json:"availableReplicas,omitempty"`
-	// Error - The error details.
-	Error *AKSReplicaStatusError `json:"error,omitempty"`
-}
-
-// AKSReplicaStatusError the error details.
-type AKSReplicaStatusError struct {
-	// Error - READ-ONLY; The error response.
-	Error *ErrorResponse `json:"error,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for AKSReplicaStatusError.
-func (ars AKSReplicaStatusError) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
-// AKSServiceCreateRequest the request to create an AKS service.
-type AKSServiceCreateRequest struct {
-	// NumReplicas - The number of replicas on the cluster.
-	NumReplicas *int32 `json:"numReplicas,omitempty"`
-	// DataCollection - Details of the data collection options specified.
-	DataCollection *AKSServiceCreateRequestDataCollection `json:"dataCollection,omitempty"`
-	// ComputeName - The name of the compute resource.
-	ComputeName *string `json:"computeName,omitempty"`
-	// AppInsightsEnabled - Whether or not Application Insights is enabled.
-	AppInsightsEnabled *bool `json:"appInsightsEnabled,omitempty"`
-	// AutoScaler - The auto scaler properties.
-	AutoScaler *AKSServiceCreateRequestAutoScaler `json:"autoScaler,omitempty"`
-	// ContainerResourceRequirements - The container resource requirements.
-	ContainerResourceRequirements *ContainerResourceRequirements `json:"containerResourceRequirements,omitempty"`
-	// MaxConcurrentRequestsPerContainer - The maximum number of concurrent requests per container.
-	MaxConcurrentRequestsPerContainer *int32 `json:"maxConcurrentRequestsPerContainer,omitempty"`
-	// MaxQueueWaitMs - Maximum time a request will wait in the queue (in milliseconds). After this time, the service will return 503 (Service Unavailable)
-	MaxQueueWaitMs *int32 `json:"maxQueueWaitMs,omitempty"`
-	// Namespace - Kubernetes namespace for the service.
-	Namespace *string `json:"namespace,omitempty"`
-	// ScoringTimeoutMs - The scoring timeout in milliseconds.
-	ScoringTimeoutMs *int32 `json:"scoringTimeoutMs,omitempty"`
-	// AuthEnabled - Whether or not authentication is enabled.
-	AuthEnabled *bool `json:"authEnabled,omitempty"`
-	// LivenessProbeRequirements - The liveness probe requirements.
-	LivenessProbeRequirements *AKSServiceCreateRequestLivenessProbeRequirements `json:"livenessProbeRequirements,omitempty"`
-	// AadAuthEnabled - Whether or not AAD authentication is enabled.
-	AadAuthEnabled *bool `json:"aadAuthEnabled,omitempty"`
-	// IsDefault - Is this the default variant.
-	IsDefault *bool `json:"isDefault,omitempty"`
-	// TrafficPercentile - The amount of traffic variant receives.
-	TrafficPercentile *float64 `json:"trafficPercentile,omitempty"`
-	// Type - The type of the variant. Possible values include: 'VariantTypeControl', 'VariantTypeTreatment'
-	Type VariantType `json:"type,omitempty"`
-	// Description - The description of the service.
-	Description *string `json:"description,omitempty"`
-	// KvTags - The service tag dictionary. Tags are mutable.
-	KvTags map[string]*string `json:"kvTags"`
-	// Properties - The service properties dictionary. Properties are immutable.
-	Properties map[string]*string `json:"properties"`
-	// Keys - The authentication keys.
-	Keys *CreateServiceRequestKeys `json:"keys,omitempty"`
-	// EnvironmentImageRequest - The Environment, models and assets needed for inferencing.
-	EnvironmentImageRequest *CreateServiceRequestEnvironmentImageRequest `json:"environmentImageRequest,omitempty"`
-	// Location - The name of the Azure location/region.
-	Location *string `json:"location,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicCreateServiceRequestComputeTypeCreateServiceRequest', 'ComputeTypeBasicCreateServiceRequestComputeTypeACI', 'ComputeTypeBasicCreateServiceRequestComputeTypeAKS', 'ComputeTypeBasicCreateServiceRequestComputeTypeCustom'
-	ComputeType ComputeTypeBasicCreateServiceRequest `json:"computeType,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for AKSServiceCreateRequest.
-func (ascr AKSServiceCreateRequest) MarshalJSON() ([]byte, error) {
-	ascr.ComputeType = ComputeTypeBasicCreateServiceRequestComputeTypeAKS
-	objectMap := make(map[string]interface{})
-	if ascr.NumReplicas != nil {
-		objectMap["numReplicas"] = ascr.NumReplicas
-	}
-	if ascr.DataCollection != nil {
-		objectMap["dataCollection"] = ascr.DataCollection
-	}
-	if ascr.ComputeName != nil {
-		objectMap["computeName"] = ascr.ComputeName
-	}
-	if ascr.AppInsightsEnabled != nil {
-		objectMap["appInsightsEnabled"] = ascr.AppInsightsEnabled
-	}
-	if ascr.AutoScaler != nil {
-		objectMap["autoScaler"] = ascr.AutoScaler
-	}
-	if ascr.ContainerResourceRequirements != nil {
-		objectMap["containerResourceRequirements"] = ascr.ContainerResourceRequirements
-	}
-	if ascr.MaxConcurrentRequestsPerContainer != nil {
-		objectMap["maxConcurrentRequestsPerContainer"] = ascr.MaxConcurrentRequestsPerContainer
-	}
-	if ascr.MaxQueueWaitMs != nil {
-		objectMap["maxQueueWaitMs"] = ascr.MaxQueueWaitMs
-	}
-	if ascr.Namespace != nil {
-		objectMap["namespace"] = ascr.Namespace
-	}
-	if ascr.ScoringTimeoutMs != nil {
-		objectMap["scoringTimeoutMs"] = ascr.ScoringTimeoutMs
-	}
-	if ascr.AuthEnabled != nil {
-		objectMap["authEnabled"] = ascr.AuthEnabled
-	}
-	if ascr.LivenessProbeRequirements != nil {
-		objectMap["livenessProbeRequirements"] = ascr.LivenessProbeRequirements
-	}
-	if ascr.AadAuthEnabled != nil {
-		objectMap["aadAuthEnabled"] = ascr.AadAuthEnabled
-	}
-	if ascr.IsDefault != nil {
-		objectMap["isDefault"] = ascr.IsDefault
-	}
-	if ascr.TrafficPercentile != nil {
-		objectMap["trafficPercentile"] = ascr.TrafficPercentile
-	}
-	if ascr.Type != "" {
-		objectMap["type"] = ascr.Type
-	}
-	if ascr.Description != nil {
-		objectMap["description"] = ascr.Description
-	}
-	if ascr.KvTags != nil {
-		objectMap["kvTags"] = ascr.KvTags
-	}
-	if ascr.Properties != nil {
-		objectMap["properties"] = ascr.Properties
-	}
-	if ascr.Keys != nil {
-		objectMap["keys"] = ascr.Keys
-	}
-	if ascr.EnvironmentImageRequest != nil {
-		objectMap["environmentImageRequest"] = ascr.EnvironmentImageRequest
-	}
-	if ascr.Location != nil {
-		objectMap["location"] = ascr.Location
-	}
-	if ascr.ComputeType != "" {
-		objectMap["computeType"] = ascr.ComputeType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsACIServiceCreateRequest is the BasicCreateServiceRequest implementation for AKSServiceCreateRequest.
-func (ascr AKSServiceCreateRequest) AsACIServiceCreateRequest() (*ACIServiceCreateRequest, bool) {
-	return nil, false
-}
-
-// AsAKSServiceCreateRequest is the BasicCreateServiceRequest implementation for AKSServiceCreateRequest.
-func (ascr AKSServiceCreateRequest) AsAKSServiceCreateRequest() (*AKSServiceCreateRequest, bool) {
-	return &ascr, true
-}
-
-// AsCreateEndpointVariantRequest is the BasicCreateServiceRequest implementation for AKSServiceCreateRequest.
-func (ascr AKSServiceCreateRequest) AsCreateEndpointVariantRequest() (*CreateEndpointVariantRequest, bool) {
-	return nil, false
-}
-
-// AsBasicCreateEndpointVariantRequest is the BasicCreateServiceRequest implementation for AKSServiceCreateRequest.
-func (ascr AKSServiceCreateRequest) AsBasicCreateEndpointVariantRequest() (BasicCreateEndpointVariantRequest, bool) {
-	return &ascr, true
-}
-
-// AsCreateServiceRequest is the BasicCreateServiceRequest implementation for AKSServiceCreateRequest.
-func (ascr AKSServiceCreateRequest) AsCreateServiceRequest() (*CreateServiceRequest, bool) {
-	return nil, false
-}
-
-// AsBasicCreateServiceRequest is the BasicCreateServiceRequest implementation for AKSServiceCreateRequest.
-func (ascr AKSServiceCreateRequest) AsBasicCreateServiceRequest() (BasicCreateServiceRequest, bool) {
-	return &ascr, true
-}
-
-// AKSServiceCreateRequestAutoScaler the auto scaler properties.
-type AKSServiceCreateRequestAutoScaler struct {
-	// AutoscaleEnabled - Option to enable/disable auto scaling.
-	AutoscaleEnabled *bool `json:"autoscaleEnabled,omitempty"`
-	// MinReplicas - The minimum number of replicas to scale down to.
-	MinReplicas *int32 `json:"minReplicas,omitempty"`
-	// MaxReplicas - The maximum number of replicas in the cluster.
-	MaxReplicas *int32 `json:"maxReplicas,omitempty"`
-	// TargetUtilization - The target utilization percentage to use for determining whether to scale the cluster.
-	TargetUtilization *int32 `json:"targetUtilization,omitempty"`
-	// RefreshPeriodInSeconds - The amount of seconds to wait between auto scale updates.
-	RefreshPeriodInSeconds *int32 `json:"refreshPeriodInSeconds,omitempty"`
-}
-
-// AKSServiceCreateRequestDataCollection details of the data collection options specified.
-type AKSServiceCreateRequestDataCollection struct {
-	// EventHubEnabled - Option for enabling/disabling Event Hub.
-	EventHubEnabled *bool `json:"eventHubEnabled,omitempty"`
-	// StorageEnabled - Option for enabling/disabling storage.
-	StorageEnabled *bool `json:"storageEnabled,omitempty"`
-}
-
-// AKSServiceCreateRequestLivenessProbeRequirements the liveness probe requirements.
-type AKSServiceCreateRequestLivenessProbeRequirements struct {
-	// FailureThreshold - The number of failures to allow before returning an unhealthy status.
-	FailureThreshold *int32 `json:"failureThreshold,omitempty"`
-	// SuccessThreshold - The number of successful probes before returning a healthy status.
-	SuccessThreshold *int32 `json:"successThreshold,omitempty"`
-	// TimeoutSeconds - The probe timeout in seconds.
-	TimeoutSeconds *int32 `json:"timeoutSeconds,omitempty"`
-	// PeriodSeconds - The length of time between probes in seconds.
-	PeriodSeconds *int32 `json:"periodSeconds,omitempty"`
-	// InitialDelaySeconds - The delay before the first probe in seconds.
-	InitialDelaySeconds *int32 `json:"initialDelaySeconds,omitempty"`
-}
-
-// AKSServiceResponse the response for an AKS service.
-type AKSServiceResponse struct {
-	// ModelsProperty - The list of models.
-	ModelsProperty *[]Model `json:"models,omitempty"`
-	// ContainerResourceRequirements - The container resource requirements.
-	ContainerResourceRequirements *ContainerResourceRequirements `json:"containerResourceRequirements,omitempty"`
-	// MaxConcurrentRequestsPerContainer - The maximum number of concurrent requests per container.
-	MaxConcurrentRequestsPerContainer *int32 `json:"maxConcurrentRequestsPerContainer,omitempty"`
-	// MaxQueueWaitMs - Maximum time a request will wait in the queue (in milliseconds). After this time, the service will return 503 (Service Unavailable)
-	MaxQueueWaitMs *int32 `json:"maxQueueWaitMs,omitempty"`
-	// ComputeName - The name of the compute resource.
-	ComputeName *string `json:"computeName,omitempty"`
-	// Namespace - The Kubernetes namespace of the deployment.
-	Namespace *string `json:"namespace,omitempty"`
-	// NumReplicas - The number of replicas on the cluster.
-	NumReplicas *int32 `json:"numReplicas,omitempty"`
-	// DataCollection - Details of the data collection options specified.
-	DataCollection *AKSServiceResponseDataCollection `json:"dataCollection,omitempty"`
-	// AppInsightsEnabled - Whether or not Application Insights is enabled.
-	AppInsightsEnabled *bool `json:"appInsightsEnabled,omitempty"`
-	// AutoScaler - The auto scaler properties.
-	AutoScaler *AKSServiceResponseAutoScaler `json:"autoScaler,omitempty"`
-	// ScoringURI - READ-ONLY; The Uri for sending scoring requests.
-	ScoringURI *string `json:"scoringUri,omitempty"`
-	// DeploymentStatus - READ-ONLY; The deployment status.
-	DeploymentStatus *AKSServiceResponseDeploymentStatus `json:"deploymentStatus,omitempty"`
-	// ScoringTimeoutMs - The scoring timeout in milliseconds.
-	ScoringTimeoutMs *int32 `json:"scoringTimeoutMs,omitempty"`
-	// LivenessProbeRequirements - The liveness probe requirements.
-	LivenessProbeRequirements *AKSServiceResponseLivenessProbeRequirements `json:"livenessProbeRequirements,omitempty"`
-	// AuthEnabled - Whether or not authentication is enabled.
-	AuthEnabled *bool `json:"authEnabled,omitempty"`
-	// AadAuthEnabled - Whether or not AAD authentication is enabled.
-	AadAuthEnabled *bool `json:"aadAuthEnabled,omitempty"`
-	// SwaggerURI - READ-ONLY; The Uri for sending swagger requests.
-	SwaggerURI *string `json:"swaggerUri,omitempty"`
-	// ModelConfigMap - READ-ONLY; Details on the models and configurations.
-	ModelConfigMap map[string]interface{} `json:"modelConfigMap"`
-	// EnvironmentImageRequest - The Environment, models and assets used for inferencing.
-	EnvironmentImageRequest *AKSServiceResponseEnvironmentImageRequest `json:"environmentImageRequest,omitempty"`
-	// IsDefault - Is this the default variant.
-	IsDefault *bool `json:"isDefault,omitempty"`
-	// TrafficPercentile - The amount of traffic variant receives.
-	TrafficPercentile *float64 `json:"trafficPercentile,omitempty"`
-	// Type - The type of the variant. Possible values include: 'VariantTypeControl', 'VariantTypeTreatment'
-	Type VariantType `json:"type,omitempty"`
-	// Description - The service description.
-	Description *string `json:"description,omitempty"`
-	// KvTags - The service tag dictionary. Tags are mutable.
-	KvTags map[string]*string `json:"kvTags"`
-	// Properties - The service property dictionary. Properties are immutable.
-	Properties map[string]*string `json:"properties"`
-	// State - READ-ONLY; The current state of the service. Possible values include: 'WebServiceStateTransitioning', 'WebServiceStateHealthy', 'WebServiceStateUnhealthy', 'WebServiceStateFailed', 'WebServiceStateUnschedulable'
-	State WebServiceState `json:"state,omitempty"`
-	// Error - READ-ONLY; The error details.
-	Error *ServiceResponseBaseError `json:"error,omitempty"`
-	// DeploymentType - The deployment type for the service. Possible values include: 'DeploymentTypeGRPCRealtimeEndpoint', 'DeploymentTypeHTTPRealtimeEndpoint', 'DeploymentTypeBatch'
-	DeploymentType DeploymentType `json:"deploymentType,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicServiceResponseBaseComputeTypeServiceResponseBase', 'ComputeTypeBasicServiceResponseBaseComputeTypeACI', 'ComputeTypeBasicServiceResponseBaseComputeTypeCustom', 'ComputeTypeBasicServiceResponseBaseComputeTypeAKS'
-	ComputeType ComputeTypeBasicServiceResponseBase `json:"computeType,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for AKSServiceResponse.
-func (asr AKSServiceResponse) MarshalJSON() ([]byte, error) {
-	asr.ComputeType = ComputeTypeBasicServiceResponseBaseComputeTypeAKS
-	objectMap := make(map[string]interface{})
-	if asr.ModelsProperty != nil {
-		objectMap["models"] = asr.ModelsProperty
-	}
-	if asr.ContainerResourceRequirements != nil {
-		objectMap["containerResourceRequirements"] = asr.ContainerResourceRequirements
-	}
-	if asr.MaxConcurrentRequestsPerContainer != nil {
-		objectMap["maxConcurrentRequestsPerContainer"] = asr.MaxConcurrentRequestsPerContainer
-	}
-	if asr.MaxQueueWaitMs != nil {
-		objectMap["maxQueueWaitMs"] = asr.MaxQueueWaitMs
-	}
-	if asr.ComputeName != nil {
-		objectMap["computeName"] = asr.ComputeName
-	}
-	if asr.Namespace != nil {
-		objectMap["namespace"] = asr.Namespace
-	}
-	if asr.NumReplicas != nil {
-		objectMap["numReplicas"] = asr.NumReplicas
-	}
-	if asr.DataCollection != nil {
-		objectMap["dataCollection"] = asr.DataCollection
-	}
-	if asr.AppInsightsEnabled != nil {
-		objectMap["appInsightsEnabled"] = asr.AppInsightsEnabled
-	}
-	if asr.AutoScaler != nil {
-		objectMap["autoScaler"] = asr.AutoScaler
-	}
-	if asr.ScoringTimeoutMs != nil {
-		objectMap["scoringTimeoutMs"] = asr.ScoringTimeoutMs
-	}
-	if asr.LivenessProbeRequirements != nil {
-		objectMap["livenessProbeRequirements"] = asr.LivenessProbeRequirements
-	}
-	if asr.AuthEnabled != nil {
-		objectMap["authEnabled"] = asr.AuthEnabled
-	}
-	if asr.AadAuthEnabled != nil {
-		objectMap["aadAuthEnabled"] = asr.AadAuthEnabled
-	}
-	if asr.EnvironmentImageRequest != nil {
-		objectMap["environmentImageRequest"] = asr.EnvironmentImageRequest
-	}
-	if asr.IsDefault != nil {
-		objectMap["isDefault"] = asr.IsDefault
-	}
-	if asr.TrafficPercentile != nil {
-		objectMap["trafficPercentile"] = asr.TrafficPercentile
-	}
-	if asr.Type != "" {
-		objectMap["type"] = asr.Type
-	}
-	if asr.Description != nil {
-		objectMap["description"] = asr.Description
-	}
-	if asr.KvTags != nil {
-		objectMap["kvTags"] = asr.KvTags
-	}
-	if asr.Properties != nil {
-		objectMap["properties"] = asr.Properties
-	}
-	if asr.DeploymentType != "" {
-		objectMap["deploymentType"] = asr.DeploymentType
-	}
-	if asr.ComputeType != "" {
-		objectMap["computeType"] = asr.ComputeType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsACIServiceResponse is the BasicServiceResponseBase implementation for AKSServiceResponse.
-func (asr AKSServiceResponse) AsACIServiceResponse() (*ACIServiceResponse, bool) {
-	return nil, false
-}
-
-// AsAKSVariantResponse is the BasicServiceResponseBase implementation for AKSServiceResponse.
-func (asr AKSServiceResponse) AsAKSVariantResponse() (*AKSVariantResponse, bool) {
-	return nil, false
-}
-
-// AsBasicAKSVariantResponse is the BasicServiceResponseBase implementation for AKSServiceResponse.
-func (asr AKSServiceResponse) AsBasicAKSVariantResponse() (BasicAKSVariantResponse, bool) {
-	return &asr, true
-}
-
-// AsAKSServiceResponse is the BasicServiceResponseBase implementation for AKSServiceResponse.
-func (asr AKSServiceResponse) AsAKSServiceResponse() (*AKSServiceResponse, bool) {
-	return &asr, true
-}
-
-// AsServiceResponseBase is the BasicServiceResponseBase implementation for AKSServiceResponse.
-func (asr AKSServiceResponse) AsServiceResponseBase() (*ServiceResponseBase, bool) {
-	return nil, false
-}
-
-// AsBasicServiceResponseBase is the BasicServiceResponseBase implementation for AKSServiceResponse.
-func (asr AKSServiceResponse) AsBasicServiceResponseBase() (BasicServiceResponseBase, bool) {
-	return &asr, true
-}
-
-// AKSServiceResponseAutoScaler the auto scaler properties.
-type AKSServiceResponseAutoScaler struct {
-	// AutoscaleEnabled - Option to enable/disable auto scaling.
-	AutoscaleEnabled *bool `json:"autoscaleEnabled,omitempty"`
-	// MinReplicas - The minimum number of replicas to scale down to.
-	MinReplicas *int32 `json:"minReplicas,omitempty"`
-	// MaxReplicas - The maximum number of replicas in the cluster.
-	MaxReplicas *int32 `json:"maxReplicas,omitempty"`
-	// TargetUtilization - The target utilization percentage to use for determining whether to scale the cluster.
-	TargetUtilization *int32 `json:"targetUtilization,omitempty"`
-	// RefreshPeriodInSeconds - The amount of seconds to wait between auto scale updates.
-	RefreshPeriodInSeconds *int32 `json:"refreshPeriodInSeconds,omitempty"`
-}
-
-// AKSServiceResponseDataCollection details of the data collection options specified.
-type AKSServiceResponseDataCollection struct {
-	// EventHubEnabled - Option for enabling/disabling Event Hub.
-	EventHubEnabled *bool `json:"eventHubEnabled,omitempty"`
-	// StorageEnabled - Option for enabling/disabling storage.
-	StorageEnabled *bool `json:"storageEnabled,omitempty"`
-}
-
-// AKSServiceResponseDeploymentStatus the deployment status.
-type AKSServiceResponseDeploymentStatus struct {
-	// DesiredReplicas - The desired number of replicas.
-	DesiredReplicas *int32 `json:"desiredReplicas,omitempty"`
-	// UpdatedReplicas - The number of updated replicas.
-	UpdatedReplicas *int32 `json:"updatedReplicas,omitempty"`
-	// AvailableReplicas - The number of available replicas.
-	AvailableReplicas *int32 `json:"availableReplicas,omitempty"`
-	// Error - The error details.
-	Error *AKSReplicaStatusError `json:"error,omitempty"`
-}
-
-// AKSServiceResponseEnvironmentImageRequest the Environment, models and assets used for inferencing.
-type AKSServiceResponseEnvironmentImageRequest struct {
-	// DriverProgram - The name of the driver file.
-	DriverProgram *string `json:"driverProgram,omitempty"`
-	// Assets - The list of assets.
-	Assets *[]ImageAsset `json:"assets,omitempty"`
-	// ModelIds - The list of model Ids.
-	ModelIds *[]string `json:"modelIds,omitempty"`
-	// ModelsProperty - The list of models.
-	ModelsProperty *[]Model `json:"models,omitempty"`
-	// Environment - The details of the AZURE ML environment.
-	Environment *EnvironmentImageResponseEnvironment `json:"environment,omitempty"`
-	// EnvironmentReference - The unique identifying details of the AZURE ML environment.
-	EnvironmentReference *EnvironmentImageResponseEnvironmentReference `json:"environmentReference,omitempty"`
-}
-
-// AKSServiceResponseLivenessProbeRequirements the liveness probe requirements.
-type AKSServiceResponseLivenessProbeRequirements struct {
-	// FailureThreshold - The number of failures to allow before returning an unhealthy status.
-	FailureThreshold *int32 `json:"failureThreshold,omitempty"`
-	// SuccessThreshold - The number of successful probes before returning a healthy status.
-	SuccessThreshold *int32 `json:"successThreshold,omitempty"`
-	// TimeoutSeconds - The probe timeout in seconds.
-	TimeoutSeconds *int32 `json:"timeoutSeconds,omitempty"`
-	// PeriodSeconds - The length of time between probes in seconds.
-	PeriodSeconds *int32 `json:"periodSeconds,omitempty"`
-	// InitialDelaySeconds - The delay before the first probe in seconds.
-	InitialDelaySeconds *int32 `json:"initialDelaySeconds,omitempty"`
-}
-
-// BasicAKSVariantResponse the response for an AKS variant.
-type BasicAKSVariantResponse interface {
-	AsAKSServiceResponse() (*AKSServiceResponse, bool)
-	AsAKSVariantResponse() (*AKSVariantResponse, bool)
-}
-
-// AKSVariantResponse the response for an AKS variant.
-type AKSVariantResponse struct {
-	// IsDefault - Is this the default variant.
-	IsDefault *bool `json:"isDefault,omitempty"`
-	// TrafficPercentile - The amount of traffic variant receives.
-	TrafficPercentile *float64 `json:"trafficPercentile,omitempty"`
-	// Type - The type of the variant. Possible values include: 'VariantTypeControl', 'VariantTypeTreatment'
-	Type VariantType `json:"type,omitempty"`
-	// Description - The service description.
-	Description *string `json:"description,omitempty"`
-	// KvTags - The service tag dictionary. Tags are mutable.
-	KvTags map[string]*string `json:"kvTags"`
-	// Properties - The service property dictionary. Properties are immutable.
-	Properties map[string]*string `json:"properties"`
-	// State - READ-ONLY; The current state of the service. Possible values include: 'WebServiceStateTransitioning', 'WebServiceStateHealthy', 'WebServiceStateUnhealthy', 'WebServiceStateFailed', 'WebServiceStateUnschedulable'
-	State WebServiceState `json:"state,omitempty"`
-	// Error - READ-ONLY; The error details.
-	Error *ServiceResponseBaseError `json:"error,omitempty"`
-	// DeploymentType - The deployment type for the service. Possible values include: 'DeploymentTypeGRPCRealtimeEndpoint', 'DeploymentTypeHTTPRealtimeEndpoint', 'DeploymentTypeBatch'
-	DeploymentType DeploymentType `json:"deploymentType,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicServiceResponseBaseComputeTypeServiceResponseBase', 'ComputeTypeBasicServiceResponseBaseComputeTypeACI', 'ComputeTypeBasicServiceResponseBaseComputeTypeCustom', 'ComputeTypeBasicServiceResponseBaseComputeTypeAKS'
-	ComputeType ComputeTypeBasicServiceResponseBase `json:"computeType,omitempty"`
-}
-
-func unmarshalBasicAKSVariantResponse(body []byte) (BasicAKSVariantResponse, error) {
-	var m map[string]interface{}
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return nil, err
-	}
-
-	switch m["computeType"] {
-	case string(ComputeTypeBasicServiceResponseBaseComputeTypeAKS):
-		var asr AKSServiceResponse
-		err := json.Unmarshal(body, &asr)
-		return asr, err
-	default:
-		var avr AKSVariantResponse
-		err := json.Unmarshal(body, &avr)
-		return avr, err
-	}
-}
-func unmarshalBasicAKSVariantResponseArray(body []byte) ([]BasicAKSVariantResponse, error) {
-	var rawMessages []*json.RawMessage
-	err := json.Unmarshal(body, &rawMessages)
-	if err != nil {
-		return nil, err
-	}
-
-	avrArray := make([]BasicAKSVariantResponse, len(rawMessages))
-
-	for index, rawMessage := range rawMessages {
-		avr, err := unmarshalBasicAKSVariantResponse(*rawMessage)
-		if err != nil {
-			return nil, err
-		}
-		avrArray[index] = avr
-	}
-	return avrArray, nil
-}
-
-// MarshalJSON is the custom marshaler for AKSVariantResponse.
-func (avr AKSVariantResponse) MarshalJSON() ([]byte, error) {
-	avr.ComputeType = ComputeTypeBasicServiceResponseBaseComputeTypeCustom
-	objectMap := make(map[string]interface{})
-	if avr.IsDefault != nil {
-		objectMap["isDefault"] = avr.IsDefault
-	}
-	if avr.TrafficPercentile != nil {
-		objectMap["trafficPercentile"] = avr.TrafficPercentile
-	}
-	if avr.Type != "" {
-		objectMap["type"] = avr.Type
-	}
-	if avr.Description != nil {
-		objectMap["description"] = avr.Description
-	}
-	if avr.KvTags != nil {
-		objectMap["kvTags"] = avr.KvTags
-	}
-	if avr.Properties != nil {
-		objectMap["properties"] = avr.Properties
-	}
-	if avr.DeploymentType != "" {
-		objectMap["deploymentType"] = avr.DeploymentType
-	}
-	if avr.ComputeType != "" {
-		objectMap["computeType"] = avr.ComputeType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsACIServiceResponse is the BasicServiceResponseBase implementation for AKSVariantResponse.
-func (avr AKSVariantResponse) AsACIServiceResponse() (*ACIServiceResponse, bool) {
-	return nil, false
-}
-
-// AsAKSVariantResponse is the BasicServiceResponseBase implementation for AKSVariantResponse.
-func (avr AKSVariantResponse) AsAKSVariantResponse() (*AKSVariantResponse, bool) {
-	return &avr, true
-}
-
-// AsBasicAKSVariantResponse is the BasicServiceResponseBase implementation for AKSVariantResponse.
-func (avr AKSVariantResponse) AsBasicAKSVariantResponse() (BasicAKSVariantResponse, bool) {
-	return &avr, true
-}
-
-// AsAKSServiceResponse is the BasicServiceResponseBase implementation for AKSVariantResponse.
-func (avr AKSVariantResponse) AsAKSServiceResponse() (*AKSServiceResponse, bool) {
-	return nil, false
-}
-
-// AsServiceResponseBase is the BasicServiceResponseBase implementation for AKSVariantResponse.
-func (avr AKSVariantResponse) AsServiceResponseBase() (*ServiceResponseBase, bool) {
-	return nil, false
-}
-
-// AsBasicServiceResponseBase is the BasicServiceResponseBase implementation for AKSVariantResponse.
-func (avr AKSVariantResponse) AsBasicServiceResponseBase() (BasicServiceResponseBase, bool) {
-	return &avr, true
-}
-
 // AmlCompute an Azure Machine Learning compute.
 type AmlCompute struct {
-	// Properties - AML Compute properties
+	// Properties - Properties of AmlCompute
 	Properties *AmlComputeProperties `json:"properties,omitempty"`
 	// ComputeLocation - Location for the underlying compute
 	ComputeLocation *string `json:"computeLocation,omitempty"`
@@ -1184,12 +229,12 @@ type AmlCompute struct {
 	// ResourceID - ARM resource id of the underlying compute
 	ResourceID *string `json:"resourceId,omitempty"`
 	// ProvisioningErrors - READ-ONLY; Errors during provisioning
-	ProvisioningErrors *[]Error `json:"provisioningErrors,omitempty"`
+	ProvisioningErrors *[]ErrorResponse `json:"provisioningErrors,omitempty"`
 	// IsAttachedCompute - READ-ONLY; Indicating whether the compute was provisioned by user and brought from outside if true, or machine learning service provisioned it if false.
 	IsAttachedCompute *bool `json:"isAttachedCompute,omitempty"`
 	// DisableLocalAuth - Opt-out of local authentication and ensure customers can use only MSI and AAD exclusively for authentication.
 	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics'
+	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics', 'ComputeTypeBasicComputeComputeTypeSynapseSpark'
 	ComputeType ComputeTypeBasicCompute `json:"computeType,omitempty"`
 }
 
@@ -1258,6 +303,11 @@ func (ac AmlCompute) AsDataLakeAnalytics() (*DataLakeAnalytics, bool) {
 	return nil, false
 }
 
+// AsSynapseSpark is the BasicCompute implementation for AmlCompute.
+func (ac AmlCompute) AsSynapseSpark() (*SynapseSpark, bool) {
+	return nil, false
+}
+
 // AsCompute is the BasicCompute implementation for AmlCompute.
 func (ac AmlCompute) AsCompute() (*Compute, bool) {
 	return nil, false
@@ -1290,40 +340,19 @@ func (acni AmlComputeNodeInformation) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// AmlComputeNodesInformation compute node information related to a AmlCompute.
+// AmlComputeNodesInformation result of AmlCompute Nodes
 type AmlComputeNodesInformation struct {
 	autorest.Response `json:"-"`
 	// Nodes - READ-ONLY; The collection of returned AmlCompute nodes details.
 	Nodes *[]AmlComputeNodeInformation `json:"nodes,omitempty"`
 	// NextLink - READ-ONLY; The continuation token.
 	NextLink *string `json:"nextLink,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicComputeNodesInformationComputeTypeComputeNodesInformation', 'ComputeTypeBasicComputeNodesInformationComputeTypeAmlCompute'
-	ComputeType ComputeTypeBasicComputeNodesInformation `json:"computeType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AmlComputeNodesInformation.
 func (acni AmlComputeNodesInformation) MarshalJSON() ([]byte, error) {
-	acni.ComputeType = ComputeTypeBasicComputeNodesInformationComputeTypeAmlCompute
 	objectMap := make(map[string]interface{})
-	if acni.ComputeType != "" {
-		objectMap["computeType"] = acni.ComputeType
-	}
 	return json.Marshal(objectMap)
-}
-
-// AsAmlComputeNodesInformation is the BasicComputeNodesInformation implementation for AmlComputeNodesInformation.
-func (acni AmlComputeNodesInformation) AsAmlComputeNodesInformation() (*AmlComputeNodesInformation, bool) {
-	return &acni, true
-}
-
-// AsComputeNodesInformation is the BasicComputeNodesInformation implementation for AmlComputeNodesInformation.
-func (acni AmlComputeNodesInformation) AsComputeNodesInformation() (*ComputeNodesInformation, bool) {
-	return nil, false
-}
-
-// AsBasicComputeNodesInformation is the BasicComputeNodesInformation implementation for AmlComputeNodesInformation.
-func (acni AmlComputeNodesInformation) AsBasicComputeNodesInformation() (BasicComputeNodesInformation, bool) {
-	return &acni, true
 }
 
 // AmlComputeNodesInformationIterator provides access to a complete listing of AmlComputeNodeInformation
@@ -1502,7 +531,7 @@ type AmlComputeProperties struct {
 	// AllocationStateTransitionTime - READ-ONLY; The time at which the compute entered its current allocation state.
 	AllocationStateTransitionTime *date.Time `json:"allocationStateTransitionTime,omitempty"`
 	// Errors - READ-ONLY; Collection of errors encountered by various compute nodes during node setup.
-	Errors *[]Error `json:"errors,omitempty"`
+	Errors *[]ErrorResponse `json:"errors,omitempty"`
 	// CurrentNodeCount - READ-ONLY; The number of compute nodes currently assigned to the compute.
 	CurrentNodeCount *int32 `json:"currentNodeCount,omitempty"`
 	// TargetNodeCount - READ-ONLY; The target number of compute nodes for the compute. If the allocationState is resizing, this property denotes the target node count for the ongoing resize operation. If the allocationState is steady, this property denotes the target node count for the previous resize operation.
@@ -1514,37 +543,37 @@ type AmlComputeProperties struct {
 }
 
 // MarshalJSON is the custom marshaler for AmlComputeProperties.
-func (ac AmlComputeProperties) MarshalJSON() ([]byte, error) {
+func (acp AmlComputeProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if ac.OsType != "" {
-		objectMap["osType"] = ac.OsType
+	if acp.OsType != "" {
+		objectMap["osType"] = acp.OsType
 	}
-	if ac.VMSize != nil {
-		objectMap["vmSize"] = ac.VMSize
+	if acp.VMSize != nil {
+		objectMap["vmSize"] = acp.VMSize
 	}
-	if ac.VMPriority != "" {
-		objectMap["vmPriority"] = ac.VMPriority
+	if acp.VMPriority != "" {
+		objectMap["vmPriority"] = acp.VMPriority
 	}
-	if ac.VirtualMachineImage != nil {
-		objectMap["virtualMachineImage"] = ac.VirtualMachineImage
+	if acp.VirtualMachineImage != nil {
+		objectMap["virtualMachineImage"] = acp.VirtualMachineImage
 	}
-	if ac.IsolatedNetwork != nil {
-		objectMap["isolatedNetwork"] = ac.IsolatedNetwork
+	if acp.IsolatedNetwork != nil {
+		objectMap["isolatedNetwork"] = acp.IsolatedNetwork
 	}
-	if ac.ScaleSettings != nil {
-		objectMap["scaleSettings"] = ac.ScaleSettings
+	if acp.ScaleSettings != nil {
+		objectMap["scaleSettings"] = acp.ScaleSettings
 	}
-	if ac.UserAccountCredentials != nil {
-		objectMap["userAccountCredentials"] = ac.UserAccountCredentials
+	if acp.UserAccountCredentials != nil {
+		objectMap["userAccountCredentials"] = acp.UserAccountCredentials
 	}
-	if ac.Subnet != nil {
-		objectMap["subnet"] = ac.Subnet
+	if acp.Subnet != nil {
+		objectMap["subnet"] = acp.Subnet
 	}
-	if ac.RemoteLoginPortPublicAccess != "" {
-		objectMap["remoteLoginPortPublicAccess"] = ac.RemoteLoginPortPublicAccess
+	if acp.RemoteLoginPortPublicAccess != "" {
+		objectMap["remoteLoginPortPublicAccess"] = acp.RemoteLoginPortPublicAccess
 	}
-	if ac.EnableNodePublicIP != nil {
-		objectMap["enableNodePublicIp"] = ac.EnableNodePublicIP
+	if acp.EnableNodePublicIP != nil {
+		objectMap["enableNodePublicIp"] = acp.EnableNodePublicIP
 	}
 	return json.Marshal(objectMap)
 }
@@ -1567,14 +596,6 @@ type AssignedUser struct {
 	TenantID *string `json:"tenantId,omitempty"`
 }
 
-// AuthKeys ...
-type AuthKeys struct {
-	// PrimaryKey - The primary key.
-	PrimaryKey *string `json:"primaryKey,omitempty"`
-	// SecondaryKey - The secondary key.
-	SecondaryKey *string `json:"secondaryKey,omitempty"`
-}
-
 // AutoPauseProperties auto pause properties
 type AutoPauseProperties struct {
 	DelayInMinutes *int32 `json:"delayInMinutes,omitempty"`
@@ -1588,18 +609,22 @@ type AutoScaleProperties struct {
 	MaxNodeCount *int32 `json:"maxNodeCount,omitempty"`
 }
 
-// AutoScaler the Auto Scaler properties.
-type AutoScaler struct {
-	// AutoscaleEnabled - Option to enable/disable auto scaling.
-	AutoscaleEnabled *bool `json:"autoscaleEnabled,omitempty"`
-	// MinReplicas - The minimum number of replicas to scale down to.
-	MinReplicas *int32 `json:"minReplicas,omitempty"`
-	// MaxReplicas - The maximum number of replicas in the cluster.
-	MaxReplicas *int32 `json:"maxReplicas,omitempty"`
-	// TargetUtilization - The target utilization percentage to use for determining whether to scale the cluster.
-	TargetUtilization *int32 `json:"targetUtilization,omitempty"`
-	// RefreshPeriodInSeconds - The amount of seconds to wait between auto scale updates.
-	RefreshPeriodInSeconds *int32 `json:"refreshPeriodInSeconds,omitempty"`
+// AzureEntityResource the resource model definition for an Azure Resource Manager resource with an etag.
+type AzureEntityResource struct {
+	// Etag - READ-ONLY; Resource Etag.
+	Etag *string `json:"etag,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AzureEntityResource.
+func (aer AzureEntityResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ClusterUpdateParameters amlCompute update parameters.
@@ -1643,8 +668,8 @@ func (cup *ClusterUpdateParameters) UnmarshalJSON(body []byte) error {
 
 // ClusterUpdateProperties the properties of a amlCompute that need to be updated.
 type ClusterUpdateProperties struct {
-	// ScaleSettings - Desired scale settings for the amlCompute.
-	ScaleSettings *ScaleSettings `json:"scaleSettings,omitempty"`
+	// Properties - Properties of ClusterUpdate
+	Properties *ScaleSettingsInformation `json:"properties,omitempty"`
 }
 
 // BasicCompute machine Learning compute object.
@@ -1657,6 +682,7 @@ type BasicCompute interface {
 	AsDataFactory() (*DataFactory, bool)
 	AsDatabricks() (*Databricks, bool)
 	AsDataLakeAnalytics() (*DataLakeAnalytics, bool)
+	AsSynapseSpark() (*SynapseSpark, bool)
 	AsCompute() (*Compute, bool)
 }
 
@@ -1675,12 +701,12 @@ type Compute struct {
 	// ResourceID - ARM resource id of the underlying compute
 	ResourceID *string `json:"resourceId,omitempty"`
 	// ProvisioningErrors - READ-ONLY; Errors during provisioning
-	ProvisioningErrors *[]Error `json:"provisioningErrors,omitempty"`
+	ProvisioningErrors *[]ErrorResponse `json:"provisioningErrors,omitempty"`
 	// IsAttachedCompute - READ-ONLY; Indicating whether the compute was provisioned by user and brought from outside if true, or machine learning service provisioned it if false.
 	IsAttachedCompute *bool `json:"isAttachedCompute,omitempty"`
 	// DisableLocalAuth - Opt-out of local authentication and ensure customers can use only MSI and AAD exclusively for authentication.
 	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics'
+	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics', 'ComputeTypeBasicComputeComputeTypeSynapseSpark'
 	ComputeType ComputeTypeBasicCompute `json:"computeType,omitempty"`
 }
 
@@ -1724,6 +750,10 @@ func unmarshalBasicCompute(body []byte) (BasicCompute, error) {
 		var dla DataLakeAnalytics
 		err := json.Unmarshal(body, &dla)
 		return dla, err
+	case string(ComputeTypeBasicComputeComputeTypeSynapseSpark):
+		var ss SynapseSpark
+		err := json.Unmarshal(body, &ss)
+		return ss, err
 	default:
 		var c Compute
 		err := json.Unmarshal(body, &c)
@@ -1811,6 +841,11 @@ func (c Compute) AsDataLakeAnalytics() (*DataLakeAnalytics, bool) {
 	return nil, false
 }
 
+// AsSynapseSpark is the BasicCompute implementation for Compute.
+func (c Compute) AsSynapseSpark() (*SynapseSpark, bool) {
+	return nil, false
+}
+
 // AsCompute is the BasicCompute implementation for Compute.
 func (c Compute) AsCompute() (*Compute, bool) {
 	return &c, true
@@ -1821,9 +856,89 @@ func (c Compute) AsBasicCompute() (BasicCompute, bool) {
 	return &c, true
 }
 
+// ComputeCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ComputeCreateOrUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ComputeClient) (ComputeResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ComputeCreateOrUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ComputeCreateOrUpdateFuture.Result.
+func (future *ComputeCreateOrUpdateFuture) result(client ComputeClient) (cr ComputeResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		cr.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("machinelearningservices.ComputeCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if cr.Response.Response, err = future.GetResult(sender); err == nil && cr.Response.Response.StatusCode != http.StatusNoContent {
+		cr, err = client.CreateOrUpdateResponder(cr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeCreateOrUpdateFuture", "Result", cr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ComputeDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ComputeDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ComputeClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ComputeDeleteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ComputeDeleteFuture.Result.
+func (future *ComputeDeleteFuture) result(client ComputeClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("machinelearningservices.ComputeDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // ComputeInstance an Azure Machine Learning compute instance.
 type ComputeInstance struct {
-	// Properties - Compute Instance properties
+	// Properties - Properties of ComputeInstance
 	Properties *ComputeInstanceProperties `json:"properties,omitempty"`
 	// ComputeLocation - Location for the underlying compute
 	ComputeLocation *string `json:"computeLocation,omitempty"`
@@ -1838,12 +953,12 @@ type ComputeInstance struct {
 	// ResourceID - ARM resource id of the underlying compute
 	ResourceID *string `json:"resourceId,omitempty"`
 	// ProvisioningErrors - READ-ONLY; Errors during provisioning
-	ProvisioningErrors *[]Error `json:"provisioningErrors,omitempty"`
+	ProvisioningErrors *[]ErrorResponse `json:"provisioningErrors,omitempty"`
 	// IsAttachedCompute - READ-ONLY; Indicating whether the compute was provisioned by user and brought from outside if true, or machine learning service provisioned it if false.
 	IsAttachedCompute *bool `json:"isAttachedCompute,omitempty"`
 	// DisableLocalAuth - Opt-out of local authentication and ensure customers can use only MSI and AAD exclusively for authentication.
 	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics'
+	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics', 'ComputeTypeBasicComputeComputeTypeSynapseSpark'
 	ComputeType ComputeTypeBasicCompute `json:"computeType,omitempty"`
 }
 
@@ -1909,6 +1024,11 @@ func (ci ComputeInstance) AsDatabricks() (*Databricks, bool) {
 
 // AsDataLakeAnalytics is the BasicCompute implementation for ComputeInstance.
 func (ci ComputeInstance) AsDataLakeAnalytics() (*DataLakeAnalytics, bool) {
+	return nil, false
+}
+
+// AsSynapseSpark is the BasicCompute implementation for ComputeInstance.
+func (ci ComputeInstance) AsSynapseSpark() (*SynapseSpark, bool) {
 	return nil, false
 }
 
@@ -1988,7 +1108,7 @@ type ComputeInstanceProperties struct {
 	// CreatedBy - READ-ONLY; Describes information on user who created this ComputeInstance.
 	CreatedBy *ComputeInstanceCreatedBy `json:"createdBy,omitempty"`
 	// Errors - READ-ONLY; Collection of errors encountered on this ComputeInstance.
-	Errors *[]Error `json:"errors,omitempty"`
+	Errors *[]ErrorResponse `json:"errors,omitempty"`
 	// State - READ-ONLY; The current state of this ComputeInstance. Possible values include: 'ComputeInstanceStateCreating', 'ComputeInstanceStateCreateFailed', 'ComputeInstanceStateDeleting', 'ComputeInstanceStateRunning', 'ComputeInstanceStateRestarting', 'ComputeInstanceStateJobRunning', 'ComputeInstanceStateSettingUp', 'ComputeInstanceStateSetupFailed', 'ComputeInstanceStateStarting', 'ComputeInstanceStateStopped', 'ComputeInstanceStateStopping', 'ComputeInstanceStateUserSettingUp', 'ComputeInstanceStateUserSetupFailed', 'ComputeInstanceStateUnknown', 'ComputeInstanceStateUnusable'
 	State ComputeInstanceState `json:"state,omitempty"`
 	// ComputeInstanceAuthorizationType - The Compute Instance Authorization type. Available values are personal (default). Possible values include: 'ComputeInstanceAuthorizationTypePersonal'
@@ -2002,28 +1122,28 @@ type ComputeInstanceProperties struct {
 }
 
 // MarshalJSON is the custom marshaler for ComputeInstanceProperties.
-func (ci ComputeInstanceProperties) MarshalJSON() ([]byte, error) {
+func (cip ComputeInstanceProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if ci.VMSize != nil {
-		objectMap["vmSize"] = ci.VMSize
+	if cip.VMSize != nil {
+		objectMap["vmSize"] = cip.VMSize
 	}
-	if ci.Subnet != nil {
-		objectMap["subnet"] = ci.Subnet
+	if cip.Subnet != nil {
+		objectMap["subnet"] = cip.Subnet
 	}
-	if ci.ApplicationSharingPolicy != "" {
-		objectMap["applicationSharingPolicy"] = ci.ApplicationSharingPolicy
+	if cip.ApplicationSharingPolicy != "" {
+		objectMap["applicationSharingPolicy"] = cip.ApplicationSharingPolicy
 	}
-	if ci.SSHSettings != nil {
-		objectMap["sshSettings"] = ci.SSHSettings
+	if cip.SSHSettings != nil {
+		objectMap["sshSettings"] = cip.SSHSettings
 	}
-	if ci.ComputeInstanceAuthorizationType != "" {
-		objectMap["computeInstanceAuthorizationType"] = ci.ComputeInstanceAuthorizationType
+	if cip.ComputeInstanceAuthorizationType != "" {
+		objectMap["computeInstanceAuthorizationType"] = cip.ComputeInstanceAuthorizationType
 	}
-	if ci.PersonalComputeInstanceSettings != nil {
-		objectMap["personalComputeInstanceSettings"] = ci.PersonalComputeInstanceSettings
+	if cip.PersonalComputeInstanceSettings != nil {
+		objectMap["personalComputeInstanceSettings"] = cip.PersonalComputeInstanceSettings
 	}
-	if ci.SetupScripts != nil {
-		objectMap["setupScripts"] = ci.SetupScripts
+	if cip.SetupScripts != nil {
+		objectMap["setupScripts"] = cip.SetupScripts
 	}
 	return json.Marshal(objectMap)
 }
@@ -2052,105 +1172,27 @@ func (ciss ComputeInstanceSSHSettings) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// BasicComputeNodesInformation compute nodes information related to a Machine Learning compute. Might differ for every
-// type of compute.
-type BasicComputeNodesInformation interface {
-	AsAmlComputeNodesInformation() (*AmlComputeNodesInformation, bool)
-	AsComputeNodesInformation() (*ComputeNodesInformation, bool)
-}
-
-// ComputeNodesInformation compute nodes information related to a Machine Learning compute. Might differ for
-// every type of compute.
-type ComputeNodesInformation struct {
-	// NextLink - READ-ONLY; The continuation token.
-	NextLink *string `json:"nextLink,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicComputeNodesInformationComputeTypeComputeNodesInformation', 'ComputeTypeBasicComputeNodesInformationComputeTypeAmlCompute'
-	ComputeType ComputeTypeBasicComputeNodesInformation `json:"computeType,omitempty"`
-}
-
-func unmarshalBasicComputeNodesInformation(body []byte) (BasicComputeNodesInformation, error) {
-	var m map[string]interface{}
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return nil, err
-	}
-
-	switch m["computeType"] {
-	case string(ComputeTypeBasicComputeNodesInformationComputeTypeAmlCompute):
-		var acni AmlComputeNodesInformation
-		err := json.Unmarshal(body, &acni)
-		return acni, err
-	default:
-		var cni ComputeNodesInformation
-		err := json.Unmarshal(body, &cni)
-		return cni, err
-	}
-}
-func unmarshalBasicComputeNodesInformationArray(body []byte) ([]BasicComputeNodesInformation, error) {
-	var rawMessages []*json.RawMessage
-	err := json.Unmarshal(body, &rawMessages)
-	if err != nil {
-		return nil, err
-	}
-
-	cniArray := make([]BasicComputeNodesInformation, len(rawMessages))
-
-	for index, rawMessage := range rawMessages {
-		cni, err := unmarshalBasicComputeNodesInformation(*rawMessage)
-		if err != nil {
-			return nil, err
-		}
-		cniArray[index] = cni
-	}
-	return cniArray, nil
-}
-
-// MarshalJSON is the custom marshaler for ComputeNodesInformation.
-func (cni ComputeNodesInformation) MarshalJSON() ([]byte, error) {
-	cni.ComputeType = ComputeTypeBasicComputeNodesInformationComputeTypeComputeNodesInformation
-	objectMap := make(map[string]interface{})
-	if cni.ComputeType != "" {
-		objectMap["computeType"] = cni.ComputeType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsAmlComputeNodesInformation is the BasicComputeNodesInformation implementation for ComputeNodesInformation.
-func (cni ComputeNodesInformation) AsAmlComputeNodesInformation() (*AmlComputeNodesInformation, bool) {
-	return nil, false
-}
-
-// AsComputeNodesInformation is the BasicComputeNodesInformation implementation for ComputeNodesInformation.
-func (cni ComputeNodesInformation) AsComputeNodesInformation() (*ComputeNodesInformation, bool) {
-	return &cni, true
-}
-
-// AsBasicComputeNodesInformation is the BasicComputeNodesInformation implementation for ComputeNodesInformation.
-func (cni ComputeNodesInformation) AsBasicComputeNodesInformation() (BasicComputeNodesInformation, bool) {
-	return &cni, true
-}
-
 // ComputeResource machine Learning compute object wrapped into ARM resource envelope.
 type ComputeResource struct {
 	autorest.Response `json:"-"`
 	// Properties - Compute properties
 	Properties BasicCompute `json:"properties,omitempty"`
-	// ID - READ-ONLY; Specifies the resource ID.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Specifies the name of the resource.
-	Name *string `json:"name,omitempty"`
 	// Identity - The identity of the resource.
 	Identity *Identity `json:"identity,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// Type - READ-ONLY; Specifies the type of the resource.
-	Type *string `json:"type,omitempty"`
 	// Tags - Contains resource tags defined as key/value pairs.
 	Tags map[string]*string `json:"tags"`
 	// Sku - The sku of the workspace.
 	Sku *Sku `json:"sku,omitempty"`
-	// SystemData - READ-ONLY
+	// SystemData - System data
 	SystemData *SystemData `json:"systemData,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ComputeResource.
@@ -2168,6 +1210,9 @@ func (cr ComputeResource) MarshalJSON() ([]byte, error) {
 	}
 	if cr.Sku != nil {
 		objectMap["sku"] = cr.Sku
+	}
+	if cr.SystemData != nil {
+		objectMap["systemData"] = cr.SystemData
 	}
 	return json.Marshal(objectMap)
 }
@@ -2189,24 +1234,6 @@ func (cr *ComputeResource) UnmarshalJSON(body []byte) error {
 				}
 				cr.Properties = properties
 			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				cr.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				cr.Name = &name
-			}
 		case "identity":
 			if v != nil {
 				var identity Identity
@@ -2224,15 +1251,6 @@ func (cr *ComputeResource) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				cr.Location = &location
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				cr.Type = &typeVar
 			}
 		case "tags":
 			if v != nil {
@@ -2261,24 +1279,86 @@ func (cr *ComputeResource) UnmarshalJSON(body []byte) error {
 				}
 				cr.SystemData = &systemData
 			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				cr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				cr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				cr.Type = &typeVar
+			}
 		}
 	}
 
 	return nil
 }
 
+// ComputeRestartFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ComputeRestartFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ComputeClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ComputeRestartFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ComputeRestartFuture.Result.
+func (future *ComputeRestartFuture) result(client ComputeClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeRestartFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("machinelearningservices.ComputeRestartFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // BasicComputeSecrets secrets related to a Machine Learning compute. Might differ for every type of compute.
 type BasicComputeSecrets interface {
-	AsAksComputeSecrets() (*AksComputeSecrets, bool)
 	AsVirtualMachineSecrets() (*VirtualMachineSecrets, bool)
-	AsDatabricksComputeSecrets() (*DatabricksComputeSecrets, bool)
 	AsComputeSecrets() (*ComputeSecrets, bool)
 }
 
 // ComputeSecrets secrets related to a Machine Learning compute. Might differ for every type of compute.
 type ComputeSecrets struct {
 	autorest.Response `json:"-"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicComputeSecretsComputeTypeComputeSecrets', 'ComputeTypeBasicComputeSecretsComputeTypeAKS', 'ComputeTypeBasicComputeSecretsComputeTypeVirtualMachine', 'ComputeTypeBasicComputeSecretsComputeTypeDatabricks'
+	// ComputeType - Possible values include: 'ComputeTypeBasicComputeSecretsComputeTypeComputeSecrets', 'ComputeTypeBasicComputeSecretsComputeTypeVirtualMachine'
 	ComputeType ComputeTypeBasicComputeSecrets `json:"computeType,omitempty"`
 }
 
@@ -2290,18 +1370,10 @@ func unmarshalBasicComputeSecrets(body []byte) (BasicComputeSecrets, error) {
 	}
 
 	switch m["computeType"] {
-	case string(ComputeTypeBasicComputeSecretsComputeTypeAKS):
-		var acs AksComputeSecrets
-		err := json.Unmarshal(body, &acs)
-		return acs, err
 	case string(ComputeTypeBasicComputeSecretsComputeTypeVirtualMachine):
 		var vms VirtualMachineSecrets
 		err := json.Unmarshal(body, &vms)
 		return vms, err
-	case string(ComputeTypeBasicComputeSecretsComputeTypeDatabricks):
-		var dcs DatabricksComputeSecrets
-		err := json.Unmarshal(body, &dcs)
-		return dcs, err
 	default:
 		var cs ComputeSecrets
 		err := json.Unmarshal(body, &cs)
@@ -2337,18 +1409,8 @@ func (cs ComputeSecrets) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// AsAksComputeSecrets is the BasicComputeSecrets implementation for ComputeSecrets.
-func (cs ComputeSecrets) AsAksComputeSecrets() (*AksComputeSecrets, bool) {
-	return nil, false
-}
-
 // AsVirtualMachineSecrets is the BasicComputeSecrets implementation for ComputeSecrets.
 func (cs ComputeSecrets) AsVirtualMachineSecrets() (*VirtualMachineSecrets, bool) {
-	return nil, false
-}
-
-// AsDatabricksComputeSecrets is the BasicComputeSecrets implementation for ComputeSecrets.
-func (cs ComputeSecrets) AsDatabricksComputeSecrets() (*DatabricksComputeSecrets, bool) {
 	return nil, false
 }
 
@@ -2379,16 +1441,119 @@ func (csm *ComputeSecretsModel) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ContainerRegistry ...
-type ContainerRegistry struct {
-	Address  *string `json:"address,omitempty"`
-	Username *string `json:"username,omitempty"`
-	Password *string `json:"password,omitempty"`
+// ComputeStartFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+type ComputeStartFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ComputeClient) (autorest.Response, error)
 }
 
-// ContainerRegistryResponse ...
-type ContainerRegistryResponse struct {
-	Address *string `json:"address,omitempty"`
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ComputeStartFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ComputeStartFuture.Result.
+func (future *ComputeStartFuture) result(client ComputeClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeStartFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("machinelearningservices.ComputeStartFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// ComputeStopFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+type ComputeStopFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ComputeClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ComputeStopFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ComputeStopFuture.Result.
+func (future *ComputeStopFuture) result(client ComputeClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeStopFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("machinelearningservices.ComputeStopFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// ComputeUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ComputeUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ComputeClient) (ComputeResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ComputeUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ComputeUpdateFuture.Result.
+func (future *ComputeUpdateFuture) result(client ComputeClient) (cr ComputeResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		cr.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("machinelearningservices.ComputeUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if cr.Response.Response, err = future.GetResult(sender); err == nil && cr.Response.Response.StatusCode != http.StatusNoContent {
+		cr, err = client.UpdateResponder(cr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "machinelearningservices.ComputeUpdateFuture", "Result", cr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
 }
 
 // ContainerResourceRequirements the resource requirements for the container (cpu and memory).
@@ -2417,294 +1582,6 @@ type CosmosDbSettings struct {
 	CollectionsThroughput *int32 `json:"collectionsThroughput,omitempty"`
 }
 
-// BasicCreateEndpointVariantRequest the Variant properties.
-type BasicCreateEndpointVariantRequest interface {
-	AsAKSServiceCreateRequest() (*AKSServiceCreateRequest, bool)
-	AsCreateEndpointVariantRequest() (*CreateEndpointVariantRequest, bool)
-}
-
-// CreateEndpointVariantRequest the Variant properties.
-type CreateEndpointVariantRequest struct {
-	// IsDefault - Is this the default variant.
-	IsDefault *bool `json:"isDefault,omitempty"`
-	// TrafficPercentile - The amount of traffic variant receives.
-	TrafficPercentile *float64 `json:"trafficPercentile,omitempty"`
-	// Type - The type of the variant. Possible values include: 'VariantTypeControl', 'VariantTypeTreatment'
-	Type VariantType `json:"type,omitempty"`
-	// Description - The description of the service.
-	Description *string `json:"description,omitempty"`
-	// KvTags - The service tag dictionary. Tags are mutable.
-	KvTags map[string]*string `json:"kvTags"`
-	// Properties - The service properties dictionary. Properties are immutable.
-	Properties map[string]*string `json:"properties"`
-	// Keys - The authentication keys.
-	Keys *CreateServiceRequestKeys `json:"keys,omitempty"`
-	// EnvironmentImageRequest - The Environment, models and assets needed for inferencing.
-	EnvironmentImageRequest *CreateServiceRequestEnvironmentImageRequest `json:"environmentImageRequest,omitempty"`
-	// Location - The name of the Azure location/region.
-	Location *string `json:"location,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicCreateServiceRequestComputeTypeCreateServiceRequest', 'ComputeTypeBasicCreateServiceRequestComputeTypeACI', 'ComputeTypeBasicCreateServiceRequestComputeTypeAKS', 'ComputeTypeBasicCreateServiceRequestComputeTypeCustom'
-	ComputeType ComputeTypeBasicCreateServiceRequest `json:"computeType,omitempty"`
-}
-
-func unmarshalBasicCreateEndpointVariantRequest(body []byte) (BasicCreateEndpointVariantRequest, error) {
-	var m map[string]interface{}
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return nil, err
-	}
-
-	switch m["computeType"] {
-	case string(ComputeTypeBasicCreateServiceRequestComputeTypeAKS):
-		var ascr AKSServiceCreateRequest
-		err := json.Unmarshal(body, &ascr)
-		return ascr, err
-	default:
-		var cevr CreateEndpointVariantRequest
-		err := json.Unmarshal(body, &cevr)
-		return cevr, err
-	}
-}
-func unmarshalBasicCreateEndpointVariantRequestArray(body []byte) ([]BasicCreateEndpointVariantRequest, error) {
-	var rawMessages []*json.RawMessage
-	err := json.Unmarshal(body, &rawMessages)
-	if err != nil {
-		return nil, err
-	}
-
-	cevrArray := make([]BasicCreateEndpointVariantRequest, len(rawMessages))
-
-	for index, rawMessage := range rawMessages {
-		cevr, err := unmarshalBasicCreateEndpointVariantRequest(*rawMessage)
-		if err != nil {
-			return nil, err
-		}
-		cevrArray[index] = cevr
-	}
-	return cevrArray, nil
-}
-
-// MarshalJSON is the custom marshaler for CreateEndpointVariantRequest.
-func (cevr CreateEndpointVariantRequest) MarshalJSON() ([]byte, error) {
-	cevr.ComputeType = ComputeTypeBasicCreateServiceRequestComputeTypeCustom
-	objectMap := make(map[string]interface{})
-	if cevr.IsDefault != nil {
-		objectMap["isDefault"] = cevr.IsDefault
-	}
-	if cevr.TrafficPercentile != nil {
-		objectMap["trafficPercentile"] = cevr.TrafficPercentile
-	}
-	if cevr.Type != "" {
-		objectMap["type"] = cevr.Type
-	}
-	if cevr.Description != nil {
-		objectMap["description"] = cevr.Description
-	}
-	if cevr.KvTags != nil {
-		objectMap["kvTags"] = cevr.KvTags
-	}
-	if cevr.Properties != nil {
-		objectMap["properties"] = cevr.Properties
-	}
-	if cevr.Keys != nil {
-		objectMap["keys"] = cevr.Keys
-	}
-	if cevr.EnvironmentImageRequest != nil {
-		objectMap["environmentImageRequest"] = cevr.EnvironmentImageRequest
-	}
-	if cevr.Location != nil {
-		objectMap["location"] = cevr.Location
-	}
-	if cevr.ComputeType != "" {
-		objectMap["computeType"] = cevr.ComputeType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsACIServiceCreateRequest is the BasicCreateServiceRequest implementation for CreateEndpointVariantRequest.
-func (cevr CreateEndpointVariantRequest) AsACIServiceCreateRequest() (*ACIServiceCreateRequest, bool) {
-	return nil, false
-}
-
-// AsAKSServiceCreateRequest is the BasicCreateServiceRequest implementation for CreateEndpointVariantRequest.
-func (cevr CreateEndpointVariantRequest) AsAKSServiceCreateRequest() (*AKSServiceCreateRequest, bool) {
-	return nil, false
-}
-
-// AsCreateEndpointVariantRequest is the BasicCreateServiceRequest implementation for CreateEndpointVariantRequest.
-func (cevr CreateEndpointVariantRequest) AsCreateEndpointVariantRequest() (*CreateEndpointVariantRequest, bool) {
-	return &cevr, true
-}
-
-// AsBasicCreateEndpointVariantRequest is the BasicCreateServiceRequest implementation for CreateEndpointVariantRequest.
-func (cevr CreateEndpointVariantRequest) AsBasicCreateEndpointVariantRequest() (BasicCreateEndpointVariantRequest, bool) {
-	return &cevr, true
-}
-
-// AsCreateServiceRequest is the BasicCreateServiceRequest implementation for CreateEndpointVariantRequest.
-func (cevr CreateEndpointVariantRequest) AsCreateServiceRequest() (*CreateServiceRequest, bool) {
-	return nil, false
-}
-
-// AsBasicCreateServiceRequest is the BasicCreateServiceRequest implementation for CreateEndpointVariantRequest.
-func (cevr CreateEndpointVariantRequest) AsBasicCreateServiceRequest() (BasicCreateServiceRequest, bool) {
-	return &cevr, true
-}
-
-// BasicCreateServiceRequest the base class for creating a service.
-type BasicCreateServiceRequest interface {
-	AsACIServiceCreateRequest() (*ACIServiceCreateRequest, bool)
-	AsAKSServiceCreateRequest() (*AKSServiceCreateRequest, bool)
-	AsCreateEndpointVariantRequest() (*CreateEndpointVariantRequest, bool)
-	AsBasicCreateEndpointVariantRequest() (BasicCreateEndpointVariantRequest, bool)
-	AsCreateServiceRequest() (*CreateServiceRequest, bool)
-}
-
-// CreateServiceRequest the base class for creating a service.
-type CreateServiceRequest struct {
-	// Description - The description of the service.
-	Description *string `json:"description,omitempty"`
-	// KvTags - The service tag dictionary. Tags are mutable.
-	KvTags map[string]*string `json:"kvTags"`
-	// Properties - The service properties dictionary. Properties are immutable.
-	Properties map[string]*string `json:"properties"`
-	// Keys - The authentication keys.
-	Keys *CreateServiceRequestKeys `json:"keys,omitempty"`
-	// EnvironmentImageRequest - The Environment, models and assets needed for inferencing.
-	EnvironmentImageRequest *CreateServiceRequestEnvironmentImageRequest `json:"environmentImageRequest,omitempty"`
-	// Location - The name of the Azure location/region.
-	Location *string `json:"location,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicCreateServiceRequestComputeTypeCreateServiceRequest', 'ComputeTypeBasicCreateServiceRequestComputeTypeACI', 'ComputeTypeBasicCreateServiceRequestComputeTypeAKS', 'ComputeTypeBasicCreateServiceRequestComputeTypeCustom'
-	ComputeType ComputeTypeBasicCreateServiceRequest `json:"computeType,omitempty"`
-}
-
-func unmarshalBasicCreateServiceRequest(body []byte) (BasicCreateServiceRequest, error) {
-	var m map[string]interface{}
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return nil, err
-	}
-
-	switch m["computeType"] {
-	case string(ComputeTypeBasicCreateServiceRequestComputeTypeACI):
-		var ascr ACIServiceCreateRequest
-		err := json.Unmarshal(body, &ascr)
-		return ascr, err
-	case string(ComputeTypeBasicCreateServiceRequestComputeTypeAKS):
-		var ascr AKSServiceCreateRequest
-		err := json.Unmarshal(body, &ascr)
-		return ascr, err
-	case string(ComputeTypeBasicCreateServiceRequestComputeTypeCustom):
-		var cevr CreateEndpointVariantRequest
-		err := json.Unmarshal(body, &cevr)
-		return cevr, err
-	default:
-		var csr CreateServiceRequest
-		err := json.Unmarshal(body, &csr)
-		return csr, err
-	}
-}
-func unmarshalBasicCreateServiceRequestArray(body []byte) ([]BasicCreateServiceRequest, error) {
-	var rawMessages []*json.RawMessage
-	err := json.Unmarshal(body, &rawMessages)
-	if err != nil {
-		return nil, err
-	}
-
-	csrArray := make([]BasicCreateServiceRequest, len(rawMessages))
-
-	for index, rawMessage := range rawMessages {
-		csr, err := unmarshalBasicCreateServiceRequest(*rawMessage)
-		if err != nil {
-			return nil, err
-		}
-		csrArray[index] = csr
-	}
-	return csrArray, nil
-}
-
-// MarshalJSON is the custom marshaler for CreateServiceRequest.
-func (csr CreateServiceRequest) MarshalJSON() ([]byte, error) {
-	csr.ComputeType = ComputeTypeBasicCreateServiceRequestComputeTypeCreateServiceRequest
-	objectMap := make(map[string]interface{})
-	if csr.Description != nil {
-		objectMap["description"] = csr.Description
-	}
-	if csr.KvTags != nil {
-		objectMap["kvTags"] = csr.KvTags
-	}
-	if csr.Properties != nil {
-		objectMap["properties"] = csr.Properties
-	}
-	if csr.Keys != nil {
-		objectMap["keys"] = csr.Keys
-	}
-	if csr.EnvironmentImageRequest != nil {
-		objectMap["environmentImageRequest"] = csr.EnvironmentImageRequest
-	}
-	if csr.Location != nil {
-		objectMap["location"] = csr.Location
-	}
-	if csr.ComputeType != "" {
-		objectMap["computeType"] = csr.ComputeType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsACIServiceCreateRequest is the BasicCreateServiceRequest implementation for CreateServiceRequest.
-func (csr CreateServiceRequest) AsACIServiceCreateRequest() (*ACIServiceCreateRequest, bool) {
-	return nil, false
-}
-
-// AsAKSServiceCreateRequest is the BasicCreateServiceRequest implementation for CreateServiceRequest.
-func (csr CreateServiceRequest) AsAKSServiceCreateRequest() (*AKSServiceCreateRequest, bool) {
-	return nil, false
-}
-
-// AsCreateEndpointVariantRequest is the BasicCreateServiceRequest implementation for CreateServiceRequest.
-func (csr CreateServiceRequest) AsCreateEndpointVariantRequest() (*CreateEndpointVariantRequest, bool) {
-	return nil, false
-}
-
-// AsBasicCreateEndpointVariantRequest is the BasicCreateServiceRequest implementation for CreateServiceRequest.
-func (csr CreateServiceRequest) AsBasicCreateEndpointVariantRequest() (BasicCreateEndpointVariantRequest, bool) {
-	return nil, false
-}
-
-// AsCreateServiceRequest is the BasicCreateServiceRequest implementation for CreateServiceRequest.
-func (csr CreateServiceRequest) AsCreateServiceRequest() (*CreateServiceRequest, bool) {
-	return &csr, true
-}
-
-// AsBasicCreateServiceRequest is the BasicCreateServiceRequest implementation for CreateServiceRequest.
-func (csr CreateServiceRequest) AsBasicCreateServiceRequest() (BasicCreateServiceRequest, bool) {
-	return &csr, true
-}
-
-// CreateServiceRequestEnvironmentImageRequest the Environment, models and assets needed for inferencing.
-type CreateServiceRequestEnvironmentImageRequest struct {
-	// DriverProgram - The name of the driver file.
-	DriverProgram *string `json:"driverProgram,omitempty"`
-	// Assets - The list of assets.
-	Assets *[]ImageAsset `json:"assets,omitempty"`
-	// ModelIds - The list of model Ids.
-	ModelIds *[]string `json:"modelIds,omitempty"`
-	// ModelsProperty - The list of models.
-	ModelsProperty *[]Model `json:"models,omitempty"`
-	// Environment - The details of the AZURE ML environment.
-	Environment *EnvironmentImageRequestEnvironment `json:"environment,omitempty"`
-	// EnvironmentReference - The unique identifying details of the AZURE ML environment.
-	EnvironmentReference *EnvironmentImageRequestEnvironmentReference `json:"environmentReference,omitempty"`
-}
-
-// CreateServiceRequestKeys the authentication keys.
-type CreateServiceRequestKeys struct {
-	// PrimaryKey - The primary key.
-	PrimaryKey *string `json:"primaryKey,omitempty"`
-	// SecondaryKey - The secondary key.
-	SecondaryKey *string `json:"secondaryKey,omitempty"`
-}
-
 // Databricks a DataFactory compute.
 type Databricks struct {
 	Properties *DatabricksProperties `json:"properties,omitempty"`
@@ -2721,12 +1598,12 @@ type Databricks struct {
 	// ResourceID - ARM resource id of the underlying compute
 	ResourceID *string `json:"resourceId,omitempty"`
 	// ProvisioningErrors - READ-ONLY; Errors during provisioning
-	ProvisioningErrors *[]Error `json:"provisioningErrors,omitempty"`
+	ProvisioningErrors *[]ErrorResponse `json:"provisioningErrors,omitempty"`
 	// IsAttachedCompute - READ-ONLY; Indicating whether the compute was provisioned by user and brought from outside if true, or machine learning service provisioned it if false.
 	IsAttachedCompute *bool `json:"isAttachedCompute,omitempty"`
 	// DisableLocalAuth - Opt-out of local authentication and ensure customers can use only MSI and AAD exclusively for authentication.
 	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics'
+	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics', 'ComputeTypeBasicComputeComputeTypeSynapseSpark'
 	ComputeType ComputeTypeBasicCompute `json:"computeType,omitempty"`
 }
 
@@ -2795,6 +1672,11 @@ func (d Databricks) AsDataLakeAnalytics() (*DataLakeAnalytics, bool) {
 	return nil, false
 }
 
+// AsSynapseSpark is the BasicCompute implementation for Databricks.
+func (d Databricks) AsSynapseSpark() (*SynapseSpark, bool) {
+	return nil, false
+}
+
 // AsCompute is the BasicCompute implementation for Databricks.
 func (d Databricks) AsCompute() (*Compute, bool) {
 	return nil, false
@@ -2807,51 +1689,19 @@ func (d Databricks) AsBasicCompute() (BasicCompute, bool) {
 
 // DatabricksComputeSecrets secrets related to a Machine Learning compute based on Databricks.
 type DatabricksComputeSecrets struct {
+	// ComputeType - The type of compute. Possible values include: 'ComputeTypeAKS', 'ComputeTypeKubernetes', 'ComputeTypeAmlCompute', 'ComputeTypeComputeInstance', 'ComputeTypeDataFactory', 'ComputeTypeVirtualMachine', 'ComputeTypeHDInsight', 'ComputeTypeDatabricks', 'ComputeTypeDataLakeAnalytics', 'ComputeTypeSynapseSpark'
+	ComputeType ComputeType `json:"computeType,omitempty"`
 	// DatabricksAccessToken - access token for databricks account.
 	DatabricksAccessToken *string `json:"databricksAccessToken,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicComputeSecretsComputeTypeComputeSecrets', 'ComputeTypeBasicComputeSecretsComputeTypeAKS', 'ComputeTypeBasicComputeSecretsComputeTypeVirtualMachine', 'ComputeTypeBasicComputeSecretsComputeTypeDatabricks'
-	ComputeType ComputeTypeBasicComputeSecrets `json:"computeType,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for DatabricksComputeSecrets.
-func (dcs DatabricksComputeSecrets) MarshalJSON() ([]byte, error) {
-	dcs.ComputeType = ComputeTypeBasicComputeSecretsComputeTypeDatabricks
-	objectMap := make(map[string]interface{})
-	if dcs.DatabricksAccessToken != nil {
-		objectMap["databricksAccessToken"] = dcs.DatabricksAccessToken
-	}
-	if dcs.ComputeType != "" {
-		objectMap["computeType"] = dcs.ComputeType
-	}
-	return json.Marshal(objectMap)
+// DatabricksComputeSecretsProperties properties of Databricks Compute Secrets
+type DatabricksComputeSecretsProperties struct {
+	// DatabricksAccessToken - access token for databricks account.
+	DatabricksAccessToken *string `json:"databricksAccessToken,omitempty"`
 }
 
-// AsAksComputeSecrets is the BasicComputeSecrets implementation for DatabricksComputeSecrets.
-func (dcs DatabricksComputeSecrets) AsAksComputeSecrets() (*AksComputeSecrets, bool) {
-	return nil, false
-}
-
-// AsVirtualMachineSecrets is the BasicComputeSecrets implementation for DatabricksComputeSecrets.
-func (dcs DatabricksComputeSecrets) AsVirtualMachineSecrets() (*VirtualMachineSecrets, bool) {
-	return nil, false
-}
-
-// AsDatabricksComputeSecrets is the BasicComputeSecrets implementation for DatabricksComputeSecrets.
-func (dcs DatabricksComputeSecrets) AsDatabricksComputeSecrets() (*DatabricksComputeSecrets, bool) {
-	return &dcs, true
-}
-
-// AsComputeSecrets is the BasicComputeSecrets implementation for DatabricksComputeSecrets.
-func (dcs DatabricksComputeSecrets) AsComputeSecrets() (*ComputeSecrets, bool) {
-	return nil, false
-}
-
-// AsBasicComputeSecrets is the BasicComputeSecrets implementation for DatabricksComputeSecrets.
-func (dcs DatabricksComputeSecrets) AsBasicComputeSecrets() (BasicComputeSecrets, bool) {
-	return &dcs, true
-}
-
-// DatabricksProperties ...
+// DatabricksProperties properties of Databricks
 type DatabricksProperties struct {
 	// DatabricksAccessToken - Databricks access token
 	DatabricksAccessToken *string `json:"databricksAccessToken,omitempty"`
@@ -2874,12 +1724,12 @@ type DataFactory struct {
 	// ResourceID - ARM resource id of the underlying compute
 	ResourceID *string `json:"resourceId,omitempty"`
 	// ProvisioningErrors - READ-ONLY; Errors during provisioning
-	ProvisioningErrors *[]Error `json:"provisioningErrors,omitempty"`
+	ProvisioningErrors *[]ErrorResponse `json:"provisioningErrors,omitempty"`
 	// IsAttachedCompute - READ-ONLY; Indicating whether the compute was provisioned by user and brought from outside if true, or machine learning service provisioned it if false.
 	IsAttachedCompute *bool `json:"isAttachedCompute,omitempty"`
 	// DisableLocalAuth - Opt-out of local authentication and ensure customers can use only MSI and AAD exclusively for authentication.
 	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics'
+	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics', 'ComputeTypeBasicComputeComputeTypeSynapseSpark'
 	ComputeType ComputeTypeBasicCompute `json:"computeType,omitempty"`
 }
 
@@ -2945,6 +1795,11 @@ func (df DataFactory) AsDataLakeAnalytics() (*DataLakeAnalytics, bool) {
 	return nil, false
 }
 
+// AsSynapseSpark is the BasicCompute implementation for DataFactory.
+func (df DataFactory) AsSynapseSpark() (*SynapseSpark, bool) {
+	return nil, false
+}
+
 // AsCompute is the BasicCompute implementation for DataFactory.
 func (df DataFactory) AsCompute() (*Compute, bool) {
 	return nil, false
@@ -2971,12 +1826,12 @@ type DataLakeAnalytics struct {
 	// ResourceID - ARM resource id of the underlying compute
 	ResourceID *string `json:"resourceId,omitempty"`
 	// ProvisioningErrors - READ-ONLY; Errors during provisioning
-	ProvisioningErrors *[]Error `json:"provisioningErrors,omitempty"`
+	ProvisioningErrors *[]ErrorResponse `json:"provisioningErrors,omitempty"`
 	// IsAttachedCompute - READ-ONLY; Indicating whether the compute was provisioned by user and brought from outside if true, or machine learning service provisioned it if false.
 	IsAttachedCompute *bool `json:"isAttachedCompute,omitempty"`
 	// DisableLocalAuth - Opt-out of local authentication and ensure customers can use only MSI and AAD exclusively for authentication.
 	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics'
+	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics', 'ComputeTypeBasicComputeComputeTypeSynapseSpark'
 	ComputeType ComputeTypeBasicCompute `json:"computeType,omitempty"`
 }
 
@@ -3045,6 +1900,11 @@ func (dla DataLakeAnalytics) AsDataLakeAnalytics() (*DataLakeAnalytics, bool) {
 	return &dla, true
 }
 
+// AsSynapseSpark is the BasicCompute implementation for DataLakeAnalytics.
+func (dla DataLakeAnalytics) AsSynapseSpark() (*SynapseSpark, bool) {
+	return nil, false
+}
+
 // AsCompute is the BasicCompute implementation for DataLakeAnalytics.
 func (dla DataLakeAnalytics) AsCompute() (*Compute, bool) {
 	return nil, false
@@ -3061,22 +1921,100 @@ type DataLakeAnalyticsProperties struct {
 	DataLakeStoreAccountName *string `json:"dataLakeStoreAccountName,omitempty"`
 }
 
-// DatasetReference the dataset reference object.
-type DatasetReference struct {
-	// Name - The name of the dataset reference.
-	Name *string `json:"name,omitempty"`
-	// ID - The id of the dataset reference.
-	ID *string `json:"id,omitempty"`
+// DiagnoseRequestProperties ...
+type DiagnoseRequestProperties struct {
+	// Udr - Setting for diagnosing user defined routing
+	Udr map[string]interface{} `json:"udr"`
+	// Nsg - Setting for diagnosing network security group
+	Nsg map[string]interface{} `json:"nsg"`
+	// ResourceLock - Setting for diagnosing resource lock
+	ResourceLock map[string]interface{} `json:"resourceLock"`
+	// DNSResolution - Setting for diagnosing dns resolution
+	DNSResolution map[string]interface{} `json:"dnsResolution"`
+	// StorageAccount - Setting for diagnosing dependent storage account
+	StorageAccount map[string]interface{} `json:"storageAccount"`
+	// KeyVault - Setting for diagnosing dependent key vault
+	KeyVault map[string]interface{} `json:"keyVault"`
+	// ContainerRegistry - Setting for diagnosing dependent container registry
+	ContainerRegistry map[string]interface{} `json:"containerRegistry"`
+	// ApplicationInsights - Setting for diagnosing dependent application insights
+	ApplicationInsights map[string]interface{} `json:"applicationInsights"`
+	// Others - Setting for diagnosing unclassified category of problems
+	Others map[string]interface{} `json:"others"`
 }
 
-// EncryptionProperties ...
-type EncryptionProperties struct {
-	// VaultBaseURL - vault base Url
-	VaultBaseURL *string `json:"vaultBaseUrl,omitempty"`
-	// KeyName - Encryption Key name
-	KeyName *string `json:"keyName,omitempty"`
-	// KeyVersion - Encryption Key Version
-	KeyVersion *string `json:"keyVersion,omitempty"`
+// MarshalJSON is the custom marshaler for DiagnoseRequestProperties.
+func (drp DiagnoseRequestProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if drp.Udr != nil {
+		objectMap["udr"] = drp.Udr
+	}
+	if drp.Nsg != nil {
+		objectMap["nsg"] = drp.Nsg
+	}
+	if drp.ResourceLock != nil {
+		objectMap["resourceLock"] = drp.ResourceLock
+	}
+	if drp.DNSResolution != nil {
+		objectMap["dnsResolution"] = drp.DNSResolution
+	}
+	if drp.StorageAccount != nil {
+		objectMap["storageAccount"] = drp.StorageAccount
+	}
+	if drp.KeyVault != nil {
+		objectMap["keyVault"] = drp.KeyVault
+	}
+	if drp.ContainerRegistry != nil {
+		objectMap["containerRegistry"] = drp.ContainerRegistry
+	}
+	if drp.ApplicationInsights != nil {
+		objectMap["applicationInsights"] = drp.ApplicationInsights
+	}
+	if drp.Others != nil {
+		objectMap["others"] = drp.Others
+	}
+	return json.Marshal(objectMap)
+}
+
+// DiagnoseResponseResult ...
+type DiagnoseResponseResult struct {
+	autorest.Response `json:"-"`
+	Value             *DiagnoseResponseResultValue `json:"value,omitempty"`
+}
+
+// DiagnoseResponseResultValue ...
+type DiagnoseResponseResultValue struct {
+	UserDefinedRouteResults    *[]DiagnoseResult `json:"userDefinedRouteResults,omitempty"`
+	NetworkSecurityRuleResults *[]DiagnoseResult `json:"networkSecurityRuleResults,omitempty"`
+	ResourceLockResults        *[]DiagnoseResult `json:"resourceLockResults,omitempty"`
+	DNSResolutionResults       *[]DiagnoseResult `json:"dnsResolutionResults,omitempty"`
+	StorageAccountResults      *[]DiagnoseResult `json:"storageAccountResults,omitempty"`
+	KeyVaultResults            *[]DiagnoseResult `json:"keyVaultResults,omitempty"`
+	ContainerRegistryResults   *[]DiagnoseResult `json:"containerRegistryResults,omitempty"`
+	ApplicationInsightsResults *[]DiagnoseResult `json:"applicationInsightsResults,omitempty"`
+	OtherResults               *[]DiagnoseResult `json:"otherResults,omitempty"`
+}
+
+// DiagnoseResult result of Diagnose
+type DiagnoseResult struct {
+	// Code - READ-ONLY; Code for workspace setup error
+	Code *string `json:"code,omitempty"`
+	// Level - READ-ONLY; Level of workspace setup error. Possible values include: 'DiagnoseResultLevelWarning', 'DiagnoseResultLevelError', 'DiagnoseResultLevelInformation'
+	Level DiagnoseResultLevel `json:"level,omitempty"`
+	// Message - READ-ONLY; Message of workspace setup error
+	Message *string `json:"message,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DiagnoseResult.
+func (dr DiagnoseResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// DiagnoseWorkspaceParameters parameters to diagnose a workspace
+type DiagnoseWorkspaceParameters struct {
+	// Value - Value of Parameters
+	Value *DiagnoseRequestProperties `json:"value,omitempty"`
 }
 
 // EncryptionProperty ...
@@ -3089,198 +2027,45 @@ type EncryptionProperty struct {
 	KeyVaultProperties *KeyVaultProperties `json:"keyVaultProperties,omitempty"`
 }
 
-// EnvironmentImageRequest request to create a Docker image based on Environment.
-type EnvironmentImageRequest struct {
-	// DriverProgram - The name of the driver file.
-	DriverProgram *string `json:"driverProgram,omitempty"`
-	// Assets - The list of assets.
-	Assets *[]ImageAsset `json:"assets,omitempty"`
-	// ModelIds - The list of model Ids.
-	ModelIds *[]string `json:"modelIds,omitempty"`
-	// ModelsProperty - The list of models.
-	ModelsProperty *[]Model `json:"models,omitempty"`
-	// Environment - The details of the AZURE ML environment.
-	Environment *EnvironmentImageRequestEnvironment `json:"environment,omitempty"`
-	// EnvironmentReference - The unique identifying details of the AZURE ML environment.
-	EnvironmentReference *EnvironmentImageRequestEnvironmentReference `json:"environmentReference,omitempty"`
+// ErrorAdditionalInfo the resource management error additional info.
+type ErrorAdditionalInfo struct {
+	// Type - READ-ONLY; The additional info type.
+	Type *string `json:"type,omitempty"`
+	// Info - READ-ONLY; The additional info.
+	Info interface{} `json:"info,omitempty"`
 }
 
-// EnvironmentImageRequestEnvironment the details of the AZURE ML environment.
-type EnvironmentImageRequestEnvironment struct {
-	// Name - The name of the environment.
-	Name *string `json:"name,omitempty"`
-	// Version - The environment version.
-	Version *string `json:"version,omitempty"`
-	// Python - Settings for a Python environment.
-	Python *ModelEnvironmentDefinitionPython `json:"python,omitempty"`
-	// EnvironmentVariables - Definition of environment variables to be defined in the environment.
-	EnvironmentVariables map[string]*string `json:"environmentVariables"`
-	// Docker - The definition of a Docker container.
-	Docker *ModelEnvironmentDefinitionDocker `json:"docker,omitempty"`
-	// Spark - The configuration for a Spark environment.
-	Spark *ModelEnvironmentDefinitionSpark `json:"spark,omitempty"`
-	// R - Settings for a R environment.
-	R *ModelEnvironmentDefinitionR `json:"r,omitempty"`
-	// InferencingStackVersion - The inferencing stack version added to the image. To avoid adding an inferencing stack, do not set this value. Valid values: "latest".
-	InferencingStackVersion *string `json:"inferencingStackVersion,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for EnvironmentImageRequestEnvironment.
-func (eir EnvironmentImageRequestEnvironment) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if eir.Name != nil {
-		objectMap["name"] = eir.Name
-	}
-	if eir.Version != nil {
-		objectMap["version"] = eir.Version
-	}
-	if eir.Python != nil {
-		objectMap["python"] = eir.Python
-	}
-	if eir.EnvironmentVariables != nil {
-		objectMap["environmentVariables"] = eir.EnvironmentVariables
-	}
-	if eir.Docker != nil {
-		objectMap["docker"] = eir.Docker
-	}
-	if eir.Spark != nil {
-		objectMap["spark"] = eir.Spark
-	}
-	if eir.R != nil {
-		objectMap["r"] = eir.R
-	}
-	if eir.InferencingStackVersion != nil {
-		objectMap["inferencingStackVersion"] = eir.InferencingStackVersion
-	}
-	return json.Marshal(objectMap)
-}
-
-// EnvironmentImageRequestEnvironmentReference the unique identifying details of the AZURE ML environment.
-type EnvironmentImageRequestEnvironmentReference struct {
-	// Name - Name of the environment.
-	Name *string `json:"name,omitempty"`
-	// Version - Version of the environment.
-	Version *string `json:"version,omitempty"`
-}
-
-// EnvironmentImageResponse request to create a Docker image based on Environment.
-type EnvironmentImageResponse struct {
-	// DriverProgram - The name of the driver file.
-	DriverProgram *string `json:"driverProgram,omitempty"`
-	// Assets - The list of assets.
-	Assets *[]ImageAsset `json:"assets,omitempty"`
-	// ModelIds - The list of model Ids.
-	ModelIds *[]string `json:"modelIds,omitempty"`
-	// ModelsProperty - The list of models.
-	ModelsProperty *[]Model `json:"models,omitempty"`
-	// Environment - The details of the AZURE ML environment.
-	Environment *EnvironmentImageResponseEnvironment `json:"environment,omitempty"`
-	// EnvironmentReference - The unique identifying details of the AZURE ML environment.
-	EnvironmentReference *EnvironmentImageResponseEnvironmentReference `json:"environmentReference,omitempty"`
-}
-
-// EnvironmentImageResponseEnvironment the details of the AZURE ML environment.
-type EnvironmentImageResponseEnvironment struct {
-	// Name - The name of the environment.
-	Name *string `json:"name,omitempty"`
-	// Version - The environment version.
-	Version *string `json:"version,omitempty"`
-	// Python - Settings for a Python environment.
-	Python *ModelEnvironmentDefinitionResponsePython `json:"python,omitempty"`
-	// EnvironmentVariables - Definition of environment variables to be defined in the environment.
-	EnvironmentVariables map[string]*string `json:"environmentVariables"`
-	// Docker - The definition of a Docker container.
-	Docker *ModelEnvironmentDefinitionResponseDocker `json:"docker,omitempty"`
-	// Spark - The configuration for a Spark environment.
-	Spark *ModelEnvironmentDefinitionResponseSpark `json:"spark,omitempty"`
-	// R - Settings for a R environment.
-	R *ModelEnvironmentDefinitionResponseR `json:"r,omitempty"`
-	// InferencingStackVersion - The inferencing stack version added to the image. To avoid adding an inferencing stack, do not set this value. Valid values: "latest".
-	InferencingStackVersion *string `json:"inferencingStackVersion,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for EnvironmentImageResponseEnvironment.
-func (eir EnvironmentImageResponseEnvironment) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if eir.Name != nil {
-		objectMap["name"] = eir.Name
-	}
-	if eir.Version != nil {
-		objectMap["version"] = eir.Version
-	}
-	if eir.Python != nil {
-		objectMap["python"] = eir.Python
-	}
-	if eir.EnvironmentVariables != nil {
-		objectMap["environmentVariables"] = eir.EnvironmentVariables
-	}
-	if eir.Docker != nil {
-		objectMap["docker"] = eir.Docker
-	}
-	if eir.Spark != nil {
-		objectMap["spark"] = eir.Spark
-	}
-	if eir.R != nil {
-		objectMap["r"] = eir.R
-	}
-	if eir.InferencingStackVersion != nil {
-		objectMap["inferencingStackVersion"] = eir.InferencingStackVersion
-	}
-	return json.Marshal(objectMap)
-}
-
-// EnvironmentImageResponseEnvironmentReference the unique identifying details of the AZURE ML environment.
-type EnvironmentImageResponseEnvironmentReference struct {
-	// Name - Name of the environment.
-	Name *string `json:"name,omitempty"`
-	// Version - Version of the environment.
-	Version *string `json:"version,omitempty"`
-}
-
-// EnvironmentReference ...
-type EnvironmentReference struct {
-	// Name - Name of the environment.
-	Name *string `json:"name,omitempty"`
-	// Version - Version of the environment.
-	Version *string `json:"version,omitempty"`
-}
-
-// Error wrapper for error response to follow ARM guidelines.
-type Error struct {
-	// Error - READ-ONLY; The error response.
-	Error *ErrorResponse `json:"error,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Error.
-func (e Error) MarshalJSON() ([]byte, error) {
+// MarshalJSON is the custom marshaler for ErrorAdditionalInfo.
+func (eai ErrorAdditionalInfo) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
 }
 
-// ErrorDetail error detail information.
+// ErrorDetail the error detail.
 type ErrorDetail struct {
-	// Code - Error code.
+	// Code - READ-ONLY; The error code.
 	Code *string `json:"code,omitempty"`
-	// Message - Error message.
+	// Message - READ-ONLY; The error message.
 	Message *string `json:"message,omitempty"`
-}
-
-// ErrorResponse error response information.
-type ErrorResponse struct {
-	// Code - READ-ONLY; Error code.
-	Code *string `json:"code,omitempty"`
-	// Message - READ-ONLY; Error message.
-	Message *string `json:"message,omitempty"`
-	// Target - READ-ONLY; The target of the particular error
+	// Target - READ-ONLY; The error target.
 	Target *string `json:"target,omitempty"`
-	// Details - READ-ONLY; An array of error detail objects.
+	// Details - READ-ONLY; The error details.
 	Details *[]ErrorDetail `json:"details,omitempty"`
+	// AdditionalInfo - READ-ONLY; The error additional info.
+	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for ErrorResponse.
-func (er ErrorResponse) MarshalJSON() ([]byte, error) {
+// MarshalJSON is the custom marshaler for ErrorDetail.
+func (ed ErrorDetail) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
+}
+
+// ErrorResponse common error response for all Azure Resource Manager APIs to return error details for
+// failed operations. (This also follows the OData error response format.).
+type ErrorResponse struct {
+	// Error - The error object.
+	Error *ErrorDetail `json:"error,omitempty"`
 }
 
 // EstimatedVMPrice the estimated price info for using a VM of a particular OS type, tier, etc.
@@ -3303,6 +2088,34 @@ type EstimatedVMPrices struct {
 	Values *[]EstimatedVMPrice `json:"values,omitempty"`
 }
 
+// ExternalFQDNResponse ...
+type ExternalFQDNResponse struct {
+	autorest.Response `json:"-"`
+	Value             *[]FQDNEndpoints `json:"value,omitempty"`
+}
+
+// FQDNEndpoint ...
+type FQDNEndpoint struct {
+	DomainName      *string               `json:"domainName,omitempty"`
+	EndpointDetails *[]FQDNEndpointDetail `json:"endpointDetails,omitempty"`
+}
+
+// FQDNEndpointDetail ...
+type FQDNEndpointDetail struct {
+	Port *int32 `json:"port,omitempty"`
+}
+
+// FQDNEndpoints ...
+type FQDNEndpoints struct {
+	Properties *FQDNEndpointsProperties `json:"properties,omitempty"`
+}
+
+// FQDNEndpointsProperties ...
+type FQDNEndpointsProperties struct {
+	Category  *string         `json:"category,omitempty"`
+	Endpoints *[]FQDNEndpoint `json:"endpoints,omitempty"`
+}
+
 // HDInsight a HDInsight compute.
 type HDInsight struct {
 	Properties *HDInsightProperties `json:"properties,omitempty"`
@@ -3319,12 +2132,12 @@ type HDInsight struct {
 	// ResourceID - ARM resource id of the underlying compute
 	ResourceID *string `json:"resourceId,omitempty"`
 	// ProvisioningErrors - READ-ONLY; Errors during provisioning
-	ProvisioningErrors *[]Error `json:"provisioningErrors,omitempty"`
+	ProvisioningErrors *[]ErrorResponse `json:"provisioningErrors,omitempty"`
 	// IsAttachedCompute - READ-ONLY; Indicating whether the compute was provisioned by user and brought from outside if true, or machine learning service provisioned it if false.
 	IsAttachedCompute *bool `json:"isAttachedCompute,omitempty"`
 	// DisableLocalAuth - Opt-out of local authentication and ensure customers can use only MSI and AAD exclusively for authentication.
 	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics'
+	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics', 'ComputeTypeBasicComputeComputeTypeSynapseSpark'
 	ComputeType ComputeTypeBasicCompute `json:"computeType,omitempty"`
 }
 
@@ -3393,6 +2206,11 @@ func (hi HDInsight) AsDataLakeAnalytics() (*DataLakeAnalytics, bool) {
 	return nil, false
 }
 
+// AsSynapseSpark is the BasicCompute implementation for HDInsight.
+func (hi HDInsight) AsSynapseSpark() (*SynapseSpark, bool) {
+	return nil, false
+}
+
 // AsCompute is the BasicCompute implementation for HDInsight.
 func (hi HDInsight) AsCompute() (*Compute, bool) {
 	return nil, false
@@ -3403,7 +2221,7 @@ func (hi HDInsight) AsBasicCompute() (BasicCompute, bool) {
 	return &hi, true
 }
 
-// HDInsightProperties ...
+// HDInsightProperties hDInsight compute properties
 type HDInsightProperties struct {
 	// SSHPort - Port open for ssh connections on the master node of the cluster.
 	SSHPort *int32 `json:"sshPort,omitempty"`
@@ -3443,16 +2261,44 @@ type IdentityForCmk struct {
 	UserAssignedIdentity *string `json:"userAssignedIdentity,omitempty"`
 }
 
-// ImageAsset an Image asset.
-type ImageAsset struct {
-	// ID - The Asset Id.
-	ID *string `json:"id,omitempty"`
-	// MimeType - The mime type.
-	MimeType *string `json:"mimeType,omitempty"`
-	// URL - The Url of the Asset.
-	URL *string `json:"url,omitempty"`
-	// Unpack - Whether the Asset is unpacked.
-	Unpack *bool `json:"unpack,omitempty"`
+// InstanceTypeSchema instance type schema.
+type InstanceTypeSchema struct {
+	// NodeSelector - Node Selector
+	NodeSelector map[string]*string `json:"nodeSelector"`
+	// Resources - Resource requests/limits for this instance type
+	Resources *InstanceTypeSchemaResources `json:"resources,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for InstanceTypeSchema.
+func (its InstanceTypeSchema) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if its.NodeSelector != nil {
+		objectMap["nodeSelector"] = its.NodeSelector
+	}
+	if its.Resources != nil {
+		objectMap["resources"] = its.Resources
+	}
+	return json.Marshal(objectMap)
+}
+
+// InstanceTypeSchemaResources resource requests/limits for this instance type
+type InstanceTypeSchemaResources struct {
+	// Requests - Resource requests for this instance type
+	Requests map[string]*string `json:"requests"`
+	// Limits - Resource limits for this instance type
+	Limits map[string]*string `json:"limits"`
+}
+
+// MarshalJSON is the custom marshaler for InstanceTypeSchemaResources.
+func (its InstanceTypeSchemaResources) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if its.Requests != nil {
+		objectMap["requests"] = its.Requests
+	}
+	if its.Limits != nil {
+		objectMap["limits"] = its.Limits
+	}
+	return json.Marshal(objectMap)
 }
 
 // KeyVaultProperties ...
@@ -3463,6 +2309,112 @@ type KeyVaultProperties struct {
 	KeyIdentifier *string `json:"keyIdentifier,omitempty"`
 	// IdentityClientID - For future use - The client id of the identity which will be used to access key vault.
 	IdentityClientID *string `json:"identityClientId,omitempty"`
+}
+
+// Kubernetes a Machine Learning compute based on Kubernetes Compute.
+type Kubernetes struct {
+	// ComputeType - The type of compute. Possible values include: 'ComputeTypeAKS', 'ComputeTypeKubernetes', 'ComputeTypeAmlCompute', 'ComputeTypeComputeInstance', 'ComputeTypeDataFactory', 'ComputeTypeVirtualMachine', 'ComputeTypeHDInsight', 'ComputeTypeDatabricks', 'ComputeTypeDataLakeAnalytics', 'ComputeTypeSynapseSpark'
+	ComputeType ComputeType `json:"computeType,omitempty"`
+	// ComputeLocation - Location for the underlying compute
+	ComputeLocation *string `json:"computeLocation,omitempty"`
+	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'ProvisioningStateUnknown', 'ProvisioningStateUpdating', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled'
+	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+	// Description - The description of the Machine Learning compute.
+	Description *string `json:"description,omitempty"`
+	// CreatedOn - READ-ONLY; The time at which the compute was created.
+	CreatedOn *date.Time `json:"createdOn,omitempty"`
+	// ModifiedOn - READ-ONLY; The time at which the compute was last modified.
+	ModifiedOn *date.Time `json:"modifiedOn,omitempty"`
+	// ResourceID - ARM resource id of the underlying compute
+	ResourceID *string `json:"resourceId,omitempty"`
+	// ProvisioningErrors - READ-ONLY; Errors during provisioning
+	ProvisioningErrors *[]ErrorResponse `json:"provisioningErrors,omitempty"`
+	// IsAttachedCompute - READ-ONLY; Indicating whether the compute was provisioned by user and brought from outside if true, or machine learning service provisioned it if false.
+	IsAttachedCompute *bool `json:"isAttachedCompute,omitempty"`
+	// DisableLocalAuth - Opt-out of local authentication and ensure customers can use only MSI and AAD exclusively for authentication.
+	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
+	// Properties - Properties of Kubernetes
+	Properties *KubernetesProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Kubernetes.
+func (kVar Kubernetes) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if kVar.ComputeType != "" {
+		objectMap["computeType"] = kVar.ComputeType
+	}
+	if kVar.ComputeLocation != nil {
+		objectMap["computeLocation"] = kVar.ComputeLocation
+	}
+	if kVar.Description != nil {
+		objectMap["description"] = kVar.Description
+	}
+	if kVar.ResourceID != nil {
+		objectMap["resourceId"] = kVar.ResourceID
+	}
+	if kVar.DisableLocalAuth != nil {
+		objectMap["disableLocalAuth"] = kVar.DisableLocalAuth
+	}
+	if kVar.Properties != nil {
+		objectMap["properties"] = kVar.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
+// KubernetesProperties kubernetes properties
+type KubernetesProperties struct {
+	// RelayConnectionString - Relay connection string.
+	RelayConnectionString *string `json:"relayConnectionString,omitempty"`
+	// ServiceBusConnectionString - ServiceBus connection string.
+	ServiceBusConnectionString *string `json:"serviceBusConnectionString,omitempty"`
+	// ExtensionPrincipalID - Extension principal-id.
+	ExtensionPrincipalID *string `json:"extensionPrincipalId,omitempty"`
+	// ExtensionInstanceReleaseTrain - Extension instance release train.
+	ExtensionInstanceReleaseTrain *string `json:"extensionInstanceReleaseTrain,omitempty"`
+	// VcName - VC name.
+	VcName *string `json:"vcName,omitempty"`
+	// Namespace - Compute namespace
+	Namespace *string `json:"namespace,omitempty"`
+	// DefaultInstanceType - Default instance type
+	DefaultInstanceType *string `json:"defaultInstanceType,omitempty"`
+	// InstanceTypes - Instance Type Schema
+	InstanceTypes map[string]*InstanceTypeSchema `json:"instanceTypes"`
+}
+
+// MarshalJSON is the custom marshaler for KubernetesProperties.
+func (kp KubernetesProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if kp.RelayConnectionString != nil {
+		objectMap["relayConnectionString"] = kp.RelayConnectionString
+	}
+	if kp.ServiceBusConnectionString != nil {
+		objectMap["serviceBusConnectionString"] = kp.ServiceBusConnectionString
+	}
+	if kp.ExtensionPrincipalID != nil {
+		objectMap["extensionPrincipalId"] = kp.ExtensionPrincipalID
+	}
+	if kp.ExtensionInstanceReleaseTrain != nil {
+		objectMap["extensionInstanceReleaseTrain"] = kp.ExtensionInstanceReleaseTrain
+	}
+	if kp.VcName != nil {
+		objectMap["vcName"] = kp.VcName
+	}
+	if kp.Namespace != nil {
+		objectMap["namespace"] = kp.Namespace
+	}
+	if kp.DefaultInstanceType != nil {
+		objectMap["defaultInstanceType"] = kp.DefaultInstanceType
+	}
+	if kp.InstanceTypes != nil {
+		objectMap["instanceTypes"] = kp.InstanceTypes
+	}
+	return json.Marshal(objectMap)
+}
+
+// KubernetesSchema kubernetes Compute Schema
+type KubernetesSchema struct {
+	// Properties - Properties of Kubernetes
+	Properties *KubernetesProperties `json:"properties,omitempty"`
 }
 
 // ListAmlUserFeatureResult the List Aml user feature operation response.
@@ -4009,640 +2961,6 @@ func NewListWorkspaceQuotasPage(cur ListWorkspaceQuotas, getNextPage func(contex
 	}
 }
 
-// LivenessProbeRequirements the liveness probe requirements.
-type LivenessProbeRequirements struct {
-	// FailureThreshold - The number of failures to allow before returning an unhealthy status.
-	FailureThreshold *int32 `json:"failureThreshold,omitempty"`
-	// SuccessThreshold - The number of successful probes before returning a healthy status.
-	SuccessThreshold *int32 `json:"successThreshold,omitempty"`
-	// TimeoutSeconds - The probe timeout in seconds.
-	TimeoutSeconds *int32 `json:"timeoutSeconds,omitempty"`
-	// PeriodSeconds - The length of time between probes in seconds.
-	PeriodSeconds *int32 `json:"periodSeconds,omitempty"`
-	// InitialDelaySeconds - The delay before the first probe in seconds.
-	InitialDelaySeconds *int32 `json:"initialDelaySeconds,omitempty"`
-}
-
-// MachineLearningComputeCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type MachineLearningComputeCreateOrUpdateFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(MachineLearningComputeClient) (ComputeResource, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *MachineLearningComputeCreateOrUpdateFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for MachineLearningComputeCreateOrUpdateFuture.Result.
-func (future *MachineLearningComputeCreateOrUpdateFuture) result(client MachineLearningComputeClient) (cr ComputeResource, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.MachineLearningComputeCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		cr.Response.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("machinelearningservices.MachineLearningComputeCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if cr.Response.Response, err = future.GetResult(sender); err == nil && cr.Response.Response.StatusCode != http.StatusNoContent {
-		cr, err = client.CreateOrUpdateResponder(cr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "machinelearningservices.MachineLearningComputeCreateOrUpdateFuture", "Result", cr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// MachineLearningComputeDeleteFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type MachineLearningComputeDeleteFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(MachineLearningComputeClient) (autorest.Response, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *MachineLearningComputeDeleteFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for MachineLearningComputeDeleteFuture.Result.
-func (future *MachineLearningComputeDeleteFuture) result(client MachineLearningComputeClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.MachineLearningComputeDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		ar.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("machinelearningservices.MachineLearningComputeDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// MachineLearningComputeStartFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type MachineLearningComputeStartFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(MachineLearningComputeClient) (autorest.Response, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *MachineLearningComputeStartFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for MachineLearningComputeStartFuture.Result.
-func (future *MachineLearningComputeStartFuture) result(client MachineLearningComputeClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.MachineLearningComputeStartFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		ar.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("machinelearningservices.MachineLearningComputeStartFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// MachineLearningComputeStopFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type MachineLearningComputeStopFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(MachineLearningComputeClient) (autorest.Response, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *MachineLearningComputeStopFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for MachineLearningComputeStopFuture.Result.
-func (future *MachineLearningComputeStopFuture) result(client MachineLearningComputeClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.MachineLearningComputeStopFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		ar.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("machinelearningservices.MachineLearningComputeStopFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// MachineLearningComputeUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type MachineLearningComputeUpdateFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(MachineLearningComputeClient) (ComputeResource, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *MachineLearningComputeUpdateFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for MachineLearningComputeUpdateFuture.Result.
-func (future *MachineLearningComputeUpdateFuture) result(client MachineLearningComputeClient) (cr ComputeResource, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.MachineLearningComputeUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		cr.Response.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("machinelearningservices.MachineLearningComputeUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if cr.Response.Response, err = future.GetResult(sender); err == nil && cr.Response.Response.StatusCode != http.StatusNoContent {
-		cr, err = client.UpdateResponder(cr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "machinelearningservices.MachineLearningComputeUpdateFuture", "Result", cr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// MachineLearningServiceCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type MachineLearningServiceCreateOrUpdateFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(Client) (ServiceResource, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *MachineLearningServiceCreateOrUpdateFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for MachineLearningServiceCreateOrUpdateFuture.Result.
-func (future *MachineLearningServiceCreateOrUpdateFuture) result(client Client) (sr ServiceResource, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.MachineLearningServiceCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		sr.Response.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("machinelearningservices.MachineLearningServiceCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if sr.Response.Response, err = future.GetResult(sender); err == nil && sr.Response.Response.StatusCode != http.StatusNoContent {
-		sr, err = client.CreateOrUpdateResponder(sr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "machinelearningservices.MachineLearningServiceCreateOrUpdateFuture", "Result", sr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// Model an Azure Machine Learning Model.
-type Model struct {
-	// ID - The Model Id.
-	ID *string `json:"id,omitempty"`
-	// Name - The Model name.
-	Name *string `json:"name,omitempty"`
-	// Framework - The Model framework.
-	Framework *string `json:"framework,omitempty"`
-	// FrameworkVersion - The Model framework version.
-	FrameworkVersion *string `json:"frameworkVersion,omitempty"`
-	// Version - The Model version assigned by Model Management Service.
-	Version *int64 `json:"version,omitempty"`
-	// Datasets - The list of datasets associated with the model.
-	Datasets *[]DatasetReference `json:"datasets,omitempty"`
-	// URL - The URL of the Model. Usually a SAS URL.
-	URL *string `json:"url,omitempty"`
-	// MimeType - The MIME type of Model content. For more details about MIME type, please open https://www.iana.org/assignments/media-types/media-types.xhtml
-	MimeType *string `json:"mimeType,omitempty"`
-	// Description - The Model description text.
-	Description *string `json:"description,omitempty"`
-	// CreatedTime - The Model creation time (UTC).
-	CreatedTime *date.Time `json:"createdTime,omitempty"`
-	// ModifiedTime - The Model last modified time (UTC).
-	ModifiedTime *date.Time `json:"modifiedTime,omitempty"`
-	// Unpack - Indicates whether we need to unpack the Model during docker Image creation.
-	Unpack *bool `json:"unpack,omitempty"`
-	// ParentModelID - The Parent Model Id.
-	ParentModelID *string `json:"parentModelId,omitempty"`
-	// RunID - The RunId that created this model.
-	RunID *string `json:"runId,omitempty"`
-	// ExperimentName - The name of the experiment where this model was created.
-	ExperimentName *string `json:"experimentName,omitempty"`
-	// KvTags - The Model tag dictionary. Items are mutable.
-	KvTags map[string]*string `json:"kvTags"`
-	// Properties - The Model property dictionary. Properties are immutable.
-	Properties map[string]*string `json:"properties"`
-	// DerivedModelIds - Models derived from this model
-	DerivedModelIds *[]string `json:"derivedModelIds,omitempty"`
-	// SampleInputData - Sample Input Data for the Model. A reference to a dataset in the workspace in the format aml://dataset/{datasetId}
-	SampleInputData *string `json:"sampleInputData,omitempty"`
-	// SampleOutputData - Sample Output Data for the Model. A reference to a dataset in the workspace in the format aml://dataset/{datasetId}
-	SampleOutputData *string `json:"sampleOutputData,omitempty"`
-	// ResourceRequirements - Resource requirements for the model
-	ResourceRequirements *ContainerResourceRequirements `json:"resourceRequirements,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Model.
-func (mVar Model) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if mVar.ID != nil {
-		objectMap["id"] = mVar.ID
-	}
-	if mVar.Name != nil {
-		objectMap["name"] = mVar.Name
-	}
-	if mVar.Framework != nil {
-		objectMap["framework"] = mVar.Framework
-	}
-	if mVar.FrameworkVersion != nil {
-		objectMap["frameworkVersion"] = mVar.FrameworkVersion
-	}
-	if mVar.Version != nil {
-		objectMap["version"] = mVar.Version
-	}
-	if mVar.Datasets != nil {
-		objectMap["datasets"] = mVar.Datasets
-	}
-	if mVar.URL != nil {
-		objectMap["url"] = mVar.URL
-	}
-	if mVar.MimeType != nil {
-		objectMap["mimeType"] = mVar.MimeType
-	}
-	if mVar.Description != nil {
-		objectMap["description"] = mVar.Description
-	}
-	if mVar.CreatedTime != nil {
-		objectMap["createdTime"] = mVar.CreatedTime
-	}
-	if mVar.ModifiedTime != nil {
-		objectMap["modifiedTime"] = mVar.ModifiedTime
-	}
-	if mVar.Unpack != nil {
-		objectMap["unpack"] = mVar.Unpack
-	}
-	if mVar.ParentModelID != nil {
-		objectMap["parentModelId"] = mVar.ParentModelID
-	}
-	if mVar.RunID != nil {
-		objectMap["runId"] = mVar.RunID
-	}
-	if mVar.ExperimentName != nil {
-		objectMap["experimentName"] = mVar.ExperimentName
-	}
-	if mVar.KvTags != nil {
-		objectMap["kvTags"] = mVar.KvTags
-	}
-	if mVar.Properties != nil {
-		objectMap["properties"] = mVar.Properties
-	}
-	if mVar.DerivedModelIds != nil {
-		objectMap["derivedModelIds"] = mVar.DerivedModelIds
-	}
-	if mVar.SampleInputData != nil {
-		objectMap["sampleInputData"] = mVar.SampleInputData
-	}
-	if mVar.SampleOutputData != nil {
-		objectMap["sampleOutputData"] = mVar.SampleOutputData
-	}
-	if mVar.ResourceRequirements != nil {
-		objectMap["resourceRequirements"] = mVar.ResourceRequirements
-	}
-	return json.Marshal(objectMap)
-}
-
-// ModelDataCollection the Model data collection properties.
-type ModelDataCollection struct {
-	// EventHubEnabled - Option for enabling/disabling Event Hub.
-	EventHubEnabled *bool `json:"eventHubEnabled,omitempty"`
-	// StorageEnabled - Option for enabling/disabling storage.
-	StorageEnabled *bool `json:"storageEnabled,omitempty"`
-}
-
-// ModelDockerSection ...
-type ModelDockerSection struct {
-	// BaseImage - Base image used for Docker-based runs. Mutually exclusive with BaseDockerfile.
-	BaseImage *string `json:"baseImage,omitempty"`
-	// BaseDockerfile - Base Dockerfile used for Docker-based runs. Mutually exclusive with BaseImage.
-	BaseDockerfile *string `json:"baseDockerfile,omitempty"`
-	// BaseImageRegistry - Image registry that contains the base image.
-	BaseImageRegistry *ModelDockerSectionBaseImageRegistry `json:"baseImageRegistry,omitempty"`
-}
-
-// ModelDockerSectionBaseImageRegistry image registry that contains the base image.
-type ModelDockerSectionBaseImageRegistry struct {
-	Address  *string `json:"address,omitempty"`
-	Username *string `json:"username,omitempty"`
-	Password *string `json:"password,omitempty"`
-}
-
-// ModelDockerSectionResponse ...
-type ModelDockerSectionResponse struct {
-	// BaseImage - Base image used for Docker-based runs. Mutually exclusive with BaseDockerfile.
-	BaseImage *string `json:"baseImage,omitempty"`
-	// BaseDockerfile - Base Dockerfile used for Docker-based runs. Mutually exclusive with BaseImage.
-	BaseDockerfile *string `json:"baseDockerfile,omitempty"`
-	// BaseImageRegistry - Image registry that contains the base image.
-	BaseImageRegistry *ModelDockerSectionResponseBaseImageRegistry `json:"baseImageRegistry,omitempty"`
-}
-
-// ModelDockerSectionResponseBaseImageRegistry image registry that contains the base image.
-type ModelDockerSectionResponseBaseImageRegistry struct {
-	Address *string `json:"address,omitempty"`
-}
-
-// ModelEnvironmentDefinition ...
-type ModelEnvironmentDefinition struct {
-	// Name - The name of the environment.
-	Name *string `json:"name,omitempty"`
-	// Version - The environment version.
-	Version *string `json:"version,omitempty"`
-	// Python - Settings for a Python environment.
-	Python *ModelEnvironmentDefinitionPython `json:"python,omitempty"`
-	// EnvironmentVariables - Definition of environment variables to be defined in the environment.
-	EnvironmentVariables map[string]*string `json:"environmentVariables"`
-	// Docker - The definition of a Docker container.
-	Docker *ModelEnvironmentDefinitionDocker `json:"docker,omitempty"`
-	// Spark - The configuration for a Spark environment.
-	Spark *ModelEnvironmentDefinitionSpark `json:"spark,omitempty"`
-	// R - Settings for a R environment.
-	R *ModelEnvironmentDefinitionR `json:"r,omitempty"`
-	// InferencingStackVersion - The inferencing stack version added to the image. To avoid adding an inferencing stack, do not set this value. Valid values: "latest".
-	InferencingStackVersion *string `json:"inferencingStackVersion,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ModelEnvironmentDefinition.
-func (med ModelEnvironmentDefinition) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if med.Name != nil {
-		objectMap["name"] = med.Name
-	}
-	if med.Version != nil {
-		objectMap["version"] = med.Version
-	}
-	if med.Python != nil {
-		objectMap["python"] = med.Python
-	}
-	if med.EnvironmentVariables != nil {
-		objectMap["environmentVariables"] = med.EnvironmentVariables
-	}
-	if med.Docker != nil {
-		objectMap["docker"] = med.Docker
-	}
-	if med.Spark != nil {
-		objectMap["spark"] = med.Spark
-	}
-	if med.R != nil {
-		objectMap["r"] = med.R
-	}
-	if med.InferencingStackVersion != nil {
-		objectMap["inferencingStackVersion"] = med.InferencingStackVersion
-	}
-	return json.Marshal(objectMap)
-}
-
-// ModelEnvironmentDefinitionDocker the definition of a Docker container.
-type ModelEnvironmentDefinitionDocker struct {
-	// BaseImage - Base image used for Docker-based runs. Mutually exclusive with BaseDockerfile.
-	BaseImage *string `json:"baseImage,omitempty"`
-	// BaseDockerfile - Base Dockerfile used for Docker-based runs. Mutually exclusive with BaseImage.
-	BaseDockerfile *string `json:"baseDockerfile,omitempty"`
-	// BaseImageRegistry - Image registry that contains the base image.
-	BaseImageRegistry *ModelDockerSectionBaseImageRegistry `json:"baseImageRegistry,omitempty"`
-}
-
-// ModelEnvironmentDefinitionPython settings for a Python environment.
-type ModelEnvironmentDefinitionPython struct {
-	// InterpreterPath - The python interpreter path to use if an environment build is not required. The path specified gets used to call the user script.
-	InterpreterPath *string `json:"interpreterPath,omitempty"`
-	// UserManagedDependencies - True means that AzureML reuses an existing python environment; False means that AzureML will create a python environment based on the Conda dependencies specification.
-	UserManagedDependencies *bool `json:"userManagedDependencies,omitempty"`
-	// CondaDependencies - A JObject containing Conda dependencies.
-	CondaDependencies    interface{} `json:"condaDependencies,omitempty"`
-	BaseCondaEnvironment *string     `json:"baseCondaEnvironment,omitempty"`
-}
-
-// ModelEnvironmentDefinitionR settings for a R environment.
-type ModelEnvironmentDefinitionR struct {
-	// RVersion - The version of R to be installed
-	RVersion *string `json:"rVersion,omitempty"`
-	// UserManaged - Indicates whether the environment is managed by user or by AzureML.
-	UserManaged *bool `json:"userManaged,omitempty"`
-	// RscriptPath - The Rscript path to use if an environment build is not required.
-	// The path specified gets used to call the user script.
-	RscriptPath *string `json:"rscriptPath,omitempty"`
-	// SnapshotDate - Date of MRAN snapshot to use in YYYY-MM-DD format, e.g. "2019-04-17"
-	SnapshotDate *string `json:"snapshotDate,omitempty"`
-	// CranPackages - The CRAN packages to use.
-	CranPackages *[]RCranPackage `json:"cranPackages,omitempty"`
-	// GitHubPackages - The packages directly from GitHub.
-	GitHubPackages *[]RGitHubPackage `json:"gitHubPackages,omitempty"`
-	// CustomURLPackages - The packages from custom urls.
-	CustomURLPackages *[]string `json:"customUrlPackages,omitempty"`
-	// BioConductorPackages - The packages from Bioconductor.
-	BioConductorPackages *[]string `json:"bioConductorPackages,omitempty"`
-}
-
-// ModelEnvironmentDefinitionResponse ...
-type ModelEnvironmentDefinitionResponse struct {
-	// Name - The name of the environment.
-	Name *string `json:"name,omitempty"`
-	// Version - The environment version.
-	Version *string `json:"version,omitempty"`
-	// Python - Settings for a Python environment.
-	Python *ModelEnvironmentDefinitionResponsePython `json:"python,omitempty"`
-	// EnvironmentVariables - Definition of environment variables to be defined in the environment.
-	EnvironmentVariables map[string]*string `json:"environmentVariables"`
-	// Docker - The definition of a Docker container.
-	Docker *ModelEnvironmentDefinitionResponseDocker `json:"docker,omitempty"`
-	// Spark - The configuration for a Spark environment.
-	Spark *ModelEnvironmentDefinitionResponseSpark `json:"spark,omitempty"`
-	// R - Settings for a R environment.
-	R *ModelEnvironmentDefinitionResponseR `json:"r,omitempty"`
-	// InferencingStackVersion - The inferencing stack version added to the image. To avoid adding an inferencing stack, do not set this value. Valid values: "latest".
-	InferencingStackVersion *string `json:"inferencingStackVersion,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ModelEnvironmentDefinitionResponse.
-func (medr ModelEnvironmentDefinitionResponse) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if medr.Name != nil {
-		objectMap["name"] = medr.Name
-	}
-	if medr.Version != nil {
-		objectMap["version"] = medr.Version
-	}
-	if medr.Python != nil {
-		objectMap["python"] = medr.Python
-	}
-	if medr.EnvironmentVariables != nil {
-		objectMap["environmentVariables"] = medr.EnvironmentVariables
-	}
-	if medr.Docker != nil {
-		objectMap["docker"] = medr.Docker
-	}
-	if medr.Spark != nil {
-		objectMap["spark"] = medr.Spark
-	}
-	if medr.R != nil {
-		objectMap["r"] = medr.R
-	}
-	if medr.InferencingStackVersion != nil {
-		objectMap["inferencingStackVersion"] = medr.InferencingStackVersion
-	}
-	return json.Marshal(objectMap)
-}
-
-// ModelEnvironmentDefinitionResponseDocker the definition of a Docker container.
-type ModelEnvironmentDefinitionResponseDocker struct {
-	// BaseImage - Base image used for Docker-based runs. Mutually exclusive with BaseDockerfile.
-	BaseImage *string `json:"baseImage,omitempty"`
-	// BaseDockerfile - Base Dockerfile used for Docker-based runs. Mutually exclusive with BaseImage.
-	BaseDockerfile *string `json:"baseDockerfile,omitempty"`
-	// BaseImageRegistry - Image registry that contains the base image.
-	BaseImageRegistry *ModelDockerSectionResponseBaseImageRegistry `json:"baseImageRegistry,omitempty"`
-}
-
-// ModelEnvironmentDefinitionResponsePython settings for a Python environment.
-type ModelEnvironmentDefinitionResponsePython struct {
-	// InterpreterPath - The python interpreter path to use if an environment build is not required. The path specified gets used to call the user script.
-	InterpreterPath *string `json:"interpreterPath,omitempty"`
-	// UserManagedDependencies - True means that AzureML reuses an existing python environment; False means that AzureML will create a python environment based on the Conda dependencies specification.
-	UserManagedDependencies *bool `json:"userManagedDependencies,omitempty"`
-	// CondaDependencies - A JObject containing Conda dependencies.
-	CondaDependencies    interface{} `json:"condaDependencies,omitempty"`
-	BaseCondaEnvironment *string     `json:"baseCondaEnvironment,omitempty"`
-}
-
-// ModelEnvironmentDefinitionResponseR settings for a R environment.
-type ModelEnvironmentDefinitionResponseR struct {
-	// RVersion - The version of R to be installed
-	RVersion *string `json:"rVersion,omitempty"`
-	// UserManaged - Indicates whether the environment is managed by user or by AzureML.
-	UserManaged *bool `json:"userManaged,omitempty"`
-	// RscriptPath - The Rscript path to use if an environment build is not required.
-	// The path specified gets used to call the user script.
-	RscriptPath *string `json:"rscriptPath,omitempty"`
-	// SnapshotDate - Date of MRAN snapshot to use in YYYY-MM-DD format, e.g. "2019-04-17"
-	SnapshotDate *string `json:"snapshotDate,omitempty"`
-	// CranPackages - The CRAN packages to use.
-	CranPackages *[]RCranPackage `json:"cranPackages,omitempty"`
-	// GitHubPackages - The packages directly from GitHub.
-	GitHubPackages *[]RGitHubPackageResponse `json:"gitHubPackages,omitempty"`
-	// CustomURLPackages - The packages from custom urls.
-	CustomURLPackages *[]string `json:"customUrlPackages,omitempty"`
-	// BioConductorPackages - The packages from Bioconductor.
-	BioConductorPackages *[]string `json:"bioConductorPackages,omitempty"`
-}
-
-// ModelEnvironmentDefinitionResponseSpark the configuration for a Spark environment.
-type ModelEnvironmentDefinitionResponseSpark struct {
-	// Repositories - The list of spark repositories.
-	Repositories *[]string `json:"repositories,omitempty"`
-	// Packages - The Spark packages to use.
-	Packages *[]SparkMavenPackage `json:"packages,omitempty"`
-	// PrecachePackages - Whether to precache the packages.
-	PrecachePackages *bool `json:"precachePackages,omitempty"`
-}
-
-// ModelEnvironmentDefinitionSpark the configuration for a Spark environment.
-type ModelEnvironmentDefinitionSpark struct {
-	// Repositories - The list of spark repositories.
-	Repositories *[]string `json:"repositories,omitempty"`
-	// Packages - The Spark packages to use.
-	Packages *[]SparkMavenPackage `json:"packages,omitempty"`
-	// PrecachePackages - Whether to precache the packages.
-	PrecachePackages *bool `json:"precachePackages,omitempty"`
-}
-
-// ModelPythonSection ...
-type ModelPythonSection struct {
-	// InterpreterPath - The python interpreter path to use if an environment build is not required. The path specified gets used to call the user script.
-	InterpreterPath *string `json:"interpreterPath,omitempty"`
-	// UserManagedDependencies - True means that AzureML reuses an existing python environment; False means that AzureML will create a python environment based on the Conda dependencies specification.
-	UserManagedDependencies *bool `json:"userManagedDependencies,omitempty"`
-	// CondaDependencies - A JObject containing Conda dependencies.
-	CondaDependencies    interface{} `json:"condaDependencies,omitempty"`
-	BaseCondaEnvironment *string     `json:"baseCondaEnvironment,omitempty"`
-}
-
-// ModelSparkSection ...
-type ModelSparkSection struct {
-	// Repositories - The list of spark repositories.
-	Repositories *[]string `json:"repositories,omitempty"`
-	// Packages - The Spark packages to use.
-	Packages *[]SparkMavenPackage `json:"packages,omitempty"`
-	// PrecachePackages - Whether to precache the packages.
-	PrecachePackages *bool `json:"precachePackages,omitempty"`
-}
-
 // NodeStateCounts counts of various compute node states on the amlCompute.
 type NodeStateCounts struct {
 	// IdleNodeCount - READ-ONLY; Number of compute nodes in idle state.
@@ -4706,49 +3024,6 @@ type NotebookResourceInfo struct {
 	ResourceID *string `json:"resourceId,omitempty"`
 	// NotebookPreparationError - The error that occurs when preparing notebook.
 	NotebookPreparationError *NotebookPreparationError `json:"notebookPreparationError,omitempty"`
-}
-
-// NotebooksPrepareFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type NotebooksPrepareFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(NotebooksClient) (NotebookResourceInfo, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *NotebooksPrepareFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for NotebooksPrepareFuture.Result.
-func (future *NotebooksPrepareFuture) result(client NotebooksClient) (nri NotebookResourceInfo, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "machinelearningservices.NotebooksPrepareFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		nri.Response.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("machinelearningservices.NotebooksPrepareFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if nri.Response.Response, err = future.GetResult(sender); err == nil && nri.Response.Response.StatusCode != http.StatusNoContent {
-		nri, err = client.PrepareResponder(nri.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "machinelearningservices.NotebooksPrepareFuture", "Result", nri.Response.Response, "Failure responding to request")
-		}
-	}
-	return
 }
 
 // Operation azure Machine Learning workspace REST API operation
@@ -4938,172 +3213,6 @@ func NewPaginatedComputeResourcesListPage(cur PaginatedComputeResourcesList, get
 	}
 }
 
-// PaginatedServiceList paginated list of Machine Learning service objects wrapped in ARM resource
-// envelope.
-type PaginatedServiceList struct {
-	autorest.Response `json:"-"`
-	// Value - READ-ONLY; An array of Machine Learning compute objects wrapped in ARM resource envelope.
-	Value *[]ServiceResource `json:"value,omitempty"`
-	// NextLink - READ-ONLY; A continuation link (absolute URI) to the next page of results in the list.
-	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for PaginatedServiceList.
-func (psl PaginatedServiceList) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
-}
-
-// PaginatedServiceListIterator provides access to a complete listing of ServiceResource values.
-type PaginatedServiceListIterator struct {
-	i    int
-	page PaginatedServiceListPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *PaginatedServiceListIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PaginatedServiceListIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *PaginatedServiceListIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter PaginatedServiceListIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter PaginatedServiceListIterator) Response() PaginatedServiceList {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter PaginatedServiceListIterator) Value() ServiceResource {
-	if !iter.page.NotDone() {
-		return ServiceResource{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the PaginatedServiceListIterator type.
-func NewPaginatedServiceListIterator(page PaginatedServiceListPage) PaginatedServiceListIterator {
-	return PaginatedServiceListIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (psl PaginatedServiceList) IsEmpty() bool {
-	return psl.Value == nil || len(*psl.Value) == 0
-}
-
-// hasNextLink returns true if the NextLink is not empty.
-func (psl PaginatedServiceList) hasNextLink() bool {
-	return psl.NextLink != nil && len(*psl.NextLink) != 0
-}
-
-// paginatedServiceListPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (psl PaginatedServiceList) paginatedServiceListPreparer(ctx context.Context) (*http.Request, error) {
-	if !psl.hasNextLink() {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(psl.NextLink)))
-}
-
-// PaginatedServiceListPage contains a page of ServiceResource values.
-type PaginatedServiceListPage struct {
-	fn  func(context.Context, PaginatedServiceList) (PaginatedServiceList, error)
-	psl PaginatedServiceList
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *PaginatedServiceListPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PaginatedServiceListPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	for {
-		next, err := page.fn(ctx, page.psl)
-		if err != nil {
-			return err
-		}
-		page.psl = next
-		if !next.hasNextLink() || !next.IsEmpty() {
-			break
-		}
-	}
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *PaginatedServiceListPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page PaginatedServiceListPage) NotDone() bool {
-	return !page.psl.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page PaginatedServiceListPage) Response() PaginatedServiceList {
-	return page.psl
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page PaginatedServiceListPage) Values() []ServiceResource {
-	if page.psl.IsEmpty() {
-		return nil
-	}
-	return *page.psl.Value
-}
-
-// Creates a new instance of the PaginatedServiceListPage type.
-func NewPaginatedServiceListPage(cur PaginatedServiceList, getNextPage func(context.Context, PaginatedServiceList) (PaginatedServiceList, error)) PaginatedServiceListPage {
-	return PaginatedServiceListPage{
-		fn:  getNextPage,
-		psl: cur,
-	}
-}
-
 // PaginatedWorkspaceConnectionsList paginated list of Workspace connection objects.
 type PaginatedWorkspaceConnectionsList struct {
 	autorest.Response `json:"-"`
@@ -5152,22 +3261,22 @@ type PrivateEndpointConnection struct {
 	autorest.Response `json:"-"`
 	// PrivateEndpointConnectionProperties - Resource properties.
 	*PrivateEndpointConnectionProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Specifies the resource ID.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Specifies the name of the resource.
-	Name *string `json:"name,omitempty"`
 	// Identity - The identity of the resource.
 	Identity *Identity `json:"identity,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// Type - READ-ONLY; Specifies the type of the resource.
-	Type *string `json:"type,omitempty"`
 	// Tags - Contains resource tags defined as key/value pairs.
 	Tags map[string]*string `json:"tags"`
 	// Sku - The sku of the workspace.
 	Sku *Sku `json:"sku,omitempty"`
-	// SystemData - READ-ONLY
+	// SystemData - System data
 	SystemData *SystemData `json:"systemData,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for PrivateEndpointConnection.
@@ -5187,6 +3296,9 @@ func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
 	}
 	if pec.Sku != nil {
 		objectMap["sku"] = pec.Sku
+	}
+	if pec.SystemData != nil {
+		objectMap["systemData"] = pec.SystemData
 	}
 	return json.Marshal(objectMap)
 }
@@ -5209,24 +3321,6 @@ func (pec *PrivateEndpointConnection) UnmarshalJSON(body []byte) error {
 				}
 				pec.PrivateEndpointConnectionProperties = &privateEndpointConnectionProperties
 			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				pec.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				pec.Name = &name
-			}
 		case "identity":
 			if v != nil {
 				var identity Identity
@@ -5244,15 +3338,6 @@ func (pec *PrivateEndpointConnection) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				pec.Location = &location
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				pec.Type = &typeVar
 			}
 		case "tags":
 			if v != nil {
@@ -5281,10 +3366,45 @@ func (pec *PrivateEndpointConnection) UnmarshalJSON(body []byte) error {
 				}
 				pec.SystemData = &systemData
 			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				pec.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				pec.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				pec.Type = &typeVar
+			}
 		}
 	}
 
 	return nil
+}
+
+// PrivateEndpointConnectionListResult list of private endpoint connection associated with the specified
+// workspace
+type PrivateEndpointConnectionListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Array of private endpoint connections
+	Value *[]PrivateEndpointConnection `json:"value,omitempty"`
 }
 
 // PrivateEndpointConnectionProperties properties of the PrivateEndpointConnectProperties.
@@ -5301,22 +3421,22 @@ type PrivateEndpointConnectionProperties struct {
 type PrivateLinkResource struct {
 	// PrivateLinkResourceProperties - Resource properties.
 	*PrivateLinkResourceProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Specifies the resource ID.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Specifies the name of the resource.
-	Name *string `json:"name,omitempty"`
 	// Identity - The identity of the resource.
 	Identity *Identity `json:"identity,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// Type - READ-ONLY; Specifies the type of the resource.
-	Type *string `json:"type,omitempty"`
 	// Tags - Contains resource tags defined as key/value pairs.
 	Tags map[string]*string `json:"tags"`
 	// Sku - The sku of the workspace.
 	Sku *Sku `json:"sku,omitempty"`
-	// SystemData - READ-ONLY
+	// SystemData - System data
 	SystemData *SystemData `json:"systemData,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for PrivateLinkResource.
@@ -5336,6 +3456,9 @@ func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
 	}
 	if plr.Sku != nil {
 		objectMap["sku"] = plr.Sku
+	}
+	if plr.SystemData != nil {
+		objectMap["systemData"] = plr.SystemData
 	}
 	return json.Marshal(objectMap)
 }
@@ -5358,24 +3481,6 @@ func (plr *PrivateLinkResource) UnmarshalJSON(body []byte) error {
 				}
 				plr.PrivateLinkResourceProperties = &privateLinkResourceProperties
 			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				plr.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				plr.Name = &name
-			}
 		case "identity":
 			if v != nil {
 				var identity Identity
@@ -5393,15 +3498,6 @@ func (plr *PrivateLinkResource) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				plr.Location = &location
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				plr.Type = &typeVar
 			}
 		case "tags":
 			if v != nil {
@@ -5429,6 +3525,33 @@ func (plr *PrivateLinkResource) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				plr.SystemData = &systemData
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				plr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				plr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				plr.Type = &typeVar
 			}
 		}
 	}
@@ -5473,6 +3596,23 @@ type PrivateLinkServiceConnectionState struct {
 	ActionsRequired *string `json:"actionsRequired,omitempty"`
 }
 
+// ProxyResource the resource model definition for a Azure Resource Manager proxy resource. It will not
+// have tags and a location
+type ProxyResource struct {
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // QuotaBaseProperties the properties for Quota update or retrieval.
 type QuotaBaseProperties struct {
 	// ID - Specifies the resource ID.
@@ -5493,14 +3633,6 @@ type QuotaUpdateParameters struct {
 	Location *string `json:"location,omitempty"`
 }
 
-// RCranPackage ...
-type RCranPackage struct {
-	// Name - The package name.
-	Name *string `json:"name,omitempty"`
-	// Repository - The repository name.
-	Repository *string `json:"repository,omitempty"`
-}
-
 // RegistryListCredentialsResult ...
 type RegistryListCredentialsResult struct {
 	// Location - READ-ONLY
@@ -5519,41 +3651,19 @@ func (rlcr RegistryListCredentialsResult) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Resource azure Resource Manager resource envelope.
+// Resource common fields that are returned in the response for all Azure Resource Manager resources
 type Resource struct {
-	// ID - READ-ONLY; Specifies the resource ID.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Specifies the name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Identity - The identity of the resource.
-	Identity *Identity `json:"identity,omitempty"`
-	// Location - Specifies the location of the resource.
-	Location *string `json:"location,omitempty"`
-	// Type - READ-ONLY; Specifies the type of the resource.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
-	// Tags - Contains resource tags defined as key/value pairs.
-	Tags map[string]*string `json:"tags"`
-	// Sku - The sku of the workspace.
-	Sku *Sku `json:"sku,omitempty"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Resource.
 func (r Resource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if r.Identity != nil {
-		objectMap["identity"] = r.Identity
-	}
-	if r.Location != nil {
-		objectMap["location"] = r.Location
-	}
-	if r.Tags != nil {
-		objectMap["tags"] = r.Tags
-	}
-	if r.Sku != nil {
-		objectMap["sku"] = r.Sku
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -5648,62 +3758,6 @@ func (r Restriction) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// RGitHubPackage ...
-type RGitHubPackage struct {
-	// Repository - Repository address in the format username/repo[/subdir][@ref|#pull].
-	Repository *string `json:"repository,omitempty"`
-	// AuthToken - Personal access token to install from a private repo
-	AuthToken *string `json:"authToken,omitempty"`
-}
-
-// RGitHubPackageResponse ...
-type RGitHubPackageResponse struct {
-	// Repository - Repository address in the format username/repo[/subdir][@ref|#pull].
-	Repository *string `json:"repository,omitempty"`
-}
-
-// RSection ...
-type RSection struct {
-	// RVersion - The version of R to be installed
-	RVersion *string `json:"rVersion,omitempty"`
-	// UserManaged - Indicates whether the environment is managed by user or by AzureML.
-	UserManaged *bool `json:"userManaged,omitempty"`
-	// RscriptPath - The Rscript path to use if an environment build is not required.
-	// The path specified gets used to call the user script.
-	RscriptPath *string `json:"rscriptPath,omitempty"`
-	// SnapshotDate - Date of MRAN snapshot to use in YYYY-MM-DD format, e.g. "2019-04-17"
-	SnapshotDate *string `json:"snapshotDate,omitempty"`
-	// CranPackages - The CRAN packages to use.
-	CranPackages *[]RCranPackage `json:"cranPackages,omitempty"`
-	// GitHubPackages - The packages directly from GitHub.
-	GitHubPackages *[]RGitHubPackage `json:"gitHubPackages,omitempty"`
-	// CustomURLPackages - The packages from custom urls.
-	CustomURLPackages *[]string `json:"customUrlPackages,omitempty"`
-	// BioConductorPackages - The packages from Bioconductor.
-	BioConductorPackages *[]string `json:"bioConductorPackages,omitempty"`
-}
-
-// RSectionResponse ...
-type RSectionResponse struct {
-	// RVersion - The version of R to be installed
-	RVersion *string `json:"rVersion,omitempty"`
-	// UserManaged - Indicates whether the environment is managed by user or by AzureML.
-	UserManaged *bool `json:"userManaged,omitempty"`
-	// RscriptPath - The Rscript path to use if an environment build is not required.
-	// The path specified gets used to call the user script.
-	RscriptPath *string `json:"rscriptPath,omitempty"`
-	// SnapshotDate - Date of MRAN snapshot to use in YYYY-MM-DD format, e.g. "2019-04-17"
-	SnapshotDate *string `json:"snapshotDate,omitempty"`
-	// CranPackages - The CRAN packages to use.
-	CranPackages *[]RCranPackage `json:"cranPackages,omitempty"`
-	// GitHubPackages - The packages directly from GitHub.
-	GitHubPackages *[]RGitHubPackageResponse `json:"gitHubPackages,omitempty"`
-	// CustomURLPackages - The packages from custom urls.
-	CustomURLPackages *[]string `json:"customUrlPackages,omitempty"`
-	// BioConductorPackages - The packages from Bioconductor.
-	BioConductorPackages *[]string `json:"bioConductorPackages,omitempty"`
-}
-
 // ScaleSettings scale settings for AML Compute
 type ScaleSettings struct {
 	// MaxNodeCount - Max number of nodes to use
@@ -5712,6 +3766,11 @@ type ScaleSettings struct {
 	MinNodeCount *int32 `json:"minNodeCount,omitempty"`
 	// NodeIdleTimeBeforeScaleDown - Node Idle Time before scaling down amlCompute. This string needs to be in the RFC Format.
 	NodeIdleTimeBeforeScaleDown *string `json:"nodeIdleTimeBeforeScaleDown,omitempty"`
+}
+
+// ScaleSettingsInformation desired scale settings for the amlCompute.
+type ScaleSettingsInformation struct {
+	ScaleSettings *ScaleSettings `json:"scaleSettings,omitempty"`
 }
 
 // ScriptReference script reference
@@ -5746,281 +3805,6 @@ type ServicePrincipalCredentials struct {
 	ClientID *string `json:"clientId,omitempty"`
 	// ClientSecret - Client secret
 	ClientSecret *string `json:"clientSecret,omitempty"`
-}
-
-// ServiceResource machine Learning service object wrapped into ARM resource envelope.
-type ServiceResource struct {
-	autorest.Response `json:"-"`
-	// Properties - Service properties
-	Properties BasicServiceResponseBase `json:"properties,omitempty"`
-	// ID - READ-ONLY; Specifies the resource ID.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Specifies the name of the resource.
-	Name *string `json:"name,omitempty"`
-	// Identity - The identity of the resource.
-	Identity *Identity `json:"identity,omitempty"`
-	// Location - Specifies the location of the resource.
-	Location *string `json:"location,omitempty"`
-	// Type - READ-ONLY; Specifies the type of the resource.
-	Type *string `json:"type,omitempty"`
-	// Tags - Contains resource tags defined as key/value pairs.
-	Tags map[string]*string `json:"tags"`
-	// Sku - The sku of the workspace.
-	Sku *Sku `json:"sku,omitempty"`
-	// SystemData - READ-ONLY
-	SystemData *SystemData `json:"systemData,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ServiceResource.
-func (sr ServiceResource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	objectMap["properties"] = sr.Properties
-	if sr.Identity != nil {
-		objectMap["identity"] = sr.Identity
-	}
-	if sr.Location != nil {
-		objectMap["location"] = sr.Location
-	}
-	if sr.Tags != nil {
-		objectMap["tags"] = sr.Tags
-	}
-	if sr.Sku != nil {
-		objectMap["sku"] = sr.Sku
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for ServiceResource struct.
-func (sr *ServiceResource) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				properties, err := unmarshalBasicServiceResponseBase(*v)
-				if err != nil {
-					return err
-				}
-				sr.Properties = properties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				sr.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				sr.Name = &name
-			}
-		case "identity":
-			if v != nil {
-				var identity Identity
-				err = json.Unmarshal(*v, &identity)
-				if err != nil {
-					return err
-				}
-				sr.Identity = &identity
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				sr.Location = &location
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				sr.Type = &typeVar
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				sr.Tags = tags
-			}
-		case "sku":
-			if v != nil {
-				var sku Sku
-				err = json.Unmarshal(*v, &sku)
-				if err != nil {
-					return err
-				}
-				sr.Sku = &sku
-			}
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				sr.SystemData = &systemData
-			}
-		}
-	}
-
-	return nil
-}
-
-// BasicServiceResponseBase the base service response. The correct inherited response based on computeType will be
-// returned (ex. ACIServiceResponse)
-type BasicServiceResponseBase interface {
-	AsACIServiceResponse() (*ACIServiceResponse, bool)
-	AsAKSVariantResponse() (*AKSVariantResponse, bool)
-	AsBasicAKSVariantResponse() (BasicAKSVariantResponse, bool)
-	AsAKSServiceResponse() (*AKSServiceResponse, bool)
-	AsServiceResponseBase() (*ServiceResponseBase, bool)
-}
-
-// ServiceResponseBase the base service response. The correct inherited response based on computeType will be
-// returned (ex. ACIServiceResponse)
-type ServiceResponseBase struct {
-	// Description - The service description.
-	Description *string `json:"description,omitempty"`
-	// KvTags - The service tag dictionary. Tags are mutable.
-	KvTags map[string]*string `json:"kvTags"`
-	// Properties - The service property dictionary. Properties are immutable.
-	Properties map[string]*string `json:"properties"`
-	// State - READ-ONLY; The current state of the service. Possible values include: 'WebServiceStateTransitioning', 'WebServiceStateHealthy', 'WebServiceStateUnhealthy', 'WebServiceStateFailed', 'WebServiceStateUnschedulable'
-	State WebServiceState `json:"state,omitempty"`
-	// Error - READ-ONLY; The error details.
-	Error *ServiceResponseBaseError `json:"error,omitempty"`
-	// DeploymentType - The deployment type for the service. Possible values include: 'DeploymentTypeGRPCRealtimeEndpoint', 'DeploymentTypeHTTPRealtimeEndpoint', 'DeploymentTypeBatch'
-	DeploymentType DeploymentType `json:"deploymentType,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicServiceResponseBaseComputeTypeServiceResponseBase', 'ComputeTypeBasicServiceResponseBaseComputeTypeACI', 'ComputeTypeBasicServiceResponseBaseComputeTypeCustom', 'ComputeTypeBasicServiceResponseBaseComputeTypeAKS'
-	ComputeType ComputeTypeBasicServiceResponseBase `json:"computeType,omitempty"`
-}
-
-func unmarshalBasicServiceResponseBase(body []byte) (BasicServiceResponseBase, error) {
-	var m map[string]interface{}
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return nil, err
-	}
-
-	switch m["computeType"] {
-	case string(ComputeTypeBasicServiceResponseBaseComputeTypeACI):
-		var asr ACIServiceResponse
-		err := json.Unmarshal(body, &asr)
-		return asr, err
-	case string(ComputeTypeBasicServiceResponseBaseComputeTypeCustom):
-		var avr AKSVariantResponse
-		err := json.Unmarshal(body, &avr)
-		return avr, err
-	case string(ComputeTypeBasicServiceResponseBaseComputeTypeAKS):
-		var asr AKSServiceResponse
-		err := json.Unmarshal(body, &asr)
-		return asr, err
-	default:
-		var srb ServiceResponseBase
-		err := json.Unmarshal(body, &srb)
-		return srb, err
-	}
-}
-func unmarshalBasicServiceResponseBaseArray(body []byte) ([]BasicServiceResponseBase, error) {
-	var rawMessages []*json.RawMessage
-	err := json.Unmarshal(body, &rawMessages)
-	if err != nil {
-		return nil, err
-	}
-
-	srbArray := make([]BasicServiceResponseBase, len(rawMessages))
-
-	for index, rawMessage := range rawMessages {
-		srb, err := unmarshalBasicServiceResponseBase(*rawMessage)
-		if err != nil {
-			return nil, err
-		}
-		srbArray[index] = srb
-	}
-	return srbArray, nil
-}
-
-// MarshalJSON is the custom marshaler for ServiceResponseBase.
-func (srb ServiceResponseBase) MarshalJSON() ([]byte, error) {
-	srb.ComputeType = ComputeTypeBasicServiceResponseBaseComputeTypeServiceResponseBase
-	objectMap := make(map[string]interface{})
-	if srb.Description != nil {
-		objectMap["description"] = srb.Description
-	}
-	if srb.KvTags != nil {
-		objectMap["kvTags"] = srb.KvTags
-	}
-	if srb.Properties != nil {
-		objectMap["properties"] = srb.Properties
-	}
-	if srb.DeploymentType != "" {
-		objectMap["deploymentType"] = srb.DeploymentType
-	}
-	if srb.ComputeType != "" {
-		objectMap["computeType"] = srb.ComputeType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsACIServiceResponse is the BasicServiceResponseBase implementation for ServiceResponseBase.
-func (srb ServiceResponseBase) AsACIServiceResponse() (*ACIServiceResponse, bool) {
-	return nil, false
-}
-
-// AsAKSVariantResponse is the BasicServiceResponseBase implementation for ServiceResponseBase.
-func (srb ServiceResponseBase) AsAKSVariantResponse() (*AKSVariantResponse, bool) {
-	return nil, false
-}
-
-// AsBasicAKSVariantResponse is the BasicServiceResponseBase implementation for ServiceResponseBase.
-func (srb ServiceResponseBase) AsBasicAKSVariantResponse() (BasicAKSVariantResponse, bool) {
-	return nil, false
-}
-
-// AsAKSServiceResponse is the BasicServiceResponseBase implementation for ServiceResponseBase.
-func (srb ServiceResponseBase) AsAKSServiceResponse() (*AKSServiceResponse, bool) {
-	return nil, false
-}
-
-// AsServiceResponseBase is the BasicServiceResponseBase implementation for ServiceResponseBase.
-func (srb ServiceResponseBase) AsServiceResponseBase() (*ServiceResponseBase, bool) {
-	return &srb, true
-}
-
-// AsBasicServiceResponseBase is the BasicServiceResponseBase implementation for ServiceResponseBase.
-func (srb ServiceResponseBase) AsBasicServiceResponseBase() (BasicServiceResponseBase, bool) {
-	return &srb, true
-}
-
-// ServiceResponseBaseError the error details.
-type ServiceResponseBaseError struct {
-	// Error - READ-ONLY; The error response.
-	Error *ErrorResponse `json:"error,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ServiceResponseBaseError.
-func (srb ServiceResponseBaseError) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	return json.Marshal(objectMap)
 }
 
 // SetupScripts details of customized scripts to execute for setting up the cluster.
@@ -6268,13 +4052,6 @@ func NewSkuListResultPage(cur SkuListResult, getNextPage func(context.Context, S
 	}
 }
 
-// SparkMavenPackage ...
-type SparkMavenPackage struct {
-	Group    *string `json:"group,omitempty"`
-	Artifact *string `json:"artifact,omitempty"`
-	Version  *string `json:"version,omitempty"`
-}
-
 // SslConfiguration the ssl configuration for scoring
 type SslConfiguration struct {
 	// Status - Enable or disable ssl for scoring. Possible values include: 'Status1Disabled', 'Status1Enabled', 'Status1Auto'
@@ -6293,8 +4070,7 @@ type SslConfiguration struct {
 
 // SynapseSpark a SynapseSpark compute.
 type SynapseSpark struct {
-	// ComputeType - The type of compute. Possible values include: 'ComputeTypeAKS', 'ComputeTypeAmlCompute', 'ComputeTypeComputeInstance', 'ComputeTypeDataFactory', 'ComputeTypeVirtualMachine', 'ComputeTypeHDInsight', 'ComputeTypeDatabricks', 'ComputeTypeDataLakeAnalytics', 'ComputeTypeSynapseSpark'
-	ComputeType ComputeType `json:"computeType,omitempty"`
+	Properties *SynapseSparkProperties `json:"properties,omitempty"`
 	// ComputeLocation - Location for the underlying compute
 	ComputeLocation *string `json:"computeLocation,omitempty"`
 	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'ProvisioningStateUnknown', 'ProvisioningStateUpdating', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled'
@@ -6308,20 +4084,21 @@ type SynapseSpark struct {
 	// ResourceID - ARM resource id of the underlying compute
 	ResourceID *string `json:"resourceId,omitempty"`
 	// ProvisioningErrors - READ-ONLY; Errors during provisioning
-	ProvisioningErrors *[]Error `json:"provisioningErrors,omitempty"`
+	ProvisioningErrors *[]ErrorResponse `json:"provisioningErrors,omitempty"`
 	// IsAttachedCompute - READ-ONLY; Indicating whether the compute was provisioned by user and brought from outside if true, or machine learning service provisioned it if false.
 	IsAttachedCompute *bool `json:"isAttachedCompute,omitempty"`
 	// DisableLocalAuth - Opt-out of local authentication and ensure customers can use only MSI and AAD exclusively for authentication.
 	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
-	// Properties - AKS properties
-	Properties *SynapseSparkProperties `json:"properties,omitempty"`
+	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics', 'ComputeTypeBasicComputeComputeTypeSynapseSpark'
+	ComputeType ComputeTypeBasicCompute `json:"computeType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SynapseSpark.
 func (ss SynapseSpark) MarshalJSON() ([]byte, error) {
+	ss.ComputeType = ComputeTypeBasicComputeComputeTypeSynapseSpark
 	objectMap := make(map[string]interface{})
-	if ss.ComputeType != "" {
-		objectMap["computeType"] = ss.ComputeType
+	if ss.Properties != nil {
+		objectMap["properties"] = ss.Properties
 	}
 	if ss.ComputeLocation != nil {
 		objectMap["computeLocation"] = ss.ComputeLocation
@@ -6335,19 +4112,68 @@ func (ss SynapseSpark) MarshalJSON() ([]byte, error) {
 	if ss.DisableLocalAuth != nil {
 		objectMap["disableLocalAuth"] = ss.DisableLocalAuth
 	}
-	if ss.Properties != nil {
-		objectMap["properties"] = ss.Properties
+	if ss.ComputeType != "" {
+		objectMap["computeType"] = ss.ComputeType
 	}
 	return json.Marshal(objectMap)
 }
 
-// SynapseSparkPoolProperties properties specific to Synapse Spark pools.
-type SynapseSparkPoolProperties struct {
-	// Properties - AKS properties
-	Properties *SynapseSparkProperties `json:"properties,omitempty"`
+// AsAKS is the BasicCompute implementation for SynapseSpark.
+func (ss SynapseSpark) AsAKS() (*AKS, bool) {
+	return nil, false
 }
 
-// SynapseSparkProperties AKS properties
+// AsAmlCompute is the BasicCompute implementation for SynapseSpark.
+func (ss SynapseSpark) AsAmlCompute() (*AmlCompute, bool) {
+	return nil, false
+}
+
+// AsComputeInstance is the BasicCompute implementation for SynapseSpark.
+func (ss SynapseSpark) AsComputeInstance() (*ComputeInstance, bool) {
+	return nil, false
+}
+
+// AsVirtualMachine is the BasicCompute implementation for SynapseSpark.
+func (ss SynapseSpark) AsVirtualMachine() (*VirtualMachine, bool) {
+	return nil, false
+}
+
+// AsHDInsight is the BasicCompute implementation for SynapseSpark.
+func (ss SynapseSpark) AsHDInsight() (*HDInsight, bool) {
+	return nil, false
+}
+
+// AsDataFactory is the BasicCompute implementation for SynapseSpark.
+func (ss SynapseSpark) AsDataFactory() (*DataFactory, bool) {
+	return nil, false
+}
+
+// AsDatabricks is the BasicCompute implementation for SynapseSpark.
+func (ss SynapseSpark) AsDatabricks() (*Databricks, bool) {
+	return nil, false
+}
+
+// AsDataLakeAnalytics is the BasicCompute implementation for SynapseSpark.
+func (ss SynapseSpark) AsDataLakeAnalytics() (*DataLakeAnalytics, bool) {
+	return nil, false
+}
+
+// AsSynapseSpark is the BasicCompute implementation for SynapseSpark.
+func (ss SynapseSpark) AsSynapseSpark() (*SynapseSpark, bool) {
+	return &ss, true
+}
+
+// AsCompute is the BasicCompute implementation for SynapseSpark.
+func (ss SynapseSpark) AsCompute() (*Compute, bool) {
+	return nil, false
+}
+
+// AsBasicCompute is the BasicCompute implementation for SynapseSpark.
+func (ss SynapseSpark) AsBasicCompute() (BasicCompute, bool) {
+	return &ss, true
+}
+
+// SynapseSparkProperties ...
 type SynapseSparkProperties struct {
 	// AutoScaleProperties - Auto scale properties.
 	AutoScaleProperties *AutoScaleProperties `json:"autoScaleProperties,omitempty"`
@@ -6371,18 +4197,18 @@ type SynapseSparkProperties struct {
 	PoolName *string `json:"poolName,omitempty"`
 }
 
-// SystemData read only system data
+// SystemData metadata pertaining to creation and last modification of the resource.
 type SystemData struct {
-	// CreatedBy - An identifier for the identity that created the resource
+	// CreatedBy - The identity that created the resource.
 	CreatedBy *string `json:"createdBy,omitempty"`
-	// CreatedByType - The type of identity that created the resource. Possible values include: 'IdentityTypeUser', 'IdentityTypeApplication', 'IdentityTypeManagedIdentity', 'IdentityTypeKey'
-	CreatedByType IdentityType `json:"createdByType,omitempty"`
-	// CreatedAt - The timestamp of resource creation (UTC)
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
 	CreatedAt *date.Time `json:"createdAt,omitempty"`
-	// LastModifiedBy - An identifier for the identity that last modified the resource
+	// LastModifiedBy - The identity that last modified the resource.
 	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
-	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'IdentityTypeUser', 'IdentityTypeApplication', 'IdentityTypeManagedIdentity', 'IdentityTypeKey'
-	LastModifiedByType IdentityType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
 	// LastModifiedAt - The timestamp of resource last modification (UTC)
 	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
 }
@@ -6400,6 +4226,33 @@ type SystemService struct {
 // MarshalJSON is the custom marshaler for SystemService.
 func (ss SystemService) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// TrackedResource the resource model definition for an Azure Resource Manager tracked top level resource
+// which has 'tags' and a 'location'
+type TrackedResource struct {
+	// Tags - Resource tags.
+	Tags map[string]*string `json:"tags"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TrackedResource.
+func (tr TrackedResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tr.Tags != nil {
+		objectMap["tags"] = tr.Tags
+	}
+	if tr.Location != nil {
+		objectMap["location"] = tr.Location
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -6524,12 +4377,12 @@ type VirtualMachine struct {
 	// ResourceID - ARM resource id of the underlying compute
 	ResourceID *string `json:"resourceId,omitempty"`
 	// ProvisioningErrors - READ-ONLY; Errors during provisioning
-	ProvisioningErrors *[]Error `json:"provisioningErrors,omitempty"`
+	ProvisioningErrors *[]ErrorResponse `json:"provisioningErrors,omitempty"`
 	// IsAttachedCompute - READ-ONLY; Indicating whether the compute was provisioned by user and brought from outside if true, or machine learning service provisioned it if false.
 	IsAttachedCompute *bool `json:"isAttachedCompute,omitempty"`
 	// DisableLocalAuth - Opt-out of local authentication and ensure customers can use only MSI and AAD exclusively for authentication.
 	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics'
+	// ComputeType - Possible values include: 'ComputeTypeBasicComputeComputeTypeCompute', 'ComputeTypeBasicComputeComputeTypeAKS', 'ComputeTypeBasicComputeComputeTypeAmlCompute', 'ComputeTypeBasicComputeComputeTypeComputeInstance', 'ComputeTypeBasicComputeComputeTypeVirtualMachine', 'ComputeTypeBasicComputeComputeTypeHDInsight', 'ComputeTypeBasicComputeComputeTypeDataFactory', 'ComputeTypeBasicComputeComputeTypeDatabricks', 'ComputeTypeBasicComputeComputeTypeDataLakeAnalytics', 'ComputeTypeBasicComputeComputeTypeSynapseSpark'
 	ComputeType ComputeTypeBasicCompute `json:"computeType,omitempty"`
 }
 
@@ -6598,6 +4451,11 @@ func (VM VirtualMachine) AsDataLakeAnalytics() (*DataLakeAnalytics, bool) {
 	return nil, false
 }
 
+// AsSynapseSpark is the BasicCompute implementation for VirtualMachine.
+func (VM VirtualMachine) AsSynapseSpark() (*SynapseSpark, bool) {
+	return nil, false
+}
+
 // AsCompute is the BasicCompute implementation for VirtualMachine.
 func (VM VirtualMachine) AsCompute() (*Compute, bool) {
 	return nil, false
@@ -6632,7 +4490,7 @@ type VirtualMachineProperties struct {
 type VirtualMachineSecrets struct {
 	// AdministratorAccount - Admin credentials for virtual machine.
 	AdministratorAccount *VirtualMachineSSHCredentials `json:"administratorAccount,omitempty"`
-	// ComputeType - Possible values include: 'ComputeTypeBasicComputeSecretsComputeTypeComputeSecrets', 'ComputeTypeBasicComputeSecretsComputeTypeAKS', 'ComputeTypeBasicComputeSecretsComputeTypeVirtualMachine', 'ComputeTypeBasicComputeSecretsComputeTypeDatabricks'
+	// ComputeType - Possible values include: 'ComputeTypeBasicComputeSecretsComputeTypeComputeSecrets', 'ComputeTypeBasicComputeSecretsComputeTypeVirtualMachine'
 	ComputeType ComputeTypeBasicComputeSecrets `json:"computeType,omitempty"`
 }
 
@@ -6649,19 +4507,9 @@ func (vms VirtualMachineSecrets) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// AsAksComputeSecrets is the BasicComputeSecrets implementation for VirtualMachineSecrets.
-func (vms VirtualMachineSecrets) AsAksComputeSecrets() (*AksComputeSecrets, bool) {
-	return nil, false
-}
-
 // AsVirtualMachineSecrets is the BasicComputeSecrets implementation for VirtualMachineSecrets.
 func (vms VirtualMachineSecrets) AsVirtualMachineSecrets() (*VirtualMachineSecrets, bool) {
 	return &vms, true
-}
-
-// AsDatabricksComputeSecrets is the BasicComputeSecrets implementation for VirtualMachineSecrets.
-func (vms VirtualMachineSecrets) AsDatabricksComputeSecrets() (*DatabricksComputeSecrets, bool) {
-	return nil, false
 }
 
 // AsComputeSecrets is the BasicComputeSecrets implementation for VirtualMachineSecrets.
@@ -6715,8 +4563,8 @@ func (vms VirtualMachineSize) MarshalJSON() ([]byte, error) {
 // VirtualMachineSizeListResult the List Virtual Machine size operation response.
 type VirtualMachineSizeListResult struct {
 	autorest.Response `json:"-"`
-	// AmlCompute - The list of virtual machine sizes supported by AmlCompute.
-	AmlCompute *[]VirtualMachineSize `json:"amlCompute,omitempty"`
+	// Value - The list of virtual machine sizes supported by AmlCompute.
+	Value *[]VirtualMachineSize `json:"value,omitempty"`
 }
 
 // VirtualMachineSSHCredentials admin credentials for virtual machine
@@ -6731,35 +4579,27 @@ type VirtualMachineSSHCredentials struct {
 	PrivateKeyData *string `json:"privateKeyData,omitempty"`
 }
 
-// VnetConfiguration ...
-type VnetConfiguration struct {
-	// VnetName - The name of the virtual network.
-	VnetName *string `json:"vnetName,omitempty"`
-	// SubnetName - The name of the virtual network subnet.
-	SubnetName *string `json:"subnetName,omitempty"`
-}
-
 // Workspace an object that represents a machine learning workspace.
 type Workspace struct {
 	autorest.Response `json:"-"`
 	// WorkspaceProperties - The properties of the machine learning workspace.
 	*WorkspaceProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Specifies the resource ID.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Specifies the name of the resource.
-	Name *string `json:"name,omitempty"`
 	// Identity - The identity of the resource.
 	Identity *Identity `json:"identity,omitempty"`
 	// Location - Specifies the location of the resource.
 	Location *string `json:"location,omitempty"`
-	// Type - READ-ONLY; Specifies the type of the resource.
-	Type *string `json:"type,omitempty"`
 	// Tags - Contains resource tags defined as key/value pairs.
 	Tags map[string]*string `json:"tags"`
 	// Sku - The sku of the workspace.
 	Sku *Sku `json:"sku,omitempty"`
-	// SystemData - READ-ONLY
+	// SystemData - System data
 	SystemData *SystemData `json:"systemData,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Workspace.
@@ -6779,6 +4619,9 @@ func (w Workspace) MarshalJSON() ([]byte, error) {
 	}
 	if w.Sku != nil {
 		objectMap["sku"] = w.Sku
+	}
+	if w.SystemData != nil {
+		objectMap["systemData"] = w.SystemData
 	}
 	return json.Marshal(objectMap)
 }
@@ -6801,24 +4644,6 @@ func (w *Workspace) UnmarshalJSON(body []byte) error {
 				}
 				w.WorkspaceProperties = &workspaceProperties
 			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				w.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				w.Name = &name
-			}
 		case "identity":
 			if v != nil {
 				var identity Identity
@@ -6836,15 +4661,6 @@ func (w *Workspace) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				w.Location = &location
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				w.Type = &typeVar
 			}
 		case "tags":
 			if v != nil {
@@ -6872,6 +4688,33 @@ func (w *Workspace) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				w.SystemData = &systemData
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				w.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				w.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				w.Type = &typeVar
 			}
 		}
 	}
@@ -6945,59 +4788,6 @@ func (wc *WorkspaceConnection) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				wc.WorkspaceConnectionProps = &workspaceConnectionProps
-			}
-		}
-	}
-
-	return nil
-}
-
-// WorkspaceConnectionDto object used for creating workspace connection.
-type WorkspaceConnectionDto struct {
-	// Name - Friendly name of the workspace connection
-	Name *string `json:"name,omitempty"`
-	// WorkspaceConnectionProps - Properties of workspace connection.
-	*WorkspaceConnectionProps `json:"properties,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for WorkspaceConnectionDto.
-func (wcd WorkspaceConnectionDto) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if wcd.Name != nil {
-		objectMap["name"] = wcd.Name
-	}
-	if wcd.WorkspaceConnectionProps != nil {
-		objectMap["properties"] = wcd.WorkspaceConnectionProps
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for WorkspaceConnectionDto struct.
-func (wcd *WorkspaceConnectionDto) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				wcd.Name = &name
-			}
-		case "properties":
-			if v != nil {
-				var workspaceConnectionProps WorkspaceConnectionProps
-				err = json.Unmarshal(*v, &workspaceConnectionProps)
-				if err != nil {
-					return err
-				}
-				wcd.WorkspaceConnectionProps = &workspaceConnectionProps
 			}
 		}
 	}
@@ -7210,6 +5000,8 @@ type WorkspaceProperties struct {
 	ImageBuildCompute *string `json:"imageBuildCompute,omitempty"`
 	// AllowPublicAccessWhenBehindVnet - The flag to indicate whether to allow public access when behind VNet.
 	AllowPublicAccessWhenBehindVnet *bool `json:"allowPublicAccessWhenBehindVnet,omitempty"`
+	// PublicNetworkAccess - Whether requests from Public Network are allowed. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 	// PrivateEndpointConnections - READ-ONLY; The list of private endpoint connections in the workspace.
 	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 	// SharedPrivateLinkResources - The list of shared private link resources in this workspace.
@@ -7222,6 +5014,10 @@ type WorkspaceProperties struct {
 	PrimaryUserAssignedIdentity *string `json:"primaryUserAssignedIdentity,omitempty"`
 	// TenantID - READ-ONLY; The tenant id associated with this workspace.
 	TenantID *string `json:"tenantId,omitempty"`
+	// StorageHnsEnabled - READ-ONLY; If the storage associated with the workspace has hierarchical namespace(HNS) enabled.
+	StorageHnsEnabled *bool `json:"storageHnsEnabled,omitempty"`
+	// MlFlowTrackingURI - READ-ONLY; The URI associated with this workspace that machine learning flow must point at to set up tracking.
+	MlFlowTrackingURI *string `json:"mlFlowTrackingUri,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for WorkspaceProperties.
@@ -7260,6 +5056,9 @@ func (wp WorkspaceProperties) MarshalJSON() ([]byte, error) {
 	if wp.AllowPublicAccessWhenBehindVnet != nil {
 		objectMap["allowPublicAccessWhenBehindVnet"] = wp.AllowPublicAccessWhenBehindVnet
 	}
+	if wp.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = wp.PublicNetworkAccess
+	}
 	if wp.SharedPrivateLinkResources != nil {
 		objectMap["sharedPrivateLinkResources"] = wp.SharedPrivateLinkResources
 	}
@@ -7285,6 +5084,8 @@ type WorkspacePropertiesUpdateParameters struct {
 	ServiceManagedResourcesSettings *ServiceManagedResourcesSettings `json:"serviceManagedResourcesSettings,omitempty"`
 	// PrimaryUserAssignedIdentity - The user assigned identity resource id that represents the workspace identity.
 	PrimaryUserAssignedIdentity *string `json:"primaryUserAssignedIdentity,omitempty"`
+	// PublicNetworkAccess - Whether requests from Public Network are allowed. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
 // WorkspacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -7367,6 +5168,49 @@ func (future *WorkspacesDeleteFuture) result(client WorkspacesClient) (ar autore
 	return
 }
 
+// WorkspacesDiagnoseFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type WorkspacesDiagnoseFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(WorkspacesClient) (DiagnoseResponseResult, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *WorkspacesDiagnoseFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for WorkspacesDiagnoseFuture.Result.
+func (future *WorkspacesDiagnoseFuture) result(client WorkspacesClient) (drr DiagnoseResponseResult, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesDiagnoseFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		drr.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("machinelearningservices.WorkspacesDiagnoseFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if drr.Response.Response, err = future.GetResult(sender); err == nil && drr.Response.Response.StatusCode != http.StatusNoContent {
+		drr, err = client.DiagnoseResponder(drr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesDiagnoseFuture", "Result", drr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // WorkspaceSku describes Workspace Sku details and features
 type WorkspaceSku struct {
 	// Locations - READ-ONLY; The set of locations that the SKU is available. This will be supported and registered Azure Geo Regions (e.g. West US, East US, Southeast Asia, etc.).
@@ -7392,6 +5236,49 @@ func (ws WorkspaceSku) MarshalJSON() ([]byte, error) {
 		objectMap["restrictions"] = ws.Restrictions
 	}
 	return json.Marshal(objectMap)
+}
+
+// WorkspacesPrepareNotebookFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type WorkspacesPrepareNotebookFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(WorkspacesClient) (NotebookResourceInfo, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *WorkspacesPrepareNotebookFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for WorkspacesPrepareNotebookFuture.Result.
+func (future *WorkspacesPrepareNotebookFuture) result(client WorkspacesClient) (nri NotebookResourceInfo, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesPrepareNotebookFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		nri.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("machinelearningservices.WorkspacesPrepareNotebookFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if nri.Response.Response, err = future.GetResult(sender); err == nil && nri.Response.Response.StatusCode != http.StatusNoContent {
+		nri, err = client.PrepareNotebookResponder(nri.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesPrepareNotebookFuture", "Result", nri.Response.Response, "Failure responding to request")
+		}
+	}
+	return
 }
 
 // WorkspacesResyncKeysFuture an abstraction for monitoring and retrieving the results of a long-running
