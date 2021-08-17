@@ -93,13 +93,13 @@ func authorizationRuleSchemaFrom(s map[string]*pluginsdk.Schema) map[string]*plu
 			Sensitive: true,
 		},
 
-		"alias_primary_connection_string": {
+		"primary_connection_string_alias": {
 			Type:      pluginsdk.TypeString,
 			Computed:  true,
 			Sensitive: true,
 		},
 
-		"alias_secondary_connection_string": {
+		"secondary_connection_string_alias": {
 			Type:      pluginsdk.TypeString,
 			Computed:  true,
 			Sensitive: true,
