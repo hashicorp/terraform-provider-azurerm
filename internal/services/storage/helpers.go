@@ -66,7 +66,7 @@ func schemaStorageAccountCorsRule(patchEnabled bool) *pluginsdk.Schema {
 				"max_age_in_seconds": {
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
-					ValidateFunc: validation.IntBetween(1, 2000000000),
+					ValidateFunc: validation.IntBetween(0, 2000000000),
 				},
 			},
 		},

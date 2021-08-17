@@ -16,7 +16,7 @@ func TestAuthorizationRuleIDFormatter(t *testing.T) {
 	}
 }
 
-func TestAuthorizationRuleID(t *testing.T) {
+func TestParseAuthorizationRuleID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -111,7 +111,7 @@ func TestAuthorizationRuleID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := AuthorizationRuleID(v.Input)
+		actual, err := ParseAuthorizationRuleID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -141,7 +141,7 @@ func TestAuthorizationRuleID(t *testing.T) {
 	}
 }
 
-func TestAuthorizationRuleIDInsensitively(t *testing.T) {
+func TestParseAuthorizationRuleIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -266,7 +266,7 @@ func TestAuthorizationRuleIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := AuthorizationRuleIDInsensitively(v.Input)
+		actual, err := ParseAuthorizationRuleIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

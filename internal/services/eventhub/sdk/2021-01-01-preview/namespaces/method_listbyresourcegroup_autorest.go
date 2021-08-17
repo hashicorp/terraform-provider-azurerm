@@ -34,19 +34,6 @@ func (r ListByResourceGroupResponse) LoadMore(ctx context.Context) (resp ListByR
 	return r.nextPageFunc(ctx, *r.nextLink)
 }
 
-type EHNamespacePredicate struct {
-	// TODO: implement me
-}
-
-func (p EHNamespacePredicate) Matches(input EHNamespace) bool {
-	// TODO: implement me
-	// if p.Name != nil && input.Name != *p.Name {
-	// 	return false
-	// }
-
-	return true
-}
-
 // ListByResourceGroup ...
 func (c NamespacesClient) ListByResourceGroup(ctx context.Context, id ResourceGroupId) (resp ListByResourceGroupResponse, err error) {
 	req, err := c.preparerForListByResourceGroup(ctx, id)
@@ -69,7 +56,7 @@ func (c NamespacesClient) ListByResourceGroup(ctx context.Context, id ResourceGr
 	return
 }
 
-// ListByResourceGroupCompleteMatchingPredicate retrieves all of the results into a single object
+// ListByResourceGroupComplete retrieves all of the results into a single object
 func (c NamespacesClient) ListByResourceGroupComplete(ctx context.Context, id ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
 	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, EHNamespacePredicate{})
 }

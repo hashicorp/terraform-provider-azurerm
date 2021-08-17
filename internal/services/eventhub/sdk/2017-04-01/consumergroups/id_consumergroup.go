@@ -41,8 +41,8 @@ func (id ConsumergroupId) ID() string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.Name)
 }
 
-// ConsumergroupID parses a Consumergroup ID into an ConsumergroupId struct
-func ConsumergroupID(input string) (*ConsumergroupId, error) {
+// ParseConsumergroupID parses a Consumergroup ID into an ConsumergroupId struct
+func ParseConsumergroupID(input string) (*ConsumergroupId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
@@ -78,10 +78,10 @@ func ConsumergroupID(input string) (*ConsumergroupId, error) {
 	return &resourceId, nil
 }
 
-// ConsumergroupIDInsensitively parses an Consumergroup ID into an ConsumergroupId struct, insensitively
+// ParseConsumergroupIDInsensitively parses an Consumergroup ID into an ConsumergroupId struct, insensitively
 // This should only be used to parse an ID for rewriting to a consistent casing,
-// the ConsumergroupID method should be used instead for validation etc.
-func ConsumergroupIDInsensitively(input string) (*ConsumergroupId, error) {
+// the ParseConsumergroupID method should be used instead for validation etc.
+func ParseConsumergroupIDInsensitively(input string) (*ConsumergroupId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err

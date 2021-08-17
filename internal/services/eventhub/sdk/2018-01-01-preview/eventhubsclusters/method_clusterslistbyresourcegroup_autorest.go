@@ -34,19 +34,6 @@ func (r ClustersListByResourceGroupResponse) LoadMore(ctx context.Context) (resp
 	return r.nextPageFunc(ctx, *r.nextLink)
 }
 
-type ClusterPredicate struct {
-	// TODO: implement me
-}
-
-func (p ClusterPredicate) Matches(input Cluster) bool {
-	// TODO: implement me
-	// if p.Name != nil && input.Name != *p.Name {
-	// 	return false
-	// }
-
-	return true
-}
-
 // ClustersListByResourceGroup ...
 func (c EventHubsClustersClient) ClustersListByResourceGroup(ctx context.Context, id ResourceGroupId) (resp ClustersListByResourceGroupResponse, err error) {
 	req, err := c.preparerForClustersListByResourceGroup(ctx, id)
@@ -69,7 +56,7 @@ func (c EventHubsClustersClient) ClustersListByResourceGroup(ctx context.Context
 	return
 }
 
-// ClustersListByResourceGroupCompleteMatchingPredicate retrieves all of the results into a single object
+// ClustersListByResourceGroupComplete retrieves all of the results into a single object
 func (c EventHubsClustersClient) ClustersListByResourceGroupComplete(ctx context.Context, id ResourceGroupId) (ClustersListByResourceGroupCompleteResult, error) {
 	return c.ClustersListByResourceGroupCompleteMatchingPredicate(ctx, id, ClusterPredicate{})
 }

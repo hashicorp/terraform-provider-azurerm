@@ -54,7 +54,7 @@ func (c AuthorizationRulesNamespacesClient) preparerForNamespacesDeleteAuthoriza
 func (c AuthorizationRulesNamespacesClient) responderForNamespacesDeleteAuthorizationRule(resp *http.Response) (result NamespacesDeleteAuthorizationRuleResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
 	return

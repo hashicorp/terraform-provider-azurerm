@@ -12,7 +12,7 @@ type ConsumerGroupProperties struct {
 	UserMetadata *string `json:"userMetadata,omitempty"`
 }
 
-func (o ConsumerGroupProperties) ListCreatedAtAsTime() (*time.Time, error) {
+func (o ConsumerGroupProperties) GetCreatedAtAsTime() (*time.Time, error) {
 	return formatting.ParseAsDateFormat(o.CreatedAt, "2006-01-02T15:04:05Z07:00")
 }
 
@@ -21,7 +21,7 @@ func (o ConsumerGroupProperties) SetCreatedAtAsTime(input time.Time) {
 	o.CreatedAt = &formatted
 }
 
-func (o ConsumerGroupProperties) ListUpdatedAtAsTime() (*time.Time, error) {
+func (o ConsumerGroupProperties) GetUpdatedAtAsTime() (*time.Time, error) {
 	return formatting.ParseAsDateFormat(o.UpdatedAt, "2006-01-02T15:04:05Z07:00")
 }
 

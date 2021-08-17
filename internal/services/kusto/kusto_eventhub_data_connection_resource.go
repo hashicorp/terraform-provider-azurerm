@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -28,7 +28,7 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DataConnectionID(id)
 			return err
-		}, importDataConnection(kusto.KindEventHub)),
+		}, importDataConnection(kusto.KindBasicDataConnectionKindEventHub)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			// TODO: confirm these
@@ -117,18 +117,18 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(kusto.APACHEAVRO),
-					string(kusto.AVRO),
-					string(kusto.CSV),
-					string(kusto.JSON),
-					string(kusto.MULTIJSON),
-					string(kusto.PSV),
-					string(kusto.RAW),
-					string(kusto.SCSV),
-					string(kusto.SINGLEJSON),
-					string(kusto.SOHSV),
-					string(kusto.TSV),
-					string(kusto.TXT),
+					string(kusto.EventHubDataFormatAPACHEAVRO),
+					string(kusto.EventHubDataFormatAVRO),
+					string(kusto.EventHubDataFormatCSV),
+					string(kusto.EventHubDataFormatJSON),
+					string(kusto.EventHubDataFormatMULTIJSON),
+					string(kusto.EventHubDataFormatPSV),
+					string(kusto.EventHubDataFormatRAW),
+					string(kusto.EventHubDataFormatSCSV),
+					string(kusto.EventHubDataFormatSINGLEJSON),
+					string(kusto.EventHubDataFormatSOHSV),
+					string(kusto.EventHubDataFormatTSV),
+					string(kusto.EventHubDataFormatTXT),
 				}, false),
 			},
 		},

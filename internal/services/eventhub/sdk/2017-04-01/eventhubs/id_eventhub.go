@@ -38,8 +38,8 @@ func (id EventhubId) ID() string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.Name)
 }
 
-// EventhubID parses a Eventhub ID into an EventhubId struct
-func EventhubID(input string) (*EventhubId, error) {
+// ParseEventhubID parses a Eventhub ID into an EventhubId struct
+func ParseEventhubID(input string) (*EventhubId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
@@ -72,10 +72,10 @@ func EventhubID(input string) (*EventhubId, error) {
 	return &resourceId, nil
 }
 
-// EventhubIDInsensitively parses an Eventhub ID into an EventhubId struct, insensitively
+// ParseEventhubIDInsensitively parses an Eventhub ID into an EventhubId struct, insensitively
 // This should only be used to parse an ID for rewriting to a consistent casing,
-// the EventhubID method should be used instead for validation etc.
-func EventhubIDInsensitively(input string) (*EventhubId, error) {
+// the ParseEventhubID method should be used instead for validation etc.
+func ParseEventhubIDInsensitively(input string) (*EventhubId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err

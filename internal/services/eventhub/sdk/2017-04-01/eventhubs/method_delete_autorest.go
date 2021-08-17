@@ -54,7 +54,7 @@ func (c EventHubsClient) preparerForDelete(ctx context.Context, id EventhubId) (
 func (c EventHubsClient) responderForDelete(resp *http.Response) (result DeleteResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
 	return

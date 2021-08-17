@@ -16,7 +16,7 @@ type EventhubProperties struct {
 	UpdatedAt              *string             `json:"updatedAt,omitempty"`
 }
 
-func (o EventhubProperties) ListCreatedAtAsTime() (*time.Time, error) {
+func (o EventhubProperties) GetCreatedAtAsTime() (*time.Time, error) {
 	return formatting.ParseAsDateFormat(o.CreatedAt, "2006-01-02T15:04:05Z07:00")
 }
 
@@ -25,7 +25,7 @@ func (o EventhubProperties) SetCreatedAtAsTime(input time.Time) {
 	o.CreatedAt = &formatted
 }
 
-func (o EventhubProperties) ListUpdatedAtAsTime() (*time.Time, error) {
+func (o EventhubProperties) GetUpdatedAtAsTime() (*time.Time, error) {
 	return formatting.ParseAsDateFormat(o.UpdatedAt, "2006-01-02T15:04:05Z07:00")
 }
 

@@ -217,7 +217,7 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := eventhubs.EventhubID(d.Id())
+	id, err := eventhubs.ParseEventhubID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -257,7 +257,7 @@ func resourceEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := eventhubs.EventhubID(d.Id())
+	id, err := eventhubs.ParseEventhubID(d.Id())
 	if err != nil {
 		return err
 	}
