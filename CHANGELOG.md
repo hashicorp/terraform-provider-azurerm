@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_vpn_gateway` [GH-12844]
 * **New Resource:** `azurerm_api_management_notification_recipient_email` [GH-12849]
+* **New Resource:** `azurerm_logic_app_integration_account_session` [GH-12982]
 * **New Resource:** `azurerm_vpn_gateway` [GH-13003]
 
 ENHANCEMENTS:
