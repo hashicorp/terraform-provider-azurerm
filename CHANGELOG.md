@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_vpn_gateway` [GH-12844]
+* **New Resource:** `azurerm_vpn_gateway` [GH-13003]
 
 ENHANCEMENTS:
 
