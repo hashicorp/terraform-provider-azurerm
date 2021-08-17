@@ -3,9 +3,8 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_vpn_gateway` [GH-12844]
+* **New Resource:** `azurerm_api_management_notification_recipient_email` [GH-12849]
 * **New Resource:** `azurerm_vpn_gateway` [GH-13003]
-
-ENHANCEMENTS:
 
 * Dependencies: upgrade `github.com/Azure/azure-sdk-for-go` to `v56.2.0` [GH-12969]
 * Dependencies: updating `frontdoor` to use API version `2020-05-01` [GH-12831]
