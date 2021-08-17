@@ -543,7 +543,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		d.Set("managed_resource_group_id", props.ManagedResourceGroupID)
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
-		d.Set("public_network_access_enabled", (props.PublicNetworkAccess == databricks.PublicNetworkAccessEnabled))
+		d.Set("public_network_access_enabled", (props.PublicNetworkAccess != databricks.PublicNetworkAccessDisabled))
 
 		if props.PublicNetworkAccess == databricks.PublicNetworkAccessDisabled {
 			d.Set("network_security_group_rules_required", string(props.RequiredNsgRules))
