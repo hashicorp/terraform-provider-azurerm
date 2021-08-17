@@ -5,18 +5,21 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/purview/mgmt/2020-12-01-preview/purview"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/sdk/2020-12-01-preview/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+type purviewAccountIdentity = identity.SystemAssigned
 
 func resourcePurviewAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -26,7 +29,7 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 		Delete: resourcePurviewAccountDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AccountID(id)
+			_, err := account.ParseAccountID(id)
 			return err
 		}),
 
@@ -66,26 +69,7 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": purviewAccountIdentity{}.Schema(),
 
 			"catalog_endpoint": {
 				Type:     pluginsdk.TypeString,
@@ -125,46 +109,41 @@ func resourcePurviewAccountCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
-
-	id := parse.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := account.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_purview_account", id.ID())
 		}
 	}
 
-	account := purview.Account{
-		AccountProperties: &purview.AccountProperties{},
-		Identity: &purview.Identity{
-			Type: purview.SystemAssigned,
-		},
-		Location: &location,
-		Sku:      expandPurviewSkuName(d),
-		Tags:     tags.Expand(t),
-	}
-
+	publicNetworkAccess := account.PublicNetworkAccessEnabled
 	if d.Get("public_network_enabled").(bool) {
-		account.AccountProperties.PublicNetworkAccess = purview.Enabled
-	} else {
-		account.AccountProperties.PublicNetworkAccess = purview.Disabled
+		publicNetworkAccess = account.PublicNetworkAccessDisabled
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, account)
+	identity, err := expandPurviewIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return err
+	}
+	model := account.Account{
+		Properties: &account.AccountProperties{
+			PublicNetworkAccess: &publicNetworkAccess,
+		},
+		Identity: identity,
+		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Sku:      expandPurviewSkuName(d),
+		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, id, model); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -176,48 +155,61 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AccountID(d.Id())
+	id, err := account.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("sku_name", flattenPurviewSkuName(resp.Sku))
-
-	if err := d.Set("identity", flattenPurviewAccountIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-
-	if props := resp.AccountProperties; props != nil {
-		d.Set("public_network_enabled", props.PublicNetworkAccess == purview.Enabled)
-
-		if endpoints := resp.Endpoints; endpoints != nil {
-			d.Set("catalog_endpoint", endpoints.Catalog)
-			d.Set("guardian_endpoint", endpoints.Guardian)
-			d.Set("scan_endpoint", endpoints.Scan)
-		}
-	}
-
-	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
+	keys, err := client.ListKeys(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving Keys for %s: %+v", *id, err)
 	}
-	d.Set("atlas_kafka_endpoint_primary_connection_string", keys.AtlasKafkaPrimaryEndpoint)
-	d.Set("atlas_kafka_endpoint_secondary_connection_string", keys.AtlasKafkaSecondaryEndpoint)
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("sku_name", flattenPurviewSkuName(model.Sku))
+
+		if err := d.Set("identity", flattenPurviewAccountIdentity(model.Identity)); err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+
+		if props := model.Properties; props != nil {
+			publicNetworkEnabled := true
+			if props.PublicNetworkAccess != nil {
+				publicNetworkEnabled = *props.PublicNetworkAccess == account.PublicNetworkAccessEnabled
+			}
+			d.Set("public_network_enabled", publicNetworkEnabled)
+
+			if endpoints := props.Endpoints; endpoints != nil {
+				d.Set("catalog_endpoint", endpoints.Catalog)
+				d.Set("guardian_endpoint", endpoints.Guardian)
+				d.Set("scan_endpoint", endpoints.Scan)
+			}
+		}
+
+		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			return err
+		}
+	}
+
+	if model := keys.Model; model != nil {
+		d.Set("atlas_kafka_endpoint_primary_connection_string", model.AtlasKafkaPrimaryEndpoint)
+		d.Set("atlas_kafka_endpoint_secondary_connection_string", model.AtlasKafkaSecondaryEndpoint)
+	}
+
+	return nil
 }
 
 func resourcePurviewAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -225,24 +217,19 @@ func resourcePurviewAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AccountID(d.Id())
+	id, err := account.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandPurviewSkuName(d *pluginsdk.ResourceData) *purview.AccountSku {
+func expandPurviewSkuName(d *pluginsdk.ResourceData) *account.AccountSku {
 	sku := d.Get("sku_name").(string)
 
 	if len(sku) == 0 {
@@ -253,38 +240,34 @@ func expandPurviewSkuName(d *pluginsdk.ResourceData) *purview.AccountSku {
 	if err != nil {
 		return nil
 	}
-	return &purview.AccountSku{
-		Name:     purview.Name(name),
-		Capacity: utils.Int32(capacity),
+
+	skuName := account.Name(name)
+	return &account.AccountSku{
+		Name:     &skuName,
+		Capacity: utils.Int64(int64(capacity)),
 	}
 }
 
-func flattenPurviewSkuName(input *purview.AccountSku) string {
-	if input == nil || input.Capacity == nil {
+func flattenPurviewSkuName(input *account.AccountSku) string {
+	if input == nil || input.Name == nil || input.Capacity == nil {
 		return ""
 	}
 
-	return fmt.Sprintf("%s_%d", string(input.Name), *input.Capacity)
+	return fmt.Sprintf("%s_%d", string(*input.Name), *input.Capacity)
 }
 
-func flattenPurviewAccountIdentity(identity *purview.Identity) interface{} {
-	if identity == nil || identity.Type == "None" {
-		return make([]interface{}, 0)
+func expandPurviewIdentity(input []interface{}) (*identity.SystemAssignedIdentity, error) {
+	expanded, err := purviewAccountIdentity{}.Expand(input)
+	if err != nil {
+		return nil, err
 	}
 
-	principalId := ""
-	if identity.PrincipalID != nil {
-		principalId = *identity.PrincipalID
-	}
-	tenantId := ""
-	if identity.TenantID != nil {
-		tenantId = *identity.TenantID
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(identity.Type),
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-		},
-	}
+	out := identity.SystemAssignedIdentity{}
+	out.FromExpandedConfig(*expanded)
+	return &out, nil
+}
+
+func flattenPurviewAccountIdentity(identity *identity.SystemAssignedIdentity) interface{} {
+	expandedConfig := identity.ToExpandedConfig()
+	return purviewAccountIdentity{}.Flatten(&expandedConfig)
 }

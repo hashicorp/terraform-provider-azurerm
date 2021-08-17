@@ -1,16 +1,16 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/purview/mgmt/2020-12-01-preview/purview"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/sdk/2020-12-01-preview/account"
 )
 
 type Client struct {
-	AccountsClient *purview.AccountsClient
+	AccountsClient *account.AccountClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	accountsClient := purview.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	accountsClient := account.NewAccountClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&accountsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

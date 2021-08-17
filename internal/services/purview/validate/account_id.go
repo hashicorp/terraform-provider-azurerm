@@ -1,11 +1,9 @@
 package validate
 
-// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
-
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/sdk/2020-12-01-preview/account"
 )
 
 func AccountID(input interface{}, key string) (warnings []string, errors []error) {
@@ -15,7 +13,7 @@ func AccountID(input interface{}, key string) (warnings []string, errors []error
 		return
 	}
 
-	if _, err := parse.AccountID(v); err != nil {
+	if _, err := account.ParseAccountID(v); err != nil {
 		errors = append(errors, err)
 	}
 
