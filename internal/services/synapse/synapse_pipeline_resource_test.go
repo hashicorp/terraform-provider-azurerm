@@ -139,7 +139,7 @@ func (r PipelineResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 
-acceptance "azurerm_synapse_pipeline" "test" {
+resource "azurerm_synapse_pipeline" "test" {
   name                 = "acctest%d"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
 
@@ -153,7 +153,7 @@ func (r PipelineResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 
-acceptance "azurerm_synapse_pipeline" "test" {
+resource "azurerm_synapse_pipeline" "test" {
   name                 = "acctest%d"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
 
@@ -176,7 +176,7 @@ func (r PipelineResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 
-acceptance "azurerm_synapse_pipeline" "test" {
+resource "azurerm_synapse_pipeline" "test" {
   name                 = "acctest%d"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   annotations          = ["test1", "test2", "test3"]
@@ -201,7 +201,7 @@ func (r PipelineResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 
-acceptance "azurerm_synapse_pipeline" "test" {
+resource "azurerm_synapse_pipeline" "test" {
   name                 = "acctest%d"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   annotations          = ["test1", "test2"]
@@ -243,7 +243,7 @@ func (r PipelineResource) activities(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 
-acceptance "azurerm_synapse_pipeline" "test" {
+resource "azurerm_synapse_pipeline" "test" {
   name                 = "acctest%d"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   variables = {
@@ -274,7 +274,7 @@ func (r PipelineResource) activitiesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 
-acceptance "azurerm_synapse_pipeline" "test" {
+resource "azurerm_synapse_pipeline" "test" {
   name                 = "acctest%d"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   variables = {
@@ -305,7 +305,7 @@ func (r PipelineResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 
-acceptance "azurerm_synapse_pipeline" "import" {
+resource "azurerm_synapse_pipeline" "import" {
   name                 = azurerm_synapse_pipeline.test.name
   synapse_workspace_id = azurerm_synapse_pipeline.test.synapse_workspace_id
 }
@@ -318,36 +318,36 @@ provider "azurerm" {
   features {}
 }
 
-acceptance "azurerm_acceptance_group" "test" {
+resource "azurerm_resource_group" "test" {
   name     = "acctestRG-synapse-%d"
   location = "%s"
 }
 
-acceptance "azurerm_storage_account" "test" {
+resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  acceptance_group_name      = azurerm_acceptance_group.test.name
-  location                 = azurerm_acceptance_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_kind             = "BlobStorage"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-acceptance "azurerm_storage_data_lake_gen2_filesystem" "test" {
+resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
   name               = "acctest-%d"
   storage_account_id = azurerm_storage_account.test.id
 }
 
-acceptance "azurerm_synapse_workspace" "test" {
+resource "azurerm_synapse_workspace" "test" {
   name                                 = "acctestsw%d"
-  acceptance_group_name                  = azurerm_acceptance_group.test.name
-  location                             = azurerm_acceptance_group.test.location
+  resource_group_name                  = azurerm_resource_group.test.name
+  location                             = azurerm_resource_group.test.location
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
   managed_virtual_network_enabled      = true
 }
 
-acceptance "azurerm_synapse_firewall_rule" "test" {
+resource "azurerm_synapse_firewall_rule" "test" {
   name                 = "AllowAll"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   start_ip_address     = "0.0.0.0"
