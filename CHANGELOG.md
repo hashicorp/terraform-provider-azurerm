@@ -25,6 +25,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_frontdoor` - expose support for `cache_duration` and `cache_query_parameters` fields [GH-12831]
+* `azurerm_network_watcher_flow_log` - correctly truncate name by ensuring it doesn't end in a `-` [GH-12984]
 * `azurerm_redis_enterprise_cluster` - changing the tags property no longer creates a new resource [GH-12956]
 * `azurerm_storage_account` - allow 0 for the `cors.max_age_in_seconds` property [GH-13010]
 * `azurerm_virtual_hub_connection` - will not correctly lock it's cirtual network during updates [GH-12999]
