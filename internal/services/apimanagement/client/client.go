@@ -6,41 +6,42 @@ import (
 )
 
 type Client struct {
-	ApiClient                  *apimanagement.APIClient
-	ApiDiagnosticClient        *apimanagement.APIDiagnosticClient
-	ApiPoliciesClient          *apimanagement.APIPolicyClient
-	ApiOperationsClient        *apimanagement.APIOperationClient
-	ApiOperationPoliciesClient *apimanagement.APIOperationPolicyClient
-	ApiReleasesClient          *apimanagement.APIReleaseClient
-	ApiSchemasClient           *apimanagement.APISchemaClient
-	ApiVersionSetClient        *apimanagement.APIVersionSetClient
-	AuthorizationServersClient *apimanagement.AuthorizationServerClient
-	BackendClient              *apimanagement.BackendClient
-	CacheClient                *apimanagement.CacheClient
-	CertificatesClient         *apimanagement.CertificateClient
-	DiagnosticClient           *apimanagement.DiagnosticClient
-	DeletedServicesClient      *apimanagement.DeletedServicesClient
-	EmailTemplateClient        *apimanagement.EmailTemplateClient
-	GatewayClient              *apimanagement.GatewayClient
-	GatewayApisClient          *apimanagement.GatewayAPIClient
-	GroupClient                *apimanagement.GroupClient
-	GroupUsersClient           *apimanagement.GroupUserClient
-	IdentityProviderClient     *apimanagement.IdentityProviderClient
-	LoggerClient               *apimanagement.LoggerClient
-	NamedValueClient           *apimanagement.NamedValueClient
-	OpenIdConnectClient        *apimanagement.OpenIDConnectProviderClient
-	PolicyClient               *apimanagement.PolicyClient
-	ProductsClient             *apimanagement.ProductClient
-	ProductApisClient          *apimanagement.ProductAPIClient
-	ProductGroupsClient        *apimanagement.ProductGroupClient
-	ProductPoliciesClient      *apimanagement.ProductPolicyClient
-	ServiceClient              *apimanagement.ServiceClient
-	SignInClient               *apimanagement.SignInSettingsClient
-	SignUpClient               *apimanagement.SignUpSettingsClient
-	SubscriptionsClient        *apimanagement.SubscriptionClient
-	TagClient                  *apimanagement.TagClient
-	TenantAccessClient         *apimanagement.TenantAccessClient
-	UsersClient                *apimanagement.UserClient
+	ApiClient                        *apimanagement.APIClient
+	ApiDiagnosticClient              *apimanagement.APIDiagnosticClient
+	ApiPoliciesClient                *apimanagement.APIPolicyClient
+	ApiOperationsClient              *apimanagement.APIOperationClient
+	ApiOperationPoliciesClient       *apimanagement.APIOperationPolicyClient
+	ApiReleasesClient                *apimanagement.APIReleaseClient
+	ApiSchemasClient                 *apimanagement.APISchemaClient
+	ApiVersionSetClient              *apimanagement.APIVersionSetClient
+	AuthorizationServersClient       *apimanagement.AuthorizationServerClient
+	BackendClient                    *apimanagement.BackendClient
+	CacheClient                      *apimanagement.CacheClient
+	CertificatesClient               *apimanagement.CertificateClient
+	DiagnosticClient                 *apimanagement.DiagnosticClient
+	DeletedServicesClient            *apimanagement.DeletedServicesClient
+	EmailTemplateClient              *apimanagement.EmailTemplateClient
+	GatewayClient                    *apimanagement.GatewayClient
+	GatewayApisClient                *apimanagement.GatewayAPIClient
+	GroupClient                      *apimanagement.GroupClient
+	GroupUsersClient                 *apimanagement.GroupUserClient
+	IdentityProviderClient           *apimanagement.IdentityProviderClient
+	LoggerClient                     *apimanagement.LoggerClient
+	NamedValueClient                 *apimanagement.NamedValueClient
+	NotificationRecipientEmailClient *apimanagement.NotificationRecipientEmailClient
+	OpenIdConnectClient              *apimanagement.OpenIDConnectProviderClient
+	PolicyClient                     *apimanagement.PolicyClient
+	ProductsClient                   *apimanagement.ProductClient
+	ProductApisClient                *apimanagement.ProductAPIClient
+	ProductGroupsClient              *apimanagement.ProductGroupClient
+	ProductPoliciesClient            *apimanagement.ProductPolicyClient
+	ServiceClient                    *apimanagement.ServiceClient
+	SignInClient                     *apimanagement.SignInSettingsClient
+	SignUpClient                     *apimanagement.SignUpSettingsClient
+	SubscriptionsClient              *apimanagement.SubscriptionClient
+	TagClient                        *apimanagement.TagClient
+	TenantAccessClient               *apimanagement.TenantAccessClient
+	UsersClient                      *apimanagement.UserClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -107,6 +108,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	namedValueClient := apimanagement.NewNamedValueClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&namedValueClient.Client, o.ResourceManagerAuthorizer)
 
+	notificationRecipientEmailClient := apimanagement.NewNotificationRecipientEmailClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&notificationRecipientEmailClient.Client, o.ResourceManagerAuthorizer)
+
 	loggerClient := apimanagement.NewLoggerClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&loggerClient.Client, o.ResourceManagerAuthorizer)
 
@@ -150,40 +154,41 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&usersClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		ApiClient:                  &apiClient,
-		ApiDiagnosticClient:        &apiDiagnosticClient,
-		ApiPoliciesClient:          &apiPoliciesClient,
-		ApiOperationsClient:        &apiOperationsClient,
-		ApiOperationPoliciesClient: &apiOperationPoliciesClient,
-		ApiReleasesClient:          &apiReleasesClient,
-		ApiSchemasClient:           &apiSchemasClient,
-		ApiVersionSetClient:        &apiVersionSetClient,
-		AuthorizationServersClient: &authorizationServersClient,
-		BackendClient:              &backendClient,
-		CacheClient:                &cacheClient,
-		CertificatesClient:         &certificatesClient,
-		DiagnosticClient:           &diagnosticClient,
-		DeletedServicesClient:      &deletedServicesClient,
-		EmailTemplateClient:        &emailTemplateClient,
-		GatewayClient:              &gatewayClient,
-		GatewayApisClient:          &gatewayApisClient,
-		GroupClient:                &groupClient,
-		GroupUsersClient:           &groupUsersClient,
-		IdentityProviderClient:     &identityProviderClient,
-		LoggerClient:               &loggerClient,
-		NamedValueClient:           &namedValueClient,
-		OpenIdConnectClient:        &openIdConnectClient,
-		PolicyClient:               &policyClient,
-		ProductsClient:             &productsClient,
-		ProductApisClient:          &productApisClient,
-		ProductGroupsClient:        &productGroupsClient,
-		ProductPoliciesClient:      &productPoliciesClient,
-		ServiceClient:              &serviceClient,
-		SignInClient:               &signInClient,
-		SignUpClient:               &signUpClient,
-		SubscriptionsClient:        &subscriptionsClient,
-		TagClient:                  &tagClient,
-		TenantAccessClient:         &tenantAccessClient,
-		UsersClient:                &usersClient,
+		ApiClient:                        &apiClient,
+		ApiDiagnosticClient:              &apiDiagnosticClient,
+		ApiPoliciesClient:                &apiPoliciesClient,
+		ApiOperationsClient:              &apiOperationsClient,
+		ApiOperationPoliciesClient:       &apiOperationPoliciesClient,
+		ApiReleasesClient:                &apiReleasesClient,
+		ApiSchemasClient:                 &apiSchemasClient,
+		ApiVersionSetClient:              &apiVersionSetClient,
+		AuthorizationServersClient:       &authorizationServersClient,
+		BackendClient:                    &backendClient,
+		CacheClient:                      &cacheClient,
+		CertificatesClient:               &certificatesClient,
+		DiagnosticClient:                 &diagnosticClient,
+		DeletedServicesClient:            &deletedServicesClient,
+		EmailTemplateClient:              &emailTemplateClient,
+		GatewayClient:                    &gatewayClient,
+		GatewayApisClient:                &gatewayApisClient,
+		GroupClient:                      &groupClient,
+		GroupUsersClient:                 &groupUsersClient,
+		IdentityProviderClient:           &identityProviderClient,
+		LoggerClient:                     &loggerClient,
+		NamedValueClient:                 &namedValueClient,
+		NotificationRecipientEmailClient: &notificationRecipientEmailClient,
+		OpenIdConnectClient:              &openIdConnectClient,
+		PolicyClient:                     &policyClient,
+		ProductsClient:                   &productsClient,
+		ProductApisClient:                &productApisClient,
+		ProductGroupsClient:              &productGroupsClient,
+		ProductPoliciesClient:            &productPoliciesClient,
+		ServiceClient:                    &serviceClient,
+		SignInClient:                     &signInClient,
+		SignUpClient:                     &signUpClient,
+		SubscriptionsClient:              &subscriptionsClient,
+		TagClient:                        &tagClient,
+		TenantAccessClient:               &tenantAccessClient,
+		UsersClient:                      &usersClient,
 	}
 }

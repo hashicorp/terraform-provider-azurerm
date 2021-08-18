@@ -254,6 +254,12 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"snapshot_directory_visible": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 		},
 	}
 }
@@ -312,6 +318,8 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		authorizeReplication = true
 		volumeType = "DataProtection"
 	}
+
+	snapshotDirectoryVisible := d.Get("snapshot_directory_visible").(bool)
 
 	// Handling volume creation from snapshot case
 	snapshotResourceID := d.Get("create_from_snapshot_resource_id").(string)
@@ -383,16 +391,17 @@ func resourceNetAppVolumeCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	parameters := netapp.Volume{
 		Location: utils.String(location),
 		VolumeProperties: &netapp.VolumeProperties{
-			CreationToken:  utils.String(volumePath),
-			ServiceLevel:   netapp.ServiceLevel(serviceLevel),
-			SubnetID:       utils.String(subnetID),
-			ProtocolTypes:  utils.ExpandStringSlice(protocols),
-			SecurityStyle:  netapp.SecurityStyle(securityStyle),
-			UsageThreshold: utils.Int64(storageQuotaInGB),
-			ExportPolicy:   exportPolicyRule,
-			VolumeType:     utils.String(volumeType),
-			SnapshotID:     utils.String(snapshotID),
-			DataProtection: dataProtectionReplication,
+			CreationToken:            utils.String(volumePath),
+			ServiceLevel:             netapp.ServiceLevel(serviceLevel),
+			SubnetID:                 utils.String(subnetID),
+			ProtocolTypes:            utils.ExpandStringSlice(protocols),
+			SecurityStyle:            netapp.SecurityStyle(securityStyle),
+			UsageThreshold:           utils.Int64(storageQuotaInGB),
+			ExportPolicy:             exportPolicyRule,
+			VolumeType:               utils.String(volumeType),
+			SnapshotID:               utils.String(snapshotID),
+			DataProtection:           dataProtectionReplication,
+			SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -483,6 +492,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("subnet_id", props.SubnetID)
 		d.Set("protocols", props.ProtocolTypes)
 		d.Set("security_style", props.SecurityStyle)
+		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
 		}
