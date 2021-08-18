@@ -955,12 +955,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	apiAccessProfile := containerservice.ManagedClusterAPIServerAccessProfile{
-		EnablePrivateCluster: &enablePrivateCluster,
-		AuthorizedIPRanges:   apiServerAuthorizedIPRanges,
-	}
-
-	if v, ok := d.GetOk("private_cluster_public_fqdn_enabled"); ok {
-		apiAccessProfile.EnablePrivateClusterPublicFQDN = utils.Bool(v.(bool))
+		EnablePrivateCluster:           &enablePrivateCluster,
+		AuthorizedIPRanges:             apiServerAuthorizedIPRanges,
+		EnablePrivateClusterPublicFQDN: utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool)),
 	}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)

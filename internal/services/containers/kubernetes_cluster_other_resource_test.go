@@ -729,13 +729,6 @@ func testAccKubernetesCluster_privateClusterPublicFqdn(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.privateClusterPublicFqdn(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
