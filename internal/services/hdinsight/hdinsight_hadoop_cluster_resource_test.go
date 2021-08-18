@@ -592,7 +592,7 @@ func TestAccAzureRMHDInsightHadoopCluster_autoscale(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightHadoopCluster_securityProfile(t *testing.T) {
+func testAccHDInsightHadoopCluster_securityProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
 	r := HDInsightHadoopClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

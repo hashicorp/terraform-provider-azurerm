@@ -476,7 +476,7 @@ func TestAccAzureRMHDInsightSparkCluster_autoscale(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_securityProfile(t *testing.T) {
+func testAccHDInsightSparkCluster_securityProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

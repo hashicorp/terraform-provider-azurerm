@@ -476,7 +476,7 @@ func TestAccAzureRMHDInsightInteractiveQueryCluster_autoscale(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightInteractiveQueryCluster_securityProfile(t *testing.T) {
+func testAccHDInsightInteractiveQueryCluster_securityProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
 	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
