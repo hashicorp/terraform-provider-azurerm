@@ -235,7 +235,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "example" {
   }
 
   security_profile {
-    aadds_resource_id       = "${replace(azurerm_active_directory_domain_service.example.id, "/initialReplicaSetId/${azurerm_active_directory_domain_service.example.deployment_id}", "")}"
+    aadds_resource_id       = azurerm_active_directory_domain_service.example.resource_id
     domain_name             = azurerm_active_directory_domain_service.example.domain_name
     domain_username         = azuread_user.example.user_principal_name
     domain_user_password    = azuread_user.example.password
