@@ -29,6 +29,7 @@ BUG FIXES:
 * `azurerm_network_watcher_flow_log` - correctly truncate name by ensuring it doesn't end in a `-` [GH-12984]
 * `azurerm_databricks_workspace` - fix potential crash in Read [GH-13025]
 * `private_dns_zone_id` - correctly handle inconsistant case [GH-13000]
+* `azurerm_kubernetes_cluster` - fix crash in update when previously configured AAD Profile is now `nil` [GH-13043]
 * `azurerm_redis_enterprise_cluster` - changing the tags property no longer creates a new resource [GH-12956]
 * `azurerm_storage_account` - allow 0 for the `cors.max_age_in_seconds` property [GH-13010]
 * `azurerm_servicebus_topic` - correctyl validate the `name` property [GH-13026]
