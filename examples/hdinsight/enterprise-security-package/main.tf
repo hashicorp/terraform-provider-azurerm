@@ -247,11 +247,4 @@ resource "azurerm_hdinsight_hadoop_cluster" "example" {
   depends_on = [
     azurerm_virtual_network_dns_servers.example,
   ]
-
-  lifecycle {
-    ignore_changes = [
-      security_profile.0.domain_user_password,
-      gateway.0.password
-    ]
-  }
 }

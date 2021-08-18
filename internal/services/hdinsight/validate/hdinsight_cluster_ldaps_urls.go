@@ -19,7 +19,7 @@ func HDInsightClusterLdapsUrls(i interface{}, k string) (warnings []string, erro
 	}
 
 	if ldapsUrl.Scheme != "ldaps" {
-		errors = append(errors, fmt.Errorf(`%s should start with "ldaps"`, k))
+		errors = append(errors, fmt.Errorf(`%s should start with "ldaps://"`, k))
 		return
 	}
 

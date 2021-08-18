@@ -1564,7 +1564,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   security_profile {
-    aadds_resource_id       = "${replace(azurerm_active_directory_domain_service.test.id, "/initialReplicaSetId/${azurerm_active_directory_domain_service.test.deployment_id}", "")}"
+    aadds_resource_id       = azurerm_active_directory_domain_service.test.resource_id
     domain_name             = azurerm_active_directory_domain_service.test.domain_name
     domain_username         = azuread_user.test.user_principal_name
     domain_user_password    = azuread_user.test.password
