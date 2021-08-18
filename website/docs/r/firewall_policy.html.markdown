@@ -14,9 +14,9 @@ Manages a Firewall Policy.
 
 ```hcl
 resource "azurerm_firewall_policy" "example" {
-  name = "example"
+  name                = "example"
   resource_group_name = "example"
-  location = "West Europe"
+  location            = "West Europe"
 }
 ```
 
@@ -126,7 +126,7 @@ A `traffic_bypass` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Firewall Policy.
 
