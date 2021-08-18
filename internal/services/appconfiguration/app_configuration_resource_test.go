@@ -145,7 +145,7 @@ func TestAccAppConfiguration_update(t *testing.T) {
 }
 
 func (t AppConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := configurationstores.ConfigurationStoreID(state.ID)
+	id, err := configurationstores.ParseConfigurationStoreID(state.ID)
 	if err != nil {
 		return nil, err
 	}

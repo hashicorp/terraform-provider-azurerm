@@ -35,8 +35,8 @@ func (id ConfigurationStoreId) ID() string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
-// ConfigurationStoreID parses a ConfigurationStore ID into an ConfigurationStoreId struct
-func ConfigurationStoreID(input string) (*ConfigurationStoreId, error) {
+// ParseConfigurationStoreID parses a ConfigurationStore ID into an ConfigurationStoreId struct
+func ParseConfigurationStoreID(input string) (*ConfigurationStoreId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
@@ -66,10 +66,10 @@ func ConfigurationStoreID(input string) (*ConfigurationStoreId, error) {
 	return &resourceId, nil
 }
 
-// ConfigurationStoreIDInsensitively parses an ConfigurationStore ID into an ConfigurationStoreId struct, insensitively
+// ParseConfigurationStoreIDInsensitively parses an ConfigurationStore ID into an ConfigurationStoreId struct, insensitively
 // This should only be used to parse an ID for rewriting to a consistent casing,
-// the ConfigurationStoreID method should be used instead for validation etc.
-func ConfigurationStoreIDInsensitively(input string) (*ConfigurationStoreId, error) {
+// the ParseConfigurationStoreID method should be used instead for validation etc.
+func ParseConfigurationStoreIDInsensitively(input string) (*ConfigurationStoreId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err

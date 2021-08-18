@@ -6,21 +6,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = ConfigurationStoreId{}
+var _ resourceids.Id = ResourceGroupId{}
 
-func TestConfigurationStoreIDFormatter(t *testing.T) {
-	actual := NewConfigurationStoreID("{subscriptionId}", "{resourceGroupName}", "{configStoreName}").ID()
-	expected := "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppConfiguration/configurationStores/{configStoreName}"
+func TestResourceGroupIDFormatter(t *testing.T) {
+	actual := NewResourceGroupID("{subscriptionId}", "{resourceGroupName}").ID()
+	expected := "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestParseConfigurationStoreID(t *testing.T) {
+func TestParseResourceGroupID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *ConfigurationStoreId
+		Expected *ResourceGroupId
 	}{
 
 		{
@@ -54,30 +54,17 @@ func TestParseConfigurationStoreID(t *testing.T) {
 		},
 
 		{
-			// missing Name
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppConfiguration/",
-			Error: true,
-		},
-
-		{
-			// missing value for Name
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppConfiguration/configurationStores/",
-			Error: true,
-		},
-
-		{
 			// valid
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppConfiguration/configurationStores/{configStoreName}",
-			Expected: &ConfigurationStoreId{
+			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}",
+			Expected: &ResourceGroupId{
 				SubscriptionId: "{subscriptionId}",
 				ResourceGroup:  "{resourceGroupName}",
-				Name:           "{configStoreName}",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/{SUBSCRIPTIONID}/RESOURCEGROUPS/{RESOURCEGROUPNAME}/PROVIDERS/MICROSOFT.APPCONFIGURATION/CONFIGURATIONSTORES/{CONFIGSTORENAME}",
+			Input: "/SUBSCRIPTIONS/{SUBSCRIPTIONID}/RESOURCEGROUPS/{RESOURCEGROUPNAME}",
 			Error: true,
 		},
 	}
@@ -85,7 +72,7 @@ func TestParseConfigurationStoreID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseConfigurationStoreID(v.Input)
+		actual, err := ParseResourceGroupID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -103,17 +90,14 @@ func TestParseConfigurationStoreID(t *testing.T) {
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
-		}
 	}
 }
 
-func TestParseConfigurationStoreIDInsensitively(t *testing.T) {
+func TestParseResourceGroupIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *ConfigurationStoreId
+		Expected *ResourceGroupId
 	}{
 
 		{
@@ -147,54 +131,38 @@ func TestParseConfigurationStoreIDInsensitively(t *testing.T) {
 		},
 
 		{
-			// missing Name
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppConfiguration/",
-			Error: true,
-		},
-
-		{
-			// missing value for Name
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppConfiguration/configurationStores/",
-			Error: true,
-		},
-
-		{
 			// valid
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppConfiguration/configurationStores/{configStoreName}",
-			Expected: &ConfigurationStoreId{
+			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}",
+			Expected: &ResourceGroupId{
 				SubscriptionId: "{subscriptionId}",
 				ResourceGroup:  "{resourceGroupName}",
-				Name:           "{configStoreName}",
 			},
 		},
 
 		{
 			// lower-cased segment names
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppConfiguration/configurationstores/{configStoreName}",
-			Expected: &ConfigurationStoreId{
+			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}",
+			Expected: &ResourceGroupId{
 				SubscriptionId: "{subscriptionId}",
 				ResourceGroup:  "{resourceGroupName}",
-				Name:           "{configStoreName}",
 			},
 		},
 
 		{
 			// upper-cased segment names
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppConfiguration/CONFIGURATIONSTORES/{configStoreName}",
-			Expected: &ConfigurationStoreId{
+			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}",
+			Expected: &ResourceGroupId{
 				SubscriptionId: "{subscriptionId}",
 				ResourceGroup:  "{resourceGroupName}",
-				Name:           "{configStoreName}",
 			},
 		},
 
 		{
 			// mixed-cased segment names
-			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppConfiguration/CoNfIgUrAtIoNsToReS/{configStoreName}",
-			Expected: &ConfigurationStoreId{
+			Input: "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}",
+			Expected: &ResourceGroupId{
 				SubscriptionId: "{subscriptionId}",
 				ResourceGroup:  "{resourceGroupName}",
-				Name:           "{configStoreName}",
 			},
 		},
 	}
@@ -202,7 +170,7 @@ func TestParseConfigurationStoreIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseConfigurationStoreIDInsensitively(v.Input)
+		actual, err := ParseResourceGroupIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -219,9 +187,6 @@ func TestParseConfigurationStoreIDInsensitively(t *testing.T) {
 		}
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
-		}
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }

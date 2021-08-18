@@ -1,6 +1,6 @@
 package configurationstores
 
-type PrivateEndpointConnection struct {
+type PrivateEndpointConnectionReference struct {
 	Id         *string                              `json:"id,omitempty"`
 	Name       *string                              `json:"name,omitempty"`
 	Properties *PrivateEndpointConnectionProperties `json:"properties,omitempty"`
