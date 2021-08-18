@@ -521,10 +521,9 @@ func schemaAppServiceLogsConfig() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"file_system_level": {
-								Type:          pluginsdk.TypeString,
-								Optional:      true,
-								Default:       "Off",
-								ConflictsWith: []string{"logs.0.http_logs.0.azure_blob_storage"},
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								Default:  "Off",
 								ValidateFunc: validation.StringInSlice([]string{
 									string(web.LogLevelError),
 									string(web.LogLevelInformation),
