@@ -40,8 +40,8 @@ func TestAccComputeInstance_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("ssh_access.0.username").Exists(),
-				check.That(data.ResourceName).Key("ssh_access.0.ssh_port").Exists(),
+				check.That(data.ResourceName).Key("ssh.0.username").Exists(),
+				check.That(data.ResourceName).Key("ssh.0.port").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -186,7 +186,7 @@ resource "azurerm_machine_learning_compute_instance" "test" {
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   authorization_type            = "personal"
-  ssh_access {
+  ssh {
     public_key = var.ssh_key
   }
   subnet_resource_id = azurerm_subnet.test.id

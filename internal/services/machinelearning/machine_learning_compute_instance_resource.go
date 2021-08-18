@@ -102,7 +102,7 @@ func resourceComputeInstance() *pluginsdk.Resource {
 
 			"identity": SystemAssignedUserAssigned{}.Schema(),
 
-			"ssh_access": {
+			"ssh": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
@@ -119,7 +119,7 @@ func resourceComputeInstance() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"ssh_port": {
+						"port": {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
@@ -177,7 +177,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			Properties: &machinelearningservices.ComputeInstanceProperties{
 				VMSize:                           utils.String(d.Get("virtual_machine_size").(string)),
 				Subnet:                           subnet,
-				SSHSettings:                      expandComputeSSHSetting(d.Get("ssh_access").([]interface{})),
+				SSHSettings:                      expandComputeSSHSetting(d.Get("ssh").([]interface{})),
 				ComputeInstanceAuthorizationType: machinelearningservices.ComputeInstanceAuthorizationType(d.Get("authorization_type").(string)),
 				PersonalComputeInstanceSettings:  expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
 			},
@@ -245,7 +245,7 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 				d.Set("subnet_resource_id", props.Properties.Subnet.ID)
 			}
 			d.Set("authorization_type", props.Properties.ComputeInstanceAuthorizationType)
-			d.Set("ssh_access", flattenComputeSSHSetting(props.Properties.SSHSettings))
+			d.Set("ssh", flattenComputeSSHSetting(props.Properties.SSHSettings))
 			d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
 		}
 	} else {
@@ -321,7 +321,7 @@ func flattenComputeSSHSetting(settings *machinelearningservices.ComputeInstanceS
 		map[string]interface{}{
 			"public_key": settings.AdminPublicKey,
 			"username":   settings.AdminUserName,
-			"ssh_port":   settings.SSHPort,
+			"port":       settings.SSHPort,
 		},
 	}
 }

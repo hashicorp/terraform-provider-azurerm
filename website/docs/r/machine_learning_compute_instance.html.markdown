@@ -82,7 +82,7 @@ resource "azurerm_machine_learning_compute_instance" "example" {
   machine_learning_workspace_id = azurerm_machine_learning_workspace.example.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   authorization_type            = "personal"
-  ssh_access {
+  ssh {
     public_key = var.ssh_key
   }
   subnet_resource_id = azurerm_subnet.example.id
@@ -115,7 +115,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) A `identity` block as defined below. Changing this forces a new Machine Learning Compute Instance to be created.
 
-* `ssh_access` - (Optional) A `ssh_access` block as defined below. Specifies policy and settings for SSH access. Changing this forces a new Machine Learning Compute Instance to be created.
+* `ssh` - (Optional) A `ssh` block as defined below. Specifies policy and settings for SSH access. Changing this forces a new Machine Learning Compute Instance to be created.
 
 * `subnet_resource_id` - (Optional) Virtual network subnet resource ID the compute nodes belong to. Changing this forces a new Machine Learning Compute Instance to be created.
 
@@ -139,7 +139,7 @@ A `assign_to_user` block supports the following:
 
 ---
 
-A `ssh_access` block supports the following:
+A `ssh` block supports the following:
 
 * `public_key` - (Required) Specifies the SSH rsa public key file as a string. Use "ssh-keygen -t rsa -b 2048" to generate your SSH key pairs.
 
@@ -151,7 +151,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Machine Learning Compute Instance.
 
-* `ssh_access` - An `ssh_access` block as defined below, which specifies policy and settings for SSH access for this Machine Learning Compute Instance.
+* `ssh` - An `ssh` block as defined below, which specifies policy and settings for SSH access for this Machine Learning Compute Instance.
 
 ---
 
@@ -162,11 +162,11 @@ A `identity` block exports the following:
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Machine Learning Compute Instance.
 
 ---
-A `ssh_access` block exports the following:
+A `ssh` block exports the following:
 
 * `username` - The admin username of this Machine Learning Compute Instance.
 
-* `ssh_port` - Describes the port for connecting through SSH.
+* `port` - Describes the port for connecting through SSH.
 
 ## Timeouts
 
