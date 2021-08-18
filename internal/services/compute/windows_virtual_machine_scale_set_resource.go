@@ -638,7 +638,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 			}
 		} else {
 			upgradePolicy = *existing.VirtualMachineScaleSetProperties.UpgradePolicy
-			existing.VirtualMachineScaleSetProperties.UpgradePolicy.Mode = compute.UpgradeMode(d.Get("upgrade_mode").(string))
+			upgradePolicy.Mode = compute.UpgradeMode(d.Get("upgrade_mode").(string))
 		}
 
 		if d.HasChange("automatic_os_upgrade_policy") {
