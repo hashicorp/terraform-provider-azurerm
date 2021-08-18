@@ -35,6 +35,28 @@ func TestAccDataLakeStore_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataLakeStore_withIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
+	r := DataLakeStoreResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Consumption"),
+				check.That(data.ResourceName).Key("encryption_state").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("encryption_type").HasValue("ServiceManaged"),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDataLakeStore_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
 	r := DataLakeStoreResource{}
@@ -180,6 +202,29 @@ resource "azurerm_data_lake_store" "test" {
   name                = "acctest%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+}
+`, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17])
+}
+
+func (DataLakeStoreResource) identity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-datalake-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_lake_store" "test" {
+  name                = "acctest%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17])
 }

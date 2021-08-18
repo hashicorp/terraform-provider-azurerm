@@ -113,6 +113,31 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"identity": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, false),
+						},
+						"principal_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -153,11 +178,13 @@ func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{})
 	dateLakeStore := account.CreateDataLakeStoreAccountParameters{
 		Location: &location,
 		Tags:     tags.Expand(t),
+		Identity: expandDataLakeStoreIdentity(d.Get("identity").([]interface{})),
 		CreateDataLakeStoreAccountProperties: &account.CreateDataLakeStoreAccountProperties{
 			NewTier:               account.TierType(tier),
 			FirewallState:         firewallState,
 			FirewallAllowAzureIps: firewallAllowAzureIPs,
 			EncryptionState:       encryptionState,
+
 			EncryptionConfig: &account.EncryptionConfig{
 				Type: encryptionType,
 			},
@@ -248,6 +275,10 @@ func resourceArmDateLakeStoreRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	if err := d.Set("identity", flattenDataLakeStoreIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("flattening identity on Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
 	if properties := resp.DataLakeStoreAccountProperties; properties != nil {
 		d.Set("tier", string(properties.CurrentTier))
 
@@ -287,4 +318,40 @@ func resourceArmDateLakeStoreDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	return nil
+}
+
+func expandDataLakeStoreIdentity(input []interface{}) *account.EncryptionIdentity {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &account.EncryptionIdentity{
+		Type: utils.String(v["type"].(string)),
+	}
+}
+
+func flattenDataLakeStoreIdentity(identity *account.EncryptionIdentity) []interface{} {
+	if identity == nil {
+		return []interface{}{}
+	}
+
+	principalID := ""
+	if identity.PrincipalID != nil {
+		principalID = identity.PrincipalID.String()
+	}
+
+	tenantID := ""
+	if identity.TenantID != nil {
+		tenantID = identity.TenantID.String()
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         identity.Type,
+			"principal_id": principalID,
+			"tenant_id":    tenantID,
+		},
+	}
 }
