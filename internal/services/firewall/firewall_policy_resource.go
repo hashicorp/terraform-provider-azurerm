@@ -699,10 +699,10 @@ func flattenFirewallPolicyIdentity(identity *network.ManagedServiceIdentity) []i
 		tenantID = *identity.TenantID
 	}
 
-	userAssignedIdentities := make(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue)
+	userAssignedIdentities := make([]string, 0)
 
-	if identity.UserAssignedIdentities != nil {
-		userAssignedIdentities = identity.UserAssignedIdentities
+	for id := range identity.UserAssignedIdentities {
+		userAssignedIdentities = append(userAssignedIdentities, id)
 	}
 
 	return []interface{}{
