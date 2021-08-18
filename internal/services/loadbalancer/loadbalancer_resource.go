@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -306,7 +306,7 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 	if props := resp.LoadBalancerPropertiesFormat; props != nil {
 		if feipConfigs := props.FrontendIPConfigurations; feipConfigs != nil {
 			if err := d.Set("frontend_ip_configuration", flattenLoadBalancerFrontendIpConfiguration(feipConfigs)); err != nil {
-				return fmt.Errorf("Error flattening `frontend_ip_configuration`: %+v", err)
+				return fmt.Errorf("flattening `frontend_ip_configuration`: %+v", err)
 			}
 
 			privateIpAddress := ""

@@ -82,7 +82,7 @@ func resourceAutomationCredentialCreateUpdate(d *pluginsdk.ResourceData, meta in
 		existing, err := client.Get(ctx, resGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Automation Credential %q (Account %q / Resource Group %q): %s", name, accountName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Automation Credential %q (Account %q / Resource Group %q): %s", name, accountName, resGroup, err)
 			}
 		}
 
@@ -142,7 +142,7 @@ func resourceAutomationCredentialRead(d *pluginsdk.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Credential '%s': %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM Automation Credential '%s': %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -175,7 +175,7 @@ func resourceAutomationCredentialDelete(d *pluginsdk.ResourceData, meta interfac
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for Automation Credential '%s': %+v", name, err)
+		return fmt.Errorf("issuing AzureRM delete request for Automation Credential '%s': %+v", name, err)
 	}
 
 	return nil

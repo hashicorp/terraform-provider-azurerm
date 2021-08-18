@@ -76,7 +76,7 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 		existing, err := client.Get(ctx, vaultName, resGroup, "Azure", containerName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing recovery services protection container %s (Vault %s): %+v", containerName, vaultName, err)
+				return fmt.Errorf("checking for presence of existing recovery services protection container %s (Vault %s): %+v", containerName, vaultName, err)
 			}
 		}
 
@@ -96,7 +96,7 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 
 	resp, err := client.Register(ctx, vaultName, resGroup, "Azure", containerName, parameters)
 	if err != nil {
-		return fmt.Errorf("Error registering backup protection container %s (Vault %s): %+v", containerName, vaultName, err)
+		return fmt.Errorf("registering backup protection container %s (Vault %s): %+v", containerName, vaultName, err)
 	}
 
 	locationURL, err := resp.Response.Location() // Operation ID found in the Location header
@@ -118,7 +118,7 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 
 	resp, err = client.Get(ctx, vaultName, resGroup, "Azure", containerName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving site recovery protection container %s (Vault %s): %+v", containerName, vaultName, err)
+		return fmt.Errorf("retrieving site recovery protection container %s (Vault %s): %+v", containerName, vaultName, err)
 	}
 
 	d.SetId(handleAzureSdkForGoBug2824(*resp.ID))
@@ -147,7 +147,7 @@ func resourceBackupProtectionContainerStorageAccountRead(d *pluginsdk.ResourceDa
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on backup protection container %s (Vault %s): %+v", containerName, vaultName, err)
+		return fmt.Errorf("making Read request on backup protection container %s (Vault %s): %+v", containerName, vaultName, err)
 	}
 
 	d.Set("resource_group_name", resGroup)
@@ -178,12 +178,12 @@ func resourceBackupProtectionContainerStorageAccountDelete(d *pluginsdk.Resource
 
 	resp, err := client.Unregister(ctx, vaultName, resGroup, fabricName, containerName)
 	if err != nil {
-		return fmt.Errorf("Error deregistering backup protection container %s (Vault %s): %+v", containerName, vaultName, err)
+		return fmt.Errorf("deregistering backup protection container %s (Vault %s): %+v", containerName, vaultName, err)
 	}
 
 	locationURL, err := resp.Response.Location()
 	if err != nil || locationURL == nil {
-		return fmt.Errorf("Error unregistering backup protection container %s (Vault %s): Location header missing or empty", containerName, vaultName)
+		return fmt.Errorf("unregistering backup protection container %s (Vault %s): Location header missing or empty", containerName, vaultName)
 	}
 
 	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
@@ -230,7 +230,7 @@ func resourceBackupProtectionContainerStorageAccountCheckOperation(ctx context.C
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, vaultName, resourceGroup, operationID)
 		if err != nil {
-			return resp, "Error", fmt.Errorf("Error making Read request on Recovery Service Protection Container operation %q (Vault %q in Resource Group %q): %+v", operationID, vaultName, resourceGroup, err)
+			return resp, "Error", fmt.Errorf("making Read request on Recovery Service Protection Container operation %q (Vault %q in Resource Group %q): %+v", operationID, vaultName, resourceGroup, err)
 		}
 
 		if opErr := resp.Error; opErr != nil {

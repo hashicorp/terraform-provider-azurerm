@@ -64,7 +64,7 @@ func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta
 		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Proximity Placement Group %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Proximity Placement Group %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -107,7 +107,7 @@ func resourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta interfa
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Proximity Placement Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Proximity Placement Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)

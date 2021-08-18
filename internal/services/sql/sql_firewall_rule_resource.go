@@ -86,7 +86,7 @@ func resourceSqlFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		existing, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing SQL Firewall Rule %s (Resource Group %s, Server %s): %+v", name, resourceGroup, serverName, err)
+				return fmt.Errorf("checking for presence of existing SQL Firewall Rule %s (Resource Group %s, Server %s): %+v", name, resourceGroup, serverName, err)
 			}
 		}
 
@@ -103,12 +103,12 @@ func resourceSqlFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters); err != nil {
-		return fmt.Errorf("Error creating SQL Firewall Rule %s (Resource Group %s, Server %s): %+v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("creating SQL Firewall Rule %s (Resource Group %s, Server %s): %+v", name, resourceGroup, serverName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving SQL Firewall Rule %s (Resource Group %s, Server %s): %+v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("retrieving SQL Firewall Rule %s (Resource Group %s, Server %s): %+v", name, resourceGroup, serverName, err)
 	}
 
 	d.SetId(*resp.ID)

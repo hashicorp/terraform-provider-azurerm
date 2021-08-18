@@ -29,6 +29,11 @@ func dataSourceIotHub() *pluginsdk.Resource {
 			},
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
+			"hostname": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -47,12 +52,16 @@ func dataSourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: IoTHub %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error retrieving IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.SetId(*resp.ID)
+
+	if properties := resp.Properties; properties != nil {
+		d.Set("hostname", properties.HostName)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

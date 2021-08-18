@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
+
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/authorizationrulesnamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -113,7 +114,7 @@ func EventHubNamespaceDataSourceAuthorizationRuleRead(d *pluginsdk.ResourceData,
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			listen, send, manage := flattenEventHubAuthorizationRuleRights(props.Rights)
+			listen, send, manage := flattenEventHubNamespaceAuthorizationRuleRights(props.Rights)
 			d.Set("manage", manage)
 			d.Set("listen", listen)
 			d.Set("send", send)

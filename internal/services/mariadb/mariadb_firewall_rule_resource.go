@@ -81,7 +81,7 @@ func resourceArmMariaDBFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 		existing, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing MariaDB Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
+				return fmt.Errorf("checking for presence of existing MariaDB Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
 			}
 		}
 
@@ -99,16 +99,16 @@ func resourceArmMariaDBFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for MariaDB Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("issuing create/update request for MariaDB Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting onf create/update future for MariaDB Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("waiting onf create/update future for MariaDB Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		return fmt.Errorf("Error issuing get request for MariaDB Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("issuing get request for MariaDB Firewall Rule %q (resource group %q, server name %q): %v", name, resourceGroup, serverName, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read MariaDB Firewall Rule %q (Gesource Group %q) ID", name, resourceGroup)
@@ -138,7 +138,7 @@ func resourceArmMariaDBFirewallRuleRead(d *pluginsdk.ResourceData, meta interfac
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure MariaDB Firewall Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure MariaDB Firewall Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)

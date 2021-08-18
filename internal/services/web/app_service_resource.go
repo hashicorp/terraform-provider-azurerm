@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -215,7 +215,7 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing App Service %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing App Service %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
 	}
 
@@ -246,7 +246,7 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
 	if err != nil {
-		return fmt.Errorf("Error checking if the name %q was available: %+v", name, err)
+		return fmt.Errorf("checking if the name %q was available: %+v", name, err)
 	}
 
 	if !*available.NameAvailable {
@@ -260,7 +260,7 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
 	if err != nil {
-		return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("expanding `site_config` for App Service %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	siteEnvelope := web.Site{
@@ -286,12 +286,12 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	createFuture, err := client.CreateOrUpdate(ctx, resourceGroup, name, siteEnvelope)
 	if err != nil {
-		return fmt.Errorf("Error creating App Service %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("creating App Service %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for App Service %q (Resource Group %q) to be created: %s", name, resourceGroup, err)
+		return fmt.Errorf("waiting for App Service %q (Resource Group %q) to be created: %s", name, resourceGroup, err)
 	}
 
 	if _, ok := d.GetOk("source_control"); ok {

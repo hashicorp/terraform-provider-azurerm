@@ -83,7 +83,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
+		return fmt.Errorf("retrieving Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
 	props := read.InterfacePropertiesFormat
@@ -106,11 +106,11 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, networkInterfaceName, read)
 	if err != nil {
-		return fmt.Errorf("Error updating Application Security Group Association for Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
+		return fmt.Errorf("updating Application Security Group Association for Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Application Security Group Association for NIC %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of Application Security Group Association for NIC %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
 	d.SetId(resourceId)
@@ -145,7 +145,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsd
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
+		return fmt.Errorf("retrieving Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
 	nicProps := read.InterfacePropertiesFormat
@@ -201,7 +201,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *plugin
 			return fmt.Errorf("Network Interface %q (Resource Group %q) was not found!", networkInterfaceName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
+		return fmt.Errorf("retrieving Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
 	props := read.InterfacePropertiesFormat
@@ -226,11 +226,11 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *plugin
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, networkInterfaceName, read)
 	if err != nil {
-		return fmt.Errorf("Error removing Application Security Group for Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
+		return fmt.Errorf("removing Application Security Group for Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for removal of Application Security Group for NIC %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
+		return fmt.Errorf("waiting for removal of Application Security Group for NIC %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
 	return nil

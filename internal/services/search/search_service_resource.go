@@ -175,7 +175,7 @@ func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		existing, err := client.Get(ctx, resourceGroup, name, nil)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Search Service %q (ResourceGroup %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Search Service %q (ResourceGroup %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -211,16 +211,16 @@ func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties, nil)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for Search Service %q (ResourceGroup %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("issuing create/update request for Search Service %q (ResourceGroup %q): %s", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("error waiting for the completion of the creating/updating of Search Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the completion of the creating/updating of Search Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name, nil)
 	if err != nil {
-		return fmt.Errorf("Error issuing get request for Search Service %q (ResourceGroup %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("issuing get request for Search Service %q (ResourceGroup %q): %s", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -246,7 +246,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Search Service: %+v", err)
+		return fmt.Errorf("reading Search Service: %+v", err)
 	}
 
 	d.Set("name", id.Name)
@@ -309,7 +309,7 @@ func resourceSearchServiceDelete(d *pluginsdk.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Search Service %q (resource group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Search Service %q (resource group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

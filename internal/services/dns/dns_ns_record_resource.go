@@ -87,7 +87,7 @@ func resourceDnsNsRecordCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	existing, err := client.Get(ctx, resGroup, zoneName, name, dns.NS)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing DNS NS Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+			return fmt.Errorf("checking for presence of existing DNS NS Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 		}
 	}
 
@@ -113,7 +113,7 @@ func resourceDnsNsRecordCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
 	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.NS, parameters, eTag, ifNoneMatch); err != nil {
-		return fmt.Errorf("Error creating DNS NS Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+		return fmt.Errorf("creating DNS NS Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -133,11 +133,11 @@ func resourceDnsNsRecordUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.DnszoneName, id.NSName, dns.NS)
 	if err != nil {
-		return fmt.Errorf("Error retrieving NS %q (DNS Zone %q / Resource Group %q): %+v", id.NSName, id.DnszoneName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving NS %q (DNS Zone %q / Resource Group %q): %+v", id.NSName, id.DnszoneName, id.ResourceGroup, err)
 	}
 
 	if existing.RecordSetProperties == nil {
-		return fmt.Errorf("Error retrieving NS %q (DNS Zone %q / Resource Group %q): `properties` was nil", id.NSName, id.DnszoneName, id.ResourceGroup)
+		return fmt.Errorf("retrieving NS %q (DNS Zone %q / Resource Group %q): `properties` was nil", id.NSName, id.DnszoneName, id.ResourceGroup)
 	}
 
 	if d.HasChange("records") {
@@ -158,7 +158,7 @@ func resourceDnsNsRecordUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.DnszoneName, id.NSName, dns.NS, existing, eTag, ifNoneMatch); err != nil {
-		return fmt.Errorf("Error updating DNS NS Record %q (Zone %q / Resource Group %q): %s", id.NSName, id.DnszoneName, id.ResourceGroup, err)
+		return fmt.Errorf("updating DNS NS Record %q (Zone %q / Resource Group %q): %s", id.NSName, id.DnszoneName, id.ResourceGroup, err)
 	}
 
 	return resourceDnsNsRecordRead(d, meta)
@@ -180,7 +180,7 @@ func resourceDnsNsRecordRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS NS record %s: %+v", id.NSName, err)
+		return fmt.Errorf("reading DNS NS record %s: %+v", id.NSName, err)
 	}
 
 	d.Set("name", id.NSName)
@@ -192,7 +192,7 @@ func resourceDnsNsRecordRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	if props := resp.RecordSetProperties; props != nil {
 		if err := d.Set("records", flattenAzureRmDnsNsRecords(props.NsRecords)); err != nil {
-			return fmt.Errorf("Error settings `records`: %+v", err)
+			return fmt.Errorf("settings `records`: %+v", err)
 		}
 	}
 
@@ -211,7 +211,7 @@ func resourceDnsNsRecordDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	resp, err := dnsClient.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.NSName, dns.NS, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS NS Record %s: %+v", id.NSName, err)
+		return fmt.Errorf("deleting DNS NS Record %s: %+v", id.NSName, err)
 	}
 
 	return nil

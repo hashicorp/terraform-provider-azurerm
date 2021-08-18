@@ -283,7 +283,7 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 	timeOfDay := d.Get("backup.0.time").(string)
 	dateOfDay, err := time.Parse(time.RFC3339, fmt.Sprintf("2018-07-30T%s:00Z", timeOfDay))
 	if err != nil {
-		return fmt.Errorf("Error generating time from %q for policy %q (Resource Group %q): %+v", timeOfDay, policyName, resourceGroup, err)
+		return fmt.Errorf("generating time from %q for policy %q (Resource Group %q): %+v", timeOfDay, policyName, resourceGroup, err)
 	}
 	times := append(make([]date.Time, 0), date.Time{Time: dateOfDay})
 
@@ -291,7 +291,7 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 		existing, err2 := client.Get(ctx, vaultName, resourceGroup, policyName)
 		if err2 != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err2)
+				return fmt.Errorf("checking for presence of existing Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err2)
 			}
 		}
 
@@ -320,7 +320,7 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, policyName, policy); err != nil {
-		return fmt.Errorf("Error creating/updating Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
 	}
 
 	resp, err := resourceBackupProtectionPolicyFileShareWaitForUpdate(ctx, client, vaultName, resourceGroup, policyName, d)
@@ -357,7 +357,7 @@ func resourceBackupProtectionPolicyFileShareRead(d *pluginsdk.ResourceData, meta
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
+		return fmt.Errorf("making Read request on Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
 	}
 
 	d.Set("name", policyName)
@@ -369,14 +369,14 @@ func resourceBackupProtectionPolicyFileShareRead(d *pluginsdk.ResourceData, meta
 
 		if schedule, ok := properties.SchedulePolicy.AsSimpleSchedulePolicy(); ok && schedule != nil {
 			if err := d.Set("backup", flattenBackupProtectionPolicyFileShareSchedule(schedule)); err != nil {
-				return fmt.Errorf("Error setting `backup`: %+v", err)
+				return fmt.Errorf("setting `backup`: %+v", err)
 			}
 		}
 
 		if retention, ok := properties.RetentionPolicy.AsLongTermRetentionPolicy(); ok && retention != nil {
 			if s := retention.DailySchedule; s != nil {
 				if err := d.Set("retention_daily", flattenBackupProtectionPolicyFileShareRetentionDaily(s)); err != nil {
-					return fmt.Errorf("Error setting `retention_daily`: %+v", err)
+					return fmt.Errorf("setting `retention_daily`: %+v", err)
 				}
 			} else {
 				d.Set("retention_daily", nil)
@@ -384,7 +384,7 @@ func resourceBackupProtectionPolicyFileShareRead(d *pluginsdk.ResourceData, meta
 
 			if s := retention.WeeklySchedule; s != nil {
 				if err := d.Set("retention_weekly", flattenBackupProtectionPolicyFileShareRetentionWeekly(s)); err != nil {
-					return fmt.Errorf("Error setting `retention_weekly`: %+v", err)
+					return fmt.Errorf("setting `retention_weekly`: %+v", err)
 				}
 			} else {
 				d.Set("retention_weekly", nil)
@@ -392,7 +392,7 @@ func resourceBackupProtectionPolicyFileShareRead(d *pluginsdk.ResourceData, meta
 
 			if s := retention.MonthlySchedule; s != nil {
 				if err := d.Set("retention_monthly", flattenBackupProtectionPolicyFileShareRetentionMonthly(s)); err != nil {
-					return fmt.Errorf("Error setting `retention_monthly`: %+v", err)
+					return fmt.Errorf("setting `retention_monthly`: %+v", err)
 				}
 			} else {
 				d.Set("retention_monthly", nil)
@@ -400,7 +400,7 @@ func resourceBackupProtectionPolicyFileShareRead(d *pluginsdk.ResourceData, meta
 
 			if s := retention.YearlySchedule; s != nil {
 				if err := d.Set("retention_yearly", flattenBackupProtectionPolicyFileShareRetentionYearly(s)); err != nil {
-					return fmt.Errorf("Error setting `retention_yearly`: %+v", err)
+					return fmt.Errorf("setting `retention_yearly`: %+v", err)
 				}
 			} else {
 				d.Set("retention_yearly", nil)
@@ -430,7 +430,7 @@ func resourceBackupProtectionPolicyFileShareDelete(d *pluginsdk.ResourceData, me
 	resp, err := client.Delete(ctx, vaultName, resourceGroup, policyName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error issuing delete request for Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
+			return fmt.Errorf("issuing delete request for Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
 		}
 	}
 
@@ -695,7 +695,7 @@ func resourceBackupProtectionPolicyFileShareWaitForUpdate(ctx context.Context, c
 
 	resp, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Recovery Service Protection Policy %q to update (Resource Group %q): %+v", policyName, resourceGroup, err)
+		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("waiting for the Recovery Service Protection Policy %q to update (Resource Group %q): %+v", policyName, resourceGroup, err)
 	}
 
 	return resp.(backup.ProtectionPolicyResource), nil
@@ -713,7 +713,7 @@ func resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx context.Context,
 
 	resp, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Recovery Service Protection Policy %q to be missing (Resource Group %q): %+v", policyName, resourceGroup, err)
+		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("waiting for the Recovery Service Protection Policy %q to be missing (Resource Group %q): %+v", policyName, resourceGroup, err)
 	}
 
 	return resp.(backup.ProtectionPolicyResource), nil
@@ -727,7 +727,7 @@ func resourceBackupProtectionPolicyFileShareRefreshFunc(ctx context.Context, cli
 				return resp, "NotFound", nil
 			}
 
-			return resp, "Error", fmt.Errorf("Error making Read request on Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
+			return resp, "Error", fmt.Errorf("making Read request on Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
 		}
 
 		return resp, "Found", nil

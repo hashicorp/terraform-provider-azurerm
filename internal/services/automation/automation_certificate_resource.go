@@ -92,7 +92,7 @@ func resourceAutomationCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 		existing, err := client.Get(ctx, resourceGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Automation Certificate %q (Account %q / Resource Group %q): %s", name, accountName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Automation Certificate %q (Account %q / Resource Group %q): %s", name, accountName, resourceGroup, err)
 			}
 		}
 
@@ -117,12 +117,12 @@ func resourceAutomationCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, name, parameters); err != nil {
-		return fmt.Errorf("Error creating/updating Certificate %q (Automation Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Certificate %q (Automation Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, accountName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Certificate %q (Automation Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+		return fmt.Errorf("retrieving Certificate %q (Automation Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -154,7 +154,7 @@ func resourceAutomationCertificateRead(d *pluginsdk.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Certificate %q (Automation Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+		return fmt.Errorf("retrieving Certificate %q (Automation Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -186,7 +186,7 @@ func resourceAutomationCertificateDelete(d *pluginsdk.ResourceData, meta interfa
 	resp, err := client.Delete(ctx, resourceGroup, accountName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting Certificate %q (Automation Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+			return fmt.Errorf("deleting Certificate %q (Automation Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 		}
 	}
 

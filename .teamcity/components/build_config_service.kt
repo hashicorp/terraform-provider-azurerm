@@ -20,7 +20,7 @@ class serviceDetails(name: String, displayName: String, environment: String) {
             steps {
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
-                RunAcceptanceTests(providerName, packageName)
+                RunAcceptanceTests(packageName)
             }
 
             failureConditions {
@@ -37,7 +37,7 @@ class serviceDetails(name: String, displayName: String, environment: String) {
                 TerraformCoreBinaryTesting()
                 TerraformShouldPanicForSchemaErrors()
                 ReadOnlySettings()
-                WorkingDirectory(providerName, packageName)
+                WorkingDirectory(packageName)
             }
 
             triggers {

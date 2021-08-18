@@ -252,11 +252,11 @@ func resourceMediaAssetFilterRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("first_quality_bitrate", firstQualityBitrate)
 
 		if err := d.Set("presentation_time_range", flattenPresentationTimeRange(resp.PresentationTimeRange)); err != nil {
-			return fmt.Errorf("Error flattening `presentation_time_range`: %s", err)
+			return fmt.Errorf("flattening `presentation_time_range`: %s", err)
 		}
 
 		if err := d.Set("track_selection", flattenTracks(resp.Tracks)); err != nil {
-			return fmt.Errorf("Error flattening `track`: %s", err)
+			return fmt.Errorf("flattening `track`: %s", err)
 		}
 	}
 

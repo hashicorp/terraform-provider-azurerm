@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -146,7 +146,7 @@ func (NetworkInterfaceApplicationSecurityGroupAssociationResource) destroy(ctx c
 
 	read, err := client.Network.InterfacesClient.Get(ctx, resourceGroup, nicName, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+		return fmt.Errorf("retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
 	}
 
 	configs := *read.InterfacePropertiesFormat.IPConfigurations
@@ -166,11 +166,11 @@ func (NetworkInterfaceApplicationSecurityGroupAssociationResource) destroy(ctx c
 
 	future, err := client.Network.InterfacesClient.CreateOrUpdate(ctx, resourceGroup, nicName, read)
 	if err != nil {
-		return fmt.Errorf("Error removing Application Security Group Association for Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+		return fmt.Errorf("removing Application Security Group Association for Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Network.InterfacesClient.Client); err != nil {
-		return fmt.Errorf("Error waiting for removal of Application Security Group Association for NIC %q (Resource Group %q): %+v", nicName, resourceGroup, err)
+		return fmt.Errorf("waiting for removal of Application Security Group Association for NIC %q (Resource Group %q): %+v", nicName, resourceGroup, err)
 	}
 
 	return nil

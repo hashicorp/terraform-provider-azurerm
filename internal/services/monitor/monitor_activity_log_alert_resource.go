@@ -250,7 +250,7 @@ func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Monitor Activity Log Alert %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Monitor Activity Log Alert %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -281,7 +281,7 @@ func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("Error creating or updating activity log alert %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating or updating activity log alert %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
@@ -315,7 +315,7 @@ func resourceMonitorActivityLogAlertRead(d *pluginsdk.ResourceData, meta interfa
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error getting activity log alert %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("getting activity log alert %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -324,13 +324,13 @@ func resourceMonitorActivityLogAlertRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("enabled", alert.Enabled)
 		d.Set("description", alert.Description)
 		if err := d.Set("scopes", utils.FlattenStringSlice(alert.Scopes)); err != nil {
-			return fmt.Errorf("Error setting `scopes`: %+v", err)
+			return fmt.Errorf("setting `scopes`: %+v", err)
 		}
 		if err := d.Set("criteria", flattenMonitorActivityLogAlertCriteria(alert.Condition)); err != nil {
-			return fmt.Errorf("Error setting `criteria`: %+v", err)
+			return fmt.Errorf("setting `criteria`: %+v", err)
 		}
 		if err := d.Set("action", flattenMonitorActivityLogAlertAction(alert.Actions)); err != nil {
-			return fmt.Errorf("Error setting `action`: %+v", err)
+			return fmt.Errorf("setting `action`: %+v", err)
 		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -350,7 +350,7 @@ func resourceMonitorActivityLogAlertDelete(d *pluginsdk.ResourceData, meta inter
 
 	if resp, err := client.Delete(ctx, resourceGroup, name); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting activity log alert %q (resource group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("deleting activity log alert %q (resource group %q): %+v", name, resourceGroup, err)
 		}
 	}
 

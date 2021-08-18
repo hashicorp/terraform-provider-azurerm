@@ -208,7 +208,8 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, m
 		parameters.Verbosity = apimanagement.Verbosity(verbosity.(string))
 	}
 
-	if logClientIP, exists := d.GetOkExists("log_client_ip"); exists { //nolint:SA1019
+	//lint:ignore SA1019 SDKv2 migration  - staticcheck's own linter directives are currently being ignored under golanci-lint
+	if logClientIP, exists := d.GetOkExists("log_client_ip"); exists { //nolint:staticcheck
 		parameters.LogClientIP = utils.Bool(logClientIP.(bool))
 	}
 

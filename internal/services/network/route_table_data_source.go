@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -86,7 +86,7 @@ func dataSourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Route Table %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error making Read request on Azure Route Table %q: %+v", name, err)
+		return fmt.Errorf("making Read request on Azure Route Table %q: %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)

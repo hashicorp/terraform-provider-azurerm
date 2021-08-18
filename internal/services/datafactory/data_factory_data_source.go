@@ -160,12 +160,12 @@ func dataSourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	repoType, repo := flattenDataFactoryRepoConfiguration(&resp)
 	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryVSTSConfiguration {
 		if err := d.Set("vsts_configuration", repo); err != nil {
-			return fmt.Errorf("Error setting `vsts_configuration`: %+v", err)
+			return fmt.Errorf("setting `vsts_configuration`: %+v", err)
 		}
 	}
 	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryGitHubConfiguration {
 		if err := d.Set("github_configuration", repo); err != nil {
-			return fmt.Errorf("Error setting `github_configuration`: %+v", err)
+			return fmt.Errorf("setting `github_configuration`: %+v", err)
 		}
 	}
 	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryRepoConfiguration {
@@ -175,10 +175,10 @@ func dataSourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	identity, err := flattenDataFactoryIdentity(resp.Identity)
 	if err != nil {
-		return fmt.Errorf("Error flattening `identity`: %+v", err)
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

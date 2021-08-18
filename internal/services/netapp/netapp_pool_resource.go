@@ -91,7 +91,7 @@ func resourceNetAppPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		existing, err := client.Get(ctx, resourceGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing NetApp Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing NetApp Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -116,15 +116,15 @@ func resourceNetAppPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.CreateOrUpdate(ctx, capacityPoolParameters, resourceGroup, accountName, name)
 	if err != nil {
-		return fmt.Errorf("Error creating NetApp Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating NetApp Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of NetApp Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of NetApp Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, accountName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving NetApp Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving NetApp Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read NetApp Pool %q (Resource Group %q) ID", name, resourceGroup)
@@ -151,7 +151,7 @@ func resourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading NetApp Pools %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("reading NetApp Pools %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -186,7 +186,7 @@ func resourceNetAppPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name); err != nil {
-		return fmt.Errorf("Error deleting NetApp Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting NetApp Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	// The resource NetApp Pool depends on the resource NetApp Account.
@@ -206,7 +206,7 @@ func resourceNetAppPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for NetApp Pool %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for NetApp Pool %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -217,7 +217,7 @@ func netappPoolDeleteStateRefreshFunc(ctx context.Context, client *netapp.PoolsC
 		res, err := client.Get(ctx, resourceGroupName, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(res.Response) {
-				return nil, "", fmt.Errorf("Error retrieving NetApp Pool %q (Resource Group %q): %s", name, resourceGroupName, err)
+				return nil, "", fmt.Errorf("retrieving NetApp Pool %q (Resource Group %q): %s", name, resourceGroupName, err)
 			}
 		}
 

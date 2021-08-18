@@ -459,17 +459,17 @@ func resourceMediaLiveEventRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if props := resp.LiveEventProperties; props != nil {
 		input := flattenLiveEventInput(props.Input)
 		if err := d.Set("input", input); err != nil {
-			return fmt.Errorf("Error flattening `input`: %s", err)
+			return fmt.Errorf("flattening `input`: %s", err)
 		}
 
 		crossSiteAccessPolicies := flattenLiveEventCrossSiteAccessPolicies(resp.CrossSiteAccessPolicies)
 		if err := d.Set("cross_site_access_policy", crossSiteAccessPolicies); err != nil {
-			return fmt.Errorf("Error flattening `cross_site_access_policy`: %s", err)
+			return fmt.Errorf("flattening `cross_site_access_policy`: %s", err)
 		}
 
 		encoding := flattenEncoding(resp.Encoding)
 		if err := d.Set("encoding", encoding); err != nil {
-			return fmt.Errorf("Error flattening `encoding`: %s", err)
+			return fmt.Errorf("flattening `encoding`: %s", err)
 		}
 
 		d.Set("description", props.Description)
@@ -477,12 +477,12 @@ func resourceMediaLiveEventRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		preview := flattenPreview(resp.Preview)
 		if err := d.Set("preview", preview); err != nil {
-			return fmt.Errorf("Error flattening `preview`: %s", err)
+			return fmt.Errorf("flattening `preview`: %s", err)
 		}
 
 		transcriptions := flattenTranscriptions(resp.Transcriptions)
 		if err := d.Set("transcription_languages", transcriptions); err != nil {
-			return fmt.Errorf("Error flattening `transcription_languages`: %s", err)
+			return fmt.Errorf("flattening `transcription_languages`: %s", err)
 		}
 
 		useStaticHostName := false

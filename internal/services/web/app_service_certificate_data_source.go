@@ -89,7 +89,7 @@ func dataSourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("App Service Certificate %q (Resource Group %q) does not exist!", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving App Service Certificate %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving App Service Certificate %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)

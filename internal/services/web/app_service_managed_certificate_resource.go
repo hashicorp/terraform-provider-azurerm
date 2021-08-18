@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
@@ -155,7 +155,7 @@ func resourceAppServiceManagedCertificateCreateUpdate(d *pluginsdk.ResourceData,
 	if resp, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.CertificateName, certificate); err != nil {
 		// API returns 202 where 200 is expected - https://github.com/Azure/azure-sdk-for-go/issues/13665
 		if !utils.ResponseWasStatusCode(resp.Response, 202) {
-			return fmt.Errorf("Error creating/updating App Service Managed Certificate %q (Resource Group %q): %s", id.CertificateName, id.ResourceGroup, err)
+			return fmt.Errorf("creating/updating App Service Managed Certificate %q (Resource Group %q): %s", id.CertificateName, id.ResourceGroup, err)
 		}
 	}
 
@@ -209,7 +209,7 @@ func resourceAppServiceManagedCertificateRead(d *pluginsdk.ResourceData, meta in
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on App Service Managed Certificate %q (Resource Group %q): %+v", id.CertificateName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on App Service Managed Certificate %q (Resource Group %q): %+v", id.CertificateName, id.ResourceGroup, err)
 	}
 
 	if props := resp.CertificateProperties; props != nil {
@@ -245,7 +245,7 @@ func resourceAppServiceManagedCertificateDelete(d *pluginsdk.ResourceData, meta 
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.CertificateName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting App Service Certificate %q (Resource Group %q): %s)", id.CertificateName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting App Service Certificate %q (Resource Group %q): %s)", id.CertificateName, id.ResourceGroup, err)
 		}
 	}
 

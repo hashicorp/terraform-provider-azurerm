@@ -87,7 +87,7 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("error retrieving Account %q for Share %q: %s", accountName, shareName, err)
+		return fmt.Errorf("retrieving Account %q for Share %q: %s", accountName, shareName, err)
 	}
 	if account == nil {
 		return fmt.Errorf("unable to locate Account %q for Share %q", accountName, shareName)
@@ -116,7 +116,7 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
-		return fmt.Errorf("error setting `metadata`: %+v", err)
+		return fmt.Errorf("setting `metadata`: %+v", err)
 	}
 
 	resourceManagerId := parse.NewStorageShareResourceManagerID(storageClient.SubscriptionId, account.ResourceGroup, accountName, "default", shareName)

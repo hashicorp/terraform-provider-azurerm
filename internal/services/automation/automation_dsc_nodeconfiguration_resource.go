@@ -80,7 +80,7 @@ func resourceAutomationDscNodeConfigurationCreateUpdate(d *pluginsdk.ResourceDat
 		existing, err := client.Get(ctx, resGroup, accName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Automation DSC Node Configuration %q (Account %q / Resource Group %q): %s", name, accName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Automation DSC Node Configuration %q (Account %q / Resource Group %q): %s", name, accName, resGroup, err)
 			}
 		}
 
@@ -147,7 +147,7 @@ func resourceAutomationDscNodeConfigurationRead(d *pluginsdk.ResourceData, meta 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Dsc Node Configuration %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM Automation Dsc Node Configuration %q: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -179,7 +179,7 @@ func resourceAutomationDscNodeConfigurationDelete(d *pluginsdk.ResourceData, met
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for Automation Dsc Node Configuration %q: %+v", name, err)
+		return fmt.Errorf("issuing AzureRM delete request for Automation Dsc Node Configuration %q: %+v", name, err)
 	}
 
 	return nil

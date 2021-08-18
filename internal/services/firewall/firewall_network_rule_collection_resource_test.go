@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -414,11 +414,11 @@ func (FirewallNetworkRuleCollectionResource) Destroy(ctx context.Context, client
 
 	future, err := clients.Firewall.AzureFirewallsClient.CreateOrUpdate(ctx, resourceGroup, firewallName, read)
 	if err != nil {
-		return utils.Bool(false), fmt.Errorf("Error removing Network Rule Collection from Firewall: %+v", err)
+		return utils.Bool(false), fmt.Errorf("removing Network Rule Collection from Firewall: %+v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, clients.Firewall.AzureFirewallsClient.Client); err != nil {
-		return utils.Bool(false), fmt.Errorf("Error waiting for the removal of Network Rule Collection from Firewall: %+v", err)
+		return utils.Bool(false), fmt.Errorf("waiting for the removal of Network Rule Collection from Firewall: %+v", err)
 	}
 
 	_, err = clients.Firewall.AzureFirewallsClient.Get(ctx, resourceGroup, firewallName)

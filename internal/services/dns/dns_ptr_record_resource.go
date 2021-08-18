@@ -86,7 +86,7 @@ func resourceDnsPtrRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.PTR)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing DNS PTR Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing DNS PTR Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 			}
 		}
 
@@ -109,7 +109,7 @@ func resourceDnsPtrRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
 	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.PTR, parameters, eTag, ifNoneMatch); err != nil {
-		return fmt.Errorf("Error creating/updating DNS PTR Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+		return fmt.Errorf("creating/updating DNS PTR Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -135,7 +135,7 @@ func resourceDnsPtrRecordRead(d *pluginsdk.ResourceData, meta interface{}) error
 			return nil
 		}
 
-		return fmt.Errorf("Error reading DNS PTR record %s: %+v", id.PTRName, err)
+		return fmt.Errorf("reading DNS PTR record %s: %+v", id.PTRName, err)
 	}
 
 	d.Set("name", id.PTRName)
@@ -167,7 +167,7 @@ func resourceDnsPtrRecordDelete(d *pluginsdk.ResourceData, meta interface{}) err
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting DNS PTR Record %s: %+v", id.PTRName, err)
+		return fmt.Errorf("deleting DNS PTR Record %s: %+v", id.PTRName, err)
 	}
 
 	return nil

@@ -157,7 +157,7 @@ func dataSourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, me
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("[DEBUG] Scheduled Query Rule %q was not found in Resource Group %q: %+v", name, resourceGroup, err)
 		}
-		return fmt.Errorf("Error getting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("getting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -180,16 +180,16 @@ func dataSourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("Wrong action type in Scheduled Query Rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
 	}
 	if err = d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
-		return fmt.Errorf("Error setting `action`: %+v", err)
+		return fmt.Errorf("setting `action`: %+v", err)
 	}
 	severity, err := strconv.Atoi(string(action.Severity))
 	if err != nil {
-		return fmt.Errorf("Error converting action.Severity %q in query rule %q to int (resource group %q): %+v", action.Severity, name, resourceGroup, err)
+		return fmt.Errorf("converting action.Severity %q in query rule %q to int (resource group %q): %+v", action.Severity, name, resourceGroup, err)
 	}
 	d.Set("severity", severity)
 	d.Set("throttling", action.ThrottlingInMin)
 	if err = d.Set("trigger", flattenAzureRmScheduledQueryRulesAlertTrigger(action.Trigger)); err != nil {
-		return fmt.Errorf("Error setting `trigger`: %+v", err)
+		return fmt.Errorf("setting `trigger`: %+v", err)
 	}
 
 	if schedule := resp.Schedule; schedule != nil {

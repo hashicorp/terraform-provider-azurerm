@@ -174,7 +174,7 @@ func resourceMediaStreamingLocatorCreate(d *pluginsdk.ResourceData, meta interfa
 		existing, err := client.Get(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Media Job %q (Media Service account %q) (ResourceGroup %q): %s", resourceID.Name, resourceID.MediaserviceName, resourceID.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Media Job %q (Media Service account %q) (ResourceGroup %q): %s", resourceID.Name, resourceID.MediaserviceName, resourceID.ResourceGroup, err)
 			}
 		}
 
@@ -232,7 +232,7 @@ func resourceMediaStreamingLocatorCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if _, err := client.Create(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name, parameters); err != nil {
-		return fmt.Errorf("Error creating Streaming Locator %q in Media Services Account %q (Resource Group %q): %+v", resourceID.Name, resourceID.MediaserviceName, resourceID.ResourceGroup, err)
+		return fmt.Errorf("creating Streaming Locator %q in Media Services Account %q (Resource Group %q): %+v", resourceID.Name, resourceID.MediaserviceName, resourceID.ResourceGroup, err)
 	}
 
 	d.SetId(resourceID.ID())
@@ -258,7 +258,7 @@ func resourceMediaStreamingLocatorRead(d *pluginsdk.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Streaming Locator %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Streaming Locator %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -273,7 +273,7 @@ func resourceMediaStreamingLocatorRead(d *pluginsdk.ResourceData, meta interface
 
 		contentKeys := flattenContentKeys(resp.ContentKeys)
 		if err := d.Set("content_key", contentKeys); err != nil {
-			return fmt.Errorf("Error flattening `content_key`: %s", err)
+			return fmt.Errorf("flattening `content_key`: %s", err)
 		}
 
 		endTime := ""
@@ -309,7 +309,7 @@ func resourceMediaStreamingLocatorDelete(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name); err != nil {
-		return fmt.Errorf("Error deleting Streaming Locator %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Streaming Locator %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 	}
 
 	return nil

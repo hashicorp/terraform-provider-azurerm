@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -109,7 +109,7 @@ func resourceVirtualWanCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Virtual WAN %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Virtual WAN %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -131,16 +131,16 @@ func resourceVirtualWanCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, wan)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Virtual WAN %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating Virtual WAN %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation/update of Virtual WAN %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of Virtual WAN %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Virtual WAN %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Virtual WAN %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -170,7 +170,7 @@ func resourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Virtual WAN %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Virtual WAN %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -203,16 +203,13 @@ func resourceVirtualWanDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		// deleted outside of Terraform
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 
-		return fmt.Errorf("Error deleting Virtual WAN %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Virtual WAN %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for the deletion of Virtual WAN %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for the deletion of Virtual WAN %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 

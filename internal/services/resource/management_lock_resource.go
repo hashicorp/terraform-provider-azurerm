@@ -78,7 +78,7 @@ func resourceManagementLockCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		existing, err := client.GetByScope(ctx, scope, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Management Lock %q (Scope %q): %s", name, scope, err)
+				return fmt.Errorf("checking for presence of existing Management Lock %q (Scope %q): %s", name, scope, err)
 			}
 		}
 
@@ -130,7 +130,7 @@ func resourceManagementLockRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Management Lock %q (Scope %q): %+v", id.Name, id.Scope, err)
+		return fmt.Errorf("making Read request on AzureRM Management Lock %q (Scope %q): %+v", id.Name, id.Scope, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -160,7 +160,7 @@ func resourceManagementLockDelete(d *pluginsdk.ResourceData, meta interface{}) e
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for Management Lock %q (Scope %q): %+v", id.Name, id.Scope, err)
+		return fmt.Errorf("issuing AzureRM delete request for Management Lock %q (Scope %q): %+v", id.Name, id.Scope, err)
 	}
 
 	return nil

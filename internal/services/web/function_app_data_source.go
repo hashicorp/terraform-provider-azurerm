@@ -166,7 +166,7 @@ func dataSourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: AzureRM Function App %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Function App %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM Function App %q: %+v", name, err)
 	}
 
 	appSettingsResp, err := client.ListApplicationSettings(ctx, resourceGroup, name)
@@ -174,17 +174,17 @@ func dataSourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		if utils.ResponseWasNotFound(appSettingsResp.Response) {
 			return fmt.Errorf("Error: AzureRM Function App AppSettings %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Function App AppSettings %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM Function App AppSettings %q: %+v", name, err)
 	}
 
 	connectionStringsResp, err := client.ListConnectionStrings(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM Function App ConnectionStrings %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM Function App ConnectionStrings %q: %+v", name, err)
 	}
 
 	scmResp, err := client.GetSourceControl(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM App Service Source Control %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM App Service Source Control %q: %+v", name, err)
 	}
 
 	siteCredFuture, err := client.ListPublishingCredentials(ctx, resourceGroup, name)
@@ -197,11 +197,11 @@ func dataSourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM App Service Site Credential %q: %+v", name, err)
 	}
 	configResp, err := client.GetConfiguration(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM Function App Configuration %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)

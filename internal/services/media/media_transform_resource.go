@@ -291,7 +291,7 @@ func resourceMediaTransformRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Transform %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Transform %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -305,7 +305,7 @@ func resourceMediaTransformRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		outputs := flattenTransformOutputs(props.Outputs)
 		if err := d.Set("output", outputs); err != nil {
-			return fmt.Errorf("Error flattening `output`: %s", err)
+			return fmt.Errorf("flattening `output`: %s", err)
 		}
 	}
 
@@ -327,7 +327,7 @@ func resourceMediaTransformDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		if response.WasNotFound(resp.Response) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Transform %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Transform %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 	}
 
 	return nil

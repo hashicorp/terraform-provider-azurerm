@@ -185,7 +185,7 @@ func resourceArmBotConnectionRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Bot Connection %q (Bot %q / Resource Group %q): %+v", id.ConnectionName, id.BotServiceName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Bot Connection %q (Bot %q / Resource Group %q): %+v", id.ConnectionName, id.BotServiceName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.ConnectionName)

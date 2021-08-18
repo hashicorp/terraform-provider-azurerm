@@ -917,7 +917,7 @@ func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance
 		kubernetesClusterId := state.Attributes["kubernetes_cluster_id"]
 		parsedK8sId, err := parse.ClusterID(kubernetesClusterId)
 		if err != nil {
-			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
+			return fmt.Errorf("parsing kubernetes cluster id: %+v", err)
 		}
 
 		clusterName := parsedK8sId.ManagedClusterName

@@ -20,7 +20,8 @@ type RetryError = resource.RetryError
 // a function until it no longer returns an error.
 func Retry(timeout time.Duration, f RetryFunc) error {
 	// TODO: deprecate this
-	return resource.Retry(timeout, f) //nolint:SA1019
+	// lint:ignore SA1019 SDKv2 migration - staticcheck's own linter directives are currently being ignored under golanci-lint
+	return resource.Retry(timeout, f) //nolint:staticcheck
 }
 
 // RetryableError is a helper to create a RetryError that's retryable from a

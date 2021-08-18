@@ -135,7 +135,7 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *pluginsdk.ResourceD
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Linked Service OData Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Linked Service OData Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 			}
 		}
 
@@ -190,12 +190,12 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, linkedService, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Linked Service OData Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Data Factory Linked Service OData Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Linked Service OData Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Linked Service OData Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
@@ -224,7 +224,7 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *pluginsdk.ResourceData, met
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Linked Service OData %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Linked Service OData %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -233,7 +233,7 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *pluginsdk.ResourceData, met
 
 	odata, ok := resp.Properties.AsODataLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifying Data Factory Linked Service OData %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeOData, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Linked Service OData %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeOData, *resp.Type)
 	}
 
 	props := odata.ODataLinkedServiceTypeProperties
@@ -253,12 +253,12 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *pluginsdk.ResourceData, met
 
 	annotations := flattenDataFactoryAnnotations(odata.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
-		return fmt.Errorf("Error setting `annotations`: %+v", err)
+		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
 	parameters := flattenDataFactoryParameters(odata.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
-		return fmt.Errorf("Error setting `parameters`: %+v", err)
+		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
 	if connectVia := odata.ConnectVia; connectVia != nil {
@@ -283,7 +283,7 @@ func resourceArmDataFactoryLinkedServiceODataDelete(d *pluginsdk.ResourceData, m
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Linked Service OData %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Data Factory Linked Service OData %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 		}
 	}
 

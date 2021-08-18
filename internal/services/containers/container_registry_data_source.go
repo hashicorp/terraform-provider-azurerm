@@ -81,7 +81,7 @@ func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("Container Registry %q was not found in Resource Group %q", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -104,7 +104,7 @@ func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}
 	if *resp.AdminUserEnabled {
 		credsResp, err := client.ListCredentials(ctx, resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Error making Read request on Azure Container Registry %s for Credentials: %s", name, err)
+			return fmt.Errorf("making Read request on Azure Container Registry %s for Credentials: %s", name, err)
 		}
 
 		d.Set("admin_username", credsResp.Username)

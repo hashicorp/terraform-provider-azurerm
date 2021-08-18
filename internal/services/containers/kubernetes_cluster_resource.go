@@ -1176,7 +1176,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			props.EnableRBAC = utils.Bool(rbacEnabled)
 
 			// Reset AAD profile is only possible if not managed
-			if props.AadProfile.Managed == nil || !*props.AadProfile.Managed {
+			if props.AadProfile == nil || props.AadProfile.Managed == nil || !*props.AadProfile.Managed {
 				log.Printf("[DEBUG] Updating the RBAC AAD profile")
 				future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.ManagedClusterName, *props.AadProfile)
 				if err != nil {
@@ -1500,8 +1500,15 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
 			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
-			d.Set("private_dns_zone_id", accessProfile.PrivateDNSZone)
 			d.Set("private_cluster_public_fqdn_enabled", accessProfile.EnablePrivateClusterPublicFQDN)
+			switch {
+			case accessProfile.PrivateDNSZone != nil && strings.EqualFold("System", *accessProfile.PrivateDNSZone):
+				d.Set("private_dns_zone_id", "System")
+			case accessProfile.PrivateDNSZone != nil && strings.EqualFold("None", *accessProfile.PrivateDNSZone):
+				d.Set("private_dns_zone_id", "None")
+			default:
+				d.Set("private_dns_zone_id", accessProfile.PrivateDNSZone)
+			}
 		}
 
 		addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)

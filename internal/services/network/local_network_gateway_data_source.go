@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -94,7 +94,7 @@ func dataSourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("Error reading the state of Local Network Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading the state of Local Network Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID != nil {
