@@ -3,6 +3,10 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_vpn_gateway` [GH-12844]
+* **New Resource:** `azurerm_api_management_notification_recipient_email` [GH-12849]
+* **New Resource:** `azurerm_logic_app_integration_account_session` [GH-12982]
+* **New Resource:** `azurerm_machine_learning_synapse_spark` [GH-13022]
+* **New Resource:** `azurerm_vpn_gateway` [GH-13003]
 
 ENHANCEMENTS:
 
@@ -11,14 +15,22 @@ ENHANCEMENTS:
 * Dependencies: updating `web` to use API version `2021-02-01` [GH-12970]
 * Dependencies: updating `kusto` to use API version `2021-01-01` [GH-12967]
 * Dependencies: updating `machinelearning` to use API version `2021-07-01` [GH-12833]
+* Dependencies: updating `network` to use API version `2021-02-01` [GH-13002]
 * eventhub: updating to use the latest embedded SDK [GH-12946]
 * Data Source: `azurerm_iothub` - support for the property `hostname` [GH-13001]
+* `azurerm_active_directory_domain_service` - export the `resource_id` attribute [GH-13011]
 * `azurerm_stream_analytics_output_eventhub` - support for the `property_columns` property [GH-12947]
+* `azurerm_netapp_volume` - support for the `snapshot_directory_visible` property [GH-12961]
 
 BUG FIXES:
 
 * `azurerm_frontdoor` - expose support for `cache_duration` and `cache_query_parameters` fields [GH-12831]
+* `azurerm_network_watcher_flow_log` - correctly truncate name by ensuring it doesn't end in a `-` [GH-12984]
+* `private_dns_zone_id` - correctly handle inconsistant case [GH-13000]
 * `azurerm_redis_enterprise_cluster` - changing the tags property no longer creates a new resource [GH-12956]
+* `azurerm_storage_account` - allow 0 for the `cors.max_age_in_seconds` property [GH-13010]
+* `azurerm_servicebus_topic` - correctyl validate the `name` property [GH-13026]
+* `azurerm_virtual_hub_connection` - will not correctly lock it's cirtual network during updates [GH-12999]
 
 ## 2.72.0 (August 12, 2021)
 

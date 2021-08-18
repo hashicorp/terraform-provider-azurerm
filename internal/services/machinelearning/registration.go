@@ -31,5 +31,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_machine_learning_inference_cluster": resourceAksInferenceCluster(),
 		"azurerm_machine_learning_compute_cluster":   resourceComputeCluster(),
 		"azurerm_machine_learning_compute_instance":  resourceComputeInstance(),
+		"azurerm_machine_learning_synapse_spark":     resourceSynapseSpark(),
 	}
 }

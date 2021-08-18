@@ -231,6 +231,8 @@ In addition to all arguments above, the following attributes are exported:
   
 * `deployment_id` - A unique ID for the managed domain deployment.
 
+* `resource_id` - The Azure resource ID for the domain service.
+
 ---
 
 A `secure_ldap` block exports the following:
