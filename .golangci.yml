@@ -1,8 +1,8 @@
 run:
-  deadline: 12m10s
+  timeout: 40m
   modules-download-mode: vendor
   skip-dirs:
-    - vendor
+    - /sdk/ # Excluding sdk folders as these are externally generated
 
 issues:
   max-per-linter: 0
@@ -20,7 +20,6 @@ linters:
     - gosimple
     - govet
     - ineffassign
-    - interfacer
     - nakedret
     - misspell
     - staticcheck
@@ -32,11 +31,11 @@ linters:
     - varcheck
     - vet
     - vetshadow
-    - whitespace
+    # - whitespace # Disabled for performance reasons - Ignores cache and takes 12+ minutes to run on the repo for _any_ change
 
 linters-settings:
   errcheck:
-    ignore: github.com/hashicorp/terraform-plugin-sdk/helper/schema:ForceNew|Set,fmt:.*,io:Close
+    ignore: github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema:ForceNew|Set,fmt:.*,io:Close
   misspell:
     ignore-words:
       - hdinsight

@@ -34,6 +34,8 @@ The following arguments are supported:
 
 ---
 
+* `categories` - (Optional) A list of the categories of resource that is at risk when the Security Center Assessment is unhealthy. Possible values are `Unknown`, `Compute`, `Data`, `IdentityAndAccess`, `IoT` and `Networking`.
+
 * `implementation_effort` - (Optional) The implementation effort which is used to remediate the Security Center Assessment. Possible values are `Low`, `Moderate` and `High`.
 
 * `remediation_description` - (Optional) The description which is used to mitigate the security issue.

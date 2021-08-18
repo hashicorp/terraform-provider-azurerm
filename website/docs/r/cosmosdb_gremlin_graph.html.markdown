@@ -102,6 +102,14 @@ An `index_policy` block supports the following:
 
 * `composite_index` - (Optional) One or more `composite_index` blocks as defined below.
 
+* `spatial_index` - (Optional) One or more `spatial_index` blocks as defined below.
+
+---
+
+A `spatial_index` block supports the following:
+
+* `path` - (Required) Path for which the indexing behaviour applies to. According to the service design, all spatial types including `LineString`, `MultiPolygon`, `Point`, and `Polygon` will be applied to the path. 
+
 ---
 
 An `conflict_resolution_policy` block supports the following:

@@ -30,18 +30,6 @@ resource "azurerm_api_management" "example" {
   publisher_email     = "company@terraform.io"
 
   sku_name = "Developer_1"
-
-  policy {
-    xml_content = <<XML
-    <policies>
-      <inbound />
-      <backend />
-      <outbound />
-      <on-error />
-    </policies>
-XML
-
-  }
 }
 ```
 
@@ -69,7 +57,7 @@ The following arguments are supported:
 
 * `client_certificate_enabled` - (Optional) Enforce a client certificate to be presented on each request to the gateway? This is only supported when sku type is `Consumption`.
 
-* `gateway_disabled` - (Optional) Disable the gateway in master region? This is only supported when `additional_location` is set.
+* `gateway_disabled` - (Optional) Disable the gateway in main region? This is only supported when `additional_location` is set.
 
 * `min_api_version` - (Optional)  The version which the control plane API calls to API Management service are limited with version equal to or newer than.
 
