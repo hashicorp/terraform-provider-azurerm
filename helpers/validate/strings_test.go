@@ -49,6 +49,11 @@ func TestLowerCasedStrings(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
+			Value:    "@",
+			TestName: "At",
+			ErrCount: 1,
+		},
+		{
 			Value:    "Hello",
 			TestName: "TitleCaseSingleWord",
 			ErrCount: 1,
