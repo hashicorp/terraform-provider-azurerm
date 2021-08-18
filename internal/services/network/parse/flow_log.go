@@ -50,6 +50,10 @@ func (id FlowLogId) Name() string {
 	if len(name) > 80 {
 		name = name[:80]
 	}
+
+	// remove any number of hyphens that are at the end of the string, as this is an invalid name.
+	name = strings.TrimRight(name, "-")
+
 	return name
 }
 
