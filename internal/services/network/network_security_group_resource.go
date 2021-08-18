@@ -111,6 +111,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						"source_address_prefix": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							ExactlyOneOf: []string{"source_address_prefix", "source_address_prefixes"},
 							AtLeastOneOf: []string{"source_address_prefix", "source_address_prefixes", "source_application_security_group_ids"},
 						},
 
@@ -119,6 +120,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 							Optional:     true,
 							Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:          pluginsdk.HashString,
+							ExactlyOneOf: []string{"source_address_prefix", "source_address_prefixes"},
 							AtLeastOneOf: []string{"source_address_prefix", "source_address_prefixes", "source_application_security_group_ids"},
 						},
 
