@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * eventhub: updating to use the latest embedded SDK [GH-12946]
 * Data Source: `azurerm_iothub` - support for the property `hostname` [GH-13001]
 * `azurerm_active_directory_domain_service` - export the `resource_id` attribute [GH-13011]
+* `azurerm_app_service_environment_v3` - updated for GA changes, including support for `internal_load_balancing_mode`, `zone_redundant`, `dedicated_host_count`, and several new exported properties [GH-12932]
 * `azurerm_stream_analytics_output_eventhub` - support for the `property_columns` property [GH-12947]
 * `azurerm_netapp_volume` - support for the `snapshot_directory_visible` property [GH-12961]
 
