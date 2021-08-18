@@ -109,15 +109,17 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						},
 
 						"source_address_prefix": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							AtLeastOneOf: []string{"source_address_prefix", "source_address_prefixes", "source_application_security_group_ids"},
 						},
 
 						"source_address_prefixes": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Set:      pluginsdk.HashString,
+							Type:         pluginsdk.TypeSet,
+							Optional:     true,
+							Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:          pluginsdk.HashString,
+							AtLeastOneOf: []string{"source_address_prefix", "source_address_prefixes", "source_application_security_group_ids"},
 						},
 
 						"destination_address_prefix": {
@@ -140,10 +142,11 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						},
 
 						"source_application_security_group_ids": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Set:      pluginsdk.HashString,
+							Type:         pluginsdk.TypeSet,
+							Optional:     true,
+							Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:          pluginsdk.HashString,
+							AtLeastOneOf: []string{"source_address_prefix", "source_address_prefixes", "source_application_security_group_ids"},
 						},
 
 						"access": {
