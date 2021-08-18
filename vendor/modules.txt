@@ -133,7 +133,6 @@ github.com/Azure/go-autorest
 github.com/Azure/go-autorest/autorest
 github.com/Azure/go-autorest/autorest/azure
 # github.com/Azure/go-autorest/autorest/adal v0.9.14
-## explicit
 github.com/Azure/go-autorest/autorest/adal
 # github.com/Azure/go-autorest/autorest/azure/cli v0.4.2
 github.com/Azure/go-autorest/autorest/azure/cli
@@ -224,7 +223,6 @@ github.com/dimchansky/utfbom
 ## explicit
 github.com/fatih/color
 # github.com/form3tech-oss/jwt-go v3.2.3+incompatible
-## explicit
 github.com/form3tech-oss/jwt-go
 # github.com/gofrs/uuid v4.0.0+incompatible
 ## explicit
