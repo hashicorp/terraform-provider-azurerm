@@ -421,7 +421,8 @@ func TestAccAzureRMHDInsightHBaseCluster_autoscale(t *testing.T) {
 func testAccHDInsightHBaseCluster_securityProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hbase_cluster", "test")
 	r := HDInsightHBaseClusterResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.securityProfile(data),
 			Check: acceptance.ComposeTestCheckFunc(

@@ -432,7 +432,8 @@ func TestAccHDInsightKafkaCluster_encryptionInTransitEnabled(t *testing.T) {
 func testAccHDInsightKafkaCluster_securityProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	r := HDInsightKafkaClusterResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.securityProfile(data),
 			Check: acceptance.ComposeTestCheckFunc(
