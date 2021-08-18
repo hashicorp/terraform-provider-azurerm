@@ -14,9 +14,9 @@ Manages a Firewall Policy.
 
 ```hcl
 resource "azurerm_firewall_policy" "example" {
-  name                = "example"
+  name = "example"
   resource_group_name = "example"
-  location            = "West Europe"
+  location = "West Europe"
 }
 ```
 
@@ -36,7 +36,11 @@ The following arguments are supported:
 
 * `dns` - (Optional) A `dns` block as defined below.
 
+* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Firewall Policy to be created.
+
 * `intrusion_detection` - (Optional) A `intrusion_detection` block as defined below.
+
+* `private_ip_ranges` - (Optional) A list of private IP ranges to which traffic will not be SNAT.
 
 * `sku` - (Optional) The SKU Tier of the Firewall Policy. Possible values are `Standard`, `Premium`. Changing this forces a new Firewall Policy to be created.
 
@@ -60,11 +64,19 @@ A `dns` block supports the following:
 
 ---
 
+A `identity` block supports the following:
+
+* `type` - (Required) Type of the identity. At the moment only "UserAssigned" is supported. Changing this forces a new Firewall Policy to be created.
+
+* `user_assigned_identity_ids` - (Optional) Specifies a list of user assigned managed identities.
+
+---
+
 A `intrusion_detection` block supports the following:
 
 * `mode` - (Optional) In which mode you want to run intrusion detection: "Off", "Alert" or "Deny".
 
-* `signature_overrides` - (Optional) A `signature_overrides` block as defined below.
+* `signature_overrides` - (Optional) One or more `signature_overrides` blocks as defined below.
 
 * `traffic_bypass` - (Optional) One or more `traffic_bypass` blocks as defined below.
 
@@ -82,7 +94,7 @@ A `threat_intelligence_allowlist` block supports the following:
 
 * `fqdns` - (Optional) A list of FQDNs that will be skipped for threat detection.
 
-* `ip_addresses` - (Optional)  A list of IP addresses or IP address ranges that will be skipped for threat detection.
+* `ip_addresses` - (Optional) A list of IP addresses or IP address ranges that will be skipped for threat detection.
 
 ---
 
@@ -123,8 +135,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `firewalls` - A list of references to Azure Firewalls that this Firewall Policy is associated with.
 
 * `rule_collection_groups` - A list of references to Firewall Policy Rule Collection Groups that belongs to this Firewall Policy.
-
-* `private_ip_ranges` - A list of private IP ranges to which traffic will not be SNAT.
 
 ## Timeouts
 
