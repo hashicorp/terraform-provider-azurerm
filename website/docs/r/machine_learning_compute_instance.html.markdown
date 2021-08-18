@@ -111,11 +111,15 @@ The following arguments are supported:
 
 * `assign_to_user` - (Optional) A `assign_to_user` block as defined below. A user explicitly assigned to a personal compute instance. Changing this forces a new Machine Learning Compute Instance to be created.
 
+* `creation_script` - (Optional) A `creation_script` block as defined below. Changing this forces a new Machine Learning Compute Instance to be created.
+
 * `description` - (Optional) The description of the Machine Learning Compute Instance. Changing this forces a new Machine Learning Compute Instance to be created.
 
 * `identity` - (Optional) A `identity` block as defined below. Changing this forces a new Machine Learning Compute Instance to be created.
 
 * `ssh` - (Optional) A `ssh` block as defined below. Specifies policy and settings for SSH access. Changing this forces a new Machine Learning Compute Instance to be created.
+
+* `startup_script` - (Optional) A `startup_script` block as defined below. Changing this forces a new Machine Learning Compute Instance to be created.
 
 * `subnet_resource_id` - (Optional) Virtual network subnet resource ID the compute nodes belong to. Changing this forces a new Machine Learning Compute Instance to be created.
 
@@ -136,6 +140,30 @@ A `assign_to_user` block supports the following:
 * `object_id` - (Optional) User’s AAD Object Id.
 
 * `tenant_id` - (Optional) User’s AAD Tenant Id.
+
+---
+
+A `creation_script` block supports the following:
+
+* `source` - (Optional) The storage source of the script. Accepted values are `inline` and `workspaceStorage`.
+
+* `data` - (Optional) If using `workspaceStorage` source, it specifies the location of scripts in the mounted volume. If using `inline` source, it specifies base64 encoded script content.
+
+* `arguments` - (Optional) Optional command line arguments passed to the script to run.
+
+* `timeout` - (Optional) Optional time period passed to timeout command.
+
+---
+
+A `startup_script` block supports the following:
+
+* `source` - (Optional) The storage source of the script. Accepted values are `inline` and `workspaceStorage`.
+
+* `data` - (Optional) If using `workspaceStorage` source, it specifies the location of scripts in the mounted volume. If using `inline` source, it specifies base64 encoded script content.
+
+* `arguments` - (Optional) Optional command line arguments passed to the script to run.
+
+* `timeout` - (Optional) Optional time period passed to timeout command.
 
 ---
 

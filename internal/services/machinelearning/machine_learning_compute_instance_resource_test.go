@@ -189,6 +189,21 @@ resource "azurerm_machine_learning_compute_instance" "test" {
   ssh {
     public_key = var.ssh_key
   }
+
+  creation_script {
+    source    = "inline"
+    data      = base64encode("ls")
+    arguments = "value1 value2"
+    timeout   = "5m"
+  }
+
+  startup_script {
+    source    = "inline"
+    data      = base64encode("ls")
+    arguments = "value1 value2"
+    timeout   = "5m"
+  }
+
   subnet_resource_id = azurerm_subnet.test.id
   description        = "this is desc"
   tags = {

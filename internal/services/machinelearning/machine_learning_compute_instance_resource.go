@@ -94,6 +94,37 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				},
 			},
 
+			"creation_script": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"source": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"inline", "workspaceStorage"}, false),
+						},
+
+						"data": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"arguments": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"timeout": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"description": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -122,6 +153,37 @@ func resourceComputeInstance() *pluginsdk.Resource {
 						"port": {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,
+						},
+					},
+				},
+			},
+
+			"startup_script": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"source": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"inline", "workspaceStorage"}, false),
+						},
+
+						"data": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"arguments": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"timeout": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -180,6 +242,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 				SSHSettings:                      expandComputeSSHSetting(d.Get("ssh").([]interface{})),
 				ComputeInstanceAuthorizationType: machinelearningservices.ComputeInstanceAuthorizationType(d.Get("authorization_type").(string)),
 				PersonalComputeInstanceSettings:  expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
+				SetupScripts:                     expandComputeInstanceSetupScripts(d),
 			},
 			ComputeLocation: utils.String(d.Get("location").(string)),
 			Description:     utils.String(d.Get("description").(string)),
@@ -247,6 +310,10 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("authorization_type", props.Properties.ComputeInstanceAuthorizationType)
 			d.Set("ssh", flattenComputeSSHSetting(props.Properties.SSHSettings))
 			d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
+			if props.Properties.SetupScripts != nil && props.Properties.SetupScripts.Scripts != nil {
+				d.Set("startup_script", flattenComputeScript(props.Properties.SetupScripts.Scripts.StartupScript))
+				d.Set("creation_script", flattenComputeScript(props.Properties.SetupScripts.Scripts.StartupScript))
+			}
 		}
 	} else {
 		return fmt.Errorf("compute resource %s is not a ComputeInstance Compute", id)
@@ -275,6 +342,32 @@ func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
+func expandComputeInstanceSetupScripts(d *pluginsdk.ResourceData) *machinelearningservices.SetupScripts {
+	startupScript := expandComputeScript(d.Get("startup_script").([]interface{}))
+	creationScript := expandComputeScript(d.Get("creation_script").([]interface{}))
+	if startupScript == nil && creationScript == nil {
+		return nil
+	}
+	return &machinelearningservices.SetupScripts{
+		Scripts: &machinelearningservices.ScriptsToExecute{
+			StartupScript:  startupScript,
+			CreationScript: creationScript,
+		}}
+}
+
+func expandComputeScript(input []interface{}) *machinelearningservices.ScriptReference {
+	if len(input) == 0 {
+		return nil
+	}
+	value := input[0].(map[string]interface{})
+	return &machinelearningservices.ScriptReference{
+		ScriptSource:    utils.String(value["source"].(string)),
+		ScriptData:      utils.String(value["data"].(string)),
+		ScriptArguments: utils.String(value["arguments"].(string)),
+		Timeout:         utils.String(value["timeout"].(string)),
+	}
+}
+
 func expandComputePersonalComputeInstanceSetting(input []interface{}) *machinelearningservices.PersonalComputeInstanceSettings {
 	if len(input) == 0 {
 		return nil
@@ -297,6 +390,30 @@ func expandComputeSSHSetting(input []interface{}) *machinelearningservices.Compu
 	return &machinelearningservices.ComputeInstanceSSHSettings{
 		SSHPublicAccess: machinelearningservices.SSHPublicAccessEnabled,
 		AdminPublicKey:  utils.String(value["public_key"].(string)),
+	}
+}
+
+func flattenComputeScript(script *machinelearningservices.ScriptReference) interface{} {
+	if script == nil {
+		return []interface{}{}
+	}
+
+	var arguments string
+	if script.ScriptArguments != nil {
+		arguments = *script.ScriptArguments
+	}
+	var timeout string
+	if script.Timeout != nil {
+		timeout = *script.Timeout
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"source":    script.ScriptSource,
+			"data":      script.ScriptData,
+			"arguments": arguments,
+			"timeout":   timeout,
+		},
 	}
 }
 
