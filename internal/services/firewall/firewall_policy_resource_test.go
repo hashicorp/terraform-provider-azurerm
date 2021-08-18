@@ -239,6 +239,7 @@ resource "azurerm_firewall_policy" "test" {
   name                     = "acctest-networkfw-Policy-%d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
+  sku                      = "Premium"
   threat_intelligence_mode = "Off"
   threat_intelligence_allowlist {
     ip_addresses = ["1.1.1.1", "2.2.2.2"]
@@ -266,7 +267,7 @@ resource "azurerm_firewall_policy" "test" {
   }
   identity {
     type = "UserAssigned"
-    identity_ids = [
+    user_assigned_identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
   }

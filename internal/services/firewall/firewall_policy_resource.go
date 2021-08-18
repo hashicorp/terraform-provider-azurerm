@@ -268,7 +268,7 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
-						"identity_ids": {
+						"user_assigned_identity_ids": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							MinItems: 1,
@@ -607,7 +607,7 @@ func expandFirewallPolicyIdentity(input []interface{}) *network.ManagedServiceId
 	v := input[0].(map[string]interface{})
 
 	var identityIDSet []interface{}
-	if identityIds, exists := v["identity_ids"]; exists {
+	if identityIds, exists := v["user_assigned_identity_ids"]; exists {
 		identityIDSet = identityIds.(*pluginsdk.Set).List()
 	}
 
@@ -707,10 +707,10 @@ func flattenFirewallPolicyIdentity(identity *network.ManagedServiceIdentity) []i
 
 	return []interface{}{
 		map[string]interface{}{
-			"type":         string(identity.Type),
-			"principal_id": principalID,
-			"tenant_id":    tenantID,
-			"identity_ids": userAssignedIdentities,
+			"type":                       string(identity.Type),
+			"principal_id":               principalID,
+			"tenant_id":                  tenantID,
+			"user_assigned_identity_ids": userAssignedIdentities,
 		},
 	}
 }
