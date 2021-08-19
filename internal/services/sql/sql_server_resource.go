@@ -1,8 +1,10 @@
 package sql
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
@@ -15,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -114,8 +117,99 @@ func resourceSqlServer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"threat_detection_policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"disabled_alerts": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Set:      pluginsdk.HashString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"Sql_Injection",
+									"Sql_Injection_Vulnerability",
+									"Access_Anomaly",
+									"Data_Exfiltration",
+									"Unsafe_Action",
+								}, true),
+							},
+						},
+
+						"email_account_admins": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+
+						"email_addresses": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+							Set: pluginsdk.HashString,
+						},
+
+						"retention_days": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+
+						"state": {
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							Default:          string(sql.SecurityAlertPolicyStateDisabled),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(sql.SecurityAlertPolicyStateDisabled),
+								string(sql.SecurityAlertPolicyStateEnabled),
+								string(sql.SecurityAlertPolicyStateNew),
+							}, true),
+						},
+
+						"storage_account_access_key": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"storage_endpoint": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			threatDetection, hasThreatDetection := diff.GetOk("threat_detection_policy")
+			if hasThreatDetection {
+				if tl := threatDetection.([]interface{}); len(tl) > 0 {
+					t := tl[0].(map[string]interface{})
+
+					state := strings.ToLower(t["state"].(string))
+					_, hasStorageEndpoint := t["storage_endpoint"]
+					_, hasStorageAccountAccessKey := t["storage_account_access_key"]
+					if state == "enabled" && !hasStorageEndpoint && !hasStorageAccountAccessKey {
+						return fmt.Errorf("`storage_endpoint` and `storage_account_access_key` are required when `state` is `Enabled`")
+					}
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 
@@ -123,6 +217,7 @@ func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	client := meta.(*clients.Client).Sql.ServersClient
 	auditingClient := meta.(*clients.Client).Sql.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).Sql.ServerConnectionPoliciesClient
+	secPolicyClient := meta.(*clients.Client).Sql.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -203,6 +298,10 @@ func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
 	}
 
+	if _, err = secPolicyClient.CreateOrUpdate(ctx, resGroup, name, *expandSqlServerThreatDetectionPolicy(d)); err != nil {
+		return fmt.Errorf("setting database threat detection policy: %+v", err)
+	}
+
 	return resourceSqlServerRead(d, meta)
 }
 
@@ -210,6 +309,7 @@ func resourceSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServersClient
 	auditingClient := meta.(*clients.Client).Sql.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).Sql.ServerConnectionPoliciesClient
+	secPolicyClient := meta.(*clients.Client).Sql.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -237,6 +337,13 @@ func resourceSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("retrieving Blob Auditing Policies for SQL Server %q (Resource Group %q): %v ", id.Name, id.ResourceGroup, err)
+	}
+
+	secPolicy, err := secPolicyClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err == nil {
+		if err := d.Set("threat_detection_policy", flattenSqlServerThreatDetectionPolicy(d, secPolicy)); err != nil {
+			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
+		}
 	}
 
 	d.Set("name", id.Name)
@@ -314,4 +421,101 @@ func flattenAzureRmSqlServerIdentity(identity *sql.ResourceIdentity) []interface
 	}
 
 	return []interface{}{result}
+}
+
+func flattenSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy sql.ServerSecurityAlertPolicy) []interface{} {
+
+	properties := policy.SecurityAlertPolicyProperties
+
+	securityAlertPolicy := make(map[string]interface{})
+
+	securityAlertPolicy["state"] = string(properties.State)
+	emailAccountAdmins := false
+	if properties.EmailAccountAdmins != nil {
+		emailAccountAdmins = *properties.EmailAccountAdmins
+	}
+	securityAlertPolicy["email_account_admins"] = emailAccountAdmins
+
+	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {
+		flattenedAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+		if v := *disabledAlerts; v != nil {
+			for _, a := range v {
+				flattenedAlerts.Add(a)
+			}
+		}
+		securityAlertPolicy["disabled_alerts"] = flattenedAlerts
+	}
+	if emailAddresses := properties.EmailAddresses; emailAddresses != nil {
+		flattenedEmails := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+		if v := *emailAddresses; v != nil {
+			for _, a := range v {
+				flattenedEmails.Add(a)
+			}
+		}
+		securityAlertPolicy["email_addresses"] = flattenedEmails
+	}
+	if properties.StorageEndpoint != nil {
+		securityAlertPolicy["storage_endpoint"] = *properties.StorageEndpoint
+	}
+	if properties.RetentionDays != nil {
+		securityAlertPolicy["retention_days"] = int(*properties.RetentionDays)
+	}
+
+	// If storage account access key is in state read it to the new state, as the API does not return it for security reasons
+	if v, ok := d.GetOk("threat_detection_policy.0.storage_account_access_key"); ok {
+		securityAlertPolicy["storage_account_access_key"] = v.(string)
+	}
+
+	return []interface{}{securityAlertPolicy}
+}
+
+func expandSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData) *sql.ServerSecurityAlertPolicy {
+	policy := sql.ServerSecurityAlertPolicy{
+		SecurityAlertPolicyProperties: &sql.SecurityAlertPolicyProperties{
+			State: sql.SecurityAlertPolicyStateDisabled,
+		},
+	}
+	properties := policy.SecurityAlertPolicyProperties
+
+	td, ok := d.GetOk("threat_detection_policy")
+	if !ok {
+		return &policy
+	}
+
+	if tdl := td.([]interface{}); len(tdl) > 0 {
+		securityAlert := tdl[0].(map[string]interface{})
+
+		properties.State = sql.SecurityAlertPolicyState(securityAlert["state"].(string))
+		properties.EmailAccountAdmins = utils.Bool(securityAlert["email_account_admins"].(bool))
+
+		if v, ok := securityAlert["disabled_alerts"]; ok {
+			alerts := v.(*pluginsdk.Set).List()
+			expandedAlerts := make([]string, len(alerts))
+			for i, a := range alerts {
+				expandedAlerts[i] = a.(string)
+			}
+			properties.DisabledAlerts = &expandedAlerts
+		}
+		if v, ok := securityAlert["email_addresses"]; ok {
+			emails := v.(*pluginsdk.Set).List()
+			expandedEmails := make([]string, len(emails))
+			for i, e := range emails {
+				expandedEmails[i] = e.(string)
+			}
+			properties.EmailAddresses = &expandedEmails
+		}
+		if v, ok := securityAlert["retention_days"]; ok {
+			properties.RetentionDays = utils.Int32(int32(v.(int)))
+		}
+		if v, ok := securityAlert["storage_account_access_key"]; ok {
+			properties.StorageAccountAccessKey = utils.String(v.(string))
+		}
+		if v, ok := securityAlert["storage_endpoint"]; ok {
+			properties.StorageEndpoint = utils.String(v.(string))
+		}
+
+		return &policy
+	}
+
+	return &policy
 }
