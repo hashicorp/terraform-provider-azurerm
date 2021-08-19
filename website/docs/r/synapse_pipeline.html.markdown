@@ -92,13 +92,13 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Synapse Pipeline. Changing this forces a new resource to be created. Must be globally unique.
 
-* `synapse_workspace_id` - (Required) The ID of the Synapse Workspace on which to create the Synapse Pipeline. Changing this forces a new resource to be created.
+* `synapse_workspace_id` - (Required) The ID of the Synapse Workspace that this Synapse Pipeline resides in. Changing this forces a new resource to be created.
 
 * `description` - (Optional) The description for the Synapse Pipeline.
 
-* `annotations` - (Optional) List of tags that can be used for describing the Synapse Pipeline.
+* `annotations` - (Optional)A list of annotation tags that can be used for describing the Synapse Pipeline.
 
-* `parameters` - (Optional) A map of parameters to associate with the Synapse Pipeline.
+* `parameters` - (Optional) A map of parameters to associate with the Synapse Pipeline. The key is the parameter name, and the value is the parameter's default value.
 
 * `variables` - (Optional) A map of variables to associate with the Synapse Pipeline.
 
@@ -124,5 +124,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Synapse Pipeline's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_synapse_pipeline.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.Synapse/workspaces/example/pipelines/example
+terraform import azurerm_synapse_pipeline.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Synapse/workspaces/workspace1/pipelines/pipeline1
 ```

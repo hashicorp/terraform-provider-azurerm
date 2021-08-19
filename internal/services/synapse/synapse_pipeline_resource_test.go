@@ -140,7 +140,7 @@ func (r PipelineResource) basic(data acceptance.TestData) string {
 	%s
 
 resource "azurerm_synapse_pipeline" "test" {
-  name                 = "acctest%d"
+  name                 = "acctest-SynapsePipeline%d"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
 
   depends_on = [azurerm_synapse_firewall_rule.test]
@@ -154,7 +154,7 @@ func (r PipelineResource) complete(data acceptance.TestData) string {
 	%s
 
 resource "azurerm_synapse_pipeline" "test" {
-  name                 = "acctest%d"
+  name                 = "acctest-SynapsePipeline%d"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
 
   parameters = {
@@ -177,7 +177,7 @@ func (r PipelineResource) update1(data acceptance.TestData) string {
 	%s
 
 resource "azurerm_synapse_pipeline" "test" {
-  name                 = "acctest%d"
+  name                 = "acctest-SynapsePipeline%d"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   annotations          = ["test1", "test2", "test3"]
   description          = "test description"
@@ -202,7 +202,7 @@ func (r PipelineResource) update2(data acceptance.TestData) string {
 	%s
 
 resource "azurerm_synapse_pipeline" "test" {
-  name                 = "acctest%d"
+  name                 = "acctest-SynapsePipeline%d"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   annotations          = ["test1", "test2"]
   description          = "test description2"
@@ -244,7 +244,7 @@ func (r PipelineResource) activities(data acceptance.TestData) string {
 	%s
 
 resource "azurerm_synapse_pipeline" "test" {
-  name                 = "acctest%d"
+  name                 = "acctest-SynapsePipeline%d"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   variables = {
     "bob" = "item1"
@@ -275,7 +275,7 @@ func (r PipelineResource) activitiesUpdated(data acceptance.TestData) string {
 	%s
 
 resource "azurerm_synapse_pipeline" "test" {
-  name                 = "acctest%d"
+  name                 = "acctest-SynapsePipeline%d"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   variables = {
     "bob" = "item1"
@@ -284,6 +284,16 @@ resource "azurerm_synapse_pipeline" "test" {
 [
   {
     "name": "Append variable1",
+    "type": "AppendVariable",
+    "dependsOn": [],
+    "userProperties": [],
+    "typeProperties": {
+      "variableName": "bob",
+      "value": "something"
+    }
+  },
+  {
+    "name": "Append variable2",
     "type": "AppendVariable",
     "dependsOn": [],
     "userProperties": [],

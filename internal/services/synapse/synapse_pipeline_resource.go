@@ -6,92 +6,91 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/sdk/2021-06-01-preview/artifacts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
-	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceSynapsePipeline() *schema.Resource {
-	return &schema.Resource{
+func resourceSynapsePipeline() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
 		Create: resourceSynapsePipelineCreateUpdate,
 		Read:   resourceSynapsePipelineRead,
 		Update: resourceSynapsePipelineCreateUpdate,
 		Delete: resourceSynapsePipelineDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PipelineID(id)
 			return err
 		}),
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SynapsePipelineAndTriggerName(),
 			},
 
 			"synapse_workspace_id": {
-				Type:         schema.TypeString,
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.WorkspaceID,
 			},
 
 			"parameters": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"variables": {
-				Type:     schema.TypeMap,
+				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
 			"description": {
-				Type:     schema.TypeString,
+				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
 
 			"activities_json": {
-				Type:             schema.TypeString,
+				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: suppressJsonOrderingDifference,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"annotations": {
-				Type:     schema.TypeList,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 		},
 	}
 }
 
-func resourceSynapsePipelineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapsePipelineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -107,7 +106,7 @@ func resourceSynapsePipelineCreateUpdate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	log.Printf("[INFO] preparing arguments for Synapse Pipeline creation.")
+	log.Printf("[INFO] preparing arguments for Synapse Pipeline create or update.")
 
 	id := parse.NewPipelineID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
 	if d.IsNewResource() {
@@ -137,13 +136,8 @@ func resourceSynapsePipelineCreateUpdate(d *schema.ResourceData, meta interface{
 		pipeline.Activities = activities
 	}
 
-	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		pipeline.Annotations = &annotations
-	} else {
-		annotations := make([]interface{}, 0)
-		pipeline.Annotations = &annotations
-	}
+	annotations := d.Get("annotations").([]interface{})
+	pipeline.Annotations = &annotations
 
 	config := artifacts.PipelineResource{
 		Pipeline: pipeline,
@@ -151,9 +145,9 @@ func resourceSynapsePipelineCreateUpdate(d *schema.ResourceData, meta interface{
 
 	future, err := client.CreateOrUpdatePipeline(ctx, id.Name, config, "")
 	if err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting on creation/updation for %s: %+v", id, err)
 	}
 
@@ -162,7 +156,7 @@ func resourceSynapsePipelineCreateUpdate(d *schema.ResourceData, meta interface{
 	return resourceSynapsePipelineRead(d, meta)
 }
 
-func resourceSynapsePipelineRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapsePipelineRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,8 +182,7 @@ func resourceSynapsePipelineRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
-	d.Set("synapse_workspace_id", workspaceId)
+	d.Set("synapse_workspace_id", parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 	d.Set("name", id.Name)
 
 	if props := resp.Pipeline; props != nil {
@@ -224,7 +217,7 @@ func resourceSynapsePipelineRead(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceSynapsePipelineDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapsePipelineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -265,7 +258,7 @@ func flattenSynapseParameters(input map[string]*artifacts.ParameterSpecification
 
 	for k, v := range input {
 		if v != nil {
-			// we only support string parameters at this time
+			// we only support string parameters at this moment
 			val, ok := v.DefaultValue.(string)
 			if !ok {
 				log.Printf("[DEBUG] Skipping parameter %q since it's not a string", k)
@@ -312,7 +305,7 @@ func flattenSynapseVariables(input map[string]*artifacts.VariableSpecification) 
 
 	for k, v := range input {
 		if v != nil {
-			// we only support string parameters at this time
+			// we only support string parameters at this moment
 			val, ok := v.DefaultValue.(string)
 			if !ok {
 				log.Printf("[DEBUG] Skipping variable %q since it's not a string", k)
@@ -354,8 +347,4 @@ func serializeSynapsePipelineActivities(activities *[]artifacts.BasicActivity) (
 	}
 
 	return string(activitiesJson), nil
-}
-
-func suppressJsonOrderingDifference(_, old, new string, _ *schema.ResourceData) bool {
-	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
 }
