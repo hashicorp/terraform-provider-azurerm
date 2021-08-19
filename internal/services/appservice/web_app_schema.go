@@ -36,7 +36,7 @@ type SiteConfigWindows struct {
 	RemoteDebugging          bool                      `tfschema:"remote_debugging"`
 	RemoteDebuggingVersion   string                    `tfschema:"remote_debugging_version"`
 	ScmType                  string                    `tfschema:"scm_type"`
-	Use32BitWorker           bool                      `tfschema:"32_bit_worker"`
+	Use32BitWorker           bool                      `tfschema:"use_32_bit_worker"`
 	WebSockets               bool                      `tfschema:"websockets"`
 	FtpsState                string                    `tfschema:"ftps_state"`
 	HealthCheckPath          string                    `tfschema:"health_check_path"`
@@ -73,7 +73,7 @@ type SiteConfigLinux struct {
 	RemoteDebugging         bool                    `tfschema:"remote_debugging"`
 	RemoteDebuggingVersion  string                  `tfschema:"remote_debugging_version"`
 	ScmType                 string                  `tfschema:"scm_type"`
-	Use32BitWorker          bool                    `tfschema:"32_bit_worker"`
+	Use32BitWorker          bool                    `tfschema:"use_32_bit_worker"`
 	WebSockets              bool                    `tfschema:"websockets"`
 	FtpsState               string                  `tfschema:"ftps_state"`
 	HealthCheckPath         string                  `tfschema:"health_check_path"`
@@ -214,7 +214,7 @@ func siteConfigSchemaWindows() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"32_bit_worker": {
+				"use_32_bit_worker": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -392,7 +392,7 @@ func siteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"32_bit_worker": {
+				"use_32_bit_worker": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -581,7 +581,7 @@ func siteConfigSchemaLinux() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"32_bit_worker": {
+				"use_32_bit_worker": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -757,7 +757,7 @@ func siteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"32_bit_worker": {
+				"use_32_bit_worker": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -2553,9 +2553,10 @@ func httpLogSchemaComputed() *pluginsdk.Schema {
 
 func httpLogFileSystemSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Type:          pluginsdk.TypeList,
+		Optional:      true,
+		MaxItems:      1,
+		ConflictsWith: []string{"logs.0.http_logs.0.azure_blob_storage"},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"retention_in_mb": {
@@ -2596,9 +2597,10 @@ func httpLogFileSystemSchemaComputed() *pluginsdk.Schema {
 
 func httpLogBlobStorageSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Type:          pluginsdk.TypeList,
+		Optional:      true,
+		MaxItems:      1,
+		ConflictsWith: []string{"logs.0.http_logs.0.file_system"},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"sas_url": {
@@ -2928,25 +2930,25 @@ func expandSiteConfigLinux(siteConfig []SiteConfigLinux) (*web.SiteConfig, error
 }
 
 func expandLogsConfig(config []LogsConfig) *web.SiteLogsConfig {
+	result := &web.SiteLogsConfig{}
 	if len(config) == 0 {
-		return nil
+		return result
 	}
 
-	siteLogsConfig := &web.SiteLogsConfig{
-		SiteLogsConfigProperties: &web.SiteLogsConfigProperties{},
-	}
+	result.SiteLogsConfigProperties = &web.SiteLogsConfigProperties{}
+
 	logsConfig := config[0]
 
 	if len(logsConfig.ApplicationLogs) == 1 {
 		appLogs := logsConfig.ApplicationLogs[0]
-		siteLogsConfig.SiteLogsConfigProperties.ApplicationLogs = &web.ApplicationLogsConfig{
-			FileSystem: &web.FileSystemApplicationLogsConfig{ // TODO - Does this conflict with the use of `AzureBlobStorage` below?
+		result.SiteLogsConfigProperties.ApplicationLogs = &web.ApplicationLogsConfig{
+			FileSystem: &web.FileSystemApplicationLogsConfig{
 				Level: web.LogLevel(appLogs.FileSystemLevel),
 			},
 		}
 		if len(appLogs.AzureBlobStorage) == 1 {
 			appLogsBlobs := appLogs.AzureBlobStorage[0]
-			siteLogsConfig.SiteLogsConfigProperties.ApplicationLogs.AzureBlobStorage = &web.AzureBlobStorageApplicationLogsConfig{
+			result.SiteLogsConfigProperties.ApplicationLogs.AzureBlobStorage = &web.AzureBlobStorageApplicationLogsConfig{
 				Level:           web.LogLevel(appLogsBlobs.Level),
 				SasURL:          utils.String(appLogsBlobs.SasUrl),
 				RetentionInDays: utils.Int32(int32(appLogsBlobs.RetentionInDays)),
@@ -2956,11 +2958,11 @@ func expandLogsConfig(config []LogsConfig) *web.SiteLogsConfig {
 
 	if len(logsConfig.HttpLogs) == 1 {
 		httpLogs := logsConfig.HttpLogs[0]
-		siteLogsConfig.HTTPLogs = &web.HTTPLogsConfig{}
+		result.HTTPLogs = &web.HTTPLogsConfig{}
 
 		if len(httpLogs.FileSystems) == 1 {
 			httpLogFileSystem := httpLogs.FileSystems[0]
-			siteLogsConfig.HTTPLogs.FileSystem = &web.FileSystemHTTPLogsConfig{
+			result.HTTPLogs.FileSystem = &web.FileSystemHTTPLogsConfig{
 				Enabled:         utils.Bool(true),
 				RetentionInMb:   utils.Int32(int32(httpLogFileSystem.RetentionMB)),
 				RetentionInDays: utils.Int32(int32(httpLogFileSystem.RetentionDays)),
@@ -2969,7 +2971,7 @@ func expandLogsConfig(config []LogsConfig) *web.SiteLogsConfig {
 
 		if len(httpLogs.AzureBlobStorage) == 1 {
 			httpLogsBlobStorage := httpLogs.AzureBlobStorage[0]
-			siteLogsConfig.HTTPLogs.AzureBlobStorage = &web.AzureBlobStorageHTTPLogsConfig{
+			result.HTTPLogs.AzureBlobStorage = &web.AzureBlobStorageHTTPLogsConfig{
 				Enabled:         utils.Bool(httpLogsBlobStorage.SasUrl != ""),
 				SasURL:          utils.String(httpLogsBlobStorage.SasUrl),
 				RetentionInDays: utils.Int32(int32(httpLogsBlobStorage.RetentionInDays)),
@@ -2977,50 +2979,51 @@ func expandLogsConfig(config []LogsConfig) *web.SiteLogsConfig {
 		}
 	}
 
-	siteLogsConfig.DetailedErrorMessages = &web.EnabledConfig{
+	result.DetailedErrorMessages = &web.EnabledConfig{
 		Enabled: utils.Bool(logsConfig.DetailedErrorMessages),
 	}
 
-	siteLogsConfig.FailedRequestsTracing = &web.EnabledConfig{
+	result.FailedRequestsTracing = &web.EnabledConfig{
 		Enabled: utils.Bool(logsConfig.FailedRequestTracing),
 	}
 
-	return siteLogsConfig
+	return result
 }
 
 func expandBackupConfig(backupConfigs []Backup) *web.BackupRequest {
+	result := &web.BackupRequest{}
 	if len(backupConfigs) == 0 {
-		return nil
+		return result
 	}
 
 	backupConfig := backupConfigs[0]
 	backupSchedule := backupConfig.Schedule[0]
-	backupRequest := &web.BackupRequest{
-		BackupRequestProperties: &web.BackupRequestProperties{
-			Enabled:           utils.Bool(backupConfig.Enabled),
-			BackupName:        utils.String(backupConfig.Name),
-			StorageAccountURL: utils.String(backupConfig.StorageAccountUrl),
-			BackupSchedule: &web.BackupSchedule{
-				FrequencyInterval:     utils.Int32(int32(backupSchedule.FrequencyInterval)),
-				FrequencyUnit:         web.FrequencyUnit(backupSchedule.FrequencyUnit),
-				KeepAtLeastOneBackup:  utils.Bool(backupSchedule.KeepAtLeastOneBackup),
-				RetentionPeriodInDays: utils.Int32(int32(backupSchedule.RetentionPeriodDays)),
-			},
+	result.BackupRequestProperties = &web.BackupRequestProperties{
+		Enabled:           utils.Bool(backupConfig.Enabled),
+		BackupName:        utils.String(backupConfig.Name),
+		StorageAccountURL: utils.String(backupConfig.StorageAccountUrl),
+		BackupSchedule: &web.BackupSchedule{
+			FrequencyInterval:     utils.Int32(int32(backupSchedule.FrequencyInterval)),
+			FrequencyUnit:         web.FrequencyUnit(backupSchedule.FrequencyUnit),
+			KeepAtLeastOneBackup:  utils.Bool(backupSchedule.KeepAtLeastOneBackup),
+			RetentionPeriodInDays: utils.Int32(int32(backupSchedule.RetentionPeriodDays)),
 		},
 	}
 
 	if backupSchedule.StartTime != "" {
 		dateTimeToStart, _ := time.Parse(time.RFC3339, backupSchedule.StartTime)
-		backupRequest.BackupRequestProperties.BackupSchedule.StartTime = &date.Time{Time: dateTimeToStart}
+		result.BackupRequestProperties.BackupSchedule.StartTime = &date.Time{Time: dateTimeToStart}
 	}
 
-	return backupRequest
+	return result
 }
 
 func expandStorageConfig(storageConfigs []StorageAccount) *web.AzureStoragePropertyDictionaryResource {
+	result := &web.AzureStoragePropertyDictionaryResource{}
 	if len(storageConfigs) == 0 {
-		return nil
+		return result
 	}
+
 	storageAccounts := make(map[string]*web.AzureStorageInfoValue)
 	for _, v := range storageConfigs {
 		storageAccounts[v.Name] = &web.AzureStorageInfoValue{
@@ -3032,15 +3035,17 @@ func expandStorageConfig(storageConfigs []StorageAccount) *web.AzureStoragePrope
 		}
 	}
 
-	return &web.AzureStoragePropertyDictionaryResource{
-		Properties: storageAccounts,
-	}
+	result.Properties = storageAccounts
+
+	return result
 }
 
 func expandConnectionStrings(connectionStringsConfig []ConnectionString) *web.ConnectionStringDictionary {
+	result := &web.ConnectionStringDictionary{}
 	if len(connectionStringsConfig) == 0 {
-		return nil
+		return result
 	}
+
 	connectionStrings := make(map[string]*web.ConnStringValueTypePair)
 	for _, v := range connectionStringsConfig {
 		connectionStrings[v.Name] = &web.ConnStringValueTypePair{
@@ -3048,10 +3053,9 @@ func expandConnectionStrings(connectionStringsConfig []ConnectionString) *web.Co
 			Type:  web.ConnectionStringType(v.Type),
 		}
 	}
+	result.Properties = connectionStrings
 
-	return &web.ConnectionStringDictionary{
-		Properties: connectionStrings,
-	}
+	return result
 }
 
 func expandVirtualApplications(virtualApplicationConfig []VirtualApplication) *[]web.VirtualApplication {
@@ -3149,12 +3153,11 @@ func flattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
 			blobStorage := AzureBlobStorage{
 				Level: string(appLogs.AzureBlobStorage.Level),
 			}
-			if appLogs.AzureBlobStorage.SasURL != nil {
-				blobStorage.SasUrl = *appLogs.AzureBlobStorage.SasURL
-			}
-			if appLogs.AzureBlobStorage.RetentionInDays != nil {
-				blobStorage.RetentionInDays = int(*appLogs.AzureBlobStorage.RetentionInDays)
-			}
+
+			blobStorage.SasUrl = utils.NormalizeNilableString(appLogs.AzureBlobStorage.SasURL)
+
+			blobStorage.RetentionInDays = int(utils.NormaliseNilableInt32(appLogs.AzureBlobStorage.RetentionInDays))
+
 			applicationLog.AzureBlobStorage = []AzureBlobStorage{blobStorage}
 		}
 		logs.ApplicationLogs = []ApplicationLog{applicationLog}

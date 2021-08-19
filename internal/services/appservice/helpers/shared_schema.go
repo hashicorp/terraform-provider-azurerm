@@ -108,10 +108,9 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 
 func IpRestrictionSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:       pluginsdk.TypeList,
-		Optional:   true,
-		Computed:   true,
-		ConfigMode: pluginsdk.SchemaConfigModeAttr,
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"ip_address": {
@@ -154,7 +153,6 @@ func IpRestrictionHeadersSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:       pluginsdk.TypeList,
 		MaxItems:   1,
-		Computed:   true,
 		Optional:   true,
 		ConfigMode: pluginsdk.SchemaConfigModeAttr,
 		Elem: &pluginsdk.Resource{
@@ -206,9 +204,8 @@ func IpRestrictionHeadersSchema() *pluginsdk.Schema {
 
 func IpRestrictionHeadersSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:       pluginsdk.TypeList,
-		Computed:   true,
-		ConfigMode: pluginsdk.SchemaConfigModeAttr,
+		Type:     pluginsdk.TypeList,
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"x_forwarded_host": {
@@ -258,7 +255,6 @@ func IdentitySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -276,7 +272,6 @@ func IdentitySchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.ManagedServiceIdentityTypeNone),
 						string(web.ManagedServiceIdentityTypeSystemAssigned),
 						string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
 						string(web.ManagedServiceIdentityTypeUserAssigned),
@@ -339,7 +334,6 @@ func CorsSettingsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -368,7 +362,7 @@ func CorsSettingsSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"allowed_origins": {
-					Type:     pluginsdk.TypeSet,
+					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
@@ -397,7 +391,7 @@ type SiteCredential struct {
 	Password string `tfschema:"password"`
 }
 
-func SiteCredentialSchema() *pluginsdk.Schema {
+func SiteCredentialSchema() *pluginsdk.Schema { // TODO - This can apparently be disabled as a security option for the service?
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -469,6 +463,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"default_provider": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					Computed: true, // Once set, cannot be unset
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.BuiltInAuthenticationProviderAzureActiveDirectory),
 						string(web.BuiltInAuthenticationProviderFacebook),
@@ -506,6 +501,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"unauthenticated_client_action": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					Computed: true, // Once set, cannot be removed
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.UnauthenticatedClientActionAllowAnonymous),
 						string(web.UnauthenticatedClientActionRedirectToLoginPage),
@@ -657,8 +653,7 @@ func AadAuthSettingsSchema() *pluginsdk.Schema {
 func AadAuthSettingsSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"client_id": {
@@ -778,7 +773,7 @@ func FacebookAuthSettingsSchemaComputed() *pluginsdk.Schema {
 
 type GoogleAuthSettings struct {
 	ClientId                string   `tfschema:"client_id"`
-	ClientSecret            string   `tfschema:"client_schema"`
+	ClientSecret            string   `tfschema:"client_secret"`
 	ClientSecretSettingName string   `tfschema:"client_secret_setting_name"`
 	OauthScopes             []string `tfschema:"oauth_scopes"`
 }
@@ -865,7 +860,7 @@ func GoogleAuthSettingsSchemaComputed() *pluginsdk.Schema {
 
 type MicrosoftAuthSettings struct {
 	ClientId                string   `tfschema:"client_id"`
-	ClientSecret            string   `tfschema:"client_schema"`
+	ClientSecret            string   `tfschema:"client_secret"`
 	ClientSecretSettingName string   `tfschema:"client_secret_setting_name"`
 	OauthScopes             []string `tfschema:"oauth_scopes"`
 }
@@ -1152,12 +1147,13 @@ func expandIpRestrictionHeaders(headers []IpRestrictionHeaders) map[string][]str
 			result["x-forwarded-for"] = v.XForwardedFor
 		}
 		if len(v.XAzureFDID) > 0 {
-			result["x-azure-fd-id"] = v.XAzureFDID
+			result["x-azure-fdid"] = v.XAzureFDID
 		}
 		if len(v.XFDHealthProbe) > 0 {
 			result["x-fd-healthprobe"] = v.XFDHealthProbe
 		}
 	}
+
 	return result
 }
 
@@ -1195,139 +1191,103 @@ func ExpandIdentity(identities []Identity) *web.ManagedServiceIdentity {
 }
 
 func ExpandAuthSettings(auth []AuthSettings) *web.SiteAuthSettings {
+	result := &web.SiteAuthSettings{}
 	if len(auth) == 0 {
-		return nil
+		return result
 	}
 
 	props := &web.SiteAuthSettingsProperties{}
 
-	for _, v := range auth {
-		if v.Enabled {
-			props.Enabled = utils.Bool(v.Enabled)
+	v := auth[0]
+
+	props.Enabled = utils.Bool(v.Enabled)
+
+	additionalLoginParams := make([]string, 0)
+	if len(v.AdditionalLoginParameters) > 0 {
+		for k, s := range v.AdditionalLoginParameters {
+			additionalLoginParams = append(additionalLoginParams, fmt.Sprintf("%s=%s", k, s))
 		}
-		if len(v.AdditionalLoginParameters) > 0 {
-			var additionalLoginParams []string
-			for k, s := range v.AdditionalLoginParameters {
-				additionalLoginParams = append(additionalLoginParams, fmt.Sprintf("%s=%s", k, s))
-			}
-			props.AdditionalLoginParams = &additionalLoginParams
-		}
-
-		if len(v.AllowedExternalRedirectUrls) != 0 && v.AllowedExternalRedirectUrls != nil {
-			props.AllowedExternalRedirectUrls = &v.AllowedExternalRedirectUrls
-		}
-
-		if v.DefaultProvider != "" {
-			props.DefaultProvider = web.BuiltInAuthenticationProvider(v.DefaultProvider)
-		}
-
-		if v.Issuer != "" {
-			props.Issuer = utils.String(v.Issuer)
-		}
-
-		if v.RuntimeVersion != "" {
-			props.RuntimeVersion = utils.String(v.RuntimeVersion)
-		}
-
-		if v.TokenRefreshExtensionHours != 0 {
-			props.TokenRefreshExtensionHours = utils.Float(v.TokenRefreshExtensionHours)
-		}
-
-		if v.UnauthenticatedClientAction != "" {
-			props.UnauthenticatedClientAction = web.UnauthenticatedClientAction(v.UnauthenticatedClientAction)
-		}
-
-		if len(v.AzureActiveDirectoryAuth) == 1 {
-			a := v.AzureActiveDirectoryAuth[0]
-			props.ClientID = utils.String(a.ClientId)
-
-			if a.ClientSecret != "" {
-				props.ClientSecret = utils.String(a.ClientSecret)
-			}
-
-			if a.ClientSecretSettingName != "" {
-				props.ClientSecretSettingName = utils.String(a.ClientSecretSettingName)
-			}
-
-			props.AllowedAudiences = &a.AllowedAudiences
-		}
-
-		if len(v.FacebookAuth) == 1 {
-			f := v.FacebookAuth[0]
-			props.FacebookAppID = utils.String(f.AppId)
-
-			if f.AppSecret != "" {
-				props.FacebookAppSecret = utils.String(f.AppSecret)
-			}
-
-			if f.AppSecretSettingName != "" {
-				props.FacebookAppSecretSettingName = utils.String(f.AppSecretSettingName)
-			}
-
-			props.FacebookOAuthScopes = &f.OauthScopes
-		}
-
-		if len(v.GithubAuth) == 1 {
-			g := v.GithubAuth[0]
-			props.GitHubClientID = utils.String(g.ClientId)
-			if g.ClientSecret != "" {
-				props.GitHubClientID = utils.String(g.ClientId)
-			}
-
-			if g.ClientSecretSettingName != "" {
-				props.GitHubClientSecretSettingName = utils.String(g.ClientSecretSettingName)
-			}
-
-			props.GitHubOAuthScopes = &g.OAuthScopes
-		}
-
-		if len(v.GoogleAuth) == 1 {
-			g := v.GoogleAuth[0]
-			props.GoogleClientID = utils.String(g.ClientId)
-
-			if g.ClientSecret != "" {
-				props.GoogleClientSecret = utils.String(g.ClientSecret)
-			}
-
-			if g.ClientSecretSettingName != "" {
-				props.GoogleClientSecretSettingName = utils.String(g.ClientSecretSettingName)
-			}
-
-			props.GoogleOAuthScopes = &g.OauthScopes
-		}
-
-		if len(v.MicrosoftAuth) == 1 {
-			m := v.MicrosoftAuth[0]
-			props.MicrosoftAccountClientID = utils.String(m.ClientId)
-
-			if m.ClientSecret != "" {
-				props.MicrosoftAccountClientSecret = utils.String(m.ClientSecret)
-			}
-
-			if m.ClientSecretSettingName != "" {
-				props.MicrosoftAccountClientSecretSettingName = utils.String(m.ClientSecretSettingName)
-			}
-
-			props.MicrosoftAccountOAuthScopes = &m.OauthScopes
-		}
-
-		if len(v.TwitterAuth) == 1 {
-			t := v.TwitterAuth[0]
-			props.TwitterConsumerKey = utils.String(t.ConsumerKey)
-
-			if t.ConsumerSecret != "" {
-				props.TwitterConsumerSecret = utils.String(t.ConsumerSecret)
-			}
-
-			if t.ConsumerSecretSettingName != "" {
-				props.TwitterConsumerSecretSettingName = utils.String(t.ConsumerSecretSettingName)
-			}
-		}
+		props.AdditionalLoginParams = &additionalLoginParams
 	}
 
-	return &web.SiteAuthSettings{
-		SiteAuthSettingsProperties: props,
+	props.AllowedExternalRedirectUrls = &v.AllowedExternalRedirectUrls
+
+	props.DefaultProvider = web.BuiltInAuthenticationProvider(v.DefaultProvider)
+
+	props.Issuer = utils.String(v.Issuer)
+
+	props.RuntimeVersion = utils.String(v.RuntimeVersion)
+
+	props.TokenStoreEnabled = utils.Bool(v.TokenStoreEnabled)
+
+	props.TokenRefreshExtensionHours = utils.Float(v.TokenRefreshExtensionHours)
+
+	props.UnauthenticatedClientAction = web.UnauthenticatedClientAction(v.UnauthenticatedClientAction)
+
+	a := AadAuthSettings{}
+	if len(v.AzureActiveDirectoryAuth) > 0 {
+		a = v.AzureActiveDirectoryAuth[0]
 	}
+	props.ClientID = utils.String(a.ClientId)
+
+	if a.ClientSecret != "" {
+		props.ClientSecret = utils.String(a.ClientSecret)
+	}
+
+	if a.ClientSecretSettingName != "" {
+		props.ClientSecretSettingName = utils.String(a.ClientSecretSettingName)
+	}
+
+	props.AllowedAudiences = &a.AllowedAudiences
+
+	f := FacebookAuthSettings{}
+	if len(v.FacebookAuth) > 0 {
+		f = v.FacebookAuth[0]
+	}
+	props.FacebookAppID = utils.String(f.AppId)
+	props.FacebookAppSecret = utils.String(f.AppSecret)
+	props.FacebookAppSecretSettingName = utils.String(f.AppSecretSettingName)
+	props.FacebookOAuthScopes = &f.OauthScopes
+
+	gh := GithubAuthSettings{}
+	if len(v.GithubAuth) > 0 {
+		gh = v.GithubAuth[0]
+	}
+	props.GitHubClientID = utils.String(gh.ClientId)
+	props.GitHubClientSecret = utils.String(gh.ClientSecret)
+	props.GitHubClientSecretSettingName = utils.String(gh.ClientSecretSettingName)
+	props.GitHubOAuthScopes = &gh.OAuthScopes
+
+	g := GoogleAuthSettings{}
+	if len(v.GoogleAuth) > 0 {
+		g = v.GoogleAuth[0]
+	}
+
+	props.GoogleClientID = utils.String(g.ClientId)
+	props.GoogleClientSecret = utils.String(g.ClientSecret)
+	props.GoogleClientSecretSettingName = utils.String(g.ClientSecretSettingName)
+	props.GoogleOAuthScopes = &g.OauthScopes
+
+	m := MicrosoftAuthSettings{}
+	if len(v.MicrosoftAuth) > 0 {
+		m = v.MicrosoftAuth[0]
+	}
+	props.MicrosoftAccountClientID = utils.String(m.ClientId)
+	props.MicrosoftAccountClientSecret = utils.String(m.ClientSecret)
+	props.MicrosoftAccountClientSecretSettingName = utils.String(m.ClientSecretSettingName)
+	props.MicrosoftAccountOAuthScopes = &m.OauthScopes
+
+	t := TwitterAuthSettings{}
+	if len(v.TwitterAuth) > 0 {
+		t = v.TwitterAuth[0]
+	}
+	props.TwitterConsumerKey = utils.String(t.ConsumerKey)
+	props.TwitterConsumerSecret = utils.String(t.ConsumerSecret)
+	props.TwitterConsumerSecretSettingName = utils.String(t.ConsumerSecretSettingName)
+
+	result.SiteAuthSettingsProperties = props
+
+	return result
 }
 
 func FlattenAuthSettings(auth web.SiteAuthSettings) []AuthSettings {
@@ -1581,7 +1541,7 @@ func flattenIpRestrictionHeaders(headers map[string][]string) []IpRestrictionHea
 		ipRestrictionHeader.XForwardedHost = xForwardedHost
 	}
 
-	if xAzureFDID, ok := headers["x-azure-fd-id"]; ok {
+	if xAzureFDID, ok := headers["x-azure-fdid"]; ok {
 		ipRestrictionHeader.XAzureFDID = xAzureFDID
 	}
 

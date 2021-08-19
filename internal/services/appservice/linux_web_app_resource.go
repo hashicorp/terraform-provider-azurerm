@@ -290,35 +290,35 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			appSettings := expandAppSettings(webApp.AppSettings)
-			if appSettings != nil {
+			if appSettings.Properties != nil {
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettings); err != nil {
 					return fmt.Errorf("setting App Settings for Linux Web App %s: %+v", id, err)
 				}
 			}
 
 			auth := helpers.ExpandAuthSettings(webApp.AuthSettings)
-			if auth != nil {
+			if auth.SiteAuthSettingsProperties != nil {
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *auth); err != nil {
 					return fmt.Errorf("setting Authorisation Settings for %s: %+v", id, err)
 				}
 			}
 
 			logsConfig := expandLogsConfig(webApp.LogsConfig)
-			if logsConfig != nil {
+			if logsConfig.SiteLogsConfigProperties != nil {
 				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, *logsConfig); err != nil {
 					return fmt.Errorf("setting Diagnostic Logs Configuration for Linux Web App %s: %+v", id, err)
 				}
 			}
 
 			backupConfig := expandBackupConfig(webApp.Backup)
-			if backupConfig != nil {
+			if backupConfig.BackupRequestProperties != nil {
 				if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupConfig); err != nil {
 					return fmt.Errorf("adding Backup Settings for Linux Web App %s: %+v", id, err)
 				}
 			}
 
 			storageConfig := expandStorageConfig(webApp.StorageAccounts)
-			if storageConfig != nil {
+			if storageConfig.Properties != nil {
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageConfig); err != nil {
 					if err != nil {
 						return fmt.Errorf("setting Storage Accounts for Linux Web App %s: %+v", id, err)
@@ -327,7 +327,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			}
 
 			connectionStrings := expandConnectionStrings(webApp.ConnectionStrings)
-			if connectionStrings != nil {
+			if connectionStrings.Properties != nil {
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStrings); err != nil {
 					return fmt.Errorf("setting Connection Strings for Linux Web App %s: %+v", id, err)
 				}
@@ -585,37 +585,49 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
-			if appSettingsUpdate := expandAppSettings(state.AppSettings); appSettingsUpdate != nil {
+			if metadata.ResourceData.HasChange("app_settings") {
+				appSettingsUpdate := expandAppSettings(state.AppSettings)
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {
 					return fmt.Errorf("updating App Settings for Linux Web App %s: %+v", id, err)
 				}
 			}
 
-			if connectionStringUpdate := expandConnectionStrings(state.ConnectionStrings); connectionStringUpdate != nil {
+			if metadata.ResourceData.HasChange("connection_string") {
+				connectionStringUpdate := expandConnectionStrings(state.ConnectionStrings)
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStringUpdate); err != nil {
 					return fmt.Errorf("updating Connection Strings for Linux Web App %s: %+v", id, err)
 				}
 			}
 
-			if authUpdate := helpers.ExpandAuthSettings(state.AuthSettings); authUpdate != nil {
+			if metadata.ResourceData.HasChange("auth_settings") {
+				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *authUpdate); err != nil {
 					return fmt.Errorf("updating Auth Settings for Linux Web App %s: %+v", id, err)
 				}
 			}
 
-			if backupUpdate := expandBackupConfig(state.Backup); backupUpdate != nil {
-				if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupUpdate); err != nil {
-					return fmt.Errorf("updating Backup Settings for Linux Web App %s: %+v", id, err)
+			if metadata.ResourceData.HasChange("backup") {
+				backupUpdate := expandBackupConfig(state.Backup)
+				if backupUpdate.BackupRequestProperties == nil {
+					if _, err := client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.SiteName); err != nil {
+						return fmt.Errorf("removing Backup Settings for Linux Web App %s: %+v", id, err)
+					}
+				} else {
+					if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupUpdate); err != nil {
+						return fmt.Errorf("updating Backup Settings for Linux Web App %s: %+v", id, err)
+					}
 				}
 			}
 
-			if logsUpdate := expandLogsConfig(state.LogsConfig); logsUpdate != nil {
+			if metadata.ResourceData.HasChange("logs") {
+				logsUpdate := expandLogsConfig(state.LogsConfig)
 				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, *logsUpdate); err != nil {
 					return fmt.Errorf("updating Logs Config for Linux Web App %s: %+v", id, err)
 				}
 			}
 
-			if storageAccountUpdate := expandStorageConfig(state.StorageAccounts); storageAccountUpdate != nil {
+			if metadata.ResourceData.HasChange("storage_account") {
+				storageAccountUpdate := expandStorageConfig(state.StorageAccounts)
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate); err != nil {
 					return fmt.Errorf("updating Storage Accounts for Linux Web App %s: %+v", id, err)
 				}
