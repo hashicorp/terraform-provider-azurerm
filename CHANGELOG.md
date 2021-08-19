@@ -43,6 +43,8 @@ BUG FIXES:
 * `azurerm_storage_account` - allow 0 for the `cors.max_age_in_seconds` property [GH-13010]
 * `azurerm_servicebus_topic` - correctyl validate the `name` property [GH-13026]
 * `azurerm_virtual_hub_connection` - will not correctly lock it's cirtual network during updates [GH-12999]
+* `azurerm_linux_virtual_machine_scale_set` - fix potential crash in updates to the `rolling_upgrade_policy` block [GH-13029]
+
 
 
 ## 2.72.0 (August 12, 2021)
