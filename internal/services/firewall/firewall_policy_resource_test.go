@@ -256,10 +256,10 @@ resource "azurerm_firewall_policy" "test" {
       id    = "1"
     }
     traffic_bypass {
-      name                  = "Name bypass traffic settings"
-      description           = "Description bypass traffic settings"
-      protocol              = "ANY"
-      destination_ports     = ["*"]
+      name              = "Name bypass traffic settings"
+      description       = "Description bypass traffic settings"
+      protocol          = "ANY"
+      destination_ports = ["*"]
       source_ip_groups = [
         azurerm_ip_group.test_source.id,
       ]
