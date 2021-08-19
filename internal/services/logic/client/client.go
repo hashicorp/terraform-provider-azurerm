@@ -11,6 +11,7 @@ type Client struct {
 	IntegrationAccountSessionClient     *logic.IntegrationAccountSessionsClient
 	IntegrationServiceEnvironmentClient *logic.IntegrationServiceEnvironmentsClient
 	WorkflowClient                      *logic.WorkflowsClient
+	TriggersClient                      *logic.WorkflowTriggersClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -29,11 +30,15 @@ func NewClient(o *common.ClientOptions) *Client {
 	workflowClient := logic.NewWorkflowsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workflowClient.Client, o.ResourceManagerAuthorizer)
 
+	triggersClient := logic.NewWorkflowTriggersClient(o.SubscriptionId)
+	o.ConfigureClient(&triggersClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		IntegrationAccountClient:            &integrationAccountClient,
 		IntegrationAccountCertificateClient: &integrationAccountCertificateClient,
 		IntegrationAccountSessionClient:     &integrationAccountSessionClient,
 		IntegrationServiceEnvironmentClient: &integrationServiceEnvironmentClient,
 		WorkflowClient:                      &workflowClient,
+		TriggersClient:                      &triggersClient,
 	}
 }
