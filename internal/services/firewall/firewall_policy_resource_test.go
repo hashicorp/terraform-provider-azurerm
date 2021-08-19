@@ -261,8 +261,12 @@ resource "azurerm_firewall_policy" "test" {
       protocol              = "ANY"
       destination_addresses = ["*"]
       destination_ports     = ["*"]
-      source_ip_groups      = ["*"]
-      destination_ip_groups = ["*"]
+      source_ip_groups = [
+        azurerm_ip_group.test_source.id,
+      ]
+      destination_ip_groups = [
+        azurerm_ip_group.test_destination.id,
+      ]
     }
   }
   identity {
@@ -348,6 +352,11 @@ data "azurerm_client_config" "current" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-networkfw-%d"
   location = "%s"
+  lifecycle {
+    ignore_changes = [
+      tags
+    ]
+  }
 }
 resource "azurerm_key_vault" "test" {
   name                            = "tlskv%d"
@@ -358,11 +367,34 @@ resource "azurerm_key_vault" "test" {
   enabled_for_template_deployment = true
   tenant_id                       = data.azurerm_client_config.current.tenant_id
   sku_name                        = "standard"
+  lifecycle {
+    ignore_changes = [
+      tags
+    ]
+  }
+}
+resource "azurerm_ip_group" "test_source" {
+  name                = "acctestIpGroupForFirewallNetworkRulesSource"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  cidrs               = ["1.2.3.4/32", "12.34.56.0/24"]
+}
+
+resource "azurerm_ip_group" "test_destination" {
+  name                = "acctestIpGroupForFirewallNetworkRulesDestination"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  cidrs               = ["192.168.0.0/25", "192.168.0.192/26"]
 }
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestUAI-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  lifecycle {
+    ignore_changes = [
+      tags
+    ]
+  }
 }
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id   = azurerm_key_vault.test.id
