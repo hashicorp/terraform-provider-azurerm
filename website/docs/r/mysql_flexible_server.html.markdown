@@ -91,13 +91,15 @@ The following arguments are supported:
 
 * `create_mode` - (Optional)The creation mode which can be used to restore or replicate existing servers. Possible values are `Default`, `PointInTimeRestore`, `GeoRestore`, and `Replica`. Changing this forces a new MySQL Flexible Server to be created.
 
+~> **NOTE:**  Creating a `GeoRestore` server requires the source server with `geo_redundant_backup_enabled` enabled.
+
 * `delegated_subnet_id` - (Optional) The ID of the virtual network subnet to create the MySQL Flexible Server. Changing this forces a new MySQL Flexible Server to be created.
 
 * `private_dns_zone_id` - (Optional) The ID of the private dns zone to create the MySQL Flexible Server. Changing this forces a new MySQL Flexible Server to be created.
 
 ~> **NOTE:** The `private_dns_zone_id` is required when setting a `delegated_subnet_id`. The `azurerm_private_dns_zone` should end with suffix `.mysql.database.azure.com`.
 
-* `geo_redundant_backup_enabled` - (Optional) Should geo redundant backup enabled?
+* `geo_redundant_backup_enabled` - (Optional) Should geo redundant backup enabled? Defaults to `false`. Changing this forces a new MySQL Flexible Server to be created.
 
 * `high_availability` - (Optional) A `high_availability` block as defined below.
 
@@ -121,9 +123,15 @@ The following arguments are supported:
 
 A `high_availability` block supports the following:
 
-* `mode` - (Required) The high availability mode for the MySQL Flexible Server. Possibles values are `Enabled`, `SameZone` and `ZoneRedundant`.
+* `mode` - (Required) The high availability mode for the MySQL Flexible Server. Possibles values are `SameZone` and `ZoneRedundant`.
 
-* `standby_availability_zone` - (Optional) The availability zone of the standby Flexible Server. Possible values are `1`, `2` and `3`. Changing this forces a new MySQL Flexible Server to be created.
+~> **NOTE:** `storage.0.auto_grow_enabled` must be enabled when `high_availability` is enabled. \ 
+             Changing `mode` from `SameZone` to `ZoneRedundant` forces a new MySQL Flexible Server to be created. \
+             Changing `high_availability` for a server creating with `high_availability` disabled forces a new MySQL Flexible Server to be created.
+
+* `standby_availability_zone` - (Optional) The availability zone of the standby Flexible Server. Possible values are `1`, `2` and `3`.
+
+~> **NOTE:** The `standby_availability_zone` will be omitted when mode is `SameZone`, for the `standby_availability_zone` will be the same as `zone`.
 
 ---
 
@@ -139,7 +147,7 @@ A `maintenance_window` block supports the following:
 
 A `storage` block supports the following:
 
-* `auto_grow_enabled` - (Optional) Should Storage Auto Grow be enabled?
+* `auto_grow_enabled` - (Optional) Should Storage Auto Grow be enabled? Defaults to `true`. 
 
 * `iops` - (Optional) The storage IOPS for the MySQL Flexible Server. Possible values are `400`, `640`, `1280`, `3200`, `6400`, `12800`, and `20000`.
 

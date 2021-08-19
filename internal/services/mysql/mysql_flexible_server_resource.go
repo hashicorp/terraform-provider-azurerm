@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -174,6 +175,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			"geo_redundant_backup_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				ForceNew: true,
 				Default:  false,
 			},
 
@@ -187,12 +189,17 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(mysqlflexibleservers.HighAvailabilityModeEnabled),
 								string(mysqlflexibleservers.HighAvailabilityModeZoneRedundant),
 								string(mysqlflexibleservers.HighAvailabilityModeSameZone),
 							}, false),
 						},
-						"standby_availability_zone": azure.SchemaZoneComputed(),
+
+						"standby_availability_zone": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 					},
 				},
 			},
@@ -250,6 +257,13 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffInSequence(
+			// Updating HA mode from SameZone to ZoneRedundant is not allowed.
+			pluginsdk.ForceNewIfChange("high_availability.0.mode", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) == string(mysqlflexibleservers.HighAvailabilityModeSameZone) && new.(string) == string(mysqlflexibleservers.HighAvailabilityModeZoneRedundant)
+			}),
+		),
 	}
 }
 func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -408,7 +422,8 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 		if network := props.Network; network != nil {
 			d.Set("public_network_access_enabled", network.PublicNetworkAccess == mysqlflexibleservers.EnableStatusEnumEnabled)
 			d.Set("delegated_subnet_id", network.DelegatedSubnetResourceID)
-			d.Set("private_dns_zone_id", network.PrivateDNSZoneResourceID)
+			//d.Set("private_dns_zone_id", network.PrivateDNSZoneResourceID)
+			//	till the fix from service
 		}
 
 		if err := d.Set("maintenance_window", flattenArmServerMaintenanceWindow(props.MaintenanceWindow)); err != nil {
@@ -451,16 +466,65 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
+	// ha Enabled is dependent on storage auto grow Enabled. But when we enabled this two features in one request, it returns bad request.
+	// Thus we need to separate these two updates in two requests.
+	if d.HasChange("storage") && d.Get("storage.0.auto_grow_enabled").(bool) {
+		parameters := mysqlflexibleservers.ServerForUpdate{
+			ServerPropertiesForUpdate: &mysqlflexibleservers.ServerPropertiesForUpdate{
+				Storage: expandArmServerStorage(d.Get("storage").([]interface{})),
+			},
+		}
+
+		future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
+		if err != nil {
+			return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q) to enable `auto_grow_enabled`: %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for the update of the Mysql Flexible Server %q (Resource Group %q) to enable `auto_grow_enabled`: %+v", id.Name, id.ResourceGroup, err)
+		}
+	}
+
+	// Update HA from SameZone-> ZoneRedundant is not allowed
+	// Update HA from ZoneRedundant-> SameZone or change Standby AZ requires to disable it firstly.
+	if d.HasChange("high_availability") {
+		parameters := mysqlflexibleservers.ServerForUpdate{
+			ServerPropertiesForUpdate: &mysqlflexibleservers.ServerPropertiesForUpdate{
+				HighAvailability: &mysqlflexibleservers.HighAvailability{
+					Mode: mysqlflexibleservers.HighAvailabilityModeDisabled,
+				},
+			},
+		}
+
+		future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
+		if err != nil {
+			return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q) to disable `high_availability`: %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for the update of the Mysql Flexible Server %q (Resource Group %q) to disable `high_availability`: %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		parameters.HighAvailability = expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}))
+
+		if parameters.HighAvailability.Mode != mysqlflexibleservers.HighAvailabilityModeDisabled {
+			future, err = client.Update(ctx, id.ResourceGroup, id.Name, parameters)
+			if err != nil {
+				return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q) to update `high_availability`: %+v", id.Name, id.ResourceGroup, err)
+			}
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for the update of the Mysql Flexible Server %q (Resource Group %q) to update `high_availability`: %+v", id.Name, id.ResourceGroup, err)
+			}
+		}
+	}
+
 	parameters := mysqlflexibleservers.ServerForUpdate{
 		ServerPropertiesForUpdate: &mysqlflexibleservers.ServerPropertiesForUpdate{},
 	}
 
 	if d.HasChange("administrator_password") {
 		parameters.ServerPropertiesForUpdate.AdministratorLoginPassword = utils.String(d.Get("administrator_password").(string))
-	}
-
-	if d.HasChange("storage") {
-		parameters.ServerPropertiesForUpdate.Storage = expandArmServerStorage(d.Get("storage").([]interface{}))
 	}
 
 	if d.HasChange("backup_retention_days") || d.HasChange("geo_redundant_backup_enabled") {
@@ -483,10 +547,6 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if d.HasChange("high_availability") {
-		parameters.HighAvailability = expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}))
-	}
-
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
 		return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -494,6 +554,23 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the update of the Mysql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if d.HasChange("storage") && !d.Get("storage.0.auto_grow_enabled").(bool) {
+		parameters := mysqlflexibleservers.ServerForUpdate{
+			ServerPropertiesForUpdate: &mysqlflexibleservers.ServerPropertiesForUpdate{
+				Storage: expandArmServerStorage(d.Get("storage").([]interface{})),
+			},
+		}
+
+		future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
+		if err != nil {
+			return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q) to disable `auto_grow_enabled`: %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for the update of the Mysql Flexible Server %q (Resource Group %q) to disable `auto_grow_enabled`: %+v", id.Name, id.ResourceGroup, err)
+		}
 	}
 	return resourceMysqlFlexibleServerRead(d, meta)
 }
@@ -696,8 +773,16 @@ func expandFlexibleServerHighAvailability(inputs []interface{}) *mysqlflexiblese
 
 	input := inputs[0].(map[string]interface{})
 
+	mode := mysqlflexibleservers.HighAvailabilityMode(input["mode"].(string))
+
 	result := mysqlflexibleservers.HighAvailability{
-		Mode: mysqlflexibleservers.HighAvailabilityMode(input["mode"].(string)),
+		Mode: mode,
+	}
+
+	// for updating mode from ZoneRedundant to SameZone, the standby az will be changed
+	// if we keep setting the standby az of ZoneRedundant, ha could not be changed to SameZone
+	if mode == mysqlflexibleservers.HighAvailabilityModeSameZone {
+		return &result
 	}
 
 	if v, ok := input["standby_availability_zone"]; ok && v.(string) != "" {

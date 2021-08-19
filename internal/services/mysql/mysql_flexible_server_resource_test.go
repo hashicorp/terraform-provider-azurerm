@@ -3,6 +3,7 @@ package mysql_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -29,6 +30,8 @@ func TestAccMySqlFlexibleServer_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
+				check.That(data.ResourceName).Key("version").Exists(),
+				check.That(data.ResourceName).Key("storage.#").Exists(),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
@@ -62,7 +65,7 @@ func TestAccMySqlFlexibleServer_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode", "private_dns_zone_id"),
 	})
 }
 
@@ -79,7 +82,7 @@ func TestAccMySqlFlexibleServer_completeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode", "private_dns_zone_id"),
 		{
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -89,7 +92,7 @@ func TestAccMySqlFlexibleServer_completeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode", "private_dns_zone_id"),
 	})
 }
 
@@ -189,7 +192,19 @@ func TestAccMySqlFlexibleServer_updateHA(t *testing.T) {
 	r := MySqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.updateHADisabled(data),
+			Config: r.updateHAZoneRedundant(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("zone").Exists(),
+				check.That(data.ResourceName).Key("fqdn").Exists(),
+				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
+				check.That(data.ResourceName).Key("replica_capacity").Exists(),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+
+		{
+			Config: r.updateHAZoneRedundantUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
@@ -211,29 +226,7 @@ func TestAccMySqlFlexibleServer_updateHA(t *testing.T) {
 		},
 		data.ImportStep("administrator_password", "create_mode"),
 		{
-			Config: r.updateHAZoneRedundant(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone").Exists(),
-				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
-				check.That(data.ResourceName).Key("replica_capacity").Exists(),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-		{
-			Config: r.updateHAEnabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone").Exists(),
-				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
-				check.That(data.ResourceName).Key("replica_capacity").Exists(),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-		{
-			Config: r.basic(data),
+			Config: r.updateHADisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
@@ -270,6 +263,10 @@ func TestAccMySqlFlexibleServer_pitr(t *testing.T) {
 				check.That("azurerm_mysql_flexible_server.pitr").Key("fqdn").Exists(),
 				check.That("azurerm_mysql_flexible_server.pitr").Key("public_network_access_enabled").Exists(),
 				check.That("azurerm_mysql_flexible_server.pitr").Key("replica_capacity").Exists(),
+				check.That("azurerm_mysql_flexible_server.pitr").Key("administrator_login").Exists(),
+				check.That("azurerm_mysql_flexible_server.pitr").Key("sku_name").Exists(),
+				check.That("azurerm_mysql_flexible_server.pitr").Key("version").Exists(),
+				check.That("azurerm_mysql_flexible_server.pitr").Key("storage.#").Exists(),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode", "point_in_time_restore_time_in_utc"),
@@ -300,6 +297,10 @@ func TestAccMySqlFlexibleServer_replica(t *testing.T) {
 				check.That("azurerm_mysql_flexible_server.replica").Key("public_network_access_enabled").Exists(),
 				check.That("azurerm_mysql_flexible_server.replica").Key("replica_capacity").Exists(),
 				check.That("azurerm_mysql_flexible_server.replica").Key("replication_role").HasValue("Replica"),
+				check.That("azurerm_mysql_flexible_server.replica").Key("administrator_login").Exists(),
+				check.That("azurerm_mysql_flexible_server.replica").Key("sku_name").Exists(),
+				check.That("azurerm_mysql_flexible_server.replica").Key("version").Exists(),
+				check.That("azurerm_mysql_flexible_server.replica").Key("storage.#").Exists(),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
@@ -311,7 +312,7 @@ func TestAccMySqlFlexibleServer_geoRestore(t *testing.T) {
 	r := MySqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.geoRestoreSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
@@ -329,6 +330,10 @@ func TestAccMySqlFlexibleServer_geoRestore(t *testing.T) {
 				check.That("azurerm_mysql_flexible_server.geo_restore").Key("fqdn").Exists(),
 				check.That("azurerm_mysql_flexible_server.geo_restore").Key("public_network_access_enabled").Exists(),
 				check.That("azurerm_mysql_flexible_server.geo_restore").Key("replica_capacity").Exists(),
+				check.That("azurerm_mysql_flexible_server.geo_restore").Key("administrator_login").Exists(),
+				check.That("azurerm_mysql_flexible_server.geo_restore").Key("sku_name").Exists(),
+				check.That("azurerm_mysql_flexible_server.geo_restore").Key("version").Exists(),
+				check.That("azurerm_mysql_flexible_server.geo_restore").Key("storage.#").Exists(),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
@@ -433,18 +438,19 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
 }
 
 resource "azurerm_mysql_flexible_server" "test" {
-  name                   = "acctest-fs-%[2]d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
-  administrator_password = "QAZwsx123"
-  zone                   = "1"
-  version                = "8.0.21"
-  backup_retention_days  = 7
+  name                         = "acctest-fs-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "adminTerraform"
+  administrator_password       = "QAZwsx123"
+  zone                         = "1"
+  version                      = "8.0.21"
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = true
   storage {
-    size_gb           = 32
-    iops              = 400
-    auto_grow_enabled = true
+    size_gb = 32
+    iops    = 400
+
   }
   delegated_subnet_id = azurerm_subnet.test.id
   private_dns_zone_id = azurerm_private_dns_zone.test.id
@@ -521,8 +527,9 @@ resource "azurerm_mysql_flexible_server" "test" {
   backup_retention_days        = 10
   geo_redundant_backup_enabled = true
   storage {
-    size_gb = 64
-    iops    = 1280
+    size_gb           = 64
+    iops              = 1280
+    auto_grow_enabled = false
   }
   delegated_subnet_id = azurerm_subnet.test.id
   private_dns_zone_id = azurerm_private_dns_zone.test.id
@@ -644,14 +651,15 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   high_availability {
-    mode = "ZoneRedundant"
+    mode                      = "ZoneRedundant"
+    standby_availability_zone = "2"
   }
   sku_name = "GP_Standard_D2ds_v4"
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) updateHAEnabled(data acceptance.TestData) string {
+func (r MySqlFlexibleServerResource) updateHAZoneRedundantUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -662,7 +670,8 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   high_availability {
-    mode = "Enabled"
+    mode                      = "ZoneRedundant"
+    standby_availability_zone = "3"
   }
   sku_name = "GP_Standard_D2ds_v4"
 }
@@ -708,8 +717,8 @@ resource "azurerm_mysql_flexible_server" "test" {
   location                     = azurerm_resource_group.test.location
   administrator_login          = "adminTerraform"
   administrator_password       = "QAZwsx123"
-  sku_name                     = "B_Standard_B1s"
   geo_redundant_backup_enabled = true
+  sku_name                     = "B_Standard_B1s"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -721,9 +730,9 @@ func (r MySqlFlexibleServerResource) geoRestore(data acceptance.TestData) string
 resource "azurerm_mysql_flexible_server" "geo_restore" {
   name                = "acctest-fs-restore-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  location            = "%s"
   create_mode         = "GeoRestore"
   source_server_id    = azurerm_mysql_flexible_server.test.id
 }
-`, r.geoRestoreSource(data), data.RandomInteger)
+`, r.geoRestoreSource(data), data.RandomInteger, os.Getenv("ARM_GEO_RESTORE_LOCATION"))
 }
