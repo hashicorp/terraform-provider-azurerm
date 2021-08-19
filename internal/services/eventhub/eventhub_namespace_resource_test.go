@@ -434,7 +434,7 @@ func TestAccEventHubNamespace_maximumThroughputUnitsUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
 				check.That(data.ResourceName).Key("capacity").HasValue("2"),
-				check.That(data.ResourceName).Key("maximum_throughput_units").HasValue("20"),
+				check.That(data.ResourceName).Key("maximum_throughput_units").HasValue("25"),
 			),
 		},
 		{
@@ -854,7 +854,7 @@ resource "azurerm_eventhub_namespace" "test" {
   sku                      = "Standard"
   capacity                 = "2"
   auto_inflate_enabled     = true
-  maximum_throughput_units = 20
+  maximum_throughput_units = 25
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
