@@ -110,7 +110,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntBetween(0, 20),
+				ValidateFunc: validation.IntBetween(0, 40),
 			},
 
 			"network_rulesets": {
