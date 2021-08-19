@@ -189,30 +189,39 @@ resource "azurerm_key_vault" "test" {
   sku_name                 = "standard"
   soft_delete_enabled      = true
   purge_protection_enabled = true
-}
 
-resource "azurerm_key_vault_access_policy" "test" {
-  key_vault_id       = azurerm_key_vault.test.id
-  tenant_id          = azurerm_cognitive_account.test.identity.0.tenant_id
-  object_id          = azurerm_cognitive_account.test.identity.0.principal_id
-  key_permissions    = ["get", "create", "list", "restore", "recover", "unwrapKey", "wrapKey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
-}
+  access_policy {
+    tenant_id = azurerm_cognitive_account.test.identity.0.tenant_id
+    object_id = azurerm_cognitive_account.test.identity.0.principal_id
+    key_permissions = [
+      "Get", "Create", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"
+    ]
+    secret_permissions = [
+      "Get",
+    ]
+  }
 
-resource "azurerm_key_vault_access_policy" "test2" {
-  key_vault_id       = azurerm_key_vault.test.id
-  tenant_id          = data.azurerm_client_config.current.tenant_id
-  object_id          = data.azurerm_client_config.current.object_id
-  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapKey", "wrapKey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
-}
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+    key_permissions = [
+      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"
+    ]
+    secret_permissions = [
+      "Get",
+    ]
+  }
 
-resource "azurerm_key_vault_access_policy" "test3" {
-  key_vault_id       = azurerm_key_vault.test.id
-  tenant_id          = azurerm_user_assigned_identity.test.tenant_id
-  object_id          = azurerm_user_assigned_identity.test.principal_id
-  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapKey", "wrapKey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  access_policy {
+    tenant_id = azurerm_user_assigned_identity.test.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+    key_permissions = [
+      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"
+    ]
+    secret_permissions = [
+      "Get",
+    ]
+  }
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -221,11 +230,6 @@ resource "azurerm_key_vault_key" "test" {
   key_type     = "RSA"
   key_size     = 2048
   key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
-  depends_on = [
-    azurerm_key_vault_access_policy.test,
-    azurerm_key_vault_access_policy.test2,
-    azurerm_key_vault_access_policy.test3,
-  ]
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
 }
