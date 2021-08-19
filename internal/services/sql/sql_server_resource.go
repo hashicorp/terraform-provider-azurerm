@@ -430,7 +430,11 @@ func flattenSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy sql
 	securityAlertPolicy := make(map[string]interface{})
 
 	securityAlertPolicy["state"] = string(properties.State)
-	securityAlertPolicy["email_account_admins"] = *properties.EmailAccountAdmins
+	emailAccountAdmins := false
+	if properties.EmailAccountAdmins != nil {
+		emailAccountAdmins = *properties.EmailAccountAdmins
+	}
+	securityAlertPolicy["email_account_admins"] = emailAccountAdmins
 
 	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {
 		flattenedAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
