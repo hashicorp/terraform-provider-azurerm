@@ -34,6 +34,7 @@ BUG FIXES:
 * `azurerm_databricks_workspace` - corrent logic for the `public_network_access_enabled` property [GH-13034]
 * `azurerm_databricks_workspace` - fix potential crash in Read [GH-13025]
 * `azurerm_private_dns_zone_id` - correctly handle inconsistant case [GH-13000]
+* `azurerm_private_dns_a_record_resource` - currently validate the name property by allowing `@`s [GH-13042]
 * `azurerm_eventhub_namespace` - support upto `40` for the `maximum_throughput_units` property [GH-13065]
 * `azurerm_kubernetes_cluster` - fix crash in update when previously configured AAD Profile is now `nil` [GH-13043]
 * `azurerm_redis_enterprise_cluster` - changing the tags property no longer creates a new resource [GH-12956]
