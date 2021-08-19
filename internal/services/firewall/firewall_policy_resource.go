@@ -386,9 +386,9 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("private_ip_ranges"); ok {
-		privateIpRanges := utils.ExpandStringSlice(v.([]interface{}))
+		privateIPRanges := utils.ExpandStringSlice(v.([]interface{}))
 		props.FirewallPolicyPropertiesFormat.Snat = &network.FirewallPolicySNAT{
-			PrivateRanges: privateIpRanges,
+			PrivateRanges: privateIPRanges,
 		}
 	}
 
@@ -477,11 +477,11 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf(`setting "rule_collection_groups": %+v`, err)
 		}
 
-		var privateIpRanges []interface{}
+		var privateIPRanges []interface{}
 		if prop.Snat != nil {
-			privateIpRanges = utils.FlattenStringSlice(prop.Snat.PrivateRanges)
+			privateIPRanges = utils.FlattenStringSlice(prop.Snat.PrivateRanges)
 		}
-		if err := d.Set("private_ip_ranges", privateIpRanges); err != nil {
+		if err := d.Set("private_ip_ranges", privateIPRanges); err != nil {
 			return fmt.Errorf("setting `private_ip_ranges`: %+v", err)
 		}
 	}
@@ -556,7 +556,7 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *network.Firewa
 	raw := input[0].(map[string]interface{})
 
 	var signatureOverrides []network.FirewallPolicyIntrusionDetectionSignatureSpecification
-	for _, v := range raw["signature_overrides"].(*pluginsdk.Set).List() {
+	for _, v := range raw["signature_overrides"].([]interface{}) {
 		overrides := v.(map[string]interface{})
 		signatureOverrides = append(signatureOverrides, network.FirewallPolicyIntrusionDetectionSignatureSpecification{
 			ID:   utils.String(overrides["id"].(string)),
@@ -566,7 +566,7 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *network.Firewa
 
 	var trafficBypass []network.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications
 
-	for _, v := range raw["traffic_bypass"].(*pluginsdk.Set).List() {
+	for _, v := range raw["traffic_bypass"].([]interface{}) {
 		bypass := v.(map[string]interface{})
 		trafficBypass = append(trafficBypass, network.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications{
 			Name:                 utils.String(bypass["name"].(string)),
