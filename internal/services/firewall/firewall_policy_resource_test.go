@@ -259,7 +259,6 @@ resource "azurerm_firewall_policy" "test" {
       name                  = "Name bypass traffic settings"
       description           = "Description bypass traffic settings"
       protocol              = "ANY"
-      destination_addresses = ["*"]
       destination_ports     = ["*"]
       source_ip_groups = [
         azurerm_ip_group.test_source.id,
