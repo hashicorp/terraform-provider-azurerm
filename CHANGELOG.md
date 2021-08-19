@@ -31,6 +31,7 @@ BUG FIXES:
 
 * `azurerm_frontdoor` - expose support for `cache_duration` and `cache_query_parameters` fields [GH-12831]
 * `azurerm_network_watcher_flow_log` - correctly truncate name by ensuring it doesn't end in a `-` [GH-12984]
+* `azurerm_databricks_workspace` - corrent logic for the `public_network_access_enabled` property [GH-13034]
 * `azurerm_databricks_workspace` - fix potential crash in Read [GH-13025]
 * `azurerm_private_dns_zone_id` - correctly handle inconsistant case [GH-13000]
 * `azurerm_eventhub_namespace` - support upto `40` for the `maximum_throughput_units` property [GH-13065]
