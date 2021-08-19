@@ -43,9 +43,5 @@ func LowerCasedString(i interface{}, k string) ([]string, []error) {
 		return nil, []error{fmt.Errorf("%q cannot contain whitespace", k)}
 	}
 
-	if strings.ContainsAny(v, "@") {
-		return nil, []error{fmt.Errorf("%q cannot contain @", k)}
-	}
-
 	return nil, nil
 }
