@@ -151,6 +151,8 @@ An `application_logs` block supports the following:
 
 * `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
 
+* `file_system_level` - (Optional) Log level for filesystem based logging. Supported values are `Error`, `Information`, `Verbose`, `Warning` and `Off`. Defaults to `Off`.
+
 ---
 
 An `http_logs` block supports *one* of the following:
