@@ -555,23 +555,29 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *network.Firewa
 
 	raw := input[0].(map[string]interface{})
 
-	signatureOverrides := []network.FirewallPolicyIntrusionDetectionSignatureSpecification{}
-	for i, v := range signatureOverrides {
-		signatureOverrides[i].ID = v.ID
-		signatureOverrides[i].Mode = v.Mode
+	var signatureOverrides []network.FirewallPolicyIntrusionDetectionSignatureSpecification
+	for _, v := range raw["signature_overrides"].(*pluginsdk.Set).List() {
+		overrides := v.(map[string]interface{})
+		signatureOverrides = append(signatureOverrides, network.FirewallPolicyIntrusionDetectionSignatureSpecification{
+			ID:   utils.String(overrides["id"].(string)),
+			Mode: network.FirewallPolicyIntrusionDetectionStateType(overrides["state"].(string)),
+		})
 	}
 
-	trafficBypass := []network.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications{}
+	var trafficBypass []network.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications
 
-	for i, v := range trafficBypass {
-		trafficBypass[i].Name = v.Name
-		trafficBypass[i].Description = v.Description
-		trafficBypass[i].Protocol = v.Protocol
-		trafficBypass[i].SourceAddresses = v.SourceAddresses
-		trafficBypass[i].DestinationAddresses = v.DestinationAddresses
-		trafficBypass[i].DestinationPorts = v.DestinationPorts
-		trafficBypass[i].SourceIPGroups = v.SourceIPGroups
-		trafficBypass[i].DestinationIPGroups = v.DestinationIPGroups
+	for _, v := range raw["traffic_bypass"].(*pluginsdk.Set).List() {
+		bypass := v.(map[string]interface{})
+		trafficBypass = append(trafficBypass, network.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications{
+			Name:                 utils.String(bypass["name"].(string)),
+			Description:          utils.String(bypass["description"].(string)),
+			Protocol:             network.FirewallPolicyIntrusionDetectionProtocol(bypass["protocol"].(string)),
+			SourceAddresses:      utils.ExpandStringSlice(bypass["source_addresses"].(*pluginsdk.Set).List()),
+			DestinationAddresses: utils.ExpandStringSlice(bypass["destination_addresses"].(*pluginsdk.Set).List()),
+			DestinationPorts:     utils.ExpandStringSlice(bypass["destination_ports"].(*pluginsdk.Set).List()),
+			SourceIPGroups:       utils.ExpandStringSlice(bypass["source_ip_groups"].(*pluginsdk.Set).List()),
+			DestinationIPGroups:  utils.ExpandStringSlice(bypass["destination_ip_groups"].(*pluginsdk.Set).List()),
+		})
 	}
 
 	return &network.FirewallPolicyIntrusionDetection{
