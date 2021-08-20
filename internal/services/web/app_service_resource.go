@@ -382,7 +382,9 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	// WEBSITE_VNET_ROUTE_ALL is superseded by a setting in site_config that defaults to false from 2021-02-01
 	appSettings := expandAppServiceAppSettings(d)
 	if vnetRouteAll, ok := appSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
-		siteConfig.VnetRouteAllEnabled = utils.Bool(strings.EqualFold(*vnetRouteAll, "true"))
+		if !d.HasChange("site_config.0.vnet_route_all_enabled") { // Only update the property if it's not set explicitly
+			siteConfig.VnetRouteAllEnabled = utils.Bool(strings.EqualFold(*vnetRouteAll, "true"))
+		}
 	}
 
 	siteEnvelope := web.Site{

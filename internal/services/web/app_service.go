@@ -497,11 +497,13 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
+
 				"acr_use_managed_identity_credentials": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
+
 				"acr_user_managed_identity_client_id": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
@@ -783,6 +785,11 @@ func schemaAppServiceDataSourceSiteConfig() *pluginsdk.Schema {
 					Computed: true,
 				},
 
+				"vnet_route_all_enabled": {
+					Type: pluginsdk.TypeBool,
+					Computed: true,
+				},
+
 				"websockets_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -835,10 +842,12 @@ func schemaAppServiceDataSourceSiteConfig() *pluginsdk.Schema {
 						},
 					},
 				},
+
 				"acr_use_managed_identity_credentials": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
+
 				"acr_user_managed_identity_client_id": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
