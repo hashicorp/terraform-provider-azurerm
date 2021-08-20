@@ -2598,6 +2598,7 @@ func httpLogBlobStorageSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		Optional:      true,
+		Computed:      true,
 		MaxItems:      1,
 		ConflictsWith: []string{"logs.0.http_logs.0.file_system"},
 		Elem: &pluginsdk.Resource{
@@ -2608,8 +2609,9 @@ func httpLogBlobStorageSchema() *pluginsdk.Schema {
 					Sensitive: true,
 				},
 				"retention_in_days": {
-					Type:     pluginsdk.TypeInt,
-					Required: true,
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntAtLeast(0), // Variable validation here based on the Service Plan SKU
 				},
 			},
 		},

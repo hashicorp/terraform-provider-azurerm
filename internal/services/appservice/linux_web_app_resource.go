@@ -205,6 +205,7 @@ func (r LinuxWebAppResource) ResourceType() string {
 
 func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var webApp LinuxWebAppModel
 			if err := metadata.Decode(&webApp); err != nil {
@@ -335,8 +336,6 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			return nil
 		},
-
-		Timeout: 30 * time.Minute,
 	}
 }
 

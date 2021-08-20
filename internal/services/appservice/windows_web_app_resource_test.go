@@ -24,7 +24,6 @@ func TestAccWindowsWebApp_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -77,7 +76,6 @@ func TestAccWindowsWebApp_backup(t *testing.T) {
 			Config: r.withBackup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -93,7 +91,6 @@ func TestAccWindowsWebApp_backupUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -101,7 +98,6 @@ func TestAccWindowsWebApp_backupUpdate(t *testing.T) {
 			Config: r.withBackup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -109,7 +105,6 @@ func TestAccWindowsWebApp_backupUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -142,7 +137,6 @@ func TestAccWindowsWebApp_completeLoggingUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -168,7 +162,6 @@ func TestAccWindowsWebApp_completeLoggingUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -250,7 +243,6 @@ func TestAccWindowsWebApp_loadBalancing(t *testing.T) {
 			Config: r.loadBalancing(data, "WeightedRoundRobin"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("app,windows"),
 			),
 		},
 		data.ImportStep(),
@@ -266,7 +258,6 @@ func TestAccWindowsWebApp_withIPRestrictions(t *testing.T) {
 			Config: r.withIPRestrictions(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -282,7 +273,6 @@ func TestAccWindowsWebApp_withIPRestrictionsUpdate(t *testing.T) {
 			Config: r.withIPRestrictions(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -290,7 +280,6 @@ func TestAccWindowsWebApp_withIPRestrictionsUpdate(t *testing.T) {
 			Config: r.withIPRestrictionsUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -298,7 +287,6 @@ func TestAccWindowsWebApp_withIPRestrictionsUpdate(t *testing.T) {
 			Config: r.withIPRestrictions(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -314,7 +302,6 @@ func TestAccWindowsWebApp_withAuthSettings(t *testing.T) {
 			Config: r.withAuthSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -330,7 +317,6 @@ func TestAccWindowsWebApp_withAuthSettingsUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -338,7 +324,6 @@ func TestAccWindowsWebApp_withAuthSettingsUpdate(t *testing.T) {
 			Config: r.withAuthSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -346,7 +331,6 @@ func TestAccWindowsWebApp_withAuthSettingsUpdate(t *testing.T) {
 			Config: r.withAuthSettingsUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -354,7 +338,6 @@ func TestAccWindowsWebApp_withAuthSettingsUpdate(t *testing.T) {
 			Config: r.withAuthSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -362,7 +345,6 @@ func TestAccWindowsWebApp_withAuthSettingsUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),

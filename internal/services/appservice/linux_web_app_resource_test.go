@@ -877,7 +877,7 @@ resource "azurerm_linux_web_app" "test" {
     name                = "acctest"
     storage_account_url = "https://${azurerm_storage_account.test.name}.blob.core.windows.net/${azurerm_storage_container.test.name}${data.azurerm_storage_account_sas.test.sas}&sr=b"
     schedule {
-      frequency_interval = 1
+      frequency_interval = 7
       frequency_unit     = "Day"
     }
   }
@@ -1487,7 +1487,7 @@ resource "azurerm_linux_web_app" "test" {
       }
 
       action {
-        action_type                    = "LogEvent"
+        action_type                    = "Recycle"
         minimum_process_execution_time = "00:10:00"
       }
     }
@@ -1550,6 +1550,24 @@ resource "azurerm_service_plan" "test" {
   resource_group_name = azurerm_resource_group.test.name
   os_type             = "Linux"
   sku_name            = "B1"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (LinuxWebAppResource) standardPlanTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Linux"
+  sku_name            = "S1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1634,5 +1652,5 @@ data "azurerm_storage_account_sas" "test" {
     process = false
   }
 }
-`, r.baseTemplate(data), data.RandomInteger, data.RandomString)
+`, r.standardPlanTemplate(data), data.RandomInteger, data.RandomString)
 }
