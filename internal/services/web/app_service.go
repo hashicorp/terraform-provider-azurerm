@@ -433,6 +433,12 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 				},
 
+				"vnet_route_all_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+
 				"websockets_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -1797,6 +1803,10 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 		siteConfig.AcrUserManagedIdentityID = utils.String(v.(string))
 	}
 
+	if v, ok := config["vnet_route_all_enabled"]; ok {
+		siteConfig.VnetRouteAllEnabled = utils.Bool(v.(bool))
+	}
+
 	return siteConfig, nil
 }
 
@@ -1914,6 +1924,10 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.AcrUserManagedIdentityID != nil {
 		result["acr_user_managed_identity_client_id"] = *input.AcrUserManagedIdentityID
+	}
+
+	if input.VnetRouteAllEnabled != nil {
+		result["vnet_route_all_enabled"] = *input.VnetRouteAllEnabled
 	}
 
 	return append(results, result)

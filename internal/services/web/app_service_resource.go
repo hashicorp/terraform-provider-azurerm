@@ -379,6 +379,12 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("expanding `site_config` for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 	}
 
+	// WEBSITE_VNET_ROUTE_ALL is superseded by a setting in site_config that defaults to false from 2021-02-01
+	appSettings := expandAppServiceAppSettings(d)
+	if vnetRouteAll, ok := appSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
+		siteConfig.VnetRouteAllEnabled = utils.Bool(strings.EqualFold(*vnetRouteAll, "true"))
+	}
+
 	siteEnvelope := web.Site{
 		Location: &location,
 		Tags:     tags.Expand(t),
@@ -471,7 +477,8 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	// app settings updates have a side effect on logging settings. See the note below
 	if d.HasChange("app_settings") {
 		// update the AppSettings
-		appSettings := expandAppServiceAppSettings(d)
+		appSettings = expandAppServiceAppSettings(d)
+
 		settings := web.StringDictionary{
 			Properties: appSettings,
 		}
