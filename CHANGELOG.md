@@ -1,3 +1,9 @@
+## 2.74.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_app_service` - add support for `vnet_route_all_enabled` property [GH-13073]
+
 ## 2.73.0 (August 20, 2021)
 
 FEATURES:
