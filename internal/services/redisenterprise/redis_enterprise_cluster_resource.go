@@ -103,7 +103,7 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 				Deprecated: "This field currently is not yet being returned from the service API, please see https://github.com/Azure/azure-sdk-for-go/issues/14420 for more information",
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": tags.ForceNewSchema(),
 		},
 	}
 }
