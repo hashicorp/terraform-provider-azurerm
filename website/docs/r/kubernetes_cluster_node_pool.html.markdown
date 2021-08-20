@@ -131,6 +131,8 @@ The following arguments are supported:
 
 ~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) until this is fixed in the AKS API.
 
+* `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/en-us/azure/aks/use-ultra-disks) for more information.
+
 * `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
 
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist.
