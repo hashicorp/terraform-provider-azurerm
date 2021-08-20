@@ -8,6 +8,7 @@ import (
 type Client struct {
 	IntegrationAccountClient            *logic.IntegrationAccountsClient
 	IntegrationAccountCertificateClient *logic.IntegrationAccountCertificatesClient
+	IntegrationAccountSchemaClient      *logic.IntegrationAccountSchemasClient
 	IntegrationAccountSessionClient     *logic.IntegrationAccountSessionsClient
 	IntegrationServiceEnvironmentClient *logic.IntegrationServiceEnvironmentsClient
 	WorkflowClient                      *logic.WorkflowsClient
@@ -20,6 +21,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	integrationAccountCertificateClient := logic.NewIntegrationAccountCertificatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&integrationAccountCertificateClient.Client, o.ResourceManagerAuthorizer)
+
+	integrationAccountSchemaClient := logic.NewIntegrationAccountSchemasClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&integrationAccountSchemaClient.Client, o.ResourceManagerAuthorizer)
 
 	integrationAccountSessionClient := logic.NewIntegrationAccountSessionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&integrationAccountSessionClient.Client, o.ResourceManagerAuthorizer)
@@ -36,6 +40,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	return &Client{
 		IntegrationAccountClient:            &integrationAccountClient,
 		IntegrationAccountCertificateClient: &integrationAccountCertificateClient,
+		IntegrationAccountSchemaClient:      &integrationAccountSchemaClient,
 		IntegrationAccountSessionClient:     &integrationAccountSessionClient,
 		IntegrationServiceEnvironmentClient: &integrationServiceEnvironmentClient,
 		WorkflowClient:                      &workflowClient,
