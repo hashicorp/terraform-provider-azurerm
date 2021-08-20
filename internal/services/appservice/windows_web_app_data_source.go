@@ -60,7 +60,7 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"auth_settings": helpers.AuthSettingsSchemaComputed(),
 
-		"backup": backupSchemaComputed(),
+		"backup": helpers.BackupSchemaComputed(),
 
 		"client_affinity_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -77,7 +77,7 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"connection_string": connectionStringSchemaComputed(),
+		"connection_string": helpers.ConnectionStringSchemaComputed(),
 
 		"custom_domain_verification_id": {
 			Type:      pluginsdk.TypeString,
@@ -107,7 +107,7 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"logs": logsConfigSchemaComputed(),
+		"logs": helpers.LogsConfigSchemaComputed(),
 
 		"outbound_ip_addresses": {
 			Type:     pluginsdk.TypeString,
@@ -137,9 +137,9 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"site_credential": helpers.SiteCredentialSchema(),
 
-		"site_config": siteConfigSchemaWindowsComputed(),
+		"site_config": helpers.SiteConfigSchemaWindowsComputed(),
 
-		"storage_account": storageAccountSchemaComputed(),
+		"storage_account": helpers.StorageAccountSchemaComputed(),
 
 		"tags": tags.SchemaDataSource(),
 	}
@@ -222,7 +222,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Metadata for Windows Web App %s: %+v", id, err)
 			}
 
-			webApp.AppSettings = flattenAppSettings(appSettings)
+			webApp.AppSettings = helpers.FlattenAppSettings(appSettings)
 			webApp.Kind = utils.NormalizeNilableString(existing.Kind)
 			webApp.Location = location.NormalizeNilable(existing.Location)
 			webApp.Tags = tags.ToTypedObject(existing.Tags)
@@ -243,22 +243,22 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 
 			webApp.AuthSettings = helpers.FlattenAuthSettings(auth)
 
-			webApp.Backup = flattenBackupConfig(backup)
+			webApp.Backup = helpers.FlattenBackupConfig(backup)
 
 			webApp.Identity = helpers.FlattenIdentity(existing.Identity)
 
-			webApp.LogsConfig = flattenLogsConfig(logsConfig)
+			webApp.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
 			currentStack := ""
 			currentStackPtr, ok := siteMetadata.Properties["CURRENT_STACK"]
 			if ok {
 				currentStack = *currentStackPtr
 			}
-			webApp.SiteConfig = flattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack)
+			webApp.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack)
 
-			webApp.StorageAccounts = flattenStorageAccounts(storageAccounts)
+			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
-			webApp.ConnectionStrings = flattenConnectionStrings(connectionStrings)
+			webApp.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
 			webApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 

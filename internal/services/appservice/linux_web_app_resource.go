@@ -22,33 +22,33 @@ import (
 type LinuxWebAppResource struct{}
 
 type LinuxWebAppModel struct {
-	Name                          string                   `tfschema:"name"`
-	ResourceGroup                 string                   `tfschema:"resource_group_name"`
-	Location                      string                   `tfschema:"location"`
-	ServicePlanId                 string                   `tfschema:"service_plan_id"`
-	AppSettings                   map[string]string        `tfschema:"app_settings"`
-	AuthSettings                  []helpers.AuthSettings   `tfschema:"auth_settings"`
-	Backup                        []Backup                 `tfschema:"backup"`
-	ClientAffinityEnabled         bool                     `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled             bool                     `tfschema:"client_cert_enabled"`
-	ClientCertMode                string                   `tfschema:"client_cert_mode"`
-	Enabled                       bool                     `tfschema:"enabled"`
-	HttpsOnly                     bool                     `tfschema:"https_only"`
-	Identity                      []helpers.Identity       `tfschema:"identity"`
-	LogsConfig                    []LogsConfig             `tfschema:"logs"`
-	MetaData                      map[string]string        `tfschema:"app_metadata"`
-	SiteConfig                    []SiteConfigLinux        `tfschema:"site_config"`
-	StorageAccounts               []StorageAccount         `tfschema:"storage_account"`
-	ConnectionStrings             []ConnectionString       `tfschema:"connection_string"`
-	Tags                          map[string]string        `tfschema:"tags"`
-	CustomDomainVerificationId    string                   `tfschema:"custom_domain_verification_id"`
-	DefaultHostname               string                   `tfschema:"default_hostname"`
-	Kind                          string                   `tfschema:"kind"`
-	OutboundIPAddresses           string                   `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList         []string                 `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses   string                   `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList []string                 `tfschema:"possible_outbound_ip_address_list"`
-	SiteCredentials               []helpers.SiteCredential `tfschema:"site_credential"`
+	Name                          string                     `tfschema:"name"`
+	ResourceGroup                 string                     `tfschema:"resource_group_name"`
+	Location                      string                     `tfschema:"location"`
+	ServicePlanId                 string                     `tfschema:"service_plan_id"`
+	AppSettings                   map[string]string          `tfschema:"app_settings"`
+	AuthSettings                  []helpers.AuthSettings     `tfschema:"auth_settings"`
+	Backup                        []helpers.Backup           `tfschema:"backup"`
+	ClientAffinityEnabled         bool                       `tfschema:"client_affinity_enabled"`
+	ClientCertEnabled             bool                       `tfschema:"client_cert_enabled"`
+	ClientCertMode                string                     `tfschema:"client_cert_mode"`
+	Enabled                       bool                       `tfschema:"enabled"`
+	HttpsOnly                     bool                       `tfschema:"https_only"`
+	Identity                      []helpers.Identity         `tfschema:"identity"`
+	LogsConfig                    []helpers.LogsConfig       `tfschema:"logs"`
+	MetaData                      map[string]string          `tfschema:"app_metadata"`
+	SiteConfig                    []helpers.SiteConfigLinux  `tfschema:"site_config"`
+	StorageAccounts               []helpers.StorageAccount   `tfschema:"storage_account"`
+	ConnectionStrings             []helpers.ConnectionString `tfschema:"connection_string"`
+	Tags                          map[string]string          `tfschema:"tags"`
+	CustomDomainVerificationId    string                     `tfschema:"custom_domain_verification_id"`
+	DefaultHostname               string                     `tfschema:"default_hostname"`
+	Kind                          string                     `tfschema:"kind"`
+	OutboundIPAddresses           string                     `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList         []string                   `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses   string                     `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList []string                   `tfschema:"possible_outbound_ip_address_list"`
+	SiteCredentials               []helpers.SiteCredential   `tfschema:"site_credential"`
 }
 
 var _ sdk.Resource = LinuxWebAppResource{}
@@ -89,7 +89,7 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"auth_settings": helpers.AuthSettingsSchema(),
 
-		"backup": backupSchema(),
+		"backup": helpers.BackupSchema(),
 
 		"client_affinity_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -113,7 +113,7 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
-		"connection_string": connectionStringSchema(),
+		"connection_string": helpers.ConnectionStringSchema(),
 
 		"enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -129,11 +129,11 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"identity": helpers.IdentitySchema(),
 
-		"logs": logsConfigSchema(),
+		"logs": helpers.LogsConfigSchema(),
 
-		"site_config": siteConfigSchemaLinux(),
+		"site_config": helpers.SiteConfigSchemaLinux(),
 
-		"storage_account": storageAccountSchema(),
+		"storage_account": helpers.StorageAccountSchema(),
 
 		"tags": tags.Schema(),
 	}
@@ -255,7 +255,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *checkName.Message)
 			}
 
-			siteConfig, err := expandSiteConfigLinux(webApp.SiteConfig)
+			siteConfig, err := helpers.ExpandSiteConfigLinux(webApp.SiteConfig)
 			if err != nil {
 				return err
 			}
@@ -289,7 +289,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			appSettings := expandAppSettings(webApp.AppSettings)
+			appSettings := helpers.ExpandAppSettings(webApp.AppSettings)
 			if appSettings.Properties != nil {
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettings); err != nil {
 					return fmt.Errorf("setting App Settings for Linux Web App %s: %+v", id, err)
@@ -303,21 +303,21 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			logsConfig := expandLogsConfig(webApp.LogsConfig)
+			logsConfig := helpers.ExpandLogsConfig(webApp.LogsConfig)
 			if logsConfig.SiteLogsConfigProperties != nil {
 				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, *logsConfig); err != nil {
 					return fmt.Errorf("setting Diagnostic Logs Configuration for Linux Web App %s: %+v", id, err)
 				}
 			}
 
-			backupConfig := expandBackupConfig(webApp.Backup)
+			backupConfig := helpers.ExpandBackupConfig(webApp.Backup)
 			if backupConfig.BackupRequestProperties != nil {
 				if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupConfig); err != nil {
 					return fmt.Errorf("adding Backup Settings for Linux Web App %s: %+v", id, err)
 				}
 			}
 
-			storageConfig := expandStorageConfig(webApp.StorageAccounts)
+			storageConfig := helpers.ExpandStorageConfig(webApp.StorageAccounts)
 			if storageConfig.Properties != nil {
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageConfig); err != nil {
 					if err != nil {
@@ -326,7 +326,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			connectionStrings := expandConnectionStrings(webApp.ConnectionStrings)
+			connectionStrings := helpers.ExpandConnectionStrings(webApp.ConnectionStrings)
 			if connectionStrings.Properties != nil {
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStrings); err != nil {
 					return fmt.Errorf("setting Connection Strings for Linux Web App %s: %+v", id, err)
@@ -416,7 +416,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				Name:          id.SiteName,
 				ResourceGroup: id.ResourceGroup,
 				Location:      location.NormalizeNilable(webApp.Location),
-				AppSettings:   flattenAppSettings(appSettings),
+				AppSettings:   helpers.FlattenAppSettings(appSettings),
 				Tags:          tags.ToTypedObject(webApp.Tags),
 			}
 
@@ -471,7 +471,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				state.AuthSettings = appAuthSettings
 			}
 
-			if appBackupSettings := flattenBackupConfig(backup); appBackupSettings != nil {
+			if appBackupSettings := helpers.FlattenBackupConfig(backup); appBackupSettings != nil {
 				state.Backup = appBackupSettings
 			}
 
@@ -479,19 +479,19 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				state.Identity = identity
 			}
 
-			if logs := flattenLogsConfig(logsConfig); logs != nil {
+			if logs := helpers.FlattenLogsConfig(logsConfig); logs != nil {
 				state.LogsConfig = logs
 			}
 
-			if siteConfig := flattenSiteConfigLinux(webAppSiteConfig.SiteConfig); siteConfig != nil {
+			if siteConfig := helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig); siteConfig != nil {
 				state.SiteConfig = siteConfig
 			}
 
-			if appStorageAccounts := flattenStorageAccounts(storageAccounts); appStorageAccounts != nil {
+			if appStorageAccounts := helpers.FlattenStorageAccounts(storageAccounts); appStorageAccounts != nil {
 				state.StorageAccounts = appStorageAccounts
 			}
 
-			if appConnectionStrings := flattenConnectionStrings(connectionStrings); appConnectionStrings != nil {
+			if appConnectionStrings := helpers.FlattenConnectionStrings(connectionStrings); appConnectionStrings != nil {
 				state.ConnectionStrings = appConnectionStrings
 			}
 
@@ -570,7 +570,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				Identity: helpers.ExpandIdentity(state.Identity),
 			}
 
-			siteConfig, err := expandSiteConfigLinux(state.SiteConfig)
+			siteConfig, err := helpers.ExpandSiteConfigLinux(state.SiteConfig)
 			if err != nil {
 				return fmt.Errorf("expanding Site Config for Linux Web App %s: %+v", id, err)
 			}
@@ -586,14 +586,14 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
 			if metadata.ResourceData.HasChange("app_settings") {
-				appSettingsUpdate := expandAppSettings(state.AppSettings)
+				appSettingsUpdate := helpers.ExpandAppSettings(state.AppSettings)
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {
 					return fmt.Errorf("updating App Settings for Linux Web App %s: %+v", id, err)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("connection_string") {
-				connectionStringUpdate := expandConnectionStrings(state.ConnectionStrings)
+				connectionStringUpdate := helpers.ExpandConnectionStrings(state.ConnectionStrings)
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStringUpdate); err != nil {
 					return fmt.Errorf("updating Connection Strings for Linux Web App %s: %+v", id, err)
 				}
@@ -607,7 +607,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("backup") {
-				backupUpdate := expandBackupConfig(state.Backup)
+				backupUpdate := helpers.ExpandBackupConfig(state.Backup)
 				if backupUpdate.BackupRequestProperties == nil {
 					if _, err := client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.SiteName); err != nil {
 						return fmt.Errorf("removing Backup Settings for Linux Web App %s: %+v", id, err)
@@ -620,14 +620,14 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("logs") {
-				logsUpdate := expandLogsConfig(state.LogsConfig)
+				logsUpdate := helpers.ExpandLogsConfig(state.LogsConfig)
 				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, *logsUpdate); err != nil {
 					return fmt.Errorf("updating Logs Config for Linux Web App %s: %+v", id, err)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("storage_account") {
-				storageAccountUpdate := expandStorageConfig(state.StorageAccounts)
+				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate); err != nil {
 					return fmt.Errorf("updating Storage Accounts for Linux Web App %s: %+v", id, err)
 				}

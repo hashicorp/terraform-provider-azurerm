@@ -1,4 +1,4 @@
-package appservice
+package helpers
 
 import (
 	"fmt"
@@ -9,7 +9,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/Azure/go-autorest/autorest/date"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -27,9 +26,9 @@ type SiteConfigWindows struct {
 	ContainerRegistryUserMSI string                    `tfschema:"container_registry_managed_identity_id"`
 	DefaultDocuments         []string                  `tfschema:"default_documents"`
 	Http2Enabled             bool                      `tfschema:"http2_enabled"`
-	IpRestriction            []helpers.IpRestriction   `tfschema:"ip_restriction"`
+	IpRestriction            []IpRestriction           `tfschema:"ip_restriction"`
 	ScmUseMainIpRestriction  bool                      `tfschema:"scm_use_main_ip_restriction"`
-	ScmIpRestriction         []helpers.IpRestriction   `tfschema:"scm_ip_restriction"`
+	ScmIpRestriction         []IpRestriction           `tfschema:"scm_ip_restriction"`
 	LoadBalancing            string                    `tfschema:"load_balancing_mode"`
 	LocalMysql               bool                      `tfschema:"local_mysql"`
 	ManagedPipelineMode      string                    `tfschema:"managed_pipeline_mode"`
@@ -46,7 +45,7 @@ type SiteConfigWindows struct {
 	MinTlsVersion            string                    `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion         string                    `tfschema:"scm_minimum_tls_version"`
 	AutoSwapSlotName         string                    `tfschema:"auto_swap_slot_name"`
-	Cors                     []helpers.CorsSetting     `tfschema:"cors"`
+	Cors                     []CorsSetting             `tfschema:"cors"`
 	DetailedErrorLogging     bool                      `tfschema:"detailed_error_logging"`
 	WindowsFxVersion         string                    `tfschema:"windows_fx_version"`
 	// TODO new properties / blocks
@@ -64,9 +63,9 @@ type SiteConfigLinux struct {
 	ContainerRegistryMSI    string                  `tfschema:"container_registry_managed_identity_id"`
 	DefaultDocuments        []string                `tfschema:"default_documents"`
 	Http2Enabled            bool                    `tfschema:"http2_enabled"`
-	IpRestriction           []helpers.IpRestriction `tfschema:"ip_restriction"`
+	IpRestriction           []IpRestriction         `tfschema:"ip_restriction"`
 	ScmUseMainIpRestriction bool                    `tfschema:"scm_use_main_ip_restriction"`
-	ScmIpRestriction        []helpers.IpRestriction `tfschema:"scm_ip_restriction"`
+	ScmIpRestriction        []IpRestriction         `tfschema:"scm_ip_restriction"`
 	LoadBalancing           string                  `tfschema:"load_balancing_mode"`
 	LocalMysql              bool                    `tfschema:"local_mysql"`
 	ManagedPipelineMode     string                  `tfschema:"managed_pipeline_mode"`
@@ -82,13 +81,13 @@ type SiteConfigLinux struct {
 	MinTlsVersion           string                  `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion        string                  `tfschema:"scm_minimum_tls_version"`
 	AutoSwapSlotName        string                  `tfschema:"auto_swap_slot_name"`
-	Cors                    []helpers.CorsSetting   `tfschema:"cors"`
+	Cors                    []CorsSetting           `tfschema:"cors"`
 	DetailedErrorLogging    bool                    `tfschema:"detailed_error_logging"`
 	LinuxFxVersion          string                  `tfschema:"linux_fx_version"`
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - New block to (possibly) support? No way to configure this in the portal?
 }
 
-func siteConfigSchemaWindows() *pluginsdk.Schema {
+func SiteConfigSchemaWindows() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -152,7 +151,7 @@ func siteConfigSchemaWindows() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				"ip_restriction": helpers.IpRestrictionSchema(),
+				"ip_restriction": IpRestrictionSchema(),
 
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
@@ -160,7 +159,7 @@ func siteConfigSchemaWindows() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				"scm_ip_restriction": helpers.IpRestrictionSchema(),
+				"scm_ip_restriction": IpRestrictionSchema(),
 
 				"local_mysql": {
 					Type:     pluginsdk.TypeBool,
@@ -271,7 +270,7 @@ func siteConfigSchemaWindows() *pluginsdk.Schema {
 					}, false),
 				},
 
-				"cors": helpers.CorsSettingsSchema(),
+				"cors": CorsSettingsSchema(),
 
 				"virtual_application": virtualApplicationsSchema(),
 
@@ -300,7 +299,7 @@ func siteConfigSchemaWindows() *pluginsdk.Schema {
 	}
 }
 
-func siteConfigSchemaWindowsComputed() *pluginsdk.Schema {
+func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -353,14 +352,14 @@ func siteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"ip_restriction": helpers.IpRestrictionSchemaComputed(),
+				"ip_restriction": IpRestrictionSchemaComputed(),
 
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 
-				"scm_ip_restriction": helpers.IpRestrictionSchemaComputed(),
+				"scm_ip_restriction": IpRestrictionSchemaComputed(),
 
 				"local_mysql": {
 					Type:     pluginsdk.TypeBool,
@@ -427,7 +426,7 @@ func siteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"cors": helpers.CorsSettingsSchemaComputed(),
+				"cors": CorsSettingsSchemaComputed(),
 
 				"virtual_application": virtualApplicationsSchemaComputed(),
 
@@ -455,7 +454,7 @@ func siteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 	}
 }
 
-func siteConfigSchemaLinux() *pluginsdk.Schema {
+func SiteConfigSchemaLinux() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -519,7 +518,7 @@ func siteConfigSchemaLinux() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				"ip_restriction": helpers.IpRestrictionSchema(),
+				"ip_restriction": IpRestrictionSchema(),
 
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
@@ -527,7 +526,7 @@ func siteConfigSchemaLinux() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				"scm_ip_restriction": helpers.IpRestrictionSchema(),
+				"scm_ip_restriction": IpRestrictionSchema(),
 
 				"local_mysql": {
 					Type:     pluginsdk.TypeBool,
@@ -638,7 +637,7 @@ func siteConfigSchemaLinux() *pluginsdk.Schema {
 					}, false),
 				},
 
-				"cors": helpers.CorsSettingsSchema(),
+				"cors": CorsSettingsSchema(),
 
 				"auto_swap_slot_name": {
 					Type:     pluginsdk.TypeString,
@@ -665,7 +664,7 @@ func siteConfigSchemaLinux() *pluginsdk.Schema {
 	}
 }
 
-func siteConfigSchemaLinuxComputed() *pluginsdk.Schema {
+func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -718,14 +717,14 @@ func siteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"ip_restriction": helpers.IpRestrictionSchemaComputed(),
+				"ip_restriction": IpRestrictionSchemaComputed(),
 
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 
-				"scm_ip_restriction": helpers.IpRestrictionSchemaComputed(),
+				"scm_ip_restriction": IpRestrictionSchemaComputed(),
 
 				"local_mysql": {
 					Type:     pluginsdk.TypeBool,
@@ -792,7 +791,7 @@ func siteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"cors": helpers.CorsSettingsSchemaComputed(),
+				"cors": CorsSettingsSchemaComputed(),
 
 				"auto_swap_slot_name": {
 					Type:     pluginsdk.TypeString,
@@ -2010,7 +2009,7 @@ type StorageAccount struct {
 	MountPath   string `tfschema:"mount_path"`
 }
 
-func storageAccountSchema() *pluginsdk.Schema {
+func StorageAccountSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
@@ -2060,7 +2059,7 @@ func storageAccountSchema() *pluginsdk.Schema {
 	}
 }
 
-func storageAccountSchemaComputed() *pluginsdk.Schema {
+func StorageAccountSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Computed: true,
@@ -2117,7 +2116,7 @@ type BackupSchedule struct {
 	LastExecutionTime    string `tfschema:"last_execution_time"`
 }
 
-func backupSchema() *pluginsdk.Schema {
+func BackupSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -2197,7 +2196,7 @@ func backupSchema() *pluginsdk.Schema {
 	}
 }
 
-func backupSchemaComputed() *pluginsdk.Schema {
+func BackupSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -2267,7 +2266,7 @@ type ConnectionString struct {
 	Value string `tfschema:"value"`
 }
 
-func connectionStringSchema() *pluginsdk.Schema {
+func ConnectionStringSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
@@ -2309,7 +2308,7 @@ func connectionStringSchema() *pluginsdk.Schema {
 	}
 }
 
-func connectionStringSchemaComputed() *pluginsdk.Schema {
+func ConnectionStringSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Computed: true,
@@ -2368,7 +2367,7 @@ type FileSystem struct {
 	RetentionDays int `tfschema:"retention_in_days"`
 }
 
-func logsConfigSchema() *pluginsdk.Schema {
+func LogsConfigSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -2396,7 +2395,7 @@ func logsConfigSchema() *pluginsdk.Schema {
 	}
 }
 
-func logsConfigSchemaComputed() *pluginsdk.Schema {
+func LogsConfigSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -2637,7 +2636,7 @@ func httpLogBlobStorageSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandSiteConfigWindows(siteConfig []SiteConfigWindows) (*web.SiteConfig, *string, error) {
+func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows) (*web.SiteConfig, *string, error) {
 	if len(siteConfig) == 0 {
 		return nil, nil, nil
 	}
@@ -2708,7 +2707,7 @@ func expandSiteConfigWindows(siteConfig []SiteConfigWindows) (*web.SiteConfig, *
 	expanded.HTTP20Enabled = utils.Bool(winSiteConfig.Http2Enabled)
 
 	if len(winSiteConfig.IpRestriction) != 0 {
-		ipRestrictions, err := helpers.ExpandIpRestrictions(winSiteConfig.IpRestriction)
+		ipRestrictions, err := ExpandIpRestrictions(winSiteConfig.IpRestriction)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -2718,7 +2717,7 @@ func expandSiteConfigWindows(siteConfig []SiteConfigWindows) (*web.SiteConfig, *
 	expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(winSiteConfig.ScmUseMainIpRestriction)
 
 	if len(winSiteConfig.ScmIpRestriction) != 0 {
-		scmIpRestrictions, err := helpers.ExpandIpRestrictions(winSiteConfig.ScmIpRestriction)
+		scmIpRestrictions, err := ExpandIpRestrictions(winSiteConfig.ScmIpRestriction)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -2774,7 +2773,7 @@ func expandSiteConfigWindows(siteConfig []SiteConfigWindows) (*web.SiteConfig, *
 	}
 
 	if len(winSiteConfig.Cors) != 0 {
-		expanded.Cors = helpers.ExpandCorsSettings(winSiteConfig.Cors)
+		expanded.Cors = ExpandCorsSettings(winSiteConfig.Cors)
 	}
 
 	expanded.AutoHealEnabled = utils.Bool(winSiteConfig.AutoHeal)
@@ -2785,7 +2784,7 @@ func expandSiteConfigWindows(siteConfig []SiteConfigWindows) (*web.SiteConfig, *
 	return expanded, &currentStack, nil
 }
 
-func expandSiteConfigLinux(siteConfig []SiteConfigLinux) (*web.SiteConfig, error) {
+func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux) (*web.SiteConfig, error) {
 	if len(siteConfig) == 0 {
 		return nil, nil
 	}
@@ -2850,7 +2849,7 @@ func expandSiteConfigLinux(siteConfig []SiteConfigLinux) (*web.SiteConfig, error
 	expanded.HTTP20Enabled = utils.Bool(linuxSiteConfig.Http2Enabled)
 
 	if len(linuxSiteConfig.IpRestriction) != 0 {
-		ipRestrictions, err := helpers.ExpandIpRestrictions(linuxSiteConfig.IpRestriction)
+		ipRestrictions, err := ExpandIpRestrictions(linuxSiteConfig.IpRestriction)
 		if err != nil {
 			return nil, err
 		}
@@ -2860,7 +2859,7 @@ func expandSiteConfigLinux(siteConfig []SiteConfigLinux) (*web.SiteConfig, error
 	expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(linuxSiteConfig.ScmUseMainIpRestriction)
 
 	if len(linuxSiteConfig.ScmIpRestriction) != 0 {
-		scmIpRestrictions, err := helpers.ExpandIpRestrictions(linuxSiteConfig.ScmIpRestriction)
+		scmIpRestrictions, err := ExpandIpRestrictions(linuxSiteConfig.ScmIpRestriction)
 		if err != nil {
 			return nil, err
 		}
@@ -2918,7 +2917,7 @@ func expandSiteConfigLinux(siteConfig []SiteConfigLinux) (*web.SiteConfig, error
 	}
 
 	if len(linuxSiteConfig.Cors) != 0 {
-		expanded.Cors = helpers.ExpandCorsSettings(linuxSiteConfig.Cors)
+		expanded.Cors = ExpandCorsSettings(linuxSiteConfig.Cors)
 	}
 
 	expanded.AutoHealEnabled = utils.Bool(linuxSiteConfig.AutoHeal)
@@ -2929,7 +2928,7 @@ func expandSiteConfigLinux(siteConfig []SiteConfigLinux) (*web.SiteConfig, error
 	return expanded, nil
 }
 
-func expandLogsConfig(config []LogsConfig) *web.SiteLogsConfig {
+func ExpandLogsConfig(config []LogsConfig) *web.SiteLogsConfig {
 	result := &web.SiteLogsConfig{}
 	if len(config) == 0 {
 		return result
@@ -2990,7 +2989,7 @@ func expandLogsConfig(config []LogsConfig) *web.SiteLogsConfig {
 	return result
 }
 
-func expandBackupConfig(backupConfigs []Backup) *web.BackupRequest {
+func ExpandBackupConfig(backupConfigs []Backup) *web.BackupRequest {
 	result := &web.BackupRequest{}
 	if len(backupConfigs) == 0 {
 		return result
@@ -3018,7 +3017,7 @@ func expandBackupConfig(backupConfigs []Backup) *web.BackupRequest {
 	return result
 }
 
-func expandStorageConfig(storageConfigs []StorageAccount) *web.AzureStoragePropertyDictionaryResource {
+func ExpandStorageConfig(storageConfigs []StorageAccount) *web.AzureStoragePropertyDictionaryResource {
 	result := &web.AzureStoragePropertyDictionaryResource{}
 	if len(storageConfigs) == 0 {
 		return result
@@ -3040,7 +3039,7 @@ func expandStorageConfig(storageConfigs []StorageAccount) *web.AzureStoragePrope
 	return result
 }
 
-func expandConnectionStrings(connectionStringsConfig []ConnectionString) *web.ConnectionStringDictionary {
+func ExpandConnectionStrings(connectionStringsConfig []ConnectionString) *web.ConnectionStringDictionary {
 	result := &web.ConnectionStringDictionary{}
 	if len(connectionStringsConfig) == 0 {
 		return result
@@ -3085,7 +3084,7 @@ func expandVirtualApplications(virtualApplicationConfig []VirtualApplication) *[
 	return &result
 }
 
-func flattenBackupConfig(backupRequest web.BackupRequest) []Backup {
+func FlattenBackupConfig(backupRequest web.BackupRequest) []Backup {
 	if backupRequest.BackupRequestProperties == nil {
 		return nil
 	}
@@ -3134,7 +3133,7 @@ func flattenBackupConfig(backupRequest web.BackupRequest) []Backup {
 	return []Backup{backup}
 }
 
-func flattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
+func FlattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
 	if logsConfig.SiteLogsConfigProperties == nil {
 		return nil
 	}
@@ -3206,7 +3205,7 @@ func flattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
 	return []LogsConfig{logs}
 }
 
-func flattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string) []SiteConfigWindows {
+func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string) []SiteConfigWindows {
 	if appSiteConfig == nil {
 		return nil
 	}
@@ -3244,13 +3243,13 @@ func flattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	siteConfig.Http2Enabled = *appSiteConfig.HTTP20Enabled
 
 	if appSiteConfig.IPSecurityRestrictions != nil {
-		siteConfig.IpRestriction = helpers.FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions)
+		siteConfig.IpRestriction = FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions)
 	}
 
 	siteConfig.ScmUseMainIpRestriction = *appSiteConfig.ScmIPSecurityRestrictionsUseMain
 
 	if appSiteConfig.ScmIPSecurityRestrictions != nil {
-		siteConfig.ScmIpRestriction = helpers.FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions)
+		siteConfig.ScmIpRestriction = FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions)
 	}
 
 	siteConfig.LocalMysql = *appSiteConfig.LocalMySQLEnabled
@@ -3329,7 +3328,7 @@ func flattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 
 	if appSiteConfig.Cors != nil {
 		corsSettings := appSiteConfig.Cors
-		cors := helpers.CorsSetting{}
+		cors := CorsSetting{}
 		if corsSettings.SupportCredentials != nil {
 			cors.SupportCredentials = *corsSettings.SupportCredentials
 		}
@@ -3337,7 +3336,7 @@ func flattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		if corsSettings.AllowedOrigins != nil {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
 		}
-		siteConfig.Cors = []helpers.CorsSetting{cors}
+		siteConfig.Cors = []CorsSetting{cors}
 	}
 
 	siteConfig.AutoHeal = *appSiteConfig.AutoHealEnabled
@@ -3346,7 +3345,7 @@ func flattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	return []SiteConfigWindows{siteConfig}
 }
 
-func flattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
+func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 	// TODO - Make this Linux flavoured...
 	if appSiteConfig == nil {
 		return nil
@@ -3387,13 +3386,13 @@ func flattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 	siteConfig.Http2Enabled = *appSiteConfig.HTTP20Enabled
 
 	if appSiteConfig.IPSecurityRestrictions != nil {
-		siteConfig.IpRestriction = helpers.FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions)
+		siteConfig.IpRestriction = FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions)
 	}
 
 	siteConfig.ScmUseMainIpRestriction = *appSiteConfig.ScmIPSecurityRestrictionsUseMain
 
 	if appSiteConfig.ScmIPSecurityRestrictions != nil {
-		siteConfig.ScmIpRestriction = helpers.FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions)
+		siteConfig.ScmIpRestriction = FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions)
 	}
 
 	siteConfig.LocalMysql = *appSiteConfig.LocalMySQLEnabled
@@ -3440,7 +3439,7 @@ func flattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 
 	if appSiteConfig.Cors != nil {
 		corsSettings := appSiteConfig.Cors
-		cors := helpers.CorsSetting{}
+		cors := CorsSetting{}
 		if corsSettings.SupportCredentials != nil {
 			cors.SupportCredentials = *corsSettings.SupportCredentials
 		}
@@ -3448,7 +3447,7 @@ func flattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 		if corsSettings.AllowedOrigins != nil {
 			cors.AllowedOrigins = *corsSettings.AllowedOrigins
 		}
-		siteConfig.Cors = []helpers.CorsSetting{cors}
+		siteConfig.Cors = []CorsSetting{cors}
 	}
 
 	siteConfig.AutoHeal = *appSiteConfig.AutoHealEnabled
@@ -3457,7 +3456,7 @@ func flattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 	return []SiteConfigLinux{siteConfig}
 }
 
-func flattenStorageAccounts(appStorageAccounts web.AzureStoragePropertyDictionaryResource) []StorageAccount {
+func FlattenStorageAccounts(appStorageAccounts web.AzureStoragePropertyDictionaryResource) []StorageAccount {
 	if len(appStorageAccounts.Properties) == 0 {
 		return nil
 	}
@@ -3489,7 +3488,7 @@ func flattenStorageAccounts(appStorageAccounts web.AzureStoragePropertyDictionar
 	return storageAccounts
 }
 
-func flattenConnectionStrings(appConnectionStrings web.ConnectionStringDictionary) []ConnectionString {
+func FlattenConnectionStrings(appConnectionStrings web.ConnectionStringDictionary) []ConnectionString {
 	if len(appConnectionStrings.Properties) == 0 {
 		return nil
 	}
@@ -3508,7 +3507,7 @@ func flattenConnectionStrings(appConnectionStrings web.ConnectionStringDictionar
 	return connectionStrings
 }
 
-func expandAppSettings(settings map[string]string) *web.StringDictionary {
+func ExpandAppSettings(settings map[string]string) *web.StringDictionary {
 	appSettings := make(map[string]*string)
 	for k, v := range settings {
 		appSettings[k] = utils.String(v)
@@ -3519,7 +3518,7 @@ func expandAppSettings(settings map[string]string) *web.StringDictionary {
 	}
 }
 
-func flattenAppSettings(input web.StringDictionary) map[string]string {
+func FlattenAppSettings(input web.StringDictionary) map[string]string {
 	unmanagedSettings := []string{
 		"DIAGNOSTICS_AZUREBLOBCONTAINERSASURL",
 		"DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",
@@ -3527,7 +3526,7 @@ func flattenAppSettings(input web.StringDictionary) map[string]string {
 		"WEBSITE_HTTPLOGGING_RETENTION_DAYS",
 	}
 
-	appSettings := helpers.FlattenWebStringDictionary(input)
+	appSettings := FlattenWebStringDictionary(input)
 
 	// Remove the settings the service adds when logging settings are specified.
 	for _, v := range unmanagedSettings { //nolint:typecheck

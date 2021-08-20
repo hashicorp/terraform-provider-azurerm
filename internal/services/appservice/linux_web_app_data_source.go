@@ -63,7 +63,7 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"auth_settings": helpers.AuthSettingsSchemaComputed(),
 
-		"backup": backupSchemaComputed(),
+		"backup": helpers.BackupSchemaComputed(),
 
 		"client_affinity_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -80,7 +80,7 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"connection_string": connectionStringSchemaComputed(),
+		"connection_string": helpers.ConnectionStringSchemaComputed(),
 
 		"custom_domain_verification_id": {
 			Type:      pluginsdk.TypeString,
@@ -110,7 +110,7 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"logs": logsConfigSchemaComputed(),
+		"logs": helpers.LogsConfigSchemaComputed(),
 
 		"outbound_ip_addresses": {
 			Type:     pluginsdk.TypeString,
@@ -145,9 +145,9 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"site_config": siteConfigSchemaLinuxComputed(),
+		"site_config": helpers.SiteConfigSchemaLinuxComputed(),
 
-		"storage_account": storageAccountSchemaComputed(),
+		"storage_account": helpers.StorageAccountSchemaComputed(),
 
 		"tags": tags.SchemaDataSource(),
 	}
@@ -225,7 +225,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Publishing Credential information for Linux Web App %s: %+v", id, err)
 			}
 
-			webApp.AppSettings = flattenAppSettings(appSettings)
+			webApp.AppSettings = helpers.FlattenAppSettings(appSettings)
 			webApp.Kind = utils.NormalizeNilableString(existing.Kind)
 			webApp.Location = location.NormalizeNilable(existing.Location)
 			webApp.Tags = tags.ToTypedObject(existing.Tags)
@@ -246,17 +246,17 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 
 			webApp.AuthSettings = helpers.FlattenAuthSettings(auth)
 
-			webApp.Backup = flattenBackupConfig(backup)
+			webApp.Backup = helpers.FlattenBackupConfig(backup)
 
 			webApp.Identity = helpers.FlattenIdentity(existing.Identity)
 
-			webApp.LogsConfig = flattenLogsConfig(logsConfig)
+			webApp.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
-			webApp.SiteConfig = flattenSiteConfigLinux(webAppSiteConfig.SiteConfig)
+			webApp.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig)
 
-			webApp.StorageAccounts = flattenStorageAccounts(storageAccounts)
+			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
-			webApp.ConnectionStrings = flattenConnectionStrings(connectionStrings)
+			webApp.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
 			webApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
