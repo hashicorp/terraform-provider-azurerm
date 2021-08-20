@@ -65,7 +65,7 @@ func TestAccMySqlFlexibleServer_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "private_dns_zone_id"),
+		data.ImportStep("administrator_password", "create_mode"),
 	})
 }
 
@@ -82,7 +82,7 @@ func TestAccMySqlFlexibleServer_completeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "private_dns_zone_id"),
+		data.ImportStep("administrator_password", "create_mode"),
 		{
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -92,7 +92,7 @@ func TestAccMySqlFlexibleServer_completeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "private_dns_zone_id"),
+		data.ImportStep("administrator_password", "create_mode"),
 	})
 }
 
@@ -446,7 +446,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   zone                         = "1"
   version                      = "8.0.21"
   backup_retention_days        = 7
-  geo_redundant_backup_enabled = true
+  geo_redundant_backup_enabled = false
   storage {
     size_gb = 32
     iops    = 400
@@ -525,7 +525,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   zone                         = "1"
   version                      = "8.0.21"
   backup_retention_days        = 10
-  geo_redundant_backup_enabled = true
+  geo_redundant_backup_enabled = false
   storage {
     size_gb           = 64
     iops              = 1280

@@ -422,8 +422,7 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 		if network := props.Network; network != nil {
 			d.Set("public_network_access_enabled", network.PublicNetworkAccess == mysqlflexibleservers.EnableStatusEnumEnabled)
 			d.Set("delegated_subnet_id", network.DelegatedSubnetResourceID)
-			//d.Set("private_dns_zone_id", network.PrivateDNSZoneResourceID)
-			//	till the fix from service
+			d.Set("private_dns_zone_id", network.PrivateDNSZoneResourceID)
 		}
 
 		if err := d.Set("maintenance_window", flattenArmServerMaintenanceWindow(props.MaintenanceWindow)); err != nil {
@@ -486,7 +485,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	// Update HA from SameZone-> ZoneRedundant is not allowed
-	// Update HA from ZoneRedundant-> SameZone or change Standby AZ requires to disable it firstly.
+	// Update HA from ZoneRedundant-> disable -> SameZone or change Standby AZ requires to disable it firstly.
 	if d.HasChange("high_availability") {
 		parameters := mysqlflexibleservers.ServerForUpdate{
 			ServerPropertiesForUpdate: &mysqlflexibleservers.ServerPropertiesForUpdate{
