@@ -216,7 +216,7 @@ func (VirtualMachineResource) unmanagedDiskExistsInContainer(blobName string, sh
 
 		account, err := clients.Storage.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", accountName, blobName, containerName, err)
+			return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", accountName, blobName, containerName, err)
 		}
 		if account == nil {
 			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
@@ -224,7 +224,7 @@ func (VirtualMachineResource) unmanagedDiskExistsInContainer(blobName string, sh
 
 		client, err := clients.Storage.BlobsClient(ctx, *account)
 		if err != nil {
-			return fmt.Errorf("Error building Blobs Client: %s", err)
+			return fmt.Errorf("building Blobs Client: %s", err)
 		}
 
 		input := blobs.GetPropertiesInput{}
@@ -238,7 +238,7 @@ func (VirtualMachineResource) unmanagedDiskExistsInContainer(blobName string, sh
 				return fmt.Errorf("The Blob for the Unmanaged Disk %q should exist in the Container %q but it didn't!", blobName, containerName)
 			}
 
-			return fmt.Errorf("Error retrieving properties for Blob %q (Container %q): %s", blobName, containerName, err)
+			return fmt.Errorf("retrieving properties for Blob %q (Container %q): %s", blobName, containerName, err)
 		}
 
 		if !shouldExist {

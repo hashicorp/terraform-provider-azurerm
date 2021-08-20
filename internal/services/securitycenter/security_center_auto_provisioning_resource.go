@@ -65,12 +65,12 @@ func resourceSecurityCenterAutoProvisioningUpdate(d *pluginsdk.ResourceData, met
 
 	// There is no update function or operation in the API, only create
 	if _, err := client.Create(ctx, securityCenterAutoProvisioningName, settings); err != nil {
-		return fmt.Errorf("Error creating/updating Security Center auto provisioning: %+v", err)
+		return fmt.Errorf("creating/updating Security Center auto provisioning: %+v", err)
 	}
 
 	resp, err := client.Get(ctx, securityCenterAutoProvisioningName)
 	if err != nil {
-		return fmt.Errorf("Error reading Security Center auto provisioning: %+v", err)
+		return fmt.Errorf("reading Security Center auto provisioning: %+v", err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("Security Center auto provisioning ID is nil or empty")
@@ -94,7 +94,7 @@ func resourceSecurityCenterAutoProvisioningRead(d *pluginsdk.ResourceData, meta 
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Security Center auto provisioning: %+v", err)
+		return fmt.Errorf("reading Security Center auto provisioning: %+v", err)
 	}
 
 	if properties := resp.AutoProvisioningSettingProperties; properties != nil {
@@ -120,7 +120,7 @@ func resourceSecurityCenterAutoProvisioningDelete(d *pluginsdk.ResourceData, met
 
 	// There is no update function or operation in the API, only create
 	if _, err := client.Create(ctx, securityCenterAutoProvisioningName, settings); err != nil {
-		return fmt.Errorf("Error resetting Security Center auto provisioning to 'Off': %+v", err)
+		return fmt.Errorf("resetting Security Center auto provisioning to 'Off': %+v", err)
 	}
 
 	return nil

@@ -176,7 +176,7 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("KeyVault %q (Resource Group %q) does not exist", name, resourceGroup)
 		}
-		return fmt.Errorf("Error making Read request on KeyVault %q: %+v", name, err)
+		return fmt.Errorf("making Read request on KeyVault %q: %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -202,19 +202,19 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		if sku := props.Sku; sku != nil {
 			if err := d.Set("sku_name", string(sku.Name)); err != nil {
-				return fmt.Errorf("Error setting `sku_name` for KeyVault %q: %+v", *resp.Name, err)
+				return fmt.Errorf("setting `sku_name` for KeyVault %q: %+v", *resp.Name, err)
 			}
 		} else {
-			return fmt.Errorf("Error making Read request on KeyVault %q: Unable to retrieve 'sku' value", *resp.Name)
+			return fmt.Errorf("making Read request on KeyVault %q: Unable to retrieve 'sku' value", *resp.Name)
 		}
 
 		flattenedPolicies := flattenAccessPolicies(props.AccessPolicies)
 		if err := d.Set("access_policy", flattenedPolicies); err != nil {
-			return fmt.Errorf("Error setting `access_policy` for KeyVault %q: %+v", *resp.Name, err)
+			return fmt.Errorf("setting `access_policy` for KeyVault %q: %+v", *resp.Name, err)
 		}
 
 		if err := d.Set("network_acls", flattenKeyVaultDataSourceNetworkAcls(props.NetworkAcls)); err != nil {
-			return fmt.Errorf("Error setting `network_acls` for KeyVault %q: %+v", *resp.Name, err)
+			return fmt.Errorf("setting `network_acls` for KeyVault %q: %+v", *resp.Name, err)
 		}
 	}
 

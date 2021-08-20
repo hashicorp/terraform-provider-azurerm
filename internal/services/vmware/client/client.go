@@ -2,9 +2,9 @@ package client
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/authorizations"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/clusters"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/privateclouds"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/authorizations"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/clusters"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/privateclouds"
 )
 
 type Client struct {

@@ -153,7 +153,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Log Analytics Workspace %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Log Analytics Workspace %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -259,7 +259,7 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Log Analytics workspaces '%s': %+v", id.WorkspaceName, err)
+		return fmt.Errorf("making Read request on AzureRM Log Analytics workspaces '%s': %+v", id.WorkspaceName, err)
 	}
 
 	d.Set("name", resp.Name)

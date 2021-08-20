@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -85,12 +85,12 @@ func resourceAppServiceSourceControlTokenCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if _, err := client.UpdateSourceControl(ctx, scmType, properties); err != nil {
-		return fmt.Errorf("Error updating App Service Source Control Token (Type %q): %s", scmType, err)
+		return fmt.Errorf("updating App Service Source Control Token (Type %q): %s", scmType, err)
 	}
 
 	read, err := client.GetSourceControl(ctx, scmType)
 	if err != nil {
-		return fmt.Errorf("Error retrieving App Service Source Control Token (Type %q): %s", scmType, err)
+		return fmt.Errorf("retrieving App Service Source Control Token (Type %q): %s", scmType, err)
 	}
 	if read.Name == nil {
 		return fmt.Errorf("Cannot read App Service Source Control Token (Type %q)", scmType)
@@ -114,7 +114,7 @@ func resourceAppServiceSourceControlTokenRead(d *pluginsdk.ResourceData, meta in
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on App Service Source Control Token (Type %q): %+v", scmType, err)
+		return fmt.Errorf("making Read request on App Service Source Control Token (Type %q): %+v", scmType, err)
 	}
 
 	d.Set("type", resp.Name)
@@ -151,7 +151,7 @@ func resourceAppServiceSourceControlTokenDelete(d *pluginsdk.ResourceData, meta 
 	}
 
 	if _, err := client.UpdateSourceControl(ctx, scmType, properties); err != nil {
-		return fmt.Errorf("Error deleting App Service Source Control Token (Type %q): %s", scmType, err)
+		return fmt.Errorf("deleting App Service Source Control Token (Type %q): %s", scmType, err)
 	}
 
 	return nil

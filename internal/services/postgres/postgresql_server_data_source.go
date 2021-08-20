@@ -95,11 +95,11 @@ func dataSourcePostgreSqlServerRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("PostgreSql Server %q was not found in Resource Group %q", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving PostgreSql Server %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("retrieving PostgreSql Server %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Error retrieving PostgreSql Server %q (Resource Group %q): `id` was nil", name, resourceGroup)
+		return fmt.Errorf("retrieving PostgreSql Server %q (Resource Group %q): `id` was nil", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)

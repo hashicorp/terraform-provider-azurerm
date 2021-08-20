@@ -57,7 +57,7 @@ func dataSourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) er
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Dedicated Host %q (Host Group Name %q / Resource Group %q) was not found", name, hostGroupName, resourceGroupName)
 		}
-		return fmt.Errorf("Error reading Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
+		return fmt.Errorf("reading Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
 	}
 
 	d.SetId(*resp.ID)

@@ -68,7 +68,7 @@ func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface
 		if utils.ResponseWasNotFound(functionSettings.Response) {
 			return fmt.Errorf("Error: AzureRM Function App %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Function App %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM Function App %q: %+v", name, err)
 	}
 
 	if functionSettings.ID == nil {
@@ -84,7 +84,7 @@ func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface
 				return pluginsdk.NonRetryableError(fmt.Errorf("Error: AzureRM Function App %q (Resource Group %q) was not found", name, resourceGroup))
 			}
 
-			return pluginsdk.RetryableError(fmt.Errorf("Error making Read request on AzureRM Function App Hostkeys %q: %+v", name, err))
+			return pluginsdk.RetryableError(fmt.Errorf("making Read request on AzureRM Function App Hostkeys %q: %+v", name, err))
 		}
 
 		d.Set("master_key", res.MasterKey)

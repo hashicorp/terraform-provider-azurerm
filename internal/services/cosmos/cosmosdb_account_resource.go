@@ -616,14 +616,14 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	newLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
-		return fmt.Errorf("Error expanding CosmosDB Account %q (Resource Group %q) geo locations: %+v", name, resourceGroup, err)
+		return fmt.Errorf("expanding CosmosDB Account %q (Resource Group %q) geo locations: %+v", name, resourceGroup, err)
 	}
 
 	// get existing locations (if exists)
 	resp, err := client.Get(ctx, resourceGroup, name)
 
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM CosmosDB Account '%s': %s", name, err)
+		return fmt.Errorf("making Read request on AzureRM CosmosDB Account '%s': %s", name, err)
 	}
 
 	oldLocations := make([]documentdb.Location, 0)
@@ -694,14 +694,14 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
-		return fmt.Errorf("Error updating CosmosDB Account %q properties (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("updating CosmosDB Account %q properties (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	// Update the property independently after the initial upsert as no other properties may change at the same time.
 	account.DatabaseAccountCreateUpdateProperties.EnableMultipleWriteLocations = utils.Bool(enableMultipleWriteLocations)
 	if *resp.EnableMultipleWriteLocations != enableMultipleWriteLocations {
 		if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
-			return fmt.Errorf("Error updating CosmosDB Account %q EnableMultipleWriteLocations (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("updating CosmosDB Account %q EnableMultipleWriteLocations (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -728,7 +728,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 		account.DatabaseAccountCreateUpdateProperties.Locations = &locationsUnchanged
 		if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
-			return fmt.Errorf("Error removing CosmosDB Account %q renamed locations (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("removing CosmosDB Account %q renamed locations (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -736,7 +736,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	account.DatabaseAccountCreateUpdateProperties.Locations = &newLocations
 	upsertResponse, err := resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
 	if err != nil {
-		return fmt.Errorf("Error updating CosmosDB Account %q locations (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("updating CosmosDB Account %q locations (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if upsertResponse.ID == nil {
@@ -852,7 +852,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 	if err := d.Set("read_endpoints", readEndpoints); err != nil {
-		return fmt.Errorf("Error setting `read_endpoints`: %s", err)
+		return fmt.Errorf("setting `read_endpoints`: %s", err)
 	}
 
 	writeEndpoints := make([]string, 0)
@@ -866,7 +866,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 	if err := d.Set("write_endpoints", writeEndpoints); err != nil {
-		return fmt.Errorf("Error setting `write_endpoints`: %s", err)
+		return fmt.Errorf("setting `write_endpoints`: %s", err)
 	}
 
 	// ListKeys returns a data structure containing a DatabaseAccountListReadOnlyKeysResult pointer
@@ -967,11 +967,11 @@ func resourceCosmosDbAccountDelete(d *pluginsdk.ResourceData, meta interface{}) 
 func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters, d *pluginsdk.ResourceData) (*documentdb.DatabaseAccountGetResults, error) {
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, account)
 	if err != nil {
-		return nil, fmt.Errorf("Error creating/updating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return nil, fmt.Errorf("creating/updating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return nil, fmt.Errorf("Error waiting for the CosmosDB Account %q (Resource Group %q) to finish creating/updating: %+v", name, resourceGroup, err)
+		return nil, fmt.Errorf("waiting for the CosmosDB Account %q (Resource Group %q) to finish creating/updating: %+v", name, resourceGroup, err)
 	}
 
 	// if a replication location is added or removed it can take some time to provision
@@ -983,7 +983,7 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 		Refresh: func() (interface{}, string, error) {
 			resp, err2 := client.Get(ctx, resourceGroup, name)
 			if err2 != nil || resp.StatusCode == http.StatusNotFound {
-				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after create/update (Resource Group %q): %+v", name, resourceGroup, err2)
+				return nil, "", fmt.Errorf("reading CosmosDB Account %q after create/update (Resource Group %q): %+v", name, resourceGroup, err2)
 			}
 			status := "Succeeded"
 			if props := resp.DatabaseAccountGetProperties; props != nil {
@@ -1019,7 +1019,7 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 
 	resp, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Error waiting for the CosmosDB Account %q (Resource Group %q) to provision: %+v", name, resourceGroup, err)
+		return nil, fmt.Errorf("waiting for the CosmosDB Account %q (Resource Group %q) to provision: %+v", name, resourceGroup, err)
 	}
 
 	r := resp.(documentdb.DatabaseAccountGetResults)

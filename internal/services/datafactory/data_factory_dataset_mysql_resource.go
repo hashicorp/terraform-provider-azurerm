@@ -157,7 +157,7 @@ func resourceDataFactoryDatasetMySQLCreateUpdate(d *pluginsdk.ResourceData, meta
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Dataset MySQL %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Dataset MySQL %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 			}
 		}
 
@@ -215,12 +215,12 @@ func resourceDataFactoryDatasetMySQLCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, dataset, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Dataset MySQL  %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Data Factory Dataset MySQL  %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Dataset MySQL %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Dataset MySQL %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
@@ -252,7 +252,7 @@ func resourceDataFactoryDatasetMySQLRead(d *pluginsdk.ResourceData, meta interfa
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Dataset MySQL %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Dataset MySQL %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -261,7 +261,7 @@ func resourceDataFactoryDatasetMySQLRead(d *pluginsdk.ResourceData, meta interfa
 
 	mysqlTable, ok := resp.Properties.AsRelationalTableDataset()
 	if !ok {
-		return fmt.Errorf("Error classifying Data Factory Dataset MySQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypeMySQLTable, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset MySQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypeMySQLTable, *resp.Type)
 	}
 
 	d.Set("additional_properties", mysqlTable.AdditionalProperties)
@@ -272,12 +272,12 @@ func resourceDataFactoryDatasetMySQLRead(d *pluginsdk.ResourceData, meta interfa
 
 	parameters := flattenDataFactoryParameters(mysqlTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
-		return fmt.Errorf("Error setting `parameters`: %+v", err)
+		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
 	annotations := flattenDataFactoryAnnotations(mysqlTable.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
-		return fmt.Errorf("Error setting `annotations`: %+v", err)
+		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
 	if linkedService := mysqlTable.LinkedServiceName; linkedService != nil {
@@ -303,7 +303,7 @@ func resourceDataFactoryDatasetMySQLRead(d *pluginsdk.ResourceData, meta interfa
 
 	structureColumns := flattenDataFactoryStructureColumns(mysqlTable.Structure)
 	if err := d.Set("schema_column", structureColumns); err != nil {
-		return fmt.Errorf("Error setting `schema_column`: %+v", err)
+		return fmt.Errorf("setting `schema_column`: %+v", err)
 	}
 
 	return nil
@@ -325,7 +325,7 @@ func resourceDataFactoryDatasetMySQLDelete(d *pluginsdk.ResourceData, meta inter
 	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Dataset MySQL %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("deleting Data Factory Dataset MySQL %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 		}
 	}
 

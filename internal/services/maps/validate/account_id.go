@@ -3,7 +3,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/sdk/accounts"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/sdk/2021-02-01/accounts"
 )
 
 func AccountID(input interface{}, key string) (warnings []string, errors []error) {

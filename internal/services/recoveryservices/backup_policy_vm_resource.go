@@ -303,7 +303,7 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 	timeOfDay := d.Get("backup.0.time").(string)
 	dateOfDay, err := time.Parse(time.RFC3339, fmt.Sprintf("2018-07-30T%s:00Z", timeOfDay))
 	if err != nil {
-		return fmt.Errorf("Error generating time from %q for policy %q (Resource Group %q): %+v", timeOfDay, policyName, resourceGroup, err)
+		return fmt.Errorf("generating time from %q for policy %q (Resource Group %q): %+v", timeOfDay, policyName, resourceGroup, err)
 	}
 	times := append(make([]date.Time, 0), date.Time{Time: dateOfDay})
 
@@ -311,7 +311,7 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 		existing, err2 := client.Get(ctx, vaultName, resourceGroup, policyName)
 		if err2 != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Azure Backup Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err2)
+				return fmt.Errorf("checking for presence of existing Azure Backup Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err2)
 			}
 		}
 
@@ -348,7 +348,7 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, policyName, policy); err != nil {
-		return fmt.Errorf("Error creating/updating Azure Backup Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Azure Backup Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
 	}
 
 	resp, err := resourceBackupProtectionPolicyVMWaitForUpdate(ctx, client, vaultName, resourceGroup, policyName, d)
@@ -385,7 +385,7 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Backup Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Backup Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
 	}
 
 	d.Set("name", policyName)
@@ -398,14 +398,14 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 
 		if schedule, ok := properties.SchedulePolicy.AsSimpleSchedulePolicy(); ok && schedule != nil {
 			if err := d.Set("backup", flattenBackupProtectionPolicyVMSchedule(schedule)); err != nil {
-				return fmt.Errorf("Error setting `backup`: %+v", err)
+				return fmt.Errorf("setting `backup`: %+v", err)
 			}
 		}
 
 		if retention, ok := properties.RetentionPolicy.AsLongTermRetentionPolicy(); ok && retention != nil {
 			if s := retention.DailySchedule; s != nil {
 				if err := d.Set("retention_daily", flattenBackupProtectionPolicyVMRetentionDaily(s)); err != nil {
-					return fmt.Errorf("Error setting `retention_daily`: %+v", err)
+					return fmt.Errorf("setting `retention_daily`: %+v", err)
 				}
 			} else {
 				d.Set("retention_daily", nil)
@@ -413,7 +413,7 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 
 			if s := retention.WeeklySchedule; s != nil {
 				if err := d.Set("retention_weekly", flattenBackupProtectionPolicyVMRetentionWeekly(s)); err != nil {
-					return fmt.Errorf("Error setting `retention_weekly`: %+v", err)
+					return fmt.Errorf("setting `retention_weekly`: %+v", err)
 				}
 			} else {
 				d.Set("retention_weekly", nil)
@@ -421,7 +421,7 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 
 			if s := retention.MonthlySchedule; s != nil {
 				if err := d.Set("retention_monthly", flattenBackupProtectionPolicyVMRetentionMonthly(s)); err != nil {
-					return fmt.Errorf("Error setting `retention_monthly`: %+v", err)
+					return fmt.Errorf("setting `retention_monthly`: %+v", err)
 				}
 			} else {
 				d.Set("retention_monthly", nil)
@@ -429,7 +429,7 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 
 			if s := retention.YearlySchedule; s != nil {
 				if err := d.Set("retention_yearly", flattenBackupProtectionPolicyVMRetentionYearly(s)); err != nil {
-					return fmt.Errorf("Error setting `retention_yearly`: %+v", err)
+					return fmt.Errorf("setting `retention_yearly`: %+v", err)
 				}
 			} else {
 				d.Set("retention_yearly", nil)
@@ -459,7 +459,7 @@ func resourceBackupProtectionPolicyVMDelete(d *pluginsdk.ResourceData, meta inte
 	resp, err := client.Delete(ctx, vaultName, resourceGroup, policyName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error issuing delete request for Azure Backup Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
+			return fmt.Errorf("issuing delete request for Azure Backup Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
 		}
 	}
 
@@ -740,7 +740,7 @@ func resourceBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, client *
 
 	resp, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Azure Backup Protection Policy %q to be true (Resource Group %q) to provision: %+v", policyName, resourceGroup, err)
+		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("waiting for the Azure Backup Protection Policy %q to be true (Resource Group %q) to provision: %+v", policyName, resourceGroup, err)
 	}
 
 	return resp.(backup.ProtectionPolicyResource), nil
@@ -758,7 +758,7 @@ func resourceBackupProtectionPolicyVMWaitForDeletion(ctx context.Context, client
 
 	resp, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Azure Backup Protection Policy %q to be false (Resource Group %q) to provision: %+v", policyName, resourceGroup, err)
+		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("waiting for the Azure Backup Protection Policy %q to be false (Resource Group %q) to provision: %+v", policyName, resourceGroup, err)
 	}
 
 	return resp.(backup.ProtectionPolicyResource), nil
@@ -772,7 +772,7 @@ func resourceBackupProtectionPolicyVMRefreshFunc(ctx context.Context, client *ba
 				return resp, "NotFound", nil
 			}
 
-			return resp, "Error", fmt.Errorf("Error making Read request on Azure Backup Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
+			return resp, "Error", fmt.Errorf("making Read request on Azure Backup Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
 		}
 
 		return resp, "Found", nil

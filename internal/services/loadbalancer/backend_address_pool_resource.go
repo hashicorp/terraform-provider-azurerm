@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -343,9 +343,9 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *pluginsdk.ResourceData, 
 			return nil
 		}
 
-		oldBackEndPools := *lb.LoadBalancerPropertiesFormat.BackendAddressPools
-		newBackEndPools := append(oldBackEndPools[:index], oldBackEndPools[index+1:]...)
-		lb.LoadBalancerPropertiesFormat.BackendAddressPools = &newBackEndPools
+		backEndPools := *lb.LoadBalancerPropertiesFormat.BackendAddressPools
+		backEndPools = append(backEndPools[:index], backEndPools[index+1:]...)
+		lb.LoadBalancerPropertiesFormat.BackendAddressPools = &backEndPools
 
 		future, err := lbClient.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, lb)
 		if err != nil {

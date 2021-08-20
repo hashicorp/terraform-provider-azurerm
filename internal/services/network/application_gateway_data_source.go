@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
@@ -89,7 +89,7 @@ func flattenApplicationGatewayDataSourceIdentity(input *network.ManagedServiceId
 		}
 		config = &identity.ExpandedConfig{
 			Type:                    identity.Type(string(input.Type)),
-			UserAssignedIdentityIds: &identityIds,
+			UserAssignedIdentityIds: identityIds,
 		}
 	}
 	return config, nil

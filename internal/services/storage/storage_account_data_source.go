@@ -274,7 +274,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Storage Account %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error reading the state of AzureRM Storage Account %q: %+v", name, err)
+		return fmt.Errorf("reading the state of AzureRM Storage Account %q: %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -300,7 +300,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		if !hasWriteLock && !doesntHavePermissions {
-			return fmt.Errorf("Error listing Keys for Storage Account %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("listing Keys for Storage Account %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
 	}
 
@@ -324,7 +324,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
-				return fmt.Errorf("Error setting `custom_domain`: %+v", err)
+				return fmt.Errorf("setting `custom_domain`: %+v", err)
 			}
 		}
 
@@ -346,7 +346,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints); err != nil {
-			return fmt.Errorf("error setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
+			return fmt.Errorf("setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
 		if accessKeys := accountKeys; accessKeys != nil {
@@ -358,7 +358,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints); err != nil {
-			return fmt.Errorf("error setting secondary endpoints and hosts for blob, queue, table: %+v", err)
+			return fmt.Errorf("setting secondary endpoints and hosts for blob, queue, table: %+v", err)
 		}
 
 		if accessKeys := accountKeys; accessKeys != nil {

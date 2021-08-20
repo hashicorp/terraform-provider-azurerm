@@ -193,7 +193,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		existing, err := client.Get(ctx, resGroup, serverName, elasticPoolName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Elastic Pool %q (MSSQL Server %q / Resource Group %q): %s", elasticPoolName, serverName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Elastic Pool %q (MSSQL Server %q / Resource Group %q): %s", elasticPoolName, serverName, resGroup, err)
 			}
 		}
 
@@ -265,7 +265,7 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on MsSql Elastic Pool %s: %s", elasticPool.Name, err)
+		return fmt.Errorf("making Read request on MsSql Elastic Pool %s: %s", elasticPool.Name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -278,7 +278,7 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("server_name", elasticPool.ServerName)
 
 	if err := d.Set("sku", flattenMsSqlElasticPoolSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
+		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 
 	if properties := resp.ElasticPoolProperties; properties != nil {
@@ -294,7 +294,7 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("license_type", string(properties.LicenseType))
 
 		if err := d.Set("per_database_settings", flattenMsSqlElasticPoolPerDatabaseSettings(properties.PerDatabaseSettings)); err != nil {
-			return fmt.Errorf("Error setting `per_database_settings`: %+v", err)
+			return fmt.Errorf("setting `per_database_settings`: %+v", err)
 		}
 	}
 

@@ -104,7 +104,7 @@ The following arguments are supported:
 
 * `virtual_network_rule` - (Optional) Specifies a `virtual_network_rules` resource, used to define which subnets are allowed to access this CosmosDB account.
 
-* `enable_multiple_write_locations` - (Optional) Enable multi-master support for this Cosmos DB account.
+* `enable_multiple_write_locations` - (Optional) Enable multiple write locations for this Cosmos DB account.
 
 * `access_key_metadata_writes_enabled` - (Optional) Is write operations on metadata resources (databases, containers, throughput) via account keys enabled? Defaults to `true`.
 
@@ -196,13 +196,13 @@ The following attributes are exported:
 
 * `write_endpoints` - A list of write endpoints available for this CosmosDB account.
 
-* `primary_key` - The Primary master key for the CosmosDB Account.
+* `primary_key` - The Primary key for the CosmosDB Account.
 
-* `secondary_key` - The Secondary master key for the CosmosDB Account.
+* `secondary_key` - The Secondary key for the CosmosDB Account.
 
-* `primary_readonly_key` - The Primary read-only master Key for the CosmosDB Account.
+* `primary_readonly_key` - The Primary read-only Key for the CosmosDB Account.
 
-* `secondary_readonly_key` - The Secondary read-only master key for the CosmosDB Account.
+* `secondary_readonly_key` - The Secondary read-only key for the CosmosDB Account.
 
 * `connection_strings` - A list of connection strings available for this CosmosDB account.
 

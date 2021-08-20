@@ -163,7 +163,7 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Dataset Snowflake %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Dataset Snowflake %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 			}
 		}
 
@@ -222,12 +222,12 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, dataset, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Dataset Snowflake  %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Data Factory Dataset Snowflake  %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Dataset Snowflake %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Dataset Snowflake %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
@@ -259,7 +259,7 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Dataset Snowflake %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Dataset Snowflake %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -268,7 +268,7 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 
 	snowflakeTable, ok := resp.Properties.AsSnowflakeDataset()
 	if !ok {
-		return fmt.Errorf("Error classifying Data Factory Dataset Snowflake %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypeSnowflakeTable, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset Snowflake %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeBasicDatasetTypeSnowflakeTable, *resp.Type)
 	}
 
 	d.Set("additional_properties", snowflakeTable.AdditionalProperties)
@@ -279,12 +279,12 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 
 	parameters := flattenDataFactoryParameters(snowflakeTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
-		return fmt.Errorf("Error setting `parameters`: %+v", err)
+		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
 	annotations := flattenDataFactoryAnnotations(snowflakeTable.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
-		return fmt.Errorf("Error setting `annotations`: %+v", err)
+		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
 	if linkedService := snowflakeTable.LinkedServiceName; linkedService != nil {
@@ -316,7 +316,7 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 
 	structureColumns := flattenDataFactoryStructureColumns(snowflakeTable.Structure)
 	if err := d.Set("schema_column", structureColumns); err != nil {
-		return fmt.Errorf("Error setting `schema_column`: %+v", err)
+		return fmt.Errorf("setting `schema_column`: %+v", err)
 	}
 
 	return nil
@@ -338,7 +338,7 @@ func resourceDataFactoryDatasetSnowflakeDelete(d *pluginsdk.ResourceData, meta i
 	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Dataset Snowflake %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("deleting Data Factory Dataset Snowflake %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 		}
 	}
 

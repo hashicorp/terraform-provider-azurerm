@@ -113,7 +113,7 @@ func dataSourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{})
 	if props := resp.WorkflowProperties; props != nil {
 		parameters := flattenLogicAppDataSourceWorkflowParameters(props.Parameters)
 		if err := d.Set("parameters", parameters); err != nil {
-			return fmt.Errorf("Error setting `parameters`: %+v", err)
+			return fmt.Errorf("setting `parameters`: %+v", err)
 		}
 
 		d.Set("access_endpoint", props.AccessEndpoint)

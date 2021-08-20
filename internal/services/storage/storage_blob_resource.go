@@ -155,7 +155,7 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", accountName, name, containerName, err)
+		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", accountName, name, containerName, err)
 	}
 	if account == nil {
 		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
@@ -163,7 +163,7 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	blobsClient, err := storageClient.BlobsClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Blobs Client: %s", err)
+		return fmt.Errorf("building Blobs Client: %s", err)
 	}
 
 	id := blobsClient.GetResourceID(accountName, containerName, name)
@@ -172,7 +172,7 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props, err := blobsClient.GetProperties(ctx, accountName, containerName, name, input)
 		if err != nil {
 			if !utils.ResponseWasNotFound(props.Response) {
-				return fmt.Errorf("Error checking if Blob %q exists (Container %q / Account %q / Resource Group %q): %s", name, containerName, accountName, account.ResourceGroup, err)
+				return fmt.Errorf("checking if Blob %q exists (Container %q / Account %q / Resource Group %q): %s", name, containerName, accountName, account.ResourceGroup, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(props.Response) {
@@ -209,7 +209,7 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		SourceUri:     d.Get("source_uri").(string),
 	}
 	if err := blobInput.Create(ctx); err != nil {
-		return fmt.Errorf("Error creating Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
+		return fmt.Errorf("creating Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
 	}
 	log.Printf("[DEBUG] Created Blob %q in Container %q within Storage Account %q.", name, containerName, accountName)
 
@@ -225,12 +225,12 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	id, err := blobs.ParseResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing %q: %s", d.Id(), err)
+		return fmt.Errorf("parsing %q: %s", d.Id(), err)
 	}
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
+		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
 	}
 	if account == nil {
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
@@ -238,7 +238,7 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	blobsClient, err := storageClient.BlobsClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Blobs Client: %s", err)
+		return fmt.Errorf("building Blobs Client: %s", err)
 	}
 
 	if d.HasChange("access_tier") {
@@ -247,7 +247,7 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		accessTier := blobs.AccessTier(d.Get("access_tier").(string))
 
 		if _, err := blobsClient.SetTier(ctx, id.AccountName, id.ContainerName, id.BlobName, accessTier); err != nil {
-			return fmt.Errorf("Error updating Access Tier for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+			return fmt.Errorf("updating Access Tier for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
 		}
 
 		log.Printf("[DEBUG] Updated Access Tier for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
@@ -263,14 +263,14 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if contentMD5 := d.Get("content_md5").(string); contentMD5 != "" {
 			data, err := convertHexToBase64Encoding(contentMD5)
 			if err != nil {
-				return fmt.Errorf("Error in converting hex to base64 encoding for content_md5: %s", err)
+				return fmt.Errorf("in converting hex to base64 encoding for content_md5: %s", err)
 			}
 
 			input.ContentMD5 = utils.String(data)
 		}
 
 		if _, err := blobsClient.SetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
-			return fmt.Errorf("Error updating Properties for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+			return fmt.Errorf("updating Properties for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
 		}
 		log.Printf("[DEBUG] Updated Properties for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
 	}
@@ -282,7 +282,7 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			MetaData: ExpandMetaData(metaDataRaw),
 		}
 		if _, err := blobsClient.SetMetaData(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
-			return fmt.Errorf("Error updating MetaData for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+			return fmt.Errorf("updating MetaData for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
 		}
 		log.Printf("[DEBUG] Updated MetaData for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
 	}
@@ -297,12 +297,12 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	id, err := blobs.ParseResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing %q: %s", d.Id(), err)
+		return fmt.Errorf("parsing %q: %s", d.Id(), err)
 	}
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
+		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
 	}
 	if account == nil {
 		log.Printf("[DEBUG] Unable to locate Account %q for Blob %q (Container %q) - assuming removed & removing from state!", id.AccountName, id.BlobName, id.ContainerName)
@@ -312,7 +312,7 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	blobsClient, err := storageClient.BlobsClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Blobs Client: %s", err)
+		return fmt.Errorf("building Blobs Client: %s", err)
 	}
 
 	log.Printf("[INFO] Retrieving Storage Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
@@ -325,7 +325,7 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving properties for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+		return fmt.Errorf("retrieving properties for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
 	}
 
 	d.Set("name", id.BlobName)
@@ -340,7 +340,7 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if props.ContentMD5 != "" {
 		contentMD5, err = convertBase64ToHexEncoding(props.ContentMD5)
 		if err != nil {
-			return fmt.Errorf("Error in converting hex to base64 encoding for content_md5: %s", err)
+			return fmt.Errorf("in converting hex to base64 encoding for content_md5: %s", err)
 		}
 	}
 	d.Set("content_md5", contentMD5)
@@ -349,7 +349,7 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("url", d.Id())
 
 	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
-		return fmt.Errorf("Error setting `metadata`: %+v", err)
+		return fmt.Errorf("setting `metadata`: %+v", err)
 	}
 	// The CopySource is only returned if the blob hasn't been modified (e.g. metadata configured etc)
 	// as such, we need to conditionally set this to ensure it's trackable if possible
@@ -367,12 +367,12 @@ func resourceStorageBlobDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	id, err := blobs.ParseResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing %q: %s", d.Id(), err)
+		return fmt.Errorf("parsing %q: %s", d.Id(), err)
 	}
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
+		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
 	}
 	if account == nil {
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
@@ -380,7 +380,7 @@ func resourceStorageBlobDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	blobsClient, err := storageClient.BlobsClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Blobs Client: %s", err)
+		return fmt.Errorf("building Blobs Client: %s", err)
 	}
 
 	log.Printf("[INFO] Deleting Blob %q from Container %q / Storage Account %q", id.BlobName, id.ContainerName, id.AccountName)
@@ -388,7 +388,7 @@ func resourceStorageBlobDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		DeleteSnapshots: true,
 	}
 	if _, err := blobsClient.Delete(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
-		return fmt.Errorf("Error deleting Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+		return fmt.Errorf("deleting Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
 	}
 
 	return nil

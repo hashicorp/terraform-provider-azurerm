@@ -32,7 +32,7 @@ func (s SystemAssignedUserAssigned) Expand(input []interface{}) (*ExpandedConfig
 		if config.Type != userAssigned && config.Type != systemAssignedUserAssigned {
 			return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`")
 		}
-		config.UserAssignedIdentityIds = utils.ExpandStringSlice(identityIds)
+		config.UserAssignedIdentityIds = *utils.ExpandStringSlice(identityIds)
 	}
 
 	return config, nil
@@ -43,20 +43,12 @@ func (s SystemAssignedUserAssigned) Flatten(input *ExpandedConfig) []interface{}
 		return []interface{}{}
 	}
 
-	coalesce := func(input *string) string {
-		if input == nil {
-			return ""
-		}
-
-		return *input
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"type":         input.Type,
-			"identity_ids": utils.FlattenStringSlice(input.UserAssignedIdentityIds),
-			"principal_id": coalesce(input.PrincipalId),
-			"tenant_id":    coalesce(input.TenantId),
+			"identity_ids": utils.FlattenStringSlice(&input.UserAssignedIdentityIds),
+			"principal_id": input.PrincipalId,
+			"tenant_id":    input.TenantId,
 		},
 	}
 }

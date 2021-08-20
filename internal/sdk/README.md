@@ -179,10 +179,6 @@ func (r ResourceGroupResource) Delete() sdk.ResourceFunc {
 			metadata.Logger.Infof("deleting %s..", *id)
 			future, err := client.Delete(ctx, id.ResourceGroup, "")
 			if err != nil {
-				if response.WasNotFound(future.Response()) {
-					return metadata.MarkAsGone(id)
-				}
-
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

@@ -10,7 +10,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -79,11 +78,11 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			if resp.ReplicationRole != nil && *resp.ReplicationRole != "Master" && *resp.ReplicationRole != "None" {
 				d.Set("create_mode", resp.ReplicationRole)
 
-				masterServerId, err := parse.ServerID(*resp.MasterServerID)
+				sourceServerId, err := parse.ServerID(*resp.MasterServerID)
 				if err != nil {
-					return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing Postgres Master Server ID : %v", err)
+					return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing Postgres Main Server ID : %v", err)
 				}
-				d.Set("creation_source_server_id", masterServerId.ID())
+				d.Set("creation_source_server_id", sourceServerId.ID())
 			}
 
 			return []*pluginsdk.ResourceData{d}, nil
@@ -612,11 +611,11 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		if alert != nil {
 			future, err := securityClient.CreateOrUpdate(ctx, resourceGroup, name, *alert)
 			if err != nil {
-				return fmt.Errorf("error updataing postgres server security alert policy: %v", err)
+				return fmt.Errorf("updataing postgres server security alert policy: %v", err)
 			}
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("error waiting for creation/update of postgrest server security alert policy (server %q, resource group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("waiting for creation/update of postgrest server security alert policy (server %q, resource group %q): %+v", name, resourceGroup, err)
 			}
 		}
 	}
@@ -765,11 +764,11 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if alert != nil {
 			future, err := securityClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *alert)
 			if err != nil {
-				return fmt.Errorf("error updataing mssql server security alert policy: %v", err)
+				return fmt.Errorf("updataing mssql server security alert policy: %v", err)
 			}
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("error waiting for creation/update of postgrest server security alert policy (server %q, resource group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("waiting for creation/update of postgrest server security alert policy (server %q, resource group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 		}
 	}
@@ -845,7 +844,7 @@ func resourcePostgreSQLServerRead(d *pluginsdk.ResourceData, meta interface{}) e
 	if tier == postgresql.GeneralPurpose || tier == postgresql.MemoryOptimized {
 		secResp, err := securityClient.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil && !utils.ResponseWasNotFound(secResp.Response) {
-			return fmt.Errorf("error making read request to postgres server security alert policy: %+v", err)
+			return fmt.Errorf("making read request to postgres server security alert policy: %+v", err)
 		}
 
 		if !utils.ResponseWasNotFound(secResp.Response) {
@@ -871,17 +870,11 @@ func resourcePostgreSQLServerDelete(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 
 		return fmt.Errorf("deleting PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 
 		return fmt.Errorf("waiting for deletion of PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}

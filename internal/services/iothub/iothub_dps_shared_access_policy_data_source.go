@@ -77,7 +77,7 @@ func dataSourceIotHubDPSSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta i
 			return fmt.Errorf("Error: IotHub DPS %q (Resource Group %q) was not found", iothubDpsName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving IotHub DPS %q (Resource Group %q): %+v", iothubDpsName, resourceGroup, err)
+		return fmt.Errorf("retrieving IotHub DPS %q (Resource Group %q): %+v", iothubDpsName, resourceGroup, err)
 	}
 
 	accessPolicy, err := client.ListKeysForKeyName(ctx, iothubDpsName, keyName, resourceGroup)
@@ -86,7 +86,7 @@ func dataSourceIotHubDPSSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta i
 			return fmt.Errorf("Error: Shared Access Policy %q (IotHub DPS %q / Resource Group %q) was not found", keyName, iothubDpsName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error loading Shared Access Policy %q (IotHub DPS %q / Resource Group %q): %+v", keyName, iothubDpsName, resourceGroup, err)
+		return fmt.Errorf("loading Shared Access Policy %q (IotHub DPS %q / Resource Group %q): %+v", keyName, iothubDpsName, resourceGroup, err)
 	}
 
 	d.Set("name", keyName)

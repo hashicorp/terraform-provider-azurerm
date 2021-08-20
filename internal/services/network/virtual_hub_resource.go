@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -123,7 +123,7 @@ func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -159,11 +159,11 @@ func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	// Hub returns provisioned while the routing state is still "provisining". This might cause issues with following hubvnet connection operations.
@@ -211,7 +211,7 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Virtual Hub %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("reading Virtual Hub %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -224,7 +224,7 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("sku", props.Sku)
 
 		if err := d.Set("route", flattenVirtualHubRoute(props.RouteTable)); err != nil {
-			return fmt.Errorf("Error setting `route`: %+v", err)
+			return fmt.Errorf("setting `route`: %+v", err)
 		}
 
 		var virtualWanId *string
@@ -252,12 +252,12 @@ func resourceVirtualHubDelete(d *pluginsdk.ResourceData, meta interface{}) error
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Virtual Hub %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Virtual Hub %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Virtual Hub %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for deleting Virtual Hub %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 

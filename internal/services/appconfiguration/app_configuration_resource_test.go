@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -144,7 +145,7 @@ func TestAccAppConfiguration_update(t *testing.T) {
 }
 
 func (t AppConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := configurationstores.ConfigurationStoreID(state.ID)
+	id, err := configurationstores.ParseConfigurationStoreID(state.ID)
 	if err != nil {
 		return nil, err
 	}

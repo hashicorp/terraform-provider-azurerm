@@ -83,7 +83,7 @@ func resourceDataLakeStoreFileCreate(d *pluginsdk.ResourceData, meta interface{}
 	existing, err := client.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Data Lake Store File %q (Account %q): %s", remoteFilePath, accountName, err)
+			return fmt.Errorf("checking for presence of existing Data Lake Store File %q (Account %q): %s", remoteFilePath, accountName, err)
 		}
 	}
 
@@ -93,7 +93,7 @@ func resourceDataLakeStoreFileCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	file, err := os.Open(localFilePath)
 	if err != nil {
-		return fmt.Errorf("error opening file %q: %+v", localFilePath, err)
+		return fmt.Errorf("opening file %q: %+v", localFilePath, err)
 	}
 	defer func(c io.Closer) {
 		if err := c.Close(); err != nil {
@@ -102,7 +102,7 @@ func resourceDataLakeStoreFileCreate(d *pluginsdk.ResourceData, meta interface{}
 	}(file)
 
 	if _, err = client.Create(ctx, accountName, remoteFilePath, nil, nil, filesystem.DATA, nil, nil); err != nil {
-		return fmt.Errorf("Error issuing create request for Data Lake Store File %q : %+v", remoteFilePath, err)
+		return fmt.Errorf("issuing create request for Data Lake Store File %q : %+v", remoteFilePath, err)
 	}
 
 	buffer := make([]byte, chunkSize)
@@ -119,7 +119,7 @@ func resourceDataLakeStoreFileCreate(d *pluginsdk.ResourceData, meta interface{}
 		chunk := io.NopCloser(bytes.NewReader(buffer[:n]))
 
 		if _, err = client.Append(ctx, accountName, remoteFilePath, chunk, nil, flag, nil, nil); err != nil {
-			return fmt.Errorf("Error transferring chunk for Data Lake Store File %q : %+v", remoteFilePath, err)
+			return fmt.Errorf("transferring chunk for Data Lake Store File %q : %+v", remoteFilePath, err)
 		}
 	}
 
@@ -145,7 +145,7 @@ func resourceDataLakeStoreFileRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Data Lake Store File %q (Account %q): %+v", id.FilePath, id.StorageAccountName, err)
+		return fmt.Errorf("making Read request on Azure Data Lake Store File %q (Account %q): %+v", id.FilePath, id.StorageAccountName, err)
 	}
 
 	d.Set("account_name", id.StorageAccountName)
@@ -167,7 +167,7 @@ func resourceDataLakeStoreFileDelete(d *pluginsdk.ResourceData, meta interface{}
 	resp, err := client.Delete(ctx, id.StorageAccountName, id.FilePath, utils.Bool(false))
 	if err != nil {
 		if !response.WasNotFound(resp.Response.Response) {
-			return fmt.Errorf("Error issuing delete request for Data Lake Store File %q (Account %q): %+v", id.FilePath, id.StorageAccountName, err)
+			return fmt.Errorf("issuing delete request for Data Lake Store File %q (Account %q): %+v", id.FilePath, id.StorageAccountName, err)
 		}
 	}
 
@@ -184,7 +184,7 @@ func ParseDataLakeStoreFileId(input string, suffix string) (*dataLakeStoreFileId
 	// we add a scheme to the start of this so it parses correctly
 	uri, err := url.Parse(fmt.Sprintf("https://%s", input))
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing %q as URI: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as URI: %+v", input, err)
 	}
 
 	// TODO: switch to pulling this from the Environment when it's available there

@@ -3,7 +3,7 @@ package frontdoor
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor"
+	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-05-01/frontdoor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 )
 

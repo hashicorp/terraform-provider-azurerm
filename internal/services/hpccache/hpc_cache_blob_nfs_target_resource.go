@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-03-01/storagecache"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -143,11 +142,11 @@ func resourceHPCCacheBlobNFSTargetCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.CacheName, id.Name, param)
 	if err != nil {
-		return fmt.Errorf("Error creating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for %s: %+v", id, err)
+		return fmt.Errorf("waiting for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -228,9 +227,7 @@ func resourceHPCCacheBlobNFSTargetDelete(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
+
 		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 

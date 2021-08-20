@@ -106,7 +106,7 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for present of existing Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for present of existing Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 	if existing.ID != nil && *existing.ID != "" {
@@ -116,13 +116,13 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 	keyVaultKeyId := d.Get("key_vault_key_id").(string)
 	keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, resourcesClient, keyVaultKeyId)
 	if err != nil {
-		return fmt.Errorf("Error validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKeyId, err)
+		return fmt.Errorf("validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKeyId, err)
 	}
 	if !keyVaultDetails.softDeleteEnabled {
-		return fmt.Errorf("Error validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+		return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 	}
 	if !keyVaultDetails.purgeProtectionEnabled {
-		return fmt.Errorf("Error validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+		return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -145,15 +145,15 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, params)
 	if err != nil {
-		return fmt.Errorf("Error creating Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read Disk Encryption Set %q (Resource Group %q) ID", name, resourceGroup)
@@ -180,7 +180,7 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Disk Encryption Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("reading Disk Encryption Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -198,7 +198,7 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if err := d.Set("identity", flattenDiskEncryptionSetIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -225,13 +225,13 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 		keyVaultKeyId := d.Get("key_vault_key_id").(string)
 		keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, resourcesClient, keyVaultKeyId)
 		if err != nil {
-			return fmt.Errorf("Error validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKeyId, err)
+			return fmt.Errorf("validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKeyId, err)
 		}
 		if !keyVaultDetails.softDeleteEnabled {
-			return fmt.Errorf("Error validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 		}
 		if !keyVaultDetails.purgeProtectionEnabled {
-			return fmt.Errorf("Error validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
+			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 		}
 		update.DiskEncryptionSetUpdateProperties = &compute.DiskEncryptionSetUpdateProperties{
 			ActiveKey: &compute.KeyForDiskEncryptionSet{
@@ -245,10 +245,10 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)
 	if err != nil {
-		return fmt.Errorf("Error updating Disk Encryption Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating Disk Encryption Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Disk Encryption Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of Disk Encryption Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return resourceDiskEncryptionSetRead(d, meta)
@@ -266,11 +266,11 @@ func resourceDiskEncryptionSetDelete(d *pluginsdk.ResourceData, meta interface{}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Disk Encryption Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Disk Encryption Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deleting Disk Encryption Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deleting Disk Encryption Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -322,7 +322,7 @@ func diskEncryptionSetRetrieveKeyVault(ctx context.Context, keyVaultsClient *cli
 	}
 	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultKeyId.KeyVaultBaseUrl)
 	if err != nil {
-		return nil, fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseUrl, err)
+		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseUrl, err)
 	}
 	if keyVaultID == nil {
 		return nil, fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultKeyId.KeyVaultBaseUrl)

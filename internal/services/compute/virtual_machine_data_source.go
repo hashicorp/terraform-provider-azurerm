@@ -79,7 +79,7 @@ func dataSourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error: Virtual Machine %q (Resource Group %q) was not found", name, resGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on Virtual Machine %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("making Read request on Virtual Machine %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.SetId(*resp.ID)

@@ -64,7 +64,7 @@ func dataSourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: NetApp Pool %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error reading NetApp Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading NetApp Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)

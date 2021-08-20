@@ -138,7 +138,7 @@ func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		existing, err := client.Get(ctx, resourceGroupName, hostGroupName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
+				return fmt.Errorf("checking for present of existing Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -161,15 +161,15 @@ func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, hostGroupName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
+		return fmt.Errorf("creating Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
+		return fmt.Errorf("waiting for creation of Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroupName, hostGroupName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
+		return fmt.Errorf("retrieving Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
 	}
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read ID for Dedicated Host %q (Host Group Name %q / Resource Group %q)", name, hostGroupName, resourceGroupName)
@@ -198,7 +198,7 @@ func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Dedicated Host Group %q (Resource Group %q): %+v", id.HostGroupName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Dedicated Host Group %q (Resource Group %q): %+v", id.HostGroupName, id.ResourceGroup, err)
 	}
 
 	resp, err := hostsClient.Get(ctx, id.ResourceGroup, id.HostGroupName, id.HostName, "")
@@ -209,7 +209,7 @@ func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -253,10 +253,10 @@ func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.HostGroupName, id.HostName, parameters)
 	if err != nil {
-		return fmt.Errorf("Error updating Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
 	}
 
 	return resourceDedicatedHostRead(d, meta)
@@ -274,12 +274,12 @@ func resourceDedicatedHostDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.HostGroupName, id.HostName)
 	if err != nil {
-		return fmt.Errorf("Error deleting Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for deleting Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
 		}
 	}
 
@@ -295,7 +295,7 @@ func resourceDedicatedHostDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for Dedicated Host %q (Host Group Name %q / Resource Group %q) to become available: %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for Dedicated Host %q (Host Group Name %q / Resource Group %q) to become available: %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -309,7 +309,7 @@ func dedicatedHostDeletedRefreshFunc(ctx context.Context, client *compute.Dedica
 				return "NotFound", "NotFound", nil
 			}
 
-			return nil, "", fmt.Errorf("Error polling to check if the Dedicated Host has been deleted: %+v", err)
+			return nil, "", fmt.Errorf("polling to check if the Dedicated Host has been deleted: %+v", err)
 		}
 
 		return res, "Exists", nil

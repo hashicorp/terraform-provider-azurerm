@@ -94,7 +94,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 		return fmt.Errorf("retrieving Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
 	}
 	if storageAccount.AccountProperties == nil {
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties` was nil", storageAccountID.Name, storageAccountID.ResourceGroup)
+		return fmt.Errorf("retrieving Storage Account %q (Resource Group %q): `properties` was nil", storageAccountID.Name, storageAccountID.ResourceGroup)
 	}
 
 	// since we're mutating the storage account here, we can use that as the ID
@@ -122,7 +122,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 
 	keyVault, err := vaultsClient.Get(ctx, keyVaultID.ResourceGroup, keyVaultID.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", keyVaultID.Name, keyVaultID.ResourceGroup, err)
+		return fmt.Errorf("retrieving Key Vault %q (Resource Group %q): %+v", keyVaultID.Name, keyVaultID.ResourceGroup, err)
 	}
 
 	softDeleteEnabled := false
@@ -173,7 +173,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if _, err = storageClient.Update(ctx, storageAccountID.ResourceGroup, storageAccountID.Name, props); err != nil {
-		return fmt.Errorf("Error updating Customer Managed Key for Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
+		return fmt.Errorf("updating Customer Managed Key for Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
 	}
 
 	d.SetId(resourceID)
@@ -200,10 +200,10 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
+		return fmt.Errorf("retrieving Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
 	}
 	if storageAccount.AccountProperties == nil {
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties` was nil", storageAccountID.Name, storageAccountID.ResourceGroup)
+		return fmt.Errorf("retrieving Storage Account %q (Resource Group %q): `properties` was nil", storageAccountID.Name, storageAccountID.ResourceGroup)
 	}
 	if storageAccount.AccountProperties.Encryption == nil || storageAccount.AccountProperties.Encryption.KeySource != storage.KeySourceMicrosoftKeyvault {
 		log.Printf("[DEBUG] Customer Managed Key was not defined for Storage Account %q (Resource Group %q) - removing from state!", storageAccountID.Name, storageAccountID.ResourceGroup)
@@ -236,12 +236,12 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 	}
 
 	if keyVaultURI == "" {
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties.encryption.keyVaultProperties.keyVaultURI` was nil", storageAccountID.Name, storageAccountID.ResourceGroup)
+		return fmt.Errorf("retrieving Storage Account %q (Resource Group %q): `properties.encryption.keyVaultProperties.keyVaultURI` was nil", storageAccountID.Name, storageAccountID.ResourceGroup)
 	}
 
 	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultURI)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
+		return fmt.Errorf("retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
 	}
 
 	// now we have the key vault uri we can look up the ID
@@ -275,7 +275,7 @@ func resourceStorageAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, m
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
+		return fmt.Errorf("retrieving Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
 	}
 
 	// Since this isn't a real object, just modifying an existing object
@@ -299,7 +299,7 @@ func resourceStorageAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, m
 	}
 
 	if _, err = storageClient.Update(ctx, storageAccountID.ResourceGroup, storageAccountID.Name, props); err != nil {
-		return fmt.Errorf("Error removing Customer Managed Key for Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
+		return fmt.Errorf("removing Customer Managed Key for Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
 	}
 
 	return nil

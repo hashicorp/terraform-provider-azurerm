@@ -128,7 +128,7 @@ func resourceHPCCacheNFSTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta int
 		resp, err := client.Get(ctx, resourceGroup, cache, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for existing HPC Cache NFS Target %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for existing HPC Cache NFS Target %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -151,20 +151,20 @@ func resourceHPCCacheNFSTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta int
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, cache, name, param)
 	if err != nil {
-		return fmt.Errorf("Error creating HPC Cache NFS Target %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating HPC Cache NFS Target %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of HPC Cache NFS Target %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of HPC Cache NFS Target %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, cache, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving HPC Cache NFS Target %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving HPC Cache NFS Target %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Error retrieving HPC Cache NFS Target %q (Resource Group %q): `id` was nil", name, resourceGroup)
+		return fmt.Errorf("retrieving HPC Cache NFS Target %q (Resource Group %q): `id` was nil", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -189,7 +189,7 @@ func resourceHPCCacheNFSTargetRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving HPC Cache NFS Target %q (Resource Group %q, Cache %q): %+v", id.Name, id.ResourceGroup, id.CacheName, err)
+		return fmt.Errorf("retrieving HPC Cache NFS Target %q (Resource Group %q, Cache %q): %+v", id.Name, id.ResourceGroup, id.CacheName, err)
 	}
 
 	d.Set("name", id.Name)
@@ -224,11 +224,11 @@ func resourceHPCCacheNFSTargetDelete(d *pluginsdk.ResourceData, meta interface{}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.CacheName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting HPC Cache NFS Target %q (Resource Group %q, Cahe %q): %+v", id.Name, id.ResourceGroup, id.CacheName, err)
+		return fmt.Errorf("deleting HPC Cache NFS Target %q (Resource Group %q, Cahe %q): %+v", id.Name, id.ResourceGroup, id.CacheName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of HPC Cache NFS Target %q (Resource Group %q, Cahe %q): %+v", id.Name, id.ResourceGroup, id.CacheName, err)
+		return fmt.Errorf("waiting for deletion of HPC Cache NFS Target %q (Resource Group %q, Cahe %q): %+v", id.Name, id.ResourceGroup, id.CacheName, err)
 	}
 
 	return nil

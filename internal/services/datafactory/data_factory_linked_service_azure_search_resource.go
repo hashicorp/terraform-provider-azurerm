@@ -195,7 +195,7 @@ func resourceDataFactoryLinkedServiceAzureSearchRead(d *pluginsdk.ResourceData, 
 
 	linkedService, ok := resp.Properties.AsAzureSearchLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifying %s: Expected: %q", id, datafactory.TypeBasicLinkedServiceTypeAzureSearch)
+		return fmt.Errorf("classifying %s: Expected: %q", id, datafactory.TypeBasicLinkedServiceTypeAzureSearch)
 	}
 
 	if prop := linkedService.AzureSearchLinkedServiceTypeProperties; prop != nil {

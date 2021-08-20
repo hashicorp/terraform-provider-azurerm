@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -424,7 +424,7 @@ func resourceVirtualNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta i
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Virtual Network Gateway %q: %s", id, err)
+				return fmt.Errorf("checking for presence of existing Virtual Network Gateway %q: %s", id, err)
 			}
 		}
 
@@ -454,11 +454,11 @@ func resourceVirtualNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, gateway)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating AzureRM Virtual Network Gateway %q: %+v", id, err)
+		return fmt.Errorf("Creating/Updating AzureRM Virtual Network Gateway %q: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of AzureRM Virtual Network Gateway %q: %+v", id, err)
+		return fmt.Errorf("waiting for completion of AzureRM Virtual Network Gateway %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -482,7 +482,7 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Virtual Network Gateway %q: %+v", id, err)
+		return fmt.Errorf("making Read request on AzureRM Virtual Network Gateway %q: %+v", id, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -511,11 +511,11 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if err := d.Set("ip_configuration", flattenVirtualNetworkGatewayIPConfigurations(gw.IPConfigurations)); err != nil {
-			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
+			return fmt.Errorf("setting `ip_configuration`: %+v", err)
 		}
 
 		if err := d.Set("vpn_client_configuration", flattenVirtualNetworkGatewayVpnClientConfig(gw.VpnClientConfiguration)); err != nil {
-			return fmt.Errorf("Error setting `vpn_client_configuration`: %+v", err)
+			return fmt.Errorf("setting `vpn_client_configuration`: %+v", err)
 		}
 
 		bgpSettings, err := flattenVirtualNetworkGatewayBgpSettings(gw.BgpSettings)
@@ -523,7 +523,7 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 			return err
 		}
 		if err := d.Set("bgp_settings", bgpSettings); err != nil {
-			return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
+			return fmt.Errorf("setting `bgp_settings`: %+v", err)
 		}
 
 		if err := d.Set("custom_route", flattenVirtualNetworkGatewayAddressSpace(gw.CustomRoutes)); err != nil {
@@ -546,11 +546,11 @@ func resourceVirtualNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interfa
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Virtual Network Gateway %q: %+v", id, err)
+		return fmt.Errorf("deleting Virtual Network Gateway %q: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Virtual Network Gateway %q: %+v", id, err)
+		return fmt.Errorf("waiting for deletion of Virtual Network Gateway %q: %+v", id, err)
 	}
 
 	return nil

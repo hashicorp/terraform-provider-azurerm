@@ -318,7 +318,7 @@ func dataSourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Action Group %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error making Read request on Action Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Action Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	d.SetId(*resp.ID)
 
@@ -327,42 +327,42 @@ func dataSourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("enabled", group.Enabled)
 
 		if err = d.Set("email_receiver", flattenMonitorActionGroupEmailReceiver(group.EmailReceivers)); err != nil {
-			return fmt.Errorf("Error setting `email_receiver`: %+v", err)
+			return fmt.Errorf("setting `email_receiver`: %+v", err)
 		}
 
 		if err = d.Set("itsm_receiver", flattenMonitorActionGroupItsmReceiver(group.ItsmReceivers)); err != nil {
-			return fmt.Errorf("Error setting `itsm_receiver`: %+v", err)
+			return fmt.Errorf("setting `itsm_receiver`: %+v", err)
 		}
 
 		if err = d.Set("azure_app_push_receiver", flattenMonitorActionGroupAzureAppPushReceiver(group.AzureAppPushReceivers)); err != nil {
-			return fmt.Errorf("Error setting `azure_app_push_receiver`: %+v", err)
+			return fmt.Errorf("setting `azure_app_push_receiver`: %+v", err)
 		}
 
 		if err = d.Set("sms_receiver", flattenMonitorActionGroupSmsReceiver(group.SmsReceivers)); err != nil {
-			return fmt.Errorf("Error setting `sms_receiver`: %+v", err)
+			return fmt.Errorf("setting `sms_receiver`: %+v", err)
 		}
 
 		if err = d.Set("webhook_receiver", flattenMonitorActionGroupWebHookReceiver(group.WebhookReceivers)); err != nil {
-			return fmt.Errorf("Error setting `webhook_receiver`: %+v", err)
+			return fmt.Errorf("setting `webhook_receiver`: %+v", err)
 		}
 
 		if err = d.Set("automation_runbook_receiver", flattenMonitorActionGroupAutomationRunbookReceiver(group.AutomationRunbookReceivers)); err != nil {
-			return fmt.Errorf("Error setting `automation_runbook_receiver`: %+v", err)
+			return fmt.Errorf("setting `automation_runbook_receiver`: %+v", err)
 		}
 
 		if err = d.Set("voice_receiver", flattenMonitorActionGroupVoiceReceiver(group.VoiceReceivers)); err != nil {
-			return fmt.Errorf("Error setting `voice_receiver`: %+v", err)
+			return fmt.Errorf("setting `voice_receiver`: %+v", err)
 		}
 
 		if err = d.Set("logic_app_receiver", flattenMonitorActionGroupLogicAppReceiver(group.LogicAppReceivers)); err != nil {
-			return fmt.Errorf("Error setting `logic_app_receiver`: %+v", err)
+			return fmt.Errorf("setting `logic_app_receiver`: %+v", err)
 		}
 
 		if err = d.Set("azure_function_receiver", flattenMonitorActionGroupAzureFunctionReceiver(group.AzureFunctionReceivers)); err != nil {
-			return fmt.Errorf("Error setting `azure_function_receiver`: %+v", err)
+			return fmt.Errorf("setting `azure_function_receiver`: %+v", err)
 		}
 		if err = d.Set("arm_role_receiver", flattenMonitorActionGroupRoleReceiver(group.ArmRoleReceivers)); err != nil {
-			return fmt.Errorf("Error setting `arm_role_receiver`: %+v", err)
+			return fmt.Errorf("setting `arm_role_receiver`: %+v", err)
 		}
 	}
 

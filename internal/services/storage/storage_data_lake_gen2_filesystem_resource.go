@@ -34,13 +34,13 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 			storageClients := meta.(*clients.Client).Storage
 			id, err := filesystems.ParseResourceID(d.Id())
 			if err != nil {
-				return []*pluginsdk.ResourceData{d}, fmt.Errorf("Error parsing ID %q for import of Data Lake Gen2 File System: %v", d.Id(), err)
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing ID %q for import of Data Lake Gen2 File System: %v", d.Id(), err)
 			}
 
 			// we then need to look up the Storage Account ID
 			account, err := storageClients.FindAccount(ctx, id.AccountName)
 			if err != nil {
-				return []*pluginsdk.ResourceData{d}, fmt.Errorf("Error retrieving Account %q for Data Lake Gen2 File System %q: %s", id.AccountName, id.DirectoryName, err)
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", id.AccountName, id.DirectoryName, err)
 			}
 			if account == nil {
 				return []*pluginsdk.ResourceData{d}, fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
@@ -124,7 +124,7 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 	aceRaw := d.Get("ace").(*pluginsdk.Set).List()
 	acl, err := ExpandDataLakeGen2AceList(aceRaw)
 	if err != nil {
-		return fmt.Errorf("Error parsing ace list: %s", err)
+		return fmt.Errorf("parsing ace list: %s", err)
 	}
 
 	// confirm the storage account exists, otherwise Data Plane API requests will fail
@@ -134,7 +134,7 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 			return fmt.Errorf("Storage Account %q was not found in Resource Group %q!", storageID.Name, storageID.ResourceGroup)
 		}
 
-		return fmt.Errorf("Error checking for existence of Storage Account %q (Resource Group %q): %+v", storageID.Name, storageID.ResourceGroup, err)
+		return fmt.Errorf("checking for existence of Storage Account %q (Resource Group %q): %+v", storageID.Name, storageID.ResourceGroup, err)
 	}
 
 	if acl != nil && (storageAccount.AccountProperties == nil ||
@@ -152,7 +152,7 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 	resp, err := client.GetProperties(ctx, storageID.Name, fileSystemName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error checking for existence of existing File System %q (Account %q): %+v", fileSystemName, storageID.Name, err)
+			return fmt.Errorf("checking for existence of existing File System %q (Account %q): %+v", fileSystemName, storageID.Name, err)
 		}
 	}
 
@@ -165,7 +165,7 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 		Properties: properties,
 	}
 	if _, err := client.Create(ctx, storageID.Name, fileSystemName, input); err != nil {
-		return fmt.Errorf("Error creating File System %q in Storage Account %q: %s", fileSystemName, storageID.Name, err)
+		return fmt.Errorf("creating File System %q in Storage Account %q: %s", fileSystemName, storageID.Name, err)
 	}
 
 	if acl != nil {
@@ -179,7 +179,7 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 			Group: nil,
 		}
 		if _, err := pathClient.SetAccessControl(ctx, storageID.Name, fileSystemName, "/", accessControlInput); err != nil {
-			return fmt.Errorf("Error setting access control for root path in File System %q in Storage Account %q: %s", fileSystemName, storageID.Name, err)
+			return fmt.Errorf("setting access control for root path in File System %q in Storage Account %q: %s", fileSystemName, storageID.Name, err)
 		}
 	}
 
@@ -207,7 +207,7 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 	aceRaw := d.Get("ace").(*pluginsdk.Set).List()
 	acl, err := ExpandDataLakeGen2AceList(aceRaw)
 	if err != nil {
-		return fmt.Errorf("Error parsing ace list: %s", err)
+		return fmt.Errorf("parsing ace list: %s", err)
 	}
 
 	// confirm the storage account exists, otherwise Data Plane API requests will fail
@@ -217,7 +217,7 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 			return fmt.Errorf("Storage Account %q was not found in Resource Group %q!", storageID.Name, storageID.ResourceGroup)
 		}
 
-		return fmt.Errorf("Error checking for existence of Storage Account %q (Resource Group %q): %+v", storageID.Name, storageID.ResourceGroup, err)
+		return fmt.Errorf("checking for existence of Storage Account %q (Resource Group %q): %+v", storageID.Name, storageID.ResourceGroup, err)
 	}
 
 	if acl != nil && (storageAccount.AccountProperties == nil ||
@@ -234,7 +234,7 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 		Properties: properties,
 	}
 	if _, err = client.SetProperties(ctx, id.AccountName, id.DirectoryName, input); err != nil {
-		return fmt.Errorf("Error updating Properties for File System %q in Storage Account %q: %s", id.DirectoryName, id.AccountName, err)
+		return fmt.Errorf("updating Properties for File System %q in Storage Account %q: %s", id.DirectoryName, id.AccountName, err)
 	}
 
 	if acl != nil {
@@ -248,7 +248,7 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 			Group: nil,
 		}
 		if _, err := pathClient.SetAccessControl(ctx, id.AccountName, id.DirectoryName, "/", accessControlInput); err != nil {
-			return fmt.Errorf("Error setting access control for root path in File System %q in Storage Account %q: %s", id.DirectoryName, id.AccountName, err)
+			return fmt.Errorf("setting access control for root path in File System %q in Storage Account %q: %s", id.DirectoryName, id.AccountName, err)
 		}
 	}
 
@@ -281,7 +281,7 @@ func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta i
 			return nil
 		}
 
-		return fmt.Errorf("Error checking for existence of Storage Account %q for File System %q (Resource Group %q): %+v", storageID.Name, id.DirectoryName, storageID.ResourceGroup, err)
+		return fmt.Errorf("checking for existence of Storage Account %q for File System %q (Resource Group %q): %+v", storageID.Name, id.DirectoryName, storageID.ResourceGroup, err)
 	}
 
 	// TODO: what about when this has been removed?
@@ -293,13 +293,13 @@ func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta i
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving File System %q in Storage Account %q: %+v", id.DirectoryName, id.AccountName, err)
+		return fmt.Errorf("retrieving File System %q in Storage Account %q: %+v", id.DirectoryName, id.AccountName, err)
 	}
 
 	d.Set("name", id.DirectoryName)
 
 	if err := d.Set("properties", resp.Properties); err != nil {
-		return fmt.Errorf("Error setting `properties`: %+v", err)
+		return fmt.Errorf("setting `properties`: %+v", err)
 	}
 
 	var ace []interface{}
@@ -312,7 +312,7 @@ func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta i
 		if err == nil {
 			acl, err := accesscontrol.ParseACL(pathResponse.ACL)
 			if err != nil {
-				return fmt.Errorf("Error parsing response ACL %q: %s", pathResponse.ACL, err)
+				return fmt.Errorf("parsing response ACL %q: %s", pathResponse.ACL, err)
 			}
 			ace = FlattenDataLakeGen2AceList(acl)
 		}
@@ -335,7 +335,7 @@ func resourceStorageDataLakeGen2FileSystemDelete(d *pluginsdk.ResourceData, meta
 	resp, err := client.Delete(ctx, id.AccountName, id.DirectoryName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting File System %q in Storage Account %q: %+v", id.DirectoryName, id.AccountName, err)
+			return fmt.Errorf("deleting File System %q in Storage Account %q: %+v", id.DirectoryName, id.AccountName, err)
 		}
 	}
 

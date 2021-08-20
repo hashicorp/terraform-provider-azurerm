@@ -61,7 +61,7 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 						},
 						"identity_client_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.IsUUID,
 						},
 					},
@@ -224,10 +224,15 @@ func expandApiManagementNamedValueKeyVault(inputs []interface{}) *apimanagement.
 	}
 	input := inputs[0].(map[string]interface{})
 
-	return &apimanagement.KeyVaultContractCreateProperties{
+	result := apimanagement.KeyVaultContractCreateProperties{
 		SecretIdentifier: utils.String(input["secret_id"].(string)),
-		IdentityClientID: utils.String(input["identity_client_id"].(string)),
 	}
+
+	if v := input["identity_client_id"].(string); v != "" {
+		result.IdentityClientID = utils.String(v)
+	}
+
+	return &result
 }
 
 func flattenApiManagementNamedValueKeyVault(input *apimanagement.KeyVaultContractProperties) []interface{} {

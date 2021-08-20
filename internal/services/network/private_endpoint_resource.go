@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -485,9 +485,7 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	log.Printf("[DEBUG] Deleting the Private Endpoint %q / Resource Group %q..", id.Name, id.ResourceGroup)
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
+
 		return fmt.Errorf("deleting Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 

@@ -125,20 +125,20 @@ func resourceMsSqlServerSecurityAlertPolicyCreateUpdate(d *pluginsdk.ResourceDat
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, serverName, *alertPolicy)
 	if err != nil {
-		return fmt.Errorf("error updataing mssql server security alert policy: %v", err)
+		return fmt.Errorf("updataing mssql server security alert policy: %v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("error waiting for creation/update of mssql server security alert policy (server %q, resource group %q): %+v", serverName, resourceGroupName, err)
+		return fmt.Errorf("waiting for creation/update of mssql server security alert policy (server %q, resource group %q): %+v", serverName, resourceGroupName, err)
 	}
 
 	result, err := client.Get(ctx, resourceGroupName, serverName)
 	if err != nil {
-		return fmt.Errorf("error retrieving mssql server security alert policy (server %q, resource group %q): %+v", serverName, resourceGroupName, err)
+		return fmt.Errorf("retrieving mssql server security alert policy (server %q, resource group %q): %+v", serverName, resourceGroupName, err)
 	}
 
 	if result.ID == nil {
-		return fmt.Errorf("error reading mssql server security alert policy id (server %q, resource group %q)", serverName, resourceGroupName)
+		return fmt.Errorf("reading mssql server security alert policy id (server %q, resource group %q)", serverName, resourceGroupName)
 	}
 
 	d.SetId(*result.ID)
@@ -166,7 +166,7 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 			return nil
 		}
 
-		return fmt.Errorf("error making read request to mssql server security alert policy: %+v", err)
+		return fmt.Errorf("making read request to mssql server security alert policy: %+v", err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
@@ -237,15 +237,15 @@ func resourceMsSqlServerSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, met
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, disabledPolicy)
 	if err != nil {
-		return fmt.Errorf("error updataing mssql server security alert policy: %v", err)
+		return fmt.Errorf("updataing mssql server security alert policy: %v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("error waiting for creation/update of mssql server security alert policy (server %q, resource group %q): %+v", id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of mssql server security alert policy (server %q, resource group %q): %+v", id.ServerName, id.ResourceGroup, err)
 	}
 
 	if _, err = client.Get(ctx, id.ResourceGroup, id.ServerName); err != nil {
-		return fmt.Errorf("error deleting mssql server security alert policy: %v", err)
+		return fmt.Errorf("deleting mssql server security alert policy: %v", err)
 	}
 
 	return nil

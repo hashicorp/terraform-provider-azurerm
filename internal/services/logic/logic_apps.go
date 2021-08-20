@@ -111,7 +111,7 @@ func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, resourceGroup, logicAppName, properties); err != nil {
-		return fmt.Errorf("Error updating Logic App Workspace %q (Resource Group %q) for %s %q: %+v", logicAppName, resourceGroup, kind, name, err)
+		return fmt.Errorf("updating Logic App Workspace %q (Resource Group %q) for %s %q: %+v", logicAppName, resourceGroup, kind, name, err)
 	}
 
 	if d.IsNewResource() {
@@ -173,7 +173,7 @@ func resourceLogicAppComponentRemove(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, resourceGroup, logicAppName, properties); err != nil {
-		return fmt.Errorf("Error removing %s %q from Logic App Workspace %q (Resource Group %q): %+v", kind, name, logicAppName, resourceGroup, err)
+		return fmt.Errorf("removing %s %q from Logic App Workspace %q (Resource Group %q): %+v", kind, name, logicAppName, resourceGroup, err)
 	}
 
 	return nil
@@ -183,8 +183,39 @@ func retrieveLogicAppAction(d *pluginsdk.ResourceData, meta interface{}, resourc
 	return retrieveLogicAppComponent(d, meta, resourceGroup, "Action", "actions", logicAppName, name)
 }
 
+func retrieveLogicAppHttpTrigger(d *pluginsdk.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, *string, error) {
+	t, app, err := retrieveLogicAppTrigger(d, meta, resourceGroup, logicAppName, name)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	url, err := retreiveLogicAppTriggerCallbackUrl(d, meta, resourceGroup, logicAppName, name)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	return t, app, url, err
+}
+
 func retrieveLogicAppTrigger(d *pluginsdk.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
 	return retrieveLogicAppComponent(d, meta, resourceGroup, "Trigger", "triggers", logicAppName, name)
+}
+
+func retreiveLogicAppTriggerCallbackUrl(d *pluginsdk.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) (*string, error) {
+	client := meta.(*clients.Client).Logic
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q", logicAppName, resourceGroup, "trigger", name)
+
+	// lock to prevent against Actions, Parameters or Actions conflicting
+	locks.ByName(logicAppName, logicAppResourceName)
+	defer locks.UnlockByName(logicAppName, logicAppResourceName)
+
+	result, err := client.TriggersClient.ListCallbackURL(ctx, resourceGroup, logicAppName, name)
+	if err != nil {
+		return nil, fmt.Errorf("[ERROR] Error getting trigger callback URL (%w)", err)
+	}
+
+	return result.Value, nil
 }
 
 func retrieveLogicAppComponent(d *pluginsdk.ResourceData, meta interface{}, resourceGroup, kind, propertyName, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {

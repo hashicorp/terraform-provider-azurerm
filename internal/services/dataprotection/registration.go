@@ -18,7 +18,9 @@ func (r Registration) WebsiteCategories() []string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{}
+	return map[string]*pluginsdk.Resource{
+		"azurerm_data_protection_backup_vault": dataSourceDataProtectionBackupVault(),
+	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service

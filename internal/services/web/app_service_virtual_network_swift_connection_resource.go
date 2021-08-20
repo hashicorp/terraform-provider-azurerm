@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -56,12 +56,12 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.Re
 
 	appID, err := parse.AppServiceID(d.Get("app_service_id").(string))
 	if err != nil {
-		return fmt.Errorf("Error parsing App Service Resource ID %q", appID)
+		return fmt.Errorf("parsing App Service Resource ID %q", appID)
 	}
 
 	subnetID, err := subnetParse.SubnetID(d.Get("subnet_id").(string))
 	if err != nil {
-		return fmt.Errorf("Error parsing Subnet Resource ID %q", subnetID)
+		return fmt.Errorf("parsing Subnet Resource ID %q", subnetID)
 	}
 
 	resourceGroup := appID.ResourceGroup
@@ -91,9 +91,9 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.Re
 	exists, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(exists.Response) {
-			return fmt.Errorf("Error retrieving existing App Service %q (Resource Group %q): App Service not found in resource group", name, resourceGroup)
+			return fmt.Errorf("retrieving existing App Service %q (Resource Group %q): App Service not found in resource group", name, resourceGroup)
 		}
-		return fmt.Errorf("Error retrieving existing App Service %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("retrieving existing App Service %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	connectionEnvelope := web.SwiftVirtualNetwork{
@@ -102,12 +102,12 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.Re
 		},
 	}
 	if _, err = client.CreateOrUpdateSwiftVirtualNetworkConnectionWithCheck(ctx, resourceGroup, name, connectionEnvelope); err != nil {
-		return fmt.Errorf("Error creating/updating App Service VNet association between %q (Resource Group %q) and Virtual Network %q: %s", name, resourceGroup, virtualNetworkName, err)
+		return fmt.Errorf("creating/updating App Service VNet association between %q (Resource Group %q) and Virtual Network %q: %s", name, resourceGroup, virtualNetworkName, err)
 	}
 
 	read, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving App Service VNet association between %q (Resource Group %q) and Virtual Network %q: %s", name, resourceGroup, virtualNetworkName, err)
+		return fmt.Errorf("retrieving App Service VNet association between %q (Resource Group %q) and Virtual Network %q: %s", name, resourceGroup, virtualNetworkName, err)
 	}
 	d.SetId(*read.ID)
 
@@ -130,7 +130,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionRead(d *pluginsdk.ResourceDa
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving existing App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving existing App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 	}
 	swiftVnet, err := client.GetSwiftVirtualNetworkConnection(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
@@ -138,11 +138,11 @@ func resourceAppServiceVirtualNetworkSwiftConnectionRead(d *pluginsdk.ResourceDa
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving App Service VNet association for %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving App Service VNet association for %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 	}
 
 	if swiftVnet.SwiftVirtualNetworkProperties == nil {
-		return fmt.Errorf("Error retrieving virtual network properties (App Service %q / Resource Group %q): `properties` was nil", id.SiteName, id.ResourceGroup)
+		return fmt.Errorf("retrieving virtual network properties (App Service %q / Resource Group %q): `properties` was nil", id.SiteName, id.ResourceGroup)
 	}
 	props := *swiftVnet.SwiftVirtualNetworkProperties
 	subnetID := props.SubnetResourceID
@@ -167,7 +167,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionDelete(d *pluginsdk.Resource
 
 	subnetID, err := subnetParse.SubnetID(d.Get("subnet_id").(string))
 	if err != nil {
-		return fmt.Errorf("Error parsing Subnet Resource ID %q", subnetID)
+		return fmt.Errorf("parsing Subnet Resource ID %q", subnetID)
 	}
 	subnetName := subnetID.Name
 	virtualNetworkName := subnetID.VirtualNetworkName
@@ -180,10 +180,10 @@ func resourceAppServiceVirtualNetworkSwiftConnectionDelete(d *pluginsdk.Resource
 
 	read, err := client.GetSwiftVirtualNetworkConnection(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("Error making read request on virtual network properties (App Service %q / Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("making read request on virtual network properties (App Service %q / Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 	if read.SwiftVirtualNetworkProperties == nil {
-		return fmt.Errorf("Error retrieving virtual network properties (App Service %q / Resource Group %q): `properties` was nil", id.SiteName, id.ResourceGroup)
+		return fmt.Errorf("retrieving virtual network properties (App Service %q / Resource Group %q): `properties` was nil", id.SiteName, id.ResourceGroup)
 	}
 	props := *read.SwiftVirtualNetworkProperties
 	subnet := props.SubnetResourceID
@@ -195,7 +195,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionDelete(d *pluginsdk.Resource
 	resp, err := client.DeleteSwiftVirtualNetwork(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting virtual network properties (App Service %q / Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting virtual network properties (App Service %q / Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 		}
 	}
 

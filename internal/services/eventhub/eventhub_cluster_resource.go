@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/eventhubsclusters"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/eventhubsclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -28,7 +28,7 @@ func resourceEventHubCluster() *pluginsdk.Resource {
 		Update: resourceEventHubClusterCreateUpdate,
 		Delete: resourceEventHubClusterDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := eventhubsclusters.ClusterID(id)
+			_, err := eventhubsclusters.ParseClusterID(id)
 			return err
 		}),
 
@@ -110,7 +110,7 @@ func resourceEventHubClusterRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := eventhubsclusters.ClusterID(d.Id())
+	id, err := eventhubsclusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	client := meta.(*clients.Client).Eventhub.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := eventhubsclusters.ClusterID(d.Id())
+	id, err := eventhubsclusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
 	}

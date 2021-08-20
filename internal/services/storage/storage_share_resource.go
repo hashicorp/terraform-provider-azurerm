@@ -127,7 +127,7 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Share %q: %s", accountName, shareName, err)
+		return fmt.Errorf("retrieving Account %q for Share %q: %s", accountName, shareName, err)
 	}
 	if account == nil {
 		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
@@ -135,7 +135,7 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	client, err := storageClient.FileSharesClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building File Share Client: %s", err)
+		return fmt.Errorf("building File Share Client: %s", err)
 	}
 
 	id := parse.NewStorageShareDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, shareName).ID()
@@ -232,7 +232,7 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Share %q: %s", id.AccountName, id.Name, err)
+		return fmt.Errorf("retrieving Account %q for Share %q: %s", id.AccountName, id.Name, err)
 	}
 	if account == nil {
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
@@ -240,7 +240,7 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	client, err := storageClient.FileSharesClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building File Share Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
 	}
 
 	if d.HasChange("quota") {
@@ -261,7 +261,7 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		metaData := ExpandMetaData(metaDataRaw)
 
 		if err := client.UpdateMetaData(ctx, account.ResourceGroup, id.AccountName, id.Name, metaData); err != nil {
-			return fmt.Errorf("Error updating MetaData for File Share %q (Storage Account %q): %s", id.Name, id.AccountName, err)
+			return fmt.Errorf("updating MetaData for File Share %q (Storage Account %q): %s", id.Name, id.AccountName, err)
 		}
 
 		log.Printf("[DEBUG] Updated the MetaData for File Share %q (Storage Account %q)", id.Name, id.AccountName)
@@ -274,7 +274,7 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		acls := expandStorageShareACLs(aclsRaw)
 
 		if err := client.UpdateACLs(ctx, account.ResourceGroup, id.AccountName, id.Name, acls); err != nil {
-			return fmt.Errorf("Error updating ACL's for File Share %q (Storage Account %q): %s", id.Name, id.AccountName, err)
+			return fmt.Errorf("updating ACL's for File Share %q (Storage Account %q): %s", id.Name, id.AccountName, err)
 		}
 
 		log.Printf("[DEBUG] Updated the ACL's for File Share %q (Storage Account %q)", id.Name, id.AccountName)

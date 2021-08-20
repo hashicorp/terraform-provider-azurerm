@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -94,7 +93,7 @@ func resourceEventGridSystemTopicCreateUpdate(d *pluginsdk.ResourceData, meta in
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Event Grid System Topic %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Event Grid System Topic %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -157,7 +156,7 @@ func resourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Event Grid System Topic '%s': %+v", id.Name, err)
+		return fmt.Errorf("making Read request on Event Grid System Topic '%s': %+v", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -187,17 +186,11 @@ func resourceEventGridSystemTopicDelete(d *pluginsdk.ResourceData, meta interfac
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error deleting Event Grid System Topic %q: %+v", id.Name, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error deleting Event Grid System Topic %q: %+v", id.Name, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil

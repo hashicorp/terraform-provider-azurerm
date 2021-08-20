@@ -6,8 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -295,7 +294,7 @@ func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if err := d.Set("identity", flattenExpressRoutePortIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("error setting `identity`: %v", err)
+		return fmt.Errorf("setting `identity`: %v", err)
 	}
 	if prop := resp.ExpressRoutePortPropertiesFormat; prop != nil {
 		d.Set("peering_location", prop.PeeringLocation)
@@ -303,13 +302,13 @@ func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("encapsulation", prop.Encapsulation)
 		link1, link2, err := flattenExpressRoutePortLinks(resp.Links)
 		if err != nil {
-			return fmt.Errorf("error flattening links: %v", err)
+			return fmt.Errorf("flattening links: %v", err)
 		}
 		if err := d.Set("link1", link1); err != nil {
-			return fmt.Errorf("error setting `link1`: %v", err)
+			return fmt.Errorf("setting `link1`: %v", err)
 		}
 		if err := d.Set("link2", link2); err != nil {
-			return fmt.Errorf("error setting `link2`: %v", err)
+			return fmt.Errorf("setting `link2`: %v", err)
 		}
 		d.Set("ethertype", prop.EtherType)
 		d.Set("guid", prop.ResourceGUID)
@@ -336,9 +335,7 @@ func resourceArmExpressRoutePortDelete(d *pluginsdk.ResourceData, meta interface
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
+
 		return fmt.Errorf("waiting for deletion of Express Route Port %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 

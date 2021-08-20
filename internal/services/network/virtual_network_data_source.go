@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -100,22 +100,22 @@ func dataSourceVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		if as := props.AddressSpace; as != nil {
 			if err := d.Set("address_space", utils.FlattenStringSlice(as.AddressPrefixes)); err != nil {
-				return fmt.Errorf("error setting `address_space`: %v", err)
+				return fmt.Errorf("setting `address_space`: %v", err)
 			}
 		}
 
 		if options := props.DhcpOptions; options != nil {
 			if err := d.Set("dns_servers", utils.FlattenStringSlice(options.DNSServers)); err != nil {
-				return fmt.Errorf("error setting `dns_servers`: %v", err)
+				return fmt.Errorf("setting `dns_servers`: %v", err)
 			}
 		}
 
 		if err := d.Set("subnets", flattenVnetSubnetsNames(props.Subnets)); err != nil {
-			return fmt.Errorf("error setting `subnets`: %v", err)
+			return fmt.Errorf("setting `subnets`: %v", err)
 		}
 
 		if err := d.Set("vnet_peerings", flattenVnetPeerings(props.VirtualNetworkPeerings)); err != nil {
-			return fmt.Errorf("error setting `vnet_peerings`: %v", err)
+			return fmt.Errorf("setting `vnet_peerings`: %v", err)
 		}
 	}
 	return nil

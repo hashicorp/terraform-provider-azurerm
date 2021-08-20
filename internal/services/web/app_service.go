@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -521,10 +521,9 @@ func schemaAppServiceLogsConfig() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"file_system_level": {
-								Type:          pluginsdk.TypeString,
-								Optional:      true,
-								Default:       "Off",
-								ConflictsWith: []string{"logs.0.http_logs.0.azure_blob_storage"},
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								Default:  "Off",
 								ValidateFunc: validation.StringInSlice([]string{
 									string(web.LogLevelError),
 									string(web.LogLevelInformation),
@@ -1708,8 +1707,7 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 	}
 
 	if v, ok := config["ip_restriction"]; ok {
-		ipSecurityRestrictions := v.(interface{})
-		restrictions, err := expandAppServiceIpRestriction(ipSecurityRestrictions)
+		restrictions, err := expandAppServiceIpRestriction(v)
 		if err != nil {
 			return siteConfig, err
 		}
@@ -1782,8 +1780,7 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 	}
 
 	if v, ok := config["cors"]; ok {
-		corsSettings := v.(interface{})
-		expand := ExpandWebCorsSettings(corsSettings)
+		expand := ExpandWebCorsSettings(v)
 		siteConfig.Cors = &expand
 	}
 
