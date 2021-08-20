@@ -2,6 +2,7 @@ package network
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"net"
 	"strings"
 	"time"
@@ -38,25 +39,28 @@ func dataSourceNetworkServiceTags() *pluginsdk.Resource {
 
 			"address_prefixes": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validate.CIDR,
 				},
 			},
 
 			"ipv4_cidr": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validate.CIDR,
 				},
 			},
 
 			"ipv6_cidr": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validate.CIDR,
 				},
 			},
 		},
