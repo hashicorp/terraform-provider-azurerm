@@ -218,7 +218,7 @@ resource "azurerm_dev_test_global_vm_shutdown_schedule" "test" {
   notification_settings {
     time_in_minutes = 15
     webhook_url     = "https://www.bing.com/2/4"
-    email           = "alerts@devtest.com" 
+    email           = "alerts@devtest.com"
     enabled         = true
   }
 
