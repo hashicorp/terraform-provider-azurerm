@@ -2,7 +2,6 @@ package network
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"net"
 	"strings"
 	"time"
@@ -42,7 +41,6 @@ func dataSourceNetworkServiceTags() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validate.CIDR,
 				},
 			},
 
@@ -51,7 +49,6 @@ func dataSourceNetworkServiceTags() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validate.CIDR,
 				},
 			},
 
@@ -60,7 +57,6 @@ func dataSourceNetworkServiceTags() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validate.CIDR,
 				},
 			},
 		},
