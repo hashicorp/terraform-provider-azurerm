@@ -219,7 +219,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Linux Web App with %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing Linux %s: %+v", id, err)
 			}
 
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -238,7 +238,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
 			if err != nil {
-				return fmt.Errorf("reading App %s: %+v", servicePlanId, err)
+				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
 			}
 			// TODO - Does this change for Private Link?
 			if servicePlan.HostingEnvironmentProfile != nil {
@@ -249,7 +249,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			checkName, err := client.CheckNameAvailability(ctx, availabilityRequest)
 			if err != nil {
-				return fmt.Errorf("checking name availability for %s: %+v", id, err)
+				return fmt.Errorf("checking name availability for Linux %s: %+v", id, err)
 			}
 			if !*checkName.NameAvailable {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *checkName.Message)
@@ -280,11 +280,11 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 			if err != nil {
-				return fmt.Errorf("creating Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("creating Linux %s: %+v", id, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("waiting for creation of Linux %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -292,28 +292,28 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			appSettings := helpers.ExpandAppSettings(webApp.AppSettings)
 			if appSettings.Properties != nil {
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettings); err != nil {
-					return fmt.Errorf("setting App Settings for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("setting App Settings for Linux %s: %+v", id, err)
 				}
 			}
 
 			auth := helpers.ExpandAuthSettings(webApp.AuthSettings)
 			if auth.SiteAuthSettingsProperties != nil {
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *auth); err != nil {
-					return fmt.Errorf("setting Authorisation Settings for %s: %+v", id, err)
+					return fmt.Errorf("setting Authorisation Settings for Linux %s: %+v", id, err)
 				}
 			}
 
 			logsConfig := helpers.ExpandLogsConfig(webApp.LogsConfig)
 			if logsConfig.SiteLogsConfigProperties != nil {
 				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, *logsConfig); err != nil {
-					return fmt.Errorf("setting Diagnostic Logs Configuration for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("setting Diagnostic Logs Configuration for Linux %s: %+v", id, err)
 				}
 			}
 
 			backupConfig := helpers.ExpandBackupConfig(webApp.Backup)
 			if backupConfig.BackupRequestProperties != nil {
 				if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupConfig); err != nil {
-					return fmt.Errorf("adding Backup Settings for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("adding Backup Settings for Linux %s: %+v", id, err)
 				}
 			}
 
@@ -321,7 +321,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			if storageConfig.Properties != nil {
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageConfig); err != nil {
 					if err != nil {
-						return fmt.Errorf("setting Storage Accounts for Linux Web App %s: %+v", id, err)
+						return fmt.Errorf("setting Storage Accounts for Linux %s: %+v", id, err)
 					}
 				}
 			}
@@ -329,7 +329,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			connectionStrings := helpers.ExpandConnectionStrings(webApp.ConnectionStrings)
 			if connectionStrings.Properties != nil {
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStrings); err != nil {
-					return fmt.Errorf("setting Connection Strings for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("setting Connection Strings for Linux %s: %+v", id, err)
 				}
 			}
 
@@ -354,7 +354,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				if utils.ResponseWasNotFound(webApp.Response) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Linux %s: %+v", id, err)
 			}
 
 			if webApp.SiteProperties == nil {
@@ -364,52 +364,52 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			// Despite being part of the defined `Get` response model, site_config is always nil so we get it explicitly
 			webAppSiteConfig, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Site Config for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Site Config for Linux %s: %+v", id, err)
 			}
 
 			auth, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Auth Settings for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Auth Settings for Linux %s: %+v", id, err)
 			}
 
 			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(backup.Response) {
-					return fmt.Errorf("reading Backup Settings for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("reading Backup Settings for Linux %s: %+v", id, err)
 				}
 			}
 
 			logsConfig, err := client.GetDiagnosticLogsConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Diagnostic Logs information for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Diagnostic Logs information for Linux %s: %+v", id, err)
 			}
 
 			appSettings, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading App Settings for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
 			}
 
 			storageAccounts, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Storage Account information for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Storage Account information for Linux %s: %+v", id, err)
 			}
 
 			connectionStrings, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Connection String information for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Connection String information for Linux %s: %+v", id, err)
 			}
 
 			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("listing Site Publishing Credential information for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("listing Site Publishing Credential information for Linux %s: %+v", id, err)
 			}
 
 			if err := siteCredentialsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for Site Publishing Credential information for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("waiting for Site Publishing Credential information for Linux %s: %+v", id, err)
 			}
 			siteCredentials, err := siteCredentialsFuture.Result(*client)
 			if err != nil {
-				return fmt.Errorf("reading Site Publishing Credential information for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Site Publishing Credential information for Linux %s: %+v", id, err)
 			}
 
 			state := LinuxWebAppModel{

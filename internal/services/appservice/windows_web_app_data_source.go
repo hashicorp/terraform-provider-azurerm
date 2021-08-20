@@ -162,64 +162,64 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				if utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("Windows Web App with %s not found", id)
+					return fmt.Errorf("Windows %s not found", id)
 				}
-				return fmt.Errorf("checking for presence of existing Windows Web App with %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
 			}
 
 			webAppSiteConfig, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Site Config for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 			}
 
 			auth, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Auth Settings for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Auth Settings for Windows %s: %+v", id, err)
 			}
 
 			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(backup.Response) {
-					return fmt.Errorf("reading Backup Settings for Windows Web App %s: %+v", id, err)
+					return fmt.Errorf("reading Backup Settings for Windows %s: %+v", id, err)
 				}
 			}
 
 			logsConfig, err := client.GetDiagnosticLogsConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Diagnostic Logs information for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Diagnostic Logs information for Windows %s: %+v", id, err)
 			}
 
 			appSettings, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading App Settings for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
 			}
 
 			storageAccounts, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Storage Account information for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Storage Account information for Windows %s: %+v", id, err)
 			}
 
 			connectionStrings, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Connection String information for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Connection String information for Windows %s: %+v", id, err)
 			}
 
 			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("listing Site Publishing Credential information for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("listing Site Publishing Credential information for Windows %s: %+v", id, err)
 			}
 
 			if err := siteCredentialsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for Site Publishing Credential information for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("waiting for Site Publishing Credential information for Windows %s: %+v", id, err)
 			}
 			siteCredentials, err := siteCredentialsFuture.Result(*client)
 			if err != nil {
-				return fmt.Errorf("reading Site Publishing Credential information for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Site Publishing Credential information for Windows %s: %+v", id, err)
 			}
 
 			siteMetadata, err := client.ListMetadata(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Site Metadata for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Site Metadata for Windows %s: %+v", id, err)
 			}
 
 			webApp.AppSettings = helpers.FlattenAppSettings(appSettings)

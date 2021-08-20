@@ -210,7 +210,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Windows Web App with %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
 			}
 
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -271,18 +271,18 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 			if err != nil {
-				return fmt.Errorf("creating Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("creating Windows %s: %+v", id, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("waiting for creation of Windows %s: %+v", id, err)
 			}
 
 			if currentStack != nil && *currentStack != "" {
 				siteMetadata := web.StringDictionary{Properties: map[string]*string{}}
 				siteMetadata.Properties["CURRENT_STACK"] = currentStack
 				if _, err := client.UpdateMetadata(ctx, id.ResourceGroup, id.SiteName, siteMetadata); err != nil {
-					return fmt.Errorf("setting Site Metadata for Current Stack on Windows Web App %s: %+v", id, err)
+					return fmt.Errorf("setting Site Metadata for Current Stack on Windows %s: %+v", id, err)
 				}
 			}
 
@@ -291,7 +291,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			appSettings := helpers.ExpandAppSettings(webApp.AppSettings)
 			if appSettings != nil {
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettings); err != nil {
-					return fmt.Errorf("setting App Settings for Windows Web App %s: %+v", id, err)
+					return fmt.Errorf("setting App Settings for Windows %s: %+v", id, err)
 				}
 			}
 
@@ -305,14 +305,14 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			logsConfig := helpers.ExpandLogsConfig(webApp.LogsConfig)
 			if logsConfig.SiteLogsConfigProperties != nil {
 				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, *logsConfig); err != nil {
-					return fmt.Errorf("setting Diagnostic Logs Configuration for Windows Web App %s: %+v", id, err)
+					return fmt.Errorf("setting Diagnostic Logs Configuration for Windows %s: %+v", id, err)
 				}
 			}
 
 			backupConfig := helpers.ExpandBackupConfig(webApp.Backup)
 			if backupConfig.BackupRequestProperties != nil {
 				if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupConfig); err != nil {
-					return fmt.Errorf("adding Backup Settings for Windows Web App %s: %+v", id, err)
+					return fmt.Errorf("adding Backup Settings for Windows %s: %+v", id, err)
 				}
 			}
 
@@ -320,7 +320,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			if storageConfig.Properties != nil {
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageConfig); err != nil {
 					if err != nil {
-						return fmt.Errorf("setting Storage Accounts for Windows Web App %s: %+v", id, err)
+						return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
 					}
 				}
 			}
@@ -328,7 +328,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			connectionStrings := helpers.ExpandConnectionStrings(webApp.ConnectionStrings)
 			if connectionStrings.Properties != nil {
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStrings); err != nil {
-					return fmt.Errorf("setting Connection Strings for Windows Web App %s: %+v", id, err)
+					return fmt.Errorf("setting Connection Strings for Windows %s: %+v", id, err)
 				}
 			}
 
@@ -353,67 +353,67 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				if utils.ResponseWasNotFound(webApp.Response) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Windows %s: %+v", id, err)
 			}
 
 			if webApp.SiteProperties == nil {
-				return fmt.Errorf("reading properties of Windows Web App %s", id)
+				return fmt.Errorf("reading properties of Windows %s", id)
 			}
 
 			// Despite being part of the defined `Get` response model, site_config is always nil so we get it explicitly
 			webAppSiteConfig, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Site Config for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
 			}
 
 			auth, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Auth Settings for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Auth Settings for Windows %s: %+v", id, err)
 			}
 
 			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(backup.Response) {
-					return fmt.Errorf("reading Backup Settings for Windows Web App %s: %+v", id, err)
+					return fmt.Errorf("reading Backup Settings for Windows %s: %+v", id, err)
 				}
 			}
 
 			logsConfig, err := client.GetDiagnosticLogsConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Diagnostic Logs information for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Diagnostic Logs information for Windows %s: %+v", id, err)
 			}
 
 			appSettings, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading App Settings for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
 			}
 
 			storageAccounts, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Storage Account information for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Storage Account information for Windows %s: %+v", id, err)
 			}
 
 			connectionStrings, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Connection String information for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Connection String information for Windows %s: %+v", id, err)
 			}
 
 			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("listing Site Publishing Credential information for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("listing Site Publishing Credential information for Windows %s: %+v", id, err)
 			}
 
 			if err := siteCredentialsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for Site Publishing Credential information for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("waiting for Site Publishing Credential information for Windows %s: %+v", id, err)
 			}
 			siteCredentials, err := siteCredentialsFuture.Result(*client)
 			if err != nil {
-				return fmt.Errorf("reading Site Publishing Credential information for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Site Publishing Credential information for Windows %s: %+v", id, err)
 			}
 
 			siteMetadata, err := client.ListMetadata(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Site Metadata for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("reading Site Metadata for Windows %s: %+v", id, err)
 			}
 
 			state := WindowsWebAppModel{
@@ -527,7 +527,7 @@ func (r WindowsWebAppResource) Delete() sdk.ResourceFunc {
 			deleteEmptyServerFarm := false
 			if resp, err := client.Delete(ctx, id.ResourceGroup, id.SiteName, &deleteMetrics, &deleteEmptyServerFarm); err != nil {
 				if !utils.ResponseWasNotFound(resp) {
-					return fmt.Errorf("deleting Windows Web App %s: %+v", id, err)
+					return fmt.Errorf("deleting Windows %s: %+v", id, err)
 				}
 			}
 			return nil
@@ -573,13 +573,13 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 
 			siteConfig, currentStack, err := helpers.ExpandSiteConfigWindows(state.SiteConfig)
 			if err != nil {
-				return fmt.Errorf("expanding Site Config for Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("expanding Site Config for Windows %s: %+v", id, err)
 			}
 
 			site.SiteConfig = siteConfig
 			updateFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, site)
 			if err != nil {
-				return fmt.Errorf("updating Windows Web App %s: %+v", id, err)
+				return fmt.Errorf("updating Windows %s: %+v", id, err)
 			}
 			if err := updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("wating to update %s: %+v", id, err)
@@ -589,7 +589,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				siteMetadata := web.StringDictionary{Properties: map[string]*string{}}
 				siteMetadata.Properties["CURRENT_STACK"] = currentStack
 				if _, err := client.UpdateMetadata(ctx, id.ResourceGroup, id.SiteName, siteMetadata); err != nil {
-					return fmt.Errorf("setting Site Metadata for Current Stack on Windows Web App %s: %+v", id, err)
+					return fmt.Errorf("setting Site Metadata for Current Stack on Windows %s: %+v", id, err)
 				}
 			}
 
@@ -597,21 +597,21 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("app_settings") {
 				appSettingsUpdate := helpers.ExpandAppSettings(state.AppSettings)
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {
-					return fmt.Errorf("updating App Settings for Windows Web App %s: %+v", id, err)
+					return fmt.Errorf("updating App Settings for Windows %s: %+v", id, err)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("connection_string") {
 				connectionStringUpdate := helpers.ExpandConnectionStrings(state.ConnectionStrings)
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStringUpdate); err != nil {
-					return fmt.Errorf("updating Connection Strings for Windows Web App %s: %+v", id, err)
+					return fmt.Errorf("updating Connection Strings for Windows %s: %+v", id, err)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("auth_settings") {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *authUpdate); err != nil {
-					return fmt.Errorf("updating Auth Settings for Windows Web App %s: %+v", id, err)
+					return fmt.Errorf("updating Auth Settings for Windows %s: %+v", id, err)
 				}
 			}
 
@@ -619,11 +619,11 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				backupUpdate := helpers.ExpandBackupConfig(state.Backup)
 				if backupUpdate.BackupRequestProperties == nil {
 					if _, err := client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.SiteName); err != nil {
-						return fmt.Errorf("removing Backup Settings for Windows Web App %s: %+v", id, err)
+						return fmt.Errorf("removing Backup Settings for Windows %s: %+v", id, err)
 					}
 				} else {
 					if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupUpdate); err != nil {
-						return fmt.Errorf("updating Backup Settings for Windows Web App %s: %+v", id, err)
+						return fmt.Errorf("updating Backup Settings for Windows %s: %+v", id, err)
 					}
 				}
 			}
@@ -631,14 +631,14 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("logs") {
 				logsUpdate := helpers.ExpandLogsConfig(state.LogsConfig)
 				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, *logsUpdate); err != nil {
-					return fmt.Errorf("updating Logs Config for Windows Web App %s: %+v", id, err)
+					return fmt.Errorf("updating Logs Config for Windows %s: %+v", id, err)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("storage_account") {
 				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate); err != nil {
-					return fmt.Errorf("updating Storage Accounts for Windows Web App %s: %+v", id, err)
+					return fmt.Errorf("updating Storage Accounts for Windows %s: %+v", id, err)
 				}
 			}
 

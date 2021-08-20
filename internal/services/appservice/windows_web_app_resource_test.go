@@ -795,7 +795,7 @@ func (r WindowsWebAppResource) Exists(ctx context.Context, client *clients.Clien
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Windows Web App %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving Windows %s: %+v", id, err)
 	}
 	if utils.ResponseWasNotFound(resp.Response) {
 		return utils.Bool(false), nil

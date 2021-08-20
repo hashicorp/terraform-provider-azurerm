@@ -161,7 +161,7 @@ func (r AppServicePlanResource) Create() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.ServerfarmName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing Service Plan %s: %v", id, err)
+				return fmt.Errorf("retreiving %s: %v", id, err)
 			}
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
