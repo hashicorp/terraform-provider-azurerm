@@ -1935,9 +1935,11 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		result["acr_user_managed_identity_client_id"] = *input.AcrUserManagedIdentityID
 	}
 
+	vnetRouteAllEnabled := false
 	if input.VnetRouteAllEnabled != nil {
-		result["vnet_route_all_enabled"] = *input.VnetRouteAllEnabled
+		vnetRouteAllEnabled = *input.VnetRouteAllEnabled
 	}
+	result["vnet_route_all_enabled"] = vnetRouteAllEnabled
 
 	return append(results, result)
 }
