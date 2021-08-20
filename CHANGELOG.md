@@ -26,6 +26,8 @@ ENHANCEMENTS:
 * `azurerm_app_service_environment_v3` - updated for GA changes, including support for `internal_load_balancing_mode`, `zone_redundant`, `dedicated_host_count`, and several new exported properties [GH-12932]
 * `azurerm_application_security_group` - refactoring to use an ID Formatter/Parser [GH-13028]
 * `azurerm_data_lake_store` - support for the `identity` block [GH-13050]
+* `azurerm_kubernetes_cluster` - support for the `ultra_ssd_enabled` and `private_cluster_public_fqdn_enabled` properties [GH-12780]
+* `azurerm_kubernetes_cluster_node_pool` - supportfor the `ultra_ssd_enabled` property [GH-12780]
 * `azurerm_logic_app_trigger_http_request` - support for the `callback_url` attribute [GH-13057]
 * `azurerm_netapp_volume` - support for the `snapshot_directory_visible` property [GH-12961]
 * `azurerm_sql_server` - support for configuring `threat_detection_policy` [GH-13048]
