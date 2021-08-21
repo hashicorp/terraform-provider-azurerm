@@ -11,8 +11,8 @@ import (
 
 type BudgetSubscriptionDataSource struct{}
 
-func TestAccBudgetSubscriptionDataSource_current(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_consumption_budget", "current")
+func TestAccBudgetSubscriptionDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_consumption_budget_subscription", "test")
 	r := BudgetSubscriptionDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -20,28 +20,28 @@ func TestAccBudgetSubscriptionDataSource_current(t *testing.T) {
 			Config: r.template(data),
 		},
 		{
-			Config: r.basic(),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("subscription_id").HasValue(data.Client().SubscriptionID),
-				check.That(data.ResourceName).Key("name").HasValue("acctestconsumptionbudget-sub"),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestconsumptionbudget-%d", data.RandomInteger)),
 			),
 		},
 	})
 }
 
-func (d BudgetSubscriptionDataSource) basic() string {
-	return `
+func (d BudgetSubscriptionDataSource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 data "azurerm_subscription" "current" {}
 
-data "azurerm_consumption_budget_subscription" "current" {
-  name            = "acctestconsumptionbudget-sub"
+data "azurerm_consumption_budget_subscription" "test" {
+  name            = "acctestconsumptionbudget-%d"
   subscription_id = data.azurerm_subscription.current.subscription_id
 }
-`
+`, data.RandomInteger)
 }
 
 func (BudgetSubscriptionDataSource) template(data acceptance.TestData) string {
@@ -52,17 +52,9 @@ provider "azurerm" {
 
 data "azurerm_subscription" "current" {}
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-  lifecycle {
-    ignore_changes = [tags]
-  }
-}
-
 resource "azurerm_consumption_budget_subscription" "test" {
-  name              = "acctestconsumptionbudget-sub"
-  resource_group_id = azurerm_resource_group.test.id
+  name            = "acctestconsumptionbudget-%d"
+  subscription_id = data.azurerm_subscription.current.subscription_id
 
   amount     = 1000
   time_grain = "Monthly"
@@ -91,5 +83,5 @@ resource "azurerm_consumption_budget_subscription" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, consumptionBudgetTestStartDate().Format(time.RFC3339))
+`, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))
 }
