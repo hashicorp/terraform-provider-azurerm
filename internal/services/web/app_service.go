@@ -433,6 +433,12 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 				},
 
+				"vnet_route_all_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+
 				"websockets_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -491,11 +497,13 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
+
 				"acr_use_managed_identity_credentials": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
+
 				"acr_user_managed_identity_client_id": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
@@ -776,6 +784,11 @@ func schemaAppServiceDataSourceSiteConfig() *pluginsdk.Schema {
 					Computed: true,
 				},
 
+				"vnet_route_all_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
 				"websockets_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -828,10 +841,12 @@ func schemaAppServiceDataSourceSiteConfig() *pluginsdk.Schema {
 						},
 					},
 				},
+
 				"acr_use_managed_identity_credentials": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
+
 				"acr_user_managed_identity_client_id": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
@@ -1796,6 +1811,10 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 		siteConfig.AcrUserManagedIdentityID = utils.String(v.(string))
 	}
 
+	if v, ok := config["vnet_route_all_enabled"]; ok {
+		siteConfig.VnetRouteAllEnabled = utils.Bool(v.(bool))
+	}
+
 	return siteConfig, nil
 }
 
@@ -1914,6 +1933,12 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	if input.AcrUserManagedIdentityID != nil {
 		result["acr_user_managed_identity_client_id"] = *input.AcrUserManagedIdentityID
 	}
+
+	vnetRouteAllEnabled := false
+	if input.VnetRouteAllEnabled != nil {
+		vnetRouteAllEnabled = *input.VnetRouteAllEnabled
+	}
+	result["vnet_route_all_enabled"] = vnetRouteAllEnabled
 
 	return append(results, result)
 }
