@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -94,6 +95,12 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
+			"activated": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"pipeline_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -127,9 +134,17 @@ func resourceDataFactoryTriggerScheduleCreateUpdate(d *pluginsdk.ResourceData, m
 
 	log.Printf("[INFO] preparing arguments for Data Factory Trigger Schedule creation.")
 
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resourceGroupName := d.Get("resource_group_name").(string)
 	triggerName := d.Get("name").(string)
 	dataFactoryName := d.Get("data_factory_name").(string)
+
+	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewTriggerID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroupName, dataFactoryName, triggerName, "")
@@ -198,6 +213,16 @@ func resourceDataFactoryTriggerScheduleCreateUpdate(d *pluginsdk.ResourceData, m
 
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Data Factory Trigger Schedule %q (Resource Group %q / Data Factory %q) ID", triggerName, resourceGroupName, dataFactoryName)
+	}
+
+	if d.Get("activated").(bool) {
+		future, err := client.Start(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+		if err != nil {
+			return fmt.Errorf("starting %s: %+v", id, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting on start %s: %+v", id, err)
+		}
 	}
 
 	d.SetId(*read.ID)
