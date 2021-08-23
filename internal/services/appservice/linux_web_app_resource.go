@@ -374,7 +374,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			if webApp.SiteProperties == nil {
-				return fmt.Errorf("reading properties of Linux Web App %s", id)
+				return fmt.Errorf("reading properties of Linux %s", id)
 			}
 
 			// Despite being part of the defined `Get` response model, site_config is always nil so we get it explicitly
@@ -437,50 +437,50 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			webAppProps := webApp.SiteProperties
-			if webAppProps.ServerFarmID != nil {
-				state.ServicePlanId = *webAppProps.ServerFarmID
+			if v := webAppProps.ServerFarmID; v != nil {
+				state.ServicePlanId = *v
 			}
 
-			if webAppProps.ClientAffinityEnabled != nil {
-				state.ClientAffinityEnabled = *webAppProps.ClientAffinityEnabled
+			if v := webAppProps.ClientAffinityEnabled; v != nil {
+				state.ClientAffinityEnabled = *v
 			}
 
-			if webAppProps.ClientCertEnabled != nil {
-				state.ClientCertEnabled = *webAppProps.ClientCertEnabled
+			if v := webAppProps.ClientCertEnabled; v != nil {
+				state.ClientCertEnabled = *v
 			}
 
 			if webAppProps.ClientCertMode != "" {
 				state.ClientCertMode = string(webAppProps.ClientCertMode)
 			}
 
-			if webAppProps.Enabled != nil {
-				state.Enabled = *webAppProps.Enabled
+			if v := webAppProps.Enabled; v != nil {
+				state.Enabled = *v
 			}
 
-			if webAppProps.HTTPSOnly != nil {
-				state.HttpsOnly = *webAppProps.HTTPSOnly
+			if v := webAppProps.HTTPSOnly; v != nil {
+				state.HttpsOnly = *v
 			}
 
-			if webAppProps.CustomDomainVerificationID != nil {
-				state.CustomDomainVerificationId = *webAppProps.CustomDomainVerificationID
+			if v := webAppProps.CustomDomainVerificationID; v != nil {
+				state.CustomDomainVerificationId = *v
 			}
 
-			if webAppProps.DefaultHostName != nil {
-				state.DefaultHostname = *webAppProps.DefaultHostName
+			if v := webAppProps.DefaultHostName; v != nil {
+				state.DefaultHostname = *v
 			}
 
-			if webApp.Kind != nil {
-				state.Kind = *webApp.Kind
+			if v := webApp.Kind; v != nil {
+				state.Kind = *v
 			}
 
-			if webAppProps.OutboundIPAddresses != nil {
-				state.OutboundIPAddresses = *webAppProps.OutboundIPAddresses
-				state.OutboundIPAddressList = strings.Split(*webAppProps.OutboundIPAddresses, ",")
+			if v := webAppProps.OutboundIPAddresses; v != nil {
+				state.OutboundIPAddresses = *v
+				state.OutboundIPAddressList = strings.Split(*v, ",")
 			}
 
-			if webAppProps.PossibleOutboundIPAddresses != nil {
-				state.PossibleOutboundIPAddresses = *webAppProps.PossibleOutboundIPAddresses
-				state.PossibleOutboundIPAddressList = strings.Split(*webAppProps.PossibleOutboundIPAddresses, ",")
+			if v := webAppProps.PossibleOutboundIPAddresses; v != nil {
+				state.PossibleOutboundIPAddresses = *v
+				state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
 			}
 
 			if appAuthSettings := helpers.FlattenAuthSettings(auth); appAuthSettings != nil {
@@ -511,16 +511,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				state.ConnectionStrings = appConnectionStrings
 			}
 
-			if userProps := siteCredentials.UserProperties; userProps != nil {
-				siteCredential := helpers.SiteCredential{}
-				if userProps.PublishingUserName != nil {
-					siteCredential.Username = *userProps.PublishingUserName
-				}
-				if userProps.PublishingPassword != nil {
-					siteCredential.Password = *userProps.PublishingPassword
-				}
-				state.SiteCredentials = []helpers.SiteCredential{siteCredential}
-			}
+			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 			return metadata.Encode(&state)
 		},
 	}
@@ -540,10 +531,8 @@ func (r LinuxWebAppResource) Delete() sdk.ResourceFunc {
 
 			deleteMetrics := true
 			deleteEmptyServerFarm := false
-			if resp, err := client.Delete(ctx, id.ResourceGroup, id.SiteName, &deleteMetrics, &deleteEmptyServerFarm); err != nil {
-				if !utils.ResponseWasNotFound(resp) {
-					return fmt.Errorf("deleting Linux Web App %s: %+v", id, err)
-				}
+			if _, err := client.Delete(ctx, id.ResourceGroup, id.SiteName, &deleteMetrics, &deleteEmptyServerFarm); err != nil {
+				return fmt.Errorf("deleting Linux %s: %+v", id, err)
 			}
 			return nil
 		},
@@ -588,13 +577,13 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 
 			siteConfig, err := helpers.ExpandSiteConfigLinux(state.SiteConfig)
 			if err != nil {
-				return fmt.Errorf("expanding Site Config for Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
 			}
 
 			site.SiteConfig = siteConfig
 			updateFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, site)
 			if err != nil {
-				return fmt.Errorf("updating Linux Web App %s: %+v", id, err)
+				return fmt.Errorf("updating Linux %s: %+v", id, err)
 			}
 			if err := updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting to update %s: %+v", id, err)
@@ -604,21 +593,21 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("app_settings") {
 				appSettingsUpdate := helpers.ExpandAppSettings(state.AppSettings)
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {
-					return fmt.Errorf("updating App Settings for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("updating App Settings for Linux %s: %+v", id, err)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("connection_string") {
 				connectionStringUpdate := helpers.ExpandConnectionStrings(state.ConnectionStrings)
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStringUpdate); err != nil {
-					return fmt.Errorf("updating Connection Strings for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("updating Connection Strings for Linux %s: %+v", id, err)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("auth_settings") {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *authUpdate); err != nil {
-					return fmt.Errorf("updating Auth Settings for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
 				}
 			}
 
@@ -626,11 +615,11 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				backupUpdate := helpers.ExpandBackupConfig(state.Backup)
 				if backupUpdate.BackupRequestProperties == nil {
 					if _, err := client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.SiteName); err != nil {
-						return fmt.Errorf("removing Backup Settings for Linux Web App %s: %+v", id, err)
+						return fmt.Errorf("removing Backup Settings for Linux %s: %+v", id, err)
 					}
 				} else {
 					if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupUpdate); err != nil {
-						return fmt.Errorf("updating Backup Settings for Linux Web App %s: %+v", id, err)
+						return fmt.Errorf("updating Backup Settings for Linux %s: %+v", id, err)
 					}
 				}
 			}
@@ -638,14 +627,14 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("logs") {
 				logsUpdate := helpers.ExpandLogsConfig(state.LogsConfig)
 				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, *logsUpdate); err != nil {
-					return fmt.Errorf("updating Logs Config for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("updating Logs Config for Linux %s: %+v", id, err)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("storage_account") {
 				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate); err != nil {
-					return fmt.Errorf("updating Storage Accounts for Linux Web App %s: %+v", id, err)
+					return fmt.Errorf("updating Storage Accounts for Linux %s: %+v", id, err)
 				}
 			}
 

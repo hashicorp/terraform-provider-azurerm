@@ -441,50 +441,50 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			webAppProps := webApp.SiteProperties
-			if webAppProps.ServerFarmID != nil {
-				state.ServicePlanId = *webAppProps.ServerFarmID
+			if v := webAppProps.ServerFarmID; v != nil {
+				state.ServicePlanId = *v
 			}
 
-			if webAppProps.ClientAffinityEnabled != nil {
-				state.ClientAffinityEnabled = *webAppProps.ClientAffinityEnabled
+			if v := webAppProps.ClientAffinityEnabled; v != nil {
+				state.ClientAffinityEnabled = *v
 			}
 
-			if webAppProps.ClientCertEnabled != nil {
-				state.ClientCertEnabled = *webAppProps.ClientCertEnabled
+			if v := webAppProps.ClientCertEnabled; v != nil {
+				state.ClientCertEnabled = *v
 			}
 
 			if webAppProps.ClientCertMode != "" {
 				state.ClientCertMode = string(webAppProps.ClientCertMode)
 			}
 
-			if webAppProps.Enabled != nil {
-				state.Enabled = *webAppProps.Enabled
+			if v := webAppProps.Enabled; v != nil {
+				state.Enabled = *v
 			}
 
-			if webAppProps.HTTPSOnly != nil {
-				state.HttpsOnly = *webAppProps.HTTPSOnly
+			if v := webAppProps.HTTPSOnly; v != nil {
+				state.HttpsOnly = *v
 			}
 
-			if webAppProps.CustomDomainVerificationID != nil {
-				state.CustomDomainVerificationId = *webAppProps.CustomDomainVerificationID
+			if v := webAppProps.CustomDomainVerificationID; v != nil {
+				state.CustomDomainVerificationId = *v
 			}
 
-			if webAppProps.DefaultHostName != nil {
-				state.DefaultHostname = *webAppProps.DefaultHostName
+			if v := webAppProps.DefaultHostName; v != nil {
+				state.DefaultHostname = *v
 			}
 
-			if webApp.Kind != nil {
-				state.Kind = *webApp.Kind
+			if v := webApp.Kind; v != nil {
+				state.Kind = *v
 			}
 
-			if webAppProps.OutboundIPAddresses != nil {
-				state.OutboundIPAddresses = *webAppProps.OutboundIPAddresses
-				state.OutboundIPAddressList = strings.Split(*webAppProps.OutboundIPAddresses, ",")
+			if v := webAppProps.OutboundIPAddresses; v != nil {
+				state.OutboundIPAddresses = *v
+				state.OutboundIPAddressList = strings.Split(*v, ",")
 			}
 
-			if webAppProps.PossibleOutboundIPAddresses != nil {
-				state.PossibleOutboundIPAddresses = *webAppProps.PossibleOutboundIPAddresses
-				state.PossibleOutboundIPAddressList = strings.Split(*webAppProps.PossibleOutboundIPAddresses, ",")
+			if v := webAppProps.PossibleOutboundIPAddresses; v != nil {
+				state.PossibleOutboundIPAddresses = *v
+				state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
 			}
 
 			if appAuthSettings := helpers.FlattenAuthSettings(auth); appAuthSettings != nil {
@@ -541,10 +541,8 @@ func (r WindowsWebAppResource) Delete() sdk.ResourceFunc {
 
 			deleteMetrics := true // TODO - Look at making this a feature flag?
 			deleteEmptyServerFarm := false
-			if resp, err := client.Delete(ctx, id.ResourceGroup, id.SiteName, &deleteMetrics, &deleteEmptyServerFarm); err != nil {
-				if !utils.ResponseWasNotFound(resp) {
-					return fmt.Errorf("deleting Windows %s: %+v", id, err)
-				}
+			if _, err := client.Delete(ctx, id.ResourceGroup, id.SiteName, &deleteMetrics, &deleteEmptyServerFarm); err != nil {
+				return fmt.Errorf("deleting Windows %s: %+v", id, err)
 			}
 			return nil
 		},
