@@ -68,15 +68,16 @@ func resourceSynapsePipeline() *pluginsdk.Resource {
 			},
 
 			"description": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"activities_json": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 
 			"annotations": {
@@ -347,4 +348,8 @@ func serializeSynapsePipelineActivities(activities *[]artifacts.BasicActivity) (
 	}
 
 	return string(activitiesJson), nil
+}
+
+func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceData) bool {
+	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
 }

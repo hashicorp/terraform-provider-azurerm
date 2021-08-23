@@ -229,6 +229,16 @@ resource "azurerm_synapse_pipeline" "test" {
       "variableName": "foo",
       "value": "something"
     }
+  },
+  {
+    "name": "Append variable2",
+    "type": "AppendVariable",
+    "dependsOn": [],
+    "userProperties": [],
+    "typeProperties": {
+      "variableName": "bar",
+      "value": "something1"
+    }
   }
 ]
 JSON
@@ -284,16 +294,6 @@ resource "azurerm_synapse_pipeline" "test" {
 [
   {
     "name": "Append variable1",
-    "type": "AppendVariable",
-    "dependsOn": [],
-    "userProperties": [],
-    "typeProperties": {
-      "variableName": "bob",
-      "value": "something"
-    }
-  },
-  {
-    "name": "Append variable2",
     "type": "AppendVariable",
     "dependsOn": [],
     "userProperties": [],
