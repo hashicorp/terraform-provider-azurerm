@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `integration_account_name` - (Required) The name of the Logic App Integration Account. Changing this forces a new Logic App Integration Account Schema to be created.
 
-* `content` - (Optional) The content of the Logic App Integration Account Schema.
+* `content` - (Required) The content of the Logic App Integration Account Schema.
 
 * `metadata` - (Optional) The metadata of the Logic App Integration Account Schema.
 
