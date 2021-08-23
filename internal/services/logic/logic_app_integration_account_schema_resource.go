@@ -152,8 +152,6 @@ func resourceLogicAppIntegrationAccountSchemaRead(d *pluginsdk.ResourceData, met
 			metadataValue := props.Metadata.(map[string]interface{})
 			metadataStr, _ := pluginsdk.FlattenJsonToString(metadataValue)
 			d.Set("metadata", metadataStr)
-		} else {
-			d.Set("metadata", nil)
 		}
 	}
 
