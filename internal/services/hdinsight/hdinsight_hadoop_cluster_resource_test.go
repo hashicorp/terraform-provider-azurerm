@@ -2189,7 +2189,7 @@ resource "azurerm_active_directory_domain_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   domain_name           = "never.gonna.shut.you.down"
-  sku                   = "Enterprise"
+  sku                   = "Standard"
   filtered_sync_enabled = false
 
   initial_replica_set {
