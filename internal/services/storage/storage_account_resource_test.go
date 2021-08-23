@@ -1029,7 +1029,7 @@ func TestAccStorageAccount_allowSharedKeyAccess(t *testing.T) {
 				check.That(data.ResourceName).Key("account_replication_type").HasValue("LRS"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
-				check.That(data.ResourceName).Key("allow_shared_key_access").HasValue("false"),
+				check.That(data.ResourceName).Key("shared_access_key_enabled").HasValue("false"),
 			),
 		},
 		{
@@ -1040,7 +1040,7 @@ func TestAccStorageAccount_allowSharedKeyAccess(t *testing.T) {
 				check.That(data.ResourceName).Key("account_replication_type").HasValue("LRS"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
-				check.That(data.ResourceName).Key("allow_shared_key_access").HasValue("true"),
+				check.That(data.ResourceName).Key("shared_access_key_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -3012,7 +3012,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  allow_shared_key_access  = false
+  shared_access_key_enabled  = false
 
   tags = {
     environment = "production"
@@ -3040,7 +3040,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  allow_shared_key_access  = true
+  shared_access_key_enabled  = true
 
   tags = {
     environment = "production"

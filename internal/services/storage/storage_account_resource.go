@@ -242,7 +242,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"allow_shared_key_access": {
+			"shared_access_key_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
@@ -922,7 +922,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 	nfsV3Enabled := d.Get("nfsv3_enabled").(bool)
 	allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
-	allowSharedKeyAccess := d.Get("allow_shared_key_access").(bool)
+	allowSharedKeyAccess := d.Get("shared_access_key_enabled").(bool)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
@@ -1165,8 +1165,8 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	allowSharedKeyAccess := true
-	if d.HasChange("allow_shared_key_access") {
-		allowSharedKeyAccess = d.Get("allow_shared_key_access").(bool)
+	if d.HasChange("shared_access_key_enabled") {
+		allowSharedKeyAccess = d.Get("shared_access_key_enabled").(bool)
 
 		// If AllowSharedKeyAccess is nil that breaks the Portal UI as reported in https://github.com/hashicorp/terraform-provider-azurerm/issues/11689
 		// currently the Portal UI reports nil as false, and per the ARM API documentation nil is true. This manifests itself in the Portal UI
@@ -1658,7 +1658,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if props.AllowSharedKeyAccess != nil {
 			allowSharedKeyAccess = *props.AllowSharedKeyAccess
 		}
-		d.Set("allow_shared_key_access", allowSharedKeyAccess)
+		d.Set("shared_access_key_enabled", allowSharedKeyAccess)
 	}
 
 	if accessKeys := keys.Keys; accessKeys != nil {
