@@ -232,8 +232,13 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				webApp.ClientCertMode = string(props.ClientCertMode)
 				webApp.CustomDomainVerificationId = utils.NormalizeNilableString(props.CustomDomainVerificationID)
 				webApp.DefaultHostname = utils.NormalizeNilableString(props.DefaultHostName)
-				webApp.Enabled = *props.Enabled
-				webApp.HttpsOnly = *props.HTTPSOnly
+				if props.Enabled != nil {
+					webApp.Enabled = *props.Enabled
+				}
+				webApp.HttpsOnly = false
+				if props.HTTPSOnly != nil {
+					webApp.HttpsOnly = *props.HTTPSOnly
+				}
 				webApp.ServicePlanId = utils.NormalizeNilableString(props.ServerFarmID)
 				webApp.OutboundIPAddresses = utils.NormalizeNilableString(props.OutboundIPAddresses)
 				webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")

@@ -170,7 +170,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				if utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("Linux Web App with %s not found", id)
+					return fmt.Errorf("Linux %s not found", id)
 				}
 				return fmt.Errorf("retreiving Linux %s: %+v", id, err)
 			}
@@ -230,13 +230,26 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			webApp.Location = location.NormalizeNilable(existing.Location)
 			webApp.Tags = tags.ToTypedObject(existing.Tags)
 			if props := existing.SiteProperties; props != nil {
-				webApp.ClientAffinityEnabled = *props.ClientAffinityEnabled
-				webApp.ClientCertEnabled = *props.ClientCertEnabled
+
+				webApp.ClientAffinityEnabled = false
+				if props.ClientAffinityEnabled != nil {
+					webApp.ClientAffinityEnabled = *props.ClientAffinityEnabled
+				}
+				webApp.ClientCertEnabled = false
+				if props.ClientCertEnabled != nil {
+					webApp.ClientCertEnabled = *props.ClientCertEnabled
+				}
 				webApp.ClientCertMode = string(props.ClientCertMode)
 				webApp.CustomDomainVerificationId = utils.NormalizeNilableString(props.CustomDomainVerificationID)
 				webApp.DefaultHostname = utils.NormalizeNilableString(props.DefaultHostName)
-				webApp.Enabled = *props.Enabled
-				webApp.HttpsOnly = *props.HTTPSOnly
+				webApp.Enabled = false
+				if props.Enabled != nil {
+					webApp.Enabled = *props.Enabled
+				}
+				webApp.HttpsOnly = false
+				if props.HTTPSOnly != nil {
+					webApp.HttpsOnly = *props.HTTPSOnly
+				}
 				webApp.ServicePlanId = utils.NormalizeNilableString(props.ServerFarmID)
 				webApp.OutboundIPAddresses = utils.NormalizeNilableString(props.OutboundIPAddresses)
 				webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")
