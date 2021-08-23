@@ -356,15 +356,8 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
 }
 
-resource "azurerm_subnet" "inbound" {
-  name                 = "inbound"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
-}
-
-resource "azurerm_subnet" "outbound" {
-  name                 = "outbound"
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-subnet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
@@ -380,7 +373,7 @@ resource "azurerm_subnet" "outbound" {
 resource "azurerm_app_service_environment_v3" "test" {
   name                = "acctest-ase-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
-  subnet_id           = azurerm_subnet.outbound.id
+  subnet_id           = azurerm_subnet.test.id
 }
 
 resource "azurerm_service_plan" "test" {
