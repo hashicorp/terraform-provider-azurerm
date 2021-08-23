@@ -19,8 +19,8 @@ func TestAccDataSourceAzureRMServiceTags_basic(t *testing.T) {
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("address_prefixes.#").Exists(),
-				check.That(data.ResourceName).Key("ipv4_cidr.#").Exists(),
-				check.That(data.ResourceName).Key("ipv6_cidr.#").Exists(),
+				check.That(data.ResourceName).Key("ipv4_cidrs.#").Exists(),
+				check.That(data.ResourceName).Key("ipv6_cidrs.#").Exists(),
 			),
 		},
 	})
@@ -35,8 +35,8 @@ func TestAccDataSourceAzureRMServiceTags_region(t *testing.T) {
 			Config: r.region(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("address_prefixes.#").Exists(),
-				check.That(data.ResourceName).Key("ipv4_cidr.#").Exists(),
-				check.That(data.ResourceName).Key("ipv6_cidr.#").Exists(),
+				check.That(data.ResourceName).Key("ipv4_cidrs.#").Exists(),
+				check.That(data.ResourceName).Key("ipv6_cidrs.#").Exists(),
 			),
 		},
 	})

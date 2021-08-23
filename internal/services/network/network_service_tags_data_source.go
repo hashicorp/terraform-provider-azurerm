@@ -44,7 +44,7 @@ func dataSourceNetworkServiceTags() *pluginsdk.Resource {
 				},
 			},
 
-			"ipv4_cidr": {
+			"ipv4_cidrs": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
@@ -52,7 +52,7 @@ func dataSourceNetworkServiceTags() *pluginsdk.Resource {
 				},
 			},
 
-			"ipv6_cidr": {
+			"ipv6_cidrs": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
@@ -117,12 +117,12 @@ func dataSourceNetworkServiceTagsRead(d *pluginsdk.ResourceData, meta interface{
 					}
 				}
 
-				err = d.Set("ipv4_cidr", IPv4)
+				err = d.Set("ipv4_cidrs", IPv4)
 				if err != nil {
 					return fmt.Errorf("setting `ipv4_cidr`: %+v", err)
 				}
 
-				err = d.Set("ipv6_cidr", IPv6)
+				err = d.Set("ipv6_cidrs", IPv6)
 				if err != nil {
 					return fmt.Errorf("setting `ipv6_cidr`: %+v", err)
 				}
