@@ -119,12 +119,12 @@ func dataSourceNetworkServiceTagsRead(d *pluginsdk.ResourceData, meta interface{
 
 				err = d.Set("ipv4_cidrs", IPv4)
 				if err != nil {
-					return fmt.Errorf("setting `ipv4_cidr`: %+v", err)
+					return fmt.Errorf("setting `ipv4_cidrs`: %+v", err)
 				}
 
 				err = d.Set("ipv6_cidrs", IPv6)
 				if err != nil {
-					return fmt.Errorf("setting `ipv6_cidr`: %+v", err)
+					return fmt.Errorf("setting `ipv6_cidrs`: %+v", err)
 				}
 
 				if sti.ID == nil {
