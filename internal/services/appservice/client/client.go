@@ -6,24 +6,29 @@ import (
 )
 
 type Client struct {
-	WebAppsClient     *web.AppsClient
-	ServicePlanClient *web.AppServicePlansClient
-	BaseClient        *web.BaseClient
+	AppServiceEnvironmentClient *web.AppServiceEnvironmentsClient
+	BaseClient                  *web.BaseClient
+	ServicePlanClient           *web.AppServicePlansClient
+	WebAppsClient               *web.AppsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	appServiceClient := web.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&appServiceClient.Client, o.ResourceManagerAuthorizer)
+	appServiceEnvironmentClient := web.NewAppServiceEnvironmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&appServiceEnvironmentClient.Client, o.ResourceManagerAuthorizer)
 
 	baseClient := web.NewWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&baseClient.Client, o.ResourceManagerAuthorizer)
+
+	webAppServiceClient := web.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&webAppServiceClient.Client, o.ResourceManagerAuthorizer)
 
 	servicePlanClient := web.NewAppServicePlansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&servicePlanClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		BaseClient:        &baseClient,
-		ServicePlanClient: &servicePlanClient,
-		WebAppsClient:     &appServiceClient,
+		AppServiceEnvironmentClient: &appServiceEnvironmentClient,
+		BaseClient:                  &baseClient,
+		ServicePlanClient:           &servicePlanClient,
+		WebAppsClient:               &webAppServiceClient,
 	}
 }

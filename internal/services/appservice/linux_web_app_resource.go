@@ -213,6 +213,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppService.WebAppsClient
+			aseClient := metadata.Client.AppService.AppServiceEnvironmentClient
 			servicePlanClient := metadata.Client.AppService.ServicePlanClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
@@ -241,10 +242,26 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
 			}
-			// TODO - Does this change for Private Link?
-			if servicePlan.HostingEnvironmentProfile != nil {
-				// TODO - Check this for Gov / Sovereign cloud
-				availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.appserviceenvironment.net", webApp.Name, servicePlanId.ServerfarmName))
+			if ase := servicePlan.HostingEnvironmentProfile; ase != nil {
+				// Attempt to check the ASE for the appropriate suffix for the name availability request. Not convinced
+				// the `DNSSuffix` field is still valid and possibly should have been deprecated / removed as is legacy
+				// setting from ASEv1? Hence the non-fatal approach here.
+				nameSuffix := "appserviceenvironment.net"
+				if ase.ID != nil {
+					aseId, err := parse.AppServiceEnvironmentID(*ase.ID)
+					if err != nil {
+						metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
+					} else {
+						existingASE, err := aseClient.Get(ctx, aseId.ResourceGroup, aseId.HostingEnvironmentName)
+						if err != nil {
+							metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
+						} else if props := existingASE.AppServiceEnvironment; props != nil && props.DNSSuffix != nil && *props.DNSSuffix != "" {
+							nameSuffix = *props.DNSSuffix
+						}
+					}
+				}
+
+				availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.%s", webApp.Name, servicePlanId.ServerfarmName, nameSuffix))
 				availabilityRequest.IsFqdn = utils.Bool(true)
 			}
 
