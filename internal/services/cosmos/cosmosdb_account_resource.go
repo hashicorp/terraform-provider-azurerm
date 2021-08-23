@@ -107,7 +107,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"enable_free_tier": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 				ForceNew: true,
 			},
 
