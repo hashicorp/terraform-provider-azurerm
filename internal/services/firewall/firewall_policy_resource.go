@@ -670,11 +670,76 @@ func flattenFirewallPolicyIntrusionDetection(input *network.FirewallPolicyIntrus
 		return []interface{}{}
 	}
 
+	signatureOverrides := make([]interface{}, 0)
+	if overrides := input.Configuration.SignatureOverrides; overrides != nil {
+		for _, override := range *overrides {
+			id := ""
+			if override.ID != nil {
+				id = *override.ID
+			}
+			signatureOverrides = append(signatureOverrides, map[string]interface{}{
+				"id":    id,
+				"state": string(override.Mode),
+			})
+		}
+	}
+
+	trafficBypass := make([]interface{}, 0)
+	if bypasses := input.Configuration.BypassTrafficSettings; bypasses != nil {
+		for _, bypass := range *bypasses {
+			name := ""
+			if bypass.Name != nil {
+				name = *bypass.Name
+			}
+
+			description := ""
+			if bypass.Description != nil {
+				description = *bypass.Description
+			}
+
+			sourceAddresses := make([]string, 0)
+			if bypass.SourceAddresses != nil {
+				sourceAddresses = *bypass.SourceAddresses
+			}
+
+			destinationAddresses := make([]string, 0)
+			if bypass.DestinationAddresses != nil {
+				destinationAddresses = *bypass.DestinationAddresses
+			}
+
+			destinationPorts := make([]string, 0)
+			if bypass.DestinationPorts != nil {
+				destinationPorts = *bypass.DestinationPorts
+			}
+
+			sourceIPGroups := make([]string, 0)
+			if bypass.SourceIPGroups != nil {
+				sourceIPGroups = *bypass.SourceIPGroups
+			}
+
+			destinationIPGroups := make([]string, 0)
+			if bypass.DestinationIPGroups != nil {
+				destinationIPGroups = *bypass.DestinationIPGroups
+			}
+
+			trafficBypass = append(trafficBypass, map[string]interface{}{
+				"name":                  name,
+				"description":           description,
+				"protocol":              string(bypass.Protocol),
+				"source_addresses":      sourceAddresses,
+				"destination_addresses": destinationAddresses,
+				"destination_ports":     destinationPorts,
+				"source_ip_groups":      sourceIPGroups,
+				"destination_ip_groups": destinationIPGroups,
+			})
+		}
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"mode":                input.Mode,
-			"signature_overrides": input.Configuration.SignatureOverrides,
-			"traffic_bypass":      input.Configuration.BypassTrafficSettings,
+			"mode":                string(input.Mode),
+			"signature_overrides": signatureOverrides,
+			"traffic_bypass":      trafficBypass,
 		},
 	}
 }
