@@ -333,7 +333,7 @@ resource "azurerm_app_service_environment" "test" {
 }
 
 func (r AppServiceEnvironmentResource) withCertificatePfx(data acceptance.TestData) string {
-	template := r.basic(data)
+	template := r.withAppServicePlan(data)
 	return fmt.Sprintf(`
 %s
 
@@ -343,7 +343,7 @@ resource "azurerm_app_service_certificate" "test" {
   location                       = azurerm_resource_group.test.location
   pfx_blob                       = filebase64("testdata/app_service_certificate.pfx")
   password                       = "terraform"
-  hosting_environment_profile_id = azurerm_app_service_environment.test.id
+  app_service_plan_id            = azurerm_app_service_plan.test.id
 }
 `, template, data.RandomInteger)
 }
