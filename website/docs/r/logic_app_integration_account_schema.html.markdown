@@ -269,7 +269,7 @@ The following arguments are supported:
 
 * `content` - (Required) The content of the Logic App Integration Account Schema.
 
-* `file_name` - (Optional) The file name of the content of the Logic App Integration Account Schema.
+* `file_name` - (Optional) The file name of the Logic App Integration Account Schema.
 
 * `metadata` - (Optional) The metadata of the Logic App Integration Account Schema.
 
