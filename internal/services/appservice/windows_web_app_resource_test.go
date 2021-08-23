@@ -766,6 +766,24 @@ func TestAccWindowsWebApp_withAutoHealRulesStatusCodeRange(t *testing.T) {
 	})
 }
 
+// ASE based tests - Deliberately have longer prefix to make it possible to exclude from testing unrelated changes in the app resource
+// as they take a significant amount of time to execute (anything up to 6h)
+
+func TestAccWindowsWebAppASEV3_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withASEV3(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r WindowsWebAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.WebAppID(state.ID)
 	if err != nil {
@@ -1839,6 +1857,20 @@ resource "azurerm_windows_web_app" "test" {
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)
+}
+
+// Note - this test omits the features block as the referenced template is a complete test on Service Plan
+func (r WindowsWebAppResource) withASEV3(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+}
+`, ServicePlanResource{}.aseV3(data), data.RandomInteger)
 }
 
 // Misc Properties
