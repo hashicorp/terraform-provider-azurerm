@@ -59,6 +59,12 @@ func resourceLogicAppIntegrationAccountSchema() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"file_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"metadata": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
@@ -95,6 +101,10 @@ func resourceLogicAppIntegrationAccountSchemaCreateUpdate(d *pluginsdk.ResourceD
 			Content:     utils.String(d.Get("content").(string)),
 			ContentType: utils.String("application/xml"),
 		},
+	}
+
+	if v, ok := d.GetOk("file_name"); ok {
+		parameters.IntegrationAccountSchemaProperties.FileName = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("metadata"); ok {
@@ -136,6 +146,7 @@ func resourceLogicAppIntegrationAccountSchemaRead(d *pluginsdk.ResourceData, met
 
 	if props := resp.IntegrationAccountSchemaProperties; props != nil {
 		d.Set("content", d.Get("content").(string))
+		d.Set("file_name", d.Get("file_name").(string))
 
 		if props.Metadata != nil {
 			metadataValue := props.Metadata.(map[string]interface{})
