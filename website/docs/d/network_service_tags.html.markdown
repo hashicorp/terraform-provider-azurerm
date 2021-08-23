@@ -23,8 +23,8 @@ output "address_prefixes" {
   value = data.azurerm_network_service_tags.example.address_prefixes
 }
 
-output "ipv4_cidr" {
-  value = data.azurerm_network_service_tags.example.ipv4_cidr
+output "ipv4_cidrs" {
+  value = data.azurerm_network_service_tags.example.ipv4_cidrs
 }
 ```
 
@@ -48,9 +48,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `address_prefixes` - List of address prefixes for the service type (and optionally a specific region).
 
-* `ipv4_cidr` - List of IPv4 addresses for the service type (and optionally a specific region)
+* `ipv4_cidrs` - List of IPv4 addresses for the service type (and optionally a specific region)
 
-* `ipv6_cidr` - List of IPv6 addresses for the service type (and optionally a specific region)
+* `ipv6_cidrs` - List of IPv6 addresses for the service type (and optionally a specific region)
 
 ## Timeouts
 
