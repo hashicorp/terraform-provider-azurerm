@@ -4,6 +4,9 @@ ENHANCEMENTS:
 
 * `azurerm_app_service` - add support for `vnet_route_all_enabled` property [GH-13073]
 
+BUG FIXES:
+* `azurerm_private_dns_a_record` - fix regression in `name` validation and add max recordset limit validation [GH-13093]
+
 ## 2.73.0 (August 20, 2021)
 
 FEATURES:
