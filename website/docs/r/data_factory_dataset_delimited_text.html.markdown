@@ -138,7 +138,7 @@ An `azure_blob_storage_location` block supports the following:
 
 * `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
 
-* `dynamic_filename_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
+* `dynamic_filename_enabled` - (Optional) Is the `filename` using dynamic expression, function or system variables? Defaults to `false`.
 
 ---
 
@@ -152,7 +152,7 @@ A `http_server_location` block supports the following:
 
 * `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
 
-* `dynamic_filename_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
+* `dynamic_filename_enabled` - (Optional) Is the `filename` using dynamic expression, function or system variables? Defaults to `false`.
 
 ## Attributes Reference
 
