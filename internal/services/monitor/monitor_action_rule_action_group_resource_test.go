@@ -166,7 +166,7 @@ resource "azurerm_monitor_action_rule_action_group" "test" {
 
     monitor_service {
       operator = "Equals"
-      values   = ["Data Box Edge", "Data Box Gateway", "Resource Health"]
+      values   = ["Service Health"]
     }
 
     severity {
