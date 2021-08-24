@@ -196,7 +196,7 @@ resource "azurerm_monitor_action_rule_suppression" "test" {
 
     monitor_service {
       operator = "Equals"
-      values   = ["Service Health"]
+      values   = ["ServiceHealth"]
     }
 
     severity {

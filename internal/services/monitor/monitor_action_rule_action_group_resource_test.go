@@ -166,7 +166,7 @@ resource "azurerm_monitor_action_rule_action_group" "test" {
 
     monitor_service {
       operator = "Equals"
-      values   = ["Service Health"]
+      values   = ["ServiceHealth"]
     }
 
     severity {
