@@ -111,10 +111,10 @@ func (r RelayHybridConnectionAuthorizationRuleResource) requiresImport(data acce
 %s
 
 resource "azurerm_relay_hybrid_connection_authorization_rule" "import" {
-  name                  = azurerm_relay_hybrid_connection_authorization_rule.test.name
-  namespace_name        = azurerm_relay_hybrid_connection_authorization_rule.test.namespace_name
+  name                   = azurerm_relay_hybrid_connection_authorization_rule.test.name
+  namespace_name         = azurerm_relay_hybrid_connection_authorization_rule.test.namespace_name
   hybrid_connection_name = azurerm_relay_hybrid_connection_authorization_rule.test.hybrid_connection_name
-  resource_group_name   = azurerm_relay_hybrid_connection_authorization_rule.test.resource_group_name
+  resource_group_name    = azurerm_relay_hybrid_connection_authorization_rule.test.resource_group_name
 
   listen = azurerm_relay_hybrid_connection_authorization_rule.test.listen
   send   = azurerm_relay_hybrid_connection_authorization_rule.test.send

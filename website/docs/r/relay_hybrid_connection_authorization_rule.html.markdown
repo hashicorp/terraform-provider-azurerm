@@ -13,10 +13,37 @@ Manages an Azure Relay Hybrid Connection Authorization Rule.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_relay_namespace" "example" {
+  name                = "example-relay"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  sku_name = "Standard"
+
+  tags = {
+    source = "terraform"
+  }
+}
+
+resource "azurerm_relay_hybrid_connection" "example" {
+  name                          = "acctestrnhc-%d"
+  resource_group_name           = azurerm_resource_group.example.name
+  relay_namespace_name          = azurerm_relay_namespace.example.name
+  requires_client_authorization = false
+  user_metadata                 = "testmetadata"
+}
+
 resource "azurerm_relay_hybrid_connection_authorization_rule" "example" {
-  name                = "example"
-  resource_group_name = "example"
-  namespace_name      = "example"
+  name                   = "example"
+  resource_group_name    = azurerm_resource_group.example.name
+  hybrid_connection_name = azurerm_relay_hybrid_connection.example.name
+  namespace_name         = azurerm_relay_namespace.example.name
+
 
   listen = true
   send   = true
