@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -116,7 +116,7 @@ func dataSourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta
 	}
 
 	d.Set("description", resp.Description)
-	if resp.Enabled == insights.True {
+	if resp.Enabled == insights.EnabledTrue {
 		d.Set("enabled", true)
 	} else {
 		d.Set("enabled", false)
