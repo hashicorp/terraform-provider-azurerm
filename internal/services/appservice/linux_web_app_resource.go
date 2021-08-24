@@ -51,7 +51,6 @@ type LinuxWebAppModel struct {
 	SiteCredentials               []helpers.SiteCredential   `tfschema:"site_credential"`
 }
 
-var _ sdk.Resource = LinuxWebAppResource{}
 var _ sdk.ResourceWithUpdate = LinuxWebAppResource{}
 
 // TODO - Feature: Deployments (Preview)?

@@ -50,7 +50,6 @@ type WindowsWebAppModel struct {
 	Tags                          map[string]string           `tfschema:"tags"`
 }
 
-var _ sdk.Resource = WindowsWebAppResource{}
 var _ sdk.ResourceWithUpdate = WindowsWebAppResource{}
 
 // TODO - Feature: Deployments (Preview)?
