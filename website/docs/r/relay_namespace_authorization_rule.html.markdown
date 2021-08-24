@@ -3,7 +3,7 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_relay_namespace_authorization_rule"
 description: |-
-  Manages a Azure Relay Namespace Authorization Rule.
+  Manages an Azure Relay Namespace Authorization Rule.
 ---
 
 # azurerm_relay_namespace_authorization_rule

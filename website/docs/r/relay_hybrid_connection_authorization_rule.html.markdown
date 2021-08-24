@@ -99,5 +99,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Azure Relay Hybrid Connection Authorization Rules can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_relay_hybrid_connection_authorization_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Relay/namespaces/namespace1/authorizationRules/rule1
+terraform import azurerm_relay_hybrid_connection_authorization_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Relay/namespaces/namespace1/hybridConnections/connection1/authorizationRules/rule1
 ```
