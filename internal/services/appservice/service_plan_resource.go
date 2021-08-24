@@ -21,7 +21,6 @@ import (
 
 type AppServicePlanResource struct{}
 
-var _ sdk.Resource = AppServicePlanResource{}
 var _ sdk.ResourceWithUpdate = AppServicePlanResource{}
 
 type OSType string
@@ -84,8 +83,7 @@ func (r AppServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"os_type": {
 			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(OSTypeWindows),
+			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(OSTypeLinux),
 				string(OSTypeWindows),

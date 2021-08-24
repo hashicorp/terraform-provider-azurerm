@@ -173,6 +173,7 @@ resource "azurerm_service_plan" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "B1"
+  os_type             = "Windows"
 
   tags = {
     environment = "AccTest"
@@ -248,6 +249,7 @@ resource "azurerm_service_plan" "import" {
   resource_group_name = azurerm_service_plan.test.resource_group_name
   location            = azurerm_service_plan.test.location
   sku_name            = azurerm_service_plan.test.sku_name
+  os_type             = azurerm_service_plan.test.os_type
 }
 `, r.basic(data))
 }
@@ -320,6 +322,7 @@ resource "azurerm_service_plan" "test" {
   name                = "acctest-SP-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  os_type             = "Windows"
   sku_name            = "I1"
 
   app_service_environment_id = azurerm_app_service_environment.test.id
@@ -380,6 +383,7 @@ resource "azurerm_service_plan" "test" {
   name                = "acctest-SP-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  os_type             = "Windows"
   sku_name            = "I1v2"
 
   app_service_environment_id = azurerm_app_service_environment_v3.test.id

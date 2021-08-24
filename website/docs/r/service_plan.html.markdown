@@ -40,6 +40,8 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Service Plan should exist. Changing this forces a new AppService to be created.
 
+* `os_type` - (Required) The O/S type for the App Services to be hosted in this plan. Possible values include `Windows`, `Linux`, and `WindowsContainer`.
+
 * `resource_group_name` - (Required) The name of the Resource Group where the AppService should exist. Changing this forces a new AppService to be created.
 
 * `sku_name` - (Required) The SKU for the plan. Possible values include `B1`, `B2`, `B3`, `D1`, `F1`, `FREE`, `I1`, `I2`, `I3`, `I1v2`, `I2v2`, `I3v2`, `P1v2`, `P2v2`, `P3v2`, `P1v3`, `P2v3`, `P3v3`, `S1`, `S2`, `S3`, `SHARED`, `PC2`, `PC3`, `PC4`, `EP1`, `EP2`, and `EP3`. 
@@ -57,8 +59,6 @@ The following arguments are supported:
 * `maximum_elastic_worker_count` - (Optional) The maximum number of workers to use in an Elastic SKU Plan. Cannot be set unless using an Elastic SKU.
 
 * `number_of_workers` - (Optional) The number of Workers (instances) to be allocated. 
-
-* `os_type` - (Optional) The O/S type for the App Services to be hosted in this plan. Possible values include `Windows` (default), `Linux`, and `WindowsContainer`.
 
 * `per_site_scaling_enabled` - (Optional) Should Per Site Scaling be enabled. Defaults to `false`.
 

@@ -837,6 +837,7 @@ resource "azurerm_service_plan" "test2" {
   name                = "acctestASP2-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
   sku_name            = "S1"
 
 }
@@ -1917,6 +1918,7 @@ resource "azurerm_service_plan" "test" {
   name                = "acctestASP-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
   sku_name            = "S1"
 
 }
