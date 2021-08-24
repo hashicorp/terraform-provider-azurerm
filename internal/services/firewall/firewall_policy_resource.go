@@ -200,7 +200,7 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 											string(network.FirewallPolicyIntrusionDetectionProtocolANY),
 											string(network.FirewallPolicyIntrusionDetectionProtocolTCP),
 											string(network.FirewallPolicyIntrusionDetectionProtocolUDP),
-										}, false),
+										}, true),
 									},
 									"source_addresses": {
 										Type:     pluginsdk.TypeSet,
