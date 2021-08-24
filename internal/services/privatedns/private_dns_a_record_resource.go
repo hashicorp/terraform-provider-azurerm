@@ -7,9 +7,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -40,7 +40,7 @@ func resourcePrivateDnsARecord() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				// lower-cased due to the broken API https://github.com/Azure/azure-rest-api-specs/issues/6641
-				ValidateFunc: validate.PrivateDnsARecordName,
+				ValidateFunc: validate.LowerCasedString,
 			},
 
 			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/6641
@@ -54,6 +54,7 @@ func resourcePrivateDnsARecord() *pluginsdk.Resource {
 			"records": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
+				MaxItems: 20,
 				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Set:      pluginsdk.HashString,
 			},

@@ -179,7 +179,7 @@ func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta interf
 		table.CassandraTableCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
 	}
 
-	future, err := client.CreateUpdateCassandraTable(ctx, id.ResourceGroup, id.DatabaseAccountName, id.DatabaseAccountName, id.TableName, table)
+	future, err := client.CreateUpdateCassandraTable(ctx, id.ResourceGroup, id.DatabaseAccountName, id.CassandraKeyspaceName, id.TableName, table)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
