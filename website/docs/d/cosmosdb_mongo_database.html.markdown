@@ -14,9 +14,9 @@ Use this data source to access information about an existing Cosmos DB Mongo Dat
 
 ```hcl
 data "azurerm_cosmosdb_mongo_database" "example" {
-  name = "test-cosmosdb-mongo-db"
+  name                = "test-cosmosdb-mongo-db"
   resource_group_name = "test-cosmosdb-account-rg"
-  account_name = "test-cosmosdb-account"
+  account_name        = "test-cosmosdb-account"
 }
 
 output "id" {
