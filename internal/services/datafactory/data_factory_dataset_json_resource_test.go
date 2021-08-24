@@ -154,9 +154,11 @@ resource "azurerm_data_factory_dataset_json" "test" {
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
   http_server_location {
-    relative_url = "/fizz/buzz/"
-    path         = "foo/bar/"
-    filename     = "foo.json"
+    relative_url             = "/fizz/buzz/"
+    path                     = "@concat('foo/bar/',formatDateTime(convertTimeZone(utcnow(),'UTC','W. Europe Standard Time'),'yyyy-MM-dd'))"
+    dynamic_path_enabled     = true
+    filename                 = "@concat('foo', '.json')"
+    dynamic_filename_enabled = true
   }
 
   encoding = "UTF-8"
@@ -314,8 +316,10 @@ resource "azurerm_data_factory_dataset_json" "test" {
 
   azure_blob_storage_location {
     container = azurerm_storage_container.test.name
-    path      = "foo/bar/"
-    filename  = "foo.txt"
+    path                     = "@concat('foo/bar/',formatDateTime(convertTimeZone(utcnow(),'UTC','W. Europe Standard Time'),'yyyy-MM-dd'))"
+    dynamic_path_enabled     = true
+    filename                 = "foo.json"
+    dynamic_filename_enabled = false
   }
 
   encoding = "UTF-8"
