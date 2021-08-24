@@ -528,7 +528,7 @@ func (r LinuxWebAppResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s", id)
+			metadata.Logger.Infof("deleting %s", *id)
 
 			deleteMetrics := true
 			deleteEmptyServerFarm := false
