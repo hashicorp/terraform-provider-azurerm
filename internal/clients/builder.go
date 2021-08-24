@@ -141,7 +141,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		TokenFunc: func(endpoint string) (autorest.Authorizer, error) {
 			authorizer, err := builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, endpoint)
 			if err != nil {
-				return nil, fmt.Errorf("unable to get authorization token for endpoint %s: %+v", endpoint, err)
+				return nil, fmt.Errorf("getting authorization token for endpoint %s: %+v", endpoint, err)
 			}
 			return authorizer, nil
 		},
