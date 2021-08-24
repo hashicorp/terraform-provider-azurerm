@@ -106,7 +106,7 @@ func (r AppServicePlanDataSource) Read() sdk.ResourceFunc {
 				if utils.ResponseWasNotFound(existing.Response) {
 					return fmt.Errorf("%s not found", id)
 				}
-				return fmt.Errorf("reading %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			servicePlan.Location = location.NormalizeNilable(existing.Location)
@@ -128,12 +128,18 @@ func (r AppServicePlanDataSource) Read() sdk.ResourceFunc {
 					servicePlan.OSType = OSTypeLinux
 				}
 
-				if props.HostingEnvironmentProfile != nil {
+				if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.ID != nil {
 					servicePlan.AppServiceEnvironmentId = utils.NormalizeNilableString(props.HostingEnvironmentProfile.ID)
 				}
 
-				servicePlan.PerSiteScaling = *props.PerSiteScaling
-				servicePlan.Reserved = *props.Reserved
+				if v := props.PerSiteScaling; v != nil {
+					servicePlan.PerSiteScaling = *v
+				}
+
+				if v := props.Reserved; v != nil {
+					servicePlan.Reserved = *v
+				}
+
 				servicePlan.MaximumElasticWorkerCount = int(utils.NormaliseNilableInt32(props.MaximumElasticWorkerCount))
 			}
 			servicePlan.Tags = tags.ToTypedObject(existing.Tags)

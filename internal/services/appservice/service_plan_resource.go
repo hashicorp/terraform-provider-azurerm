@@ -19,6 +19,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+/*
+ TODO - Should this resource be split into the O/S variants for clarity of purpose?
+*/
+
 type AppServicePlanResource struct{}
 
 var _ sdk.ResourceWithUpdate = AppServicePlanResource{}
@@ -84,6 +88,7 @@ func (r AppServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 		"os_type": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(OSTypeLinux),
 				string(OSTypeWindows),
@@ -263,8 +268,13 @@ func (r AppServicePlanResource) Read() sdk.ResourceFunc {
 					state.AppServiceEnvironmentId = *ase.ID
 				}
 
-				state.PerSiteScaling = *props.PerSiteScaling
-				state.Reserved = *props.Reserved
+				if v := props.PerSiteScaling; v != nil {
+					state.PerSiteScaling = *v
+				}
+
+				if v := props.Reserved; v != nil {
+					state.Reserved = *v
+				}
 
 				state.MaximumElasticWorkerCount = int(utils.NormaliseNilableInt32(props.MaximumElasticWorkerCount))
 			}
@@ -316,31 +326,33 @@ func (r AppServicePlanResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			appServicePlan := web.AppServicePlan{
-				AppServicePlanProperties: &web.AppServicePlanProperties{
-					PerSiteScaling: utils.Bool(state.PerSiteScaling),
-					Reserved:       utils.Bool(state.OSType == OSTypeLinux),
-					HyperV:         utils.Bool(state.OSType == OSTypeWindowsContainer),
-				},
-				Sku: &web.SkuDescription{
-					Name: utils.String(state.Sku),
-				},
-				Location: utils.String(location.Normalize(state.Location)),
-				Tags:     tags.FromTypedObject(state.Tags),
+			existing, err := client.Get(ctx, id.ResourceGroup, id.ServerfarmName)
+			if err != nil {
+				return fmt.Errorf("reading %s: %+v", id, err)
 			}
 
-			if state.NumberOfWorkers != 0 {
-				appServicePlan.Sku.Capacity = utils.Int32(int32(state.NumberOfWorkers))
+			if metadata.ResourceData.HasChange("per_site_scaling_enabled") {
+				existing.AppServicePlanProperties.PerSiteScaling = utils.Bool(state.PerSiteScaling)
+			}
+			if metadata.ResourceData.HasChange("sku_name") {
+				existing.Sku.Name = utils.String(state.Sku)
+			}
+			if metadata.ResourceData.HasChange("tags") {
+				existing.Tags = tags.FromTypedObject(state.Tags)
 			}
 
-			if state.MaximumElasticWorkerCount != 0 {
+			if metadata.ResourceData.HasChange("number_of_workers") {
+				existing.Sku.Capacity = utils.Int32(int32(state.NumberOfWorkers))
+			}
+
+			if metadata.ResourceData.HasChange("maximum_elastic_worker_count") {
 				if metadata.ResourceData.HasChange("maximum_elastic_worker_count") && !strings.HasPrefix(state.Sku, "EP") && !strings.HasPrefix(state.Sku, "PC") {
 					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus")
 				}
-				appServicePlan.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(state.MaximumElasticWorkerCount))
+				existing.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(state.MaximumElasticWorkerCount))
 			}
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerfarmName, appServicePlan)
+			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerfarmName, existing)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
