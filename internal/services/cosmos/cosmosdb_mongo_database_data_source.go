@@ -52,9 +52,9 @@ func dataSourceCosmosDbMongoDatabaseRead(d *pluginsdk.ResourceData, meta interfa
 	resp, err := client.GetMongoDBDatabase(ctx, resourceGroup, account, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Cosmos Mongo Database %q (Account Name %q) was not found", name, account)
+			return fmt.Errorf("Error: Cosmos DB Mongo Database %q (Account Name %q) was not found", name, account)
 		}
-		return fmt.Errorf("making Read request on AzureRM Cosmos Mongo Database %s (Account Name %q): %+v", name, account, err)
+		return fmt.Errorf("making Read request on AzureRM Cosmos DB Mongo Database %s (Account Name %q): %+v", name, account, err)
 	}
 
 	d.SetId(*resp.ID)
