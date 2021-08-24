@@ -58,6 +58,7 @@ func dataSourceCosmosDbMongoDatabaseRead(d *pluginsdk.ResourceData, meta interfa
 
 	d.SetId(*resp.ID)
 	d.Set("name", resp.Name)
+	d.Set("account_name", account)
 	d.Set("resource_group_name", resourceGroup)
 
 	return tags.FlattenAndSet(d, resp.Tags)
