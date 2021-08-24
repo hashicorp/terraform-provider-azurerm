@@ -243,12 +243,13 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
 			}
 			if ase := servicePlan.HostingEnvironmentProfile; ase != nil {
-				// Attempt to check the ASE for the appropriate suffix for the name availability request. Not convinced
-				// the `DNSSuffix` field is still valid and possibly should have been deprecated / removed as is legacy
-				// setting from ASEv1? Hence the non-fatal approach here.
+				// Attempt to check the ASE for the appropriate suffix for the name availability request.
+				// This varies between internal and external ASE Types, and potentially has other names in other clouds
+				// We use the "internal" as the fallback here, if we can read the ASE, we'll get the full one
 				nameSuffix := "appserviceenvironment.net"
 				if ase.ID != nil {
 					aseId, err := parse.AppServiceEnvironmentID(*ase.ID)
+					nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
 					if err != nil {
 						metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
 					} else {
@@ -261,7 +262,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 					}
 				}
 
-				availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.%s", webApp.Name, servicePlanId.ServerfarmName, nameSuffix))
+				availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s", webApp.Name, nameSuffix))
 				availabilityRequest.IsFqdn = utils.Bool(true)
 			}
 

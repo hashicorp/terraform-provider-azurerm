@@ -47,6 +47,8 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Linux Web App. Changing this forces a new Linux Web App to be created.
 
+~> **NOTE:** Terraform will perform a name availability check as part of the creation progress, if this Web App is part of an App Service Environment terraform will require Read permission on the ASE for this to complete reliably.
+
 * `resource_group_name` - (Required) The name of the Resource Group where the Linux Web App should exist. Changing this forces a new Linux Web App to be created.
 
 * `service_plan_id` - (Required) The ID of the Service Plan that this Linux App Service will be created in.

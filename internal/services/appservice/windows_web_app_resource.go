@@ -239,6 +239,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				nameSuffix := "appserviceenvironment.net"
 				if ase.ID != nil {
 					aseId, err := parse.AppServiceEnvironmentID(*ase.ID)
+					nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
 					if err != nil {
 						metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
 					} else {
