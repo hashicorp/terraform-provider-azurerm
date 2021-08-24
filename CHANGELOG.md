@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `azurerm_app_service` - add support for `vnet_route_all_enabled` property [GH-13073]
+* `azurerm_storage_account` - add support for `shared_key_access_enabled` property [GH-13014]
 
 BUG FIXES:
 
