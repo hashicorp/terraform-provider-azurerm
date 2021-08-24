@@ -97,6 +97,7 @@ func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
 						"dynamic_path_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
@@ -106,6 +107,7 @@ func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
 						"dynamic_filename_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -168,6 +170,7 @@ func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
 						"dynamic_path_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
@@ -177,6 +180,7 @@ func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
 						"dynamic_filename_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 					},
 				},

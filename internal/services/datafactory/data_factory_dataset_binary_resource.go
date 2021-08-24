@@ -81,6 +81,7 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 						"dynamic_path_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
@@ -90,6 +91,7 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 						"dynamic_filename_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -110,6 +112,7 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 						"dynamic_path_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 						"filename": {
 							Type:     pluginsdk.TypeString,
@@ -118,6 +121,7 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 						"dynamic_filename_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -144,6 +148,7 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 						"dynamic_path_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
@@ -153,6 +158,7 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 						"dynamic_filename_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 					},
 				},

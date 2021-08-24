@@ -81,6 +81,7 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 						"dynamic_path_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
@@ -90,6 +91,7 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 						"dynamic_filename_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -117,6 +119,7 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 						"dynamic_path_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
@@ -126,6 +129,7 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 						"dynamic_filename_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 					},
 				},
