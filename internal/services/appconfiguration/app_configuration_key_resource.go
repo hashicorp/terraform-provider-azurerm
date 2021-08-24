@@ -166,7 +166,7 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 			}
 
 			if len(res.Values()) > 1 {
-				return fmt.Errorf("unexpected API response. More than one value returne for Key/Label pair %s/%s", resourceID.Key, resourceID.Label)
+				return fmt.Errorf("unexpected API response. More than one value returned for Key/Label pair %s/%s", resourceID.Key, resourceID.Label)
 			}
 
 			kv := res.Values()[0]
