@@ -1322,7 +1322,7 @@ data "azurerm_client_config" "current" {
 resource "azuread_application" "cluster_explorer" {
   name                       = "${azurerm_resource_group.test.name}-explorer-AAD"
   homepage                   = "https://example:19080/Explorer/index.html"
-  identifier_uris            = ["https://example:19080/Explorer/index.html"]
+  identifier_uris            = ["https://example%d:19080/Explorer/index.html"]
   reply_urls                 = ["https://example:19080/Explorer/index.html"]
   available_to_other_tenants = false
   oauth2_allow_implicit_flow = true
@@ -1411,7 +1411,7 @@ resource "azurerm_service_fabric_cluster" "test" {
     http_endpoint_port   = 19080
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r ServiceFabricClusterResource) azureActiveDirectoryDelete(data acceptance.TestData) string {
