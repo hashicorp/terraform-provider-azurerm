@@ -346,17 +346,15 @@ func (FirewallPolicyResource) templatePremium(data acceptance.TestData) string {
 provider "azurerm" {
   features {}
 }
+
 data "azurerm_client_config" "current" {
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-networkfw-%d"
   location = "%s"
-  lifecycle {
-    ignore_changes = [
-      tags
-    ]
-  }
 }
+
 resource "azurerm_key_vault" "test" {
   name                            = "tlskv%d"
   location                        = azurerm_resource_group.test.location
@@ -366,12 +364,8 @@ resource "azurerm_key_vault" "test" {
   enabled_for_template_deployment = true
   tenant_id                       = data.azurerm_client_config.current.tenant_id
   sku_name                        = "standard"
-  lifecycle {
-    ignore_changes = [
-      tags
-    ]
-  }
 }
+
 resource "azurerm_ip_group" "test_source" {
   name                = "acctestIpGroupForFirewallNetworkRulesSource"
   location            = azurerm_resource_group.test.location
@@ -385,21 +379,19 @@ resource "azurerm_ip_group" "test_destination" {
   resource_group_name = azurerm_resource_group.test.name
   cidrs               = ["192.168.0.0/25", "192.168.0.192/26"]
 }
+
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestUAI-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  lifecycle {
-    ignore_changes = [
-      tags
-    ]
-  }
 }
+
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id   = azurerm_key_vault.test.id
   application_id = azurerm_user_assigned_identity.test.client_id
   tenant_id      = data.azurerm_client_config.current.tenant_id
   object_id      = azurerm_user_assigned_identity.test.principal_id
+
   key_permissions = [
     "backup",
     "create",
@@ -412,6 +404,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "restore",
     "update"
   ]
+
   certificate_permissions = [
     "backup",
     "create",
@@ -422,6 +415,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "delete",
     "recover",
   ]
+
   secret_permissions = [
     "get",
     "list",
@@ -431,10 +425,12 @@ resource "azurerm_key_vault_access_policy" "test" {
     "recover"
   ]
 }
+
 resource "azurerm_key_vault_access_policy" "test2" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
+
   key_permissions = [
     "backup",
     "create",
@@ -447,6 +443,7 @@ resource "azurerm_key_vault_access_policy" "test2" {
     "restore",
     "update"
   ]
+
   certificate_permissions = [
     "backup",
     "create",
@@ -457,6 +454,7 @@ resource "azurerm_key_vault_access_policy" "test2" {
     "delete",
     "recover",
   ]
+
   secret_permissions = [
     "get",
     "list",
@@ -466,25 +464,31 @@ resource "azurerm_key_vault_access_policy" "test2" {
     "recover"
   ]
 }
+
 resource "azurerm_key_vault_certificate" "test" {
   name         = "AzureFirewallPolicyCertificate"
   key_vault_id = azurerm_key_vault.test.id
+
   certificate {
     contents = filebase64("testdata/cert_key.pem")
   }
+
   certificate_policy {
     issuer_parameters {
       name = "Self"
     }
+
     key_properties {
       exportable = true
       key_size   = 2048
       key_type   = "RSA"
       reuse_key  = true
     }
+
     secret_properties {
       content_type = "application/x-pem-file"
     }
+
     x509_certificate_properties {
       # Server Authentication = 1.3.6.1.5.5.7.3.1
       # Client Authentication = 1.3.6.1.5.5.7.3.2
@@ -497,13 +501,16 @@ resource "azurerm_key_vault_certificate" "test" {
         "keyCertSign",
         "keyEncipherment",
       ]
+
       subject_alternative_names {
         dns_names = ["api.pluginsdk.io"]
       }
+
       subject            = "CN=api.pluginsdk.io"
       validity_in_months = 1
     }
   }
+
   depends_on = [azurerm_key_vault_access_policy.test2]
 }
 `, data.RandomInteger, "westeurope", data.RandomInteger, data.RandomInteger)
