@@ -1365,7 +1365,7 @@ resource "azuread_application" "cluster_console" {
     resource_app_id = azuread_application.cluster_explorer.application_id
 
     resource_access {
-      id   = azuread_application.cluster_explorer.oauth2_permissions[0].id
+      id   = "311a71cc-e848-46a1-bdf8-97ff7156d8e6"
       type = "Scope"
     }
   }
