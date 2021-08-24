@@ -30,6 +30,7 @@ func TestAccMonitorAutoScaleSetting_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("profile.0.name").HasValue("metricRules"),
 				check.That(data.ResourceName).Key("profile.0.rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("profile.0.rule.0.metric_trigger.0.time_aggregation").HasValue("Last"),
+				check.That(data.ResourceName).Key("profile.0.rule.0.metric_trigger.0.divide_by_instance_count").HasValue("true"),
 				check.That(data.ResourceName).Key("notification.#").HasValue("0"),
 				acceptance.TestCheckNoResourceAttr(data.ResourceName, "tags.$type"),
 			),
