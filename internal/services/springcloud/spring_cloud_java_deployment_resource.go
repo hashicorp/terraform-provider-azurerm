@@ -51,18 +51,18 @@ func resourceSpringCloudJavaDeployment() *pluginsdk.Resource {
 			},
 
 			// TODO: Remove in 3.0
-			// The value returned in GET will be recalculated by the service if "cpu_v2" is honored, so make this property as Computed.
+			// The value returned in GET will be recalculated by the service if "cpu_units" is honored, so make this property as Computed.
 			"cpu": {
 				Type:          pluginsdk.TypeInt,
 				Optional:      true,
 				Computed:      true,
 				ValidateFunc:  validation.IntBetween(1, 4),
-				ConflictsWith: []string{"cpu_v2"},
-				Deprecated:    "This field has been deprecated in favour of `cpu_v2` and will be removed in a future version of the provider",
+				ConflictsWith: []string{"cpu_units"},
+				Deprecated:    "This field has been deprecated in favour of `cpu_units` and will be removed in a future version of the provider",
 			},
 
 			// The value returned in GET will be recalculated by the service if "cpu" is honored, so make this property as Computed.
-			"cpu_v2": {
+			"cpu_units": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
@@ -97,18 +97,18 @@ func resourceSpringCloudJavaDeployment() *pluginsdk.Resource {
 			},
 
 			// TODO: Remove in 3.0
-			// The value returned in GET will be recalculated by the service if "memory_v2" is honored, so make this property as Computed.
+			// The value returned in GET will be recalculated by the service if "memory_in_mb" is honored, so make this property as Computed.
 			"memory_in_gb": {
 				Type:          pluginsdk.TypeInt,
 				Optional:      true,
 				Computed:      true,
 				ValidateFunc:  validation.IntBetween(1, 8),
-				ConflictsWith: []string{"memory_v2"},
-				Deprecated:    "This field has been deprecated in favour of `memory_v2` and will be removed in a future version of the provider",
+				ConflictsWith: []string{"memory_in_mb"},
+				Deprecated:    "This field has been deprecated in favour of `memory_in_mb` and will be removed in a future version of the provider",
 			},
 
 			// The value returned in GET will be recalculated by the service if "memory_in_gb" is honored, so make this property as Computed.
-			"memory_v2": {
+			"memory_in_mb": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
@@ -186,7 +186,7 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 				MemoryInGB:           utils.Int32(int32(d.Get("memory_in_gb").(int))),
 				JvmOptions:           utils.String(d.Get("jvm_options").(string)),
 				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
-				ResourceRequests:     expandSpringCloudDeploymentResourceRequests(d.Get("cpu").(int), d.Get("cpu_v2").(string), d.Get("memory_in_gb").(int), d.Get("memory_v2").(string)),
+				ResourceRequests:     expandSpringCloudDeploymentResourceRequests(d.Get("cpu").(int), d.Get("cpu_units").(string), d.Get("memory_in_gb").(int), d.Get("memory_in_mb").(string)),
 				RuntimeVersion:       appplatform.RuntimeVersion(d.Get("runtime_version").(string)),
 			},
 		},
@@ -231,7 +231,7 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 	if d.HasChange("cpu") {
 		existing.Properties.DeploymentSettings.CPU = utils.Int32(int32(d.Get("cpu").(int)))
 
-		// "cpu_v2" that takes precedence of "cpu" should be ignored in this situation where users explicitly update the legacy "cpu" that conflicts with "cpu_v2"
+		// "cpu_units" that takes precedence of "cpu" should be ignored in this situation where users explicitly update the legacy "cpu" that conflicts with "cpu_units"
 		if existing.Properties.DeploymentSettings.ResourceRequests != nil {
 			existing.Properties.DeploymentSettings.ResourceRequests.CPU = utils.String("")
 		}
@@ -248,18 +248,18 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 	if d.HasChange("memory_in_gb") {
 		existing.Properties.DeploymentSettings.MemoryInGB = utils.Int32(int32(d.Get("memory_in_gb").(int)))
 
-		// "memory_v2" that takes precedence of "memory_in_gb" should be ignored in this situation where users explicitly update the legacy "memory_in_gb" that conflicts with "memory_v2"
+		// "memory_in_mb" that takes precedence of "memory_in_gb" should be ignored in this situation where users explicitly update the legacy "memory_in_gb" that conflicts with "memory_in_mb"
 		if existing.Properties.DeploymentSettings.ResourceRequests != nil {
 			existing.Properties.DeploymentSettings.ResourceRequests.Memory = utils.String("")
 		}
 	}
 
-	if d.HasChange("cpu_v2") || d.HasChange("memory_v2") {
+	if d.HasChange("cpu_units") || d.HasChange("memory_in_mb") {
 		if existing.Properties.DeploymentSettings.ResourceRequests == nil {
 			return fmt.Errorf("nil `properties.deploymentSettings.resourceRequests` for %s: %+v", id, err)
 		}
 
-		existing.Properties.DeploymentSettings.ResourceRequests = expandSpringCloudDeploymentResourceRequests(d.Get("cpu").(int), d.Get("cpu_v2").(string), d.Get("memory_in_gb").(int), d.Get("memory_v2").(string))
+		existing.Properties.DeploymentSettings.ResourceRequests = expandSpringCloudDeploymentResourceRequests(d.Get("cpu").(int), d.Get("cpu_units").(string), d.Get("memory_in_gb").(int), d.Get("memory_in_mb").(string))
 	}
 
 	if d.HasChange("runtime_version") {
@@ -313,8 +313,8 @@ func resourceSpringCloudJavaDeploymentRead(d *pluginsdk.ResourceData, meta inter
 
 		if settings.ResourceRequests != nil {
 			resourceRequests := settings.ResourceRequests
-			d.Set("cpu_v2", resourceRequests.CPU)
-			d.Set("memory_v2", resourceRequests.Memory)
+			d.Set("cpu_units", resourceRequests.CPU)
+			d.Set("memory_in_mb", resourceRequests.Memory)
 		}
 	}
 
