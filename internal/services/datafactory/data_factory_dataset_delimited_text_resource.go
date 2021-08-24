@@ -78,10 +78,18 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_path_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_filename_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
 						},
 					},
 				},
@@ -105,10 +113,18 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_path_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_filename_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
 						},
 					},
 				},

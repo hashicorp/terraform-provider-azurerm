@@ -78,10 +78,18 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_path_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_filename_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
 						},
 					},
 				},
@@ -106,10 +114,18 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_path_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_filename_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
 						},
 					},
 				},
