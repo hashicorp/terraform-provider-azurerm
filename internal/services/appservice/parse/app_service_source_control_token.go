@@ -9,8 +9,8 @@ type AppServiceSourceControlTokenId struct {
 	Type string
 }
 
-const gitHubTokenId = "/providers/Microsoft.Web/sourcecontrols/%s"
-const gitHubTokenIdPrefix = "/providers/Microsoft.Web/sourcecontrols/"
+const gitHubTokenId = "/providers/Microsoft.Web/sourceControls/%s"
+const gitHubTokenIdPrefix = "/providers/Microsoft.Web/sourceControls/"
 
 func (id AppServiceSourceControlTokenId) String() string {
 	return fmt.Sprintf("App Service Source Control Token for %s", id.Type)
