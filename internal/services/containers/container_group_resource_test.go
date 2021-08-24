@@ -1139,7 +1139,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "windowsservercore"
-    image  = "mcr.microsoft.com/windows/servercore/iis:windowsservercore-ltsc2022"
+    image  = "mcr.microsoft.com/windows/servercore/iis:20210810-windowsservercore-ltsc2019"
     cpu    = "2.0"
     memory = "3.5"
 
@@ -1203,7 +1203,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "windowsservercore"
-    image  = "mcr.microsoft.com/windows/servercore/iis:windowsservercore-ltsc2022"
+    image  = "mcr.microsoft.com/windows/servercore/iis:20210810-windowsservercore-ltsc2019"
     cpu    = "2.0"
     memory = "3.5"
 
