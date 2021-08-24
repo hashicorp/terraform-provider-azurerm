@@ -3,7 +3,7 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_relay_hybrid_connection_authorization_rule"
 description: |-
-Manages a Azure Relay Hybrid Connection Authorization Rule.
+  Manages an Azure Relay Hybrid Connection Authorization Rule.
 ---
 
 # azurerm_relay_hybrid_connection_authorization_rule
