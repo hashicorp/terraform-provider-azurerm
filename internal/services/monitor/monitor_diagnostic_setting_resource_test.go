@@ -65,7 +65,6 @@ func TestAccMonitorDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("log_analytics_workspace_id").Exists(),
 				check.That(data.ResourceName).Key("log.#").HasValue("1"),
-				check.That(data.ResourceName).Key("log.782743152.category").HasValue("AuditEvent"),
 				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
 				check.That(data.ResourceName).Key("metric.1439188313.category").HasValue("AllMetrics"),
 			),
@@ -100,7 +99,6 @@ func TestAccMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_account_id").Exists(),
 				check.That(data.ResourceName).Key("log.#").HasValue("1"),
-				check.That(data.ResourceName).Key("log.782743152.category").HasValue("AuditEvent"),
 				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
 				check.That(data.ResourceName).Key("metric.1439188313.category").HasValue("AllMetrics"),
 			),
@@ -391,13 +389,29 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   log {
     category = "SSISPackageExecutionComponentPhases"
     retention_policy {
-      days    = 0 
+      days    = 0
       enabled = false
     }
   }
 
   log {
     category = "SSISPackageExecutionDataStatistics"
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  log {
+    category = "SandboxActivityRuns"
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  log {
+    category = "SandboxPipelineRuns"
     retention_policy {
       days    = 0
       enabled = false

@@ -124,44 +124,46 @@ func TestAccMonitorActionGroup_webhookReceiver(t *testing.T) {
 	})
 }
 
-// @favoretti: Disabling this one, since it's written in such a way that it will never succeed in CI
-//
-// func TestAccMonitorActionGroup_secureWebhookReceiver(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
-// 	r := MonitorActionGroupResource{}
-//
-// 	data.ResourceTest(t, r, []acceptance.TestStep{
-// 		{
-// 			Config: r.basic(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 		{
-// 			Config: r.webhookReceiver(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 		{
-// 			Config: r.secureWebhookReceiver(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 		{
-// 			Config: r.basic(data),
-// 			Check: acceptance.ComposeTestCheckFunc(
-// 				check.That(data.ResourceName).ExistsInAzure(r),
-// 			),
-// 		},
-// 		data.ImportStep(),
-// 	})
-// }
+/*
 
+@favoretti: Disabling this one, since it's written in such a way that it will never succeed in CI
+
+func TestAccMonitorActionGroup_secureWebhookReceiver(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
+	r := MonitorActionGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.webhookReceiver(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.secureWebhookReceiver(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+*/
 func TestAccMonitorActionGroup_automationRunbookReceiver(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 	r := MonitorActionGroupResource{}
@@ -548,46 +550,49 @@ resource "azurerm_monitor_action_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-// @favoretti: Disabling this one, since it's written in such a way that it will never succeed in CI
-//
-// func (MonitorActionGroupResource) secureWebhookReceiver(data acceptance.TestData) string {
-// 	return fmt.Sprintf(`
-// provider "azurerm" {
-//   features {}
-// }
-//
-// resource "azurerm_resource_group" "test" {
-//   name     = "acctestRG-%d"
-//   location = "%s"
-// }
-//
-// data "azuread_application" "test" {
-//   object_id = "%s"
-// }
-//
-// resource "azurerm_monitor_action_group" "test" {
-//   name                = "acctestActionGroup-%d"
-//   resource_group_name = azurerm_resource_group.test.name
-//   short_name          = "acctestag"
-//
-//   webhook_receiver {
-//     name                    = "callmyapiaswell"
-//     service_uri             = "http://example.com/alert"
-//     use_common_alert_schema = true
-//   }
-//
-//   webhook_receiver {
-//     name                    = "callmysecureapi"
-//     service_uri             = "http://secureExample.com/alert"
-//     use_common_alert_schema = true
-//     aad_auth {
-//       object_id      = data.azuread_application.test.object_id
-//       identifier_uri = data.azuread_application.test.identifier_uris[0]
-//     }
-//   }
-// }
-// `, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_APP_OBJECT_ID"), data.RandomInteger)
-// }
+/*
+@favoretti: Disabling this one, since it's written in such a way that it will never succeed in CI
+
+func (MonitorActionGroupResource) secureWebhookReceiver(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+data "azuread_application" "test" {
+  object_id = "%s"
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag"
+
+  webhook_receiver {
+    name                    = "callmyapiaswell"
+    service_uri             = "http://example.com/alert"
+    use_common_alert_schema = true
+  }
+
+  webhook_receiver {
+    name                    = "callmysecureapi"
+    service_uri             = "http://secureExample.com/alert"
+    use_common_alert_schema = true
+    aad_auth {
+      object_id      = data.azuread_application.test.object_id
+      identifier_uri = data.azuread_application.test.identifier_uris[0]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_APP_OBJECT_ID"), data.RandomInteger)
+}
+
+*/
 
 func (MonitorActionGroupResource) automationRunbookReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
