@@ -228,8 +228,6 @@ func resourceApiManagementService() *pluginsdk.Resource {
 				MaxItems: 10,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"certificate_information": schemaz.SchemaApiManagementCertificate(),
-
 						"encoded_certificate": {
 							Type:      pluginsdk.TypeString,
 							Required:  true,
@@ -249,6 +247,21 @@ func resourceApiManagementService() *pluginsdk.Resource {
 								string(apimanagement.CertificateAuthority),
 								string(apimanagement.Root),
 							}, false),
+						},
+
+						"expiry": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"subject": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"thumbprint": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -1122,6 +1135,20 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 			output["ssl_keyvault_identity_client_id"] = *config.IdentityClientID
 		}
 
+		if config.Certificate != nil {
+			if config.Certificate.Expiry != nil && !config.Certificate.Expiry.IsZero() {
+				output["expiry"] = config.Certificate.Expiry.Format(time.RFC3339)
+			}
+
+			if config.Certificate.Thumbprint != nil {
+				output["thumbprint"] = *config.Certificate.Thumbprint
+			}
+
+			if config.Certificate.Subject != nil {
+				output["subject"] = *config.Certificate.Subject
+			}
+		}
+
 		var configType string
 		switch strings.ToLower(string(config.Type)) {
 		case strings.ToLower(string(apimanagement.HostnameTypeProxy)):
@@ -1770,15 +1797,34 @@ func flattenAPIManagementCertificates(d *pluginsdk.ResourceData, inputs *[]apima
 
 	outputs := []interface{}{}
 	for i, input := range *inputs {
-		output := map[string]interface{}{
-			"store_name":              string(input.StoreName),
-			"certificate_information": schemaz.FlattenApiManagementCertificate(input.Certificate),
-		}
+		var expiry, subject, thumbprint, pwd, encodedCertificate string
 		if v, ok := d.GetOk(fmt.Sprintf("certificate.%d.certificate_password", i)); ok {
-			output["certificate_password"] = v.(string)
+			pwd = v.(string)
 		}
+
 		if v, ok := d.GetOk(fmt.Sprintf("certificate.%d.encoded_certificate", i)); ok {
-			output["encoded_certificate"] = v.(string)
+			encodedCertificate = v.(string)
+		}
+
+		if input.Certificate.Expiry != nil && !input.Certificate.Expiry.IsZero() {
+			expiry = input.Certificate.Expiry.Format(time.RFC3339)
+		}
+
+		if input.Certificate.Thumbprint != nil {
+			thumbprint = *input.Certificate.Thumbprint
+		}
+
+		if input.Certificate.Subject != nil {
+			subject = *input.Certificate.Subject
+		}
+
+		output := map[string]interface{}{
+			"certificate_password": pwd,
+			"encoded_certificate":  encodedCertificate,
+			"store_name":           string(input.StoreName),
+			"expiry":               expiry,
+			"subject":              subject,
+			"thumbprint":           thumbprint,
 		}
 		outputs = append(outputs, output)
 	}

@@ -349,8 +349,6 @@ In addition to all arguments above, the following attributes are exported:
 
 * `tenant_access` - The `tenant_access` block as documented below.
 
-* `certificate_information` - The `certificate_information` block as documented below.
-
 ---
 
 An `additional_location` block exports the following:
@@ -381,7 +379,17 @@ A `tenant_access` block exports the following:
 
 ---
 
-The `certificate_information` block exports the following:
+The `certificate` block exports the following:
+
+* `expiry` - The expiration date of the certificate in RFC3339 format: `2000-01-02T03:04:05Z`.
+
+* `thumbprint` - The thumbprint of the certificate.
+
+* `subject` - The subject of the certificate.
+
+---
+
+The `hostname_configuration` block exports the following:
 
 * `expiry` - The expiration date of the certificate in RFC3339 format: `2000-01-02T03:04:05Z`.
 

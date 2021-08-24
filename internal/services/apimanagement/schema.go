@@ -1,7 +1,6 @@
 package apimanagement
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -44,12 +43,25 @@ func apiManagementResourceHostnameSchema() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"certificate_information": schemaz.SchemaApiManagementCertificate(),
-
 		"ssl_keyvault_identity_client_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsUUID,
+		},
+
+		"expiry": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"subject": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"thumbprint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
 }

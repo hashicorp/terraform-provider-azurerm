@@ -3,7 +3,6 @@ package schemaz
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -322,57 +321,5 @@ func CopyCertificateAndPassword(vals []interface{}, hostName string, output map[
 			output["certificate"] = oldConfig["certificate"]
 			break
 		}
-	}
-}
-
-func SchemaApiManagementCertificate() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"expiry": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"subject": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"thumbprint": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
-func FlattenApiManagementCertificate(input *apimanagement.CertificateInformation) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	var expiry, subject, thumbprint string
-	if input.Expiry != nil && !input.Expiry.IsZero() {
-		expiry = input.Expiry.Format(time.RFC3339)
-	}
-
-	if input.Thumbprint != nil {
-		thumbprint = *input.Thumbprint
-	}
-
-	if input.Subject != nil {
-		subject = *input.Subject
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"expiry":     expiry,
-			"subject":    subject,
-			"thumbprint": thumbprint,
-		},
 	}
 }
