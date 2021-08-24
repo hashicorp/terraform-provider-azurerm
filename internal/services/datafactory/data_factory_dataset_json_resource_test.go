@@ -315,7 +315,7 @@ resource "azurerm_data_factory_dataset_json" "test" {
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
   azure_blob_storage_location {
-    container = azurerm_storage_container.test.name
+    container                = azurerm_storage_container.test.name
     path                     = "@concat('foo/bar/',formatDateTime(convertTimeZone(utcnow(),'UTC','W. Europe Standard Time'),'yyyy-MM-dd'))"
     dynamic_path_enabled     = true
     filename                 = "foo.json"
