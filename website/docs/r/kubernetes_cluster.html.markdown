@@ -213,8 +213,6 @@ A `addon_profile` block supports the following:
 
 -> **NOTE:** At this time Azure Policy is not supported in Azure US Government.
 
-~> **Note:** Azure Policy is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/en-gb/azure/governance/policy/concepts/policy-for-kubernetes).
-
 * `http_application_routing` - (Optional) A `http_application_routing` block as defined below.
 
 -> **NOTE:** At this time HTTP Application Routing is not supported in Azure China or Azure US Government.
