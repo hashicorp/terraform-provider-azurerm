@@ -15,7 +15,7 @@ Manages an App Service (within an App Service Plan).
 
 ## Example Usage
 
-This example provisions a Windows App Service. Other examples of the `azurerm_app_service` resource can be found in [the `./examples/app-service` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/app-service)
+This example provisions a Windows App Service. Other examples of the `azurerm_app_service` resource can be found in [the `./examples/app-service` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/app-service)
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -151,6 +151,8 @@ An `application_logs` block supports the following:
 
 * `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
 
+* `file_system_level` - (Optional) Log level for filesystem based logging. Supported values are `Error`, `Information`, `Verbose`, `Warning` and `Off`. Defaults to `Off`.
+
 ---
 
 An `http_logs` block supports *one* of the following:
@@ -180,6 +182,12 @@ A `file_system` block supports the following:
 ---
 
 A `site_config` block supports the following:
+
+* `acr_use_managed_identity_credentials` - (Optional) Are Managed Identity Credentials used for Azure Container Registry pull
+
+* `acr_user_managed_identity_client_id` - (Optional) If using User Managed Identity, the User Managed Identity Client Id
+
+~> **NOTE:** When using User Managed Identity with Azure Container Registry the Identity will need to have the [ACRPull role assigned](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity#example-1-access-with-a-user-assigned-identity)
 
 * `always_on` - (Optional) Should the app be loaded at all times? Defaults to `false`.
 
@@ -227,7 +235,7 @@ A `site_config` block supports the following:
 
 * `windows_fx_version` - (Optional) The Windows Docker container image (`DOCKER|<user/image:tag>`)
 
-Additional examples of how to run Containers via the `azurerm_app_service` resource can be found in [the `./examples/app-service` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/app-service).
+Additional examples of how to run Containers via the `azurerm_app_service` resource can be found in [the `./examples/app-service` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/app-service).
 
 * `managed_pipeline_mode` - (Optional) The Managed Pipeline Mode. Possible values are `Integrated` and `Classic`. Defaults to `Integrated`.
 
@@ -247,13 +255,12 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
 
 ~> **NOTE:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
+* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied.
+
+~> **NOTE:** This setting supersedes the previous mechanism of setting the `app_settings` value of `WEBSITE_VNET_ROUTE_ALL`. However, to prevent older configurations breaking Terraform will update this value if it not explicitly set to the value in `app_settings.WEBSITE_VNET_ROUTE_ALL`.
+
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
-* `acr_use_managed_identity_credentials` - (Optional) Are Managed Identity Credentials used for Azure Container Registry pull
-
-* `acr_user_managed_identity_client_id` - (Optional) If using User Managed Identity, the User Managed Identity Client Id
-
-~> **NOTE:** When using User Managed Identity with Azure Container Registry the Identity will need to have the [ACRPull role assigned](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity#example-1-access-with-a-user-assigned-identity) 
 
 ---
 

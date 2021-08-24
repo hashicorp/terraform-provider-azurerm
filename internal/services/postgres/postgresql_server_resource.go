@@ -10,7 +10,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -79,11 +78,11 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			if resp.ReplicationRole != nil && *resp.ReplicationRole != "Master" && *resp.ReplicationRole != "None" {
 				d.Set("create_mode", resp.ReplicationRole)
 
-				masterServerId, err := parse.ServerID(*resp.MasterServerID)
+				sourceServerId, err := parse.ServerID(*resp.MasterServerID)
 				if err != nil {
-					return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing Postgres Master Server ID : %v", err)
+					return []*pluginsdk.ResourceData{d}, fmt.Errorf("parsing Postgres Main Server ID : %v", err)
 				}
-				d.Set("creation_source_server_id", masterServerId.ID())
+				d.Set("creation_source_server_id", sourceServerId.ID())
 			}
 
 			return []*pluginsdk.ResourceData{d}, nil
@@ -871,17 +870,11 @@ func resourcePostgreSQLServerDelete(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 
 		return fmt.Errorf("deleting PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 
 		return fmt.Errorf("waiting for deletion of PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}

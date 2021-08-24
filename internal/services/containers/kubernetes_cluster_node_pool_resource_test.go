@@ -870,6 +870,33 @@ func testAccKubernetesClusterNodePool_sameSize(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_ultraSSD(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesClusterNodePool_ultraSSD(t)
+}
+
+func testAccKubernetesClusterNodePool_ultraSSD(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ultraSSD(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ultraSSD(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t KubernetesClusterNodePoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.NodePoolID(state.ID)
 	if err != nil {
@@ -1912,4 +1939,37 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubelet_disk_type     = "OS"
 }
 `, r.templateConfig(data))
+}
+
+func (KubernetesClusterNodePoolResource) ultraSSD(data acceptance.TestData, ultraSSDEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_D2s_v3"
+  ultra_ssd_enabled     = %t
+  availability_zones    = ["1", "2", "3"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, ultraSSDEnabled)
 }

@@ -19,9 +19,9 @@ case "$OSTYPE" in
         sed -i -e "$sed_expression" $1
         ;;
     "darwin"*)
-        sed_version="$(sed --version)"
+        sed_version="$(sed --version 2>&1 > /dev/null)"
 
-        if [[ $sed_version == *GNU* ]]; then
+        if [[ $? -eq 0 ]]; then
             # For MacOS users who aliases the `sed` from `gsed`
             sed -i -e "$sed_expression" $1
         else

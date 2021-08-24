@@ -125,6 +125,20 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+
+		"resource_group": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"prevent_deletion_if_contains_resources": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+				},
+			},
+		},
 	}
 
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
@@ -206,8 +220,8 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	if raw, ok := val["template_deployment"]; ok {
 		items := raw.([]interface{})
 		if len(items) > 0 {
-			networkRaw := items[0].(map[string]interface{})
-			if v, ok := networkRaw["delete_nested_items_during_deletion"]; ok {
+			templateRaw := items[0].(map[string]interface{})
+			if v, ok := templateRaw["delete_nested_items_during_deletion"]; ok {
 				features.TemplateDeployment.DeleteNestedItemsDuringDeletion = v.(bool)
 			}
 		}
@@ -238,6 +252,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := scaleSetRaw["force_delete"]; ok {
 				features.VirtualMachineScaleSet.ForceDelete = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["resource_group"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			resourceGroupRaw := items[0].(map[string]interface{})
+			if v, ok := resourceGroupRaw["prevent_deletion_if_contains_resources"]; ok {
+				features.ResourceGroup.PreventDeletionIfContainsResources = v.(bool)
 			}
 		}
 	}

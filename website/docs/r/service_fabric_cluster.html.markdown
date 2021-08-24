@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `fabric_settings` - (Optional) One or more `fabric_settings` blocks as defined below.
 
-* `upgrade_description` - (optional) A `upgrade_description` block as defined below.
+* `upgrade_policy` - (optional) A `upgrade_policy` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -232,7 +232,7 @@ A `ephemeral_ports` block supports the following:
 
 ---
 
-A `upgrade description` block supports the following:
+A `upgrade_policy` block supports the following:
 
 * `force_restart` - (Optional) Indicates whether to restart the Service Fabric node even if only dynamic configurations have changed.
 

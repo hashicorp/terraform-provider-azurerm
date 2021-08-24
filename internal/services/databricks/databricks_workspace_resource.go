@@ -543,28 +543,28 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		d.Set("managed_resource_group_id", props.ManagedResourceGroupID)
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
-		d.Set("public_network_access_enabled", (props.PublicNetworkAccess == databricks.PublicNetworkAccessEnabled))
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess != databricks.PublicNetworkAccessDisabled)
 
 		if props.PublicNetworkAccess == databricks.PublicNetworkAccessDisabled {
 			d.Set("network_security_group_rules_required", string(props.RequiredNsgRules))
 		}
-		var cmkEnabled, infraEnabled *bool
+		var cmkEnabled, infraEnabled bool
 
 		if props.Parameters != nil {
-			if props.Parameters.PrepareEncryption != nil {
-				cmkEnabled = props.Parameters.PrepareEncryption.Value
-				d.Set("customer_managed_key_enabled", &props.Parameters.PrepareEncryption.Value)
+			if props.Parameters.PrepareEncryption != nil && props.Parameters.PrepareEncryption.Value != nil {
+				cmkEnabled = *props.Parameters.PrepareEncryption.Value
 			}
+			d.Set("customer_managed_key_enabled", cmkEnabled)
 
-			if props.Parameters.RequireInfrastructureEncryption != nil {
-				infraEnabled = props.Parameters.RequireInfrastructureEncryption.Value
-				d.Set("infrastructure_encryption_enabled", &props.Parameters.RequireInfrastructureEncryption.Value)
+			if props.Parameters.RequireInfrastructureEncryption != nil && props.Parameters.RequireInfrastructureEncryption.Value != nil {
+				infraEnabled = *props.Parameters.RequireInfrastructureEncryption.Value
 			}
+			d.Set("infrastructure_encryption_enabled", infraEnabled)
 
 			// The subnet associations only exist in the statefile, so we need to do a Get before we Set
 			// with what has come back from the Azure response...
 			customParamsRaw := d.Get("custom_parameters").([]interface{})
-			_, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(customParamsRaw, *cmkEnabled, *infraEnabled, "", "")
+			_, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(customParamsRaw, cmkEnabled, infraEnabled, "", "")
 
 			custom, backendPoolReadId := flattenWorkspaceCustomParameters(props.Parameters, pubSubAssoc, priSubAssoc)
 			if err := d.Set("custom_parameters", custom); err != nil {

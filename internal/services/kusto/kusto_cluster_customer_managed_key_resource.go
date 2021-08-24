@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -154,7 +154,7 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 		props.ClusterProperties.KeyVaultProperties.UserIdentity = utils.String(v.(string))
 	}
 
-	future, err := clusterClient.Update(ctx, clusterID.ResourceGroup, clusterID.Name, props)
+	future, err := clusterClient.Update(ctx, clusterID.ResourceGroup, clusterID.Name, props, "")
 	if err != nil {
 		return fmt.Errorf("updating Customer Managed Key for Kusto Cluster %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
 	}
@@ -270,7 +270,7 @@ func resourceKustoClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceData, met
 		},
 	}
 
-	future, err := client.Update(ctx, clusterID.ResourceGroup, clusterID.Name, props)
+	future, err := client.Update(ctx, clusterID.ResourceGroup, clusterID.Name, props, "")
 	if err != nil {
 		return fmt.Errorf("removing Customer Managed Key for Kusto Cluster %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
 	}

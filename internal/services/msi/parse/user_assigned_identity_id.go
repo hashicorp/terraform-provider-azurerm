@@ -1,6 +1,8 @@
 package parse
 
-import "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/sdk/managedidentity"
+import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/sdk/2018-11-30/managedidentity"
+)
 
 // these are here primarily to enable migration over
 
