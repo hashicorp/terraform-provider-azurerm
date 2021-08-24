@@ -26,10 +26,10 @@ resource "azurerm_app_configuration" "appconf" {
 }
 
 resource "azurerm_app_configuration_key" "test" {
-   configuration_store_id = azurerm_app_configuration.appconf.id
-   key = "appConfKey1"
-   label = "somelabel"
-   value = "a test"
+  configuration_store_id = azurerm_app_configuration.appconf.id
+  key                    = "appConfKey1"
+  label                  = "somelabel"
+  value                  = "a test"
 }
 
 ```
