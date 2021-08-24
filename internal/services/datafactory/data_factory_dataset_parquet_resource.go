@@ -100,7 +100,7 @@ func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
 						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"dynamic_filename_enabled": {
