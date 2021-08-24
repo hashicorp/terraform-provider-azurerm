@@ -148,6 +148,14 @@ func TestAccWindowsWebApp_completeLoggingUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("false"),
 			),
 		},
+		data.ImportStep(), {
+			Config: r.withLogsHttpBlob(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("false"),
+				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("false"),
+			),
+		},
 		data.ImportStep(),
 		{
 			Config: r.withLoggingComplete(data),
@@ -197,35 +205,6 @@ func TestAccWindowsWebApp_updateServicePlan(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.secondServicePlan(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccWindowsWebApp_logsUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
-	r := WindowsWebAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.logsEnabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1710,7 +1689,7 @@ resource "azurerm_windows_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, "v4.0", "7.4", "2.7", "1.8", "TOMCAT", "9.0")
 }
 
-func (r WindowsWebAppResource) logsEnabled(data acceptance.TestData) string {
+func (r WindowsWebAppResource) withLogsHttpBlob(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

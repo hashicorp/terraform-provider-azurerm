@@ -31,9 +31,42 @@ func TestAccLinuxWebApp_basic(t *testing.T) {
 	})
 }
 
-// TODO - func TestAccLinuxWebApp_complete(t *testing.T)
+func TestAccLinuxWebApp_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
 
-// TODO - func TestAccLinuxWebApp_completeUpdate(t *testing.T)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebApp_completeUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
 func TestAccLinuxWebApp_backup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
@@ -857,6 +890,334 @@ resource "azurerm_linux_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 }
 `, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  app_settings = {
+    foo = "bar"
+  }
+
+  auth_settings {
+    enabled = true
+    issuer  = "https://sts.windows.net/%s"
+
+    additional_login_parameters = {
+      test_key = "test_value"
+    }
+
+    active_directory {
+      client_id     = "aadclientid"
+      client_secret = "aadsecret"
+
+      allowed_audiences = [
+        "activedirectorytokenaudiences",
+      ]
+    }
+
+    facebook {
+      app_id     = "facebookappid"
+      app_secret = "facebookappsecret"
+
+      oauth_scopes = [
+        "facebookscope",
+      ]
+    }
+  }
+
+  backup {
+    name                = "acctest"
+    storage_account_url = "https://${azurerm_storage_account.test.name}.blob.core.windows.net/${azurerm_storage_container.test.name}${data.azurerm_storage_account_sas.test.sas}&sr=b"
+    schedule {
+      frequency_interval = 1
+      frequency_unit     = "Day"
+    }
+  }
+
+  logs {
+    application_logs {
+      file_system_level = "Warning"
+      azure_blob_storage {
+        level             = "Information"
+        sas_url           = "http://x.com/"
+        retention_in_days = 2
+      }
+    }
+
+    http_logs {
+      azure_blob_storage {
+        sas_url           = "https://${azurerm_storage_account.test.name}.blob.core.windows.net/${azurerm_storage_container.test.name}${data.azurerm_storage_account_sas.test.sas}&sr=b"
+        retention_in_days = 3
+      }
+    }
+  }
+
+  client_affinity_enabled = true
+  client_cert_enabled     = true
+  client_cert_mode        = "Optional"
+
+  connection_string {
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
+  }
+
+  connection_string {
+    name  = "Second"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  enabled    = false
+  https_only = true
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  site_config {
+    always_on = true
+    // api_management_config_id = // TODO
+    app_command_line = "/sbin/myserver -b 0.0.0.0"
+    default_documents = [
+      "first.html",
+      "second.jsp",
+      "third.aspx",
+      "hostingstart.html",
+    ]
+    http2_enabled               = true
+    scm_use_main_ip_restriction = true
+    local_mysql                 = true
+    managed_pipeline_mode       = "Integrated"
+    remote_debugging            = true
+    remote_debugging_version    = "VS2019"
+    use_32_bit_worker           = true
+    websockets                  = true
+    ftps_state                  = "FtpsOnly"
+    health_check_path           = "/health"
+    number_of_workers           = 1
+    minimum_tls_version         = "1.1"
+    scm_minimum_tls_version     = "1.1"
+    cors {
+      allowed_origins = [
+        "http://www.contoso.com",
+        "www.contoso.com",
+      ]
+
+      support_credentials = true
+    }
+
+    container_registry_use_managed_identity = true
+    container_registry_managed_identity_id  = azurerm_user_assigned_identity.test.id
+
+    // auto_swap_slot_name = // TODO
+    auto_heal = true
+
+    auto_heal_setting {
+      trigger {
+        status_code {
+          status_code_range = "500"
+          interval          = "00:01:00"
+          count             = 10
+        }
+      }
+
+      action {
+        action_type                    = "Recycle"
+        minimum_process_execution_time = "00:05:00"
+      }
+    }
+  }
+
+  storage_account {
+    name         = "files"
+    type         = "AzureFiles"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_share.test.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/storage/files"
+  }
+
+  tags = {
+    Environment = "AccTest"
+    foo         = "bar"
+  }
+}
+`, r.templateWithStorageAccount(data), data.RandomInteger, data.Client().TenantID)
+}
+
+func (r LinuxWebAppResource) completeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  app_settings = {
+    foo    = "bar"
+    SECRET = "sauce"
+  }
+
+  auth_settings {
+    enabled = true
+    issuer  = "https://sts.windows.net/%s"
+
+    additional_login_parameters = {
+      test_key = "test_value_new"
+    }
+
+    active_directory {
+      client_id     = "aadclientid"
+      client_secret = "aadsecretNew"
+
+      allowed_audiences = [
+        "activedirectorytokenaudiences",
+      ]
+    }
+
+    facebook {
+      app_id     = "updatedfacebookappid"
+      app_secret = "updatedfacebookappsecret"
+
+      oauth_scopes = [
+        "facebookscope",
+        "facebookscope2"
+      ]
+    }
+  }
+
+  backup {
+    name                = "acctest"
+    storage_account_url = "https://${azurerm_storage_account.test.name}.blob.core.windows.net/${azurerm_storage_container.test.name}${data.azurerm_storage_account_sas.test.sas}&sr=b"
+    schedule {
+      frequency_interval = 12
+      frequency_unit     = "Hour"
+    }
+  }
+
+  logs {
+    application_logs {
+      file_system_level = "Warning"
+      azure_blob_storage {
+        level             = "Warning"
+        sas_url           = "http://x.com/"
+        retention_in_days = 7
+      }
+    }
+
+    http_logs {
+      azure_blob_storage {
+        sas_url           = "https://${azurerm_storage_account.test.name}.blob.core.windows.net/${azurerm_storage_container.test.name}${data.azurerm_storage_account_sas.test.sas}&sr=b"
+        retention_in_days = 5
+      }
+    }
+  }
+
+  client_affinity_enabled = true
+  client_cert_enabled     = true
+  client_cert_mode        = "Optional"
+
+  connection_string {
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
+  }
+
+  enabled    = true
+  https_only = true
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  site_config {
+    always_on = true
+    // api_management_config_id = // TODO
+    app_command_line = "/sbin/myserver -b 0.0.0.0"
+    default_documents = [
+      "first.html",
+      "second.jsp",
+      "third.aspx",
+      "hostingstart.html",
+    ]
+    http2_enabled               = false
+    scm_use_main_ip_restriction = false
+    local_mysql                 = false
+    managed_pipeline_mode       = "Integrated"
+    remote_debugging            = true
+    remote_debugging_version    = "VS2017"
+    websockets                  = true
+    ftps_state                  = "FtpsOnly"
+    health_check_path           = "/health2"
+    number_of_workers           = 2
+    minimum_tls_version         = "1.2"
+    scm_minimum_tls_version     = "1.2"
+    cors {
+      allowed_origins = [
+        "http://www.contoso.com",
+        "www.contoso.com",
+        "contoso.com",
+      ]
+
+      support_credentials = true
+    }
+
+    container_registry_use_managed_identity = true
+
+    auto_heal = true
+
+    auto_heal_setting {
+      trigger {
+        status_code {
+          status_code_range = "500"
+          interval          = "00:05:00"
+          count             = 10
+        }
+      }
+
+      action {
+        action_type                    = "Recycle"
+        minimum_process_execution_time = "00:05:00"
+      }
+    }
+    // auto_swap_slot_name = // TODO - Not supported yet
+  }
+
+  storage_account {
+    name         = "files"
+    type         = "AzureFiles"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_share.test.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/storage/updatedfiles"
+  }
+
+  tags = {
+    foo = "bar"
+  }
+}
+`, r.templateWithStorageAccount(data), data.RandomInteger, data.Client().TenantID)
 }
 
 func (r LinuxWebAppResource) withBackup(data acceptance.TestData) string {

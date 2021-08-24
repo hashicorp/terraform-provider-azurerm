@@ -565,34 +565,56 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			// TODO - Need locking here when the source control meta resource is added
+			// TODO - Need locking here for the source control meta resource?
 
 			var state WindowsWebAppModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			site := web.Site{
-				Location: utils.String(state.Location),
-				Tags:     tags.FromTypedObject(state.Tags),
-				SiteProperties: &web.SiteProperties{
-					ServerFarmID:          utils.String(state.ServicePlanId),
-					Enabled:               utils.Bool(state.Enabled),
-					HTTPSOnly:             utils.Bool(state.HttpsOnly),
-					ClientAffinityEnabled: utils.Bool(state.ClientAffinityEnabled),
-					ClientCertEnabled:     utils.Bool(state.ClientCertEnabled),
-					ClientCertMode:        web.ClientCertMode(state.ClientCertMode),
-				},
-				Identity: helpers.ExpandIdentity(state.Identity),
-			}
-
-			siteConfig, currentStack, err := helpers.ExpandSiteConfigWindows(state.SiteConfig)
+			existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("expanding Site Config for Windows %s: %+v", id, err)
+				return fmt.Errorf("reading Windows %s: %v", id, err)
 			}
 
-			site.SiteConfig = siteConfig
-			updateFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, site)
+			if metadata.ResourceData.HasChange("service_plan_id") {
+				existing.SiteProperties.ServerFarmID = utils.String(state.ServicePlanId)
+			}
+			if metadata.ResourceData.HasChange("enabled") {
+				existing.SiteProperties.Enabled = utils.Bool(state.Enabled)
+			}
+			if metadata.ResourceData.HasChange("https_only") {
+				existing.SiteProperties.HTTPSOnly = utils.Bool(state.HttpsOnly)
+			}
+			if metadata.ResourceData.HasChange("client_affinity_enabled") {
+				existing.SiteProperties.ClientAffinityEnabled = utils.Bool(state.ClientAffinityEnabled)
+			}
+			if metadata.ResourceData.HasChange("client_cert_enabled") {
+				existing.SiteProperties.ClientCertEnabled = utils.Bool(state.ClientCertEnabled)
+			}
+			if metadata.ResourceData.HasChange("client_cert_mode") {
+				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
+			}
+
+			if metadata.ResourceData.HasChange("identity") {
+				existing.Identity = helpers.ExpandIdentity(state.Identity)
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				existing.Tags = tags.FromTypedObject(state.Tags)
+			}
+
+			var currentStack *string
+			if metadata.ResourceData.HasChange("site_config") {
+				siteConfig, stack, err := helpers.ExpandSiteConfigWindows(state.SiteConfig)
+				if err != nil {
+					return fmt.Errorf("expanding Site Config for Windows %s: %+v", id, err)
+				}
+				currentStack = stack
+				existing.SiteConfig = siteConfig
+			}
+
+			updateFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, existing)
 			if err != nil {
 				return fmt.Errorf("updating Windows %s: %+v", id, err)
 			}
