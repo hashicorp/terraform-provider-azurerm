@@ -125,7 +125,7 @@ resource "azurerm_logic_app_integration_account_schema" "test" {
   name                     = "acctest-iaschema-%d"
   resource_group_name      = azurerm_resource_group.test.name
   integration_account_name = azurerm_logic_app_integration_account.test.name
-  content                  = file("testdata/integration_account_schema_content.xml")
+  content                  = file("testdata/integration_account_schema_content.xsd")
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -138,7 +138,7 @@ resource "azurerm_logic_app_integration_account_schema" "test" {
   name                     = "acctest-iaschema-%d"
   resource_group_name      = azurerm_resource_group.test.name
   integration_account_name = azurerm_logic_app_integration_account.test.name
-  content                  = file("testdata/integration_account_schema_content.xml")
+  content                  = file("testdata/integration_account_schema_content.xsd")
   file_name                = "TestFile.xsd"
 
   metadata = <<METADATA
@@ -158,7 +158,7 @@ resource "azurerm_logic_app_integration_account_schema" "test" {
   name                     = "acctest-iaschema-%d"
   resource_group_name      = azurerm_resource_group.test.name
   integration_account_name = azurerm_logic_app_integration_account.test.name
-  content                  = file("testdata/integration_account_schema_content2.xml")
+  content                  = file("testdata/integration_account_schema_content2.xsd")
   file_name                = "TestFile2.xsd"
 
   metadata = <<METADATA

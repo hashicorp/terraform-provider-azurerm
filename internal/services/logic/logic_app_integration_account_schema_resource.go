@@ -62,7 +62,7 @@ func resourceLogicAppIntegrationAccountSchema() *pluginsdk.Resource {
 			"file_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.IntegrationAccountSchemaFileName(),
 			},
 
 			"metadata": {
