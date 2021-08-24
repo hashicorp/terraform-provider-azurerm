@@ -2,6 +2,8 @@ package cosmos
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
@@ -9,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"time"
 )
 
 func dataSourceCosmosDbMongoDatabase() *pluginsdk.Resource {
