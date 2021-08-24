@@ -19,10 +19,40 @@ import (
 
 type LinuxWebAppDataSource struct{}
 
+type LinuxWebAppDataSourceModel struct {
+	Name                          string                     `tfschema:"name"`
+	ResourceGroup                 string                     `tfschema:"resource_group_name"`
+	Location                      string                     `tfschema:"location"`
+	ServicePlanId                 string                     `tfschema:"service_plan_id"`
+	AppSettings                   map[string]string          `tfschema:"app_settings"`
+	AuthSettings                  []helpers.AuthSettings     `tfschema:"auth_settings"`
+	Backup                        []helpers.Backup           `tfschema:"backup"`
+	ClientAffinityEnabled         bool                       `tfschema:"client_affinity_enabled"`
+	ClientCertEnabled             bool                       `tfschema:"client_cert_enabled"`
+	ClientCertMode                string                     `tfschema:"client_cert_mode"`
+	Enabled                       bool                       `tfschema:"enabled"`
+	HttpsOnly                     bool                       `tfschema:"https_only"`
+	Identity                      []helpers.Identity         `tfschema:"identity"`
+	LogsConfig                    []helpers.LogsConfig       `tfschema:"logs"`
+	MetaData                      map[string]string          `tfschema:"app_metadata"`
+	SiteConfig                    []helpers.SiteConfigLinux  `tfschema:"site_config"`
+	StorageAccounts               []helpers.StorageAccount   `tfschema:"storage_account"`
+	ConnectionStrings             []helpers.ConnectionString `tfschema:"connection_string"`
+	Tags                          map[string]string          `tfschema:"tags"`
+	CustomDomainVerificationId    string                     `tfschema:"custom_domain_verification_id"`
+	DefaultHostname               string                     `tfschema:"default_hostname"`
+	Kind                          string                     `tfschema:"kind"`
+	OutboundIPAddresses           string                     `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList         []string                   `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses   string                     `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList []string                   `tfschema:"possible_outbound_ip_address_list"`
+	SiteCredentials               []helpers.SiteCredential   `tfschema:"site_credential"`
+}
+
 var _ sdk.DataSource = LinuxWebAppDataSource{}
 
 func (r LinuxWebAppDataSource) ModelObject() interface{} {
-	return LinuxWebAppModel{}
+	return LinuxWebAppDataSourceModel{}
 }
 
 func (r LinuxWebAppDataSource) ResourceType() string {
