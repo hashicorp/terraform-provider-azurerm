@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -43,7 +44,10 @@ func TestAccRelayNamespaceAuthorizationRule_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImport),
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_relay_namespace_authorization_rule"),
+		},
 	})
 }
 
@@ -55,6 +59,9 @@ func (t RelayNamespaceAuthorizationRuleResource) Exists(ctx context.Context, cli
 
 	resp, err := clients.Relay.NamespacesClient.GetAuthorizationRule(ctx, *id)
 	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return utils.Bool(false), nil
+		}
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
@@ -88,8 +95,6 @@ resource "azurerm_relay_namespace_authorization_rule" "test" {
   listen = true
   send   = true
   manage = false
-
-  depends_on = [azurerm_relay_namespace.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -99,9 +104,9 @@ func (r RelayNamespaceAuthorizationRuleResource) requiresImport(data acceptance.
 %s
 
 resource "azurerm_relay_namespace_authorization_rule" "import" {
-  name                = azurerm_relay_namespace.test.name
-  namespace_name      = azurerm_relay_namespace.test.name
-  resource_group_name = azurerm_relay_namespace.test.resource_group_name
+  name                = azurerm_relay_namespace_authorization_rule.test.name
+  namespace_name      = azurerm_relay_namespace_authorization_rule.test.namespace_name
+  resource_group_name = azurerm_relay_namespace_authorization_rule.test.resource_group_name
 
   listen = azurerm_relay_namespace_authorization_rule.test.listen
   send   = azurerm_relay_namespace_authorization_rule.test.send

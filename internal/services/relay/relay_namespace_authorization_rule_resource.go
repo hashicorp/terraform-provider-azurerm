@@ -136,7 +136,7 @@ func resourceRelayNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta
 }
 
 func resourceRelayNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.NamespacesClient
+	client := meta.(*clients.Client).Relay.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -145,7 +145,7 @@ func resourceRelayNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	if _, err = client.DeleteAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.Name); err != nil {
+	if _, err = client.DeleteAuthorizationRule(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
