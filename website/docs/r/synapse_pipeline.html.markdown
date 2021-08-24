@@ -98,7 +98,7 @@ The following arguments are supported:
 
 * `annotations` - (Optional)A list of annotation tags that can be used for describing the Synapse Pipeline.
 
-* `parameters` - (Optional) A map of parameters to associate with the Synapse Pipeline. The key is the parameter name, and the value is the parameter's default value.
+* `parameters` - (Optional) A map of parameters to associate with the Synapse Pipeline. The key is the parameter name, and the value is the parameter's default value. Currently we only support type string for parameter values.
 
 * `variables` - (Optional) A map of variables to associate with the Synapse Pipeline.
 
