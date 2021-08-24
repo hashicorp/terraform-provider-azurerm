@@ -1,9 +1,9 @@
 ---
 subcategory: "App Configuration"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_app_configuration"
+page_title: "Azure Resource Manager: azurerm_app_configuration_key"
 description: |-
-  Manages an Azure App Configuration.
+  Manages an Azure App Configuration Key.
 
 ---
 
@@ -40,15 +40,15 @@ The following arguments are supported:
 
 * `configuration_store_id` - (Required) Specifies the id of the App Configuration. Changing this forces a new resource to be created.
 
-* `key` - (Required) The name of the key to create. Changing this forces a new resource to be created.
+* `key` - (Required) The name of the App Configuration Key to create. Changing this forces a new resource to be created.
 
-* `content_type` - (Optional) The content type of the key.
+* `content_type` - (Optional) The content type of the App Configuration Key.
 
-* `label` - (Optional) The label of the key.  Changing this forces a new resource to be created.
+* `label` - (Optional) The label of the App Configuration Key.  Changing this forces a new resource to be created.
 
-* `value` - (Optional) The value of the key.
+* `value` - (Optional) The value of the App Configuration Key.
 
-* `locked` - (Optional) The lock status of the key. Can be either `true` or `false`.
+* `locked` - (Optional) The lock status of the App Configuration Key. Can be either `true` or `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -65,7 +65,7 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the App Configuration.
+* `create` - (Defaults to 30 minutes) Used when creating the App Configuration Key.
 * `update` - (Defaults to 30 minutes) Used when updating the App Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Configuration.
 * `delete` - (Defaults to 30 minutes) Used when deleting the App Configuration.
