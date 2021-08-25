@@ -321,7 +321,7 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 				d.Set("sas_uri", val)
 			} else {
 				d.Set("sas_uri", "")
-				fmt.Errorf("[DEBUG] Skipping sas uri %q since it's not a string", val)
+				return fmt.Errorf("[DEBUG] Skipping sas uri %q since it's not a string", val)
 			}
 		}
 
