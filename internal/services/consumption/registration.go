@@ -9,8 +9,8 @@ const (
 	// as the core logic for the Consumption Budget resources is generic and has been
 	// extracted out of the specific Consumption Budget resources. These constants are
 	// used when the generic Consumption Budget functions require a resource name.
-	consumptionBudgetResourceGroupName = "azurerm_consumption_budget_resource_group"
-	consumptionBudgetSubscriptionName  = "azurerm_consumption_budget_subscription"
+	consumptionBudgetResourceGroupName          = "azurerm_consumption_budget_resource_group"
+	consumptionBudgetSubscriptionName           = "azurerm_consumption_budget_subscription"
 	consumptionBudgetSubscriptionDataSourceName = "azurerm_consumption_budget_subscription"
 )
 
