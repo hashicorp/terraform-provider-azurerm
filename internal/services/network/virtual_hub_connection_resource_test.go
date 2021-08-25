@@ -212,6 +212,21 @@ func TestAccVirtualHubConnection_removeVnetStaticRoute(t *testing.T) {
 	})
 }
 
+func TestAccVirtualHubConnection_requiresLocking(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+	r := VirtualHubConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.requiresLocking(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccVirtualHubConnection_updateRoutingConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
 	r := VirtualHubConnectionResource{}
@@ -262,10 +277,10 @@ func checkVirtualHubConnectionDoesNotExist(resourceGroupName, vhubName, vhubConn
 
 func (r VirtualHubConnectionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctestbasicvhubconn-%d"
+  name                      = "acctestbasicvhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 }
@@ -274,7 +289,7 @@ resource "azurerm_virtual_hub_connection" "test" {
 
 func (r VirtualHubConnectionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_virtual_hub_connection" "import" {
   name                      = azurerm_virtual_hub_connection.test.name
@@ -286,23 +301,23 @@ resource "azurerm_virtual_hub_connection" "import" {
 
 func (r VirtualHubConnectionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_virtual_network" "test2" {
-  name                = "acctestvirtnet2%d"
+  name                = "acctestvirtnet2%[2]d"
   address_space       = ["10.6.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_network_security_group" "test2" {
-  name                = "acctestnsg2%d"
+  name                = "acctestnsg2%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test2" {
-  name                 = "acctestsubnet2%d"
+  name                 = "acctestsubnet2%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test2.name
   address_prefixes     = ["10.6.1.0/24"]
@@ -314,27 +329,27 @@ resource "azurerm_subnet_network_security_group_association" "test2" {
 }
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctestvhubconn-%d"
+  name                      = "acctestvhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
   internet_security_enabled = false
 }
 
 resource "azurerm_virtual_hub_connection" "test2" {
-  name                      = "acctestvhubconn2-%d"
+  name                      = "acctestvhubconn2-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test2.id
   internet_security_enabled = true
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r VirtualHubConnectionResource) enableInternetSecurity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctestbasicvhubconn-%d"
+  name                      = "acctestbasicvhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
   internet_security_enabled = true
@@ -349,25 +364,25 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-vhub-%d"
-  location = "%s"
+  name     = "acctestRG-vhub-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
+  name                = "acctestvirtnet%[1]d"
   address_space       = ["10.5.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_network_security_group" "test" {
-  name                = "acctestnsg%d"
+  name                = "acctestnsg%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
+  name                 = "acctestsubnet%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.1.0/24"]
@@ -379,27 +394,79 @@ resource "azurerm_subnet_network_security_group_association" "test" {
 }
 
 resource "azurerm_virtual_wan" "test" {
-  name                = "acctestvwan-%d"
+  name                = "acctestvwan-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_virtual_hub" "test" {
-  name                = "acctest-VHUB-%d"
+  name                = "acctest-VHUB-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   virtual_wan_id      = azurerm_virtual_wan.test.id
   address_prefix      = "10.0.2.0/24"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r VirtualHubConnectionResource) requiresLocking(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-vhub-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.5.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  depends_on = [azurerm_virtual_hub.test]
+}
+
+resource "azurerm_subnet" "test" {
+  # Creating lots of subnets increases the chance of triggering the race condition
+  count = 16
+
+  name                 = "acctestsubnet%[1]d-${count.index}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = [cidrsubnet("10.5.1.0/24", 4, count.index)]
+}
+
+resource "azurerm_virtual_wan" "test" {
+  name                = "acctestvwan-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctest-VHUB-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_prefix      = "10.0.2.0/24"
+}
+
+resource "azurerm_virtual_hub_connection" "test" {
+  name                      = "acctestbasicvhubconn-%[1]d"
+  virtual_hub_id            = azurerm_virtual_hub.test.id
+  remote_virtual_network_id = azurerm_virtual_network.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r VirtualHubConnectionResource) withRoutingConfiguration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctest-vhubconn-%d"
+  name                      = "acctest-vhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 
@@ -426,10 +493,10 @@ resource "azurerm_virtual_hub_connection" "test" {
 
 func (r VirtualHubConnectionResource) withoutPropagatedRouteTable(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctest-vhubconn-%d"
+  name                      = "acctest-vhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 
@@ -446,10 +513,10 @@ resource "azurerm_virtual_hub_connection" "test" {
 
 func (r VirtualHubConnectionResource) withoutVnetStaticRoute(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctest-vhubconn-%d"
+  name                      = "acctest-vhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 
@@ -464,10 +531,10 @@ resource "azurerm_virtual_hub_connection" "test" {
 
 func (r VirtualHubConnectionResource) updateRoutingConfiguration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctest-vhubconn-%d"
+  name                      = "acctest-vhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 

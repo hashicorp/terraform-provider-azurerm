@@ -57,7 +57,7 @@ var _ ExpandedConfigCaster = &UserAssignedIdentityList{}
 
 type UserAssignedIdentityList struct {
 	Type                   Type                    `json:"type,omitempty"`
-	UserAssignedIdentities *[]userAssignedIdentity `json:"userAssignedIdentities,omitempty"`
+	UserAssignedIdentities *[]userAssignedIdentity `json:"userAssignedIdentities"`
 }
 
 func (u *UserAssignedIdentityList) ToExpandedConfig() ExpandedConfig {
@@ -109,7 +109,7 @@ var _ ExpandedConfigCaster = &UserAssignedIdentityMap{}
 
 type UserAssignedIdentityMap struct {
 	Type                   Type                                 `json:"type,omitempty"`
-	UserAssignedIdentities map[string]*userAssignedIdentityInfo `json:"userAssignedIdentities,omitempty"`
+	UserAssignedIdentities map[string]*userAssignedIdentityInfo `json:"userAssignedIdentities"`
 }
 
 func (u *UserAssignedIdentityMap) ToExpandedConfig() ExpandedConfig {
@@ -146,7 +146,7 @@ func (u *UserAssignedIdentityMap) FromExpandedConfig(config ExpandedConfig) {
 	u.UserAssignedIdentities = map[string]*userAssignedIdentityInfo{}
 	for _, id := range config.UserAssignedIdentityIds {
 		// The user assigned identity information is not used by the provider. So simply assign the value to nil.
-		u.UserAssignedIdentities[id] = nil
+		u.UserAssignedIdentities[id] = &userAssignedIdentityInfo{ClientId: nil, PrincipalId: nil}
 	}
 }
 
@@ -156,7 +156,7 @@ type SystemUserAssignedIdentityList struct {
 	Type                   Type                    `json:"type,omitempty"`
 	TenantId               *string                 `json:"tenantId,omitempty"`
 	PrincipalId            *string                 `json:"principalId,omitempty"`
-	UserAssignedIdentities *[]userAssignedIdentity `json:"userAssignedIdentities,omitempty"`
+	UserAssignedIdentities *[]userAssignedIdentity `json:"userAssignedIdentities"`
 }
 
 func (s *SystemUserAssignedIdentityList) ToExpandedConfig() ExpandedConfig {
@@ -224,7 +224,7 @@ type SystemUserAssignedIdentityMap struct {
 	Type                   Type                                 `json:"type,omitempty"`
 	TenantId               *string                              `json:"tenantId,omitempty"`
 	PrincipalId            *string                              `json:"principalId,omitempty"`
-	UserAssignedIdentities map[string]*userAssignedIdentityInfo `json:"userAssignedIdentities,omitempty"`
+	UserAssignedIdentities map[string]*userAssignedIdentityInfo `json:"userAssignedIdentities"`
 }
 
 func (s *SystemUserAssignedIdentityMap) ToExpandedConfig() ExpandedConfig {
@@ -273,6 +273,6 @@ func (s *SystemUserAssignedIdentityMap) FromExpandedConfig(config ExpandedConfig
 	s.UserAssignedIdentities = map[string]*userAssignedIdentityInfo{}
 	for _, id := range config.UserAssignedIdentityIds {
 		// The user assigned identity information is not used by the provider. So simply assign the value to nil.
-		s.UserAssignedIdentities[id] = nil
+		s.UserAssignedIdentities[id] = &userAssignedIdentityInfo{ClientId: nil, PrincipalId: nil}
 	}
 }

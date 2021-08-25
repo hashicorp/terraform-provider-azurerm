@@ -726,7 +726,7 @@ func resourceServiceFabricClusterRead(d *pluginsdk.ResourceData, meta interface{
 
 		upgradePolicy := flattenServiceFabricClusterUpgradePolicy(props.UpgradeDescription)
 		if err := d.Set("upgrade_policy", upgradePolicy); err != nil {
-			return fmt.Errorf("setting `upgrade_description`: %+v", err)
+			return fmt.Errorf("setting `upgrade_policy`: %+v", err)
 		}
 
 		fabricSettings := flattenServiceFabricClusterFabricSettings(props.FabricSettings)

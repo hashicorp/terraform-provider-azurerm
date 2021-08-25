@@ -16,7 +16,7 @@ func TestConfigurationStoreIDFormatter(t *testing.T) {
 	}
 }
 
-func TestConfigurationStoreID(t *testing.T) {
+func TestParseConfigurationStoreID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -85,7 +85,7 @@ func TestConfigurationStoreID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ConfigurationStoreID(v.Input)
+		actual, err := ParseConfigurationStoreID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -109,7 +109,7 @@ func TestConfigurationStoreID(t *testing.T) {
 	}
 }
 
-func TestConfigurationStoreIDInsensitively(t *testing.T) {
+func TestParseConfigurationStoreIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -202,7 +202,7 @@ func TestConfigurationStoreIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ConfigurationStoreIDInsensitively(v.Input)
+		actual, err := ParseConfigurationStoreIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

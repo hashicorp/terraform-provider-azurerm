@@ -16,15 +16,6 @@ const (
 	ConnectionStatusRejected     ConnectionStatus = "Rejected"
 )
 
-type IdentityType string
-
-const (
-	IdentityTypeNone                       IdentityType = "None"
-	IdentityTypeSystemAssigned             IdentityType = "SystemAssigned"
-	IdentityTypeSystemAssignedUserAssigned IdentityType = "SystemAssigned, UserAssigned"
-	IdentityTypeUserAssigned               IdentityType = "UserAssigned"
-)
-
 type ProvisioningState string
 
 const (

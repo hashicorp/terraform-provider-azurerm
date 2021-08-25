@@ -12,14 +12,14 @@ import (
 
 type ListKeysResponse struct {
 	HttpResponse *http.Response
-	Model        *[]AccessKey
+	Model        *[]ApiKey
 
 	nextLink     *string
 	nextPageFunc func(ctx context.Context, nextLink string) (ListKeysResponse, error)
 }
 
 type ListKeysCompleteResult struct {
-	Items []AccessKey
+	Items []ApiKey
 }
 
 func (r ListKeysResponse) HasMore() bool {
@@ -32,19 +32,6 @@ func (r ListKeysResponse) LoadMore(ctx context.Context) (resp ListKeysResponse, 
 		return
 	}
 	return r.nextPageFunc(ctx, *r.nextLink)
-}
-
-type AccessKeyPredicate struct {
-	// TODO: implement me
-}
-
-func (p AccessKeyPredicate) Matches(input AccessKey) bool {
-	// TODO: implement me
-	// if p.Name != nil && input.Name != *p.Name {
-	// 	return false
-	// }
-
-	return true
 }
 
 // ListKeys ...
@@ -69,14 +56,14 @@ func (c ConfigurationStoresClient) ListKeys(ctx context.Context, id Configuratio
 	return
 }
 
-// ListKeysCompleteMatchingPredicate retrieves all of the results into a single object
+// ListKeysComplete retrieves all of the results into a single object
 func (c ConfigurationStoresClient) ListKeysComplete(ctx context.Context, id ConfigurationStoreId) (ListKeysCompleteResult, error) {
-	return c.ListKeysCompleteMatchingPredicate(ctx, id, AccessKeyPredicate{})
+	return c.ListKeysCompleteMatchingPredicate(ctx, id, ApiKeyPredicate{})
 }
 
 // ListKeysCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ConfigurationStoresClient) ListKeysCompleteMatchingPredicate(ctx context.Context, id ConfigurationStoreId, predicate AccessKeyPredicate) (resp ListKeysCompleteResult, err error) {
-	items := make([]AccessKey, 0)
+func (c ConfigurationStoresClient) ListKeysCompleteMatchingPredicate(ctx context.Context, id ConfigurationStoreId, predicate ApiKeyPredicate) (resp ListKeysCompleteResult, err error) {
+	items := make([]ApiKey, 0)
 
 	page, err := c.ListKeys(ctx, id)
 	if err != nil {
@@ -123,7 +110,7 @@ func (c ConfigurationStoresClient) preparerForListKeys(ctx context.Context, id C
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(fmt.Sprintf("%s/listKeys", id.ID())),
+		autorest.WithPath(fmt.Sprintf("%s/ListKeys", id.ID())),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -157,8 +144,8 @@ func (c ConfigurationStoresClient) preparerForListKeysWithNextLink(ctx context.C
 // closes the http.Response Body.
 func (c ConfigurationStoresClient) responderForListKeys(resp *http.Response) (result ListKeysResponse, err error) {
 	type page struct {
-		Values   []AccessKey `json:"value"`
-		NextLink *string     `json:"nextLink"`
+		Values   []ApiKey `json:"value"`
+		NextLink *string  `json:"nextLink"`
 	}
 	var respObj page
 	err = autorest.Respond(

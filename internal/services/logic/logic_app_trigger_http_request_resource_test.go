@@ -80,6 +80,22 @@ func TestAccLogicAppTriggerHttpRequest_method(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppTriggerHttpRequest_callbackUrl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
+	r := LogicAppTriggerHttpRequestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.method(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("callback_url").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLogicAppTriggerHttpRequest_relativePath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
 	r := LogicAppTriggerHttpRequestResource{}

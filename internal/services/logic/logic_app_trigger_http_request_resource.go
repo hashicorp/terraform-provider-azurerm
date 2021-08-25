@@ -80,6 +80,11 @@ func resourceLogicAppTriggerHttpRequest() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validate.TriggerHttpRequestRelativePath,
 			},
+
+			"callback_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -128,7 +133,7 @@ func resourceLogicAppTriggerHttpRequestRead(d *pluginsdk.ResourceData, meta inte
 	logicAppName := id.Path["workflows"]
 	name := id.Path["triggers"]
 
-	t, app, err := retrieveLogicAppTrigger(d, meta, resourceGroup, logicAppName, name)
+	t, app, url, err := retrieveLogicAppHttpTrigger(d, meta, resourceGroup, logicAppName, name)
 	if err != nil {
 		return err
 	}
@@ -143,6 +148,7 @@ func resourceLogicAppTriggerHttpRequestRead(d *pluginsdk.ResourceData, meta inte
 
 	d.Set("name", name)
 	d.Set("logic_app_id", app.ID)
+	d.Set("callback_url", url)
 
 	v := trigger["inputs"]
 	if v == nil {

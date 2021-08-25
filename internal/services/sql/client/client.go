@@ -16,6 +16,7 @@ type Client struct {
 	ServerExtendedBlobAuditingPoliciesClient   *sql.ExtendedServerBlobAuditingPoliciesClient
 	ServerConnectionPoliciesClient             *sql.ServerConnectionPoliciesClient
 	ServerAzureADAdministratorsClient          *sql.ServerAzureADAdministratorsClient
+	ServerSecurityAlertPoliciesClient          *sql.ServerSecurityAlertPoliciesClient
 	VirtualNetworkRulesClient                  *sql.VirtualNetworkRulesClient
 }
 
@@ -54,6 +55,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	serverExtendedBlobAuditingPoliciesClient := sql.NewExtendedServerBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverExtendedBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
+	serverSecurityAlertPoliciesClient := sql.NewServerSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&serverSecurityAlertPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		DatabasesClient: &databasesClient,
 		DatabaseExtendedBlobAuditingPoliciesClient: &databaseExtendedBlobAuditingPoliciesClient,
@@ -65,6 +69,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ServerAzureADAdministratorsClient:          &serverAzureADAdministratorsClient,
 		ServerConnectionPoliciesClient:             &serverConnectionPoliciesClient,
 		ServerExtendedBlobAuditingPoliciesClient:   &serverExtendedBlobAuditingPoliciesClient,
+		ServerSecurityAlertPoliciesClient:          &serverSecurityAlertPoliciesClient,
 		VirtualNetworkRulesClient:                  &virtualNetworkRulesClient,
 	}
 }
