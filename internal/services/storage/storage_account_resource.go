@@ -238,6 +238,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			// TODO: document this new field in 3.0
 			allowPublicNestedItemsName: {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
