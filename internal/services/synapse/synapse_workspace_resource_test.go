@@ -151,7 +151,7 @@ func TestAccSynapseWorkspace_github(t *testing.T) {
 	})
 }
 
-func TestAccSynapseWorkspace_customerManagedKey(t *testing.T) {
+func TestAccSynapseWorkspace_customerManagedKeyActivation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
 	r := SynapseWorkspaceResource{}
 

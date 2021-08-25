@@ -240,6 +240,13 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
 			},
 
+			// Default to cmk to ensure backwards compatibility with previous version that hardcoded the key name to cmk
+			"customer_managed_key_name": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  "cmk",
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -381,7 +388,9 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("sql_administrator_login", props.SQLAdministratorLogin)
 		d.Set("managed_resource_group_name", props.ManagedResourceGroupName)
 		d.Set("connectivity_endpoints", utils.FlattenMapStringPtrString(props.ConnectivityEndpoints))
-		d.Set("customer_managed_key_versionless_id", flattenEncryptionDetails(props.Encryption))
+		keyName, keyId := flattenEncryptionDetails(props.Encryption)
+		d.Set("customer_managed_key_versionless_id", keyId)
+		d.Set("customer_managed_key_name", keyName)
 
 		repoType, repo := flattenWorkspaceRepositoryConfiguration(props.WorkspaceRepositoryConfiguration)
 		if repoType == workspaceVSTSConfiguration {
@@ -568,13 +577,15 @@ func expandIdentityControlSQLSettings(enabled bool) *synapse.ManagedIdentitySQLC
 
 func expandEncryptionDetails(d *pluginsdk.ResourceData) *synapse.EncryptionDetails {
 	if key, ok := d.GetOk("customer_managed_key_versionless_id"); ok {
-		return &synapse.EncryptionDetails{
-			Cmk: &synapse.CustomerManagedKeyDetails{
-				Key: &synapse.WorkspaceKeyDetails{
-					Name:        utils.String("cmk"),
-					KeyVaultURL: utils.String(key.(string)),
+		if keyName, ok := d.GetOk("customer_managed_key_name"); ok {
+			return &synapse.EncryptionDetails{
+				Cmk: &synapse.CustomerManagedKeyDetails{
+					Key: &synapse.WorkspaceKeyDetails{
+						Name:        utils.String(keyName.(string)),
+						KeyVaultURL: utils.String(key.(string)),
+					},
 				},
-			},
+			}
 		}
 	}
 	return nil
@@ -684,11 +695,11 @@ func flattenIdentityControlSQLSettings(settings synapse.ManagedIdentitySQLContro
 	return false
 }
 
-func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) *string {
+func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) (*string, *string) {
 	if cmk := encryption.Cmk; cmk != nil {
 		if key := cmk.Key; key != nil {
-			return key.KeyVaultURL
+			return key.Name, key.KeyVaultURL
 		}
 	}
-	return nil
+	return nil, nil
 }
