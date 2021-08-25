@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
-
 	"github.com/Azure/go-autorest/autorest"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/1.0/appconfiguration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
 )
 
 type Client struct {
@@ -35,12 +34,12 @@ func (c Client) DataPlaneClient(ctx context.Context, configurationStoreId string
 		return nil, fmt.Errorf("endpoint was nil")
 	}
 
-	appConfigAuth, err := c.tokenFunc(*appConfig.Model.Properties.Endpoint)
+	endpoint := *appConfig.Model.Properties.Endpoint
+	appConfigAuth, err := c.tokenFunc(endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("obtaining auth token for %q: %+v", endpoint, err)
 	}
 
-	endpoint := *appConfig.Model.Properties.Endpoint
 	client := appconfiguration.NewWithoutDefaults("", endpoint)
 	c.configureClientFunc(&client.Client, appConfigAuth)
 	return &client, nil
