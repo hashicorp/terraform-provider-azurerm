@@ -35,16 +35,16 @@ func NewGalleryImagesClientWithBaseURI(baseURI string, subscriptionID string) Ga
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
 // expand - specify the $expand query. Example: 'properties($select=author)'
-// filter - the filter to apply to the operation.
-// top - the maximum number of resources to return from the operation.
-// orderby - the ordering expression for the results, using OData notation.
-func (client GalleryImagesClient) List(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationGalleryImagePage, err error) {
+// filter - the filter to apply to the operation. Example: '$filter=contains(name,'myName')
+// top - the maximum number of resources to return from the operation. Example: '$top=10'
+// orderby - the ordering expression for the results, using OData notation. Example: '$orderby=name desc'
+func (client GalleryImagesClient) List(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result GalleryImageListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/GalleryImagesClient.List")
 		defer func() {
 			sc := -1
-			if result.rwcgi.Response.Response != nil {
-				sc = result.rwcgi.Response.Response.StatusCode
+			if result.gil.Response.Response != nil {
+				sc = result.gil.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -58,17 +58,17 @@ func (client GalleryImagesClient) List(ctx context.Context, resourceGroupName st
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.rwcgi.Response = autorest.Response{Response: resp}
+		result.gil.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "dtl.GalleryImagesClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.rwcgi, err = client.ListResponder(resp)
+	result.gil, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.GalleryImagesClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.rwcgi.hasNextLink() && result.rwcgi.IsEmpty() {
+	if result.gil.hasNextLink() && result.gil.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -84,7 +84,7 @@ func (client GalleryImagesClient) ListPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -117,7 +117,7 @@ func (client GalleryImagesClient) ListSender(req *http.Request) (*http.Response,
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client GalleryImagesClient) ListResponder(resp *http.Response) (result ResponseWithContinuationGalleryImage, err error) {
+func (client GalleryImagesClient) ListResponder(resp *http.Response) (result GalleryImageList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -128,8 +128,8 @@ func (client GalleryImagesClient) ListResponder(resp *http.Response) (result Res
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client GalleryImagesClient) listNextResults(ctx context.Context, lastResults ResponseWithContinuationGalleryImage) (result ResponseWithContinuationGalleryImage, err error) {
-	req, err := lastResults.responseWithContinuationGalleryImagePreparer(ctx)
+func (client GalleryImagesClient) listNextResults(ctx context.Context, lastResults GalleryImageList) (result GalleryImageList, err error) {
+	req, err := lastResults.galleryImageListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "dtl.GalleryImagesClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -149,7 +149,7 @@ func (client GalleryImagesClient) listNextResults(ctx context.Context, lastResul
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client GalleryImagesClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationGalleryImageIterator, err error) {
+func (client GalleryImagesClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result GalleryImageListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/GalleryImagesClient.List")
 		defer func() {

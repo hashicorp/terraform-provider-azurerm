@@ -15,61 +15,54 @@ import (
 	"net/http"
 )
 
-// ArtifactSourcesClient is the the DevTest Labs Client.
-type ArtifactSourcesClient struct {
+// FormulasClient is the the DevTest Labs Client.
+type FormulasClient struct {
 	BaseClient
 }
 
-// NewArtifactSourcesClient creates an instance of the ArtifactSourcesClient client.
-func NewArtifactSourcesClient(subscriptionID string) ArtifactSourcesClient {
-	return NewArtifactSourcesClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewFormulasClient creates an instance of the FormulasClient client.
+func NewFormulasClient(subscriptionID string) FormulasClient {
+	return NewFormulasClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewArtifactSourcesClientWithBaseURI creates an instance of the ArtifactSourcesClient client using a custom endpoint.
-// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewArtifactSourcesClientWithBaseURI(baseURI string, subscriptionID string) ArtifactSourcesClient {
-	return ArtifactSourcesClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewFormulasClientWithBaseURI creates an instance of the FormulasClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
+func NewFormulasClientWithBaseURI(baseURI string, subscriptionID string) FormulasClient {
+	return FormulasClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate create or replace an existing artifact source.
+// CreateOrUpdate create or replace an existing formula. This operation can take a while to complete.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
-// name - the name of the artifact source.
-// artifactSource - properties of an artifact source.
-func (client ArtifactSourcesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, labName string, name string, artifactSource ArtifactSource) (result ArtifactSource, err error) {
+// name - the name of the formula.
+// formula - a formula for creating a VM, specifying an image base and other parameters
+func (client FormulasClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, labName string, name string, formula Formula) (result FormulasCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ArtifactSourcesClient.CreateOrUpdate")
+		ctx = tracing.StartSpan(ctx, fqdn+"/FormulasClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: artifactSource,
-			Constraints: []validation.Constraint{{Target: "artifactSource.ArtifactSourceProperties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("dtl.ArtifactSourcesClient", "CreateOrUpdate", err.Error())
+		{TargetValue: formula,
+			Constraints: []validation.Constraint{{Target: "formula.FormulaProperties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("dtl.FormulasClient", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, labName, name, artifactSource)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, labName, name, formula)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "CreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "dtl.FormulasClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.CreateOrUpdateSender(req)
+	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "CreateOrUpdate", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.CreateOrUpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "dtl.FormulasClient", "CreateOrUpdate", nil, "Failure sending request")
 		return
 	}
 
@@ -77,7 +70,7 @@ func (client ArtifactSourcesClient) CreateOrUpdate(ctx context.Context, resource
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client ArtifactSourcesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, labName string, name string, artifactSource ArtifactSource) (*http.Request, error) {
+func (client FormulasClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, labName string, name string, formula Formula) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"labName":           autorest.Encode("path", labName),
 		"name":              autorest.Encode("path", name),
@@ -85,7 +78,7 @@ func (client ArtifactSourcesClient) CreateOrUpdatePreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -94,21 +87,30 @@ func (client ArtifactSourcesClient) CreateOrUpdatePreparer(ctx context.Context, 
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/artifactsources/{name}", pathParameters),
-		autorest.WithJSON(artifactSource),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/formulas/{name}", pathParameters),
+		autorest.WithJSON(formula),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client ArtifactSourcesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client FormulasClient) CreateOrUpdateSender(req *http.Request) (future FormulasCreateOrUpdateFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client ArtifactSourcesClient) CreateOrUpdateResponder(resp *http.Response) (result ArtifactSource, err error) {
+func (client FormulasClient) CreateOrUpdateResponder(resp *http.Response) (result Formula, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
@@ -118,14 +120,14 @@ func (client ArtifactSourcesClient) CreateOrUpdateResponder(resp *http.Response)
 	return
 }
 
-// Delete delete artifact source.
+// Delete delete formula.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
-// name - the name of the artifact source.
-func (client ArtifactSourcesClient) Delete(ctx context.Context, resourceGroupName string, labName string, name string) (result autorest.Response, err error) {
+// name - the name of the formula.
+func (client FormulasClient) Delete(ctx context.Context, resourceGroupName string, labName string, name string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ArtifactSourcesClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/FormulasClient.Delete")
 		defer func() {
 			sc := -1
 			if result.Response != nil {
@@ -136,20 +138,20 @@ func (client ArtifactSourcesClient) Delete(ctx context.Context, resourceGroupNam
 	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, labName, name)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "dtl.FormulasClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.DeleteSender(req)
 	if err != nil {
 		result.Response = resp
-		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "Delete", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.FormulasClient", "Delete", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "Delete", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "dtl.FormulasClient", "Delete", resp, "Failure responding to request")
 		return
 	}
 
@@ -157,7 +159,7 @@ func (client ArtifactSourcesClient) Delete(ctx context.Context, resourceGroupNam
 }
 
 // DeletePreparer prepares the Delete request.
-func (client ArtifactSourcesClient) DeletePreparer(ctx context.Context, resourceGroupName string, labName string, name string) (*http.Request, error) {
+func (client FormulasClient) DeletePreparer(ctx context.Context, resourceGroupName string, labName string, name string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"labName":           autorest.Encode("path", labName),
 		"name":              autorest.Encode("path", name),
@@ -165,7 +167,7 @@ func (client ArtifactSourcesClient) DeletePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -173,20 +175,20 @@ func (client ArtifactSourcesClient) DeletePreparer(ctx context.Context, resource
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/artifactsources/{name}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/formulas/{name}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client ArtifactSourcesClient) DeleteSender(req *http.Request) (*http.Response, error) {
+func (client FormulasClient) DeleteSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client ArtifactSourcesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client FormulasClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
@@ -195,15 +197,15 @@ func (client ArtifactSourcesClient) DeleteResponder(resp *http.Response) (result
 	return
 }
 
-// Get get artifact source.
+// Get get formula.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
-// name - the name of the artifact source.
-// expand - specify the $expand query. Example: 'properties($select=displayName)'
-func (client ArtifactSourcesClient) Get(ctx context.Context, resourceGroupName string, labName string, name string, expand string) (result ArtifactSource, err error) {
+// name - the name of the formula.
+// expand - specify the $expand query. Example: 'properties($select=description)'
+func (client FormulasClient) Get(ctx context.Context, resourceGroupName string, labName string, name string, expand string) (result Formula, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ArtifactSourcesClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/FormulasClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -214,20 +216,20 @@ func (client ArtifactSourcesClient) Get(ctx context.Context, resourceGroupName s
 	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, labName, name, expand)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "dtl.FormulasClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.FormulasClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "dtl.FormulasClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -235,7 +237,7 @@ func (client ArtifactSourcesClient) Get(ctx context.Context, resourceGroupName s
 }
 
 // GetPreparer prepares the Get request.
-func (client ArtifactSourcesClient) GetPreparer(ctx context.Context, resourceGroupName string, labName string, name string, expand string) (*http.Request, error) {
+func (client FormulasClient) GetPreparer(ctx context.Context, resourceGroupName string, labName string, name string, expand string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"labName":           autorest.Encode("path", labName),
 		"name":              autorest.Encode("path", name),
@@ -243,7 +245,7 @@ func (client ArtifactSourcesClient) GetPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -254,20 +256,20 @@ func (client ArtifactSourcesClient) GetPreparer(ctx context.Context, resourceGro
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/artifactsources/{name}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/formulas/{name}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client ArtifactSourcesClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client FormulasClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client ArtifactSourcesClient) GetResponder(resp *http.Response) (result ArtifactSource, err error) {
+func (client FormulasClient) GetResponder(resp *http.Response) (result Formula, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -277,21 +279,21 @@ func (client ArtifactSourcesClient) GetResponder(resp *http.Response) (result Ar
 	return
 }
 
-// List list artifact sources in a given lab.
+// List list formulas in a given lab.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
-// expand - specify the $expand query. Example: 'properties($select=displayName)'
-// filter - the filter to apply to the operation.
-// top - the maximum number of resources to return from the operation.
-// orderby - the ordering expression for the results, using OData notation.
-func (client ArtifactSourcesClient) List(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationArtifactSourcePage, err error) {
+// expand - specify the $expand query. Example: 'properties($select=description)'
+// filter - the filter to apply to the operation. Example: '$filter=contains(name,'myName')
+// top - the maximum number of resources to return from the operation. Example: '$top=10'
+// orderby - the ordering expression for the results, using OData notation. Example: '$orderby=name desc'
+func (client FormulasClient) List(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result FormulaListPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ArtifactSourcesClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/FormulasClient.List")
 		defer func() {
 			sc := -1
-			if result.rwcas.Response.Response != nil {
-				sc = result.rwcas.Response.Response.StatusCode
+			if result.fl.Response.Response != nil {
+				sc = result.fl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -299,23 +301,23 @@ func (client ArtifactSourcesClient) List(ctx context.Context, resourceGroupName 
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, resourceGroupName, labName, expand, filter, top, orderby)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "dtl.FormulasClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.rwcas.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "List", resp, "Failure sending request")
+		result.fl.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "dtl.FormulasClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.rwcas, err = client.ListResponder(resp)
+	result.fl, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "dtl.FormulasClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.rwcas.hasNextLink() && result.rwcas.IsEmpty() {
+	if result.fl.hasNextLink() && result.fl.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -324,14 +326,14 @@ func (client ArtifactSourcesClient) List(ctx context.Context, resourceGroupName 
 }
 
 // ListPreparer prepares the List request.
-func (client ArtifactSourcesClient) ListPreparer(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (*http.Request, error) {
+func (client FormulasClient) ListPreparer(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"labName":           autorest.Encode("path", labName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -351,20 +353,20 @@ func (client ArtifactSourcesClient) ListPreparer(ctx context.Context, resourceGr
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/artifactsources", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/formulas", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client ArtifactSourcesClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client FormulasClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client ArtifactSourcesClient) ListResponder(resp *http.Response) (result ResponseWithContinuationArtifactSource, err error) {
+func (client FormulasClient) ListResponder(resp *http.Response) (result FormulaList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -375,10 +377,10 @@ func (client ArtifactSourcesClient) ListResponder(resp *http.Response) (result R
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client ArtifactSourcesClient) listNextResults(ctx context.Context, lastResults ResponseWithContinuationArtifactSource) (result ResponseWithContinuationArtifactSource, err error) {
-	req, err := lastResults.responseWithContinuationArtifactSourcePreparer(ctx)
+func (client FormulasClient) listNextResults(ctx context.Context, lastResults FormulaList) (result FormulaList, err error) {
+	req, err := lastResults.formulaListPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "listNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "dtl.FormulasClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -386,19 +388,19 @@ func (client ArtifactSourcesClient) listNextResults(ctx context.Context, lastRes
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "listNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "dtl.FormulasClient", "listNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "listNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "dtl.FormulasClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client ArtifactSourcesClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationArtifactSourceIterator, err error) {
+func (client FormulasClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result FormulaListIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ArtifactSourcesClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/FormulasClient.List")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -411,15 +413,15 @@ func (client ArtifactSourcesClient) ListComplete(ctx context.Context, resourceGr
 	return
 }
 
-// Update modify properties of artifact sources.
+// Update allows modifying tags of formulas. All other properties will be ignored.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
-// name - the name of the artifact source.
-// artifactSource - properties of an artifact source.
-func (client ArtifactSourcesClient) Update(ctx context.Context, resourceGroupName string, labName string, name string, artifactSource ArtifactSourceFragment) (result ArtifactSource, err error) {
+// name - the name of the formula.
+// formula - a formula for creating a VM, specifying an image base and other parameters
+func (client FormulasClient) Update(ctx context.Context, resourceGroupName string, labName string, name string, formula FormulaFragment) (result Formula, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ArtifactSourcesClient.Update")
+		ctx = tracing.StartSpan(ctx, fqdn+"/FormulasClient.Update")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -428,22 +430,22 @@ func (client ArtifactSourcesClient) Update(ctx context.Context, resourceGroupNam
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, labName, name, artifactSource)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, labName, name, formula)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "Update", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "dtl.FormulasClient", "Update", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.UpdateSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "Update", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dtl.FormulasClient", "Update", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "Update", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "dtl.FormulasClient", "Update", resp, "Failure responding to request")
 		return
 	}
 
@@ -451,7 +453,7 @@ func (client ArtifactSourcesClient) Update(ctx context.Context, resourceGroupNam
 }
 
 // UpdatePreparer prepares the Update request.
-func (client ArtifactSourcesClient) UpdatePreparer(ctx context.Context, resourceGroupName string, labName string, name string, artifactSource ArtifactSourceFragment) (*http.Request, error) {
+func (client FormulasClient) UpdatePreparer(ctx context.Context, resourceGroupName string, labName string, name string, formula FormulaFragment) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"labName":           autorest.Encode("path", labName),
 		"name":              autorest.Encode("path", name),
@@ -459,7 +461,7 @@ func (client ArtifactSourcesClient) UpdatePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -468,21 +470,21 @@ func (client ArtifactSourcesClient) UpdatePreparer(ctx context.Context, resource
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/artifactsources/{name}", pathParameters),
-		autorest.WithJSON(artifactSource),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/formulas/{name}", pathParameters),
+		autorest.WithJSON(formula),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client ArtifactSourcesClient) UpdateSender(req *http.Request) (*http.Response, error) {
+func (client FormulasClient) UpdateSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
-func (client ArtifactSourcesClient) UpdateResponder(resp *http.Response) (result ArtifactSource, err error) {
+func (client FormulasClient) UpdateResponder(resp *http.Response) (result Formula, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

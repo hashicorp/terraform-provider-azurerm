@@ -72,7 +72,7 @@ func (client ProviderOperationsClient) List(ctx context.Context) (result Provide
 
 // ListPreparer prepares the List request.
 func (client ProviderOperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

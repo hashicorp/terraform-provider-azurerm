@@ -1,4 +1,4 @@
-// Package dtl implements the Azure ARM Dtl service API version 2016-05-15.
+// Package dtl implements the Azure ARM Dtl service API version 2018-09-15.
 //
 // The DevTest Labs Client.
 package dtl

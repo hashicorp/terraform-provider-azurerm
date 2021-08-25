@@ -85,7 +85,7 @@ func (client SchedulesClient) CreateOrUpdatePreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -165,7 +165,7 @@ func (client SchedulesClient) DeletePreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -235,7 +235,7 @@ func (client SchedulesClient) ExecutePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -322,7 +322,7 @@ func (client SchedulesClient) GetPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -361,16 +361,16 @@ func (client SchedulesClient) GetResponder(resp *http.Response) (result Schedule
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
 // expand - specify the $expand query. Example: 'properties($select=status)'
-// filter - the filter to apply to the operation.
-// top - the maximum number of resources to return from the operation.
-// orderby - the ordering expression for the results, using OData notation.
-func (client SchedulesClient) List(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationSchedulePage, err error) {
+// filter - the filter to apply to the operation. Example: '$filter=contains(name,'myName')
+// top - the maximum number of resources to return from the operation. Example: '$top=10'
+// orderby - the ordering expression for the results, using OData notation. Example: '$orderby=name desc'
+func (client SchedulesClient) List(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result ScheduleListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SchedulesClient.List")
 		defer func() {
 			sc := -1
-			if result.rwcs.Response.Response != nil {
-				sc = result.rwcs.Response.Response.StatusCode
+			if result.sl.Response.Response != nil {
+				sc = result.sl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -384,17 +384,17 @@ func (client SchedulesClient) List(ctx context.Context, resourceGroupName string
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.rwcs.Response = autorest.Response{Response: resp}
+		result.sl.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.rwcs, err = client.ListResponder(resp)
+	result.sl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
+	if result.sl.hasNextLink() && result.sl.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -410,7 +410,7 @@ func (client SchedulesClient) ListPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -443,7 +443,7 @@ func (client SchedulesClient) ListSender(req *http.Request) (*http.Response, err
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client SchedulesClient) ListResponder(resp *http.Response) (result ResponseWithContinuationSchedule, err error) {
+func (client SchedulesClient) ListResponder(resp *http.Response) (result ScheduleList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -454,8 +454,8 @@ func (client SchedulesClient) ListResponder(resp *http.Response) (result Respons
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client SchedulesClient) listNextResults(ctx context.Context, lastResults ResponseWithContinuationSchedule) (result ResponseWithContinuationSchedule, err error) {
-	req, err := lastResults.responseWithContinuationSchedulePreparer(ctx)
+func (client SchedulesClient) listNextResults(ctx context.Context, lastResults ScheduleList) (result ScheduleList, err error) {
+	req, err := lastResults.scheduleListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "dtl.SchedulesClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -475,7 +475,7 @@ func (client SchedulesClient) listNextResults(ctx context.Context, lastResults R
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client SchedulesClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationScheduleIterator, err error) {
+func (client SchedulesClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result ScheduleListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SchedulesClient.List")
 		defer func() {
@@ -495,13 +495,13 @@ func (client SchedulesClient) ListComplete(ctx context.Context, resourceGroupNam
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
 // name - the name of the schedule.
-func (client SchedulesClient) ListApplicable(ctx context.Context, resourceGroupName string, labName string, name string) (result ResponseWithContinuationSchedulePage, err error) {
+func (client SchedulesClient) ListApplicable(ctx context.Context, resourceGroupName string, labName string, name string) (result ScheduleListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SchedulesClient.ListApplicable")
 		defer func() {
 			sc := -1
-			if result.rwcs.Response.Response != nil {
-				sc = result.rwcs.Response.Response.StatusCode
+			if result.sl.Response.Response != nil {
+				sc = result.sl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -515,17 +515,17 @@ func (client SchedulesClient) ListApplicable(ctx context.Context, resourceGroupN
 
 	resp, err := client.ListApplicableSender(req)
 	if err != nil {
-		result.rwcs.Response = autorest.Response{Response: resp}
+		result.sl.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "ListApplicable", resp, "Failure sending request")
 		return
 	}
 
-	result.rwcs, err = client.ListApplicableResponder(resp)
+	result.sl, err = client.ListApplicableResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "ListApplicable", resp, "Failure responding to request")
 		return
 	}
-	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
+	if result.sl.hasNextLink() && result.sl.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -542,7 +542,7 @@ func (client SchedulesClient) ListApplicablePreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -563,7 +563,7 @@ func (client SchedulesClient) ListApplicableSender(req *http.Request) (*http.Res
 
 // ListApplicableResponder handles the response to the ListApplicable request. The method always
 // closes the http.Response Body.
-func (client SchedulesClient) ListApplicableResponder(resp *http.Response) (result ResponseWithContinuationSchedule, err error) {
+func (client SchedulesClient) ListApplicableResponder(resp *http.Response) (result ScheduleList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -574,8 +574,8 @@ func (client SchedulesClient) ListApplicableResponder(resp *http.Response) (resu
 }
 
 // listApplicableNextResults retrieves the next set of results, if any.
-func (client SchedulesClient) listApplicableNextResults(ctx context.Context, lastResults ResponseWithContinuationSchedule) (result ResponseWithContinuationSchedule, err error) {
-	req, err := lastResults.responseWithContinuationSchedulePreparer(ctx)
+func (client SchedulesClient) listApplicableNextResults(ctx context.Context, lastResults ScheduleList) (result ScheduleList, err error) {
+	req, err := lastResults.scheduleListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "dtl.SchedulesClient", "listApplicableNextResults", nil, "Failure preparing next results request")
 	}
@@ -595,7 +595,7 @@ func (client SchedulesClient) listApplicableNextResults(ctx context.Context, las
 }
 
 // ListApplicableComplete enumerates all values, automatically crossing page boundaries as required.
-func (client SchedulesClient) ListApplicableComplete(ctx context.Context, resourceGroupName string, labName string, name string) (result ResponseWithContinuationScheduleIterator, err error) {
+func (client SchedulesClient) ListApplicableComplete(ctx context.Context, resourceGroupName string, labName string, name string) (result ScheduleListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SchedulesClient.ListApplicable")
 		defer func() {
@@ -610,7 +610,7 @@ func (client SchedulesClient) ListApplicableComplete(ctx context.Context, resour
 	return
 }
 
-// Update modify properties of schedules.
+// Update allows modifying tags of schedules. All other properties will be ignored.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
@@ -658,7 +658,7 @@ func (client SchedulesClient) UpdatePreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

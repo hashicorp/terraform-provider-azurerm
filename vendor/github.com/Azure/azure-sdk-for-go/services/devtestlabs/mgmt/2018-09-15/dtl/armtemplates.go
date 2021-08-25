@@ -35,7 +35,7 @@ func NewArmTemplatesClientWithBaseURI(baseURI string, subscriptionID string) Arm
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
 // artifactSourceName - the name of the artifact source.
-// name - the name of the azure Resource Manager template.
+// name - the name of the azure resource manager template.
 // expand - specify the $expand query. Example: 'properties($select=displayName)'
 func (client ArmTemplatesClient) Get(ctx context.Context, resourceGroupName string, labName string, artifactSourceName string, name string, expand string) (result ArmTemplate, err error) {
 	if tracing.IsEnabled() {
@@ -80,7 +80,7 @@ func (client ArmTemplatesClient) GetPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -120,16 +120,16 @@ func (client ArmTemplatesClient) GetResponder(resp *http.Response) (result ArmTe
 // labName - the name of the lab.
 // artifactSourceName - the name of the artifact source.
 // expand - specify the $expand query. Example: 'properties($select=displayName)'
-// filter - the filter to apply to the operation.
-// top - the maximum number of resources to return from the operation.
-// orderby - the ordering expression for the results, using OData notation.
-func (client ArmTemplatesClient) List(ctx context.Context, resourceGroupName string, labName string, artifactSourceName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationArmTemplatePage, err error) {
+// filter - the filter to apply to the operation. Example: '$filter=contains(name,'myName')
+// top - the maximum number of resources to return from the operation. Example: '$top=10'
+// orderby - the ordering expression for the results, using OData notation. Example: '$orderby=name desc'
+func (client ArmTemplatesClient) List(ctx context.Context, resourceGroupName string, labName string, artifactSourceName string, expand string, filter string, top *int32, orderby string) (result ArmTemplateListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ArmTemplatesClient.List")
 		defer func() {
 			sc := -1
-			if result.rwcat.Response.Response != nil {
-				sc = result.rwcat.Response.Response.StatusCode
+			if result.atl.Response.Response != nil {
+				sc = result.atl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -143,17 +143,17 @@ func (client ArmTemplatesClient) List(ctx context.Context, resourceGroupName str
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.rwcat.Response = autorest.Response{Response: resp}
+		result.atl.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "dtl.ArmTemplatesClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.rwcat, err = client.ListResponder(resp)
+	result.atl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArmTemplatesClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.rwcat.hasNextLink() && result.rwcat.IsEmpty() {
+	if result.atl.hasNextLink() && result.atl.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -170,7 +170,7 @@ func (client ArmTemplatesClient) ListPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -203,7 +203,7 @@ func (client ArmTemplatesClient) ListSender(req *http.Request) (*http.Response, 
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client ArmTemplatesClient) ListResponder(resp *http.Response) (result ResponseWithContinuationArmTemplate, err error) {
+func (client ArmTemplatesClient) ListResponder(resp *http.Response) (result ArmTemplateList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -214,8 +214,8 @@ func (client ArmTemplatesClient) ListResponder(resp *http.Response) (result Resp
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client ArmTemplatesClient) listNextResults(ctx context.Context, lastResults ResponseWithContinuationArmTemplate) (result ResponseWithContinuationArmTemplate, err error) {
-	req, err := lastResults.responseWithContinuationArmTemplatePreparer(ctx)
+func (client ArmTemplatesClient) listNextResults(ctx context.Context, lastResults ArmTemplateList) (result ArmTemplateList, err error) {
+	req, err := lastResults.armTemplateListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "dtl.ArmTemplatesClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -235,7 +235,7 @@ func (client ArmTemplatesClient) listNextResults(ctx context.Context, lastResult
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client ArmTemplatesClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, artifactSourceName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationArmTemplateIterator, err error) {
+func (client ArmTemplatesClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, artifactSourceName string, expand string, filter string, top *int32, orderby string) (result ArmTemplateListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ArmTemplatesClient.List")
 		defer func() {

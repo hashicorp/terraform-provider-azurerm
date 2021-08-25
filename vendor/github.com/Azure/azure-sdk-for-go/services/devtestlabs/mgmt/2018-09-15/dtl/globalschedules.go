@@ -83,7 +83,7 @@ func (client GlobalSchedulesClient) CreateOrUpdatePreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -161,7 +161,7 @@ func (client GlobalSchedulesClient) DeletePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -229,7 +229,7 @@ func (client GlobalSchedulesClient) ExecutePreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -314,7 +314,7 @@ func (client GlobalSchedulesClient) GetPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -352,16 +352,16 @@ func (client GlobalSchedulesClient) GetResponder(resp *http.Response) (result Sc
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // expand - specify the $expand query. Example: 'properties($select=status)'
-// filter - the filter to apply to the operation.
-// top - the maximum number of resources to return from the operation.
-// orderby - the ordering expression for the results, using OData notation.
-func (client GlobalSchedulesClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationSchedulePage, err error) {
+// filter - the filter to apply to the operation. Example: '$filter=contains(name,'myName')
+// top - the maximum number of resources to return from the operation. Example: '$top=10'
+// orderby - the ordering expression for the results, using OData notation. Example: '$orderby=name desc'
+func (client GlobalSchedulesClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, expand string, filter string, top *int32, orderby string) (result ScheduleListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/GlobalSchedulesClient.ListByResourceGroup")
 		defer func() {
 			sc := -1
-			if result.rwcs.Response.Response != nil {
-				sc = result.rwcs.Response.Response.StatusCode
+			if result.sl.Response.Response != nil {
+				sc = result.sl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -375,17 +375,17 @@ func (client GlobalSchedulesClient) ListByResourceGroup(ctx context.Context, res
 
 	resp, err := client.ListByResourceGroupSender(req)
 	if err != nil {
-		result.rwcs.Response = autorest.Response{Response: resp}
+		result.sl.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "dtl.GlobalSchedulesClient", "ListByResourceGroup", resp, "Failure sending request")
 		return
 	}
 
-	result.rwcs, err = client.ListByResourceGroupResponder(resp)
+	result.sl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.GlobalSchedulesClient", "ListByResourceGroup", resp, "Failure responding to request")
 		return
 	}
-	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
+	if result.sl.hasNextLink() && result.sl.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -400,7 +400,7 @@ func (client GlobalSchedulesClient) ListByResourceGroupPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -433,7 +433,7 @@ func (client GlobalSchedulesClient) ListByResourceGroupSender(req *http.Request)
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
 // closes the http.Response Body.
-func (client GlobalSchedulesClient) ListByResourceGroupResponder(resp *http.Response) (result ResponseWithContinuationSchedule, err error) {
+func (client GlobalSchedulesClient) ListByResourceGroupResponder(resp *http.Response) (result ScheduleList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -444,8 +444,8 @@ func (client GlobalSchedulesClient) ListByResourceGroupResponder(resp *http.Resp
 }
 
 // listByResourceGroupNextResults retrieves the next set of results, if any.
-func (client GlobalSchedulesClient) listByResourceGroupNextResults(ctx context.Context, lastResults ResponseWithContinuationSchedule) (result ResponseWithContinuationSchedule, err error) {
-	req, err := lastResults.responseWithContinuationSchedulePreparer(ctx)
+func (client GlobalSchedulesClient) listByResourceGroupNextResults(ctx context.Context, lastResults ScheduleList) (result ScheduleList, err error) {
+	req, err := lastResults.scheduleListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "dtl.GlobalSchedulesClient", "listByResourceGroupNextResults", nil, "Failure preparing next results request")
 	}
@@ -465,7 +465,7 @@ func (client GlobalSchedulesClient) listByResourceGroupNextResults(ctx context.C
 }
 
 // ListByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
-func (client GlobalSchedulesClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationScheduleIterator, err error) {
+func (client GlobalSchedulesClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string, expand string, filter string, top *int32, orderby string) (result ScheduleListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/GlobalSchedulesClient.ListByResourceGroup")
 		defer func() {
@@ -483,16 +483,16 @@ func (client GlobalSchedulesClient) ListByResourceGroupComplete(ctx context.Cont
 // ListBySubscription list schedules in a subscription.
 // Parameters:
 // expand - specify the $expand query. Example: 'properties($select=status)'
-// filter - the filter to apply to the operation.
-// top - the maximum number of resources to return from the operation.
-// orderby - the ordering expression for the results, using OData notation.
-func (client GlobalSchedulesClient) ListBySubscription(ctx context.Context, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationSchedulePage, err error) {
+// filter - the filter to apply to the operation. Example: '$filter=contains(name,'myName')
+// top - the maximum number of resources to return from the operation. Example: '$top=10'
+// orderby - the ordering expression for the results, using OData notation. Example: '$orderby=name desc'
+func (client GlobalSchedulesClient) ListBySubscription(ctx context.Context, expand string, filter string, top *int32, orderby string) (result ScheduleListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/GlobalSchedulesClient.ListBySubscription")
 		defer func() {
 			sc := -1
-			if result.rwcs.Response.Response != nil {
-				sc = result.rwcs.Response.Response.StatusCode
+			if result.sl.Response.Response != nil {
+				sc = result.sl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -506,17 +506,17 @@ func (client GlobalSchedulesClient) ListBySubscription(ctx context.Context, expa
 
 	resp, err := client.ListBySubscriptionSender(req)
 	if err != nil {
-		result.rwcs.Response = autorest.Response{Response: resp}
+		result.sl.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "dtl.GlobalSchedulesClient", "ListBySubscription", resp, "Failure sending request")
 		return
 	}
 
-	result.rwcs, err = client.ListBySubscriptionResponder(resp)
+	result.sl, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.GlobalSchedulesClient", "ListBySubscription", resp, "Failure responding to request")
 		return
 	}
-	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
+	if result.sl.hasNextLink() && result.sl.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -530,7 +530,7 @@ func (client GlobalSchedulesClient) ListBySubscriptionPreparer(ctx context.Conte
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -563,7 +563,7 @@ func (client GlobalSchedulesClient) ListBySubscriptionSender(req *http.Request) 
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
 // closes the http.Response Body.
-func (client GlobalSchedulesClient) ListBySubscriptionResponder(resp *http.Response) (result ResponseWithContinuationSchedule, err error) {
+func (client GlobalSchedulesClient) ListBySubscriptionResponder(resp *http.Response) (result ScheduleList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -574,8 +574,8 @@ func (client GlobalSchedulesClient) ListBySubscriptionResponder(resp *http.Respo
 }
 
 // listBySubscriptionNextResults retrieves the next set of results, if any.
-func (client GlobalSchedulesClient) listBySubscriptionNextResults(ctx context.Context, lastResults ResponseWithContinuationSchedule) (result ResponseWithContinuationSchedule, err error) {
-	req, err := lastResults.responseWithContinuationSchedulePreparer(ctx)
+func (client GlobalSchedulesClient) listBySubscriptionNextResults(ctx context.Context, lastResults ScheduleList) (result ScheduleList, err error) {
+	req, err := lastResults.scheduleListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "dtl.GlobalSchedulesClient", "listBySubscriptionNextResults", nil, "Failure preparing next results request")
 	}
@@ -595,7 +595,7 @@ func (client GlobalSchedulesClient) listBySubscriptionNextResults(ctx context.Co
 }
 
 // ListBySubscriptionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client GlobalSchedulesClient) ListBySubscriptionComplete(ctx context.Context, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationScheduleIterator, err error) {
+func (client GlobalSchedulesClient) ListBySubscriptionComplete(ctx context.Context, expand string, filter string, top *int32, orderby string) (result ScheduleListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/GlobalSchedulesClient.ListBySubscription")
 		defer func() {
@@ -649,7 +649,7 @@ func (client GlobalSchedulesClient) RetargetPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -690,7 +690,7 @@ func (client GlobalSchedulesClient) RetargetResponder(resp *http.Response) (resu
 	return
 }
 
-// Update modify properties of schedules.
+// Update allows modifying tags of schedules. All other properties will be ignored.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // name - the name of the schedule.
@@ -736,7 +736,7 @@ func (client GlobalSchedulesClient) UpdatePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

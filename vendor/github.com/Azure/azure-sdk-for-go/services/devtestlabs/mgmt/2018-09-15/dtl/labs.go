@@ -10,7 +10,6 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -69,7 +68,7 @@ func (client LabsClient) ClaimAnyVMPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -124,21 +123,6 @@ func (client LabsClient) CreateEnvironment(ctx context.Context, resourceGroupNam
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: labVirtualMachineCreationParameter,
-			Constraints: []validation.Constraint{{Target: "labVirtualMachineCreationParameter.LabVirtualMachineCreationParameterProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "labVirtualMachineCreationParameter.LabVirtualMachineCreationParameterProperties.ApplicableSchedule", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "labVirtualMachineCreationParameter.LabVirtualMachineCreationParameterProperties.ApplicableSchedule.ApplicableScheduleProperties", Name: validation.Null, Rule: true,
-						Chain: []validation.Constraint{{Target: "labVirtualMachineCreationParameter.LabVirtualMachineCreationParameterProperties.ApplicableSchedule.ApplicableScheduleProperties.LabVmsShutdown", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "labVirtualMachineCreationParameter.LabVirtualMachineCreationParameterProperties.ApplicableSchedule.ApplicableScheduleProperties.LabVmsShutdown.ScheduleProperties", Name: validation.Null, Rule: true, Chain: nil}}},
-							{Target: "labVirtualMachineCreationParameter.LabVirtualMachineCreationParameterProperties.ApplicableSchedule.ApplicableScheduleProperties.LabVmsStartup", Name: validation.Null, Rule: false,
-								Chain: []validation.Constraint{{Target: "labVirtualMachineCreationParameter.LabVirtualMachineCreationParameterProperties.ApplicableSchedule.ApplicableScheduleProperties.LabVmsStartup.ScheduleProperties", Name: validation.Null, Rule: true, Chain: nil}}},
-						}},
-					}},
-				}}}}}); err != nil {
-		return result, validation.NewError("dtl.LabsClient", "CreateEnvironment", err.Error())
-	}
-
 	req, err := client.CreateEnvironmentPreparer(ctx, resourceGroupName, name, labVirtualMachineCreationParameter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "CreateEnvironment", nil, "Failure preparing request")
@@ -162,7 +146,7 @@ func (client LabsClient) CreateEnvironmentPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -242,7 +226,7 @@ func (client LabsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -322,7 +306,7 @@ func (client LabsClient) DeletePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -401,7 +385,7 @@ func (client LabsClient) ExportResourceUsagePreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -488,7 +472,7 @@ func (client LabsClient) GenerateUploadURIPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -567,7 +551,7 @@ func (client LabsClient) GetPreparer(ctx context.Context, resourceGroupName stri
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -601,20 +585,101 @@ func (client LabsClient) GetResponder(resp *http.Response) (result Lab, err erro
 	return
 }
 
+// ImportVirtualMachine import a virtual machine into a different lab. This operation can take a while to complete.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// name - the name of the lab.
+// importLabVirtualMachineRequest - this represents the payload required to import a virtual machine from a
+// different lab into the current one
+func (client LabsClient) ImportVirtualMachine(ctx context.Context, resourceGroupName string, name string, importLabVirtualMachineRequest ImportLabVirtualMachineRequest) (result LabsImportVirtualMachineFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/LabsClient.ImportVirtualMachine")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.ImportVirtualMachinePreparer(ctx, resourceGroupName, name, importLabVirtualMachineRequest)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ImportVirtualMachine", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.ImportVirtualMachineSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ImportVirtualMachine", nil, "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// ImportVirtualMachinePreparer prepares the ImportVirtualMachine request.
+func (client LabsClient) ImportVirtualMachinePreparer(ctx context.Context, resourceGroupName string, name string, importLabVirtualMachineRequest ImportLabVirtualMachineRequest) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-09-15"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{name}/importVirtualMachine", pathParameters),
+		autorest.WithJSON(importLabVirtualMachineRequest),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ImportVirtualMachineSender sends the ImportVirtualMachine request. The method will close the
+// http.Response Body if it receives an error.
+func (client LabsClient) ImportVirtualMachineSender(req *http.Request) (future LabsImportVirtualMachineFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// ImportVirtualMachineResponder handles the response to the ImportVirtualMachine request. The method always
+// closes the http.Response Body.
+func (client LabsClient) ImportVirtualMachineResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // ListByResourceGroup list labs in a resource group.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // expand - specify the $expand query. Example: 'properties($select=defaultStorageAccount)'
-// filter - the filter to apply to the operation.
-// top - the maximum number of resources to return from the operation.
-// orderby - the ordering expression for the results, using OData notation.
-func (client LabsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationLabPage, err error) {
+// filter - the filter to apply to the operation. Example: '$filter=contains(name,'myName')
+// top - the maximum number of resources to return from the operation. Example: '$top=10'
+// orderby - the ordering expression for the results, using OData notation. Example: '$orderby=name desc'
+func (client LabsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, expand string, filter string, top *int32, orderby string) (result LabListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LabsClient.ListByResourceGroup")
 		defer func() {
 			sc := -1
-			if result.rwcl.Response.Response != nil {
-				sc = result.rwcl.Response.Response.StatusCode
+			if result.ll.Response.Response != nil {
+				sc = result.ll.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -628,17 +693,17 @@ func (client LabsClient) ListByResourceGroup(ctx context.Context, resourceGroupN
 
 	resp, err := client.ListByResourceGroupSender(req)
 	if err != nil {
-		result.rwcl.Response = autorest.Response{Response: resp}
+		result.ll.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ListByResourceGroup", resp, "Failure sending request")
 		return
 	}
 
-	result.rwcl, err = client.ListByResourceGroupResponder(resp)
+	result.ll, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ListByResourceGroup", resp, "Failure responding to request")
 		return
 	}
-	if result.rwcl.hasNextLink() && result.rwcl.IsEmpty() {
+	if result.ll.hasNextLink() && result.ll.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -653,7 +718,7 @@ func (client LabsClient) ListByResourceGroupPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -686,7 +751,7 @@ func (client LabsClient) ListByResourceGroupSender(req *http.Request) (*http.Res
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
 // closes the http.Response Body.
-func (client LabsClient) ListByResourceGroupResponder(resp *http.Response) (result ResponseWithContinuationLab, err error) {
+func (client LabsClient) ListByResourceGroupResponder(resp *http.Response) (result LabList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -697,8 +762,8 @@ func (client LabsClient) ListByResourceGroupResponder(resp *http.Response) (resu
 }
 
 // listByResourceGroupNextResults retrieves the next set of results, if any.
-func (client LabsClient) listByResourceGroupNextResults(ctx context.Context, lastResults ResponseWithContinuationLab) (result ResponseWithContinuationLab, err error) {
-	req, err := lastResults.responseWithContinuationLabPreparer(ctx)
+func (client LabsClient) listByResourceGroupNextResults(ctx context.Context, lastResults LabList) (result LabList, err error) {
+	req, err := lastResults.labListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "dtl.LabsClient", "listByResourceGroupNextResults", nil, "Failure preparing next results request")
 	}
@@ -718,7 +783,7 @@ func (client LabsClient) listByResourceGroupNextResults(ctx context.Context, las
 }
 
 // ListByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
-func (client LabsClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationLabIterator, err error) {
+func (client LabsClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string, expand string, filter string, top *int32, orderby string) (result LabListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LabsClient.ListByResourceGroup")
 		defer func() {
@@ -736,16 +801,16 @@ func (client LabsClient) ListByResourceGroupComplete(ctx context.Context, resour
 // ListBySubscription list labs in a subscription.
 // Parameters:
 // expand - specify the $expand query. Example: 'properties($select=defaultStorageAccount)'
-// filter - the filter to apply to the operation.
-// top - the maximum number of resources to return from the operation.
-// orderby - the ordering expression for the results, using OData notation.
-func (client LabsClient) ListBySubscription(ctx context.Context, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationLabPage, err error) {
+// filter - the filter to apply to the operation. Example: '$filter=contains(name,'myName')
+// top - the maximum number of resources to return from the operation. Example: '$top=10'
+// orderby - the ordering expression for the results, using OData notation. Example: '$orderby=name desc'
+func (client LabsClient) ListBySubscription(ctx context.Context, expand string, filter string, top *int32, orderby string) (result LabListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LabsClient.ListBySubscription")
 		defer func() {
 			sc := -1
-			if result.rwcl.Response.Response != nil {
-				sc = result.rwcl.Response.Response.StatusCode
+			if result.ll.Response.Response != nil {
+				sc = result.ll.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -759,17 +824,17 @@ func (client LabsClient) ListBySubscription(ctx context.Context, expand string, 
 
 	resp, err := client.ListBySubscriptionSender(req)
 	if err != nil {
-		result.rwcl.Response = autorest.Response{Response: resp}
+		result.ll.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ListBySubscription", resp, "Failure sending request")
 		return
 	}
 
-	result.rwcl, err = client.ListBySubscriptionResponder(resp)
+	result.ll, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ListBySubscription", resp, "Failure responding to request")
 		return
 	}
-	if result.rwcl.hasNextLink() && result.rwcl.IsEmpty() {
+	if result.ll.hasNextLink() && result.ll.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -783,7 +848,7 @@ func (client LabsClient) ListBySubscriptionPreparer(ctx context.Context, expand 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -816,7 +881,7 @@ func (client LabsClient) ListBySubscriptionSender(req *http.Request) (*http.Resp
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
 // closes the http.Response Body.
-func (client LabsClient) ListBySubscriptionResponder(resp *http.Response) (result ResponseWithContinuationLab, err error) {
+func (client LabsClient) ListBySubscriptionResponder(resp *http.Response) (result LabList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -827,8 +892,8 @@ func (client LabsClient) ListBySubscriptionResponder(resp *http.Response) (resul
 }
 
 // listBySubscriptionNextResults retrieves the next set of results, if any.
-func (client LabsClient) listBySubscriptionNextResults(ctx context.Context, lastResults ResponseWithContinuationLab) (result ResponseWithContinuationLab, err error) {
-	req, err := lastResults.responseWithContinuationLabPreparer(ctx)
+func (client LabsClient) listBySubscriptionNextResults(ctx context.Context, lastResults LabList) (result LabList, err error) {
+	req, err := lastResults.labListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "dtl.LabsClient", "listBySubscriptionNextResults", nil, "Failure preparing next results request")
 	}
@@ -848,7 +913,7 @@ func (client LabsClient) listBySubscriptionNextResults(ctx context.Context, last
 }
 
 // ListBySubscriptionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client LabsClient) ListBySubscriptionComplete(ctx context.Context, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationLabIterator, err error) {
+func (client LabsClient) ListBySubscriptionComplete(ctx context.Context, expand string, filter string, top *int32, orderby string) (result LabListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LabsClient.ListBySubscription")
 		defer func() {
@@ -867,13 +932,13 @@ func (client LabsClient) ListBySubscriptionComplete(ctx context.Context, expand 
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // name - the name of the lab.
-func (client LabsClient) ListVhds(ctx context.Context, resourceGroupName string, name string) (result ResponseWithContinuationLabVhdPage, err error) {
+func (client LabsClient) ListVhds(ctx context.Context, resourceGroupName string, name string) (result LabVhdListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LabsClient.ListVhds")
 		defer func() {
 			sc := -1
-			if result.rwclv.Response.Response != nil {
-				sc = result.rwclv.Response.Response.StatusCode
+			if result.lvl.Response.Response != nil {
+				sc = result.lvl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -887,17 +952,17 @@ func (client LabsClient) ListVhds(ctx context.Context, resourceGroupName string,
 
 	resp, err := client.ListVhdsSender(req)
 	if err != nil {
-		result.rwclv.Response = autorest.Response{Response: resp}
+		result.lvl.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ListVhds", resp, "Failure sending request")
 		return
 	}
 
-	result.rwclv, err = client.ListVhdsResponder(resp)
+	result.lvl, err = client.ListVhdsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ListVhds", resp, "Failure responding to request")
 		return
 	}
-	if result.rwclv.hasNextLink() && result.rwclv.IsEmpty() {
+	if result.lvl.hasNextLink() && result.lvl.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -913,7 +978,7 @@ func (client LabsClient) ListVhdsPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -934,7 +999,7 @@ func (client LabsClient) ListVhdsSender(req *http.Request) (*http.Response, erro
 
 // ListVhdsResponder handles the response to the ListVhds request. The method always
 // closes the http.Response Body.
-func (client LabsClient) ListVhdsResponder(resp *http.Response) (result ResponseWithContinuationLabVhd, err error) {
+func (client LabsClient) ListVhdsResponder(resp *http.Response) (result LabVhdList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -945,8 +1010,8 @@ func (client LabsClient) ListVhdsResponder(resp *http.Response) (result Response
 }
 
 // listVhdsNextResults retrieves the next set of results, if any.
-func (client LabsClient) listVhdsNextResults(ctx context.Context, lastResults ResponseWithContinuationLabVhd) (result ResponseWithContinuationLabVhd, err error) {
-	req, err := lastResults.responseWithContinuationLabVhdPreparer(ctx)
+func (client LabsClient) listVhdsNextResults(ctx context.Context, lastResults LabVhdList) (result LabVhdList, err error) {
+	req, err := lastResults.labVhdListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "dtl.LabsClient", "listVhdsNextResults", nil, "Failure preparing next results request")
 	}
@@ -966,7 +1031,7 @@ func (client LabsClient) listVhdsNextResults(ctx context.Context, lastResults Re
 }
 
 // ListVhdsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client LabsClient) ListVhdsComplete(ctx context.Context, resourceGroupName string, name string) (result ResponseWithContinuationLabVhdIterator, err error) {
+func (client LabsClient) ListVhdsComplete(ctx context.Context, resourceGroupName string, name string) (result LabVhdListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LabsClient.ListVhds")
 		defer func() {
@@ -981,7 +1046,7 @@ func (client LabsClient) ListVhdsComplete(ctx context.Context, resourceGroupName
 	return
 }
 
-// Update modify properties of labs.
+// Update allows modifying tags of labs. All other properties will be ignored.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // name - the name of the lab.
@@ -1027,7 +1092,7 @@ func (client LabsClient) UpdatePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

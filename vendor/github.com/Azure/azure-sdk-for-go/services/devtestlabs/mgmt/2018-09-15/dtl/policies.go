@@ -87,7 +87,7 @@ func (client PoliciesClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -169,7 +169,7 @@ func (client PoliciesClient) DeletePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -249,7 +249,7 @@ func (client PoliciesClient) GetPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -289,16 +289,16 @@ func (client PoliciesClient) GetResponder(resp *http.Response) (result Policy, e
 // labName - the name of the lab.
 // policySetName - the name of the policy set.
 // expand - specify the $expand query. Example: 'properties($select=description)'
-// filter - the filter to apply to the operation.
-// top - the maximum number of resources to return from the operation.
-// orderby - the ordering expression for the results, using OData notation.
-func (client PoliciesClient) List(ctx context.Context, resourceGroupName string, labName string, policySetName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationPolicyPage, err error) {
+// filter - the filter to apply to the operation. Example: '$filter=contains(name,'myName')
+// top - the maximum number of resources to return from the operation. Example: '$top=10'
+// orderby - the ordering expression for the results, using OData notation. Example: '$orderby=name desc'
+func (client PoliciesClient) List(ctx context.Context, resourceGroupName string, labName string, policySetName string, expand string, filter string, top *int32, orderby string) (result PolicyListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PoliciesClient.List")
 		defer func() {
 			sc := -1
-			if result.rwcp.Response.Response != nil {
-				sc = result.rwcp.Response.Response.StatusCode
+			if result.pl.Response.Response != nil {
+				sc = result.pl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -312,17 +312,17 @@ func (client PoliciesClient) List(ctx context.Context, resourceGroupName string,
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.rwcp.Response = autorest.Response{Response: resp}
+		result.pl.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "dtl.PoliciesClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.rwcp, err = client.ListResponder(resp)
+	result.pl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.PoliciesClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.rwcp.hasNextLink() && result.rwcp.IsEmpty() {
+	if result.pl.hasNextLink() && result.pl.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -339,7 +339,7 @@ func (client PoliciesClient) ListPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -372,7 +372,7 @@ func (client PoliciesClient) ListSender(req *http.Request) (*http.Response, erro
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client PoliciesClient) ListResponder(resp *http.Response) (result ResponseWithContinuationPolicy, err error) {
+func (client PoliciesClient) ListResponder(resp *http.Response) (result PolicyList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -383,8 +383,8 @@ func (client PoliciesClient) ListResponder(resp *http.Response) (result Response
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client PoliciesClient) listNextResults(ctx context.Context, lastResults ResponseWithContinuationPolicy) (result ResponseWithContinuationPolicy, err error) {
-	req, err := lastResults.responseWithContinuationPolicyPreparer(ctx)
+func (client PoliciesClient) listNextResults(ctx context.Context, lastResults PolicyList) (result PolicyList, err error) {
+	req, err := lastResults.policyListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "dtl.PoliciesClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -404,7 +404,7 @@ func (client PoliciesClient) listNextResults(ctx context.Context, lastResults Re
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client PoliciesClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, policySetName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationPolicyIterator, err error) {
+func (client PoliciesClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, policySetName string, expand string, filter string, top *int32, orderby string) (result PolicyListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PoliciesClient.List")
 		defer func() {
@@ -419,7 +419,7 @@ func (client PoliciesClient) ListComplete(ctx context.Context, resourceGroupName
 	return
 }
 
-// Update modify properties of policies.
+// Update allows modifying tags of policies. All other properties will be ignored.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
@@ -469,7 +469,7 @@ func (client PoliciesClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

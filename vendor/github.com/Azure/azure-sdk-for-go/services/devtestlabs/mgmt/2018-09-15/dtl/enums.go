@@ -70,6 +70,21 @@ func PossibleEnableStatusValues() []EnableStatus {
 	return []EnableStatus{EnableStatusDisabled, EnableStatusEnabled}
 }
 
+// EnvironmentPermission enumerates the values for environment permission.
+type EnvironmentPermission string
+
+const (
+	// Contributor ...
+	Contributor EnvironmentPermission = "Contributor"
+	// Reader ...
+	Reader EnvironmentPermission = "Reader"
+)
+
+// PossibleEnvironmentPermissionValues returns an array of possible values for the EnvironmentPermission const type.
+func PossibleEnvironmentPermissionValues() []EnvironmentPermission {
+	return []EnvironmentPermission{Contributor, Reader}
+}
+
 // FileUploadOptions enumerates the values for file upload options.
 type FileUploadOptions string
 
@@ -229,21 +244,6 @@ func PossibleNotificationChannelEventTypeValues() []NotificationChannelEventType
 	return []NotificationChannelEventType{AutoShutdown, Cost}
 }
 
-// NotificationStatus enumerates the values for notification status.
-type NotificationStatus string
-
-const (
-	// NotificationStatusDisabled ...
-	NotificationStatusDisabled NotificationStatus = "Disabled"
-	// NotificationStatusEnabled ...
-	NotificationStatusEnabled NotificationStatus = "Enabled"
-)
-
-// PossibleNotificationStatusValues returns an array of possible values for the NotificationStatus const type.
-func PossibleNotificationStatusValues() []NotificationStatus {
-	return []NotificationStatus{NotificationStatusDisabled, NotificationStatusEnabled}
-}
-
 // PolicyEvaluatorType enumerates the values for policy evaluator type.
 type PolicyEvaluatorType string
 
@@ -263,6 +263,8 @@ func PossiblePolicyEvaluatorTypeValues() []PolicyEvaluatorType {
 type PolicyFactName string
 
 const (
+	// PolicyFactNameEnvironmentTemplate ...
+	PolicyFactNameEnvironmentTemplate PolicyFactName = "EnvironmentTemplate"
 	// PolicyFactNameGalleryImage ...
 	PolicyFactNameGalleryImage PolicyFactName = "GalleryImage"
 	// PolicyFactNameLabPremiumVMCount ...
@@ -273,6 +275,8 @@ const (
 	PolicyFactNameLabVMCount PolicyFactName = "LabVmCount"
 	// PolicyFactNameLabVMSize ...
 	PolicyFactNameLabVMSize PolicyFactName = "LabVmSize"
+	// PolicyFactNameScheduleEditPermission ...
+	PolicyFactNameScheduleEditPermission PolicyFactName = "ScheduleEditPermission"
 	// PolicyFactNameUserOwnedLabPremiumVMCount ...
 	PolicyFactNameUserOwnedLabPremiumVMCount PolicyFactName = "UserOwnedLabPremiumVmCount"
 	// PolicyFactNameUserOwnedLabVMCount ...
@@ -283,7 +287,7 @@ const (
 
 // PossiblePolicyFactNameValues returns an array of possible values for the PolicyFactName const type.
 func PossiblePolicyFactNameValues() []PolicyFactName {
-	return []PolicyFactName{PolicyFactNameGalleryImage, PolicyFactNameLabPremiumVMCount, PolicyFactNameLabTargetCost, PolicyFactNameLabVMCount, PolicyFactNameLabVMSize, PolicyFactNameUserOwnedLabPremiumVMCount, PolicyFactNameUserOwnedLabVMCount, PolicyFactNameUserOwnedLabVMCountInSubnet}
+	return []PolicyFactName{PolicyFactNameEnvironmentTemplate, PolicyFactNameGalleryImage, PolicyFactNameLabPremiumVMCount, PolicyFactNameLabTargetCost, PolicyFactNameLabVMCount, PolicyFactNameLabVMSize, PolicyFactNameScheduleEditPermission, PolicyFactNameUserOwnedLabPremiumVMCount, PolicyFactNameUserOwnedLabVMCount, PolicyFactNameUserOwnedLabVMCountInSubnet}
 }
 
 // PolicyStatus enumerates the values for policy status.
@@ -354,11 +358,13 @@ const (
 	Premium StorageType = "Premium"
 	// Standard ...
 	Standard StorageType = "Standard"
+	// StandardSSD ...
+	StandardSSD StorageType = "StandardSSD"
 )
 
 // PossibleStorageTypeValues returns an array of possible values for the StorageType const type.
 func PossibleStorageTypeValues() []StorageType {
-	return []StorageType{Premium, Standard}
+	return []StorageType{Premium, Standard, StandardSSD}
 }
 
 // TargetCostStatus enumerates the values for target cost status.
@@ -416,11 +422,13 @@ const (
 	FromCustomImage VirtualMachineCreationSource = "FromCustomImage"
 	// FromGalleryImage ...
 	FromGalleryImage VirtualMachineCreationSource = "FromGalleryImage"
+	// FromSharedGalleryImage ...
+	FromSharedGalleryImage VirtualMachineCreationSource = "FromSharedGalleryImage"
 )
 
 // PossibleVirtualMachineCreationSourceValues returns an array of possible values for the VirtualMachineCreationSource const type.
 func PossibleVirtualMachineCreationSourceValues() []VirtualMachineCreationSource {
-	return []VirtualMachineCreationSource{FromCustomImage, FromGalleryImage}
+	return []VirtualMachineCreationSource{FromCustomImage, FromGalleryImage, FromSharedGalleryImage}
 }
 
 // WindowsOsState enumerates the values for windows os state.

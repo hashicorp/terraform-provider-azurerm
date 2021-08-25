@@ -81,7 +81,7 @@ func (client ArtifactsClient) GenerateArmTemplatePreparer(ctx context.Context, r
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -164,7 +164,7 @@ func (client ArtifactsClient) GetPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -204,16 +204,16 @@ func (client ArtifactsClient) GetResponder(resp *http.Response) (result Artifact
 // labName - the name of the lab.
 // artifactSourceName - the name of the artifact source.
 // expand - specify the $expand query. Example: 'properties($select=title)'
-// filter - the filter to apply to the operation.
-// top - the maximum number of resources to return from the operation.
-// orderby - the ordering expression for the results, using OData notation.
-func (client ArtifactsClient) List(ctx context.Context, resourceGroupName string, labName string, artifactSourceName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationArtifactPage, err error) {
+// filter - the filter to apply to the operation. Example: '$filter=contains(name,'myName')
+// top - the maximum number of resources to return from the operation. Example: '$top=10'
+// orderby - the ordering expression for the results, using OData notation. Example: '$orderby=name desc'
+func (client ArtifactsClient) List(ctx context.Context, resourceGroupName string, labName string, artifactSourceName string, expand string, filter string, top *int32, orderby string) (result ArtifactListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ArtifactsClient.List")
 		defer func() {
 			sc := -1
-			if result.rwca.Response.Response != nil {
-				sc = result.rwca.Response.Response.StatusCode
+			if result.al.Response.Response != nil {
+				sc = result.al.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -227,17 +227,17 @@ func (client ArtifactsClient) List(ctx context.Context, resourceGroupName string
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.rwca.Response = autorest.Response{Response: resp}
+		result.al.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactsClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.rwca, err = client.ListResponder(resp)
+	result.al, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactsClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.rwca.hasNextLink() && result.rwca.IsEmpty() {
+	if result.al.hasNextLink() && result.al.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -254,7 +254,7 @@ func (client ArtifactsClient) ListPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -287,7 +287,7 @@ func (client ArtifactsClient) ListSender(req *http.Request) (*http.Response, err
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client ArtifactsClient) ListResponder(resp *http.Response) (result ResponseWithContinuationArtifact, err error) {
+func (client ArtifactsClient) ListResponder(resp *http.Response) (result ArtifactList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -298,8 +298,8 @@ func (client ArtifactsClient) ListResponder(resp *http.Response) (result Respons
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client ArtifactsClient) listNextResults(ctx context.Context, lastResults ResponseWithContinuationArtifact) (result ResponseWithContinuationArtifact, err error) {
-	req, err := lastResults.responseWithContinuationArtifactPreparer(ctx)
+func (client ArtifactsClient) listNextResults(ctx context.Context, lastResults ArtifactList) (result ArtifactList, err error) {
+	req, err := lastResults.artifactListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "dtl.ArtifactsClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -319,7 +319,7 @@ func (client ArtifactsClient) listNextResults(ctx context.Context, lastResults R
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client ArtifactsClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, artifactSourceName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationArtifactIterator, err error) {
+func (client ArtifactsClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, artifactSourceName string, expand string, filter string, top *int32, orderby string) (result ArtifactListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ArtifactsClient.List")
 		defer func() {

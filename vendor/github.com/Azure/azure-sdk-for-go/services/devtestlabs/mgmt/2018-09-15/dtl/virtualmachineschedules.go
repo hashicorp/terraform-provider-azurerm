@@ -88,7 +88,7 @@ func (client VirtualMachineSchedulesClient) CreateOrUpdatePreparer(ctx context.C
 		"virtualMachineName": autorest.Encode("path", virtualMachineName),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -170,7 +170,7 @@ func (client VirtualMachineSchedulesClient) DeletePreparer(ctx context.Context, 
 		"virtualMachineName": autorest.Encode("path", virtualMachineName),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -242,7 +242,7 @@ func (client VirtualMachineSchedulesClient) ExecutePreparer(ctx context.Context,
 		"virtualMachineName": autorest.Encode("path", virtualMachineName),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -331,7 +331,7 @@ func (client VirtualMachineSchedulesClient) GetPreparer(ctx context.Context, res
 		"virtualMachineName": autorest.Encode("path", virtualMachineName),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -371,16 +371,16 @@ func (client VirtualMachineSchedulesClient) GetResponder(resp *http.Response) (r
 // labName - the name of the lab.
 // virtualMachineName - the name of the virtual machine.
 // expand - specify the $expand query. Example: 'properties($select=status)'
-// filter - the filter to apply to the operation.
-// top - the maximum number of resources to return from the operation.
-// orderby - the ordering expression for the results, using OData notation.
-func (client VirtualMachineSchedulesClient) List(ctx context.Context, resourceGroupName string, labName string, virtualMachineName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationSchedulePage, err error) {
+// filter - the filter to apply to the operation. Example: '$filter=contains(name,'myName')
+// top - the maximum number of resources to return from the operation. Example: '$top=10'
+// orderby - the ordering expression for the results, using OData notation. Example: '$orderby=name desc'
+func (client VirtualMachineSchedulesClient) List(ctx context.Context, resourceGroupName string, labName string, virtualMachineName string, expand string, filter string, top *int32, orderby string) (result ScheduleListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachineSchedulesClient.List")
 		defer func() {
 			sc := -1
-			if result.rwcs.Response.Response != nil {
-				sc = result.rwcs.Response.Response.StatusCode
+			if result.sl.Response.Response != nil {
+				sc = result.sl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -394,17 +394,17 @@ func (client VirtualMachineSchedulesClient) List(ctx context.Context, resourceGr
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.rwcs.Response = autorest.Response{Response: resp}
+		result.sl.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "dtl.VirtualMachineSchedulesClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.rwcs, err = client.ListResponder(resp)
+	result.sl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.VirtualMachineSchedulesClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
+	if result.sl.hasNextLink() && result.sl.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -421,7 +421,7 @@ func (client VirtualMachineSchedulesClient) ListPreparer(ctx context.Context, re
 		"virtualMachineName": autorest.Encode("path", virtualMachineName),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -454,7 +454,7 @@ func (client VirtualMachineSchedulesClient) ListSender(req *http.Request) (*http
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client VirtualMachineSchedulesClient) ListResponder(resp *http.Response) (result ResponseWithContinuationSchedule, err error) {
+func (client VirtualMachineSchedulesClient) ListResponder(resp *http.Response) (result ScheduleList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -465,8 +465,8 @@ func (client VirtualMachineSchedulesClient) ListResponder(resp *http.Response) (
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client VirtualMachineSchedulesClient) listNextResults(ctx context.Context, lastResults ResponseWithContinuationSchedule) (result ResponseWithContinuationSchedule, err error) {
-	req, err := lastResults.responseWithContinuationSchedulePreparer(ctx)
+func (client VirtualMachineSchedulesClient) listNextResults(ctx context.Context, lastResults ScheduleList) (result ScheduleList, err error) {
+	req, err := lastResults.scheduleListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "dtl.VirtualMachineSchedulesClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -486,7 +486,7 @@ func (client VirtualMachineSchedulesClient) listNextResults(ctx context.Context,
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client VirtualMachineSchedulesClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, virtualMachineName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationScheduleIterator, err error) {
+func (client VirtualMachineSchedulesClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, virtualMachineName string, expand string, filter string, top *int32, orderby string) (result ScheduleListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachineSchedulesClient.List")
 		defer func() {
@@ -501,7 +501,7 @@ func (client VirtualMachineSchedulesClient) ListComplete(ctx context.Context, re
 	return
 }
 
-// Update modify properties of schedules.
+// Update allows modifying tags of schedules. All other properties will be ignored.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
@@ -551,7 +551,7 @@ func (client VirtualMachineSchedulesClient) UpdatePreparer(ctx context.Context, 
 		"virtualMachineName": autorest.Encode("path", virtualMachineName),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

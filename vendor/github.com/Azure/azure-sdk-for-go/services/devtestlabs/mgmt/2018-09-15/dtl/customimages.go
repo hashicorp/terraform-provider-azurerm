@@ -78,7 +78,7 @@ func (client CustomImagesClient) CreateOrUpdatePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -160,7 +160,7 @@ func (client CustomImagesClient) DeletePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -247,7 +247,7 @@ func (client CustomImagesClient) GetPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -286,16 +286,16 @@ func (client CustomImagesClient) GetResponder(resp *http.Response) (result Custo
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
 // expand - specify the $expand query. Example: 'properties($select=vm)'
-// filter - the filter to apply to the operation.
-// top - the maximum number of resources to return from the operation.
-// orderby - the ordering expression for the results, using OData notation.
-func (client CustomImagesClient) List(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationCustomImagePage, err error) {
+// filter - the filter to apply to the operation. Example: '$filter=contains(name,'myName')
+// top - the maximum number of resources to return from the operation. Example: '$top=10'
+// orderby - the ordering expression for the results, using OData notation. Example: '$orderby=name desc'
+func (client CustomImagesClient) List(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result CustomImageListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CustomImagesClient.List")
 		defer func() {
 			sc := -1
-			if result.rwcci.Response.Response != nil {
-				sc = result.rwcci.Response.Response.StatusCode
+			if result.cil.Response.Response != nil {
+				sc = result.cil.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -309,17 +309,17 @@ func (client CustomImagesClient) List(ctx context.Context, resourceGroupName str
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.rwcci.Response = autorest.Response{Response: resp}
+		result.cil.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "dtl.CustomImagesClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.rwcci, err = client.ListResponder(resp)
+	result.cil, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.CustomImagesClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.rwcci.hasNextLink() && result.rwcci.IsEmpty() {
+	if result.cil.hasNextLink() && result.cil.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -335,7 +335,7 @@ func (client CustomImagesClient) ListPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -368,7 +368,7 @@ func (client CustomImagesClient) ListSender(req *http.Request) (*http.Response, 
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client CustomImagesClient) ListResponder(resp *http.Response) (result ResponseWithContinuationCustomImage, err error) {
+func (client CustomImagesClient) ListResponder(resp *http.Response) (result CustomImageList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -379,8 +379,8 @@ func (client CustomImagesClient) ListResponder(resp *http.Response) (result Resp
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client CustomImagesClient) listNextResults(ctx context.Context, lastResults ResponseWithContinuationCustomImage) (result ResponseWithContinuationCustomImage, err error) {
-	req, err := lastResults.responseWithContinuationCustomImagePreparer(ctx)
+func (client CustomImagesClient) listNextResults(ctx context.Context, lastResults CustomImageList) (result CustomImageList, err error) {
+	req, err := lastResults.customImageListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "dtl.CustomImagesClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -400,7 +400,7 @@ func (client CustomImagesClient) listNextResults(ctx context.Context, lastResult
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client CustomImagesClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationCustomImageIterator, err error) {
+func (client CustomImagesClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result CustomImageListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CustomImagesClient.List")
 		defer func() {
@@ -412,5 +412,86 @@ func (client CustomImagesClient) ListComplete(ctx context.Context, resourceGroup
 		}()
 	}
 	result.page, err = client.List(ctx, resourceGroupName, labName, expand, filter, top, orderby)
+	return
+}
+
+// Update allows modifying tags of custom images. All other properties will be ignored.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// labName - the name of the lab.
+// name - the name of the custom image.
+// customImage - a custom image.
+func (client CustomImagesClient) Update(ctx context.Context, resourceGroupName string, labName string, name string, customImage CustomImageFragment) (result CustomImage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CustomImagesClient.Update")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, labName, name, customImage)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "dtl.CustomImagesClient", "Update", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.UpdateSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "dtl.CustomImagesClient", "Update", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.UpdateResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "dtl.CustomImagesClient", "Update", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// UpdatePreparer prepares the Update request.
+func (client CustomImagesClient) UpdatePreparer(ctx context.Context, resourceGroupName string, labName string, name string, customImage CustomImageFragment) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"labName":           autorest.Encode("path", labName),
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-09-15"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPatch(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/customimages/{name}", pathParameters),
+		autorest.WithJSON(customImage),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateSender sends the Update request. The method will close the
+// http.Response Body if it receives an error.
+func (client CustomImagesClient) UpdateSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// UpdateResponder handles the response to the Update request. The method always
+// closes the http.Response Body.
+func (client CustomImagesClient) UpdateResponder(resp *http.Response) (result CustomImage, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }

@@ -80,7 +80,7 @@ func (client EnvironmentsClient) CreateOrUpdatePreparer(ctx context.Context, res
 		"userName":          autorest.Encode("path", userName),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -164,7 +164,7 @@ func (client EnvironmentsClient) DeletePreparer(ctx context.Context, resourceGro
 		"userName":          autorest.Encode("path", userName),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -253,7 +253,7 @@ func (client EnvironmentsClient) GetPreparer(ctx context.Context, resourceGroupN
 		"userName":          autorest.Encode("path", userName),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -293,16 +293,16 @@ func (client EnvironmentsClient) GetResponder(resp *http.Response) (result Envir
 // labName - the name of the lab.
 // userName - the name of the user profile.
 // expand - specify the $expand query. Example: 'properties($select=deploymentProperties)'
-// filter - the filter to apply to the operation.
-// top - the maximum number of resources to return from the operation.
-// orderby - the ordering expression for the results, using OData notation.
-func (client EnvironmentsClient) List(ctx context.Context, resourceGroupName string, labName string, userName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationDtlEnvironmentPage, err error) {
+// filter - the filter to apply to the operation. Example: '$filter=contains(name,'myName')
+// top - the maximum number of resources to return from the operation. Example: '$top=10'
+// orderby - the ordering expression for the results, using OData notation. Example: '$orderby=name desc'
+func (client EnvironmentsClient) List(ctx context.Context, resourceGroupName string, labName string, userName string, expand string, filter string, top *int32, orderby string) (result EnvironmentListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/EnvironmentsClient.List")
 		defer func() {
 			sc := -1
-			if result.rwcde.Response.Response != nil {
-				sc = result.rwcde.Response.Response.StatusCode
+			if result.el.Response.Response != nil {
+				sc = result.el.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -316,17 +316,17 @@ func (client EnvironmentsClient) List(ctx context.Context, resourceGroupName str
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.rwcde.Response = autorest.Response{Response: resp}
+		result.el.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "dtl.EnvironmentsClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.rwcde, err = client.ListResponder(resp)
+	result.el, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.EnvironmentsClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.rwcde.hasNextLink() && result.rwcde.IsEmpty() {
+	if result.el.hasNextLink() && result.el.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -343,7 +343,7 @@ func (client EnvironmentsClient) ListPreparer(ctx context.Context, resourceGroup
 		"userName":          autorest.Encode("path", userName),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -376,7 +376,7 @@ func (client EnvironmentsClient) ListSender(req *http.Request) (*http.Response, 
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client EnvironmentsClient) ListResponder(resp *http.Response) (result ResponseWithContinuationDtlEnvironment, err error) {
+func (client EnvironmentsClient) ListResponder(resp *http.Response) (result EnvironmentList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -387,8 +387,8 @@ func (client EnvironmentsClient) ListResponder(resp *http.Response) (result Resp
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client EnvironmentsClient) listNextResults(ctx context.Context, lastResults ResponseWithContinuationDtlEnvironment) (result ResponseWithContinuationDtlEnvironment, err error) {
-	req, err := lastResults.responseWithContinuationDtlEnvironmentPreparer(ctx)
+func (client EnvironmentsClient) listNextResults(ctx context.Context, lastResults EnvironmentList) (result EnvironmentList, err error) {
+	req, err := lastResults.environmentListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "dtl.EnvironmentsClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -408,7 +408,7 @@ func (client EnvironmentsClient) listNextResults(ctx context.Context, lastResult
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client EnvironmentsClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, userName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationDtlEnvironmentIterator, err error) {
+func (client EnvironmentsClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, userName string, expand string, filter string, top *int32, orderby string) (result EnvironmentListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/EnvironmentsClient.List")
 		defer func() {
@@ -420,5 +420,88 @@ func (client EnvironmentsClient) ListComplete(ctx context.Context, resourceGroup
 		}()
 	}
 	result.page, err = client.List(ctx, resourceGroupName, labName, userName, expand, filter, top, orderby)
+	return
+}
+
+// Update allows modifying tags of environments. All other properties will be ignored.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// labName - the name of the lab.
+// userName - the name of the user profile.
+// name - the name of the environment.
+// dtlEnvironment - an environment, which is essentially an ARM template deployment.
+func (client EnvironmentsClient) Update(ctx context.Context, resourceGroupName string, labName string, userName string, name string, dtlEnvironment EnvironmentFragment) (result Environment, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EnvironmentsClient.Update")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, labName, userName, name, dtlEnvironment)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "dtl.EnvironmentsClient", "Update", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.UpdateSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "dtl.EnvironmentsClient", "Update", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.UpdateResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "dtl.EnvironmentsClient", "Update", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// UpdatePreparer prepares the Update request.
+func (client EnvironmentsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, labName string, userName string, name string, dtlEnvironment EnvironmentFragment) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"labName":           autorest.Encode("path", labName),
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"userName":          autorest.Encode("path", userName),
+	}
+
+	const APIVersion = "2018-09-15"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPatch(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/users/{userName}/environments/{name}", pathParameters),
+		autorest.WithJSON(dtlEnvironment),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateSender sends the Update request. The method will close the
+// http.Response Body if it receives an error.
+func (client EnvironmentsClient) UpdateSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// UpdateResponder handles the response to the Update request. The method always
+// closes the http.Response Body.
+func (client EnvironmentsClient) UpdateResponder(resp *http.Response) (result Environment, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }

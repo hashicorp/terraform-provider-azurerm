@@ -74,7 +74,7 @@ func (client DisksClient) AttachPreparer(ctx context.Context, resourceGroupName 
 		"userName":          autorest.Encode("path", userName),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -164,7 +164,7 @@ func (client DisksClient) CreateOrUpdatePreparer(ctx context.Context, resourceGr
 		"userName":          autorest.Encode("path", userName),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -248,7 +248,7 @@ func (client DisksClient) DeletePreparer(ctx context.Context, resourceGroupName 
 		"userName":          autorest.Encode("path", userName),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -331,7 +331,7 @@ func (client DisksClient) DetachPreparer(ctx context.Context, resourceGroupName 
 		"userName":          autorest.Encode("path", userName),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -422,7 +422,7 @@ func (client DisksClient) GetPreparer(ctx context.Context, resourceGroupName str
 		"userName":          autorest.Encode("path", userName),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -462,16 +462,16 @@ func (client DisksClient) GetResponder(resp *http.Response) (result Disk, err er
 // labName - the name of the lab.
 // userName - the name of the user profile.
 // expand - specify the $expand query. Example: 'properties($select=diskType)'
-// filter - the filter to apply to the operation.
-// top - the maximum number of resources to return from the operation.
-// orderby - the ordering expression for the results, using OData notation.
-func (client DisksClient) List(ctx context.Context, resourceGroupName string, labName string, userName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationDiskPage, err error) {
+// filter - the filter to apply to the operation. Example: '$filter=contains(name,'myName')
+// top - the maximum number of resources to return from the operation. Example: '$top=10'
+// orderby - the ordering expression for the results, using OData notation. Example: '$orderby=name desc'
+func (client DisksClient) List(ctx context.Context, resourceGroupName string, labName string, userName string, expand string, filter string, top *int32, orderby string) (result DiskListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DisksClient.List")
 		defer func() {
 			sc := -1
-			if result.rwcd.Response.Response != nil {
-				sc = result.rwcd.Response.Response.StatusCode
+			if result.dl.Response.Response != nil {
+				sc = result.dl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -485,17 +485,17 @@ func (client DisksClient) List(ctx context.Context, resourceGroupName string, la
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.rwcd.Response = autorest.Response{Response: resp}
+		result.dl.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.rwcd, err = client.ListResponder(resp)
+	result.dl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.rwcd.hasNextLink() && result.rwcd.IsEmpty() {
+	if result.dl.hasNextLink() && result.dl.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -512,7 +512,7 @@ func (client DisksClient) ListPreparer(ctx context.Context, resourceGroupName st
 		"userName":          autorest.Encode("path", userName),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -545,7 +545,7 @@ func (client DisksClient) ListSender(req *http.Request) (*http.Response, error) 
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client DisksClient) ListResponder(resp *http.Response) (result ResponseWithContinuationDisk, err error) {
+func (client DisksClient) ListResponder(resp *http.Response) (result DiskList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -556,8 +556,8 @@ func (client DisksClient) ListResponder(resp *http.Response) (result ResponseWit
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client DisksClient) listNextResults(ctx context.Context, lastResults ResponseWithContinuationDisk) (result ResponseWithContinuationDisk, err error) {
-	req, err := lastResults.responseWithContinuationDiskPreparer(ctx)
+func (client DisksClient) listNextResults(ctx context.Context, lastResults DiskList) (result DiskList, err error) {
+	req, err := lastResults.diskListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "dtl.DisksClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -577,7 +577,7 @@ func (client DisksClient) listNextResults(ctx context.Context, lastResults Respo
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client DisksClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, userName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationDiskIterator, err error) {
+func (client DisksClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, userName string, expand string, filter string, top *int32, orderby string) (result DiskListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DisksClient.List")
 		defer func() {
@@ -589,5 +589,88 @@ func (client DisksClient) ListComplete(ctx context.Context, resourceGroupName st
 		}()
 	}
 	result.page, err = client.List(ctx, resourceGroupName, labName, userName, expand, filter, top, orderby)
+	return
+}
+
+// Update allows modifying tags of disks. All other properties will be ignored.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// labName - the name of the lab.
+// userName - the name of the user profile.
+// name - the name of the disk.
+// disk - a Disk.
+func (client DisksClient) Update(ctx context.Context, resourceGroupName string, labName string, userName string, name string, disk DiskFragment) (result Disk, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DisksClient.Update")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, labName, userName, name, disk)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Update", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.UpdateSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Update", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.UpdateResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "Update", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// UpdatePreparer prepares the Update request.
+func (client DisksClient) UpdatePreparer(ctx context.Context, resourceGroupName string, labName string, userName string, name string, disk DiskFragment) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"labName":           autorest.Encode("path", labName),
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"userName":          autorest.Encode("path", userName),
+	}
+
+	const APIVersion = "2018-09-15"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPatch(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/users/{userName}/disks/{name}", pathParameters),
+		autorest.WithJSON(disk),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateSender sends the Update request. The method will close the
+// http.Response Body if it receives an error.
+func (client DisksClient) UpdateSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// UpdateResponder handles the response to the Update request. The method always
+// closes the http.Response Body.
+func (client DisksClient) UpdateResponder(resp *http.Response) (result Disk, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }

@@ -32,11 +32,11 @@ func NewNotificationChannelsClientWithBaseURI(baseURI string, subscriptionID str
 	return NotificationChannelsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate create or replace an existing notificationChannel.
+// CreateOrUpdate create or replace an existing notification channel.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
-// name - the name of the notificationChannel.
+// name - the name of the notification channel.
 // notificationChannel - a notification.
 func (client NotificationChannelsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, labName string, name string, notificationChannel NotificationChannel) (result NotificationChannel, err error) {
 	if tracing.IsEnabled() {
@@ -86,7 +86,7 @@ func (client NotificationChannelsClient) CreateOrUpdatePreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -123,7 +123,7 @@ func (client NotificationChannelsClient) CreateOrUpdateResponder(resp *http.Resp
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
-// name - the name of the notificationChannel.
+// name - the name of the notification channel.
 func (client NotificationChannelsClient) Delete(ctx context.Context, resourceGroupName string, labName string, name string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/NotificationChannelsClient.Delete")
@@ -166,7 +166,7 @@ func (client NotificationChannelsClient) DeletePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -196,11 +196,11 @@ func (client NotificationChannelsClient) DeleteResponder(resp *http.Response) (r
 	return
 }
 
-// Get get notification channels.
+// Get get notification channel.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
-// name - the name of the notificationChannel.
+// name - the name of the notification channel.
 // expand - specify the $expand query. Example: 'properties($select=webHookUrl)'
 func (client NotificationChannelsClient) Get(ctx context.Context, resourceGroupName string, labName string, name string, expand string) (result NotificationChannel, err error) {
 	if tracing.IsEnabled() {
@@ -244,7 +244,7 @@ func (client NotificationChannelsClient) GetPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -283,16 +283,16 @@ func (client NotificationChannelsClient) GetResponder(resp *http.Response) (resu
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
 // expand - specify the $expand query. Example: 'properties($select=webHookUrl)'
-// filter - the filter to apply to the operation.
-// top - the maximum number of resources to return from the operation.
-// orderby - the ordering expression for the results, using OData notation.
-func (client NotificationChannelsClient) List(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationNotificationChannelPage, err error) {
+// filter - the filter to apply to the operation. Example: '$filter=contains(name,'myName')
+// top - the maximum number of resources to return from the operation. Example: '$top=10'
+// orderby - the ordering expression for the results, using OData notation. Example: '$orderby=name desc'
+func (client NotificationChannelsClient) List(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result NotificationChannelListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/NotificationChannelsClient.List")
 		defer func() {
 			sc := -1
-			if result.rwcnc.Response.Response != nil {
-				sc = result.rwcnc.Response.Response.StatusCode
+			if result.ncl.Response.Response != nil {
+				sc = result.ncl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -306,17 +306,17 @@ func (client NotificationChannelsClient) List(ctx context.Context, resourceGroup
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.rwcnc.Response = autorest.Response{Response: resp}
+		result.ncl.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "dtl.NotificationChannelsClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.rwcnc, err = client.ListResponder(resp)
+	result.ncl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.NotificationChannelsClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.rwcnc.hasNextLink() && result.rwcnc.IsEmpty() {
+	if result.ncl.hasNextLink() && result.ncl.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -332,7 +332,7 @@ func (client NotificationChannelsClient) ListPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -365,7 +365,7 @@ func (client NotificationChannelsClient) ListSender(req *http.Request) (*http.Re
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client NotificationChannelsClient) ListResponder(resp *http.Response) (result ResponseWithContinuationNotificationChannel, err error) {
+func (client NotificationChannelsClient) ListResponder(resp *http.Response) (result NotificationChannelList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -376,8 +376,8 @@ func (client NotificationChannelsClient) ListResponder(resp *http.Response) (res
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client NotificationChannelsClient) listNextResults(ctx context.Context, lastResults ResponseWithContinuationNotificationChannel) (result ResponseWithContinuationNotificationChannel, err error) {
-	req, err := lastResults.responseWithContinuationNotificationChannelPreparer(ctx)
+func (client NotificationChannelsClient) listNextResults(ctx context.Context, lastResults NotificationChannelList) (result NotificationChannelList, err error) {
+	req, err := lastResults.notificationChannelListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "dtl.NotificationChannelsClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -397,7 +397,7 @@ func (client NotificationChannelsClient) listNextResults(ctx context.Context, la
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client NotificationChannelsClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result ResponseWithContinuationNotificationChannelIterator, err error) {
+func (client NotificationChannelsClient) ListComplete(ctx context.Context, resourceGroupName string, labName string, expand string, filter string, top *int32, orderby string) (result NotificationChannelListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/NotificationChannelsClient.List")
 		defer func() {
@@ -416,7 +416,7 @@ func (client NotificationChannelsClient) ListComplete(ctx context.Context, resou
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
-// name - the name of the notificationChannel.
+// name - the name of the notification channel.
 // notifyParameters - properties for generating a Notification.
 func (client NotificationChannelsClient) Notify(ctx context.Context, resourceGroupName string, labName string, name string, notifyParameters NotifyParameters) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
@@ -460,7 +460,7 @@ func (client NotificationChannelsClient) NotifyPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -492,11 +492,11 @@ func (client NotificationChannelsClient) NotifyResponder(resp *http.Response) (r
 	return
 }
 
-// Update modify properties of notification channels.
+// Update allows modifying tags of notification channels. All other properties will be ignored.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // labName - the name of the lab.
-// name - the name of the notificationChannel.
+// name - the name of the notification channel.
 // notificationChannel - a notification.
 func (client NotificationChannelsClient) Update(ctx context.Context, resourceGroupName string, labName string, name string, notificationChannel NotificationChannelFragment) (result NotificationChannel, err error) {
 	if tracing.IsEnabled() {
@@ -540,7 +540,7 @@ func (client NotificationChannelsClient) UpdatePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-05-15"
+	const APIVersion = "2018-09-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
