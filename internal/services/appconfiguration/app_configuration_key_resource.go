@@ -82,7 +82,7 @@ func (k KeyResource) Attributes() map[string]*schema.Schema {
 }
 
 func (k KeyResource) ModelObject() interface{} {
-	return nil
+	return KeyResourceModel{}
 }
 
 func (k KeyResource) ResourceType() string {
@@ -125,15 +125,14 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				Tags:        tags.Expand(model.Tags),
 			}
 
-			_, err = client.PutKeyValue(ctx, model.Key, model.Label, &entity, "", "")
-			if err != nil {
+			if _, err = client.PutKeyValue(ctx, model.Key, model.Label, &entity, "", ""); err != nil {
 				return err
 			}
 
 			if model.Locked {
 				_, err = client.PutLock(ctx, model.Key, model.Label, "", "")
 				if err != nil {
-					return fmt.Errorf("while locking key/label pair %s/%s: %+v", model.Key, model.Label, err)
+					return fmt.Errorf("while locking key/label pair %q/%q: %+v", model.Key, model.Label, err)
 				}
 			}
 
@@ -220,21 +219,18 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 					Tags:        tags.Expand(model.Tags),
 				}
 
-				_, err = client.PutKeyValue(ctx, model.Key, model.Label, &entity, "", "")
-				if err != nil {
+				if _, err = client.PutKeyValue(ctx, model.Key, model.Label, &entity, "", ""); err != nil {
 					return fmt.Errorf("while updating key/label pair %s/%s: %+v", model.Key, model.Label, err)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("locked") {
 				if model.Locked {
-					_, err = client.PutLock(ctx, model.Key, model.Label, "", "")
-					if err != nil {
+					if _, err = client.PutLock(ctx, model.Key, model.Label, "", ""); err != nil {
 						return fmt.Errorf("while locking key/label pair %s/%s: %+v", model.Key, model.Label, err)
 					}
 				} else {
-					_, err = client.DeleteLock(ctx, model.Key, model.Label, "", "")
-					if err != nil {
+					if _, err = client.DeleteLock(ctx, model.Key, model.Label, "", ""); err != nil {
 						return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", model.Key, model.Label, err)
 					}
 				}
@@ -260,7 +256,7 @@ func (k KeyResource) Delete() sdk.ResourceFunc {
 
 			_, err = client.DeleteKeyValue(ctx, resourceID.Key, resourceID.Label, "")
 			if err != nil {
-				return fmt.Errorf("while removing key %s from App Configuration store %s: %+v", resourceID.Key, resourceID.ConfigurationStoreId, err)
+				return fmt.Errorf("while removing key %q from App Configuration Store %q: %+v", resourceID.Key, resourceID.ConfigurationStoreId, err)
 			}
 
 			return nil

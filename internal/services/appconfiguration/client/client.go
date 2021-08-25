@@ -37,7 +37,7 @@ func (c Client) DataPlaneClient(ctx context.Context, configurationStoreId string
 
 	appConfigAuth, err := c.tokenFunc(*appConfig.Model.Properties.Endpoint)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("obtaining auth token for %q: %+v", endpoint, err)
 	}
 
 	endpoint := *appConfig.Model.Properties.Endpoint

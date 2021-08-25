@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `value` - (Optional) The value of the App Configuration Key.
 
-* `locked` - (Optional) The lock status of the App Configuration Key. Can be either `true` or `false`.
+* `locked` - (Optional) Should this App Configuration Key be Locked to prevent changes?
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
