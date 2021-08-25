@@ -177,7 +177,7 @@ func resourceSynapsePipelineRead(d *pluginsdk.ResourceData, meta interface{}) er
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
-			log.Printf("[DEBUG] Synapse Pipeline %q was not found - removing from state!", d.Id())
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			return nil
 		}
 		return fmt.Errorf("reading %s: %+v", id, err)
