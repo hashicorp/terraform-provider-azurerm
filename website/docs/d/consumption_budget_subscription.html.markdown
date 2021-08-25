@@ -31,10 +31,6 @@ The following arguments are supported:
 
 * `subscription_id` - (Required) The ID of the subscription.
 
----
-
-* `resource_group_id` - (Optional) The ID of the resource group.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 

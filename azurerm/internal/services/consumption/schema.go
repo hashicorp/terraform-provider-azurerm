@@ -278,3 +278,210 @@ func SchemaConsumptionBudgetCommonResource() map[string]*pluginsdk.Schema {
 		},
 	}
 }
+
+func SchemaConsumptionBudgetSubscriptionDataSource() map[string]*pluginsdk.Schema {
+	subscriptionIDSchema := map[string]*pluginsdk.Schema{
+		"subscription_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.IsUUID,
+		},
+	}
+
+	return azure.MergeSchema(SchemaConsumptionBudgetCommonDataSource(), subscriptionIDSchema)
+}
+
+func SchemaConsumptionBudgetFilterDimensionElementDataSource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"operator": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"values": {
+				Type:     pluginsdk.TypeList,
+				MinItems: 1,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func SchemaConsumptionBudgetFilterTagElementDataSource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"operator": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"values": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func SchemaConsumptionBudgetNotificationElementDataSource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+			"threshold": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+			"operator": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"contact_emails": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			"contact_groups": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			"contact_roles": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func SchemaConsumptionBudgetCommonDataSource() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.ConsumptionBudgetName(),
+		},
+
+		"amount": {
+			Type:     pluginsdk.TypeFloat,
+			Computed: true,
+		},
+
+		"filter": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"dimension": {
+						Type:         pluginsdk.TypeSet,
+						Optional:     true,
+						Computed:     true,
+						Set:          pluginsdk.HashResource(SchemaConsumptionBudgetFilterDimensionElementDataSource()),
+						Elem:         SchemaConsumptionBudgetFilterDimensionElementDataSource(),
+						AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag", "filter.0.not"},
+					},
+					"tag": {
+						Type:         pluginsdk.TypeSet,
+						Optional:     true,
+						Computed:     true,
+						Set:          pluginsdk.HashResource(SchemaConsumptionBudgetFilterTagElementDataSource()),
+						Elem:         SchemaConsumptionBudgetFilterTagElementDataSource(),
+						AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag", "filter.0.not"},
+					},
+					"not": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"dimension": {
+									Type:         pluginsdk.TypeList,
+									MaxItems:     1,
+									Optional:     true,
+									Computed:     true,
+									ExactlyOneOf: []string{"filter.0.not.0.tag"},
+									Elem:         SchemaConsumptionBudgetFilterDimensionElementDataSource(),
+								},
+								"tag": {
+									Type:         pluginsdk.TypeList,
+									MaxItems:     1,
+									Optional:     true,
+									Computed:     true,
+									ExactlyOneOf: []string{"filter.0.not.0.dimension"},
+									Elem:         SchemaConsumptionBudgetFilterTagElementDataSource(),
+								},
+							},
+						},
+						AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag", "filter.0.not"},
+					},
+				},
+			},
+		},
+
+		"notification": {
+			Type:     pluginsdk.TypeSet,
+			Computed: true,
+			MinItems: 1,
+			MaxItems: 5,
+			Set:      pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElementDataSource()),
+			Elem:     SchemaConsumptionBudgetNotificationElementDataSource(),
+		},
+
+		"time_grain": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"time_period": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"start_date": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"end_date": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+	}
+}

@@ -15,7 +15,7 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
-		Schema: SchemaConsumptionBudgetSubscriptionResource(),
+		Schema: SchemaConsumptionBudgetSubscriptionDataSource(),
 	}
 }
 
