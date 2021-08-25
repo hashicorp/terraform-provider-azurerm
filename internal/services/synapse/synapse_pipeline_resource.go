@@ -77,7 +77,7 @@ func resourceSynapsePipeline() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: suppressJsonOrderingDifference,
+				DiffSuppressFunc: suppressJsonOrderingDifference, // bespoke since the ordering of keys matters
 			},
 
 			"annotations": {
