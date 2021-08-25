@@ -55,7 +55,7 @@ func (r AppServiceSourceControlTokenResource) Arguments() map[string]*pluginsdk.
 }
 
 func (r AppServiceSourceControlTokenResource) Attributes() map[string]*pluginsdk.Schema {
-	return nil
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r AppServiceSourceControlTokenResource) ModelObject() interface{} {
@@ -83,8 +83,9 @@ func (r AppServiceSourceControlTokenResource) Create() sdk.ResourceFunc {
 			existing, err := client.GetSourceControl(ctx, id.Type)
 			if err != nil {
 				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for existing GitHub Token configuration")
+					return fmt.Errorf("%s not found", id)
 				}
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 			if existing.SourceControlProperties != nil && existing.SourceControlProperties.Token != nil && *existing.SourceControlProperties.Token != "" {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
@@ -98,7 +99,7 @@ func (r AppServiceSourceControlTokenResource) Create() sdk.ResourceFunc {
 			}
 
 			if _, err := client.UpdateSourceControl(ctx, id.Type, sourceControlOAuth); err != nil {
-				return err
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -124,7 +125,7 @@ func (r AppServiceSourceControlTokenResource) Read() sdk.ResourceFunc {
 				if utils.ResponseWasNotFound(resp.Response) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s", id)
+				return fmt.Errorf("reading %s: %+v", id, err)
 			}
 
 			state := AppServiceSourceControlTokenModel{}
@@ -160,7 +161,7 @@ func (r AppServiceSourceControlTokenResource) Delete() sdk.ResourceFunc {
 			}
 
 			if _, err := client.UpdateSourceControl(ctx, id.Type, sourceControlOAuth); err != nil {
-				return err
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			return nil
@@ -197,7 +198,7 @@ func (r AppServiceSourceControlTokenResource) Update() sdk.ResourceFunc {
 			}
 
 			if _, err := client.UpdateSourceControl(ctx, id.Type, sourceControlOAuth); err != nil {
-				return err
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil

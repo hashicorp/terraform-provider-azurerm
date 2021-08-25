@@ -156,9 +156,17 @@ func flattenGitHubActionConfiguration(input *web.GitHubActionConfiguration) []Gi
 		return output
 	}
 
+	isLinux := false
+	if v := input.IsLinux; v != nil {
+		isLinux = *v
+	}
+	genWorkflow := false
+	if v := input.GenerateWorkflowFile; v != nil {
+		genWorkflow = *v
+	}
 	ghConfig := GithubActionConfiguration{
-		UsesLinux:            *input.IsLinux,
-		GenerateWorkflowFile: *input.GenerateWorkflowFile,
+		UsesLinux:            isLinux,
+		GenerateWorkflowFile: genWorkflow,
 	}
 
 	if codeConfig := input.CodeConfiguration; codeConfig != nil {
@@ -171,7 +179,7 @@ func flattenGitHubActionConfiguration(input *web.GitHubActionConfiguration) []Gi
 
 	if containerConfig := input.ContainerConfiguration; containerConfig != nil {
 		ghContainerConfig := []GitHubActionContainerConfig{{
-			RegistryPassword: utils.NormalizeNilableString(containerConfig.Password), // returns sensitive val?
+			RegistryPassword: utils.NormalizeNilableString(containerConfig.Password),
 			RegistryUsername: utils.NormalizeNilableString(containerConfig.Username),
 			RegistryURL:      utils.NormalizeNilableString(containerConfig.ServerURL),
 			ImageName:        utils.NormalizeNilableString(containerConfig.ImageName),

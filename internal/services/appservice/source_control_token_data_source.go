@@ -68,8 +68,11 @@ func (d AppServiceSourceControlTokenDataSource) Read() sdk.ResourceFunc {
 			id := parse.NewAppServiceSourceControlTokenID(sourceControlToken.Type)
 
 			resp, err := client.GetSourceControl(ctx, id.Type)
-			if err != nil || resp.SourceControlProperties == nil {
-				return fmt.Errorf("reading App Service Source Control GitHub Token")
+			if err != nil {
+				return fmt.Errorf("reading %s: %+v", id, err)
+			}
+			if resp.SourceControlProperties == nil {
+				return fmt.Errorf("reading properties of %s", id)
 			}
 
 			sourceControlToken.Token = utils.NormalizeNilableString(resp.Token)

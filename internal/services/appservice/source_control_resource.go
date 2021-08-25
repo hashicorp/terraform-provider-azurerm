@@ -200,6 +200,8 @@ func (r AppServiceSourceControlResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			// TODO - Need to introduce polling for deployment statuses to avoid 409's elsewhere
+
 			metadata.SetID(id)
 			return nil
 		},
@@ -228,6 +230,11 @@ func (r AppServiceSourceControlResource) Read() sdk.ResourceFunc {
 			siteConfig, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading App for Source Control %s: %v", id, err)
+			}
+
+			if siteConfig.ScmType == web.ScmTypeNone {
+				metadata.Logger.Infof("App %s SCMType is `None` removing Source Control resource from state", id.SiteName)
+				metadata.ResourceData.SetId("")
 			}
 
 			props := *appSourceControl.SiteSourceControlProperties
