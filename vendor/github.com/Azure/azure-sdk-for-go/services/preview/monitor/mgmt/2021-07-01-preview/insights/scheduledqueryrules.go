@@ -34,7 +34,7 @@ func NewScheduledQueryRulesClientWithBaseURI(baseURI string, subscriptionID stri
 
 // CreateOrUpdate creates or updates an log search rule.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // ruleName - the name of the rule.
 // parameters - the parameters of the rule to create or update.
 func (client ScheduledQueryRulesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, ruleName string, parameters LogSearchRuleResource) (result LogSearchRuleResource, err error) {
@@ -49,6 +49,11 @@ func (client ScheduledQueryRulesClient) CreateOrUpdate(ctx context.Context, reso
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.LogSearchRule", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "parameters.LogSearchRule.Source", Name: validation.Null, Rule: true,
@@ -100,7 +105,7 @@ func (client ScheduledQueryRulesClient) CreateOrUpdatePreparer(ctx context.Conte
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.insights/scheduledQueryRules/{ruleName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.Insights/scheduledQueryRules/{ruleName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -126,7 +131,7 @@ func (client ScheduledQueryRulesClient) CreateOrUpdateResponder(resp *http.Respo
 
 // Delete deletes a Log Search rule
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // ruleName - the name of the rule.
 func (client ScheduledQueryRulesClient) Delete(ctx context.Context, resourceGroupName string, ruleName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
@@ -139,6 +144,15 @@ func (client ScheduledQueryRulesClient) Delete(ctx context.Context, resourceGrou
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.ScheduledQueryRulesClient", "Delete", err.Error())
+	}
+
 	req, err := client.DeletePreparer(ctx, resourceGroupName, ruleName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ScheduledQueryRulesClient", "Delete", nil, "Failure preparing request")
@@ -177,7 +191,7 @@ func (client ScheduledQueryRulesClient) DeletePreparer(ctx context.Context, reso
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.insights/scheduledQueryRules/{ruleName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.Insights/scheduledQueryRules/{ruleName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -201,7 +215,7 @@ func (client ScheduledQueryRulesClient) DeleteResponder(resp *http.Response) (re
 
 // Get gets an Log Search rule
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // ruleName - the name of the rule.
 func (client ScheduledQueryRulesClient) Get(ctx context.Context, resourceGroupName string, ruleName string) (result LogSearchRuleResource, err error) {
 	if tracing.IsEnabled() {
@@ -214,6 +228,15 @@ func (client ScheduledQueryRulesClient) Get(ctx context.Context, resourceGroupNa
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.ScheduledQueryRulesClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceGroupName, ruleName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ScheduledQueryRulesClient", "Get", nil, "Failure preparing request")
@@ -252,7 +275,7 @@ func (client ScheduledQueryRulesClient) GetPreparer(ctx context.Context, resourc
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.insights/scheduledQueryRules/{ruleName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.Insights/scheduledQueryRules/{ruleName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -277,7 +300,7 @@ func (client ScheduledQueryRulesClient) GetResponder(resp *http.Response) (resul
 
 // ListByResourceGroup list the Log Search rules within a resource group.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // filter - the filter to apply on the operation. For more information please see
 // https://msdn.microsoft.com/en-us/library/azure/dn931934.aspx
 func (client ScheduledQueryRulesClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, filter string) (result LogSearchRuleResourceCollection, err error) {
@@ -291,6 +314,15 @@ func (client ScheduledQueryRulesClient) ListByResourceGroup(ctx context.Context,
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.ScheduledQueryRulesClient", "ListByResourceGroup", err.Error())
+	}
+
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ScheduledQueryRulesClient", "ListByResourceGroup", nil, "Failure preparing request")
@@ -331,7 +363,7 @@ func (client ScheduledQueryRulesClient) ListByResourceGroupPreparer(ctx context.
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.insights/scheduledQueryRules", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.Insights/scheduledQueryRules", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -369,6 +401,12 @@ func (client ScheduledQueryRulesClient) ListBySubscription(ctx context.Context, 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.ScheduledQueryRulesClient", "ListBySubscription", err.Error())
+	}
+
 	req, err := client.ListBySubscriptionPreparer(ctx, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ScheduledQueryRulesClient", "ListBySubscription", nil, "Failure preparing request")
@@ -408,7 +446,7 @@ func (client ScheduledQueryRulesClient) ListBySubscriptionPreparer(ctx context.C
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/microsoft.insights/scheduledQueryRules", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Insights/scheduledQueryRules", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -433,7 +471,7 @@ func (client ScheduledQueryRulesClient) ListBySubscriptionResponder(resp *http.R
 
 // Update update log search Rule.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // ruleName - the name of the rule.
 // parameters - the parameters of the rule to update.
 func (client ScheduledQueryRulesClient) Update(ctx context.Context, resourceGroupName string, ruleName string, parameters LogSearchRuleResourcePatch) (result LogSearchRuleResource, err error) {
@@ -447,6 +485,15 @@ func (client ScheduledQueryRulesClient) Update(ctx context.Context, resourceGrou
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.ScheduledQueryRulesClient", "Update", err.Error())
+	}
+
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, ruleName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ScheduledQueryRulesClient", "Update", nil, "Failure preparing request")
@@ -486,7 +533,7 @@ func (client ScheduledQueryRulesClient) UpdatePreparer(ctx context.Context, reso
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.insights/scheduledQueryRules/{ruleName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.Insights/scheduledQueryRules/{ruleName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))

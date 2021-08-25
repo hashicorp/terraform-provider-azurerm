@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -47,6 +48,12 @@ func (client DiagnosticSettingsClient) CreateOrUpdate(ctx context.Context, resou
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceURI,
+			Constraints: []validation.Constraint{{Target: "resourceURI", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.DiagnosticSettingsClient", "CreateOrUpdate", err.Error())
+	}
+
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceURI, parameters, name)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.DiagnosticSettingsClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -85,7 +92,7 @@ func (client DiagnosticSettingsClient) CreateOrUpdatePreparer(ctx context.Contex
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/{resourceUri}/providers/microsoft.insights/diagnosticSettings/{name}", pathParameters),
+		autorest.WithPathParameters("/{resourceUri}/providers/Microsoft.Insights/diagnosticSettings/{name}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -124,6 +131,12 @@ func (client DiagnosticSettingsClient) Delete(ctx context.Context, resourceURI s
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceURI,
+			Constraints: []validation.Constraint{{Target: "resourceURI", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.DiagnosticSettingsClient", "Delete", err.Error())
+	}
+
 	req, err := client.DeletePreparer(ctx, resourceURI, name)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.DiagnosticSettingsClient", "Delete", nil, "Failure preparing request")
@@ -161,7 +174,7 @@ func (client DiagnosticSettingsClient) DeletePreparer(ctx context.Context, resou
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/{resourceUri}/providers/microsoft.insights/diagnosticSettings/{name}", pathParameters),
+		autorest.WithPathParameters("/{resourceUri}/providers/Microsoft.Insights/diagnosticSettings/{name}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -198,6 +211,12 @@ func (client DiagnosticSettingsClient) Get(ctx context.Context, resourceURI stri
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceURI,
+			Constraints: []validation.Constraint{{Target: "resourceURI", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.DiagnosticSettingsClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceURI, name)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.DiagnosticSettingsClient", "Get", nil, "Failure preparing request")
@@ -235,7 +254,7 @@ func (client DiagnosticSettingsClient) GetPreparer(ctx context.Context, resource
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/{resourceUri}/providers/microsoft.insights/diagnosticSettings/{name}", pathParameters),
+		autorest.WithPathParameters("/{resourceUri}/providers/Microsoft.Insights/diagnosticSettings/{name}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -272,6 +291,12 @@ func (client DiagnosticSettingsClient) List(ctx context.Context, resourceURI str
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceURI,
+			Constraints: []validation.Constraint{{Target: "resourceURI", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.DiagnosticSettingsClient", "List", err.Error())
+	}
+
 	req, err := client.ListPreparer(ctx, resourceURI)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.DiagnosticSettingsClient", "List", nil, "Failure preparing request")
@@ -308,7 +333,7 @@ func (client DiagnosticSettingsClient) ListPreparer(ctx context.Context, resourc
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/{resourceUri}/providers/microsoft.insights/diagnosticSettings", pathParameters),
+		autorest.WithPathParameters("/{resourceUri}/providers/Microsoft.Insights/diagnosticSettings", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }

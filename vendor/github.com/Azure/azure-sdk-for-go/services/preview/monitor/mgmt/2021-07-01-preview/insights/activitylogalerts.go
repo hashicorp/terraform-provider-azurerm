@@ -32,12 +32,12 @@ func NewActivityLogAlertsClientWithBaseURI(baseURI string, subscriptionID string
 	return ActivityLogAlertsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate create a new activity log alert or update an existing one.
+// CreateOrUpdate create a new Activity Log Alert rule or update an existing one.
 // Parameters:
-// resourceGroupName - the name of the resource group.
-// activityLogAlertName - the name of the activity log alert.
-// activityLogAlert - the activity log alert to create or use for the update.
-func (client ActivityLogAlertsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, activityLogAlertName string, activityLogAlert ActivityLogAlertResource) (result ActivityLogAlertResource, err error) {
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// activityLogAlertName - the name of the Activity Log Alert rule.
+// activityLogAlertRule - the Activity Log Alert rule to create or use for the update.
+func (client ActivityLogAlertsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, activityLogAlertName string, activityLogAlertRule ActivityLogAlertResource) (result ActivityLogAlertResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ActivityLogAlertsClient.CreateOrUpdate")
 		defer func() {
@@ -49,17 +49,22 @@ func (client ActivityLogAlertsClient) CreateOrUpdate(ctx context.Context, resour
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: activityLogAlert,
-			Constraints: []validation.Constraint{{Target: "activityLogAlert.ActivityLogAlert", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "activityLogAlert.ActivityLogAlert.Scopes", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "activityLogAlert.ActivityLogAlert.Condition", Name: validation.Null, Rule: true,
-						Chain: []validation.Constraint{{Target: "activityLogAlert.ActivityLogAlert.Condition.AllOf", Name: validation.Null, Rule: true, Chain: nil}}},
-					{Target: "activityLogAlert.ActivityLogAlert.Actions", Name: validation.Null, Rule: true, Chain: nil},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: activityLogAlertRule,
+			Constraints: []validation.Constraint{{Target: "activityLogAlertRule.AlertRuleProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "activityLogAlertRule.AlertRuleProperties.Scopes", Name: validation.Null, Rule: true, Chain: nil},
+					{Target: "activityLogAlertRule.AlertRuleProperties.Condition", Name: validation.Null, Rule: true,
+						Chain: []validation.Constraint{{Target: "activityLogAlertRule.AlertRuleProperties.Condition.AllOf", Name: validation.Null, Rule: true, Chain: nil}}},
+					{Target: "activityLogAlertRule.AlertRuleProperties.Actions", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("insights.ActivityLogAlertsClient", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, activityLogAlertName, activityLogAlert)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, activityLogAlertName, activityLogAlertRule)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -82,14 +87,14 @@ func (client ActivityLogAlertsClient) CreateOrUpdate(ctx context.Context, resour
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client ActivityLogAlertsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, activityLogAlertName string, activityLogAlert ActivityLogAlertResource) (*http.Request, error) {
+func (client ActivityLogAlertsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, activityLogAlertName string, activityLogAlertRule ActivityLogAlertResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"activityLogAlertName": autorest.Encode("path", activityLogAlertName),
 		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2020-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -98,8 +103,8 @@ func (client ActivityLogAlertsClient) CreateOrUpdatePreparer(ctx context.Context
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/activityLogAlerts/{activityLogAlertName}", pathParameters),
-		autorest.WithJSON(activityLogAlert),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/activityLogAlerts/{activityLogAlertName}", pathParameters),
+		autorest.WithJSON(activityLogAlertRule),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -122,10 +127,10 @@ func (client ActivityLogAlertsClient) CreateOrUpdateResponder(resp *http.Respons
 	return
 }
 
-// Delete delete an activity log alert.
+// Delete delete an Activity Log Alert rule.
 // Parameters:
-// resourceGroupName - the name of the resource group.
-// activityLogAlertName - the name of the activity log alert.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// activityLogAlertName - the name of the Activity Log Alert rule.
 func (client ActivityLogAlertsClient) Delete(ctx context.Context, resourceGroupName string, activityLogAlertName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ActivityLogAlertsClient.Delete")
@@ -137,6 +142,15 @@ func (client ActivityLogAlertsClient) Delete(ctx context.Context, resourceGroupN
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.ActivityLogAlertsClient", "Delete", err.Error())
+	}
+
 	req, err := client.DeletePreparer(ctx, resourceGroupName, activityLogAlertName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "Delete", nil, "Failure preparing request")
@@ -167,7 +181,7 @@ func (client ActivityLogAlertsClient) DeletePreparer(ctx context.Context, resour
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2020-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -175,7 +189,7 @@ func (client ActivityLogAlertsClient) DeletePreparer(ctx context.Context, resour
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/activityLogAlerts/{activityLogAlertName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/activityLogAlerts/{activityLogAlertName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -197,10 +211,10 @@ func (client ActivityLogAlertsClient) DeleteResponder(resp *http.Response) (resu
 	return
 }
 
-// Get get an activity log alert.
+// Get get an Activity Log Alert rule.
 // Parameters:
-// resourceGroupName - the name of the resource group.
-// activityLogAlertName - the name of the activity log alert.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// activityLogAlertName - the name of the Activity Log Alert rule.
 func (client ActivityLogAlertsClient) Get(ctx context.Context, resourceGroupName string, activityLogAlertName string) (result ActivityLogAlertResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ActivityLogAlertsClient.Get")
@@ -212,6 +226,15 @@ func (client ActivityLogAlertsClient) Get(ctx context.Context, resourceGroupName
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.ActivityLogAlertsClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceGroupName, activityLogAlertName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "Get", nil, "Failure preparing request")
@@ -242,7 +265,7 @@ func (client ActivityLogAlertsClient) GetPreparer(ctx context.Context, resourceG
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2020-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -250,7 +273,7 @@ func (client ActivityLogAlertsClient) GetPreparer(ctx context.Context, resourceG
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/activityLogAlerts/{activityLogAlertName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/activityLogAlerts/{activityLogAlertName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -273,20 +296,30 @@ func (client ActivityLogAlertsClient) GetResponder(resp *http.Response) (result 
 	return
 }
 
-// ListByResourceGroup get a list of all activity log alerts in a resource group.
+// ListByResourceGroup get a list of all Activity Log Alert rules in a resource group.
 // Parameters:
-// resourceGroupName - the name of the resource group.
-func (client ActivityLogAlertsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result ActivityLogAlertList, err error) {
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+func (client ActivityLogAlertsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result AlertRuleListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ActivityLogAlertsClient.ListByResourceGroup")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.arl.Response.Response != nil {
+				sc = result.arl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.ActivityLogAlertsClient", "ListByResourceGroup", err.Error())
+	}
+
+	result.fn = client.listByResourceGroupNextResults
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "ListByResourceGroup", nil, "Failure preparing request")
@@ -295,14 +328,18 @@ func (client ActivityLogAlertsClient) ListByResourceGroup(ctx context.Context, r
 
 	resp, err := client.ListByResourceGroupSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.arl.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "ListByResourceGroup", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListByResourceGroupResponder(resp)
+	result.arl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
+	}
+	if result.arl.hasNextLink() && result.arl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 		return
 	}
 
@@ -316,7 +353,7 @@ func (client ActivityLogAlertsClient) ListByResourceGroupPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2020-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -324,7 +361,7 @@ func (client ActivityLogAlertsClient) ListByResourceGroupPreparer(ctx context.Co
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/activityLogAlerts", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/activityLogAlerts", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -337,7 +374,7 @@ func (client ActivityLogAlertsClient) ListByResourceGroupSender(req *http.Reques
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
 // closes the http.Response Body.
-func (client ActivityLogAlertsClient) ListByResourceGroupResponder(resp *http.Response) (result ActivityLogAlertList, err error) {
+func (client ActivityLogAlertsClient) ListByResourceGroupResponder(resp *http.Response) (result AlertRuleList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -347,18 +384,62 @@ func (client ActivityLogAlertsClient) ListByResourceGroupResponder(resp *http.Re
 	return
 }
 
-// ListBySubscriptionID get a list of all activity log alerts in a subscription.
-func (client ActivityLogAlertsClient) ListBySubscriptionID(ctx context.Context) (result ActivityLogAlertList, err error) {
+// listByResourceGroupNextResults retrieves the next set of results, if any.
+func (client ActivityLogAlertsClient) listByResourceGroupNextResults(ctx context.Context, lastResults AlertRuleList) (result AlertRuleList, err error) {
+	req, err := lastResults.alertRuleListPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "listByResourceGroupNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListByResourceGroupSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "listByResourceGroupNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListByResourceGroupResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
+func (client ActivityLogAlertsClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string) (result AlertRuleListIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ActivityLogAlertsClient.ListBySubscriptionID")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ActivityLogAlertsClient.ListByResourceGroup")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	result.page, err = client.ListByResourceGroup(ctx, resourceGroupName)
+	return
+}
+
+// ListBySubscriptionID get a list of all Activity Log Alert rules in a subscription.
+func (client ActivityLogAlertsClient) ListBySubscriptionID(ctx context.Context) (result AlertRuleListPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ActivityLogAlertsClient.ListBySubscriptionID")
+		defer func() {
+			sc := -1
+			if result.arl.Response.Response != nil {
+				sc = result.arl.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.ActivityLogAlertsClient", "ListBySubscriptionID", err.Error())
+	}
+
+	result.fn = client.listBySubscriptionIDNextResults
 	req, err := client.ListBySubscriptionIDPreparer(ctx)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "ListBySubscriptionID", nil, "Failure preparing request")
@@ -367,14 +448,18 @@ func (client ActivityLogAlertsClient) ListBySubscriptionID(ctx context.Context) 
 
 	resp, err := client.ListBySubscriptionIDSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.arl.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "ListBySubscriptionID", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListBySubscriptionIDResponder(resp)
+	result.arl, err = client.ListBySubscriptionIDResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "ListBySubscriptionID", resp, "Failure responding to request")
+		return
+	}
+	if result.arl.hasNextLink() && result.arl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 		return
 	}
 
@@ -387,7 +472,7 @@ func (client ActivityLogAlertsClient) ListBySubscriptionIDPreparer(ctx context.C
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2020-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -395,7 +480,7 @@ func (client ActivityLogAlertsClient) ListBySubscriptionIDPreparer(ctx context.C
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/microsoft.insights/activityLogAlerts", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Insights/activityLogAlerts", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -408,7 +493,7 @@ func (client ActivityLogAlertsClient) ListBySubscriptionIDSender(req *http.Reque
 
 // ListBySubscriptionIDResponder handles the response to the ListBySubscriptionID request. The method always
 // closes the http.Response Body.
-func (client ActivityLogAlertsClient) ListBySubscriptionIDResponder(resp *http.Response) (result ActivityLogAlertList, err error) {
+func (client ActivityLogAlertsClient) ListBySubscriptionIDResponder(resp *http.Response) (result AlertRuleList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -418,12 +503,50 @@ func (client ActivityLogAlertsClient) ListBySubscriptionIDResponder(resp *http.R
 	return
 }
 
-// Update updates an existing ActivityLogAlertResource's tags. To update other fields use the CreateOrUpdate method.
+// listBySubscriptionIDNextResults retrieves the next set of results, if any.
+func (client ActivityLogAlertsClient) listBySubscriptionIDNextResults(ctx context.Context, lastResults AlertRuleList) (result AlertRuleList, err error) {
+	req, err := lastResults.alertRuleListPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "listBySubscriptionIDNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListBySubscriptionIDSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "listBySubscriptionIDNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListBySubscriptionIDResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "listBySubscriptionIDNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListBySubscriptionIDComplete enumerates all values, automatically crossing page boundaries as required.
+func (client ActivityLogAlertsClient) ListBySubscriptionIDComplete(ctx context.Context) (result AlertRuleListIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ActivityLogAlertsClient.ListBySubscriptionID")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListBySubscriptionID(ctx)
+	return
+}
+
+// Update updates 'tags' and 'enabled' fields in an existing Alert rule. This method is used to update the Alert rule
+// tags, and to enable or disable the Alert rule. To update other fields use CreateOrUpdate operation.
 // Parameters:
-// resourceGroupName - the name of the resource group.
-// activityLogAlertName - the name of the activity log alert.
-// activityLogAlertPatch - parameters supplied to the operation.
-func (client ActivityLogAlertsClient) Update(ctx context.Context, resourceGroupName string, activityLogAlertName string, activityLogAlertPatch ActivityLogAlertPatchBody) (result ActivityLogAlertResource, err error) {
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// activityLogAlertName - the name of the Activity Log Alert rule.
+// activityLogAlertRulePatch - parameters supplied to the operation.
+func (client ActivityLogAlertsClient) Update(ctx context.Context, resourceGroupName string, activityLogAlertName string, activityLogAlertRulePatch AlertRulePatchObject) (result ActivityLogAlertResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ActivityLogAlertsClient.Update")
 		defer func() {
@@ -434,7 +557,16 @@ func (client ActivityLogAlertsClient) Update(ctx context.Context, resourceGroupN
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, activityLogAlertName, activityLogAlertPatch)
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.ActivityLogAlertsClient", "Update", err.Error())
+	}
+
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, activityLogAlertName, activityLogAlertRulePatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogAlertsClient", "Update", nil, "Failure preparing request")
 		return
@@ -457,14 +589,14 @@ func (client ActivityLogAlertsClient) Update(ctx context.Context, resourceGroupN
 }
 
 // UpdatePreparer prepares the Update request.
-func (client ActivityLogAlertsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, activityLogAlertName string, activityLogAlertPatch ActivityLogAlertPatchBody) (*http.Request, error) {
+func (client ActivityLogAlertsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, activityLogAlertName string, activityLogAlertRulePatch AlertRulePatchObject) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"activityLogAlertName": autorest.Encode("path", activityLogAlertName),
 		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2020-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -473,8 +605,8 @@ func (client ActivityLogAlertsClient) UpdatePreparer(ctx context.Context, resour
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/activityLogAlerts/{activityLogAlertName}", pathParameters),
-		autorest.WithJSON(activityLogAlertPatch),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/activityLogAlerts/{activityLogAlertName}", pathParameters),
+		autorest.WithJSON(activityLogAlertRulePatch),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }

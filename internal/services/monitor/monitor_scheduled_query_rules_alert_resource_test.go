@@ -279,7 +279,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
   data_source_id          = "${azurerm_application_insights.test.id}"
   query = format(<<-QUERY
 	let a=workspace('%%s').Perf
-		| where Computer='dependency' and TimeGenerated > ago(1h)
+		| where Computer == 'dependency' and TimeGenerated > ago(1h)
 		| where ObjectName == 'Processor' and CounterName == '%%%% Processor Time'
 		| summarize cpu=avg(CounterValue) by bin(TimeGenerated, 1m)
 		| extend ts=tostring(TimeGenerated); let b=requests

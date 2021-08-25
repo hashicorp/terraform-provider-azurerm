@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -46,6 +47,12 @@ func (client DiagnosticSettingsCategoryClient) Get(ctx context.Context, resource
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceURI,
+			Constraints: []validation.Constraint{{Target: "resourceURI", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.DiagnosticSettingsCategoryClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceURI, name)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.DiagnosticSettingsCategoryClient", "Get", nil, "Failure preparing request")
@@ -83,7 +90,7 @@ func (client DiagnosticSettingsCategoryClient) GetPreparer(ctx context.Context, 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/{resourceUri}/providers/microsoft.insights/diagnosticSettingsCategories/{name}", pathParameters),
+		autorest.WithPathParameters("/{resourceUri}/providers/Microsoft.Insights/diagnosticSettingsCategories/{name}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -120,6 +127,12 @@ func (client DiagnosticSettingsCategoryClient) List(ctx context.Context, resourc
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceURI,
+			Constraints: []validation.Constraint{{Target: "resourceURI", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.DiagnosticSettingsCategoryClient", "List", err.Error())
+	}
+
 	req, err := client.ListPreparer(ctx, resourceURI)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.DiagnosticSettingsCategoryClient", "List", nil, "Failure preparing request")
@@ -156,7 +169,7 @@ func (client DiagnosticSettingsCategoryClient) ListPreparer(ctx context.Context,
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/{resourceUri}/providers/microsoft.insights/diagnosticSettingsCategories", pathParameters),
+		autorest.WithPathParameters("/{resourceUri}/providers/Microsoft.Insights/diagnosticSettingsCategories", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }

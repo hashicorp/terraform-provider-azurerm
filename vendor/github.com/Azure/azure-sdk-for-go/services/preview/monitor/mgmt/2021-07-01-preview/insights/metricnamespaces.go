@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -46,6 +47,12 @@ func (client MetricNamespacesClient) List(ctx context.Context, resourceURI strin
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceURI,
+			Constraints: []validation.Constraint{{Target: "resourceURI", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.MetricNamespacesClient", "List", err.Error())
+	}
+
 	req, err := client.ListPreparer(ctx, resourceURI, startTime)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricNamespacesClient", "List", nil, "Failure preparing request")

@@ -177,6 +177,22 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     }
   }
   log {
+    category = "RiskyUsers"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  log {
+    category = "UserRiskEvents"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  log {
     category = "ManagedIdentitySignInLogs"
     enabled  = false
     retention_policy {}
@@ -273,6 +289,22 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     enabled  = false
     retention_policy {}
   }
+  log {
+    category = "RiskyUsers"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  log {
+    category = "UserRiskEvents"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
 }
 
 `, data.RandomInteger, data.Locations.Primary)
@@ -365,6 +397,22 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     enabled  = false
     retention_policy {}
   }
+  log {
+    category = "RiskyUsers"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  log {
+    category = "UserRiskEvents"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -438,6 +486,22 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     category = "ADFSSignInLogs"
     enabled  = false
     retention_policy {}
+  }
+  log {
+    category = "RiskyUsers"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+  log {
+    category = "UserRiskEvents"
+    enabled  = true
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))

@@ -107,7 +107,7 @@ func (client TenantActivityLogsClient) ListPreparer(ctx context.Context, filter 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPath("/providers/microsoft.insights/eventtypes/management/values"),
+		autorest.WithPath("/providers/Microsoft.Insights/eventtypes/management/values"),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }

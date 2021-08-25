@@ -34,7 +34,7 @@ func NewAutoscaleSettingsClientWithBaseURI(baseURI string, subscriptionID string
 
 // CreateOrUpdate creates or updates an autoscale setting.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // autoscaleSettingName - the autoscale setting name.
 // parameters - parameters supplied to the operation.
 func (client AutoscaleSettingsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, autoscaleSettingName string, parameters AutoscaleSettingResource) (result AutoscaleSettingResource, err error) {
@@ -49,11 +49,16 @@ func (client AutoscaleSettingsClient) CreateOrUpdate(ctx context.Context, resour
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.AutoscaleSetting", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "parameters.AutoscaleSetting.Profiles", Name: validation.Null, Rule: true,
 					Chain: []validation.Constraint{{Target: "parameters.AutoscaleSetting.Profiles", Name: validation.MaxItems, Rule: 20, Chain: nil}}},
-				}}}}}); err != nil {
+				}}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("insights.AutoscaleSettingsClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -96,7 +101,7 @@ func (client AutoscaleSettingsClient) CreateOrUpdatePreparer(ctx context.Context
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.insights/autoscalesettings/{autoscaleSettingName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.Insights/autoscalesettings/{autoscaleSettingName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -122,7 +127,7 @@ func (client AutoscaleSettingsClient) CreateOrUpdateResponder(resp *http.Respons
 
 // Delete deletes and autoscale setting
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // autoscaleSettingName - the autoscale setting name.
 func (client AutoscaleSettingsClient) Delete(ctx context.Context, resourceGroupName string, autoscaleSettingName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
@@ -135,6 +140,15 @@ func (client AutoscaleSettingsClient) Delete(ctx context.Context, resourceGroupN
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.AutoscaleSettingsClient", "Delete", err.Error())
+	}
+
 	req, err := client.DeletePreparer(ctx, resourceGroupName, autoscaleSettingName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "Delete", nil, "Failure preparing request")
@@ -173,7 +187,7 @@ func (client AutoscaleSettingsClient) DeletePreparer(ctx context.Context, resour
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.insights/autoscalesettings/{autoscaleSettingName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.Insights/autoscalesettings/{autoscaleSettingName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -197,7 +211,7 @@ func (client AutoscaleSettingsClient) DeleteResponder(resp *http.Response) (resu
 
 // Get gets an autoscale setting
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // autoscaleSettingName - the autoscale setting name.
 func (client AutoscaleSettingsClient) Get(ctx context.Context, resourceGroupName string, autoscaleSettingName string) (result AutoscaleSettingResource, err error) {
 	if tracing.IsEnabled() {
@@ -210,6 +224,15 @@ func (client AutoscaleSettingsClient) Get(ctx context.Context, resourceGroupName
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.AutoscaleSettingsClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceGroupName, autoscaleSettingName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "Get", nil, "Failure preparing request")
@@ -248,7 +271,7 @@ func (client AutoscaleSettingsClient) GetPreparer(ctx context.Context, resourceG
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.insights/autoscalesettings/{autoscaleSettingName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.Insights/autoscalesettings/{autoscaleSettingName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -273,7 +296,7 @@ func (client AutoscaleSettingsClient) GetResponder(resp *http.Response) (result 
 
 // ListByResourceGroup lists the autoscale settings for a resource group
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 func (client AutoscaleSettingsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result AutoscaleSettingResourceCollectionPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AutoscaleSettingsClient.ListByResourceGroup")
@@ -285,6 +308,15 @@ func (client AutoscaleSettingsClient) ListByResourceGroup(ctx context.Context, r
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.AutoscaleSettingsClient", "ListByResourceGroup", err.Error())
+	}
+
 	result.fn = client.listByResourceGroupNextResults
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName)
 	if err != nil {
@@ -327,7 +359,7 @@ func (client AutoscaleSettingsClient) ListByResourceGroupPreparer(ctx context.Co
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.insights/autoscalesettings", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.Insights/autoscalesettings", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -399,6 +431,12 @@ func (client AutoscaleSettingsClient) ListBySubscription(ctx context.Context) (r
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.AutoscaleSettingsClient", "ListBySubscription", err.Error())
+	}
+
 	result.fn = client.listBySubscriptionNextResults
 	req, err := client.ListBySubscriptionPreparer(ctx)
 	if err != nil {
@@ -440,7 +478,7 @@ func (client AutoscaleSettingsClient) ListBySubscriptionPreparer(ctx context.Con
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/microsoft.insights/autoscalesettings", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Insights/autoscalesettings", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -502,7 +540,7 @@ func (client AutoscaleSettingsClient) ListBySubscriptionComplete(ctx context.Con
 
 // Update updates an existing AutoscaleSettingsResource. To update other fields use the CreateOrUpdate method.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // autoscaleSettingName - the autoscale setting name.
 // autoscaleSettingResource - parameters supplied to the operation.
 func (client AutoscaleSettingsClient) Update(ctx context.Context, resourceGroupName string, autoscaleSettingName string, autoscaleSettingResource AutoscaleSettingResourcePatch) (result AutoscaleSettingResource, err error) {
@@ -516,6 +554,15 @@ func (client AutoscaleSettingsClient) Update(ctx context.Context, resourceGroupN
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.AutoscaleSettingsClient", "Update", err.Error())
+	}
+
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, autoscaleSettingName, autoscaleSettingResource)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "Update", nil, "Failure preparing request")
@@ -555,7 +602,7 @@ func (client AutoscaleSettingsClient) UpdatePreparer(ctx context.Context, resour
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.insights/autoscalesettings/{autoscaleSettingName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.Insights/autoscalesettings/{autoscaleSettingName}", pathParameters),
 		autorest.WithJSON(autoscaleSettingResource),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))

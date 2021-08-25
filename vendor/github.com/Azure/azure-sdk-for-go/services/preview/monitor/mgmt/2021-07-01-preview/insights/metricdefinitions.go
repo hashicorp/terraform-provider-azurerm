@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -46,6 +47,12 @@ func (client MetricDefinitionsClient) List(ctx context.Context, resourceURI stri
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceURI,
+			Constraints: []validation.Constraint{{Target: "resourceURI", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.MetricDefinitionsClient", "List", err.Error())
+	}
+
 	req, err := client.ListPreparer(ctx, resourceURI, metricnamespace)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricDefinitionsClient", "List", nil, "Failure preparing request")
@@ -85,7 +92,7 @@ func (client MetricDefinitionsClient) ListPreparer(ctx context.Context, resource
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/{resourceUri}/providers/microsoft.insights/metricDefinitions", pathParameters),
+		autorest.WithPathParameters("/{resourceUri}/providers/Microsoft.Insights/metricDefinitions", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }

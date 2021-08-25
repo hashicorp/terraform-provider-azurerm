@@ -75,7 +75,7 @@ func (client EventCategoriesClient) ListPreparer(ctx context.Context) (*http.Req
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPath("/providers/microsoft.insights/eventcategories"),
+		autorest.WithPath("/providers/Microsoft.Insights/eventcategories"),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
