@@ -3,11 +3,13 @@
 ENHANCEMENTS:
 
 * dependencies: upgrading `monitor` to API Version `2021-07-01-preview` [GH-13121]
+* dependencies: upgrading `devtestlabs` to API Version `2018-09-15` [GH-13074]
 * `azurerm_app_service` - add support for `vnet_route_all_enabled` property [GH-13073]
 * `azurerm_monitor_autoscale_setting` - support for the field `divide_by_instance_count` within the `metric_trigger` block [GH-13121]
 * `azurerm_storage_account` - add support for `shared_key_access_enabled` property [GH-13014]
+* `azurerm_dev_test_global_vm_shutdown_schedule` - support for the `mail` property [GH-13074]
 
-BUG FIXES:
+BUG FIXES
 
 * `azurerm_cosmosdb_cassandra_table` - correctly update `throughput` [GH-13102]
 * `azurerm_private_dns_a_record` - fix regression in `name` validation and add max recordset limit validation [GH-13093]
