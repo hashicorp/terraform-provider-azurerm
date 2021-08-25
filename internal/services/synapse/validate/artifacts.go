@@ -16,7 +16,7 @@ func SynapsePipelineAndTriggerName() pluginsdk.SchemaValidateFunc {
 		}
 
 		if !regexp.MustCompile(`^[A-Za-z0-9_][^<>*#.%&:\\+?/]*$`).MatchString(value) {
-			errors = append(errors, fmt.Errorf("invalid name, see https://docs.microsoft.com/en-us/azure/data-factory/naming-rules %q: %q", k, value))
+			errors = append(errors, fmt.Errorf("invalid name, see https://docs.microsoft.com/azure/data-factory/naming-rules %q: %q", k, value))
 		}
 
 		return warnings, errors
