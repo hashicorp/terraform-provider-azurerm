@@ -304,7 +304,6 @@ func SchemaConsumptionBudgetFilterDimensionElementDataSource() *pluginsdk.Resour
 			},
 			"values": {
 				Type:     pluginsdk.TypeList,
-				MinItems: 1,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
@@ -424,12 +423,10 @@ func SchemaConsumptionBudgetCommonDataSource() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Optional: true,
-						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"dimension": {
 									Type:         pluginsdk.TypeList,
-									MaxItems:     1,
 									Optional:     true,
 									Computed:     true,
 									ExactlyOneOf: []string{"filter.0.not.0.tag"},
@@ -437,7 +434,6 @@ func SchemaConsumptionBudgetCommonDataSource() map[string]*pluginsdk.Schema {
 								},
 								"tag": {
 									Type:         pluginsdk.TypeList,
-									MaxItems:     1,
 									Optional:     true,
 									Computed:     true,
 									ExactlyOneOf: []string{"filter.0.not.0.dimension"},
@@ -454,8 +450,6 @@ func SchemaConsumptionBudgetCommonDataSource() map[string]*pluginsdk.Schema {
 		"notification": {
 			Type:     pluginsdk.TypeSet,
 			Computed: true,
-			MinItems: 1,
-			MaxItems: 5,
 			Set:      pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElementDataSource()),
 			Elem:     SchemaConsumptionBudgetNotificationElementDataSource(),
 		},
@@ -468,8 +462,6 @@ func SchemaConsumptionBudgetCommonDataSource() map[string]*pluginsdk.Schema {
 		"time_period": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
-			MinItems: 1,
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"start_date": {
