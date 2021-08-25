@@ -404,18 +404,18 @@ func SchemaConsumptionBudgetCommonDataSource() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"dimension": {
-						Type:         pluginsdk.TypeSet,
-						Optional:     true,
-						Computed:     true,
-						Set:          pluginsdk.HashResource(SchemaConsumptionBudgetFilterDimensionElementDataSource()),
-						Elem:         SchemaConsumptionBudgetFilterDimensionElementDataSource(),
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Computed: true,
+						Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterDimensionElementDataSource()),
+						Elem:     SchemaConsumptionBudgetFilterDimensionElementDataSource(),
 					},
 					"tag": {
-						Type:         pluginsdk.TypeSet,
-						Optional:     true,
-						Computed:     true,
-						Set:          pluginsdk.HashResource(SchemaConsumptionBudgetFilterTagElementDataSource()),
-						Elem:         SchemaConsumptionBudgetFilterTagElementDataSource(),
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Computed: true,
+						Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterTagElementDataSource()),
+						Elem:     SchemaConsumptionBudgetFilterTagElementDataSource(),
 					},
 					"not": {
 						Type:     pluginsdk.TypeList,
@@ -424,16 +424,16 @@ func SchemaConsumptionBudgetCommonDataSource() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"dimension": {
-									Type:         pluginsdk.TypeList,
-									Optional:     true,
-									Computed:     true,
-									Elem:         SchemaConsumptionBudgetFilterDimensionElementDataSource(),
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Computed: true,
+									Elem:     SchemaConsumptionBudgetFilterDimensionElementDataSource(),
 								},
 								"tag": {
-									Type:         pluginsdk.TypeList,
-									Optional:     true,
-									Computed:     true,
-									Elem:         SchemaConsumptionBudgetFilterTagElementDataSource(),
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Computed: true,
+									Elem:     SchemaConsumptionBudgetFilterTagElementDataSource(),
 								},
 							},
 						},
