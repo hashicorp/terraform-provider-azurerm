@@ -6,9 +6,11 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -23,8 +25,9 @@ func dataSourceCosmosDbMongoDatabase() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"account_name": {
@@ -42,25 +45,21 @@ func dataSourceCosmosDbMongoDatabase() *pluginsdk.Resource {
 
 func dataSourceCosmosDbMongoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	account := d.Get("account_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewMongodbDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	resp, err := client.GetMongoDBDatabase(ctx, resourceGroup, account, name)
+	resp, err := client.GetMongoDBDatabase(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Cosmos DB Mongo Database %q (Account Name %q) was not found", name, account)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("making Read request on AzureRM Cosmos DB Mongo Database %s (Account Name %q): %+v", name, account, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
-	d.Set("name", resp.Name)
-	d.Set("account_name", account)
-	d.Set("resource_group_name", resourceGroup)
+	d.SetId(id.ID())
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
