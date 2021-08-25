@@ -1,14 +1,16 @@
-## 2.74.0 (Unreleased)
+## 2.74.0 (Unreleased)
 
 ENHANCEMENTS:
 
+* dependencies: upgrading `monitor` to API Version `2021-07-01-preview` [GH-13121]
 * `azurerm_app_service` - add support for `vnet_route_all_enabled` property [GH-13073]
+* `azurerm_monitor_autoscale_setting` - support for the field `divide_by_instance_count` within the `metric_trigger` block [GH-13121]
 * `azurerm_storage_account` - add support for `shared_key_access_enabled` property [GH-13014]
 
 BUG FIXES:
 
-* `azurerm_private_dns_a_record` - fix regression in `name` validation and add max recordset limit validation [GH-13093]
 * `azurerm_cosmosdb_cassandra_table` - correctly update `throughput` [GH-13102]
+* `azurerm_private_dns_a_record` - fix regression in `name` validation and add max recordset limit validation [GH-13093]
 * `azurerm_spring_cloud_app` - Fix crash when identity is not present [GH-13125]
 
 ## 2.73.0 (August 20, 2021)
