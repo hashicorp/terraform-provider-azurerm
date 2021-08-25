@@ -1365,7 +1365,7 @@ resource "azuread_application" "cluster_console" {
     resource_app_id = azuread_application.cluster_explorer.application_id
 
     resource_access {
-      id   = "311a71cc-e848-46a1-bdf8-97ff7156d8e6"
+      id   = "311a71cc-e848-46a1-bdf8-97ff7156d8e6" # sign in and user profile permission ctx https://github.com/Azure/azure-cli/issues/7925
       type = "Scope"
     }
   }
