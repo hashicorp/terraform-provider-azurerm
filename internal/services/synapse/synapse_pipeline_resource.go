@@ -204,14 +204,12 @@ func resourceSynapsePipelineRead(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("setting `variables`: %+v", err)
 		}
 
-		if activities := props.Activities; activities != nil {
-			activitiesJson, err := serializeSynapsePipelineActivities(activities)
-			if err != nil {
-				return fmt.Errorf("serializing `activities_json`: %+v", err)
-			}
-			if err := d.Set("activities_json", activitiesJson); err != nil {
-				return fmt.Errorf("setting `activities_json`: %+v", err)
-			}
+		activitiesJson, err := serializeSynapsePipelineActivities(props.Activities)
+		if err != nil {
+			return fmt.Errorf("serializing `activities_json`: %+v", err)
+		}
+		if err := d.Set("activities_json", activitiesJson); err != nil {
+			return fmt.Errorf("setting `activities_json`: %+v", err)
 		}
 	}
 
