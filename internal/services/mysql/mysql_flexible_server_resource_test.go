@@ -3,7 +3,6 @@ package mysql_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -307,39 +306,6 @@ func TestAccMySqlFlexibleServer_replica(t *testing.T) {
 	})
 }
 
-func TestAccMySqlFlexibleServer_geoRestore(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.geoRestoreSource(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone").Exists(),
-				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
-				check.That(data.ResourceName).Key("replica_capacity").Exists(),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-		{
-			Config: r.geoRestore(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That("azurerm_mysql_flexible_server.geo_restore").ExistsInAzure(r),
-				check.That("azurerm_mysql_flexible_server.geo_restore").Key("zone").Exists(),
-				check.That("azurerm_mysql_flexible_server.geo_restore").Key("fqdn").Exists(),
-				check.That("azurerm_mysql_flexible_server.geo_restore").Key("public_network_access_enabled").Exists(),
-				check.That("azurerm_mysql_flexible_server.geo_restore").Key("replica_capacity").Exists(),
-				check.That("azurerm_mysql_flexible_server.geo_restore").Key("administrator_login").Exists(),
-				check.That("azurerm_mysql_flexible_server.geo_restore").Key("sku_name").Exists(),
-				check.That("azurerm_mysql_flexible_server.geo_restore").Key("version").Exists(),
-				check.That("azurerm_mysql_flexible_server.geo_restore").Key("storage.#").Exists(),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-	})
-}
-
 func (MySqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FlexibleServerID(state.ID)
 	if err != nil {
@@ -414,10 +380,13 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
   service_endpoints    = ["Microsoft.Storage"]
+
   delegation {
     name = "fs"
+
     service_delegation {
       name = "Microsoft.DBforMySQL/flexibleServers"
+
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/join/action",
       ]
@@ -447,11 +416,12 @@ resource "azurerm_mysql_flexible_server" "test" {
   version                      = "8.0.21"
   backup_retention_days        = 7
   geo_redundant_backup_enabled = false
+
   storage {
     size_gb = 32
     iops    = 400
-
   }
+
   delegated_subnet_id = azurerm_subnet.test.id
   private_dns_zone_id = azurerm_private_dns_zone.test.id
   sku_name            = "GP_Standard_D2ds_v4"
@@ -493,10 +463,13 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
   service_endpoints    = ["Microsoft.Storage"]
+
   delegation {
     name = "fs"
+
     service_delegation {
       name = "Microsoft.DBforMySQL/flexibleServers"
+
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/join/action",
       ]
@@ -526,11 +499,13 @@ resource "azurerm_mysql_flexible_server" "test" {
   version                      = "8.0.21"
   backup_retention_days        = 10
   geo_redundant_backup_enabled = false
+
   storage {
     size_gb           = 64
     iops              = 1280
     auto_grow_enabled = false
   }
+
   delegated_subnet_id = azurerm_subnet.test.id
   private_dns_zone_id = azurerm_private_dns_zone.test.id
   sku_name            = "GP_Standard_D4ds_v4"
@@ -632,9 +607,11 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
+
   high_availability {
     mode = "SameZone"
   }
+
   sku_name = "GP_Standard_D2ds_v4"
   zone     = "1"
 }
@@ -651,10 +628,12 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
+
   high_availability {
     mode                      = "ZoneRedundant"
     standby_availability_zone = "2"
   }
+
   sku_name = "GP_Standard_D2ds_v4"
   zone     = "1"
 }
@@ -671,10 +650,12 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
+
   high_availability {
     mode                      = "ZoneRedundant"
     standby_availability_zone = "3"
   }
+
   sku_name = "GP_Standard_D2ds_v4"
   zone     = "1"
 }
@@ -708,34 +689,4 @@ resource "azurerm_mysql_flexible_server" "replica" {
   source_server_id    = azurerm_mysql_flexible_server.test.id
 }
 `, r.basic(data), data.RandomInteger)
-}
-
-func (r MySqlFlexibleServerResource) geoRestoreSource(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_mysql_flexible_server" "test" {
-  name                         = "acctest-fs-%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  administrator_login          = "adminTerraform"
-  administrator_password       = "QAZwsx123"
-  geo_redundant_backup_enabled = true
-  sku_name                     = "B_Standard_B1s"
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r MySqlFlexibleServerResource) geoRestore(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_mysql_flexible_server" "geo_restore" {
-  name                = "acctest-fs-restore-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%s"
-  create_mode         = "GeoRestore"
-  source_server_id    = azurerm_mysql_flexible_server.test.id
-}
-`, r.geoRestoreSource(data), data.RandomInteger, os.Getenv("ARM_GEO_RESTORE_LOCATION"))
 }
