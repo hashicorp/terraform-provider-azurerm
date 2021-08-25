@@ -470,7 +470,7 @@ resource "azurerm_key_vault_certificate" "test" {
   key_vault_id = azurerm_key_vault.test.id
 
   certificate {
-    contents = filebase64("testdata/cert_key.pem")
+    contents = filebase64("testdata/certificate.pfx")
   }
 
   certificate_policy {
@@ -482,32 +482,11 @@ resource "azurerm_key_vault_certificate" "test" {
       exportable = true
       key_size   = 2048
       key_type   = "RSA"
-      reuse_key  = true
+      reuse_key  = false
     }
 
     secret_properties {
-      content_type = "application/x-pem-file"
-    }
-
-    x509_certificate_properties {
-      # Server Authentication = 1.3.6.1.5.5.7.3.1
-      # Client Authentication = 1.3.6.1.5.5.7.3.2
-      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
-      key_usage = [
-        "cRLSign",
-        "dataEncipherment",
-        "digitalSignature",
-        "keyAgreement",
-        "keyCertSign",
-        "keyEncipherment",
-      ]
-
-      subject_alternative_names {
-        dns_names = ["api.pluginsdk.io"]
-      }
-
-      subject            = "CN=api.pluginsdk.io"
-      validity_in_months = 1
+      content_type = "application/x-pkcs12"
     }
   }
 
