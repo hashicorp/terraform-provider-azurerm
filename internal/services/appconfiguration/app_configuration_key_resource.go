@@ -169,10 +169,6 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 			}
 
 			kv := res.Values()[0]
-			var locked bool
-			if kv.Locked != nil {
-				locked = *kv.Locked
-			}
 
 			model := KeyResourceModel{
 				ConfigurationStoreId: resourceID.ConfigurationStoreId,
@@ -180,10 +176,12 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 				ContentType:          utils.NormalizeNilableString(kv.ContentType),
 				Label:                utils.NormalizeNilableString(kv.Label),
 				Value:                utils.NormalizeNilableString(kv.Value),
-				Locked:               locked,
 				Tags:                 tags.Flatten(kv.Tags),
 			}
 
+			if kv.Locked != nil {
+				model.Locked = *kv.Locked
+			}
 			return metadata.Encode(&model)
 		},
 		Timeout: 5 * time.Minute,
