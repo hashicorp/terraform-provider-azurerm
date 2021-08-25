@@ -212,7 +212,6 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 									"destination_addresses": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										//ConflictsWith: []string{"intrusion_detection.traffic_bypass.0.destination_addresses", "intrusion_detection.traffic_bypass.0.destination_ip_groups"},
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 										},
@@ -234,7 +233,6 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 									"destination_ip_groups": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										//ConflictsWith: []string{"intrusion_detection.traffic_bypass.0.destination_addresses", "intrusion_detection.traffic_bypass.0.destination_ip_groups"},
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 										},
