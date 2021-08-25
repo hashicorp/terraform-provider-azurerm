@@ -254,6 +254,10 @@ func (k KeyResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
+			if _, err = client.DeleteLock(ctx, resourceID.Key, resourceID.Label, "", ""); err != nil {
+				return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", resourceID.Key, resourceID.Label, err)
+			}
+
 			_, err = client.DeleteKeyValue(ctx, resourceID.Key, resourceID.Label, "")
 			if err != nil {
 				return fmt.Errorf("while removing key %q from App Configuration Store %q: %+v", resourceID.Key, resourceID.ConfigurationStoreId, err)
