@@ -98,11 +98,13 @@ The following arguments are supported:
 
 * `client_id` - (Optional) The Client ID which should be used. This can also be sourced from the `ARM_CLIENT_ID` Environment Variable.
 
-* `environment` - (Optional) The Cloud Environment which should be used. Possible values are `public`, `usgovernment`, `german`, and `china`. Defaults to `public`. This can also be sourced from the `ARM_ENVIRONMENT` environment variable.
+* `environment` - (Optional) The Cloud Environment which should be used. Possible values are `public`, `usgovernment`, `german`, and `china`. Defaults to `public`. This can also be sourced from the `ARM_ENVIRONMENT` Environment Variable.
 
 * `subscription_id` - (Optional) The Subscription ID which should be used. This can also be sourced from the `ARM_SUBSCRIPTION_ID` Environment Variable.
 
 * `tenant_id` - (Optional) The Tenant ID should be used. This can also be sourced from the `ARM_TENANT_ID` Environment Variable.
+
+* `auxiliary_tenant_ids` - (Optional) List of auxiliary Tenant IDs required for multi-tenancy and cross-tenant scenarios. This can also be sourced from the `ARM_AUXILIARY_TENANT_IDS` Environment Variable.
 
 ---
 
@@ -144,6 +146,8 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 * `partner_id` - (Optional) A GUID/UUID that is [registered](https://docs.microsoft.com/azure/marketplace/azure-partner-customer-usage-attribution#register-guids-and-offers) with Microsoft to facilitate partner resource usage attribution. This can also be sourced from the `ARM_PARTNER_ID` Environment Variable.
 
+* `auxiliary_tenant_ids` - (Optional) Contains a list of (up to 3) other Tenant IDs used for cross-tenant and multi-tenancy scenarios with multiple AzureRM provider definitions. The list of `auxiliary_tenant_ids` in a given AzureRM provider definition contains the other, remote Tenants and should not include its own `subscription_id` (or `ARM_SUBSCRIPTION_ID` Environment Variable).
+
 * `skip_provider_registration` - (Optional) Should the AzureRM Provider skip registering the Resource Providers it supports? This can also be sourced from the `ARM_SKIP_PROVIDER_REGISTRATION` Environment Variable. Defaults to `false`.
 
 -> By default, Terraform will attempt to register any Resource Providers that it supports, even if they're not used in your configurations to be able to display more helpful error messages. If you're running in an environment with restricted permissions, or wish to manage Resource Provider Registration outside of Terraform you may wish to disable this flag; however, please note that the error messages returned from Azure may be confusing as a result (example: `API version 2019-01-01 was not found for Microsoft.Foo`).
@@ -162,6 +166,8 @@ It's possible to configure the behaviour of certain resources using the `feature
 
 The `features` block supports the following:
 
+* `cognitive_account` - (Optional) A `cognitive_account` block as defined below.
+
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
@@ -174,9 +180,9 @@ The `features` block supports the following:
 
 ---
 
-The `log_analytics_workspace` block supports the following:
+The `cognitive_account` block supports the following:
 
-* `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
+* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_cognitive_account` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
 ---
 
@@ -189,6 +195,12 @@ The `key_vault` block supports the following:
 * `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_key_vault`, `azurerm_key_vault_certificate`, `azurerm_key_vault_key` and `azurerm_key_vault_secret` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
 ~> **Note:** When purge protection is enabled, a key vault or an object in the deleted state cannot be purged until the retention period (7-90 days) has passed.
+
+---
+
+The `log_analytics_workspace` block supports the following:
+
+* `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
 
 ---
 

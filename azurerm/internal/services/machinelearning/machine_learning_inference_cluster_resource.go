@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
-	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2020-04-01/machinelearningservices"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-04-01/machinelearningservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -65,11 +65,11 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(machinelearningservices.FastProd),
+				Default:  string(machinelearningservices.ClusterPurposeFastProd),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(machinelearningservices.DevTest),
-					string(machinelearningservices.FastProd),
-					string(machinelearningservices.DenseProd),
+					string(machinelearningservices.ClusterPurposeDevTest),
+					string(machinelearningservices.ClusterPurposeFastProd),
+					string(machinelearningservices.ClusterPurposeDenseProd),
 				}, false),
 			},
 
@@ -87,22 +87,39 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"cert": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  "",
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ForceNew:      true,
+							Default:       "",
+							ConflictsWith: []string{"ssl.0.leaf_domain_label", "ssl.0.overwrite_existing_domain"},
 						},
 						"key": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  "",
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ForceNew:      true,
+							Default:       "",
+							ConflictsWith: []string{"ssl.0.leaf_domain_label", "ssl.0.overwrite_existing_domain"},
 						},
 						"cname": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  "",
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ForceNew:      true,
+							Default:       "",
+							ConflictsWith: []string{"ssl.0.leaf_domain_label", "ssl.0.overwrite_existing_domain"},
+						},
+						"leaf_domain_label": {
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ForceNew:      true,
+							Default:       "",
+							ConflictsWith: []string{"ssl.0.cert", "ssl.0.key", "ssl.0.cname"},
+						},
+						"overwrite_existing_domain": {
+							Type:          pluginsdk.TypeBool,
+							Optional:      true,
+							ForceNew:      true,
+							Default:       "",
+							ConflictsWith: []string{"ssl.0.cert", "ssl.0.key", "ssl.0.cname"},
 						},
 					},
 				},
@@ -233,7 +250,7 @@ func resourceAksInferenceClusterDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	future, err := mlComputeClient.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName, machinelearningservices.Detach)
+	future, err := mlComputeClient.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName, machinelearningservices.UnderlyingResourceActionDetach)
 	if err != nil {
 		return fmt.Errorf("deleting Inference Cluster %q in workspace %q (Resource Group %q): %+v",
 			id.ComputeName, id.WorkspaceName, id.ResourceGroup, err)
@@ -272,10 +289,17 @@ func expandSSLConfig(input []interface{}) *machinelearningservices.SslConfigurat
 		sslStatus = "Enabled"
 	}
 
+	if !(v["leaf_domain_label"].(string) == "") {
+		sslStatus = "Auto"
+		v["cname"] = ""
+	}
+
 	return &machinelearningservices.SslConfiguration{
-		Status: machinelearningservices.Status1(sslStatus),
-		Cert:   utils.String(v["cert"].(string)),
-		Key:    utils.String(v["key"].(string)),
-		Cname:  utils.String(v["cname"].(string)),
+		Status:                  machinelearningservices.Status1(sslStatus),
+		Cert:                    utils.String(v["cert"].(string)),
+		Key:                     utils.String(v["key"].(string)),
+		Cname:                   utils.String(v["cname"].(string)),
+		LeafDomainLabel:         utils.String(v["leaf_domain_label"].(string)),
+		OverwriteExistingDomain: utils.Bool(v["overwrite_existing_domain"].(bool)),
 	}
 }

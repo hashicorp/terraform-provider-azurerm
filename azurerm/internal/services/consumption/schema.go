@@ -131,9 +131,9 @@ func SchemaConsumptionBudgetNotificationElement() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(consumption.EqualTo),
-					string(consumption.GreaterThan),
-					string(consumption.GreaterThanOrEqualTo),
+					string(consumption.OperatorTypeEqualTo),
+					string(consumption.OperatorTypeGreaterThan),
+					string(consumption.OperatorTypeGreaterThanOrEqualTo),
 				}, false),
 			},
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
@@ -93,6 +93,11 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
+			},
+
+			"node_public_ip_prefix_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"node_taints": {
@@ -240,6 +245,8 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		if err := d.Set("node_labels", props.NodeLabels); err != nil {
 			return fmt.Errorf("setting `node_labels`: %+v", err)
 		}
+
+		d.Set("node_public_ip_prefix_id", props.NodePublicIPPrefixID)
 
 		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("setting `node_taints`: %+v", err)

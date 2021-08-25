@@ -19,8 +19,9 @@ import (
 
 func resourceSpatialAnchorsAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSpatialAnchorsAccountCreate,
+		Create: resourceSpatialAnchorsAccountCreateUpdate,
 		Read:   resourceSpatialAnchorsAccountRead,
+		Update: resourceSpatialAnchorsAccountCreateUpdate,
 		Delete: resourceSpatialAnchorsAccountDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SpatialAnchorsAccountID(id)
@@ -59,12 +60,12 @@ func resourceSpatialAnchorsAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.ForceNewSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceSpatialAnchorsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpatialAnchorsAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MixedReality.SpatialAnchorsAccountClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

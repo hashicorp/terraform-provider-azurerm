@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -67,10 +67,10 @@ func resourceVirtualHubIP() *pluginsdk.Resource {
 			"private_ip_allocation_method": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  network.Dynamic,
+				Default:  network.IPAllocationMethodDynamic,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.Dynamic),
-					string(network.Static),
+					string(network.IPAllocationMethodDynamic),
+					string(network.IPAllocationMethodStatic),
 				}, false),
 			},
 

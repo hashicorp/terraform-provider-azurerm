@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-03-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/azure"
 	commonValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	laparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
@@ -34,7 +34,6 @@ const (
 var unsupportedAddonsForEnvironment = map[string][]string{
 	azure.ChinaCloud.Name: {
 		aciConnectorKey,           // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5510
-		azurePolicyKey,            // https://github.com/terraform-providers/terraform-provider-azurerm/issues/6462
 		httpApplicationRoutingKey, // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5960
 		kubernetesDashboardKey,    // https://github.com/terraform-providers/terraform-provider-azurerm/issues/7487
 	},
@@ -174,6 +173,11 @@ func schemaKubernetesAddOnProfiles() *pluginsdk.Schema {
 								Optional:      true,
 								ConflictsWith: []string{"addon_profile.0.ingress_application_gateway.0.subnet_cidr", "addon_profile.0.ingress_application_gateway.0.subnet_id"},
 								ValidateFunc:  applicationGatewayValidate.ApplicationGatewayID,
+							},
+							"gateway_name": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"subnet_cidr": {
 								Type:          pluginsdk.TypeString,
@@ -319,6 +323,10 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 			config["applicationGatewayId"] = utils.String(gatewayId.(string))
 		}
 
+		if gatewayName, ok := value["gateway_name"]; ok && gatewayName != "" {
+			config["applicationGatewayName"] = utils.String(gatewayName.(string))
+		}
+
 		if subnetCIDR, ok := value["subnet_cidr"]; ok && subnetCIDR != "" {
 			config["subnetCIDR"] = utils.String(subnetCIDR.(string))
 		}
@@ -461,6 +469,11 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			gatewayId = *v
 		}
 
+		gatewayName := ""
+		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "applicationGatewayName"); v != nil {
+			gatewayName = *v
+		}
+
 		effectiveGatewayId := ""
 		if v := kubernetesAddonProfilelocateInConfig(ingressApplicationGateway.Config, "effectiveApplicationGatewayId"); v != nil {
 			effectiveGatewayId = *v
@@ -481,6 +494,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 		ingressApplicationGateways = append(ingressApplicationGateways, map[string]interface{}{
 			"enabled":                              enabled,
 			"gateway_id":                           gatewayId,
+			"gateway_name":                         gatewayName,
 			"effective_gateway_id":                 effectiveGatewayId,
 			"subnet_cidr":                          subnetCIDR,
 			"subnet_id":                            subnetId,

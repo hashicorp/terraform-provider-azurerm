@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/identity"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -63,7 +64,10 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	identity := flattenApplicationGatewayDataSourceIdentity(resp.Identity)
+	identity, err := flattenApplicationGatewayDataSourceIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
 	flattenedIdentity := applicationGatewayDataSourceIdentity{}.Flatten(identity)
 	if err = d.Set("identity", flattenedIdentity); err != nil {
 		return err
@@ -72,14 +76,21 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func flattenApplicationGatewayDataSourceIdentity(input *network.ManagedServiceIdentity) *identity.ExpandedConfig {
+func flattenApplicationGatewayDataSourceIdentity(input *network.ManagedServiceIdentity) (*identity.ExpandedConfig, error) {
 	var config *identity.ExpandedConfig
 	if input != nil {
+		identityIds := make([]string, 0, len(input.UserAssignedIdentities))
+		for id := range input.UserAssignedIdentities {
+			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(id)
+			if err != nil {
+				return nil, err
+			}
+			identityIds = append(identityIds, parsedId.ID())
+		}
 		config = &identity.ExpandedConfig{
-			Type:        string(input.Type),
-			PrincipalId: input.PrincipalID,
-			TenantId:    input.TenantID,
+			Type:                    identity.Type(string(input.Type)),
+			UserAssignedIdentityIds: &identityIds,
 		}
 	}
-	return config
+	return config, nil
 }

@@ -33,12 +33,14 @@ import (
 	databricks "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/client"
 	datafactory "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/client"
 	datalake "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/client"
+	dataprotection "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dataprotection/client"
 	datashare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/client"
 	desktopvirtualization "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/client"
 	devspace "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/client"
 	devtestlabs "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/client"
 	digitaltwins "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins/client"
 	dns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/client"
+	domainservices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/domainservices/client"
 	eventgrid "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/client"
 	eventhub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/client"
 	firewall "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/client"
@@ -134,12 +136,14 @@ type Client struct {
 	DataboxEdge           *databoxedge.Client
 	DataFactory           *datafactory.Client
 	Datalake              *datalake.Client
+	DataProtection        *dataprotection.Client
 	DataShare             *datashare.Client
 	DesktopVirtualization *desktopvirtualization.Client
 	DevSpace              *devspace.Client
 	DevTestLabs           *devtestlabs.Client
 	DigitalTwins          *digitaltwins.Client
 	Dns                   *dns.Client
+	DomainServices        *domainservices.Client
 	EventGrid             *eventgrid.Client
 	Eventhub              *eventhub.Client
 	Firewall              *firewall.Client
@@ -237,12 +241,14 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DataboxEdge = databoxedge.NewClient(o)
 	client.DataFactory = datafactory.NewClient(o)
 	client.Datalake = datalake.NewClient(o)
+	client.DataProtection = dataprotection.NewClient(o)
 	client.DataShare = datashare.NewClient(o)
 	client.DesktopVirtualization = desktopvirtualization.NewClient(o)
 	client.DevSpace = devspace.NewClient(o)
 	client.DevTestLabs = devtestlabs.NewClient(o)
 	client.DigitalTwins = digitaltwins.NewClient(o)
 	client.Dns = dns.NewClient(o)
+	client.DomainServices = domainservices.NewClient(o)
 	client.EventGrid = eventgrid.NewClient(o)
 	client.Eventhub = eventhub.NewClient(o)
 	client.Firewall = firewall.NewClient(o)

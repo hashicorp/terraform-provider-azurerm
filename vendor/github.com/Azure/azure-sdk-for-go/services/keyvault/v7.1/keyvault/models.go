@@ -73,11 +73,23 @@ type BackupCertificateResult struct {
 	Value *string `json:"value,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for BackupCertificateResult.
+func (bcr BackupCertificateResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // BackupKeyResult the backup key result, containing the backup blob.
 type BackupKeyResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; The backup blob containing the backed up key. (a URL-encoded base64 string)
 	Value *string `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BackupKeyResult.
+func (bkr BackupKeyResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // BackupSecretResult the backup secret result, containing the backup blob.
@@ -87,11 +99,23 @@ type BackupSecretResult struct {
 	Value *string `json:"value,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for BackupSecretResult.
+func (bsr BackupSecretResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // BackupStorageResult the backup storage result, containing the backup blob.
 type BackupStorageResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; The backup blob containing the backed up storage account. (a URL-encoded base64 string)
 	Value *string `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BackupStorageResult.
+func (bsr BackupStorageResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // CertificateAttributes the certificate management attributes.
@@ -243,6 +267,12 @@ type CertificateIssuerListResult struct {
 	Value *[]CertificateIssuerItem `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URL to get the next set of certificate issuers.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CertificateIssuerListResult.
+func (cilr CertificateIssuerListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // CertificateIssuerListResultIterator provides access to a complete listing of CertificateIssuerItem
@@ -457,6 +487,12 @@ type CertificateListResult struct {
 	Value *[]CertificateItem `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URL to get the next set of certificates.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CertificateListResult.
+func (clr CertificateListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // CertificateListResultIterator provides access to a complete listing of CertificateItem values.
@@ -894,6 +930,12 @@ type DeletedCertificateListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DeletedCertificateListResult.
+func (dclr DeletedCertificateListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DeletedCertificateListResultIterator provides access to a complete listing of DeletedCertificateItem
 // values.
 type DeletedCertificateListResultIterator struct {
@@ -1127,6 +1169,12 @@ type DeletedKeyListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DeletedKeyListResult.
+func (dklr DeletedKeyListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DeletedKeyListResultIterator provides access to a complete listing of DeletedKeyItem values.
 type DeletedKeyListResultIterator struct {
 	i    int
@@ -1347,6 +1395,12 @@ type DeletedSasDefinitionListResult struct {
 	Value *[]DeletedSasDefinitionItem `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URL to get the next set of deleted SAS definitions.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DeletedSasDefinitionListResult.
+func (dsdlr DeletedSasDefinitionListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // DeletedSasDefinitionListResultIterator provides access to a complete listing of DeletedSasDefinitionItem
@@ -1600,6 +1654,12 @@ type DeletedSecretListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DeletedSecretListResult.
+func (dslr DeletedSecretListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DeletedSecretListResultIterator provides access to a complete listing of DeletedSecretItem values.
 type DeletedSecretListResultIterator struct {
 	i    int
@@ -1822,6 +1882,12 @@ type DeletedStorageListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DeletedStorageListResult.
+func (dslr DeletedStorageListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // DeletedStorageListResultIterator provides access to a complete listing of DeletedStorageAccountItem
 // values.
 type DeletedStorageListResultIterator struct {
@@ -1983,10 +2049,22 @@ type Error struct {
 	InnerError *Error `json:"innererror,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Error.
+func (e Error) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ErrorType the key vault error exception.
 type ErrorType struct {
 	// Error - READ-ONLY
 	Error *Error `json:"error,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorType.
+func (et ErrorType) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // IssuerAttributes the attributes of an issuer managed by the Key Vault service.
@@ -2259,6 +2337,12 @@ type KeyListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for KeyListResult.
+func (klr KeyListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // KeyListResultIterator provides access to a complete listing of KeyItem values.
 type KeyListResultIterator struct {
 	i    int
@@ -2418,6 +2502,12 @@ type KeyOperationResult struct {
 	Result *string `json:"value,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for KeyOperationResult.
+func (kor KeyOperationResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // KeyOperationsParameters the key operations parameters.
 type KeyOperationsParameters struct {
 	// Algorithm - algorithm identifier. Possible values include: 'RSAOAEP', 'RSAOAEP256', 'RSA15'
@@ -2495,6 +2585,12 @@ type KeyVerifyResult struct {
 	Value *bool `json:"value,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for KeyVerifyResult.
+func (kvr KeyVerifyResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // LifetimeAction action and its trigger that will be performed by Key Vault over the lifetime of a
 // certificate.
 type LifetimeAction struct {
@@ -2516,6 +2612,12 @@ type OrganizationDetails struct {
 type PendingCertificateSigningRequestResult struct {
 	// Value - READ-ONLY; The pending certificate signing request as Base64 encoded string.
 	Value *string `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PendingCertificateSigningRequestResult.
+func (pcsrr PendingCertificateSigningRequestResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SasDefinitionAttributes the SAS definition management attributes.
@@ -2627,6 +2729,12 @@ type SasDefinitionListResult struct {
 	Value *[]SasDefinitionItem `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URL to get the next set of SAS definitions.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SasDefinitionListResult.
+func (sdlr SasDefinitionListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SasDefinitionListResultIterator provides access to a complete listing of SasDefinitionItem values.
@@ -2926,6 +3034,12 @@ type SecretListResult struct {
 	Value *[]SecretItem `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URL to get the next set of secrets.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SecretListResult.
+func (slr SecretListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // SecretListResultIterator provides access to a complete listing of SecretItem values.
@@ -3300,6 +3414,12 @@ type StorageListResult struct {
 	Value *[]StorageAccountItem `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URL to get the next set of storage accounts.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StorageListResult.
+func (slr StorageListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // StorageListResultIterator provides access to a complete listing of StorageAccountItem values.

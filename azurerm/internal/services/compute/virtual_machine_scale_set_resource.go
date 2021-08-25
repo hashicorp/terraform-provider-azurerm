@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -756,7 +755,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							ValidateFunc:     validation.StringIsJSON,
-							DiffSuppressFunc: structure.SuppressJsonDiff,
+							DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 						},
 
 						"protected_settings": {
@@ -764,7 +763,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 							Optional:         true,
 							Sensitive:        true,
 							ValidateFunc:     validation.StringIsJSON,
-							DiffSuppressFunc: structure.SuppressJsonDiff,
+							DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 						},
 					},
 				},
@@ -1541,7 +1540,7 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *compute.Virtu
 
 			if settings := properties.Settings; settings != nil {
 				settingsVal := settings.(map[string]interface{})
-				settingsJson, err := structure.FlattenJsonToString(settingsVal)
+				settingsJson, err := pluginsdk.FlattenJsonToString(settingsVal)
 				if err != nil {
 					return nil, err
 				}
@@ -1716,9 +1715,9 @@ func resourceVirtualMachineScaleSetExtensionHash(v interface{}) int {
 		// we need to ensure the whitespace is consistent
 		settings := m["settings"].(string)
 		if settings != "" {
-			expandedSettings, err := structure.ExpandJsonFromString(settings)
+			expandedSettings, err := pluginsdk.ExpandJsonFromString(settings)
 			if err == nil {
-				serializedSettings, err := structure.FlattenJsonToString(expandedSettings)
+				serializedSettings, err := pluginsdk.FlattenJsonToString(expandedSettings)
 				if err == nil {
 					buf.WriteString(fmt.Sprintf("%s-", serializedSettings))
 				}
@@ -2303,7 +2302,7 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *pluginsdk.ResourceData) (*
 		}
 
 		if s := config["settings"].(string); s != "" {
-			settings, err := structure.ExpandJsonFromString(s)
+			settings, err := pluginsdk.ExpandJsonFromString(s)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse settings: %+v", err)
 			}
@@ -2311,7 +2310,7 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *pluginsdk.ResourceData) (*
 		}
 
 		if s := config["protected_settings"].(string); s != "" {
-			protectedSettings, err := structure.ExpandJsonFromString(s)
+			protectedSettings, err := pluginsdk.ExpandJsonFromString(s)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse protected_settings: %+v", err)
 			}

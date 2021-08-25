@@ -112,6 +112,16 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 			"backend_request": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 
 			"backend_response": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
+
+			"operation_name_format": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(apimanagement.Name),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(apimanagement.Name),
+					string(apimanagement.URL),
+				}, false),
+			},
 		},
 	}
 }
@@ -140,7 +150,8 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	parameters := apimanagement.DiagnosticContract{
 		DiagnosticContractProperties: &apimanagement.DiagnosticContractProperties{
-			LoggerID: utils.String(d.Get("api_management_logger_id").(string)),
+			LoggerID:            utils.String(d.Get("api_management_logger_id").(string)),
+			OperationNameFormat: apimanagement.OperationNameFormat(d.Get("operation_name_format").(string)),
 		},
 	}
 
@@ -256,6 +267,11 @@ func resourceApiManagementDiagnosticRead(d *pluginsdk.ResourceData, meta interfa
 			d.Set("backend_request", nil)
 			d.Set("backend_response", nil)
 		}
+		format := string(apimanagement.Name)
+		if props.OperationNameFormat != "" {
+			format = string(props.OperationNameFormat)
+		}
+		d.Set("operation_name_format", format)
 	}
 
 	return nil

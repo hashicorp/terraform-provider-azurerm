@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -180,7 +180,7 @@ func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		ContinuousTargetOccurence: 3,
 		Timeout:                   time.Until(timeout),
 	}
-	respRaw, err := stateConf.WaitForState()
+	respRaw, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return fmt.Errorf("waiting for Virtual Hub %q (Host Group Name %q) provisioning route: %+v", name, resourceGroup, err)
 	}

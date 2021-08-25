@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
@@ -35,9 +35,9 @@ func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.AllAllowed),
-						string(web.Disabled),
-						string(web.FtpsOnly),
+						string(web.FtpsStateAllAllowed),
+						string(web.FtpsStateDisabled),
+						string(web.FtpsStateFtpsOnly),
 					}, false),
 				},
 
@@ -60,9 +60,9 @@ func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.OneFullStopZero),
-						string(web.OneFullStopOne),
-						string(web.OneFullStopTwo),
+						string(web.SupportedTLSVersionsOneFullStopZero),
+						string(web.SupportedTLSVersionsOneFullStopOne),
+						string(web.SupportedTLSVersionsOneFullStopTwo),
 					}, false),
 				},
 
@@ -278,7 +278,7 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 
 	// On consumption and premium plans include WEBSITE_CONTENT components, unless it's a Linux consumption plan
 	// (see https://github.com/Azure/azure-functions-python-worker/issues/598)
-	if (strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium")) &&
+	if (strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium") || strings.HasPrefix(strings.ToLower(appServiceTier), "premium")) &&
 		!strings.EqualFold(d.Get("os_type").(string), "linux") {
 		return append(basicSettings, consumptionSettings...), nil
 	}

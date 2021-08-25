@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -96,17 +96,17 @@ func resourceAppService() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(web.APIHub),
-								string(web.Custom),
-								string(web.DocDb),
-								string(web.EventHub),
-								string(web.MySQL),
-								string(web.NotificationHub),
-								string(web.PostgreSQL),
-								string(web.RedisCache),
-								string(web.ServiceBus),
-								string(web.SQLAzure),
-								string(web.SQLServer),
+								string(web.ConnectionStringTypeAPIHub),
+								string(web.ConnectionStringTypeCustom),
+								string(web.ConnectionStringTypeDocDb),
+								string(web.ConnectionStringTypeEventHub),
+								string(web.ConnectionStringTypeMySQL),
+								string(web.ConnectionStringTypeNotificationHub),
+								string(web.ConnectionStringTypePostgreSQL),
+								string(web.ConnectionStringTypeRedisCache),
+								string(web.ConnectionStringTypeServiceBus),
+								string(web.ConnectionStringTypeSQLAzure),
+								string(web.ConnectionStringTypeSQLServer),
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
@@ -236,8 +236,9 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	// Check if App Service Plan is part of ASE
 	// If so, the name needs updating to <app name>.<ASE name>.appserviceenvironment.net and FQDN setting true for name availability check
 	aspDetails, err := aspClient.Get(ctx, aspID.ResourceGroup, aspID.ServerfarmName)
-	if err != nil {
-		return fmt.Errorf("App Service Environment %q (Resource Group %q) does not exist", aspID.ServerfarmName, aspID.ResourceGroup)
+	// 404 is incorrectly being considered an acceptable response, issue tracked at https://github.com/Azure/azure-sdk-for-go/issues/15002
+	if err != nil || utils.ResponseWasNotFound(aspDetails.Response) {
+		return fmt.Errorf("App Service Environment %q or Resource Group %q does not exist", aspID.ServerfarmName, aspID.ResourceGroup)
 	}
 	if aspDetails.HostingEnvironmentProfile != nil {
 		availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.appserviceenvironment.net", name, *aspDetails.HostingEnvironmentProfile.Name))
@@ -426,27 +427,6 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	// Don't send source_control changes for ADO controlled Apps
-	if hasSourceControl && scmType != web.ScmTypeVSTSRM {
-		sourceControlProperties := expandAppServiceSiteSourceControl(d)
-		sourceControl := &web.SiteSourceControl{}
-		sourceControl.SiteSourceControlProperties = sourceControlProperties
-		scFuture, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.SiteName, *sourceControl)
-		if err != nil {
-			return fmt.Errorf("failed to update App Service Source Control for %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
-		}
-
-		err = scFuture.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
-			return fmt.Errorf("failed waiting for App Service Source Control configuration: %+v", err)
-		}
-
-		sc, err := client.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
-		if err != nil {
-			return fmt.Errorf("failed reading back App Service Source Control for %q", *sc.Name)
-		}
-	}
-
 	if d.HasChange("auth_settings") {
 		authSettingsRaw := d.Get("auth_settings").([]interface{})
 		authSettingsProperties := expandAppServiceAuthSettings(authSettingsRaw)
@@ -498,6 +478,27 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 		if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, settings); err != nil {
 			return fmt.Errorf("updating Application Settings for App Service %q: %+v", id.SiteName, err)
+		}
+	}
+
+	// Don't send source_control changes for ADO controlled Apps
+	if hasSourceControl && scmType != web.ScmTypeVSTSRM {
+		sourceControlProperties := expandAppServiceSiteSourceControl(d)
+		sourceControl := &web.SiteSourceControl{}
+		sourceControl.SiteSourceControlProperties = sourceControlProperties
+		scFuture, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.SiteName, *sourceControl)
+		if err != nil {
+			return fmt.Errorf("failed to update App Service Source Control for %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		}
+
+		err = scFuture.WaitForCompletionRef(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("failed waiting for App Service Source Control configuration: %+v", err)
+		}
+
+		sc, err := client.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
+		if err != nil {
+			return fmt.Errorf("failed reading back App Service Source Control for %q", *sc.Name)
 		}
 	}
 

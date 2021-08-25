@@ -77,6 +77,10 @@ The following supported arguments are specific to Azure Blob Dataset:
 
 * `filename` - (Required) The filename of the Azure Blob.
 
+* `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
+
+* `dynamic_filename_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
+
 ---
 
 A `schema_column` block supports the following:
