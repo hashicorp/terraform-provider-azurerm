@@ -34,6 +34,40 @@ output "app_id" {
 }
 ```
 
+## Example Usage - Workspace Mode
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "tf-test"
+  location = "West Europe"
+}
+
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "workspace-test"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_application_insights" "example" {
+  name                = "tf-test-appinsights"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  workspace_id        = azurerm_log_analytics_workspace.example.id
+  application_type    = "web"
+}
+
+output "instrumentation_key" {
+  value = azurerm_application_insights.example.instrumentation_key
+}
+
+output "app_id" {
+  value = azurerm_application_insights.example.app_id
+}
+```
+
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -59,6 +93,8 @@ The following arguments are supported:
 * `disable_ip_masking` - (Optional) By default the real client ip is masked as `0.0.0.0` in the logs. Use this argument to disable masking and log the real client ip. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `workspace_id` - (Optional) Specifies the id of a log analytics workspace resource
 
 ## Attributes Reference
 
