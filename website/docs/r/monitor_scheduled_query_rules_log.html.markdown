@@ -27,14 +27,14 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 # Example: LogToMetric Action for the named Computer
-resource "azurerm_scheduled_query_rules_log" "example" {
+resource "azurerm_monitor_scheduled_query_rules_log" "example" {
   name                = format("%s-queryrule", var.prefix)
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
   criteria {
     metric_name = "Average_% Idle Time"
-    dimensions {
+    dimension {
       name     = "Computer"
       operator = "Include"
       values   = ["targetVM"]
