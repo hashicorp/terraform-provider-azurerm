@@ -1592,8 +1592,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			if props.AllowBlobPublicAccess != nil {
 				allowBlobPublicAccess = *props.AllowBlobPublicAccess
 			}
+			//lintignore:R001
 			d.Set(allowPublicNestedItemsName, allowBlobPublicAccess)
 		} else {
+			//lintignore:R001,R002
 			d.Set(allowPublicNestedItemsName, *props.AllowBlobPublicAccess)
 		}
 
