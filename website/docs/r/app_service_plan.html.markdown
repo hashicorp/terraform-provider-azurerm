@@ -121,6 +121,8 @@ The following arguments are supported:
 
 * `per_site_scaling` - (Optional) Can Apps assigned to this App Service Plan be scaled independently? If set to `false` apps assigned to this plan will scale to all instances of the plan.  Defaults to `false`.
 
+* `zone_redundant` - (Optional) If `true`, this App Service Plan will perform availability zone balancing. If `false`, this App Service Plan will not perform availability zone balancing. Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `sku` supports the following:
