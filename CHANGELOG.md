@@ -19,6 +19,7 @@ BUG FIXES
 
 * `azurerm_cosmosdb_cassandra_table` - correctly update `throughput` [GH-13102]
 * `azurerm_private_dns_a_record` - fix regression in `name` validation and add max recordset limit validation [GH-13093]
+* `azurerm_postgresql_flexible_server_database` the `charset` and `collation` properties are now optional [GH-13110]
 * `azurerm_spring_cloud_app` - Fix crash when identity is not present [GH-13125]
 
 ## 2.73.0 (August 20, 2021)
