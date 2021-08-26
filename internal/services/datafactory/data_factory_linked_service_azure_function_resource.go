@@ -60,7 +60,8 @@ func resourceDataFactoryLinkedServiceAzureFunction() *pluginsdk.Resource {
 
 			"key": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
+				ExactlyOneOf: []string{"key", "key_vault_key"},
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -69,6 +70,28 @@ func resourceDataFactoryLinkedServiceAzureFunction() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"key_vault_key": {
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				ExactlyOneOf: []string{"key", "key_vault_key"},
+				MaxItems:     1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"linked_service_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"secret_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
 			},
 
 			"integration_runtime_name": {
@@ -136,6 +159,10 @@ func resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *pluginsdk.Reso
 			},
 		},
 		Type: datafactory.TypeBasicLinkedServiceTypeAzureFunction,
+	}
+
+	if v, ok := d.GetOk("key_vault_key"); ok {
+		azureFunctionLinkedService.AzureFunctionLinkedServiceTypeProperties.FunctionKey = expandAzureKeyVaultSecretReference(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -210,6 +237,14 @@ func resourceDataFactoryLinkedServiceAzureFunctionRead(d *pluginsdk.ResourceData
 
 	d.Set("additional_properties", azureFunction.AdditionalProperties)
 	d.Set("description", azureFunction.Description)
+
+	if functionKey := azureFunction.AzureFunctionLinkedServiceTypeProperties.FunctionKey; functionKey != nil {
+		if keyVaultKey, ok := functionKey.AsAzureKeyVaultSecretReference(); ok {
+			if err := d.Set("key_vault_key", flattenAzureKeyVaultSecretReference(keyVaultKey)); err != nil {
+				return fmt.Errorf("setting `key_vault_key`: %+v", err)
+			}
+		}
+	}
 
 	annotations := flattenDataFactoryAnnotations(azureFunction.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
