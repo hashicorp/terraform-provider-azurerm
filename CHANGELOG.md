@@ -1,5 +1,9 @@
 ## 2.74.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_logic_app_integration_account_schema` [GH-13100]
+
 ENHANCEMENTS:
 
 * dependencies: upgrading `monitor` to API Version `2021-07-01-preview` [GH-13121]
