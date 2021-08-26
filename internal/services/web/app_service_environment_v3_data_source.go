@@ -219,6 +219,8 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 			if props := existingNetwork.AseV3NetworkingConfigurationProperties; props != nil {
 				model.WindowsOutboundIPAddresses = *props.WindowsOutboundIPAddresses
 				model.LinuxOutboundIPAddresses = *props.LinuxOutboundIPAddresses
+				model.InternalInboundIPAddresses = *props.InternalInboundIPAddresses
+				model.ExternalInboundIPAddresses = *props.ExternalInboundIPAddresses
 				model.AllowNewPrivateEndpointConnections = *props.AllowNewPrivateEndpointConnections
 			}
 
