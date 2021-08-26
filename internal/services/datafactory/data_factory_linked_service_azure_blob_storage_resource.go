@@ -316,14 +316,6 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 	}
 
 	if properties := blobStorage.AzureBlobStorageLinkedServiceTypeProperties; properties != nil {
-		if properties.SasURI != nil {
-			if val, ok := properties.SasURI.(string); ok {
-				d.Set("sas_uri", val)
-			} else {
-				d.Set("sas_uri", "")
-			}
-		}
-
 		if sasToken := properties.SasToken; sasToken != nil {
 			if keyVaultPassword, ok := sasToken.AsAzureKeyVaultSecretReference(); ok {
 				if err := d.Set("key_vault_sas_token", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
