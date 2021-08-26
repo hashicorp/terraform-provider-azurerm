@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * dependencies: upgrading `monitor` to API Version `2021-07-01-preview` [GH-13121]
 * dependencies: upgrading `devtestlabs` to API Version `2018-09-15` [GH-13074]
+* `azurerm_app_configuration` - support for user assigned identities [GH-13080]
 * `azurerm_app_service` - add support for `vnet_route_all_enabled` property [GH-13073]
 * `azurerm_firewall_policy` - support for the `intrusion_detection`, `identity` and `tls_certificate` blocks [GH-12769]
 * `azurerm_monitor_autoscale_setting` - support for the field `divide_by_instance_count` within the `metric_trigger` block [GH-13121]
