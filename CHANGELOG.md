@@ -3,6 +3,8 @@
 FEATURES:
 
 * **New Resource:** `azurerm_logic_app_integration_account_schema` [GH-13100]
+* **New Resource:** `azurerm_relay_namespace_authorization_rule` [GH-13116]
+* **New Resource:** `azurerm_relay_hybrid_connection_authorization_rule` [GH-13116]
 
 ENHANCEMENTS:
 
