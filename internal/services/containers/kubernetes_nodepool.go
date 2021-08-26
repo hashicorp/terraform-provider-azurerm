@@ -128,6 +128,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeMap,
 					ForceNew: true,
 					Optional: true,
+					Computed: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
