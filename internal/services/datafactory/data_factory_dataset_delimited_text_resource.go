@@ -142,34 +142,30 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 
 			// Delimited Text Specific Field
 			"column_delimiter": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			// Delimited Text Specific Field
 			"row_delimiter": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			// Delimited Text Specific Field
-			"encoding": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			// Delimited Text Specific Field
 			"quote_character": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			// Delimited Text Specific Field
 			"escape_character": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
+			// Delimited Text Specific Field
+			"encoding": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -322,24 +318,24 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 		Location: location,
 	}
 
-	if v, ok := d.GetOk("column_delimiter"); ok {
-		delimited_textDatasetProperties.ColumnDelimiter = v.(string)
+	if v, ok := d.Get("column_delimiter").(string); ok {
+		delimited_textDatasetProperties.ColumnDelimiter = v
 	}
 
-	if v, ok := d.GetOk("row_delimiter"); ok {
-		delimited_textDatasetProperties.RowDelimiter = v.(string)
+	if v, ok := d.Get("row_delimiter").(string); ok {
+		delimited_textDatasetProperties.RowDelimiter = v
+	}
+
+	if v, ok := d.Get("quote_character").(string); ok {
+		delimited_textDatasetProperties.QuoteChar = v
+	}
+
+	if v, ok := d.Get("escape_character").(string); ok {
+		delimited_textDatasetProperties.EscapeChar = v
 	}
 
 	if v, ok := d.GetOk("encoding"); ok {
 		delimited_textDatasetProperties.EncodingName = v.(string)
-	}
-
-	if v, ok := d.GetOk("quote_character"); ok {
-		delimited_textDatasetProperties.QuoteChar = v.(string)
-	}
-
-	if v, ok := d.GetOk("escape_character"); ok {
-		delimited_textDatasetProperties.EscapeChar = v.(string)
 	}
 
 	if v, ok := d.GetOk("first_row_as_header"); ok {
