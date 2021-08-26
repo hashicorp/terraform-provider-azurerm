@@ -299,8 +299,8 @@ func expandDataFactoryDatasetSFTPServerLocation(d *pluginsdk.ResourceData) dataf
 	props := sftpServerLocations[0].(map[string]interface{})
 
 	sftpServerLocation := datafactory.SftpLocation{
-		FolderPath: props["path"].(string),
-		FileName:   props["filename"].(string),
+		FolderPath: expandDataFactoryExpressionResultType(props["path"].(string), props["dynamic_path_enabled"].(bool)),
+		FileName:   expandDataFactoryExpressionResultType(props["filename"].(string), props["dynamic_filename_enabled"].(bool)),
 	}
 	return sftpServerLocation
 }
@@ -315,8 +315,8 @@ func expandDataFactoryDatasetHttpServerLocation(d *pluginsdk.ResourceData) dataf
 
 	httpServerLocation := datafactory.HTTPServerLocation{
 		RelativeURL: props["relative_url"].(string),
-		FolderPath:  props["path"].(string),
-		FileName:    props["filename"].(string),
+		FolderPath:  expandDataFactoryExpressionResultType(props["path"].(string), props["dynamic_path_enabled"].(bool)),
+		FileName:    expandDataFactoryExpressionResultType(props["filename"].(string), props["dynamic_filename_enabled"].(bool)),
 	}
 	return httpServerLocation
 }
@@ -331,9 +331,10 @@ func expandDataFactoryDatasetAzureBlobStorageLocation(d *pluginsdk.ResourceData)
 
 	blobStorageLocation := datafactory.AzureBlobStorageLocation{
 		Container:  props["container"].(string),
-		FolderPath: props["path"].(string),
-		FileName:   props["filename"].(string),
+		FolderPath: expandDataFactoryExpressionResultType(props["path"].(string), props["dynamic_path_enabled"].(bool)),
+		FileName:   expandDataFactoryExpressionResultType(props["filename"].(string), props["dynamic_filename_enabled"].(bool)),
 	}
+
 	return blobStorageLocation
 }
 
@@ -369,10 +370,14 @@ func flattenDataFactoryDatasetHTTPServerLocation(input *datafactory.HTTPServerLo
 		result["relative_url"] = input.RelativeURL
 	}
 	if input.FolderPath != nil {
-		result["path"] = input.FolderPath
+		path, dynamicPathEnabled := flattenDataFactoryExpressionResultType(input.FolderPath)
+		result["path"] = path
+		result["dynamic_path_enabled"] = dynamicPathEnabled
 	}
 	if input.FileName != nil {
-		result["filename"] = input.FileName
+		filename, dynamicFilenameEnabled := flattenDataFactoryExpressionResultType(input.FileName)
+		result["filename"] = filename
+		result["dynamic_filename_enabled"] = dynamicFilenameEnabled
 	}
 
 	return []interface{}{result}
@@ -388,10 +393,14 @@ func flattenDataFactoryDatasetAzureBlobStorageLocation(input *datafactory.AzureB
 		result["container"] = input.Container
 	}
 	if input.FolderPath != nil {
-		result["path"] = input.FolderPath
+		path, dynamicPathEnabled := flattenDataFactoryExpressionResultType(input.FolderPath)
+		result["path"] = path
+		result["dynamic_path_enabled"] = dynamicPathEnabled
 	}
 	if input.FileName != nil {
-		result["filename"] = input.FileName
+		filename, dynamicFilenameEnabled := flattenDataFactoryExpressionResultType(input.FileName)
+		result["filename"] = filename
+		result["dynamic_filename_enabled"] = dynamicFilenameEnabled
 	}
 
 	return []interface{}{result}
@@ -434,10 +443,14 @@ func flattenDataFactoryDatasetSFTPLocation(input *datafactory.SftpLocation) []in
 	result := make(map[string]interface{})
 
 	if input.FolderPath != nil {
-		result["path"] = input.FolderPath
+		path, dynamicPathEnabled := flattenDataFactoryExpressionResultType(input.FolderPath)
+		result["path"] = path
+		result["dynamic_path_enabled"] = dynamicPathEnabled
 	}
 	if input.FileName != nil {
-		result["filename"] = input.FileName
+		filename, dynamicFilenameEnabled := flattenDataFactoryExpressionResultType(input.FileName)
+		result["filename"] = filename
+		result["dynamic_filename_enabled"] = dynamicFilenameEnabled
 	}
 
 	return []interface{}{result}

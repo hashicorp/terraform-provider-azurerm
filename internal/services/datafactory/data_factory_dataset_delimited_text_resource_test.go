@@ -210,9 +210,11 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
   http_server_location {
-    relative_url = "/fizz/buzz/"
-    path         = "foo/bar/"
-    filename     = "foo.txt"
+    relative_url             = "/fizz/buzz/"
+    path                     = "@concat('foo/bar/',formatDateTime(convertTimeZone(utcnow(),'UTC','W. Europe Standard Time'),'yyyy-MM-dd'))"
+    dynamic_path_enabled     = true
+    filename                 = "@concat('foo', '.txt')"
+    dynamic_filename_enabled = true
   }
 
   column_delimiter    = ","
@@ -377,6 +379,8 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 
   azure_blob_storage_location {
     container = azurerm_storage_container.test.name
+    path      = "foo/bar/"
+    filename  = "foo.txt"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -428,9 +432,11 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
   azure_blob_storage_location {
-    container = azurerm_storage_container.test.name
-    path      = "foo/bar/"
-    filename  = "foo.txt"
+    container                = azurerm_storage_container.test.name
+    path                     = "@concat('foo/bar/',formatDateTime(convertTimeZone(utcnow(),'UTC','W. Europe Standard Time'),'yyyy-MM-dd'))"
+    dynamic_path_enabled     = true
+    filename                 = "@concat('foo', '.txt')"
+    dynamic_filename_enabled = true
   }
 
   column_delimiter    = ","
