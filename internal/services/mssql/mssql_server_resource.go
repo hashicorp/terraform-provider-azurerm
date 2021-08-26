@@ -180,14 +180,15 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 
 func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
 	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	adminUsername := d.Get("administrator_login").(string)
 	version := d.Get("version").(string)
@@ -196,10 +197,10 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	metadata := tags.Expand(t)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing SQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 		}
 
@@ -236,44 +237,44 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		props.ServerProperties.MinimalTLSVersion = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, props)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("issuing create/update request for SQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasConflict(future.Response()) {
-			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", name)
+			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", id.Name)
 		}
 
-		return fmt.Errorf("waiting on create/update future for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting on create/update future for SQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("issuing get request for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("issuing get request for SQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
 
 	if d.HasChange("azuread_administrator") {
-		adminDelFuture, err := adminClient.Delete(ctx, resGroup, name)
+		adminDelFuture, err := adminClient.Delete(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("deleting SQL Server %q AAD admin (Resource Group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("deleting SQL Server %q AAD admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if err = adminDelFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-			return fmt.Errorf("waiting for SQL Server %q AAD admin (Resource Group %q) to be deleted: %+v", name, resGroup, err)
+			return fmt.Errorf("waiting for SQL Server %q AAD admin (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if adminParams := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminParams != nil {
-			adminFuture, err := adminClient.CreateOrUpdate(ctx, resGroup, name, *adminParams)
+			adminFuture, err := adminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *adminParams)
 			if err != nil {
-				return fmt.Errorf("creating SQL Server %q AAD admin (Resource Group %q): %+v", name, resGroup, err)
+				return fmt.Errorf("creating SQL Server %q AAD admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 
 			if err = adminFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-				return fmt.Errorf("waiting for creation of SQL Server %q AAD admin (Resource Group %q): %+v", name, resGroup, err)
+				return fmt.Errorf("waiting for creation of SQL Server %q AAD admin (Resource Group %q): %+v", id.Name, id.Name, err)
 			}
 		}
 	}
@@ -283,21 +284,21 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			ConnectionType: sql.ServerConnectionType(d.Get("connection_policy").(string)),
 		},
 	}
-	if _, err = connectionClient.CreateOrUpdate(ctx, resGroup, name, connection); err != nil {
-		return fmt.Errorf("issuing create/update request for SQL Server %q Connection Policy (Resource Group %q): %+v", name, resGroup, err)
+	if _, err = connectionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, connection); err != nil {
+		return fmt.Errorf("issuing create/update request for SQL Server %q Connection Policy (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
 		ExtendedServerBlobAuditingPolicyProperties: helper.ExpandSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{})),
 	}
 
-	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, resGroup, name, auditingProps)
+	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = auditingFuture.WaitForCompletionRef(ctx, auditingClient.Client); err != nil {
-		return fmt.Errorf("waiting for creation of SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for creation of SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return resourceMsSqlServerRead(d, meta)
@@ -312,13 +313,13 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["servers"]
+	name := id.Name
 
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
@@ -394,13 +395,13 @@ func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["servers"]
+	name := id.Name
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
