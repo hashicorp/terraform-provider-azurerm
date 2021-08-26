@@ -338,12 +338,12 @@ func (r AppServiceEnvironmentResource) withCertificatePfx(data acceptance.TestDa
 %s
 
 resource "azurerm_app_service_certificate" "test" {
-  name                           = "acctest-cert-%d"
-  resource_group_name            = azurerm_app_service_environment.test.resource_group_name
-  location                       = azurerm_resource_group.test.location
-  pfx_blob                       = filebase64("testdata/app_service_certificate.pfx")
-  password                       = "terraform"
-  app_service_plan_id            = azurerm_app_service_plan.test.id
+  name                = "acctest-cert-%d"
+  resource_group_name = azurerm_app_service_environment.test.resource_group_name
+  location            = azurerm_resource_group.test.location
+  pfx_blob            = filebase64("testdata/app_service_certificate.pfx")
+  password            = "terraform"
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 `, template, data.RandomInteger)
 }
