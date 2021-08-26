@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-type appConfigurationIdentityType = identity.SystemAssigned
+type appConfigurationIdentityType = identity.SystemAssignedUserAssigned
 
 func resourceAppConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
