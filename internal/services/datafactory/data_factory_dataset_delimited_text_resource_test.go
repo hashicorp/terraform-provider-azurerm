@@ -25,6 +25,10 @@ func TestAccDataFactoryDatasetDelimitedText_http(t *testing.T) {
 			Config: r.http(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("column_delimiter").HasValue(""),
+				check.That(data.ResourceName).Key("row_delimiter").HasValue(""),
+				check.That(data.ResourceName).Key("quote_character").HasValue(""),
+				check.That(data.ResourceName).Key("escape_character").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -47,6 +51,10 @@ func TestAccDataFactoryDatasetDelimitedText_http_update(t *testing.T) {
 				check.That(data.ResourceName).Key("description").HasValue("test description"),
 				check.That(data.ResourceName).Key("compression_codec").HasValue("gzip"),
 				check.That(data.ResourceName).Key("compression_level").HasValue("Optimal"),
+				check.That(data.ResourceName).Key("column_delimiter").HasValue(","),
+				check.That(data.ResourceName).Key("row_delimiter").HasValue("NEW"),
+				check.That(data.ResourceName).Key("quote_character").HasValue("x"),
+				check.That(data.ResourceName).Key("escape_character").HasValue("f"),
 			),
 		},
 		data.ImportStep(),
@@ -166,11 +174,11 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
     filename     = "foo.txt"
   }
 
-  column_delimiter    = ","
-  row_delimiter       = "NEW"
+  column_delimiter    = ""
+  row_delimiter       = ""
   encoding            = "UTF-8"
-  quote_character     = "x"
-  escape_character    = "f"
+  quote_character     = ""
+  escape_character    = ""
   first_row_as_header = true
   null_value          = "NULL"
 
