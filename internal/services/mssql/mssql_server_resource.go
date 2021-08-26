@@ -200,7 +200,7 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing SQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id.String(), err)
 			}
 		}
 
@@ -239,7 +239,7 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for SQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("issuing create/update request for %s: %+v", id.String(), err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -247,34 +247,29 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", id.Name)
 		}
 
-		return fmt.Errorf("waiting on create/update future for SQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id.String(), err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("issuing get request for SQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	if d.HasChange("azuread_administrator") {
 		adminDelFuture, err := adminClient.Delete(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("deleting SQL Server %q AAD admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("deleting AAD admin  %s: %+v", id.String(), err)
 		}
 
 		if err = adminDelFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-			return fmt.Errorf("waiting for SQL Server %q AAD admin (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for deletion of AAD admin %s: %+v", id.String(), err)
 		}
 
 		if adminParams := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminParams != nil {
 			adminFuture, err := adminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *adminParams)
 			if err != nil {
-				return fmt.Errorf("creating SQL Server %q AAD admin (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("creating AAD admin %s: %+v", id.String(), err)
 			}
 
 			if err = adminFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-				return fmt.Errorf("waiting for creation of SQL Server %q AAD admin (Resource Group %q): %+v", id.Name, id.Name, err)
+				return fmt.Errorf("waiting for creation of AAD admin %s: %+v", id.String(), err)
 			}
 		}
 	}
@@ -285,7 +280,7 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		},
 	}
 	if _, err = connectionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, connection); err != nil {
-		return fmt.Errorf("issuing create/update request for SQL Server %q Connection Policy (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("issuing create/update request for Connection Policy %s: %+v", id.String(), err)
 	}
 
 	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
@@ -294,11 +289,11 @@ func resourceMsSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("issuing create/update request for Blob Auditing Policies %s: %+v", id.String(), err)
 	}
 
 	if err = auditingFuture.WaitForCompletionRef(ctx, auditingClient.Client); err != nil {
-		return fmt.Errorf("waiting for creation of SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for creation of Blob Auditing Policies %s: %+v", id.String(), err)
 	}
 
 	return resourceMsSqlServerRead(d, meta)
@@ -318,22 +313,19 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Name
-
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading SQL Server %q - removing from state", d.Id())
+			log.Printf("[INFO] Error reading SQL Server %s - removing from state", id.String())
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("reading SQL Server %s: %v", name, err)
+		return fmt.Errorf("reading SQL Server %s: %v", id.Name, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -350,10 +342,10 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == sql.ServerPublicNetworkAccessEnabled)
 	}
 
-	adminResp, err := adminClient.Get(ctx, resGroup, name)
+	adminResp, err := adminClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(adminResp.Response) {
-			return fmt.Errorf("reading SQL Server %s AAD admin: %v", name, err)
+			return fmt.Errorf("reading AAD admin %s: %v", id.Name, err)
 		}
 	} else {
 		if err := d.Set("azuread_administrator", flatternMsSqlServerAdministrator(adminResp)); err != nil {
@@ -361,27 +353,27 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 
-	connection, err := connectionClient.Get(ctx, resGroup, name)
+	connection, err := connectionClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("reading SQL Server %s Blob Connection Policy: %v ", name, err)
+		return fmt.Errorf("reading SQL Server %s Blob Connection Policy: %v ", id.Name, err)
 	}
 
 	if props := connection.ServerConnectionPolicyProperties; props != nil {
 		d.Set("connection_policy", string(props.ConnectionType))
 	}
 
-	auditingResp, err := auditingClient.Get(ctx, resGroup, name)
+	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("reading SQL Server %s Blob Auditing Policies: %v ", name, err)
+		return fmt.Errorf("reading SQL Server %s Blob Auditing Policies: %v ", id.Name, err)
 	}
 
 	if err := d.Set("extended_auditing_policy", helper.FlattenSqlServerBlobAuditingPolicies(&auditingResp, d)); err != nil {
 		return fmt.Errorf("setting `extended_auditing_policy`: %+v", err)
 	}
 
-	restorableResp, err := restorableDroppedDatabasesClient.ListByServer(ctx, resGroup, name)
+	restorableResp, err := restorableDroppedDatabasesClient.ListByServer(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("listing SQL Server %s Restorable Dropped Databases: %v", name, err)
+		return fmt.Errorf("listing SQL Server %s Restorable Dropped Databases: %v", id.Name, err)
 	}
 	if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableResp)); err != nil {
 		return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
@@ -400,12 +392,9 @@ func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Name
-
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting SQL Server %s: %+v", name, err)
+		return fmt.Errorf("deleting SQL Server %s: %+v", id.Name, err)
 	}
 
 	return future.WaitForCompletionRef(ctx, client.Client)
