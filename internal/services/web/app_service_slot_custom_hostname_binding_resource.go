@@ -100,17 +100,15 @@ func resourceAppServiceSlotCustomHostnameBindingCreate(d *pluginsdk.ResourceData
 	locks.ByName(hostname, appServiceSlotCustomHostnameBindingResourceName)
 	defer locks.UnlockByName(hostname, appServiceSlotCustomHostnameBindingResourceName)
 
-	if d.IsNewResource() {
-		existing, err := client.GetHostNameBindingSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, id.HostNameBindingName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+	existing, err := client.GetHostNameBindingSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, id.HostNameBindingName)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_app_service_slot_custom_hostname_binding", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_app_service_slot_custom_hostname_binding", *existing.ID)
 	}
 
 	properties := web.HostNameBinding{
