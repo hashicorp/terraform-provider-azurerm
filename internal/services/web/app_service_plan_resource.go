@@ -129,6 +129,7 @@ func resourceAppServicePlan() *pluginsdk.Resource {
 
 			"zone_redundant": {
 				Type:     pluginsdk.TypeBool,
+				ForceNew: true,
 				Optional: true,
 			},
 
