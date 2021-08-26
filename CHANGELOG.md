@@ -28,6 +28,7 @@ ENHANCEMENTS:
 
 BUG FIXES
 
+* `azurerm_data_factory_dataset_delimited_text` - support empty values for the `column_delimiter`, `row_delimiter`, `quote_character`, `escape_character`, and `encoding` propeties [GH-13149]
 * `azurerm_cosmosdb_cassandra_table` - correctly update `throughput` [GH-13102]
 * `azurerm_private_dns_a_record` - fix regression in `name` validation and add max recordset limit validation [GH-13093]
 * `azurerm_postgresql_flexible_server_database` the `charset` and `collation` properties are now optional [GH-13110]
