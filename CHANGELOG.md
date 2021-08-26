@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * dependencies: upgrading `devtestlabs` to API Version `2018-09-15` [GH-13074]
 * Data Source: `azurerm_servicebus_namespace_authorization_rule` - support for the `primary_connection_string_alias` and `secondary_connection_string_alias` properties [GH-12997]
 * Data Source: `azurerm_servicebus_queue_authorization_rule` - support for the `primary_connection_string_alias` and `secondary_connection_string_alias` properties [GH-12997]
+* Data Source: `azurerm_network_service_tags` - new properties `ipv4_cidrs` and `ipv6_cidrs` [GH-13058]
 * `azurerm_app_configuration` - support for user assigned identities [GH-13080]
 * `azurerm_app_service` - add support for `vnet_route_all_enabled` property [GH-13073]
 * `azurerm_data_factory_dataset_binary` -  support for `dynamic_path_enabled` and `dynamic_path_enabled`  properties [GH-13117]
