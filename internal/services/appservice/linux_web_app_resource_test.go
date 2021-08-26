@@ -770,6 +770,31 @@ func TestAccLinuxWebApp_withDocker(t *testing.T) {
 	})
 }
 
+// Change Application stack of an app?
+
+func TestAccLinuxWebApp_updateAppStack(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.node(data, "14-lts"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.java(data, "java11", "TOMCAT", "9.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("TOMCAT|9.0-java11"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // TODO - Needs more property tests for autoheal
 func TestAccLinuxWebApp_withAutoHealRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")

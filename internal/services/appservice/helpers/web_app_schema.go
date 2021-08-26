@@ -18,7 +18,8 @@ import (
 
 type SiteConfigWindows struct {
 	AlwaysOn                 bool                      `tfschema:"always_on"`
-	ApiManagementConfigId    string                    `tfschema:"api_management_config_id"`
+	ApiManagementConfigId    string                    `tfschema:"api_management_api_id"`
+	ApiDefinition            string                    `tfschema:"api_definition_url"`
 	AppCommandLine           string                    `tfschema:"app_command_line"`
 	AutoHeal                 bool                      `tfschema:"auto_heal"`
 	AutoHealSettings         []AutoHealSettingWindows  `tfschema:"auto_heal_setting"`
@@ -49,13 +50,14 @@ type SiteConfigWindows struct {
 	DetailedErrorLogging     bool                      `tfschema:"detailed_error_logging"`
 	WindowsFxVersion         string                    `tfschema:"windows_fx_version"`
 	// TODO new properties / blocks
-	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - New block to (possibly) support? No way to configure this in the portal?
+	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - ASE related for limiting App resource consumption
 	// PushSettings - Supported in SDK, but blocked by manual step needed for connecting app to notification hub.
 }
 
 type SiteConfigLinux struct {
 	AlwaysOn                bool                    `tfschema:"always_on"`
-	ApiManagementConfigId   string                  `tfschema:"api_management_config_id"`
+	ApiManagementConfigId   string                  `tfschema:"api_management_api_id"`
+	ApiDefinition           string                  `tfschema:"api_definition_url"`
 	AppCommandLine          string                  `tfschema:"app_command_line"`
 	AutoHeal                bool                    `tfschema:"auto_heal"`
 	AutoHealSettings        []AutoHealSettingLinux  `tfschema:"auto_heal_setting"`
@@ -98,13 +100,19 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"always_on": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true,
+					Computed: true, // The default here depends on the application stack in use, so this needs to be computed.
 				},
 
-				"api_management_config_id": {
+				"api_management_api_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: apimValidate.ApiManagementID,
+					ValidateFunc: apimValidate.ApiID,
+				},
+
+				"api_definition_url": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 				},
 
 				"application_stack": windowsApplicationStackSchema(),
@@ -117,6 +125,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"auto_heal": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					Default:  false,
 					RequiredWith: []string{
 						"site_config.0.auto_heal_setting",
 					},
@@ -164,15 +173,15 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"local_mysql": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true,
+					Default:  false,
 				},
 
 				"load_balancing_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Default:  "LeastRequests",
 					ValidateFunc: validation.StringInSlice([]string{
-						"LeastRequests", // Service default
+						"LeastRequests",
 						"WeightedRoundRobin",
 						"LeastResponseTime",
 						"WeightedTotalTraffic",
@@ -184,11 +193,11 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"managed_pipeline_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Default:  string(web.ManagedPipelineModeIntegrated),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.ManagedPipelineModeClassic),
 						string(web.ManagedPipelineModeIntegrated),
-					}, true),
+					}, false),
 				},
 
 				"remote_debugging": {
@@ -205,7 +214,6 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 						"VS2017",
 						"VS2019",
 					}, false),
-					DiffSuppressFunc: suppress.CaseDifference,
 				},
 
 				"scm_type": {
@@ -228,7 +236,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"ftps_state": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Default:  string(web.FtpsStateDisabled),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.FtpsStateAllAllowed),
 						string(web.FtpsStateDisabled),
@@ -251,7 +259,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"minimum_tls_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Default:  string(web.SupportedTLSVersionsOneFullStopTwo),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.SupportedTLSVersionsOneFullStopZero),
 						string(web.SupportedTLSVersionsOneFullStopOne),
@@ -262,7 +270,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"scm_minimum_tls_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Default:  string(web.SupportedTLSVersionsOneFullStopTwo),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.SupportedTLSVersionsOneFullStopZero),
 						string(web.SupportedTLSVersionsOneFullStopOne),
@@ -310,7 +318,12 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"api_management_config_id": {
+				"api_management_api_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"api_definition_url": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -465,13 +478,19 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"always_on": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true,
+					Computed: true, // The default here depends on the application stack in use, so this needs to be computed.
 				},
 
-				"api_management_config_id": {
+				"api_management_api_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: apimValidate.ApiManagementID,
+					ValidateFunc: apimValidate.ApiID,
+				},
+
+				"api_definition_url": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 				},
 
 				"app_command_line": {
@@ -531,13 +550,13 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"local_mysql": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true,
+					Default:  false,
 				},
 
 				"load_balancing_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Default:  "LeastRequests",
 					ValidateFunc: validation.StringInSlice([]string{
 						"LeastRequests", // Service default
 						"WeightedRoundRobin",
@@ -551,11 +570,11 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"managed_pipeline_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Default:  string(web.ManagedPipelineModeIntegrated),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.ManagedPipelineModeClassic),
 						string(web.ManagedPipelineModeIntegrated),
-					}, true),
+					}, false),
 				},
 
 				"remote_debugging": {
@@ -572,7 +591,6 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 						"VS2017",
 						"VS2019",
 					}, false),
-					DiffSuppressFunc: suppress.CaseDifference,
 				},
 
 				"scm_type": {
@@ -595,7 +613,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"ftps_state": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Default:  string(web.FtpsStateDisabled),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.FtpsStateAllAllowed),
 						string(web.FtpsStateDisabled),
@@ -618,7 +636,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"minimum_tls_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Default:  string(web.SupportedTLSVersionsOneFullStopTwo),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.SupportedTLSVersionsOneFullStopZero),
 						string(web.SupportedTLSVersionsOneFullStopOne),
@@ -629,7 +647,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"scm_minimum_tls_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Default:  string(web.SupportedTLSVersionsOneFullStopTwo),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.SupportedTLSVersionsOneFullStopZero),
 						string(web.SupportedTLSVersionsOneFullStopOne),
@@ -675,7 +693,12 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"api_management_config_id": {
+				"api_management_api_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"api_definition_url": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -821,7 +844,7 @@ type ApplicationStackWindows struct {
 	NetFrameworkVersion     string `tfschema:"dotnet_framework_version"`
 	PhpVersion              string `tfschema:"php_version"`
 	JavaVersion             string `tfschema:"java_version"`
-	PythonVersion           string `tfschema:"python_version"` // Linux Only?
+	PythonVersion           string `tfschema:"python_version"`
 	NodeVersion             string `tfschema:"node_version"`
 	JavaContainer           string `tfschema:"java_container"`
 	JavaContainerVersion    string `tfschema:"java_container_version"`
@@ -836,7 +859,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1050,7 +1072,6 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -2691,6 +2712,10 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows) (*web.SiteConfig, *
 		ID: utils.String(winSiteConfig.ApiManagementConfigId),
 	}
 
+	expanded.APIDefinition = &web.APIDefinitionInfo{
+		URL: utils.String(winSiteConfig.ApiDefinition),
+	}
+
 	expanded.AppCommandLine = utils.String(winSiteConfig.AppCommandLine)
 
 	if len(winSiteConfig.ApplicationStack) > 0 {
@@ -2774,6 +2799,10 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux) (*web.SiteConfig, error
 
 	expanded.APIManagementConfig = &web.APIManagementConfig{
 		ID: utils.String(linuxSiteConfig.ApiManagementConfigId),
+	}
+
+	expanded.APIDefinition = &web.APIDefinitionInfo{
+		URL: utils.String(linuxSiteConfig.ApiDefinition),
 	}
 
 	expanded.AppCommandLine = utils.String(linuxSiteConfig.AppCommandLine)
@@ -3158,10 +3187,16 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		ScmMinTlsVersion:    string(appSiteConfig.ScmMinTLSVersion),
 	}
 
-	siteConfig.AlwaysOn = *appSiteConfig.AlwaysOn
+	if appSiteConfig.AlwaysOn != nil {
+		siteConfig.AlwaysOn = *appSiteConfig.AlwaysOn
+	}
 
 	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
 		siteConfig.ApiManagementConfigId = *appSiteConfig.APIManagementConfig.ID
+	}
+
+	if appSiteConfig.APIDefinition != nil && appSiteConfig.APIDefinition.URL != nil {
+		siteConfig.ApiDefinition = *appSiteConfig.APIDefinition.URL
 	}
 
 	if appSiteConfig.AppCommandLine != nil {
@@ -3172,7 +3207,9 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		siteConfig.DefaultDocuments = *appSiteConfig.DefaultDocuments
 	}
 
-	siteConfig.UseManagedIdentityACR = *appSiteConfig.AcrUseManagedIdentityCreds
+	if appSiteConfig.AcrUseManagedIdentityCreds != nil {
+		siteConfig.UseManagedIdentityACR = *appSiteConfig.AcrUseManagedIdentityCreds
+	}
 
 	siteConfig.ContainerRegistryUserMSI = utils.NormalizeNilableString(appSiteConfig.AcrUserManagedIdentityID)
 
@@ -3207,7 +3244,8 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	}
 
 	if appSiteConfig.RemoteDebuggingVersion != nil {
-		siteConfig.RemoteDebuggingVersion = *appSiteConfig.RemoteDebuggingVersion
+		// Note - this response is sometimes returned in lower case, so to avoid a diff func we ToUpper it here
+		siteConfig.RemoteDebuggingVersion = strings.ToUpper(*appSiteConfig.RemoteDebuggingVersion)
 	}
 
 	if appSiteConfig.Use32BitWorkerProcess != nil {
@@ -3313,6 +3351,10 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 		siteConfig.ApiManagementConfigId = *appSiteConfig.APIManagementConfig.ID
 	}
 
+	if appSiteConfig.APIDefinition != nil && appSiteConfig.APIDefinition.URL != nil {
+		siteConfig.ApiDefinition = *appSiteConfig.APIDefinition.URL
+	}
+
 	if appSiteConfig.AppCommandLine != nil {
 		siteConfig.AppCommandLine = *appSiteConfig.AppCommandLine
 	}
@@ -3348,7 +3390,8 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 	siteConfig.RemoteDebugging = *appSiteConfig.RemoteDebuggingEnabled
 
 	if appSiteConfig.RemoteDebuggingVersion != nil {
-		siteConfig.RemoteDebuggingVersion = *appSiteConfig.RemoteDebuggingVersion
+		// Note - This is sometimes returned in lower case, so we ToUpper it to avoid the need for a diff suppression
+		siteConfig.RemoteDebuggingVersion = strings.ToUpper(*appSiteConfig.RemoteDebuggingVersion)
 	}
 
 	if appSiteConfig.Use32BitWorkerProcess != nil {
