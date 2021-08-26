@@ -41,6 +41,7 @@ func resourceDataFactoryLinkedServiceAzureFunction() *pluginsdk.Resource {
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
+			// TODO 3.0 rename this to data_factory_id
 			"data_factory_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -129,23 +130,23 @@ func resourceDataFactoryLinkedServiceAzureFunction() *pluginsdk.Resource {
 
 func resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	dataFactoryName := d.Get("data_factory_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	dataFactoryId := parse.NewDataFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string))
+
+	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_function", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_function", id.ID())
 		}
 	}
 
@@ -186,20 +187,20 @@ func resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *pluginsdk.Reso
 		Properties: azureFunctionLinkedService,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, linkedService, ""); err != nil {
-		return fmt.Errorf("creating/updating Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, linkedService, ""); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		return fmt.Errorf("retrieving Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("cannot read %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceDataFactoryLinkedServiceAzureFunctionRead(d, meta)
 }
@@ -221,10 +222,10 @@ func resourceDataFactoryLinkedServiceAzureFunctionRead(d *pluginsdk.ResourceData
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("data_factory_name", id.FactoryName)
 
