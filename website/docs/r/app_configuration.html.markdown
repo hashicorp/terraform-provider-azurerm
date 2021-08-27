@@ -46,9 +46,13 @@ The following arguments are supported:
 
 ---
 
-An `identity` block supports the following:
+A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the App Configuration. At this time the only allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 ## Attributes Reference
