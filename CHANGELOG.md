@@ -1,3 +1,9 @@
+## 2.75.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_mssql_server`- refactoring to use an ID Formatter/Parser [GH-13151]
+
 ## 2.74.0 (August 27, 2021)
 
 FEATURES:
