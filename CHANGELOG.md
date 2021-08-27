@@ -22,6 +22,8 @@ ENHANCEMENTS:
 * `azurerm_data_factory_dataset_json` -  support for `dynamic_path_enabled` and `dynamic_path_enabled`  properties [GH-13117]
 * `azurerm_data_factory_dataset_parquet` -  support for `dynamic_path_enabled` and `dynamic_path_enabled`  properties [GH-13117]
 * `azurerm_firewall_policy` - support for the `intrusion_detection`, `identity` and `tls_certificate` blocks [GH-12769]
+* `azurerm_kubernetes_cluster` - support for the `pod_subnet_id` property [GH-12313]
+* `azurerm_kubernetes_cluster_node_pool` - support for the `pod_subnet_id` property [GH-12313]
 * `azurerm_monitor_autoscale_setting` - support for the field `divide_by_instance_count` within the `metric_trigger` block [GH-13121]
 * `azurerm_storage_account` - add support for `shared_key_access_enabled` property [GH-13014]
 * `azurerm_servicebus_namespace_authorization_rule` - support for the `primary_connection_string_alias` and `secondary_connection_string_alias` properties [GH-12997]
