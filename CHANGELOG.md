@@ -25,6 +25,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - support for the `pod_subnet_id` property [GH-12313]
 * `azurerm_kubernetes_cluster_node_pool` - support for the `pod_subnet_id` property [GH-12313]
 * `azurerm_monitor_autoscale_setting` - support for the field `divide_by_instance_count` within the `metric_trigger` block [GH-13121]
+* `azurerm_redis_enterprise_cluster` - the `tags` property can now be updated [GH-13084]
 * `azurerm_storage_account` - add support for `shared_key_access_enabled` property [GH-13014]
 * `azurerm_servicebus_namespace_authorization_rule` - support for the `primary_connection_string_alias` and `secondary_connection_string_alias` properties [GH-12997]
 * `azurerm_servicebus_topic_authorization_rule` - support for the `primary_connection_string_alias` and `secondary_connection_string_alias` properties [GH-12997]
