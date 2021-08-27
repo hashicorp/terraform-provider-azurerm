@@ -9,29 +9,28 @@ package dataprotection
 import (
 	"context"
 	"encoding/json"
-	"net/http"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
+	"net/http"
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/dataprotection/mgmt/2021-01-01/dataprotection"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/dataprotection/mgmt/2021-07-01/dataprotection"
 
 // AbsoluteDeleteOption delete option with duration
 type AbsoluteDeleteOption struct {
 	// Duration - Duration of deletion after given timespan
 	Duration *string `json:"duration,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeDeleteOption', 'ObjectTypeAbsoluteDeleteOption'
+	// ObjectType - Possible values include: 'ObjectTypeBasicDeleteOptionObjectTypeDeleteOption', 'ObjectTypeBasicDeleteOptionObjectTypeAbsoluteDeleteOption'
 	ObjectType ObjectTypeBasicDeleteOption `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AbsoluteDeleteOption.
 func (ado AbsoluteDeleteOption) MarshalJSON() ([]byte, error) {
-	ado.ObjectType = ObjectTypeAbsoluteDeleteOption
+	ado.ObjectType = ObjectTypeBasicDeleteOptionObjectTypeAbsoluteDeleteOption
 	objectMap := make(map[string]interface{})
 	if ado.Duration != nil {
 		objectMap["duration"] = ado.Duration
@@ -78,13 +77,13 @@ type AdhocBasedTaggingCriteria struct {
 type AdhocBasedTriggerContext struct {
 	// TaggingCriteria - Tagging Criteria containing retention tag for adhoc backup.
 	TaggingCriteria *AdhocBasedTaggingCriteria `json:"taggingCriteria,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeTriggerContext', 'ObjectTypeAdhocBasedTriggerContext', 'ObjectTypeScheduleBasedTriggerContext'
+	// ObjectType - Possible values include: 'ObjectTypeBasicTriggerContextObjectTypeTriggerContext', 'ObjectTypeBasicTriggerContextObjectTypeAdhocBasedTriggerContext', 'ObjectTypeBasicTriggerContextObjectTypeScheduleBasedTriggerContext'
 	ObjectType ObjectTypeBasicTriggerContext `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AdhocBasedTriggerContext.
 func (abtc AdhocBasedTriggerContext) MarshalJSON() ([]byte, error) {
-	abtc.ObjectType = ObjectTypeAdhocBasedTriggerContext
+	abtc.ObjectType = ObjectTypeBasicTriggerContextObjectTypeAdhocBasedTriggerContext
 	objectMap := make(map[string]interface{})
 	if abtc.TaggingCriteria != nil {
 		objectMap["taggingCriteria"] = abtc.TaggingCriteria
@@ -115,6 +114,80 @@ func (abtc AdhocBasedTriggerContext) AsBasicTriggerContext() (BasicTriggerContex
 	return &abtc, true
 }
 
+// BasicAuthCredentials base class for different types of authentication credentials.
+type BasicAuthCredentials interface {
+	AsSecretStoreBasedAuthCredentials() (*SecretStoreBasedAuthCredentials, bool)
+	AsAuthCredentials() (*AuthCredentials, bool)
+}
+
+// AuthCredentials base class for different types of authentication credentials.
+type AuthCredentials struct {
+	// ObjectType - Possible values include: 'ObjectTypeAuthCredentials', 'ObjectTypeSecretStoreBasedAuthCredentials'
+	ObjectType ObjectType `json:"objectType,omitempty"`
+}
+
+func unmarshalBasicAuthCredentials(body []byte) (BasicAuthCredentials, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["objectType"] {
+	case string(ObjectTypeSecretStoreBasedAuthCredentials):
+		var ssbac SecretStoreBasedAuthCredentials
+		err := json.Unmarshal(body, &ssbac)
+		return ssbac, err
+	default:
+		var ac AuthCredentials
+		err := json.Unmarshal(body, &ac)
+		return ac, err
+	}
+}
+func unmarshalBasicAuthCredentialsArray(body []byte) ([]BasicAuthCredentials, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	acArray := make([]BasicAuthCredentials, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		ac, err := unmarshalBasicAuthCredentials(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		acArray[index] = ac
+	}
+	return acArray, nil
+}
+
+// MarshalJSON is the custom marshaler for AuthCredentials.
+func (ac AuthCredentials) MarshalJSON() ([]byte, error) {
+	ac.ObjectType = ObjectTypeAuthCredentials
+	objectMap := make(map[string]interface{})
+	if ac.ObjectType != "" {
+		objectMap["objectType"] = ac.ObjectType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsSecretStoreBasedAuthCredentials is the BasicAuthCredentials implementation for AuthCredentials.
+func (ac AuthCredentials) AsSecretStoreBasedAuthCredentials() (*SecretStoreBasedAuthCredentials, bool) {
+	return nil, false
+}
+
+// AsAuthCredentials is the BasicAuthCredentials implementation for AuthCredentials.
+func (ac AuthCredentials) AsAuthCredentials() (*AuthCredentials, bool) {
+	return &ac, true
+}
+
+// AsBasicAuthCredentials is the BasicAuthCredentials implementation for AuthCredentials.
+func (ac AuthCredentials) AsBasicAuthCredentials() (BasicAuthCredentials, bool) {
+	return &ac, true
+}
+
 // AzureBackupDiscreteRecoveryPoint azure backup discrete RecoveryPoint
 type AzureBackupDiscreteRecoveryPoint struct {
 	FriendlyName                   *string                          `json:"friendlyName,omitempty"`
@@ -126,13 +199,13 @@ type AzureBackupDiscreteRecoveryPoint struct {
 	RecoveryPointType              *string                          `json:"recoveryPointType,omitempty"`
 	RetentionTagName               *string                          `json:"retentionTagName,omitempty"`
 	RetentionTagVersion            *string                          `json:"retentionTagVersion,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeAzureBackupRecoveryPoint', 'ObjectTypeAzureBackupDiscreteRecoveryPoint'
-	ObjectType ObjectType `json:"objectType,omitempty"`
+	// ObjectType - Possible values include: 'ObjectTypeBasicAzureBackupRecoveryPointObjectTypeAzureBackupRecoveryPoint', 'ObjectTypeBasicAzureBackupRecoveryPointObjectTypeAzureBackupDiscreteRecoveryPoint'
+	ObjectType ObjectTypeBasicAzureBackupRecoveryPoint `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AzureBackupDiscreteRecoveryPoint.
 func (abdrp AzureBackupDiscreteRecoveryPoint) MarshalJSON() ([]byte, error) {
-	abdrp.ObjectType = ObjectTypeAzureBackupDiscreteRecoveryPoint
+	abdrp.ObjectType = ObjectTypeBasicAzureBackupRecoveryPointObjectTypeAzureBackupDiscreteRecoveryPoint
 	objectMap := make(map[string]interface{})
 	if abdrp.FriendlyName != nil {
 		objectMap["friendlyName"] = abdrp.FriendlyName
@@ -186,9 +259,9 @@ func (abdrp AzureBackupDiscreteRecoveryPoint) AsBasicAzureBackupRecoveryPoint() 
 type AzureBackupFindRestorableTimeRangesRequest struct {
 	// SourceDataStoreType - Gets or sets the type of the source data store. Possible values include: 'RestoreSourceDataStoreTypeOperationalStore', 'RestoreSourceDataStoreTypeVaultStore', 'RestoreSourceDataStoreTypeArchiveStore'
 	SourceDataStoreType RestoreSourceDataStoreType `json:"sourceDataStoreType,omitempty"`
-	// StartTime - Start time for the List Restore Ranges request
+	// StartTime - Start time for the List Restore Ranges request. ISO 8601 format.
 	StartTime *string `json:"startTime,omitempty"`
-	// EndTime - End time for the List Restore Ranges request
+	// EndTime - End time for the List Restore Ranges request. ISO 8601 format.
 	EndTime *string `json:"endTime,omitempty"`
 }
 
@@ -591,13 +664,13 @@ func NewAzureBackupJobResourceListPage(cur AzureBackupJobResourceList, getNextPa
 type AzureBackupParams struct {
 	// BackupType - BackupType ; Full/Incremental etc
 	BackupType *string `json:"backupType,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeBackupParameters', 'ObjectTypeAzureBackupParams'
+	// ObjectType - Possible values include: 'ObjectTypeBasicBackupParametersObjectTypeBackupParameters', 'ObjectTypeBasicBackupParametersObjectTypeAzureBackupParams'
 	ObjectType ObjectTypeBasicBackupParameters `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AzureBackupParams.
 func (abp AzureBackupParams) MarshalJSON() ([]byte, error) {
-	abp.ObjectType = ObjectTypeAzureBackupParams
+	abp.ObjectType = ObjectTypeBasicBackupParametersObjectTypeAzureBackupParams
 	objectMap := make(map[string]interface{})
 	if abp.BackupType != nil {
 		objectMap["backupType"] = abp.BackupType
@@ -631,8 +704,8 @@ type BasicAzureBackupRecoveryPoint interface {
 
 // AzureBackupRecoveryPoint azure backup recoveryPoint
 type AzureBackupRecoveryPoint struct {
-	// ObjectType - Possible values include: 'ObjectTypeAzureBackupRecoveryPoint', 'ObjectTypeAzureBackupDiscreteRecoveryPoint'
-	ObjectType ObjectType `json:"objectType,omitempty"`
+	// ObjectType - Possible values include: 'ObjectTypeBasicAzureBackupRecoveryPointObjectTypeAzureBackupRecoveryPoint', 'ObjectTypeBasicAzureBackupRecoveryPointObjectTypeAzureBackupDiscreteRecoveryPoint'
+	ObjectType ObjectTypeBasicAzureBackupRecoveryPoint `json:"objectType,omitempty"`
 }
 
 func unmarshalBasicAzureBackupRecoveryPoint(body []byte) (BasicAzureBackupRecoveryPoint, error) {
@@ -643,7 +716,7 @@ func unmarshalBasicAzureBackupRecoveryPoint(body []byte) (BasicAzureBackupRecove
 	}
 
 	switch m["objectType"] {
-	case string(ObjectTypeAzureBackupDiscreteRecoveryPoint):
+	case string(ObjectTypeBasicAzureBackupRecoveryPointObjectTypeAzureBackupDiscreteRecoveryPoint):
 		var abdrp AzureBackupDiscreteRecoveryPoint
 		err := json.Unmarshal(body, &abdrp)
 		return abdrp, err
@@ -674,7 +747,7 @@ func unmarshalBasicAzureBackupRecoveryPointArray(body []byte) ([]BasicAzureBacku
 
 // MarshalJSON is the custom marshaler for AzureBackupRecoveryPoint.
 func (abrp AzureBackupRecoveryPoint) MarshalJSON() ([]byte, error) {
-	abrp.ObjectType = ObjectTypeAzureBackupRecoveryPoint
+	abrp.ObjectType = ObjectTypeBasicAzureBackupRecoveryPointObjectTypeAzureBackupRecoveryPoint
 	objectMap := make(map[string]interface{})
 	if abrp.ObjectType != "" {
 		objectMap["objectType"] = abrp.ObjectType
@@ -710,7 +783,7 @@ type AzureBackupRecoveryPointBasedRestoreRequest struct {
 	RestoreTargetInfo BasicRestoreTargetInfoBase `json:"restoreTargetInfo,omitempty"`
 	// SourceDataStoreType - Gets or sets the type of the source data store. Possible values include: 'SourceDataStoreTypeArchiveStore', 'SourceDataStoreTypeSnapshotStore', 'SourceDataStoreTypeVaultStore'
 	SourceDataStoreType SourceDataStoreType `json:"sourceDataStoreType,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeAzureBackupRestoreRequest', 'ObjectTypeAzureBackupRecoveryPointBasedRestoreRequest', 'ObjectTypeAzureBackupRestoreWithRehydrationRequest', 'ObjectTypeAzureBackupRecoveryTimeBasedRestoreRequest'
+	// ObjectType - Possible values include: 'ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRestoreRequest', 'ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRecoveryPointBasedRestoreRequest', 'ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRestoreWithRehydrationRequest', 'ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRecoveryTimeBasedRestoreRequest'
 	ObjectType ObjectTypeBasicAzureBackupRestoreRequest `json:"objectType,omitempty"`
 }
 
@@ -722,7 +795,7 @@ func unmarshalBasicAzureBackupRecoveryPointBasedRestoreRequest(body []byte) (Bas
 	}
 
 	switch m["objectType"] {
-	case string(ObjectTypeAzureBackupRestoreWithRehydrationRequest):
+	case string(ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRestoreWithRehydrationRequest):
 		var abrwrr AzureBackupRestoreWithRehydrationRequest
 		err := json.Unmarshal(body, &abrwrr)
 		return abrwrr, err
@@ -753,7 +826,7 @@ func unmarshalBasicAzureBackupRecoveryPointBasedRestoreRequestArray(body []byte)
 
 // MarshalJSON is the custom marshaler for AzureBackupRecoveryPointBasedRestoreRequest.
 func (abrpbrr AzureBackupRecoveryPointBasedRestoreRequest) MarshalJSON() ([]byte, error) {
-	abrpbrr.ObjectType = ObjectTypeAzureBackupRecoveryPointBasedRestoreRequest
+	abrpbrr.ObjectType = ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRecoveryPointBasedRestoreRequest
 	objectMap := make(map[string]interface{})
 	if abrpbrr.RecoveryPointID != nil {
 		objectMap["recoveryPointId"] = abrpbrr.RecoveryPointID
@@ -1099,13 +1172,13 @@ type AzureBackupRecoveryTimeBasedRestoreRequest struct {
 	RestoreTargetInfo BasicRestoreTargetInfoBase `json:"restoreTargetInfo,omitempty"`
 	// SourceDataStoreType - Gets or sets the type of the source data store. Possible values include: 'SourceDataStoreTypeArchiveStore', 'SourceDataStoreTypeSnapshotStore', 'SourceDataStoreTypeVaultStore'
 	SourceDataStoreType SourceDataStoreType `json:"sourceDataStoreType,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeAzureBackupRestoreRequest', 'ObjectTypeAzureBackupRecoveryPointBasedRestoreRequest', 'ObjectTypeAzureBackupRestoreWithRehydrationRequest', 'ObjectTypeAzureBackupRecoveryTimeBasedRestoreRequest'
+	// ObjectType - Possible values include: 'ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRestoreRequest', 'ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRecoveryPointBasedRestoreRequest', 'ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRestoreWithRehydrationRequest', 'ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRecoveryTimeBasedRestoreRequest'
 	ObjectType ObjectTypeBasicAzureBackupRestoreRequest `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AzureBackupRecoveryTimeBasedRestoreRequest.
 func (abrtbrr AzureBackupRecoveryTimeBasedRestoreRequest) MarshalJSON() ([]byte, error) {
-	abrtbrr.ObjectType = ObjectTypeAzureBackupRecoveryTimeBasedRestoreRequest
+	abrtbrr.ObjectType = ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRecoveryTimeBasedRestoreRequest
 	objectMap := make(map[string]interface{})
 	if abrtbrr.RecoveryPointTime != nil {
 		objectMap["recoveryPointTime"] = abrtbrr.RecoveryPointTime
@@ -1225,7 +1298,7 @@ type AzureBackupRestoreRequest struct {
 	RestoreTargetInfo BasicRestoreTargetInfoBase `json:"restoreTargetInfo,omitempty"`
 	// SourceDataStoreType - Gets or sets the type of the source data store. Possible values include: 'SourceDataStoreTypeArchiveStore', 'SourceDataStoreTypeSnapshotStore', 'SourceDataStoreTypeVaultStore'
 	SourceDataStoreType SourceDataStoreType `json:"sourceDataStoreType,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeAzureBackupRestoreRequest', 'ObjectTypeAzureBackupRecoveryPointBasedRestoreRequest', 'ObjectTypeAzureBackupRestoreWithRehydrationRequest', 'ObjectTypeAzureBackupRecoveryTimeBasedRestoreRequest'
+	// ObjectType - Possible values include: 'ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRestoreRequest', 'ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRecoveryPointBasedRestoreRequest', 'ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRestoreWithRehydrationRequest', 'ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRecoveryTimeBasedRestoreRequest'
 	ObjectType ObjectTypeBasicAzureBackupRestoreRequest `json:"objectType,omitempty"`
 }
 
@@ -1237,15 +1310,15 @@ func unmarshalBasicAzureBackupRestoreRequest(body []byte) (BasicAzureBackupResto
 	}
 
 	switch m["objectType"] {
-	case string(ObjectTypeAzureBackupRecoveryPointBasedRestoreRequest):
+	case string(ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRecoveryPointBasedRestoreRequest):
 		var abrpbrr AzureBackupRecoveryPointBasedRestoreRequest
 		err := json.Unmarshal(body, &abrpbrr)
 		return abrpbrr, err
-	case string(ObjectTypeAzureBackupRestoreWithRehydrationRequest):
+	case string(ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRestoreWithRehydrationRequest):
 		var abrwrr AzureBackupRestoreWithRehydrationRequest
 		err := json.Unmarshal(body, &abrwrr)
 		return abrwrr, err
-	case string(ObjectTypeAzureBackupRecoveryTimeBasedRestoreRequest):
+	case string(ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRecoveryTimeBasedRestoreRequest):
 		var abrtbrr AzureBackupRecoveryTimeBasedRestoreRequest
 		err := json.Unmarshal(body, &abrtbrr)
 		return abrtbrr, err
@@ -1276,7 +1349,7 @@ func unmarshalBasicAzureBackupRestoreRequestArray(body []byte) ([]BasicAzureBack
 
 // MarshalJSON is the custom marshaler for AzureBackupRestoreRequest.
 func (abrr AzureBackupRestoreRequest) MarshalJSON() ([]byte, error) {
-	abrr.ObjectType = ObjectTypeAzureBackupRestoreRequest
+	abrr.ObjectType = ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRestoreRequest
 	objectMap := make(map[string]interface{})
 	objectMap["restoreTargetInfo"] = abrr.RestoreTargetInfo
 	if abrr.SourceDataStoreType != "" {
@@ -1370,13 +1443,13 @@ type AzureBackupRestoreWithRehydrationRequest struct {
 	RestoreTargetInfo BasicRestoreTargetInfoBase `json:"restoreTargetInfo,omitempty"`
 	// SourceDataStoreType - Gets or sets the type of the source data store. Possible values include: 'SourceDataStoreTypeArchiveStore', 'SourceDataStoreTypeSnapshotStore', 'SourceDataStoreTypeVaultStore'
 	SourceDataStoreType SourceDataStoreType `json:"sourceDataStoreType,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeAzureBackupRestoreRequest', 'ObjectTypeAzureBackupRecoveryPointBasedRestoreRequest', 'ObjectTypeAzureBackupRestoreWithRehydrationRequest', 'ObjectTypeAzureBackupRecoveryTimeBasedRestoreRequest'
+	// ObjectType - Possible values include: 'ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRestoreRequest', 'ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRecoveryPointBasedRestoreRequest', 'ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRestoreWithRehydrationRequest', 'ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRecoveryTimeBasedRestoreRequest'
 	ObjectType ObjectTypeBasicAzureBackupRestoreRequest `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AzureBackupRestoreWithRehydrationRequest.
 func (abrwrr AzureBackupRestoreWithRehydrationRequest) MarshalJSON() ([]byte, error) {
-	abrwrr.ObjectType = ObjectTypeAzureBackupRestoreWithRehydrationRequest
+	abrwrr.ObjectType = ObjectTypeBasicAzureBackupRestoreRequestObjectTypeAzureBackupRestoreWithRehydrationRequest
 	objectMap := make(map[string]interface{})
 	if abrwrr.RehydrationPriority != "" {
 		objectMap["rehydrationPriority"] = abrwrr.RehydrationPriority
@@ -1501,13 +1574,13 @@ type AzureBackupRule struct {
 	DataStore        *DataStoreInfoBase    `json:"dataStore,omitempty"`
 	Trigger          BasicTriggerContext   `json:"trigger,omitempty"`
 	Name             *string               `json:"name,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeBasePolicyRule', 'ObjectTypeAzureBackupRule', 'ObjectTypeAzureRetentionRule'
+	// ObjectType - Possible values include: 'ObjectTypeBasicBasePolicyRuleObjectTypeBasePolicyRule', 'ObjectTypeBasicBasePolicyRuleObjectTypeAzureBackupRule', 'ObjectTypeBasicBasePolicyRuleObjectTypeAzureRetentionRule'
 	ObjectType ObjectTypeBasicBasePolicyRule `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AzureBackupRule.
 func (abr AzureBackupRule) MarshalJSON() ([]byte, error) {
-	abr.ObjectType = ObjectTypeAzureBackupRule
+	abr.ObjectType = ObjectTypeBasicBasePolicyRuleObjectTypeAzureBackupRule
 	objectMap := make(map[string]interface{})
 	objectMap["backupParameters"] = abr.BackupParameters
 	if abr.DataStore != nil {
@@ -1605,15 +1678,15 @@ func (abr *AzureBackupRule) UnmarshalJSON(body []byte) error {
 type AzureOperationalStoreParameters struct {
 	// ResourceGroupID - Gets or sets the Snapshot Resource Group Uri.
 	ResourceGroupID *string `json:"resourceGroupId,omitempty"`
-	// DataStoreType - type of datastore; Operational/Vault/Archive. Possible values include: 'OperationalStore', 'VaultStore', 'ArchiveStore'
+	// DataStoreType - type of datastore; Operational/Vault/Archive. Possible values include: 'DataStoreTypesOperationalStore', 'DataStoreTypesVaultStore', 'DataStoreTypesArchiveStore'
 	DataStoreType DataStoreTypes `json:"dataStoreType,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeDataStoreParameters', 'ObjectTypeAzureOperationalStoreParameters'
+	// ObjectType - Possible values include: 'ObjectTypeBasicDataStoreParametersObjectTypeDataStoreParameters', 'ObjectTypeBasicDataStoreParametersObjectTypeAzureOperationalStoreParameters'
 	ObjectType ObjectTypeBasicDataStoreParameters `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AzureOperationalStoreParameters.
 func (aosp AzureOperationalStoreParameters) MarshalJSON() ([]byte, error) {
-	aosp.ObjectType = ObjectTypeAzureOperationalStoreParameters
+	aosp.ObjectType = ObjectTypeBasicDataStoreParametersObjectTypeAzureOperationalStoreParameters
 	objectMap := make(map[string]interface{})
 	if aosp.ResourceGroupID != nil {
 		objectMap["resourceGroupId"] = aosp.ResourceGroupID
@@ -1647,13 +1720,13 @@ type AzureRetentionRule struct {
 	IsDefault  *bool              `json:"isDefault,omitempty"`
 	Lifecycles *[]SourceLifeCycle `json:"lifecycles,omitempty"`
 	Name       *string            `json:"name,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeBasePolicyRule', 'ObjectTypeAzureBackupRule', 'ObjectTypeAzureRetentionRule'
+	// ObjectType - Possible values include: 'ObjectTypeBasicBasePolicyRuleObjectTypeBasePolicyRule', 'ObjectTypeBasicBasePolicyRuleObjectTypeAzureBackupRule', 'ObjectTypeBasicBasePolicyRuleObjectTypeAzureRetentionRule'
 	ObjectType ObjectTypeBasicBasePolicyRule `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AzureRetentionRule.
 func (arr AzureRetentionRule) MarshalJSON() ([]byte, error) {
-	arr.ObjectType = ObjectTypeAzureRetentionRule
+	arr.ObjectType = ObjectTypeBasicBasePolicyRuleObjectTypeAzureRetentionRule
 	objectMap := make(map[string]interface{})
 	if arr.IsDefault != nil {
 		objectMap["isDefault"] = arr.IsDefault
@@ -1698,7 +1771,7 @@ type BasicBackupCriteria interface {
 
 // BackupCriteria backupCriteria base class
 type BackupCriteria struct {
-	// ObjectType - Possible values include: 'ObjectTypeBackupCriteria', 'ObjectTypeScheduleBasedBackupCriteria'
+	// ObjectType - Possible values include: 'ObjectTypeBasicBackupCriteriaObjectTypeBackupCriteria', 'ObjectTypeBasicBackupCriteriaObjectTypeScheduleBasedBackupCriteria'
 	ObjectType ObjectTypeBasicBackupCriteria `json:"objectType,omitempty"`
 }
 
@@ -1710,7 +1783,7 @@ func unmarshalBasicBackupCriteria(body []byte) (BasicBackupCriteria, error) {
 	}
 
 	switch m["objectType"] {
-	case string(ObjectTypeScheduleBasedBackupCriteria):
+	case string(ObjectTypeBasicBackupCriteriaObjectTypeScheduleBasedBackupCriteria):
 		var sbbc ScheduleBasedBackupCriteria
 		err := json.Unmarshal(body, &sbbc)
 		return sbbc, err
@@ -1741,7 +1814,7 @@ func unmarshalBasicBackupCriteriaArray(body []byte) ([]BasicBackupCriteria, erro
 
 // MarshalJSON is the custom marshaler for BackupCriteria.
 func (bc BackupCriteria) MarshalJSON() ([]byte, error) {
-	bc.ObjectType = ObjectTypeBackupCriteria
+	bc.ObjectType = ObjectTypeBasicBackupCriteriaObjectTypeBackupCriteria
 	objectMap := make(map[string]interface{})
 	if bc.ObjectType != "" {
 		objectMap["objectType"] = bc.ObjectType
@@ -1776,13 +1849,15 @@ type BackupInstance struct {
 	PolicyInfo *PolicyInfo `json:"policyInfo,omitempty"`
 	// ProtectionStatus - READ-ONLY; Specifies the protection status of the resource
 	ProtectionStatus *ProtectionStatusDetails `json:"protectionStatus,omitempty"`
-	// CurrentProtectionState - READ-ONLY; Specifies the current protection state of the resource. Possible values include: 'Invalid', 'NotProtected', 'ConfiguringProtection', 'ProtectionConfigured', 'BackupSchedulesSuspended', 'RetentionSchedulesSuspended', 'ProtectionStopped', 'ProtectionError', 'ConfiguringProtectionFailed', 'SoftDeleting', 'SoftDeleted', 'UpdatingProtection'
+	// CurrentProtectionState - READ-ONLY; Specifies the current protection state of the resource. Possible values include: 'CurrentProtectionStateInvalid', 'CurrentProtectionStateNotProtected', 'CurrentProtectionStateConfiguringProtection', 'CurrentProtectionStateProtectionConfigured', 'CurrentProtectionStateBackupSchedulesSuspended', 'CurrentProtectionStateRetentionSchedulesSuspended', 'CurrentProtectionStateProtectionStopped', 'CurrentProtectionStateProtectionError', 'CurrentProtectionStateConfiguringProtectionFailed', 'CurrentProtectionStateSoftDeleting', 'CurrentProtectionStateSoftDeleted', 'CurrentProtectionStateUpdatingProtection'
 	CurrentProtectionState CurrentProtectionState `json:"currentProtectionState,omitempty"`
 	// ProtectionErrorDetails - READ-ONLY; Specifies the protection error of the resource
 	ProtectionErrorDetails *UserFacingError `json:"protectionErrorDetails,omitempty"`
 	// ProvisioningState - READ-ONLY; Specifies the provisioning state of the resource i.e. provisioning/updating/Succeeded/Failed
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	ObjectType        *string `json:"objectType,omitempty"`
+	// DatasourceAuthCredentials - Credentials to use to authenticate with data source provider.
+	DatasourceAuthCredentials BasicAuthCredentials `json:"datasourceAuthCredentials,omitempty"`
+	ObjectType                *string              `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for BackupInstance.
@@ -1800,10 +1875,115 @@ func (bi BackupInstance) MarshalJSON() ([]byte, error) {
 	if bi.PolicyInfo != nil {
 		objectMap["policyInfo"] = bi.PolicyInfo
 	}
+	objectMap["datasourceAuthCredentials"] = bi.DatasourceAuthCredentials
 	if bi.ObjectType != nil {
 		objectMap["objectType"] = bi.ObjectType
 	}
 	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for BackupInstance struct.
+func (bi *BackupInstance) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "friendlyName":
+			if v != nil {
+				var friendlyName string
+				err = json.Unmarshal(*v, &friendlyName)
+				if err != nil {
+					return err
+				}
+				bi.FriendlyName = &friendlyName
+			}
+		case "dataSourceInfo":
+			if v != nil {
+				var dataSourceInfo Datasource
+				err = json.Unmarshal(*v, &dataSourceInfo)
+				if err != nil {
+					return err
+				}
+				bi.DataSourceInfo = &dataSourceInfo
+			}
+		case "dataSourceSetInfo":
+			if v != nil {
+				var dataSourceSetInfo DatasourceSet
+				err = json.Unmarshal(*v, &dataSourceSetInfo)
+				if err != nil {
+					return err
+				}
+				bi.DataSourceSetInfo = &dataSourceSetInfo
+			}
+		case "policyInfo":
+			if v != nil {
+				var policyInfo PolicyInfo
+				err = json.Unmarshal(*v, &policyInfo)
+				if err != nil {
+					return err
+				}
+				bi.PolicyInfo = &policyInfo
+			}
+		case "protectionStatus":
+			if v != nil {
+				var protectionStatus ProtectionStatusDetails
+				err = json.Unmarshal(*v, &protectionStatus)
+				if err != nil {
+					return err
+				}
+				bi.ProtectionStatus = &protectionStatus
+			}
+		case "currentProtectionState":
+			if v != nil {
+				var currentProtectionState CurrentProtectionState
+				err = json.Unmarshal(*v, &currentProtectionState)
+				if err != nil {
+					return err
+				}
+				bi.CurrentProtectionState = currentProtectionState
+			}
+		case "protectionErrorDetails":
+			if v != nil {
+				var protectionErrorDetails UserFacingError
+				err = json.Unmarshal(*v, &protectionErrorDetails)
+				if err != nil {
+					return err
+				}
+				bi.ProtectionErrorDetails = &protectionErrorDetails
+			}
+		case "provisioningState":
+			if v != nil {
+				var provisioningState string
+				err = json.Unmarshal(*v, &provisioningState)
+				if err != nil {
+					return err
+				}
+				bi.ProvisioningState = &provisioningState
+			}
+		case "datasourceAuthCredentials":
+			if v != nil {
+				datasourceAuthCredentials, err := unmarshalBasicAuthCredentials(*v)
+				if err != nil {
+					return err
+				}
+				bi.DatasourceAuthCredentials = datasourceAuthCredentials
+			}
+		case "objectType":
+			if v != nil {
+				var objectType string
+				err = json.Unmarshal(*v, &objectType)
+				if err != nil {
+					return err
+				}
+				bi.ObjectType = &objectType
+			}
+		}
+	}
+
+	return nil
 }
 
 // BackupInstanceResource backupInstance Resource
@@ -2238,9 +2418,9 @@ func (future *BackupInstancesValidateForBackupFuture) result(client BackupInstan
 	return
 }
 
-// BackupInstancesValidateRestoreFuture an abstraction for monitoring and retrieving the results of a
+// BackupInstancesValidateForRestoreFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
-type BackupInstancesValidateRestoreFuture struct {
+type BackupInstancesValidateForRestoreFuture struct {
 	azure.FutureAPI
 	// Result returns the result of the asynchronous operation.
 	// If the operation has not completed it will return an error.
@@ -2248,7 +2428,7 @@ type BackupInstancesValidateRestoreFuture struct {
 }
 
 // UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *BackupInstancesValidateRestoreFuture) UnmarshalJSON(body []byte) error {
+func (future *BackupInstancesValidateForRestoreFuture) UnmarshalJSON(body []byte) error {
 	var azFuture azure.Future
 	if err := json.Unmarshal(body, &azFuture); err != nil {
 		return err
@@ -2258,24 +2438,24 @@ func (future *BackupInstancesValidateRestoreFuture) UnmarshalJSON(body []byte) e
 	return nil
 }
 
-// result is the default implementation for BackupInstancesValidateRestoreFuture.Result.
-func (future *BackupInstancesValidateRestoreFuture) result(client BackupInstancesClient) (ojei OperationJobExtendedInfo, err error) {
+// result is the default implementation for BackupInstancesValidateForRestoreFuture.Result.
+func (future *BackupInstancesValidateForRestoreFuture) result(client BackupInstancesClient) (ojei OperationJobExtendedInfo, err error) {
 	var done bool
 	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dataprotection.BackupInstancesValidateRestoreFuture", "Result", future.Response(), "Polling failure")
+		err = autorest.NewErrorWithError(err, "dataprotection.BackupInstancesValidateForRestoreFuture", "Result", future.Response(), "Polling failure")
 		return
 	}
 	if !done {
 		ojei.Response.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("dataprotection.BackupInstancesValidateRestoreFuture")
+		err = azure.NewAsyncOpIncompleteError("dataprotection.BackupInstancesValidateForRestoreFuture")
 		return
 	}
 	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if ojei.Response.Response, err = future.GetResult(sender); err == nil && ojei.Response.Response.StatusCode != http.StatusNoContent {
-		ojei, err = client.ValidateRestoreResponder(ojei.Response.Response)
+		ojei, err = client.ValidateForRestoreResponder(ojei.Response.Response)
 		if err != nil {
-			err = autorest.NewErrorWithError(err, "dataprotection.BackupInstancesValidateRestoreFuture", "Result", ojei.Response.Response, "Failure responding to request")
+			err = autorest.NewErrorWithError(err, "dataprotection.BackupInstancesValidateForRestoreFuture", "Result", ojei.Response.Response, "Failure responding to request")
 		}
 	}
 	return
@@ -2289,7 +2469,7 @@ type BasicBackupParameters interface {
 
 // BackupParameters backupParameters base
 type BackupParameters struct {
-	// ObjectType - Possible values include: 'ObjectTypeBackupParameters', 'ObjectTypeAzureBackupParams'
+	// ObjectType - Possible values include: 'ObjectTypeBasicBackupParametersObjectTypeBackupParameters', 'ObjectTypeBasicBackupParametersObjectTypeAzureBackupParams'
 	ObjectType ObjectTypeBasicBackupParameters `json:"objectType,omitempty"`
 }
 
@@ -2301,7 +2481,7 @@ func unmarshalBasicBackupParameters(body []byte) (BasicBackupParameters, error) 
 	}
 
 	switch m["objectType"] {
-	case string(ObjectTypeAzureBackupParams):
+	case string(ObjectTypeBasicBackupParametersObjectTypeAzureBackupParams):
 		var abp AzureBackupParams
 		err := json.Unmarshal(body, &abp)
 		return abp, err
@@ -2332,7 +2512,7 @@ func unmarshalBasicBackupParametersArray(body []byte) ([]BasicBackupParameters, 
 
 // MarshalJSON is the custom marshaler for BackupParameters.
 func (bp BackupParameters) MarshalJSON() ([]byte, error) {
-	bp.ObjectType = ObjectTypeBackupParameters
+	bp.ObjectType = ObjectTypeBasicBackupParametersObjectTypeBackupParameters
 	objectMap := make(map[string]interface{})
 	if bp.ObjectType != "" {
 		objectMap["objectType"] = bp.ObjectType
@@ -2361,13 +2541,13 @@ type BackupPolicy struct {
 	PolicyRules *[]BasicBasePolicyRule `json:"policyRules,omitempty"`
 	// DatasourceTypes - Type of datasource for the backup management
 	DatasourceTypes *[]string `json:"datasourceTypes,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeBaseBackupPolicy', 'ObjectTypeBackupPolicy'
+	// ObjectType - Possible values include: 'ObjectTypeBasicBaseBackupPolicyObjectTypeBaseBackupPolicy', 'ObjectTypeBasicBaseBackupPolicyObjectTypeBackupPolicy'
 	ObjectType ObjectTypeBasicBaseBackupPolicy `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for BackupPolicy.
 func (bp BackupPolicy) MarshalJSON() ([]byte, error) {
-	bp.ObjectType = ObjectTypeBackupPolicy
+	bp.ObjectType = ObjectTypeBasicBaseBackupPolicyObjectTypeBackupPolicy
 	objectMap := make(map[string]interface{})
 	if bp.PolicyRules != nil {
 		objectMap["policyRules"] = bp.PolicyRules
@@ -2441,12 +2621,18 @@ func (bp *BackupPolicy) UnmarshalJSON(body []byte) error {
 type BackupSchedule struct {
 	// RepeatingTimeIntervals - ISO 8601 repeating time interval format
 	RepeatingTimeIntervals *[]string `json:"repeatingTimeIntervals,omitempty"`
+	// TimeZone - Time zone for a schedule. Example: Pacific Standard Time
+	TimeZone *string `json:"timeZone,omitempty"`
 }
 
 // BackupVault backup Vault
 type BackupVault struct {
-	// ProvisioningState - READ-ONLY; Provisioning state of the BackupVault resource. Possible values include: 'Failed', 'Provisioning', 'Succeeded', 'Unknown', 'Updating'
+	// ProvisioningState - READ-ONLY; Provisioning state of the BackupVault resource. Possible values include: 'ProvisioningStateFailed', 'ProvisioningStateProvisioning', 'ProvisioningStateSucceeded', 'ProvisioningStateUnknown', 'ProvisioningStateUpdating'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+	// ResourceMoveState - READ-ONLY; Resource move state for backup vault. Possible values include: 'ResourceMoveStateUnknown', 'ResourceMoveStateInProgress', 'ResourceMoveStatePrepareFailed', 'ResourceMoveStateCommitFailed', 'ResourceMoveStateFailed', 'ResourceMoveStatePrepareTimedout', 'ResourceMoveStateCommitTimedout', 'ResourceMoveStateCriticalFailure', 'ResourceMoveStatePartialSuccess', 'ResourceMoveStateMoveSucceeded'
+	ResourceMoveState ResourceMoveState `json:"resourceMoveState,omitempty"`
+	// ResourceMoveDetails - READ-ONLY; Resource move details for backup vault
+	ResourceMoveDetails *ResourceMoveDetails `json:"resourceMoveDetails,omitempty"`
 	// StorageSettings - Storage Settings
 	StorageSettings *[]StorageSetting `json:"storageSettings,omitempty"`
 }
@@ -2708,9 +2894,9 @@ func (future *BackupVaultsCreateOrUpdateFuture) result(client BackupVaultsClient
 	return
 }
 
-// BackupVaultsPatchFuture an abstraction for monitoring and retrieving the results of a long-running
+// BackupVaultsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
-type BackupVaultsPatchFuture struct {
+type BackupVaultsUpdateFuture struct {
 	azure.FutureAPI
 	// Result returns the result of the asynchronous operation.
 	// If the operation has not completed it will return an error.
@@ -2718,7 +2904,7 @@ type BackupVaultsPatchFuture struct {
 }
 
 // UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *BackupVaultsPatchFuture) UnmarshalJSON(body []byte) error {
+func (future *BackupVaultsUpdateFuture) UnmarshalJSON(body []byte) error {
 	var azFuture azure.Future
 	if err := json.Unmarshal(body, &azFuture); err != nil {
 		return err
@@ -2728,24 +2914,24 @@ func (future *BackupVaultsPatchFuture) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// result is the default implementation for BackupVaultsPatchFuture.Result.
-func (future *BackupVaultsPatchFuture) result(client BackupVaultsClient) (bvr BackupVaultResource, err error) {
+// result is the default implementation for BackupVaultsUpdateFuture.Result.
+func (future *BackupVaultsUpdateFuture) result(client BackupVaultsClient) (bvr BackupVaultResource, err error) {
 	var done bool
 	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsPatchFuture", "Result", future.Response(), "Polling failure")
+		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
 	}
 	if !done {
 		bvr.Response.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("dataprotection.BackupVaultsPatchFuture")
+		err = azure.NewAsyncOpIncompleteError("dataprotection.BackupVaultsUpdateFuture")
 		return
 	}
 	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if bvr.Response.Response, err = future.GetResult(sender); err == nil && bvr.Response.Response.StatusCode != http.StatusNoContent {
-		bvr, err = client.PatchResponder(bvr.Response.Response)
+		bvr, err = client.UpdateResponder(bvr.Response.Response)
 		if err != nil {
-			err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsPatchFuture", "Result", bvr.Response.Response, "Failure responding to request")
+			err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsUpdateFuture", "Result", bvr.Response.Response, "Failure responding to request")
 		}
 	}
 	return
@@ -2761,7 +2947,7 @@ type BasicBaseBackupPolicy interface {
 type BaseBackupPolicy struct {
 	// DatasourceTypes - Type of datasource for the backup management
 	DatasourceTypes *[]string `json:"datasourceTypes,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeBaseBackupPolicy', 'ObjectTypeBackupPolicy'
+	// ObjectType - Possible values include: 'ObjectTypeBasicBaseBackupPolicyObjectTypeBaseBackupPolicy', 'ObjectTypeBasicBaseBackupPolicyObjectTypeBackupPolicy'
 	ObjectType ObjectTypeBasicBaseBackupPolicy `json:"objectType,omitempty"`
 }
 
@@ -2773,7 +2959,7 @@ func unmarshalBasicBaseBackupPolicy(body []byte) (BasicBaseBackupPolicy, error) 
 	}
 
 	switch m["objectType"] {
-	case string(ObjectTypeBackupPolicy):
+	case string(ObjectTypeBasicBaseBackupPolicyObjectTypeBackupPolicy):
 		var bp BackupPolicy
 		err := json.Unmarshal(body, &bp)
 		return bp, err
@@ -2804,7 +2990,7 @@ func unmarshalBasicBaseBackupPolicyArray(body []byte) ([]BasicBaseBackupPolicy, 
 
 // MarshalJSON is the custom marshaler for BaseBackupPolicy.
 func (bbp BaseBackupPolicy) MarshalJSON() ([]byte, error) {
-	bbp.ObjectType = ObjectTypeBaseBackupPolicy
+	bbp.ObjectType = ObjectTypeBasicBaseBackupPolicyObjectTypeBaseBackupPolicy
 	objectMap := make(map[string]interface{})
 	if bbp.DatasourceTypes != nil {
 		objectMap["datasourceTypes"] = bbp.DatasourceTypes
@@ -3083,7 +3269,7 @@ type BasicBasePolicyRule interface {
 // BasePolicyRule basePolicy Rule
 type BasePolicyRule struct {
 	Name *string `json:"name,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeBasePolicyRule', 'ObjectTypeAzureBackupRule', 'ObjectTypeAzureRetentionRule'
+	// ObjectType - Possible values include: 'ObjectTypeBasicBasePolicyRuleObjectTypeBasePolicyRule', 'ObjectTypeBasicBasePolicyRuleObjectTypeAzureBackupRule', 'ObjectTypeBasicBasePolicyRuleObjectTypeAzureRetentionRule'
 	ObjectType ObjectTypeBasicBasePolicyRule `json:"objectType,omitempty"`
 }
 
@@ -3095,11 +3281,11 @@ func unmarshalBasicBasePolicyRule(body []byte) (BasicBasePolicyRule, error) {
 	}
 
 	switch m["objectType"] {
-	case string(ObjectTypeAzureBackupRule):
+	case string(ObjectTypeBasicBasePolicyRuleObjectTypeAzureBackupRule):
 		var abr AzureBackupRule
 		err := json.Unmarshal(body, &abr)
 		return abr, err
-	case string(ObjectTypeAzureRetentionRule):
+	case string(ObjectTypeBasicBasePolicyRuleObjectTypeAzureRetentionRule):
 		var arr AzureRetentionRule
 		err := json.Unmarshal(body, &arr)
 		return arr, err
@@ -3130,7 +3316,7 @@ func unmarshalBasicBasePolicyRuleArray(body []byte) ([]BasicBasePolicyRule, erro
 
 // MarshalJSON is the custom marshaler for BasePolicyRule.
 func (bpr BasePolicyRule) MarshalJSON() ([]byte, error) {
-	bpr.ObjectType = ObjectTypeBasePolicyRule
+	bpr.ObjectType = ObjectTypeBasicBasePolicyRuleObjectTypeBasePolicyRule
 	objectMap := make(map[string]interface{})
 	if bpr.Name != nil {
 		objectMap["name"] = bpr.Name
@@ -3397,13 +3583,13 @@ type CloudError struct {
 
 // CopyOnExpiryOption copy on Expiry Option
 type CopyOnExpiryOption struct {
-	// ObjectType - Possible values include: 'ObjectTypeCopyOption', 'ObjectTypeCopyOnExpiryOption', 'ObjectTypeCustomCopyOption', 'ObjectTypeImmediateCopyOption'
+	// ObjectType - Possible values include: 'ObjectTypeBasicCopyOptionObjectTypeCopyOption', 'ObjectTypeBasicCopyOptionObjectTypeCopyOnExpiryOption', 'ObjectTypeBasicCopyOptionObjectTypeCustomCopyOption', 'ObjectTypeBasicCopyOptionObjectTypeImmediateCopyOption'
 	ObjectType ObjectTypeBasicCopyOption `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CopyOnExpiryOption.
 func (coeo CopyOnExpiryOption) MarshalJSON() ([]byte, error) {
-	coeo.ObjectType = ObjectTypeCopyOnExpiryOption
+	coeo.ObjectType = ObjectTypeBasicCopyOptionObjectTypeCopyOnExpiryOption
 	objectMap := make(map[string]interface{})
 	if coeo.ObjectType != "" {
 		objectMap["objectType"] = coeo.ObjectType
@@ -3446,7 +3632,7 @@ type BasicCopyOption interface {
 
 // CopyOption options to copy
 type CopyOption struct {
-	// ObjectType - Possible values include: 'ObjectTypeCopyOption', 'ObjectTypeCopyOnExpiryOption', 'ObjectTypeCustomCopyOption', 'ObjectTypeImmediateCopyOption'
+	// ObjectType - Possible values include: 'ObjectTypeBasicCopyOptionObjectTypeCopyOption', 'ObjectTypeBasicCopyOptionObjectTypeCopyOnExpiryOption', 'ObjectTypeBasicCopyOptionObjectTypeCustomCopyOption', 'ObjectTypeBasicCopyOptionObjectTypeImmediateCopyOption'
 	ObjectType ObjectTypeBasicCopyOption `json:"objectType,omitempty"`
 }
 
@@ -3458,15 +3644,15 @@ func unmarshalBasicCopyOption(body []byte) (BasicCopyOption, error) {
 	}
 
 	switch m["objectType"] {
-	case string(ObjectTypeCopyOnExpiryOption):
+	case string(ObjectTypeBasicCopyOptionObjectTypeCopyOnExpiryOption):
 		var coeo CopyOnExpiryOption
 		err := json.Unmarshal(body, &coeo)
 		return coeo, err
-	case string(ObjectTypeCustomCopyOption):
+	case string(ObjectTypeBasicCopyOptionObjectTypeCustomCopyOption):
 		var cco CustomCopyOption
 		err := json.Unmarshal(body, &cco)
 		return cco, err
-	case string(ObjectTypeImmediateCopyOption):
+	case string(ObjectTypeBasicCopyOptionObjectTypeImmediateCopyOption):
 		var ico ImmediateCopyOption
 		err := json.Unmarshal(body, &ico)
 		return ico, err
@@ -3497,7 +3683,7 @@ func unmarshalBasicCopyOptionArray(body []byte) ([]BasicCopyOption, error) {
 
 // MarshalJSON is the custom marshaler for CopyOption.
 func (co CopyOption) MarshalJSON() ([]byte, error) {
-	co.ObjectType = ObjectTypeCopyOption
+	co.ObjectType = ObjectTypeBasicCopyOptionObjectTypeCopyOption
 	objectMap := make(map[string]interface{})
 	if co.ObjectType != "" {
 		objectMap["objectType"] = co.ObjectType
@@ -3534,13 +3720,13 @@ func (co CopyOption) AsBasicCopyOption() (BasicCopyOption, bool) {
 type CustomCopyOption struct {
 	// Duration - Data copied after given timespan
 	Duration *string `json:"duration,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeCopyOption', 'ObjectTypeCopyOnExpiryOption', 'ObjectTypeCustomCopyOption', 'ObjectTypeImmediateCopyOption'
+	// ObjectType - Possible values include: 'ObjectTypeBasicCopyOptionObjectTypeCopyOption', 'ObjectTypeBasicCopyOptionObjectTypeCopyOnExpiryOption', 'ObjectTypeBasicCopyOptionObjectTypeCustomCopyOption', 'ObjectTypeBasicCopyOptionObjectTypeImmediateCopyOption'
 	ObjectType ObjectTypeBasicCopyOption `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CustomCopyOption.
 func (cco CustomCopyOption) MarshalJSON() ([]byte, error) {
-	cco.ObjectType = ObjectTypeCustomCopyOption
+	cco.ObjectType = ObjectTypeBasicCopyOptionObjectTypeCustomCopyOption
 	objectMap := make(map[string]interface{})
 	if cco.Duration != nil {
 		objectMap["duration"] = cco.Duration
@@ -3614,7 +3800,7 @@ type DatasourceSet struct {
 
 // DataStoreInfoBase dataStoreInfo base
 type DataStoreInfoBase struct {
-	// DataStoreType - type of datastore; Operational/Vault/Archive. Possible values include: 'OperationalStore', 'VaultStore', 'ArchiveStore'
+	// DataStoreType - type of datastore; Operational/Vault/Archive. Possible values include: 'DataStoreTypesOperationalStore', 'DataStoreTypesVaultStore', 'DataStoreTypesArchiveStore'
 	DataStoreType DataStoreTypes `json:"dataStoreType,omitempty"`
 	// ObjectType - Type of Datasource object, used to initialize the right inherited type
 	ObjectType *string `json:"objectType,omitempty"`
@@ -3628,9 +3814,9 @@ type BasicDataStoreParameters interface {
 
 // DataStoreParameters parameters for DataStore
 type DataStoreParameters struct {
-	// DataStoreType - type of datastore; Operational/Vault/Archive. Possible values include: 'OperationalStore', 'VaultStore', 'ArchiveStore'
+	// DataStoreType - type of datastore; Operational/Vault/Archive. Possible values include: 'DataStoreTypesOperationalStore', 'DataStoreTypesVaultStore', 'DataStoreTypesArchiveStore'
 	DataStoreType DataStoreTypes `json:"dataStoreType,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeDataStoreParameters', 'ObjectTypeAzureOperationalStoreParameters'
+	// ObjectType - Possible values include: 'ObjectTypeBasicDataStoreParametersObjectTypeDataStoreParameters', 'ObjectTypeBasicDataStoreParametersObjectTypeAzureOperationalStoreParameters'
 	ObjectType ObjectTypeBasicDataStoreParameters `json:"objectType,omitempty"`
 }
 
@@ -3642,7 +3828,7 @@ func unmarshalBasicDataStoreParameters(body []byte) (BasicDataStoreParameters, e
 	}
 
 	switch m["objectType"] {
-	case string(ObjectTypeAzureOperationalStoreParameters):
+	case string(ObjectTypeBasicDataStoreParametersObjectTypeAzureOperationalStoreParameters):
 		var aosp AzureOperationalStoreParameters
 		err := json.Unmarshal(body, &aosp)
 		return aosp, err
@@ -3673,7 +3859,7 @@ func unmarshalBasicDataStoreParametersArray(body []byte) ([]BasicDataStoreParame
 
 // MarshalJSON is the custom marshaler for DataStoreParameters.
 func (dsp DataStoreParameters) MarshalJSON() ([]byte, error) {
-	dsp.ObjectType = ObjectTypeDataStoreParameters
+	dsp.ObjectType = ObjectTypeBasicDataStoreParametersObjectTypeDataStoreParameters
 	objectMap := make(map[string]interface{})
 	if dsp.DataStoreType != "" {
 		objectMap["dataStoreType"] = dsp.DataStoreType
@@ -3717,7 +3903,7 @@ type BasicDeleteOption interface {
 type DeleteOption struct {
 	// Duration - Duration of deletion after given timespan
 	Duration *string `json:"duration,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeDeleteOption', 'ObjectTypeAbsoluteDeleteOption'
+	// ObjectType - Possible values include: 'ObjectTypeBasicDeleteOptionObjectTypeDeleteOption', 'ObjectTypeBasicDeleteOptionObjectTypeAbsoluteDeleteOption'
 	ObjectType ObjectTypeBasicDeleteOption `json:"objectType,omitempty"`
 }
 
@@ -3729,7 +3915,7 @@ func unmarshalBasicDeleteOption(body []byte) (BasicDeleteOption, error) {
 	}
 
 	switch m["objectType"] {
-	case string(ObjectTypeAbsoluteDeleteOption):
+	case string(ObjectTypeBasicDeleteOptionObjectTypeAbsoluteDeleteOption):
 		var ado AbsoluteDeleteOption
 		err := json.Unmarshal(body, &ado)
 		return ado, err
@@ -3760,7 +3946,7 @@ func unmarshalBasicDeleteOptionArray(body []byte) ([]BasicDeleteOption, error) {
 
 // MarshalJSON is the custom marshaler for DeleteOption.
 func (do DeleteOption) MarshalJSON() ([]byte, error) {
-	do.ObjectType = ObjectTypeDeleteOption
+	do.ObjectType = ObjectTypeBasicDeleteOptionObjectTypeDeleteOption
 	objectMap := make(map[string]interface{})
 	if do.Duration != nil {
 		objectMap["duration"] = do.Duration
@@ -3784,6 +3970,182 @@ func (do DeleteOption) AsDeleteOption() (*DeleteOption, bool) {
 // AsBasicDeleteOption is the BasicDeleteOption implementation for DeleteOption.
 func (do DeleteOption) AsBasicDeleteOption() (BasicDeleteOption, bool) {
 	return &do, true
+}
+
+// DppBaseResource base resource under Microsoft.DataProtection provider namespace
+type DppBaseResource struct {
+	autorest.Response `json:"-"`
+	// ID - READ-ONLY; Resource Id represents the complete path to the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name associated with the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DppBaseResource.
+func (dbr DppBaseResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// DppBaseResourceList base for all lists of V2 resources.
+type DppBaseResourceList struct {
+	autorest.Response `json:"-"`
+	// Value - List of Dpp resources.
+	Value *[]DppBaseResource `json:"value,omitempty"`
+	// NextLink - The uri to fetch the next page of resources. Call ListNext() fetches next page of resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// DppBaseResourceListIterator provides access to a complete listing of DppBaseResource values.
+type DppBaseResourceListIterator struct {
+	i    int
+	page DppBaseResourceListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *DppBaseResourceListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DppBaseResourceListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *DppBaseResourceListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter DppBaseResourceListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter DppBaseResourceListIterator) Response() DppBaseResourceList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter DppBaseResourceListIterator) Value() DppBaseResource {
+	if !iter.page.NotDone() {
+		return DppBaseResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the DppBaseResourceListIterator type.
+func NewDppBaseResourceListIterator(page DppBaseResourceListPage) DppBaseResourceListIterator {
+	return DppBaseResourceListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (dbrl DppBaseResourceList) IsEmpty() bool {
+	return dbrl.Value == nil || len(*dbrl.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (dbrl DppBaseResourceList) hasNextLink() bool {
+	return dbrl.NextLink != nil && len(*dbrl.NextLink) != 0
+}
+
+// dppBaseResourceListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (dbrl DppBaseResourceList) dppBaseResourceListPreparer(ctx context.Context) (*http.Request, error) {
+	if !dbrl.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(dbrl.NextLink)))
+}
+
+// DppBaseResourceListPage contains a page of DppBaseResource values.
+type DppBaseResourceListPage struct {
+	fn   func(context.Context, DppBaseResourceList) (DppBaseResourceList, error)
+	dbrl DppBaseResourceList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *DppBaseResourceListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DppBaseResourceListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.dbrl)
+		if err != nil {
+			return err
+		}
+		page.dbrl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *DppBaseResourceListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page DppBaseResourceListPage) NotDone() bool {
+	return !page.dbrl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page DppBaseResourceListPage) Response() DppBaseResourceList {
+	return page.dbrl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page DppBaseResourceListPage) Values() []DppBaseResource {
+	if page.dbrl.IsEmpty() {
+		return nil
+	}
+	return *page.dbrl.Value
+}
+
+// Creates a new instance of the DppBaseResourceListPage type.
+func NewDppBaseResourceListPage(cur DppBaseResourceList, getNextPage func(context.Context, DppBaseResourceList) (DppBaseResourceList, error)) DppBaseResourceListPage {
+	return DppBaseResourceListPage{
+		fn:   getNextPage,
+		dbrl: cur,
+	}
 }
 
 // DppIdentityDetails identity details
@@ -3929,12 +4291,24 @@ type Error struct {
 	Target *string `json:"target,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Error.
+func (e Error) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ErrorAdditionalInfo the resource management error additional info.
 type ErrorAdditionalInfo struct {
 	// Info - READ-ONLY; The additional info.
 	Info interface{} `json:"info,omitempty"`
 	// Type - READ-ONLY; The additional info type.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorAdditionalInfo.
+func (eai ErrorAdditionalInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ExportJobsResult the result for export jobs containing blob details.
@@ -3948,6 +4322,12 @@ type ExportJobsResult struct {
 	ExcelFileBlobURL *string `json:"excelFileBlobUrl,omitempty"`
 	// ExcelFileBlobSasKey - READ-ONLY; SAS key to access the ExcelFile blob.
 	ExcelFileBlobSasKey *string `json:"excelFileBlobSasKey,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ExportJobsResult.
+func (ejr ExportJobsResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ExportJobsTriggerFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -3993,13 +4373,13 @@ type FeatureValidationRequest struct {
 	FeatureType FeatureType `json:"featureType,omitempty"`
 	// FeatureName - backup support feature name.
 	FeatureName *string `json:"featureName,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeFeatureValidationRequestBase', 'ObjectTypeFeatureValidationRequest'
+	// ObjectType - Possible values include: 'ObjectTypeBasicFeatureValidationRequestBaseObjectTypeFeatureValidationRequestBase', 'ObjectTypeBasicFeatureValidationRequestBaseObjectTypeFeatureValidationRequest'
 	ObjectType ObjectTypeBasicFeatureValidationRequestBase `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for FeatureValidationRequest.
 func (fvr FeatureValidationRequest) MarshalJSON() ([]byte, error) {
-	fvr.ObjectType = ObjectTypeFeatureValidationRequest
+	fvr.ObjectType = ObjectTypeBasicFeatureValidationRequestBaseObjectTypeFeatureValidationRequest
 	objectMap := make(map[string]interface{})
 	if fvr.FeatureType != "" {
 		objectMap["featureType"] = fvr.FeatureType
@@ -4036,7 +4416,7 @@ type BasicFeatureValidationRequestBase interface {
 
 // FeatureValidationRequestBase base class for Backup Feature support
 type FeatureValidationRequestBase struct {
-	// ObjectType - Possible values include: 'ObjectTypeFeatureValidationRequestBase', 'ObjectTypeFeatureValidationRequest'
+	// ObjectType - Possible values include: 'ObjectTypeBasicFeatureValidationRequestBaseObjectTypeFeatureValidationRequestBase', 'ObjectTypeBasicFeatureValidationRequestBaseObjectTypeFeatureValidationRequest'
 	ObjectType ObjectTypeBasicFeatureValidationRequestBase `json:"objectType,omitempty"`
 }
 
@@ -4048,7 +4428,7 @@ func unmarshalBasicFeatureValidationRequestBase(body []byte) (BasicFeatureValida
 	}
 
 	switch m["objectType"] {
-	case string(ObjectTypeFeatureValidationRequest):
+	case string(ObjectTypeBasicFeatureValidationRequestBaseObjectTypeFeatureValidationRequest):
 		var fvr FeatureValidationRequest
 		err := json.Unmarshal(body, &fvr)
 		return fvr, err
@@ -4079,7 +4459,7 @@ func unmarshalBasicFeatureValidationRequestBaseArray(body []byte) ([]BasicFeatur
 
 // MarshalJSON is the custom marshaler for FeatureValidationRequestBase.
 func (fvrb FeatureValidationRequestBase) MarshalJSON() ([]byte, error) {
-	fvrb.ObjectType = ObjectTypeFeatureValidationRequestBase
+	fvrb.ObjectType = ObjectTypeBasicFeatureValidationRequestBaseObjectTypeFeatureValidationRequestBase
 	objectMap := make(map[string]interface{})
 	if fvrb.ObjectType != "" {
 		objectMap["objectType"] = fvrb.ObjectType
@@ -4108,13 +4488,13 @@ type FeatureValidationResponse struct {
 	FeatureType FeatureType `json:"featureType,omitempty"`
 	// Features - Response features
 	Features *[]SupportedFeature `json:"features,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeFeatureValidationResponseBase', 'ObjectTypeFeatureValidationResponse'
+	// ObjectType - Possible values include: 'ObjectTypeBasicFeatureValidationResponseBaseObjectTypeFeatureValidationResponseBase', 'ObjectTypeBasicFeatureValidationResponseBaseObjectTypeFeatureValidationResponse'
 	ObjectType ObjectTypeBasicFeatureValidationResponseBase `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for FeatureValidationResponse.
 func (fvr FeatureValidationResponse) MarshalJSON() ([]byte, error) {
-	fvr.ObjectType = ObjectTypeFeatureValidationResponse
+	fvr.ObjectType = ObjectTypeBasicFeatureValidationResponseBaseObjectTypeFeatureValidationResponse
 	objectMap := make(map[string]interface{})
 	if fvr.FeatureType != "" {
 		objectMap["featureType"] = fvr.FeatureType
@@ -4152,7 +4532,7 @@ type BasicFeatureValidationResponseBase interface {
 // FeatureValidationResponseBase base class for Backup Feature support
 type FeatureValidationResponseBase struct {
 	autorest.Response `json:"-"`
-	// ObjectType - Possible values include: 'ObjectTypeFeatureValidationResponseBase', 'ObjectTypeFeatureValidationResponse'
+	// ObjectType - Possible values include: 'ObjectTypeBasicFeatureValidationResponseBaseObjectTypeFeatureValidationResponseBase', 'ObjectTypeBasicFeatureValidationResponseBaseObjectTypeFeatureValidationResponse'
 	ObjectType ObjectTypeBasicFeatureValidationResponseBase `json:"objectType,omitempty"`
 }
 
@@ -4164,7 +4544,7 @@ func unmarshalBasicFeatureValidationResponseBase(body []byte) (BasicFeatureValid
 	}
 
 	switch m["objectType"] {
-	case string(ObjectTypeFeatureValidationResponse):
+	case string(ObjectTypeBasicFeatureValidationResponseBaseObjectTypeFeatureValidationResponse):
 		var fvr FeatureValidationResponse
 		err := json.Unmarshal(body, &fvr)
 		return fvr, err
@@ -4195,7 +4575,7 @@ func unmarshalBasicFeatureValidationResponseBaseArray(body []byte) ([]BasicFeatu
 
 // MarshalJSON is the custom marshaler for FeatureValidationResponseBase.
 func (fvrb FeatureValidationResponseBase) MarshalJSON() ([]byte, error) {
-	fvrb.ObjectType = ObjectTypeFeatureValidationResponseBase
+	fvrb.ObjectType = ObjectTypeBasicFeatureValidationResponseBaseObjectTypeFeatureValidationResponseBase
 	objectMap := make(map[string]interface{})
 	if fvrb.ObjectType != "" {
 		objectMap["objectType"] = fvrb.ObjectType
@@ -4237,13 +4617,13 @@ func (fvrbm *FeatureValidationResponseBaseModel) UnmarshalJSON(body []byte) erro
 
 // ImmediateCopyOption immediate copy Option
 type ImmediateCopyOption struct {
-	// ObjectType - Possible values include: 'ObjectTypeCopyOption', 'ObjectTypeCopyOnExpiryOption', 'ObjectTypeCustomCopyOption', 'ObjectTypeImmediateCopyOption'
+	// ObjectType - Possible values include: 'ObjectTypeBasicCopyOptionObjectTypeCopyOption', 'ObjectTypeBasicCopyOptionObjectTypeCopyOnExpiryOption', 'ObjectTypeBasicCopyOptionObjectTypeCustomCopyOption', 'ObjectTypeBasicCopyOptionObjectTypeImmediateCopyOption'
 	ObjectType ObjectTypeBasicCopyOption `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ImmediateCopyOption.
 func (ico ImmediateCopyOption) MarshalJSON() ([]byte, error) {
-	ico.ObjectType = ObjectTypeImmediateCopyOption
+	ico.ObjectType = ObjectTypeBasicCopyOptionObjectTypeImmediateCopyOption
 	objectMap := make(map[string]interface{})
 	if ico.ObjectType != "" {
 		objectMap["objectType"] = ico.ObjectType
@@ -4309,7 +4689,7 @@ type BasicItemLevelRestoreCriteria interface {
 
 // ItemLevelRestoreCriteria class to contain criteria for item level restore
 type ItemLevelRestoreCriteria struct {
-	// ObjectType - Possible values include: 'ObjectTypeItemLevelRestoreCriteria', 'ObjectTypeRangeBasedItemLevelRestoreCriteria'
+	// ObjectType - Possible values include: 'ObjectTypeBasicItemLevelRestoreCriteriaObjectTypeItemLevelRestoreCriteria', 'ObjectTypeBasicItemLevelRestoreCriteriaObjectTypeRangeBasedItemLevelRestoreCriteria'
 	ObjectType ObjectTypeBasicItemLevelRestoreCriteria `json:"objectType,omitempty"`
 }
 
@@ -4321,7 +4701,7 @@ func unmarshalBasicItemLevelRestoreCriteria(body []byte) (BasicItemLevelRestoreC
 	}
 
 	switch m["objectType"] {
-	case string(ObjectTypeRangeBasedItemLevelRestoreCriteria):
+	case string(ObjectTypeBasicItemLevelRestoreCriteriaObjectTypeRangeBasedItemLevelRestoreCriteria):
 		var rbilrc RangeBasedItemLevelRestoreCriteria
 		err := json.Unmarshal(body, &rbilrc)
 		return rbilrc, err
@@ -4352,7 +4732,7 @@ func unmarshalBasicItemLevelRestoreCriteriaArray(body []byte) ([]BasicItemLevelR
 
 // MarshalJSON is the custom marshaler for ItemLevelRestoreCriteria.
 func (ilrc ItemLevelRestoreCriteria) MarshalJSON() ([]byte, error) {
-	ilrc.ObjectType = ObjectTypeItemLevelRestoreCriteria
+	ilrc.ObjectType = ObjectTypeBasicItemLevelRestoreCriteriaObjectTypeItemLevelRestoreCriteria
 	objectMap := make(map[string]interface{})
 	if ilrc.ObjectType != "" {
 		objectMap["objectType"] = ilrc.ObjectType
@@ -4383,17 +4763,19 @@ type ItemLevelRestoreTargetInfo struct {
 	DatasourceInfo *Datasource `json:"datasourceInfo,omitempty"`
 	// DatasourceSetInfo - Information of target DS Set
 	DatasourceSetInfo *DatasourceSet `json:"datasourceSetInfo,omitempty"`
+	// DatasourceAuthCredentials - Credentials to use to authenticate with data source provider.
+	DatasourceAuthCredentials BasicAuthCredentials `json:"datasourceAuthCredentials,omitempty"`
 	// RecoveryOption - Recovery Option
 	RecoveryOption *string `json:"recoveryOption,omitempty"`
 	// RestoreLocation - Target Restore region
 	RestoreLocation *string `json:"restoreLocation,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeRestoreTargetInfoBase', 'ObjectTypeItemLevelRestoreTargetInfo', 'ObjectTypeRestoreFilesTargetInfo', 'ObjectTypeRestoreTargetInfo'
+	// ObjectType - Possible values include: 'ObjectTypeBasicRestoreTargetInfoBaseObjectTypeRestoreTargetInfoBase', 'ObjectTypeBasicRestoreTargetInfoBaseObjectTypeItemLevelRestoreTargetInfo', 'ObjectTypeBasicRestoreTargetInfoBaseObjectTypeRestoreFilesTargetInfo', 'ObjectTypeBasicRestoreTargetInfoBaseObjectTypeRestoreTargetInfo'
 	ObjectType ObjectTypeBasicRestoreTargetInfoBase `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ItemLevelRestoreTargetInfo.
 func (ilrti ItemLevelRestoreTargetInfo) MarshalJSON() ([]byte, error) {
-	ilrti.ObjectType = ObjectTypeItemLevelRestoreTargetInfo
+	ilrti.ObjectType = ObjectTypeBasicRestoreTargetInfoBaseObjectTypeItemLevelRestoreTargetInfo
 	objectMap := make(map[string]interface{})
 	if ilrti.RestoreCriteria != nil {
 		objectMap["restoreCriteria"] = ilrti.RestoreCriteria
@@ -4404,6 +4786,7 @@ func (ilrti ItemLevelRestoreTargetInfo) MarshalJSON() ([]byte, error) {
 	if ilrti.DatasourceSetInfo != nil {
 		objectMap["datasourceSetInfo"] = ilrti.DatasourceSetInfo
 	}
+	objectMap["datasourceAuthCredentials"] = ilrti.DatasourceAuthCredentials
 	if ilrti.RecoveryOption != nil {
 		objectMap["recoveryOption"] = ilrti.RecoveryOption
 	}
@@ -4475,6 +4858,14 @@ func (ilrti *ItemLevelRestoreTargetInfo) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				ilrti.DatasourceSetInfo = &datasourceSetInfo
+			}
+		case "datasourceAuthCredentials":
+			if v != nil {
+				datasourceAuthCredentials, err := unmarshalBasicAuthCredentials(*v)
+				if err != nil {
+					return err
+				}
+				ilrti.DatasourceAuthCredentials = datasourceAuthCredentials
 			}
 		case "recoveryOption":
 			if v != nil {
@@ -4568,10 +4959,78 @@ func (jst JobSubTask) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// BasicOperationExtendedInfo operation Extended Info
+type BasicOperationExtendedInfo interface {
+	AsOperationJobExtendedInfo() (*OperationJobExtendedInfo, bool)
+	AsOperationExtendedInfo() (*OperationExtendedInfo, bool)
+}
+
 // OperationExtendedInfo operation Extended Info
 type OperationExtendedInfo struct {
-	// ObjectType - This property will be used as the discriminator for deciding the specific types in the polymorphic chain of types.
-	ObjectType *string `json:"objectType,omitempty"`
+	// ObjectType - Possible values include: 'ObjectTypeBasicOperationExtendedInfoObjectTypeOperationExtendedInfo', 'ObjectTypeBasicOperationExtendedInfoObjectTypeOperationJobExtendedInfo'
+	ObjectType ObjectTypeBasicOperationExtendedInfo `json:"objectType,omitempty"`
+}
+
+func unmarshalBasicOperationExtendedInfo(body []byte) (BasicOperationExtendedInfo, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["objectType"] {
+	case string(ObjectTypeBasicOperationExtendedInfoObjectTypeOperationJobExtendedInfo):
+		var ojei OperationJobExtendedInfo
+		err := json.Unmarshal(body, &ojei)
+		return ojei, err
+	default:
+		var oei OperationExtendedInfo
+		err := json.Unmarshal(body, &oei)
+		return oei, err
+	}
+}
+func unmarshalBasicOperationExtendedInfoArray(body []byte) ([]BasicOperationExtendedInfo, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	oeiArray := make([]BasicOperationExtendedInfo, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		oei, err := unmarshalBasicOperationExtendedInfo(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		oeiArray[index] = oei
+	}
+	return oeiArray, nil
+}
+
+// MarshalJSON is the custom marshaler for OperationExtendedInfo.
+func (oei OperationExtendedInfo) MarshalJSON() ([]byte, error) {
+	oei.ObjectType = ObjectTypeBasicOperationExtendedInfoObjectTypeOperationExtendedInfo
+	objectMap := make(map[string]interface{})
+	if oei.ObjectType != "" {
+		objectMap["objectType"] = oei.ObjectType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsOperationJobExtendedInfo is the BasicOperationExtendedInfo implementation for OperationExtendedInfo.
+func (oei OperationExtendedInfo) AsOperationJobExtendedInfo() (*OperationJobExtendedInfo, bool) {
+	return nil, false
+}
+
+// AsOperationExtendedInfo is the BasicOperationExtendedInfo implementation for OperationExtendedInfo.
+func (oei OperationExtendedInfo) AsOperationExtendedInfo() (*OperationExtendedInfo, bool) {
+	return &oei, true
+}
+
+// AsBasicOperationExtendedInfo is the BasicOperationExtendedInfo implementation for OperationExtendedInfo.
+func (oei OperationExtendedInfo) AsBasicOperationExtendedInfo() (BasicOperationExtendedInfo, bool) {
+	return &oei, true
 }
 
 // OperationJobExtendedInfo operation Job Extended Info
@@ -4579,8 +5038,36 @@ type OperationJobExtendedInfo struct {
 	autorest.Response `json:"-"`
 	// JobID - Arm Id of the job created for this operation.
 	JobID *string `json:"jobId,omitempty"`
-	// ObjectType - This property will be used as the discriminator for deciding the specific types in the polymorphic chain of types.
-	ObjectType *string `json:"objectType,omitempty"`
+	// ObjectType - Possible values include: 'ObjectTypeBasicOperationExtendedInfoObjectTypeOperationExtendedInfo', 'ObjectTypeBasicOperationExtendedInfoObjectTypeOperationJobExtendedInfo'
+	ObjectType ObjectTypeBasicOperationExtendedInfo `json:"objectType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationJobExtendedInfo.
+func (ojei OperationJobExtendedInfo) MarshalJSON() ([]byte, error) {
+	ojei.ObjectType = ObjectTypeBasicOperationExtendedInfoObjectTypeOperationJobExtendedInfo
+	objectMap := make(map[string]interface{})
+	if ojei.JobID != nil {
+		objectMap["jobId"] = ojei.JobID
+	}
+	if ojei.ObjectType != "" {
+		objectMap["objectType"] = ojei.ObjectType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsOperationJobExtendedInfo is the BasicOperationExtendedInfo implementation for OperationJobExtendedInfo.
+func (ojei OperationJobExtendedInfo) AsOperationJobExtendedInfo() (*OperationJobExtendedInfo, bool) {
+	return &ojei, true
+}
+
+// AsOperationExtendedInfo is the BasicOperationExtendedInfo implementation for OperationJobExtendedInfo.
+func (ojei OperationJobExtendedInfo) AsOperationExtendedInfo() (*OperationExtendedInfo, bool) {
+	return nil, false
+}
+
+// AsBasicOperationExtendedInfo is the BasicOperationExtendedInfo implementation for OperationJobExtendedInfo.
+func (ojei OperationJobExtendedInfo) AsBasicOperationExtendedInfo() (BasicOperationExtendedInfo, bool) {
+	return &ojei, true
 }
 
 // OperationResource operation Resource
@@ -4596,10 +5083,87 @@ type OperationResource struct {
 	// Name - It must match the last segment of the "id" field, and will typically be a GUID / system generated value
 	Name *string `json:"name,omitempty"`
 	// Properties - End time of the operation
-	Properties *OperationExtendedInfo `json:"properties,omitempty"`
+	Properties BasicOperationExtendedInfo `json:"properties,omitempty"`
 	// StartTime - Start time of the operation
 	StartTime *date.Time `json:"startTime,omitempty"`
 	Status    *string    `json:"status,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for OperationResource struct.
+func (or *OperationResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "endTime":
+			if v != nil {
+				var endTime date.Time
+				err = json.Unmarshal(*v, &endTime)
+				if err != nil {
+					return err
+				}
+				or.EndTime = &endTime
+			}
+		case "error":
+			if v != nil {
+				var errorVar Error
+				err = json.Unmarshal(*v, &errorVar)
+				if err != nil {
+					return err
+				}
+				or.Error = &errorVar
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				or.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				or.Name = &name
+			}
+		case "properties":
+			if v != nil {
+				properties, err := unmarshalBasicOperationExtendedInfo(*v)
+				if err != nil {
+					return err
+				}
+				or.Properties = properties
+			}
+		case "startTime":
+			if v != nil {
+				var startTime date.Time
+				err = json.Unmarshal(*v, &startTime)
+				if err != nil {
+					return err
+				}
+				or.StartTime = &startTime
+			}
+		case "status":
+			if v != nil {
+				var status string
+				err = json.Unmarshal(*v, &status)
+				if err != nil {
+					return err
+				}
+				or.Status = &status
+			}
+		}
+	}
+
+	return nil
 }
 
 // PatchResourceRequestInput patch Request content for Microsoft.DataProtection resources
@@ -4686,13 +5250,13 @@ type RangeBasedItemLevelRestoreCriteria struct {
 	MinMatchingValue *string `json:"minMatchingValue,omitempty"`
 	// MaxMatchingValue - maximum value for range prefix match
 	MaxMatchingValue *string `json:"maxMatchingValue,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeItemLevelRestoreCriteria', 'ObjectTypeRangeBasedItemLevelRestoreCriteria'
+	// ObjectType - Possible values include: 'ObjectTypeBasicItemLevelRestoreCriteriaObjectTypeItemLevelRestoreCriteria', 'ObjectTypeBasicItemLevelRestoreCriteriaObjectTypeRangeBasedItemLevelRestoreCriteria'
 	ObjectType ObjectTypeBasicItemLevelRestoreCriteria `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for RangeBasedItemLevelRestoreCriteria.
 func (rbilrc RangeBasedItemLevelRestoreCriteria) MarshalJSON() ([]byte, error) {
-	rbilrc.ObjectType = ObjectTypeRangeBasedItemLevelRestoreCriteria
+	rbilrc.ObjectType = ObjectTypeBasicItemLevelRestoreCriteriaObjectTypeRangeBasedItemLevelRestoreCriteria
 	objectMap := make(map[string]interface{})
 	if rbilrc.MinMatchingValue != nil {
 		objectMap["minMatchingValue"] = rbilrc.MinMatchingValue
@@ -4732,7 +5296,7 @@ type RecoveryPointDataStoreDetails struct {
 	Visible      *bool      `json:"visible,omitempty"`
 	// RehydrationExpiryTime - READ-ONLY
 	RehydrationExpiryTime *date.Time `json:"rehydrationExpiryTime,omitempty"`
-	// RehydrationStatus - READ-ONLY; Possible values include: 'CREATEINPROGRESS', 'COMPLETED', 'DELETEINPROGRESS', 'DELETED', 'FAILED'
+	// RehydrationStatus - READ-ONLY; Possible values include: 'RehydrationStatusCREATEINPROGRESS', 'RehydrationStatusCOMPLETED', 'RehydrationStatusDELETEINPROGRESS', 'RehydrationStatusDELETED', 'RehydrationStatusFAILED'
 	RehydrationStatus RehydrationStatus `json:"rehydrationStatus,omitempty"`
 }
 
@@ -4773,6 +5337,259 @@ type RecoveryPointsFilters struct {
 	RestorePointState       *string `json:"restorePointState,omitempty"`
 }
 
+// ResourceGuard ...
+type ResourceGuard struct {
+	// ProvisioningState - READ-ONLY; Provisioning state of the BackupVault resource. Possible values include: 'ProvisioningStateFailed', 'ProvisioningStateProvisioning', 'ProvisioningStateSucceeded', 'ProvisioningStateUnknown', 'ProvisioningStateUpdating'
+	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+	// AllowAutoApprovals - READ-ONLY; This flag indicates whether auto approval is allowed or not.
+	AllowAutoApprovals *bool `json:"allowAutoApprovals,omitempty"`
+	// ResourceGuardOperations - READ-ONLY; {readonly} List of operation details those are protected by the ResourceGuard resource
+	ResourceGuardOperations *[]ResourceGuardOperation `json:"resourceGuardOperations,omitempty"`
+	// VaultCriticalOperationExclusionList - READ-ONLY; List of critical operations which are not protected by this resourceGuard
+	VaultCriticalOperationExclusionList *[]string `json:"vaultCriticalOperationExclusionList,omitempty"`
+	// Description - READ-ONLY; Description about the pre-req steps to perform all the critical operations.
+	Description *string `json:"description,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceGuard.
+func (rg ResourceGuard) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ResourceGuardOperation this class contains all the details about a critical operation.
+type ResourceGuardOperation struct {
+	// VaultCriticalOperation - READ-ONLY; Name of the critical operation.
+	VaultCriticalOperation *string `json:"vaultCriticalOperation,omitempty"`
+	// RequestResourceType - READ-ONLY; Type of resource request.
+	RequestResourceType *string `json:"requestResourceType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceGuardOperation.
+func (rgo ResourceGuardOperation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ResourceGuardResource ...
+type ResourceGuardResource struct {
+	autorest.Response `json:"-"`
+	// Properties - ResourceGuardResource properties
+	Properties *ResourceGuard `json:"properties,omitempty"`
+	// ETag - Optional ETag.
+	ETag *string `json:"eTag,omitempty"`
+	// ID - READ-ONLY; Resource Id represents the complete path to the resource.
+	ID *string `json:"id,omitempty"`
+	// Identity - Input Managed Identity Details
+	Identity *DppIdentityDetails `json:"identity,omitempty"`
+	// Location - Resource location.
+	Location *string `json:"location,omitempty"`
+	// Name - READ-ONLY; Resource name associated with the resource.
+	Name *string `json:"name,omitempty"`
+	// Tags - Resource tags.
+	Tags map[string]*string `json:"tags"`
+	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
+	Type       *string     `json:"type,omitempty"`
+	SystemData *SystemData `json:"systemData,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceGuardResource.
+func (rgr ResourceGuardResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rgr.Properties != nil {
+		objectMap["properties"] = rgr.Properties
+	}
+	if rgr.ETag != nil {
+		objectMap["eTag"] = rgr.ETag
+	}
+	if rgr.Identity != nil {
+		objectMap["identity"] = rgr.Identity
+	}
+	if rgr.Location != nil {
+		objectMap["location"] = rgr.Location
+	}
+	if rgr.Tags != nil {
+		objectMap["tags"] = rgr.Tags
+	}
+	if rgr.SystemData != nil {
+		objectMap["systemData"] = rgr.SystemData
+	}
+	return json.Marshal(objectMap)
+}
+
+// ResourceGuardResourceList list of ResourceGuard resources
+type ResourceGuardResourceList struct {
+	autorest.Response `json:"-"`
+	// Value - List of resources.
+	Value *[]ResourceGuardResource `json:"value,omitempty"`
+	// NextLink - The uri to fetch the next page of resources. Call ListNext() fetches next page of resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ResourceGuardResourceListIterator provides access to a complete listing of ResourceGuardResource values.
+type ResourceGuardResourceListIterator struct {
+	i    int
+	page ResourceGuardResourceListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ResourceGuardResourceListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ResourceGuardResourceListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ResourceGuardResourceListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ResourceGuardResourceListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ResourceGuardResourceListIterator) Response() ResourceGuardResourceList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ResourceGuardResourceListIterator) Value() ResourceGuardResource {
+	if !iter.page.NotDone() {
+		return ResourceGuardResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ResourceGuardResourceListIterator type.
+func NewResourceGuardResourceListIterator(page ResourceGuardResourceListPage) ResourceGuardResourceListIterator {
+	return ResourceGuardResourceListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (rgrl ResourceGuardResourceList) IsEmpty() bool {
+	return rgrl.Value == nil || len(*rgrl.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (rgrl ResourceGuardResourceList) hasNextLink() bool {
+	return rgrl.NextLink != nil && len(*rgrl.NextLink) != 0
+}
+
+// resourceGuardResourceListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (rgrl ResourceGuardResourceList) resourceGuardResourceListPreparer(ctx context.Context) (*http.Request, error) {
+	if !rgrl.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(rgrl.NextLink)))
+}
+
+// ResourceGuardResourceListPage contains a page of ResourceGuardResource values.
+type ResourceGuardResourceListPage struct {
+	fn   func(context.Context, ResourceGuardResourceList) (ResourceGuardResourceList, error)
+	rgrl ResourceGuardResourceList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ResourceGuardResourceListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ResourceGuardResourceListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.rgrl)
+		if err != nil {
+			return err
+		}
+		page.rgrl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ResourceGuardResourceListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ResourceGuardResourceListPage) NotDone() bool {
+	return !page.rgrl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ResourceGuardResourceListPage) Response() ResourceGuardResourceList {
+	return page.rgrl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ResourceGuardResourceListPage) Values() []ResourceGuardResource {
+	if page.rgrl.IsEmpty() {
+		return nil
+	}
+	return *page.rgrl.Value
+}
+
+// Creates a new instance of the ResourceGuardResourceListPage type.
+func NewResourceGuardResourceListPage(cur ResourceGuardResourceList, getNextPage func(context.Context, ResourceGuardResourceList) (ResourceGuardResourceList, error)) ResourceGuardResourceListPage {
+	return ResourceGuardResourceListPage{
+		fn:   getNextPage,
+		rgrl: cur,
+	}
+}
+
+// ResourceMoveDetails resourceMoveDetails will be returned in response to GetResource call from ARM
+type ResourceMoveDetails struct {
+	// OperationID - CorrelationId of latest ResourceMove operation attempted
+	OperationID *string `json:"operationId,omitempty"`
+	// StartTimeUtc - Start time in UTC of latest ResourceMove operation attempted. ISO 8601 format.
+	StartTimeUtc *string `json:"startTimeUtc,omitempty"`
+	// CompletionTimeUtc - Completion time in UTC of latest ResourceMove operation attempted. ISO 8601 format.
+	CompletionTimeUtc *string `json:"completionTimeUtc,omitempty"`
+	// SourceResourcePath - ARM resource path of source resource
+	SourceResourcePath *string `json:"sourceResourcePath,omitempty"`
+	// TargetResourcePath - ARM resource path of target resource used in latest ResourceMove operation
+	TargetResourcePath *string `json:"targetResourcePath,omitempty"`
+}
+
 // RestorableTimeRange ...
 type RestorableTimeRange struct {
 	// StartTime - Start time for the available restore range
@@ -4790,13 +5607,13 @@ type RestoreFilesTargetInfo struct {
 	RecoveryOption *string `json:"recoveryOption,omitempty"`
 	// RestoreLocation - Target Restore region
 	RestoreLocation *string `json:"restoreLocation,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeRestoreTargetInfoBase', 'ObjectTypeItemLevelRestoreTargetInfo', 'ObjectTypeRestoreFilesTargetInfo', 'ObjectTypeRestoreTargetInfo'
+	// ObjectType - Possible values include: 'ObjectTypeBasicRestoreTargetInfoBaseObjectTypeRestoreTargetInfoBase', 'ObjectTypeBasicRestoreTargetInfoBaseObjectTypeItemLevelRestoreTargetInfo', 'ObjectTypeBasicRestoreTargetInfoBaseObjectTypeRestoreFilesTargetInfo', 'ObjectTypeBasicRestoreTargetInfoBaseObjectTypeRestoreTargetInfo'
 	ObjectType ObjectTypeBasicRestoreTargetInfoBase `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for RestoreFilesTargetInfo.
 func (rfti RestoreFilesTargetInfo) MarshalJSON() ([]byte, error) {
-	rfti.ObjectType = ObjectTypeRestoreFilesTargetInfo
+	rfti.ObjectType = ObjectTypeBasicRestoreTargetInfoBaseObjectTypeRestoreFilesTargetInfo
 	objectMap := make(map[string]interface{})
 	if rfti.TargetDetails != nil {
 		objectMap["targetDetails"] = rfti.TargetDetails
@@ -4850,17 +5667,19 @@ type RestoreTargetInfo struct {
 	DatasourceInfo *Datasource `json:"datasourceInfo,omitempty"`
 	// DatasourceSetInfo - Information of target DS Set
 	DatasourceSetInfo *DatasourceSet `json:"datasourceSetInfo,omitempty"`
+	// DatasourceAuthCredentials - Credentials to use to authenticate with data source provider.
+	DatasourceAuthCredentials BasicAuthCredentials `json:"datasourceAuthCredentials,omitempty"`
 	// RecoveryOption - Recovery Option
 	RecoveryOption *string `json:"recoveryOption,omitempty"`
 	// RestoreLocation - Target Restore region
 	RestoreLocation *string `json:"restoreLocation,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeRestoreTargetInfoBase', 'ObjectTypeItemLevelRestoreTargetInfo', 'ObjectTypeRestoreFilesTargetInfo', 'ObjectTypeRestoreTargetInfo'
+	// ObjectType - Possible values include: 'ObjectTypeBasicRestoreTargetInfoBaseObjectTypeRestoreTargetInfoBase', 'ObjectTypeBasicRestoreTargetInfoBaseObjectTypeItemLevelRestoreTargetInfo', 'ObjectTypeBasicRestoreTargetInfoBaseObjectTypeRestoreFilesTargetInfo', 'ObjectTypeBasicRestoreTargetInfoBaseObjectTypeRestoreTargetInfo'
 	ObjectType ObjectTypeBasicRestoreTargetInfoBase `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for RestoreTargetInfo.
 func (rti RestoreTargetInfo) MarshalJSON() ([]byte, error) {
-	rti.ObjectType = ObjectTypeRestoreTargetInfo
+	rti.ObjectType = ObjectTypeBasicRestoreTargetInfoBaseObjectTypeRestoreTargetInfo
 	objectMap := make(map[string]interface{})
 	if rti.DatasourceInfo != nil {
 		objectMap["datasourceInfo"] = rti.DatasourceInfo
@@ -4868,6 +5687,7 @@ func (rti RestoreTargetInfo) MarshalJSON() ([]byte, error) {
 	if rti.DatasourceSetInfo != nil {
 		objectMap["datasourceSetInfo"] = rti.DatasourceSetInfo
 	}
+	objectMap["datasourceAuthCredentials"] = rti.DatasourceAuthCredentials
 	if rti.RecoveryOption != nil {
 		objectMap["recoveryOption"] = rti.RecoveryOption
 	}
@@ -4905,6 +5725,74 @@ func (rti RestoreTargetInfo) AsBasicRestoreTargetInfoBase() (BasicRestoreTargetI
 	return &rti, true
 }
 
+// UnmarshalJSON is the custom unmarshaler for RestoreTargetInfo struct.
+func (rti *RestoreTargetInfo) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "datasourceInfo":
+			if v != nil {
+				var datasourceInfo Datasource
+				err = json.Unmarshal(*v, &datasourceInfo)
+				if err != nil {
+					return err
+				}
+				rti.DatasourceInfo = &datasourceInfo
+			}
+		case "datasourceSetInfo":
+			if v != nil {
+				var datasourceSetInfo DatasourceSet
+				err = json.Unmarshal(*v, &datasourceSetInfo)
+				if err != nil {
+					return err
+				}
+				rti.DatasourceSetInfo = &datasourceSetInfo
+			}
+		case "datasourceAuthCredentials":
+			if v != nil {
+				datasourceAuthCredentials, err := unmarshalBasicAuthCredentials(*v)
+				if err != nil {
+					return err
+				}
+				rti.DatasourceAuthCredentials = datasourceAuthCredentials
+			}
+		case "recoveryOption":
+			if v != nil {
+				var recoveryOption string
+				err = json.Unmarshal(*v, &recoveryOption)
+				if err != nil {
+					return err
+				}
+				rti.RecoveryOption = &recoveryOption
+			}
+		case "restoreLocation":
+			if v != nil {
+				var restoreLocation string
+				err = json.Unmarshal(*v, &restoreLocation)
+				if err != nil {
+					return err
+				}
+				rti.RestoreLocation = &restoreLocation
+			}
+		case "objectType":
+			if v != nil {
+				var objectType ObjectTypeBasicRestoreTargetInfoBase
+				err = json.Unmarshal(*v, &objectType)
+				if err != nil {
+					return err
+				}
+				rti.ObjectType = objectType
+			}
+		}
+	}
+
+	return nil
+}
+
 // BasicRestoreTargetInfoBase base class common to RestoreTargetInfo and RestoreFilesTargetInfo
 type BasicRestoreTargetInfoBase interface {
 	AsItemLevelRestoreTargetInfo() (*ItemLevelRestoreTargetInfo, bool)
@@ -4919,7 +5807,7 @@ type RestoreTargetInfoBase struct {
 	RecoveryOption *string `json:"recoveryOption,omitempty"`
 	// RestoreLocation - Target Restore region
 	RestoreLocation *string `json:"restoreLocation,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeRestoreTargetInfoBase', 'ObjectTypeItemLevelRestoreTargetInfo', 'ObjectTypeRestoreFilesTargetInfo', 'ObjectTypeRestoreTargetInfo'
+	// ObjectType - Possible values include: 'ObjectTypeBasicRestoreTargetInfoBaseObjectTypeRestoreTargetInfoBase', 'ObjectTypeBasicRestoreTargetInfoBaseObjectTypeItemLevelRestoreTargetInfo', 'ObjectTypeBasicRestoreTargetInfoBaseObjectTypeRestoreFilesTargetInfo', 'ObjectTypeBasicRestoreTargetInfoBaseObjectTypeRestoreTargetInfo'
 	ObjectType ObjectTypeBasicRestoreTargetInfoBase `json:"objectType,omitempty"`
 }
 
@@ -4931,15 +5819,15 @@ func unmarshalBasicRestoreTargetInfoBase(body []byte) (BasicRestoreTargetInfoBas
 	}
 
 	switch m["objectType"] {
-	case string(ObjectTypeItemLevelRestoreTargetInfo):
+	case string(ObjectTypeBasicRestoreTargetInfoBaseObjectTypeItemLevelRestoreTargetInfo):
 		var ilrti ItemLevelRestoreTargetInfo
 		err := json.Unmarshal(body, &ilrti)
 		return ilrti, err
-	case string(ObjectTypeRestoreFilesTargetInfo):
+	case string(ObjectTypeBasicRestoreTargetInfoBaseObjectTypeRestoreFilesTargetInfo):
 		var rfti RestoreFilesTargetInfo
 		err := json.Unmarshal(body, &rfti)
 		return rfti, err
-	case string(ObjectTypeRestoreTargetInfo):
+	case string(ObjectTypeBasicRestoreTargetInfoBaseObjectTypeRestoreTargetInfo):
 		var rti RestoreTargetInfo
 		err := json.Unmarshal(body, &rti)
 		return rti, err
@@ -4970,7 +5858,7 @@ func unmarshalBasicRestoreTargetInfoBaseArray(body []byte) ([]BasicRestoreTarget
 
 // MarshalJSON is the custom marshaler for RestoreTargetInfoBase.
 func (rtib RestoreTargetInfoBase) MarshalJSON() ([]byte, error) {
-	rtib.ObjectType = ObjectTypeRestoreTargetInfoBase
+	rtib.ObjectType = ObjectTypeBasicRestoreTargetInfoBaseObjectTypeRestoreTargetInfoBase
 	objectMap := make(map[string]interface{})
 	if rtib.RecoveryOption != nil {
 		objectMap["recoveryOption"] = rtib.RecoveryOption
@@ -5043,13 +5931,13 @@ type ScheduleBasedBackupCriteria struct {
 	ScheduleTimes *[]date.Time `json:"scheduleTimes,omitempty"`
 	// WeeksOfTheMonth - It should be First/Second/Third/Fourth/Last
 	WeeksOfTheMonth *[]WeekNumber `json:"weeksOfTheMonth,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeBackupCriteria', 'ObjectTypeScheduleBasedBackupCriteria'
+	// ObjectType - Possible values include: 'ObjectTypeBasicBackupCriteriaObjectTypeBackupCriteria', 'ObjectTypeBasicBackupCriteriaObjectTypeScheduleBasedBackupCriteria'
 	ObjectType ObjectTypeBasicBackupCriteria `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ScheduleBasedBackupCriteria.
 func (sbbc ScheduleBasedBackupCriteria) MarshalJSON() ([]byte, error) {
-	sbbc.ObjectType = ObjectTypeScheduleBasedBackupCriteria
+	sbbc.ObjectType = ObjectTypeBasicBackupCriteriaObjectTypeScheduleBasedBackupCriteria
 	objectMap := make(map[string]interface{})
 	if sbbc.AbsoluteCriteria != nil {
 		objectMap["absoluteCriteria"] = sbbc.AbsoluteCriteria
@@ -5096,13 +5984,13 @@ type ScheduleBasedTriggerContext struct {
 	Schedule *BackupSchedule `json:"schedule,omitempty"`
 	// TaggingCriteria - List of tags that can be applicable for given schedule.
 	TaggingCriteria *[]TaggingCriteria `json:"taggingCriteria,omitempty"`
-	// ObjectType - Possible values include: 'ObjectTypeTriggerContext', 'ObjectTypeAdhocBasedTriggerContext', 'ObjectTypeScheduleBasedTriggerContext'
+	// ObjectType - Possible values include: 'ObjectTypeBasicTriggerContextObjectTypeTriggerContext', 'ObjectTypeBasicTriggerContextObjectTypeAdhocBasedTriggerContext', 'ObjectTypeBasicTriggerContextObjectTypeScheduleBasedTriggerContext'
 	ObjectType ObjectTypeBasicTriggerContext `json:"objectType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ScheduleBasedTriggerContext.
 func (sbtc ScheduleBasedTriggerContext) MarshalJSON() ([]byte, error) {
-	sbtc.ObjectType = ObjectTypeScheduleBasedTriggerContext
+	sbtc.ObjectType = ObjectTypeBasicTriggerContextObjectTypeScheduleBasedTriggerContext
 	objectMap := make(map[string]interface{})
 	if sbtc.Schedule != nil {
 		objectMap["schedule"] = sbtc.Schedule
@@ -5134,6 +6022,50 @@ func (sbtc ScheduleBasedTriggerContext) AsTriggerContext() (*TriggerContext, boo
 // AsBasicTriggerContext is the BasicTriggerContext implementation for ScheduleBasedTriggerContext.
 func (sbtc ScheduleBasedTriggerContext) AsBasicTriggerContext() (BasicTriggerContext, bool) {
 	return &sbtc, true
+}
+
+// SecretStoreBasedAuthCredentials secret store based authentication credentials.
+type SecretStoreBasedAuthCredentials struct {
+	// SecretStoreResource - Secret store resource
+	SecretStoreResource *SecretStoreResource `json:"secretStoreResource,omitempty"`
+	// ObjectType - Possible values include: 'ObjectTypeAuthCredentials', 'ObjectTypeSecretStoreBasedAuthCredentials'
+	ObjectType ObjectType `json:"objectType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SecretStoreBasedAuthCredentials.
+func (ssbac SecretStoreBasedAuthCredentials) MarshalJSON() ([]byte, error) {
+	ssbac.ObjectType = ObjectTypeSecretStoreBasedAuthCredentials
+	objectMap := make(map[string]interface{})
+	if ssbac.SecretStoreResource != nil {
+		objectMap["secretStoreResource"] = ssbac.SecretStoreResource
+	}
+	if ssbac.ObjectType != "" {
+		objectMap["objectType"] = ssbac.ObjectType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsSecretStoreBasedAuthCredentials is the BasicAuthCredentials implementation for SecretStoreBasedAuthCredentials.
+func (ssbac SecretStoreBasedAuthCredentials) AsSecretStoreBasedAuthCredentials() (*SecretStoreBasedAuthCredentials, bool) {
+	return &ssbac, true
+}
+
+// AsAuthCredentials is the BasicAuthCredentials implementation for SecretStoreBasedAuthCredentials.
+func (ssbac SecretStoreBasedAuthCredentials) AsAuthCredentials() (*AuthCredentials, bool) {
+	return nil, false
+}
+
+// AsBasicAuthCredentials is the BasicAuthCredentials implementation for SecretStoreBasedAuthCredentials.
+func (ssbac SecretStoreBasedAuthCredentials) AsBasicAuthCredentials() (BasicAuthCredentials, bool) {
+	return &ssbac, true
+}
+
+// SecretStoreResource class representing a secret store resource.
+type SecretStoreResource struct {
+	// URI - Uri to get to the resource
+	URI *string `json:"uri,omitempty"`
+	// SecretStoreType - Gets or sets the type of secret store. Possible values include: 'SecretStoreTypeInvalid', 'SecretStoreTypeAzureKeyVault'
+	SecretStoreType SecretStoreType `json:"secretStoreType,omitempty"`
 }
 
 // SourceLifeCycle source LifeCycle
@@ -5188,7 +6120,7 @@ func (slc *SourceLifeCycle) UnmarshalJSON(body []byte) error {
 type StorageSetting struct {
 	// DatastoreType - Gets or sets the type of the datastore. Possible values include: 'StorageSettingStoreTypesArchiveStore', 'StorageSettingStoreTypesSnapshotStore', 'StorageSettingStoreTypesVaultStore'
 	DatastoreType StorageSettingStoreTypes `json:"datastoreType,omitempty"`
-	// Type - Gets or sets the type. Possible values include: 'GeoRedundant', 'LocallyRedundant'
+	// Type - Gets or sets the type. Possible values include: 'StorageSettingTypesGeoRedundant', 'StorageSettingTypesLocallyRedundant'
 	Type StorageSettingTypes `json:"type,omitempty"`
 }
 
@@ -5206,13 +6138,13 @@ type SupportedFeature struct {
 type SystemData struct {
 	// CreatedBy - The identity that created the resource.
 	CreatedBy *string `json:"createdBy,omitempty"`
-	// CreatedByType - The type of identity that created the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
 	CreatedByType CreatedByType `json:"createdByType,omitempty"`
 	// CreatedAt - The timestamp of resource creation (UTC).
 	CreatedAt *date.Time `json:"createdAt,omitempty"`
 	// LastModifiedBy - The identity that last modified the resource.
 	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
-	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
 	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
 	// LastModifiedAt - The type of identity that last modified the resource.
 	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
@@ -5347,7 +6279,7 @@ type BasicTriggerContext interface {
 
 // TriggerContext trigger context
 type TriggerContext struct {
-	// ObjectType - Possible values include: 'ObjectTypeTriggerContext', 'ObjectTypeAdhocBasedTriggerContext', 'ObjectTypeScheduleBasedTriggerContext'
+	// ObjectType - Possible values include: 'ObjectTypeBasicTriggerContextObjectTypeTriggerContext', 'ObjectTypeBasicTriggerContextObjectTypeAdhocBasedTriggerContext', 'ObjectTypeBasicTriggerContextObjectTypeScheduleBasedTriggerContext'
 	ObjectType ObjectTypeBasicTriggerContext `json:"objectType,omitempty"`
 }
 
@@ -5359,11 +6291,11 @@ func unmarshalBasicTriggerContext(body []byte) (BasicTriggerContext, error) {
 	}
 
 	switch m["objectType"] {
-	case string(ObjectTypeAdhocBasedTriggerContext):
+	case string(ObjectTypeBasicTriggerContextObjectTypeAdhocBasedTriggerContext):
 		var abtc AdhocBasedTriggerContext
 		err := json.Unmarshal(body, &abtc)
 		return abtc, err
-	case string(ObjectTypeScheduleBasedTriggerContext):
+	case string(ObjectTypeBasicTriggerContextObjectTypeScheduleBasedTriggerContext):
 		var sbtc ScheduleBasedTriggerContext
 		err := json.Unmarshal(body, &sbtc)
 		return sbtc, err
@@ -5394,7 +6326,7 @@ func unmarshalBasicTriggerContextArray(body []byte) ([]BasicTriggerContext, erro
 
 // MarshalJSON is the custom marshaler for TriggerContext.
 func (tc TriggerContext) MarshalJSON() ([]byte, error) {
-	tc.ObjectType = ObjectTypeTriggerContext
+	tc.ObjectType = ObjectTypeBasicTriggerContextObjectTypeTriggerContext
 	objectMap := make(map[string]interface{})
 	if tc.ObjectType != "" {
 		objectMap["objectType"] = tc.ObjectType
