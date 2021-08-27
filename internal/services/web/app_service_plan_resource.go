@@ -127,6 +127,12 @@ func resourceAppServicePlan() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"zone_redundant": {
+				Type:     pluginsdk.TypeBool,
+				ForceNew: true,
+				Optional: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -198,6 +204,10 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if v := d.Get("maximum_elastic_worker_count").(int); v > 0 {
 		appServicePlan.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(v))
+	}
+
+	if v := d.Get("zone_redundant").(bool); v {
+		appServicePlan.AppServicePlanProperties.ZoneRedundant = utils.Bool(v)
 	}
 
 	if reserved {
@@ -284,6 +294,7 @@ func resourceAppServicePlanRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("per_site_scaling", props.PerSiteScaling)
 		d.Set("reserved", props.Reserved)
 		d.Set("is_xenon", props.IsXenon)
+		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
 	if err := d.Set("sku", flattenAppServicePlanSku(resp.Sku)); err != nil {
