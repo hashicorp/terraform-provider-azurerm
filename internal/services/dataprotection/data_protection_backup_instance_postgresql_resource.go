@@ -139,8 +139,8 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 		return fmt.Errorf("context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(dataprotection.ConfiguringProtection), string(dataprotection.UpdatingProtection)},
-		Target:     []string{string(dataprotection.ProtectionConfigured)},
+		Pending:    []string{string(dataprotection.StatusConfiguringProtection)},
+		Target:     []string{string(dataprotection.StatusProtectionConfigured)},
 		Refresh:    policyProtectionStateRefreshFunc(ctx, client, id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(deadline),

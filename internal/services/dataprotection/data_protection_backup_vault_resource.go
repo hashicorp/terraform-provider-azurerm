@@ -22,9 +22,9 @@ import (
 
 func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDataProtectionBackupVaultCreate,
+		Create: resourceDataProtectionBackupVaultCreateUpdate,
 		Read:   resourceDataProtectionBackupVaultRead,
-		Update: resourceDataProtectionBackupVaultUpdate,
+		Update: resourceDataProtectionBackupVaultCreateUpdate,
 		Delete: resourceDataProtectionBackupVaultDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -70,8 +70,8 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(dataprotection.GeoRedundant),
-					string(dataprotection.LocallyRedundant),
+					string(dataprotection.StorageSettingTypesGeoRedundant),
+					string(dataprotection.StorageSettingTypesLocallyRedundant),
 				}, false),
 			},
 
@@ -81,7 +81,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 		},
 	}
 }
-func resourceDataProtectionBackupVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataProtection.BackupVaultClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -92,14 +92,16 @@ func resourceDataProtectionBackupVaultCreate(d *pluginsdk.ResourceData, meta int
 
 	id := parse.NewBackupVaultID(subscriptionId, resourceGroup, name)
 
-	existing, err := client.Get(ctx, id.Name, id.ResourceGroup)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing DataProtection BackupVault (%q): %+v", id, err)
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, id.Name, id.ResourceGroup)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for existing DataProtection BackupVault (%q): %+v", id, err)
+			}
 		}
-	}
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_data_protection_backup_vault", id.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_protection_backup_vault", id.ID())
+		}
 	}
 
 	parameters := dataprotection.BackupVaultResource{
@@ -159,35 +161,6 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-func resourceDataProtectionBackupVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataProtection.BackupVaultClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.BackupVaultID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	parameters := dataprotection.PatchResourceRequestInput{}
-	if d.HasChange("identity") {
-		parameters.Identity = expandBackupVaultDppIdentityDetails(d.Get("identity").([]interface{}))
-	}
-	if d.HasChange("tags") {
-		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
-	}
-
-	future, err := client.Patch(ctx, id.Name, id.ResourceGroup, parameters)
-	if err != nil {
-		return fmt.Errorf("updating DataProtection BackupVault (%q): %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of the DataProtection BackupVault %q: %+v", id, err)
-	}
-	return resourceDataProtectionBackupVaultRead(d, meta)
 }
 
 func resourceDataProtectionBackupVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
