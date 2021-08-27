@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: upgrading to `v57.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-13160]
+* upgrading `dataprotection` to API Version `2021-07-01` [GH-13161]
 * `azurerm_mssql_server`- refactoring to use an ID Formatter/Parser [GH-13151]
 
 ## 2.74.0 (August 27, 2021)
