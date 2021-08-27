@@ -58,6 +58,7 @@ func Required() map[string]struct{} {
 		"Microsoft.NotificationHubs":        {},
 		"Microsoft.OperationalInsights":     {},
 		"Microsoft.OperationsManagement":    {},
+		"Microsoft.PolicyInsights":          {},
 		"Microsoft.PowerBIDedicated":        {},
 		"Microsoft.Relay":                   {},
 		"Microsoft.RecoveryServices":        {},
