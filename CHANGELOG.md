@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_network_service_tags` - new properties `ipv4_cidrs` and `ipv6_cidrs` [GH-13058]
 * `azurerm_app_configuration` - support for user assigned identities [GH-13080]
 * `azurerm_app_service` - add support for `vnet_route_all_enabled` property [GH-13073]
+* `azurerm_app_service_plan` - support for the `zone_redundant` property  [GH-13145]
 * `azurerm_data_factory_dataset_binary` -  support for `dynamic_path_enabled` and `dynamic_path_enabled`  properties [GH-13117]
 * `azurerm_data_factory_dataset_delimited_text` -  support for `dynamic_path_enabled` and `dynamic_path_enabled`  properties [GH-13117]
 * `azurerm_data_factory_dataset_json` -  support for `dynamic_path_enabled` and `dynamic_path_enabled`  properties [GH-13117]
