@@ -75,9 +75,7 @@ The following arguments are supported:
 
 * `replicas_per_primary` - (Optional) Amount of replicas to create per primary for this Redis Cache. If both `replicas_per_primary` and `replicas_per_master` are set, they need to be equal.
 
-* `redis_version` - (Optional) Redis version. Only major version needed. Valid values: `4`, `6`. 
-
-~> **Note:** Redis 6 does not support `shard_count`.
+* `redis_version` - (Optional) Redis version. Only major version needed. Valid values: `4`, `6`.
 
 * `tenant_settings` - (Optional) A mapping of tenant settings to assign to the resource.
 
