@@ -1,5 +1,9 @@
 ## 2.75.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_cosmosdb_mongo_database` [GH-13123]
+
 ENHANCEMENTS:
 
 * dependencies: upgrading to `v57.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-13160]
