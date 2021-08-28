@@ -3,8 +3,8 @@ package consumption
 import (
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -20,9 +20,9 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 				Required:     true,
 				ValidateFunc: validate.ConsumptionBudgetName(),
 			},
-			
+
 			"resource_group_name": {
-				Type: pluginsdk.TypeString,
+				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 		},
