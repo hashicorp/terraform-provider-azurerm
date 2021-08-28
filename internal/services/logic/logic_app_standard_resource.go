@@ -598,14 +598,11 @@ func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) 
 		{Name: &storagePropName, Value: &storageConnection},
 		{Name: &functionVersionPropName, Value: &functionVersion},
 		{Name: &appKindPropName, Value: &appKindPropValue},
-	}
-
-	consumptionSettings := []web.NameValuePair{
 		{Name: &contentSharePropName, Value: &contentShare},
 		{Name: &contentFileConnStringPropName, Value: &storageConnection},
 	}
 
-	return append(basicSettings, consumptionSettings...), nil
+	return basicSettings, nil
 }
 
 func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
