@@ -82,11 +82,6 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"daily_memory_time_quota": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-			},
-
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -254,7 +249,6 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	clientCertMode := d.Get("client_cert_mode").(string)
 	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
-	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
 
 	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
@@ -337,7 +331,6 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	clientCertMode := d.Get("client_cert_mode").(string)
 	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
-	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
 
 	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
@@ -486,7 +479,6 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("enabled", props.Enabled)
 		d.Set("default_hostname", props.DefaultHostName)
 		d.Set("https_only", props.HTTPSOnly)
-		d.Set("daily_memory_time_quota", props.DailyMemoryTimeQuota)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
@@ -678,12 +670,6 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				"health_check_path": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-				},
-
-				"java_version": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringInSlice([]string{"1.8", "11"}, false),
 				},
 
 				"elastic_instance_minimum": {
@@ -1004,10 +990,6 @@ func flattenLogicAppStandardSiteConfig(input *web.SiteConfig) []interface{} {
 		result["health_check_path"] = *input.HealthCheckPath
 	}
 
-	if input.JavaVersion != nil {
-		result["java_version"] = *input.JavaVersion
-	}
-
 	if input.MinimumElasticInstanceCount != nil {
 		result["elastic_instance_minimum"] = *input.MinimumElasticInstanceCount
 	}
@@ -1203,10 +1185,6 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 
 	if v, ok := config["health_check_path"]; ok {
 		siteConfig.HealthCheckPath = utils.String(v.(string))
-	}
-
-	if v, ok := config["java_version"]; ok {
-		siteConfig.JavaVersion = utils.String(v.(string))
 	}
 
 	if v, ok := config["elastic_instance_minimum"]; ok {
