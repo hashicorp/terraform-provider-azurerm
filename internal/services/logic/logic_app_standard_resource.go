@@ -1,7 +1,6 @@
 package logic
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -11,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
+	logicValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	msiParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
-	webValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -31,7 +30,7 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 		Update: resourceLogicAppStandardUpdate,
 		Delete: resourceLogicAppStandardDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FunctionAppID(id)
+			_, err := parse.LogicAppStandardID(id)
 			return err
 		}),
 
@@ -47,7 +46,7 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: webValidate.AppServiceName,
+				ValidateFunc: logicValidate.LogicAppStandardName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -166,7 +165,6 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 
 			// Computed Only
-
 			"custom_domain_verification_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -232,7 +230,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_function_app", *existing.ID)
+		return tf.ImportAsExistsError("azurerm_logic_app_standard", *existing.ID)
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
@@ -258,12 +256,8 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
-	appServiceTier, err := getLogicAppStandardServiceTier(ctx, appServicePlanID, meta)
-	if err != nil {
-		return err
-	}
 
-	basicAppSettings, err := getBasicLogicAppSettings(d, appServiceTier, endpointSuffix)
+	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
 	if err != nil {
 		return err
 	}
@@ -316,7 +310,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("Cannot read Logic App Standard %s (resource group %s) ID", name, resourceGroup)
+		return fmt.Errorf("cannot read Logic App Standard %s (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -330,7 +324,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FunctionAppID(d.Id())
+	id, err := parse.LogicAppStandardID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -346,12 +340,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
 
-	appServiceTier, err := getLogicAppStandardServiceTier(ctx, appServicePlanID, meta)
-	if err != nil {
-		return err
-	}
-
-	basicAppSettings, err := getBasicLogicAppSettings(d, appServiceTier, endpointSuffix)
+	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
 	if err != nil {
 		return err
 	}
@@ -397,7 +386,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("waiting for update of Logic App Standard %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
-	appSettings, err := expandLogicAppStandardSettings(d, appServiceTier, endpointSuffix)
+	appSettings, err := expandLogicAppStandardSettings(d, endpointSuffix)
 	if err != nil {
 		return err
 	}
@@ -442,7 +431,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FunctionAppID(d.Id())
+	id, err := parse.LogicAppStandardID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -572,7 +561,7 @@ func resourceLogicAppStandardDelete(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FunctionAppID(d.Id())
+	id, err := parse.LogicAppStandardID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -591,29 +580,7 @@ func resourceLogicAppStandardDelete(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func getLogicAppStandardServiceTier(ctx context.Context, appServicePlanId string, meta interface{}) (string, error) {
-	id, err := parse.AppServicePlanID(appServicePlanId)
-	if err != nil {
-		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID %q: %+v", appServicePlanId, err)
-	}
-
-	log.Printf("[DEBUG] Retrieving Service Plan %q (Resource Group %q)", id.ServerfarmName, id.ResourceGroup)
-
-	appServicePlansClient := meta.(*clients.Client).Web.AppServicePlansClient
-	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerfarmName)
-	if err != nil {
-		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanId, err)
-	}
-
-	if sku := appServicePlan.Sku; sku != nil {
-		if tier := sku.Tier; tier != nil {
-			return *tier, nil
-		}
-	}
-	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanId)
-}
-
-func getBasicLogicAppSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string) ([]web.NameValuePair, error) {
+func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) ([]web.NameValuePair, error) {
 	storagePropName := "AzureWebJobsStorage"
 	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
 	contentSharePropName := "WEBSITE_CONTENTSHARE"
@@ -1282,10 +1249,10 @@ func expandLogicAppStandardIdentity(input []interface{}) *web.ManagedServiceIden
 	return &managedServiceIdentity
 }
 
-func expandLogicAppStandardSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string) (map[string]*string, error) {
+func expandLogicAppStandardSettings(d *pluginsdk.ResourceData, endpointSuffix string) (map[string]*string, error) {
 	output := expandAppSettings(d)
 
-	basicAppSettings, err := getBasicLogicAppSettings(d, appServiceTier, endpointSuffix)
+	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
 	if err != nil {
 		return nil, err
 	}

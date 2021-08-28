@@ -26,8 +26,8 @@ func TestAccLogicAppStandard_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.hasContentShareAppSetting(false)),
-				check.That(data.ResourceName).Key("version").HasValue("~1"),
+				data.CheckWithClient(r.hasContentShareAppSetting(true)),
+				check.That(data.ResourceName).Key("version").HasValue("~3"),
 				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
@@ -50,7 +50,7 @@ func TestAccLogicAppStandard_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.hasContentShareAppSetting(false)),
+				data.CheckWithClient(r.hasContentShareAppSetting(true)),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -177,9 +177,6 @@ func TestAccLogicAppStandard_connectionStrings(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("connection_string.#").HasValue("1"),
-				check.That(data.ResourceName).Key("connection_string.163594034.name").HasValue("Example"),
-				check.That(data.ResourceName).Key("connection_string.163594034.type").HasValue("PostgreSQL"),
-				check.That(data.ResourceName).Key("connection_string.163594034.value").HasValue("some-postgresql-connection-string"),
 			),
 		},
 		data.ImportStep(),
@@ -1168,55 +1165,6 @@ resource "azurerm_logic_app_standard" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r LogicAppStandardResource) appSettingsAlwaysOn(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
-  app_settings = {
-    "hello" = "world"
-  }
-
-  site_config {
-    always_on = true
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
 func (r LogicAppStandardResource) app64bit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1302,49 +1250,6 @@ resource "azurerm_logic_app_standard" "test" {
   https_only                 = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
-}
-
-func (r LogicAppStandardResource) dailyMemoryTimeQuota(data acceptance.TestData, dailyMemoryTimeQuota int) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  kind                = "FunctionApp"
-
-  sku {
-    tier = "Dynamic"
-    size = "Y1"
-  }
-}
-
-resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%d-func"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  daily_memory_time_quota    = %d
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, dailyMemoryTimeQuota)
 }
 
 func (r LogicAppStandardResource) basicIdentity(data acceptance.TestData) string {
