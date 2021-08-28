@@ -11,14 +11,14 @@ import (
 // which has a quota of one per tenant.
 func TestAccHDInsightCluster_securityProfileSequential(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"interactiveQuery": {
+			"securityProfile": testAccHDInsightInteractiveQueryCluster_securityProfile,
+		},
 		"hadoop": {
 			"securityProfile": testAccHDInsightHadoopCluster_securityProfile,
 		},
 		"hbase": {
 			"securityProfile": testAccHDInsightHBaseCluster_securityProfile,
-		},
-		"interactiveQuery": {
-			"securityProfile": testAccHDInsightInteractiveQueryCluster_securityProfile,
 		},
 		"kafka": {
 			"securityProfile": testAccHDInsightKafkaCluster_securityProfile,
