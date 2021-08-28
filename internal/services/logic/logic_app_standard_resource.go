@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
-	logicValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	msiParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
+	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -46,7 +46,7 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: logicValidate.LogicAppStandardName,
+				ValidateFunc: validate.LogicAppStandardName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -731,7 +731,7 @@ func schemaLogicAppStandardIdentity() *pluginsdk.Schema {
 					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: validate.UserAssignedIdentityID,
+						ValidateFunc: msiValidate.UserAssignedIdentityID,
 					},
 				},
 
