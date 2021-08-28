@@ -592,7 +592,12 @@ func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) 
 	accountKey := d.Get("storage_account_access_key").(string)
 	storageConnection := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", storageAccount, accountKey, endpointSuffix)
 	functionVersion := d.Get("version").(string)
+
 	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
+	appSettings := expandAppSettings(d)
+	if val, ok := appSettings["WEBSITE_CONTENTSHARE"]; ok {
+		contentShare = *val
+	}
 
 	basicSettings := []web.NameValuePair{
 		{Name: &storagePropName, Value: &storageConnection},

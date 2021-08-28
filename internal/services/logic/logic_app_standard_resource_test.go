@@ -116,6 +116,21 @@ func TestAccLogicAppStandard_appSettings(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppStandard_customShare(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customShare(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLogicAppStandard_siteConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
@@ -935,6 +950,62 @@ resource "azurerm_logic_app_standard" "test" {
     "AzureWebJobsStorage"                      = azurerm_storage_account.test.primary_connection_string
     "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = azurerm_storage_account.test.primary_connection_string
     "WEBSITE_CONTENTSHARE"                     = "acctest-%[1]d-func-content"
+    "APP_KIND"                                 = "workflowApp"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r LogicAppStandardResource) customShare(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_storage_share" "custom" {
+  name                 = "customshare"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%[1]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  app_settings = {
+    "hello"                                    = "world"
+    "APPINSIGHTS_INSTRUMENTATIONKEY"           = azurerm_storage_account.test.primary_connection_string
+    "FUNCTIONS_EXTENSION_VERSION"              = "~3"
+    "AzureWebJobsStorage"                      = azurerm_storage_account.test.primary_connection_string
+    "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = azurerm_storage_account.test.primary_connection_string
+    "WEBSITE_CONTENTSHARE"                     = azurerm_storage_share.custom.name
     "APP_KIND"                                 = "workflowApp"
   }
 }
