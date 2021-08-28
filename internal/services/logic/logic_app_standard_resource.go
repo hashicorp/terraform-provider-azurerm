@@ -273,7 +273,6 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
 			ClientCertEnabled:     utils.Bool(clientCertEnabled),
 			HTTPSOnly:             utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
 			SiteConfig:            &siteConfig,
 		},
 	}
@@ -355,7 +354,6 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
 			ClientCertEnabled:     utils.Bool(clientCertEnabled),
 			HTTPSOnly:             utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
 			SiteConfig:            &siteConfig,
 		},
 	}
