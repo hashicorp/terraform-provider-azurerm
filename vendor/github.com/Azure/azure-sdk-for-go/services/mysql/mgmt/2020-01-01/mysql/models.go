@@ -52,6 +52,12 @@ type AdvisorsResultList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AdvisorsResultList.
+func (arl AdvisorsResultList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AdvisorsResultListIterator provides access to a complete listing of Advisor values.
 type AdvisorsResultListIterator struct {
 	i    int
@@ -212,6 +218,12 @@ type AzureEntityResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AzureEntityResource.
+func (aer AzureEntityResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // CloudError an error response from the Batch service.
@@ -584,6 +596,12 @@ type ErrorAdditionalInfo struct {
 	Info interface{} `json:"info,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ErrorAdditionalInfo.
+func (eai ErrorAdditionalInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ErrorResponse common error response for all Azure Resource Manager APIs to return error details for
 // failed operations. (This also follows the OData error response format.)
 type ErrorResponse struct {
@@ -597,6 +615,12 @@ type ErrorResponse struct {
 	Details *[]ErrorResponse `json:"details,omitempty"`
 	// AdditionalInfo - READ-ONLY; The error additional info.
 	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorResponse.
+func (er ErrorResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // FirewallRule represents a server firewall rule.
@@ -924,6 +948,12 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationDisplay.
+func (od OperationDisplay) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // OperationListResult a list of resource provider operations.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
@@ -942,6 +972,18 @@ type PerformanceTierListResult struct {
 type PerformanceTierProperties struct {
 	// ID - ID of the performance tier.
 	ID *string `json:"id,omitempty"`
+	// MaxBackupRetentionDays - Maximum Backup retention in days for the performance tier edition
+	MaxBackupRetentionDays *int32 `json:"maxBackupRetentionDays,omitempty"`
+	// MinBackupRetentionDays - Minimum Backup retention in days for the performance tier edition
+	MinBackupRetentionDays *int32 `json:"minBackupRetentionDays,omitempty"`
+	// MaxStorageMB - Max storage allowed for a server.
+	MaxStorageMB *int32 `json:"maxStorageMB,omitempty"`
+	// MinLargeStorageMB - Max storage allowed for a server.
+	MinLargeStorageMB *int32 `json:"minLargeStorageMB,omitempty"`
+	// MaxLargeStorageMB - Max storage allowed for a server.
+	MaxLargeStorageMB *int32 `json:"maxLargeStorageMB,omitempty"`
+	// MinStorageMB - Max storage allowed for a server.
+	MinStorageMB *int32 `json:"minStorageMB,omitempty"`
 	// ServiceLevelObjectives - Service level objectives associated with the performance tier
 	ServiceLevelObjectives *[]PerformanceTierServiceLevelObjectives `json:"serviceLevelObjectives,omitempty"`
 }
@@ -1046,6 +1088,12 @@ type PrivateEndpointConnectionListResult struct {
 	Value *[]PrivateEndpointConnection `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnectionListResult.
+func (peclr PrivateEndpointConnectionListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PrivateEndpointConnectionListResultIterator provides access to a complete listing of
@@ -1363,6 +1411,12 @@ type PrivateLinkResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateLinkResource.
+func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateLinkResourceListResult a list of private link resources
 type PrivateLinkResourceListResult struct {
 	autorest.Response `json:"-"`
@@ -1370,6 +1424,12 @@ type PrivateLinkResourceListResult struct {
 	Value *[]PrivateLinkResource `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResourceListResult.
+func (plrlr PrivateLinkResourceListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // PrivateLinkResourceListResultIterator provides access to a complete listing of PrivateLinkResource
@@ -1531,6 +1591,12 @@ type PrivateLinkResourceProperties struct {
 	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateLinkResourceProperties.
+func (plrp PrivateLinkResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // PrivateLinkServiceConnectionStateProperty ...
 type PrivateLinkServiceConnectionStateProperty struct {
 	// Status - The private link service connection status.
@@ -1562,6 +1628,21 @@ type ProxyResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// QueryPerformanceInsightResetDataResult result of Query Performance Insight data reset.
+type QueryPerformanceInsightResetDataResult struct {
+	autorest.Response `json:"-"`
+	// Status - Indicates result of the operation. Possible values include: 'QueryPerformanceInsightResetDataResultStateSucceeded', 'QueryPerformanceInsightResetDataResultStateFailed'
+	Status QueryPerformanceInsightResetDataResultState `json:"status,omitempty"`
+	// Message - operation message.
+	Message *string `json:"message,omitempty"`
 }
 
 // QueryStatistic represents a Query Statistic.
@@ -1749,6 +1830,12 @@ type QueryTextsResultList struct {
 	Value *[]QueryText `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for QueryTextsResultList.
+func (qtrl QueryTextsResultList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // QueryTextsResultListIterator provides access to a complete listing of QueryText values.
@@ -2033,6 +2120,12 @@ type RecommendationActionsResultList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RecommendationActionsResultList.
+func (rarl RecommendationActionsResultList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // RecommendationActionsResultListIterator provides access to a complete listing of RecommendationAction
 // values.
 type RecommendationActionsResultListIterator struct {
@@ -2195,6 +2288,101 @@ type RecommendedActionSessionsOperationStatus struct {
 	Status *string `json:"status,omitempty"`
 }
 
+// RecoverableServerProperties the recoverable server's properties.
+type RecoverableServerProperties struct {
+	// LastAvailableBackupDateTime - READ-ONLY; The last available backup date time.
+	LastAvailableBackupDateTime *string `json:"lastAvailableBackupDateTime,omitempty"`
+	// ServiceLevelObjective - READ-ONLY; The service level objective
+	ServiceLevelObjective *string `json:"serviceLevelObjective,omitempty"`
+	// Edition - READ-ONLY; Edition of the performance tier.
+	Edition *string `json:"edition,omitempty"`
+	// VCore - READ-ONLY; vCore associated with the service level objective
+	VCore *int32 `json:"vCore,omitempty"`
+	// HardwareGeneration - READ-ONLY; Hardware generation associated with the service level objective
+	HardwareGeneration *string `json:"hardwareGeneration,omitempty"`
+	// Version - READ-ONLY; The MySQL version
+	Version *string `json:"version,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RecoverableServerProperties.
+func (rsp RecoverableServerProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// RecoverableServerResource a recoverable server resource.
+type RecoverableServerResource struct {
+	autorest.Response `json:"-"`
+	// RecoverableServerProperties - Resource properties.
+	*RecoverableServerProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RecoverableServerResource.
+func (rsr RecoverableServerResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rsr.RecoverableServerProperties != nil {
+		objectMap["properties"] = rsr.RecoverableServerProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for RecoverableServerResource struct.
+func (rsr *RecoverableServerResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var recoverableServerProperties RecoverableServerProperties
+				err = json.Unmarshal(*v, &recoverableServerProperties)
+				if err != nil {
+					return err
+				}
+				rsr.RecoverableServerProperties = &recoverableServerProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				rsr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				rsr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				rsr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
 // Resource common fields that are returned in the response for all Azure Resource Manager resources
 type Resource struct {
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
@@ -2203,6 +2391,12 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ResourceIdentity azure Active Directory identity configuration for a resource.
@@ -2728,6 +2922,12 @@ type ServerKeyListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ServerKeyListResult.
+func (sklr ServerKeyListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // ServerKeyListResultIterator provides access to a complete listing of ServerKey values.
 type ServerKeyListResultIterator struct {
 	i    int
@@ -2987,12 +3187,61 @@ type ServerListResult struct {
 	Value *[]Server `json:"value,omitempty"`
 }
 
+// ServerParametersListUpdateConfigurationsFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
+type ServerParametersListUpdateConfigurationsFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ServerParametersClient) (ConfigurationListResult, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ServerParametersListUpdateConfigurationsFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ServerParametersListUpdateConfigurationsFuture.Result.
+func (future *ServerParametersListUpdateConfigurationsFuture) result(client ServerParametersClient) (clr ConfigurationListResult, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "mysql.ServerParametersListUpdateConfigurationsFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		clr.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("mysql.ServerParametersListUpdateConfigurationsFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if clr.Response.Response, err = future.GetResult(sender); err == nil && clr.Response.Response.StatusCode != http.StatusNoContent {
+		clr, err = client.ListUpdateConfigurationsResponder(clr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "mysql.ServerParametersListUpdateConfigurationsFuture", "Result", clr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // ServerPrivateEndpointConnection a private endpoint connection under a server
 type ServerPrivateEndpointConnection struct {
 	// ID - READ-ONLY; Resource Id of the private endpoint connection.
 	ID *string `json:"id,omitempty"`
 	// Properties - READ-ONLY; Private endpoint connection properties
 	Properties *ServerPrivateEndpointConnectionProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerPrivateEndpointConnection.
+func (spec ServerPrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ServerPrivateEndpointConnectionProperties properties of a private endpoint connection.
@@ -3783,6 +4032,172 @@ func (ssap *ServerSecurityAlertPolicy) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// ServerSecurityAlertPolicyListResult a list of the server's security alert policies.
+type ServerSecurityAlertPolicyListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Array of results.
+	Value *[]ServerSecurityAlertPolicy `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerSecurityAlertPolicyListResult.
+func (ssaplr ServerSecurityAlertPolicyListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ServerSecurityAlertPolicyListResultIterator provides access to a complete listing of
+// ServerSecurityAlertPolicy values.
+type ServerSecurityAlertPolicyListResultIterator struct {
+	i    int
+	page ServerSecurityAlertPolicyListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ServerSecurityAlertPolicyListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServerSecurityAlertPolicyListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ServerSecurityAlertPolicyListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ServerSecurityAlertPolicyListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ServerSecurityAlertPolicyListResultIterator) Response() ServerSecurityAlertPolicyListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ServerSecurityAlertPolicyListResultIterator) Value() ServerSecurityAlertPolicy {
+	if !iter.page.NotDone() {
+		return ServerSecurityAlertPolicy{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ServerSecurityAlertPolicyListResultIterator type.
+func NewServerSecurityAlertPolicyListResultIterator(page ServerSecurityAlertPolicyListResultPage) ServerSecurityAlertPolicyListResultIterator {
+	return ServerSecurityAlertPolicyListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (ssaplr ServerSecurityAlertPolicyListResult) IsEmpty() bool {
+	return ssaplr.Value == nil || len(*ssaplr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (ssaplr ServerSecurityAlertPolicyListResult) hasNextLink() bool {
+	return ssaplr.NextLink != nil && len(*ssaplr.NextLink) != 0
+}
+
+// serverSecurityAlertPolicyListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (ssaplr ServerSecurityAlertPolicyListResult) serverSecurityAlertPolicyListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !ssaplr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(ssaplr.NextLink)))
+}
+
+// ServerSecurityAlertPolicyListResultPage contains a page of ServerSecurityAlertPolicy values.
+type ServerSecurityAlertPolicyListResultPage struct {
+	fn     func(context.Context, ServerSecurityAlertPolicyListResult) (ServerSecurityAlertPolicyListResult, error)
+	ssaplr ServerSecurityAlertPolicyListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ServerSecurityAlertPolicyListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServerSecurityAlertPolicyListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.ssaplr)
+		if err != nil {
+			return err
+		}
+		page.ssaplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ServerSecurityAlertPolicyListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ServerSecurityAlertPolicyListResultPage) NotDone() bool {
+	return !page.ssaplr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ServerSecurityAlertPolicyListResultPage) Response() ServerSecurityAlertPolicyListResult {
+	return page.ssaplr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ServerSecurityAlertPolicyListResultPage) Values() []ServerSecurityAlertPolicy {
+	if page.ssaplr.IsEmpty() {
+		return nil
+	}
+	return *page.ssaplr.Value
+}
+
+// Creates a new instance of the ServerSecurityAlertPolicyListResultPage type.
+func NewServerSecurityAlertPolicyListResultPage(cur ServerSecurityAlertPolicyListResult, getNextPage func(context.Context, ServerSecurityAlertPolicyListResult) (ServerSecurityAlertPolicyListResult, error)) ServerSecurityAlertPolicyListResultPage {
+	return ServerSecurityAlertPolicyListResultPage{
+		fn:     getNextPage,
+		ssaplr: cur,
+	}
+}
+
 // ServersRestartFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ServersRestartFuture struct {
@@ -4221,6 +4636,12 @@ type TopQueryStatisticsResultList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for TopQueryStatisticsResultList.
+func (tqsrl TopQueryStatisticsResultList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // TopQueryStatisticsResultListIterator provides access to a complete listing of QueryStatistic values.
 type TopQueryStatisticsResultListIterator struct {
 	i    int
@@ -4478,6 +4899,12 @@ type VirtualNetworkRuleListResult struct {
 	Value *[]VirtualNetworkRule `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualNetworkRuleListResult.
+func (vnrlr VirtualNetworkRuleListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // VirtualNetworkRuleListResultIterator provides access to a complete listing of VirtualNetworkRule values.
@@ -4883,6 +5310,12 @@ type WaitStatisticsResultList struct {
 	Value *[]WaitStatistic `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to retrieve next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for WaitStatisticsResultList.
+func (wsrl WaitStatisticsResultList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // WaitStatisticsResultListIterator provides access to a complete listing of WaitStatistic values.

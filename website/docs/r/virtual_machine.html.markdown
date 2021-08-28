@@ -18,7 +18,7 @@ Manages a Virtual Machine.
 
 ## Example Usage (from an Azure Platform Image)
 
-This example provisions a Virtual Machine with Managed Disks. Other examples of the `azurerm_virtual_machine` resource can be found in [the `./examples/virtual-machines` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/virtual-machines)
+This example provisions a Virtual Machine with Managed Disks. Other examples of the `azurerm_virtual_machine` resource can be found in [the `./examples/virtual-machines` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/virtual-machines)
 
 ```hcl
 variable "prefix" {
@@ -298,7 +298,7 @@ To provision a Custom Image, the following fields are applicable:
 
 * `id` - (Required) Specifies the ID of the Custom Image which the Virtual Machine should be created from. Changing this forces a new resource to be created.
 
--> **NOTE:** An example of how to use this is available within [the `./examples/virtual-machines/managed-disks/from-custom-image` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/virtual-machines/managed-disks/from-custom-image)
+-> **NOTE:** An example of how to use this is available within [the `./examples/virtual-machines/virtual_machine/managed-disks/from-custom-image` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/master/examples/virtual-machines/virtual_machine/managed-disks/from-custom-image)
 
 ---
 

@@ -22,6 +22,7 @@ resource "azurerm_iothub_dps" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
+  allocation_policy   = "Hashed"
 
   sku {
     name     = "S1"
@@ -39,6 +40,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group under which the Iot Device Provisioning Service resource has to be created. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource has to be createc. Changing this forces a new resource to be created.
+
+* `allocation_policy` - (Optional) The allocation policy of the IoT Device Provisioning Service (`Hashed`, `GeoLatency` or `Static`). Defaults to `Hashed`.
 
 * `sku` - (Required) A `sku` block as defined below.
 
@@ -73,8 +76,6 @@ A `linked_hub` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the IoT Device Provisioning Service.
-
-* `allocation_policy` - The allocation policy of the IoT Device Provisioning Service.
 
 * `device_provisioning_host_name` - The device endpoint of the IoT Device Provisioning Service.
 
