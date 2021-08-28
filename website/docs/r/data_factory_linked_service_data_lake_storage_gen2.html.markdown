@@ -65,15 +65,19 @@ The following supported arguments are specific to Data Lake Storage Gen2 Linked 
 
 * `url` - (Required) The endpoint for the Azure Data Lake Storage Gen2 service.
 
-* `use_managed_identity` - (Optional) Whether to use the Data Factory's managed identity to authenticate against the Azure Data Lake Storage Gen2 account. Incompatible with `service_principal_id` and `service_principal_key`  
+~> **NOTE** Users should specify only one of the following three authentication strategies: storage account key, managed identity, service principal.
 
-* `service_principal_id` - (Optional) The service principal id in which to authenticate against the Azure Data Lake Storage Gen2 account.
+* `storage_account_key` - (Optional) The Storage Account Key with which to authenticate against the Azure Data Lake Storage Gen2 account.  Incompatible with `service_principal_id`, `service_principal_key`, `tenant` and `use_managed_identity`.
 
-* `service_principal_key` - (Optional) The service principal key in which to authenticate against the Azure Data Lake Storage Gen2 account.
+* `use_managed_identity` - (Optional) Whether to use the Data Factory's managed identity to authenticate against the Azure Data Lake Storage Gen2 account. Incompatible with `service_principal_id`, `service_principal_key`, `tenant` and `storage_account_key`.
 
-~> **NOTE** If `service_principal_id` is used, `service_principal_key` is also required.
+* `service_principal_id` - (Optional) The service principal id with which to authenticate against the Azure Data Lake Storage Gen2 account.  Incompatible with `storage_account_key` and `use_managed_identity`.
 
-* `tenant` - (Required) The tenant id or name in which to authenticate against the Azure Data Lake Storage Gen2 account.
+* `service_principal_key` - (Optional) The service principal key with which to authenticate against the Azure Data Lake Storage Gen2 account.
+
+* `tenant` - (Optional) The tenant id or name in which the service principal exists to authenticate against the Azure Data Lake Storage Gen2 account.
+
+~> **NOTE** If `service_principal_id` is used, `service_principal_key` and `tenant` are also required.
 
 ## Attributes Reference
 

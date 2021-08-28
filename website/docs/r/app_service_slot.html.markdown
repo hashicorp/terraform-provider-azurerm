@@ -194,7 +194,7 @@ The following arguments are supported:
 
 * `default_documents` - (Optional) The ordering of default documents to load, if an address isn't specified.
 
-* `dotnet_framework_version` - (Optional) The version of the .net framework's CLR used in this App Service Slot. Possible values are `v2.0` (which will use the latest version of the .net framework for the .net CLR v2 - currently `.net 3.5`) and `v4.0` (which corresponds to the latest version of the .net CLR v4 - which at the time of writing is `.net 4.7.1`). [For more information on which .net CLR version to use based on the .net framework you're targeting - please see this table](https://en.wikipedia.org/wiki/.NET_Framework_version_history#Overview). Defaults to `v4.0`.
+* `dotnet_framework_version` - (Optional) The version of the .net framework's CLR used in this App Service Slot. Possible values are `v2.0` (which will use the latest version of the .net framework for the .net CLR v2 - currently `.net 3.5`), `v4.0` (which corresponds to the latest version of the .net CLR v4 - which at the time of writing is `.net 4.7.1`), `v5.0` and `v6.0`. [For more information on which .net CLR version to use based on the .net framework you're targeting - please see this table](https://en.wikipedia.org/wiki/.NET_Framework_version_history#Overview). Defaults to `v4.0`.
 
 * `http2_enabled` - (Optional) Is HTTP2 Enabled on this App Service? Defaults to `false`.
 
@@ -233,6 +233,12 @@ The following arguments are supported:
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
 * `auto_swap_slot_name` - (Optional) The name of the slot to automatically swap to during deployment
+
+* `acr_use_managed_identity_credentials` - (Optional) Are Managed Identity Credential used for Azure Container Registry pull
+
+* `acr_user_managed_identity_client_id` - (Optional) If using User Managed Identity, the User Managed Identity Client Id
+
+~> **NOTE:** When using User Managed Identity with Azure Container Registry the Identity will need to have the [ACRPull role assigned](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity#example-1-access-with-a-user-assigned-identity) 
 
 ---
 

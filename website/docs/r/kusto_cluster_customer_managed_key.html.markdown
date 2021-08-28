@@ -94,6 +94,8 @@ The following arguments are supported:
 
 * `key_version` - (Required) The version of Key Vault Key.
 
+* `user_identity` - (Optional) The user assigned identity that has access to the Key Vault Key. If not specified, system assigned identity will be used.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 

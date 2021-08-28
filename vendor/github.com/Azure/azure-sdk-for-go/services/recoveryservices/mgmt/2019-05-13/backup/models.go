@@ -2057,6 +2057,12 @@ type AzureIaaSVMErrorInfo struct {
 	Recommendations *[]string `json:"recommendations,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AzureIaaSVMErrorInfo.
+func (aisei AzureIaaSVMErrorInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // AzureIaaSVMHealthDetails azure IaaS VM workload-specific Health Details.
 type AzureIaaSVMHealthDetails struct {
 	// Code - READ-ONLY; Health Code
@@ -2067,6 +2073,12 @@ type AzureIaaSVMHealthDetails struct {
 	Message *string `json:"message,omitempty"`
 	// Recommendations - READ-ONLY; Health Recommended Actions
 	Recommendations *[]string `json:"recommendations,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AzureIaaSVMHealthDetails.
+func (aishd AzureIaaSVMHealthDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // AzureIaaSVMJob azure IaaS VM workload-specific job object.
@@ -9100,6 +9112,12 @@ type AzureWorkloadSQLRecoveryPointExtendedInfo struct {
 	DataDirectoryPaths *[]SQLDataDirectory `json:"dataDirectoryPaths,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AzureWorkloadSQLRecoveryPointExtendedInfo.
+func (awsrpei AzureWorkloadSQLRecoveryPointExtendedInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // BasicAzureWorkloadSQLRestoreRequest azureWorkload SQL -specific restore. Specifically for full/diff restore
 type BasicAzureWorkloadSQLRestoreRequest interface {
 	AsAzureWorkloadSQLPointInTimeRestoreRequest() (*AzureWorkloadSQLPointInTimeRestoreRequest, bool)
@@ -10844,6 +10862,12 @@ type ErrorDetail struct {
 	Message *string `json:"message,omitempty"`
 	// Recommendations - READ-ONLY; List of recommendation strings.
 	Recommendations *[]string `json:"recommendations,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ErrorDetail.
+func (ed ErrorDetail) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // ExportJobsOperationResultInfo this class is used to send blob details after exporting jobs.
@@ -13310,6 +13334,12 @@ type MabErrorInfo struct {
 	ErrorString *string `json:"errorString,omitempty"`
 	// Recommendations - READ-ONLY; List of localized recommendations.
 	Recommendations *[]string `json:"recommendations,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MabErrorInfo.
+func (mei MabErrorInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // MabFileFolderProtectedItem MAB workload-specific backup item.

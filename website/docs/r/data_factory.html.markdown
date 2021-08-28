@@ -37,9 +37,13 @@ The following arguments are supported:
 
 * `github_configuration` - (Optional) A `github_configuration` block as defined below.
 
+* `global_parameter` - (Optional)  A list of `global_parameter` blocks as defined above.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `vsts_configuration` - (Optional) A `vsts_configuration` block as defined below.
+
+* `managed_virtual_network_enabled` - (Optional) Is Managed Virtual Network enabled?
 
 * `public_network_enabled` - (Optional) Is the Data Factory visible to the public network? Defaults to `true`.
 
@@ -62,6 +66,16 @@ A `github_configuration` block supports the following:
 * `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
 
 -> **Note:** You must log in to the Data Factory management UI to complete the authentication to the GitHub repository.
+
+---
+
+A `global_parameter` block supports the following:
+
+* `name` - (Required) Specifies the global parameter name.
+
+* `type` - (Required) Specifies the global parameter type. Possible Values are `Array`, `Bool`, `Float`, `Int`, `Object` or `String`.
+
+* `value` - (Required) Specifies the global parameter value.
 
 ---
 

@@ -103,7 +103,7 @@ The following arguments are supported:
 
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight Kafka Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
 
-* `min_tls_version` - (Optional) The minimal supported TLS version. Possible values are `1.0`, `1.1` or `1.2`. Changing this forces a new resource to be created.
+* `tls_min_version` - (Optional) The minimal supported TLS version. Possible values are `1.0`, `1.1` or `1.2`. Changing this forces a new resource to be created.
 
 * `encryption_in_transit_enabled` - (Optional) Whether encryption in transit is enabled for this HDInsight Kafka Cluster. Changing this forces a new resource to be created.
 
