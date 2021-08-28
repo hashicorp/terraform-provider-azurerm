@@ -1,0 +1,245 @@
+package firewall_test
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+type FirewallPolicyResource struct {
+}
+
+func TestAccFirewallPolicy_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	r := FirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFirewallPolicy_basicPremium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	r := FirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicPremium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFirewallPolicy_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	r := FirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFirewallPolicy_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	r := FirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFirewallPolicy_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	r := FirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccFirewallPolicy_inherit(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	r := FirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.inherit(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (FirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	var id, err = parse.FirewallPolicyID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.Firewall.FirewallPolicyClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
+	}
+
+	return utils.Bool(resp.FirewallPolicyPropertiesFormat != nil), nil
+}
+
+func (FirewallPolicyResource) basic(data acceptance.TestData) string {
+	template := FirewallPolicyResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_firewall_policy" "test" {
+  name                = "acctest-networkfw-Policy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+`, template, data.RandomInteger)
+}
+
+func (FirewallPolicyResource) basicPremium(data acceptance.TestData) string {
+	template := FirewallPolicyResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_firewall_policy" "test" {
+  name                = "acctest-networkfw-Policy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+}
+`, template, data.RandomInteger)
+}
+
+func (FirewallPolicyResource) complete(data acceptance.TestData) string {
+	template := FirewallPolicyResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_firewall_policy" "test" {
+  name                     = "acctest-networkfw-Policy-%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  threat_intelligence_mode = "Off"
+  threat_intelligence_allowlist {
+    ip_addresses = ["1.1.1.1", "2.2.2.2"]
+    fqdns        = ["foo.com", "bar.com"]
+  }
+  dns {
+    servers       = ["1.1.1.1", "2.2.2.2"]
+    proxy_enabled = true
+  }
+  private_ip_ranges = ["172.16.0.0/12", "192.168.0.0/16"]
+  tags = {
+    env = "Test"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (FirewallPolicyResource) requiresImport(data acceptance.TestData) string {
+	template := FirewallPolicyResource{}.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_firewall_policy" "import" {
+  name                = azurerm_firewall_policy.test.name
+  resource_group_name = azurerm_firewall_policy.test.resource_group_name
+  location            = azurerm_firewall_policy.test.location
+}
+`, template)
+}
+
+func (FirewallPolicyResource) inherit(data acceptance.TestData) string {
+	template := FirewallPolicyResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_firewall_policy" "test-parent" {
+  name                = "acctest-networkfw-Policy-%d-parent"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_firewall_policy" "test" {
+  name                = "acctest-networkfw-Policy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  base_policy_id      = azurerm_firewall_policy.test-parent.id
+  threat_intelligence_allowlist {
+    ip_addresses = ["1.1.1.1", "2.2.2.2"]
+    fqdns        = ["foo.com", "bar.com"]
+  }
+  dns {
+    servers       = ["1.1.1.1", "2.2.2.2"]
+    proxy_enabled = true
+  }
+  tags = {
+    env = "Test"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (FirewallPolicyResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-networkfw-%d"
+  location = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}

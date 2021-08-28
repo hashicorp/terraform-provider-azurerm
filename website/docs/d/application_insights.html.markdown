@@ -37,6 +37,7 @@ output "application_insights_instrumentation_key" {
 * `connection_string` - The connection string of the Application Insights component. (Sensitive)
 * `location` - The Azure location where the component exists.
 * `retention_in_days` - The retention period in days.
+* `workspace_id` - The id of the associated Log Analytics workspace
 * `tags` - Tags applied to the component.
 
 ## Timeouts

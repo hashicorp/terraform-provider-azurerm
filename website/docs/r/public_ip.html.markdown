@@ -46,6 +46,10 @@ The following arguments are supported:
 
 -> **Note** Public IP Standard SKUs require `allocation_method` to be set to `Static`.
 
+* `sku_tier` - (Optional) The SKU Tier that should be used for the Public IP. Possible values are `Regional` and `Global`. Defaults to `Regional`.
+
+-> **Note** When `sku_tier` is set to `Global`, `sku` must be set to `Standard`.
+
 * `allocation_method` - (Required)  Defines the allocation method for this IP address. Possible values are `Static` or `Dynamic`.
 
 ~> **Note** `Dynamic` Public IP Addresses aren't allocated until they're assigned to a resource (such as a Virtual Machine or a Load Balancer) by design within Azure - [more information is available below](#ip_address).

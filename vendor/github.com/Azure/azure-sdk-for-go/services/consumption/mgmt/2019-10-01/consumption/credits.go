@@ -33,9 +33,12 @@ func NewCreditsClientWithBaseURI(baseURI string, subscriptionID string) CreditsC
 
 // Get the credit summary by billingAccountId and billingProfileId.
 // Parameters:
-// billingAccountID - billingAccount ID
-// billingProfileID - azure Billing Profile ID.
-func (client CreditsClient) Get(ctx context.Context, billingAccountID string, billingProfileID string) (result CreditSummary, err error) {
+// scope - the scope associated with credits operations. This includes
+// '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfile/{billingProfileId}' for
+// Billing Profile scope, and
+// 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}' specific for
+// partners.
+func (client CreditsClient) Get(ctx context.Context, scope string) (result CreditSummary, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CreditsClient.Get")
 		defer func() {
@@ -46,7 +49,7 @@ func (client CreditsClient) Get(ctx context.Context, billingAccountID string, bi
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetPreparer(ctx, billingAccountID, billingProfileID)
+	req, err := client.GetPreparer(ctx, scope)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "consumption.CreditsClient", "Get", nil, "Failure preparing request")
 		return
@@ -69,10 +72,9 @@ func (client CreditsClient) Get(ctx context.Context, billingAccountID string, bi
 }
 
 // GetPreparer prepares the Get request.
-func (client CreditsClient) GetPreparer(ctx context.Context, billingAccountID string, billingProfileID string) (*http.Request, error) {
+func (client CreditsClient) GetPreparer(ctx context.Context, scope string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"billingAccountId": autorest.Encode("path", billingAccountID),
-		"billingProfileId": autorest.Encode("path", billingProfileID),
+		"scope": scope,
 	}
 
 	const APIVersion = "2019-10-01"
@@ -83,7 +85,7 @@ func (client CreditsClient) GetPreparer(ctx context.Context, billingAccountID st
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/providers/Microsoft.Consumption/credits/balanceSummary", pathParameters),
+		autorest.WithPathParameters("/{scope}/providers/Microsoft.Consumption/credits/balanceSummary", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
