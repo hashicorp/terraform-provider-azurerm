@@ -1342,6 +1342,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
+    enabled  = true
     username = "sshuser"
     password = "TerrAform123!"
   }
@@ -1365,13 +1366,13 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
       vm_size               = "Standard_D12_V2"
       username              = "sshuser"
       password              = "TerrAform123!"
-      target_instance_count = 2
+      target_instance_count = 1
       subnet_id             = azurerm_subnet.test.id
       virtual_network_id    = azurerm_virtual_network.test.id
     }
 
     zookeeper_node {
-      vm_size            = "Standard_A2_V2"
+      vm_size            = "Standard_D3_V2"
       username           = "sshuser"
       password           = "TerrAform123!"
       subnet_id          = azurerm_subnet.test.id

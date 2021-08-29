@@ -1420,6 +1420,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   gateway {
+    enabled  = true
     username = "sshuser"
     password = "TerrAform123!"
   }
@@ -1444,13 +1445,13 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
       username                 = "sshuser"
       password                 = "TerrAform123!"
       target_instance_count    = 3
-      number_of_disks_per_node = 2
+      number_of_disks_per_node = 1
       subnet_id                = azurerm_subnet.test.id
       virtual_network_id       = azurerm_virtual_network.test.id
     }
 
     zookeeper_node {
-      vm_size            = "Standard_A4_V2"
+      vm_size            = "Standard_D3_V2"
       username           = "sshuser"
       password           = "TerrAform123!"
       subnet_id          = azurerm_subnet.test.id
