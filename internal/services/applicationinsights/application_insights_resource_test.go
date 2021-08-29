@@ -191,6 +191,7 @@ func TestAccApplicationInsights_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("sampling_percentage").HasValue("50"),
 				check.That(data.ResourceName).Key("daily_data_cap_in_gb").HasValue("50"),
 				check.That(data.ResourceName).Key("daily_data_cap_notifications_disabled").HasValue("true"),
+				check.That(data.ResourceName).Key("disable_local_auth").HasValue("true"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.Hello").HasValue("World"),
 			),
@@ -283,6 +284,7 @@ resource "azurerm_application_insights" "test" {
   daily_data_cap_in_gb                  = 50
   daily_data_cap_notifications_disabled = true
   disable_ip_masking                    = true
+  disable_local_auth                    = true
 
   tags = {
     Hello = "World"
