@@ -43,8 +43,6 @@ The following arguments are supported:
 
 * `zones` - (Optional) A list of a one or more Availability Zones, where the Redis Cache should be allocated. Possible values are: `1`, `2` and `3`. Changing this forces a new Redis Enterprise Cluster to be created.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Redis Enterprise Cluster.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
@@ -54,6 +52,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `hostname` - DNS name of the cluster endpoint.
 
 * `version` - Version of redis the cluster supports, e.g. '6'.
+
+* `tags` - A mapping of tags which are assigned to the Redis Enterprise Cluster.
 
 -> **NOTE:** The `version` field currently is not yet being returned from the service API, please see https://github.com/Azure/azure-sdk-for-go/issues/14420 for more information.
 
