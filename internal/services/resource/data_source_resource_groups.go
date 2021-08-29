@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceResourceGroups() *pluginsdk.Resource {
@@ -90,9 +90,9 @@ func dataSourceResourceGroupsRead(d *pluginsdk.ResourceData, meta interface{}) e
 		resp, err := subClient.Get(ctx, rg["subscription_id"].(string))
 		if err != nil {
 			return fmt.Errorf("reading subscription: %+v", err)
-		} else {
-			rg["tenant_id"] = *resp.TenantID
-		}
+		} 
+		rg["tenant_id"] = *resp.TenantID
+		
 
 		if v := val.Name; v != nil {
 			rg["name"] = *v
