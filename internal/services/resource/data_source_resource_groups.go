@@ -90,9 +90,8 @@ func dataSourceResourceGroupsRead(d *pluginsdk.ResourceData, meta interface{}) e
 		resp, err := subClient.Get(ctx, rg["subscription_id"].(string))
 		if err != nil {
 			return fmt.Errorf("reading subscription: %+v", err)
-		} 
+		}
 		rg["tenant_id"] = *resp.TenantID
-		
 
 		if v := val.Name; v != nil {
 			rg["name"] = *v
