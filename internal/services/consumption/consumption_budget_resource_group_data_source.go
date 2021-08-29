@@ -3,6 +3,7 @@ package consumption
 import (
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,9 +31,9 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 }
 
 func resourceArmConsumptionBudgetResourceGroupDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 
-	id := resourceParse.NewConsumptionBudgetResourceGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := resourceParse.NewConsumptionBudgetResourceGroupID(subscriptionID, d.Get("resource_group_name").(string), d.Get("name").(string))
 	d.SetId(id.ID())
 
 	err := resourceArmConsumptionBudgetRead(d, meta, id.ID(), d.Get("name").(string))
