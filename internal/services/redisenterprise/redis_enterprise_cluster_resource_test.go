@@ -131,10 +131,6 @@ resource "azurerm_redis_enterprise_cluster" "test" {
 
   sku_name = "EnterpriseFlash_F300-3"
   zones    = ["1", "2", "3"]
-
-  tags = {
-    ENV = "Test"
-  }
 }
 `, template, data.RandomInteger)
 }
