@@ -55,9 +55,9 @@ The following arguments are supported:
 
 A `business_identity` block exports the following:
 
-* `qualifier` - (Required) The business identity qualifier for the Logic App Integration Account Partner.
+* `qualifier` - (Required) The authenticating body that provides unique business identities to organizations.
 
-* `value` - (Required) The user defined business identity value for the Logic App Integration Account Partner.
+* `value` - (Required) The value that identifies the documents that your logic apps receive.
 
 ## Attributes Reference
 

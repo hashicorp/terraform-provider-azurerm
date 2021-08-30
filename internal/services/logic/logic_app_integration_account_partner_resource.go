@@ -61,7 +61,7 @@ func resourceLogicAppIntegrationAccountPartner() *pluginsdk.Resource {
 						"qualifier": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validate.IntegrationAccountPartnerBusinessIdentityQualifier(),
 						},
 
 						"value": {

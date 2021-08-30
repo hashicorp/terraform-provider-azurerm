@@ -52,7 +52,7 @@ func TestAccLogicAppIntegrationAccountPartner_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.complete(data, "ZZ", "AA", "bar"),
+			Config: r.complete(data, "DUNS", "FabrikamNY", "bar"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -67,14 +67,14 @@ func TestAccLogicAppIntegrationAccountPartner_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.complete(data, "ZZ", "AA", "bar"),
+			Config: r.complete(data, "DUNS", "FabrikamNY", "bar"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data, "XX", "GG", "bar2"),
+			Config: r.complete(data, "AS2Identity", "FabrikamDC", "bar2"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -130,8 +130,8 @@ resource "azurerm_logic_app_integration_account_partner" "test" {
   integration_account_name = azurerm_logic_app_integration_account.test.name
 
   business_identity {
-    qualifier = "ZZ"
-    value     = "AA"
+    qualifier = "DUNS"
+    value     = "FabrikamNY"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -147,8 +147,8 @@ resource "azurerm_logic_app_integration_account_partner" "import" {
   integration_account_name = azurerm_logic_app_integration_account_partner.test.integration_account_name
 
   business_identity {
-    qualifier = "ZZ"
-    value     = "AA"
+    qualifier = "DUNS"
+    value     = "FabrikamNY"
   }
 }
 `, r.basic(data))
