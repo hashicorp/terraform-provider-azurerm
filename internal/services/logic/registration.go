@@ -33,6 +33,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_logic_app_action_http":                     resourceLogicAppActionHTTP(),
 		"azurerm_logic_app_integration_account":             resourceLogicAppIntegrationAccount(),
 		"azurerm_logic_app_integration_account_certificate": resourceLogicAppIntegrationAccountCertificate(),
+		"azurerm_logic_app_integration_account_partner":     resourceLogicAppIntegrationAccountPartner(),
 		"azurerm_logic_app_integration_account_schema":      resourceLogicAppIntegrationAccountSchema(),
 		"azurerm_logic_app_integration_account_session":     resourceLogicAppIntegrationAccountSession(),
 		"azurerm_logic_app_trigger_custom":                  resourceLogicAppTriggerCustom(),
