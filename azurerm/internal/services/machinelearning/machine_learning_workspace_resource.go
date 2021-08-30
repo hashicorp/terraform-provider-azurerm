@@ -162,6 +162,11 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				}, true),
 			},
 
+			"discovery_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -278,6 +283,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("high_business_impact", props.HbiWorkspace)
 		d.Set("public_access_behind_vnet_enabled", props.AllowPublicAccessWhenBehindVnet)
 		d.Set("image_build_compute_name", props.ImageBuildCompute)
+		d.Set("discovery_url", props.DiscoveryURL)
 	}
 
 	if err := d.Set("identity", flattenMachineLearningWorkspaceIdentity(resp.Identity)); err != nil {
