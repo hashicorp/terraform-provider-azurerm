@@ -45,6 +45,28 @@ func TestAccPolicyVirtualMachineConfigurationAssignment_requiresImport(t *testin
 	})
 }
 
+func TestAccPolicyVirtualMachineConfigurationAssignment_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_virtual_machine_configuration_assignment", "test")
+	r := PolicyVirtualMachineConfigurationAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateGuestConfiguration(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r PolicyVirtualMachineConfigurationAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualMachineConfigurationPolicyAssignmentID(state.ID)
 	if err != nil {
@@ -170,4 +192,54 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "import" {
   }
 }
 `, r.basic(data))
+}
+
+func (r PolicyVirtualMachineConfigurationAssignmentResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
+  name               = "acctest-gca-%d"
+  location           = azurerm_windows_virtual_machine.test.location
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
+
+  configuration {
+    name            = "WhitelistedApplication"
+    version         = "1.*"
+    assignment_type = "ApplyAndAutoCorrect"
+    content_hash    = "testcontenthash"
+    content_uri     = "https://testcontenturi/package"
+
+    parameter {
+      name  = "[InstalledApplication]bwhitelistedapp;Name"
+      value = "NotePad,sql"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r PolicyVirtualMachineConfigurationAssignmentResource) updateGuestConfiguration(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
+  name               = "acctest-gca-%d"
+  location           = azurerm_windows_virtual_machine.test.location
+  virtual_machine_id = azurerm_windows_virtual_machine.test.id
+
+  configuration {
+    name            = "WhitelistedApplication"
+    version         = "1.*"
+    assignment_type = "Audit"
+    content_hash    = "testcontenthash2"
+    content_uri     = "https://testcontenturi/package2"
+
+    parameter {
+      name  = "[InstalledApplication]bwhitelistedapp;Name"
+      value = "NotePad,sql"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
