@@ -130,6 +130,12 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"local_authentication_disabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -163,6 +169,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	applicationType := d.Get("application_type").(string)
 	samplingPercentage := utils.Float(d.Get("sampling_percentage").(float64))
 	disableIpMasking := d.Get("disable_ip_masking").(bool)
+	localAuthenticationDisabled := d.Get("local_authentication_disabled").(bool)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
@@ -171,6 +178,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		ApplicationType:    insights.ApplicationType(applicationType),
 		SamplingPercentage: samplingPercentage,
 		DisableIPMasking:   utils.Bool(disableIpMasking),
+		DisableLocalAuth:   utils.Bool(localAuthenticationDisabled),
 	}
 
 	if workspaceRaw, hasWorkspaceId := d.GetOk("workspace_id"); hasWorkspaceId {
@@ -269,6 +277,7 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("sampling_percentage", props.SamplingPercentage)
 		d.Set("disable_ip_masking", props.DisableIPMasking)
 		d.Set("connection_string", props.ConnectionString)
+		d.Set("local_authentication_disabled", props.DisableLocalAuth)
 
 		if v := props.WorkspaceResourceID; v != nil {
 			d.Set("workspace_id", v)
