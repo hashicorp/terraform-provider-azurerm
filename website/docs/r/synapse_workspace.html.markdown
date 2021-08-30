@@ -85,6 +85,8 @@ The following arguments are supported:
 
 * `customer_managed_key_versionless_id` - (Optional) The Azure Key Vault Key Versionless ID to be used as the Customer Managed Key (CMK) for double encryption (e.g. `https://example-keyvault.vault.azure.net/type/cmk/`).
 
+* `customer_managed_key_name` - (Optional) An identifier for the key. Name needs to match the name of the key used with the `azurerm_synapse_workspace_key` resource. Defaults to "cmk" if not specified.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Workspace.
 
 ---
