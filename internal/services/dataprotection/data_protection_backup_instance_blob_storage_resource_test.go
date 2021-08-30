@@ -106,10 +106,12 @@ func (r DataProtectionBackupInstanceBlobStorageResource) template(data acceptanc
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-dataprotection-%d"
   location = "%s"
 }
+
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%d"
   resource_group_name      = azurerm_resource_group.test.name
@@ -117,6 +119,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
+
 resource "azurerm_data_protection_backup_vault" "test" {
   name                = "acctest-dataprotection-vault-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -127,16 +130,19 @@ resource "azurerm_data_protection_backup_vault" "test" {
     type = "SystemAssigned"
   }
 }
+
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Account Backup Contributor Role"
   principal_id         = azurerm_data_protection_backup_vault.test.identity[0].principal_id
 }
+
 resource "azurerm_data_protection_backup_policy_blob_storage" "test" {
   name               = "acctest-dbp-%d"
   vault_id           = azurerm_data_protection_backup_vault.test.id
   retention_duration = "P30D"
 }
+
 resource "azurerm_data_protection_backup_policy_blob_storage" "another" {
   name               = "acctest-dbp-other-%d"
   vault_id           = azurerm_data_protection_backup_vault.test.id
@@ -155,6 +161,8 @@ resource "azurerm_data_protection_backup_instance_blob_storage" "test" {
   vault_id           = azurerm_data_protection_backup_vault.test.id
   storage_account_id = azurerm_storage_account.test.id
   backup_policy_id   = azurerm_data_protection_backup_policy_blob_storage.test.id
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, template, data.RandomInteger)
 }
@@ -169,6 +177,8 @@ resource "azurerm_data_protection_backup_instance_blob_storage" "import" {
   vault_id           = azurerm_data_protection_backup_instance_blob_storage.test.vault_id
   storage_account_id = azurerm_data_protection_backup_instance_blob_storage.test.storage_account_id
   backup_policy_id   = azurerm_data_protection_backup_instance_blob_storage.test.backup_policy_id
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, config)
 }
@@ -183,6 +193,8 @@ resource "azurerm_data_protection_backup_instance_blob_storage" "test" {
   vault_id           = azurerm_data_protection_backup_vault.test.id
   storage_account_id = azurerm_storage_account.test.id
   backup_policy_id   = azurerm_data_protection_backup_policy_blob_storage.another.id
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, template, data.RandomInteger)
 }
