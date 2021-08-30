@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * upgrading `dataprotection` to API Version `2021-07-01` [GH-13161]
 * `azurerm_data_factory_linked_service_azure_blob_storage` - support for the `key_vault_sas_token` property [GH-12880]
 * `azurerm_mssql_server`- refactoring to use an ID Formatter/Parser [GH-13151]
+* `azurerm_policy_virtual_machine_configuration_assignment` - support for the `assignment_type`, `content_uri`, and `content_hash` properties [GH-13176]
 
 ## 2.74.0 (August 27, 2021)
 
