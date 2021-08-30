@@ -205,7 +205,7 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
 
   configuration {
     name            = "WhitelistedApplication"
-    version         = "1.*"
+    version         = "1.1.1.1"
     assignment_type = "ApplyAndAutoCorrect"
     content_hash    = "testcontenthash"
     content_uri     = "https://testcontenturi/package"
@@ -230,7 +230,7 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
 
   configuration {
     name            = "WhitelistedApplication"
-    version         = "1.*"
+    version         = "1.1.1.1"
     assignment_type = "Audit"
     content_hash    = "testcontenthash2"
     content_uri     = "https://testcontenturi/package2"
