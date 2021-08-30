@@ -58,6 +58,20 @@ func TestAccDataProtectionBackupInstancePostgreSQL_complete(t *testing.T) {
 	})
 }
 
+func TestAccDataProtectionBackupInstancePostgreSQL_keyVaultAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql", "test")
+	r := DataProtectionBackupInstancePostgreSQLResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.keyVaultAuth(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDataProtectionBackupInstancePostgreSQL_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql", "test")
 	r := DataProtectionBackupInstancePostgreSQLResource{}
@@ -107,13 +121,15 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-dataprotection-%d"
-  location = "%s"
+  name     = "acctest-dataprotection-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-postgresql-server-%d"
+  name                = "acctest-postgresql-server-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -130,8 +146,16 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement_enabled      = true
 }
 
+resource "azurerm_postgresql_firewall_rule" "test" {
+  name                = "AllowAllWindowsAzureIps"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_postgresql_server.test.name
+  start_ip_address    = "0.0.0.0"
+  end_ip_address      = "0.0.0.0"
+}
+
 resource "azurerm_postgresql_database" "test" {
-  name                = "acctest-postgresql-database-%d"
+  name                = "acctest-postgresql-database-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   server_name         = azurerm_postgresql_server.test.name
   charset             = "UTF8"
@@ -139,7 +163,7 @@ resource "azurerm_postgresql_database" "test" {
 }
 
 resource "azurerm_data_protection_backup_vault" "test" {
-  name                = "acctest-dataprotection-vault-%d"
+  name                = "acctest-dataprotection-vault-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
@@ -150,8 +174,59 @@ resource "azurerm_data_protection_backup_vault" "test" {
   }
 }
 
+resource "azurerm_key_vault" "test" {
+  name                       = "acctest%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = ["create", "get"]
+
+    secret_permissions = [
+      "set",
+      "get",
+      "delete",
+      "purge",
+      "recover"
+    ]
+  }
+
+  access_policy {
+    tenant_id = azurerm_data_protection_backup_vault.test.identity.0.tenant_id
+    object_id = azurerm_data_protection_backup_vault.test.identity.0.principal_id
+
+    key_permissions = ["create", "get"]
+
+    secret_permissions = [
+      "set",
+      "get",
+      "delete",
+      "purge",
+      "recover"
+    ]
+  }
+}
+
+resource "azurerm_key_vault_secret" "test" {
+  name         = "acctestsecret%[1]d"
+  value        = "Server=${azurerm_postgresql_server.test.name}.postgres.database.azure.com;Database=${azurerm_postgresql_database.test.name};Port=5432;User Id=psqladminun@acctest-postgresql-server-henglu830;Password=H@Sh1CoR3!;Ssl Mode=Require;"
+  key_vault_id = azurerm_key_vault.test.id
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_postgresql_server.test.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_data_protection_backup_vault.test.identity.0.principal_id
+}
+
 resource "azurerm_data_protection_backup_policy_postgresql" "test" {
-  name                            = "acctest-dp-%d"
+  name                            = "acctest-dp-%[1]d"
   resource_group_name             = azurerm_resource_group.test.name
   vault_name                      = azurerm_data_protection_backup_vault.test.name
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
@@ -159,13 +234,13 @@ resource "azurerm_data_protection_backup_policy_postgresql" "test" {
 }
 
 resource "azurerm_data_protection_backup_policy_postgresql" "another" {
-  name                            = "acctest-dp-second-%d"
+  name                            = "acctest-dp-second-%[1]d"
   resource_group_name             = azurerm_resource_group.test.name
   vault_name                      = azurerm_data_protection_backup_vault.test.name
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
   default_retention_duration      = "P3M"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(16))
 }
 
 func (r DataProtectionBackupInstancePostgreSQLResource) basic(data acceptance.TestData) string {
@@ -209,6 +284,22 @@ resource "azurerm_data_protection_backup_instance_postgresql" "test" {
   vault_id         = azurerm_data_protection_backup_vault.test.id
   database_id      = azurerm_postgresql_database.test.id
   backup_policy_id = azurerm_data_protection_backup_policy_postgresql.another.id
+}
+`, template, data.RandomInteger)
+}
+
+func (r DataProtectionBackupInstancePostgreSQLResource) keyVaultAuth(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_instance_postgresql" "test" {
+  name                                    = "acctest-dbi-%d"
+  location                                = azurerm_resource_group.test.location
+  vault_id                                = azurerm_data_protection_backup_vault.test.id
+  database_id                             = azurerm_postgresql_database.test.id
+  backup_policy_id                        = azurerm_data_protection_backup_policy_postgresql.another.id
+  database_credential_key_vault_secret_id = azurerm_key_vault_secret.test.versionless_id
 }
 `, template, data.RandomInteger)
 }
