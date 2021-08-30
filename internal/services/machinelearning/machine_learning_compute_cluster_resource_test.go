@@ -194,11 +194,11 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  remote_login_port_public_access_enabled = false
-  isolated_network_enabled                = true
-  node_public_ip_enabled                  = true
-  os_type                                 = "Windows"
-  credential {
+  public_ssh_access_enabled = false
+  isolated_network_enabled  = true
+  node_public_ip_enabled    = true
+  os_type                   = "Windows"
+  administrator_account {
     user_name      = "adminuser"
     ssh_public_key = var.ssh_key
   }

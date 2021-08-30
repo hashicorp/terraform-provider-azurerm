@@ -113,7 +113,7 @@ The following arguments are supported:
 * `scale_settings` - (Required) A `scale_settings` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
   
 ---
-* `credential` - (Optional) Credentials for an administrator user account that will be created on each compute node. A `credential` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `administrator_account` - (Optional) Credentials for an administrator user account that will be created on each compute node. A `administrator_account` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `description` - (Optional) The description of the Machine Learning compute. Changing this forces a new Machine Learning Compute Cluster to be created.
 
@@ -125,7 +125,7 @@ The following arguments are supported:
 
 * `os_type` - (Optional)  Compute OS Type. Possible values include: `Linux`, `Windows`. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `remote_login_port_public_access_enabled` - (Optional)  A boolean value indicating whether enable the public SSH port. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `public_ssh_access_enabled` - (Optional)  A boolean value indicating whether enable the public SSH port. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `subnet_resource_id` - (Optional) The ID of the Subnet that the Compute Cluster should reside in. Changing this forces a new Machine Learning Compute Cluster to be created.
 
@@ -142,7 +142,7 @@ A `identity` block supports the following:
 * `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Machine Learning Compute Cluster. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 ---
-A `credential` block supports the following:
+A `administrator_account` block supports the following:
 
 * `username` - (Required) Name of the administrator user account which can be used to SSH to nodes. Changing this forces a new Machine Learning Compute Cluster to be created.
 

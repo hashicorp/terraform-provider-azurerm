@@ -90,7 +90,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"credential": {
+			"administrator_account": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
@@ -106,13 +106,13 @@ func resourceComputeCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							AtLeastOneOf: []string{"credential.0.password", "credential.0.ssh_public_key"},
+							AtLeastOneOf: []string{"administrator_account.0.password", "administrator_account.0.ssh_public_key"},
 						},
 						"ssh_public_key": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							AtLeastOneOf: []string{"credential.0.password", "credential.0.ssh_public_key"},
+							AtLeastOneOf: []string{"administrator_account.0.password", "administrator_account.0.ssh_public_key"},
 						},
 					},
 				},
@@ -148,11 +148,11 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"remote_login_port_public_access_enabled": {
+			"public_ssh_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
-				Computed: true, // `remote_login_port_public_access_enabled` sets to `true` by default even if unspecified
+				Computed: true, // `public_ssh_access_enabled` sets to `true` by default even if unspecified
 			},
 
 			"subnet_resource_id": {
@@ -202,7 +202,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		VMSize:                 utils.String(d.Get("vm_size").(string)),
 		VMPriority:             machinelearningservices.VMPriority(d.Get("vm_priority").(string)),
 		ScaleSettings:          expandScaleSettings(d.Get("scale_settings").([]interface{})),
-		UserAccountCredentials: expandUserAccountCredentials(d.Get("credential").([]interface{})),
+		UserAccountCredentials: expandUserAccountCredentials(d.Get("administrator_account").([]interface{})),
 	}
 
 	if isolatedNetworkEnabled, ok := d.GetOk("isolated_network_enabled"); ok {
@@ -216,7 +216,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	computeClusterAmlComputeProperties.RemoteLoginPortPublicAccess = machinelearningservices.RemoteLoginPortPublicAccessDisabled
-	if d.Get("remote_login_port_public_access_enabled").(bool) {
+	if d.Get("public_ssh_access_enabled").(bool) {
 		computeClusterAmlComputeProperties.RemoteLoginPortPublicAccess = machinelearningservices.RemoteLoginPortPublicAccessEnabled
 	}
 
@@ -311,7 +311,7 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("node_public_ip_enabled", props.EnableNodePublicIP)
 		d.Set("isolated_network_enabled", props.IsolatedNetwork)
 		d.Set("scale_settings", flattenScaleSettings(props.ScaleSettings))
-		d.Set("credential", flattenUserAccountCredentials(props.UserAccountCredentials))
+		d.Set("administrator_account", flattenUserAccountCredentials(props.UserAccountCredentials))
 		if props.Subnet != nil {
 			d.Set("subnet_resource_id", props.Subnet.ID)
 		}
@@ -320,11 +320,11 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		switch props.RemoteLoginPortPublicAccess {
 		case machinelearningservices.RemoteLoginPortPublicAccessNotSpecified:
-			d.Set("remote_login_port_public_access_enabled", nil)
+			d.Set("public_ssh_access_enabled", nil)
 		case machinelearningservices.RemoteLoginPortPublicAccessEnabled:
-			d.Set("remote_login_port_public_access_enabled", true)
+			d.Set("public_ssh_access_enabled", true)
 		case machinelearningservices.RemoteLoginPortPublicAccessDisabled:
-			d.Set("remote_login_port_public_access_enabled", false)
+			d.Set("public_ssh_access_enabled", false)
 		}
 	}
 
