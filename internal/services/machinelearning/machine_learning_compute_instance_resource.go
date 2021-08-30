@@ -312,7 +312,7 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
 			if props.Properties.SetupScripts != nil && props.Properties.SetupScripts.Scripts != nil {
 				d.Set("startup_script", flattenComputeScript(props.Properties.SetupScripts.Scripts.StartupScript))
-				d.Set("creation_script", flattenComputeScript(props.Properties.SetupScripts.Scripts.StartupScript))
+				d.Set("creation_script", flattenComputeScript(props.Properties.SetupScripts.Scripts.CreationScript))
 			}
 		}
 	} else {
