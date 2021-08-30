@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_cosmosdb_mongo_database` [GH-13123]
+* **New Resource:** `azurerm_logic_app_integration_account_partner` [GH-13157]
 
 ENHANCEMENTS:
 
