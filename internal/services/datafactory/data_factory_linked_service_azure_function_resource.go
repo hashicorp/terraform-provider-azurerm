@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -83,13 +84,13 @@ func resourceDataFactoryLinkedServiceAzureFunction() *pluginsdk.Resource {
 						"linked_service_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validate.LinkedServiceDatasetName,
 						},
 
 						"secret_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: keyVaultValidate.NestedItemName,
 						},
 					},
 				},
@@ -191,15 +192,6 @@ func resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *pluginsdk.Reso
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("cannot read %s: %+v", id, err)
-	}
-
 	d.SetId(id.ID())
 
 	return resourceDataFactoryLinkedServiceAzureFunctionRead(d, meta)
@@ -231,7 +223,7 @@ func resourceDataFactoryLinkedServiceAzureFunctionRead(d *pluginsdk.ResourceData
 
 	azureFunction, ok := resp.Properties.AsAzureFunctionLinkedService()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeAzureFunction, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Linked Service Azure Function %s: Expected: %q Received: %q", id, datafactory.TypeBasicLinkedServiceTypeAzureFunction, *resp.Type)
 	}
 
 	d.Set("url", azureFunction.AzureFunctionLinkedServiceTypeProperties.FunctionAppURL)
@@ -240,10 +232,10 @@ func resourceDataFactoryLinkedServiceAzureFunctionRead(d *pluginsdk.ResourceData
 	d.Set("description", azureFunction.Description)
 
 	if functionKey := azureFunction.AzureFunctionLinkedServiceTypeProperties.FunctionKey; functionKey != nil {
-		if keyVaultKey, ok := functionKey.AsAzureKeyVaultSecretReference(); ok {
-			if err := d.Set("key_vault_key", flattenAzureKeyVaultSecretReference(keyVaultKey)); err != nil {
-				return fmt.Errorf("setting `key_vault_key`: %+v", err)
-			}
+		if keyVaultKey, ok := functionKey.AsAzureKeyVaultSecretReference(); !ok {
+			return fmt.Errorf("classifying Data Factory Azure Key Vault Secret %s: Expected: %q Received: %q", id, datafactory.TypeAzureKeyVaultSecret, keyVaultKey.Type)
+		} else if err := d.Set("key_vault_key", flattenAzureKeyVaultSecretReference(keyVaultKey)); err != nil {
+			return fmt.Errorf("setting `key_vault_key`: %+v", err)
 		}
 	}
 
