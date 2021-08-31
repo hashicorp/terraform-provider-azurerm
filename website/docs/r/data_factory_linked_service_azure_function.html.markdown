@@ -66,7 +66,7 @@ The following supported arguments are specific to Azure Function Linked Service:
 
 * `url` - (Required) The url of the Azure Function. 
 
-* `key` - (Required) The system key of the Azure Function. Exactly one of either `key` or `key_vault_key` is required
+* `key` - (Optional) The system key of the Azure Function. Exactly one of either `key` or `key_vault_key` is required
 
 * `key_vault_key` - (Optional) A `key_vault_key` block as defined below. Use this Argument to store the system key of the Azure Function in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service. Exactly one of either `key` or `key_vault_key` is required.
 
