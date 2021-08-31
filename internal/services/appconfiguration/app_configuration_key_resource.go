@@ -2,6 +2,7 @@ package appconfiguration
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -20,7 +21,13 @@ import (
 type KeyResource struct {
 }
 
-var _ sdk.Resource = KeyResource{}
+var _ sdk.ResourceWithCustomizeDiff = KeyResource{}
+
+const (
+	KeyTypeVault        = "vault"
+	KeyTypeKV           = "kv"
+	VaultKeyContentType = "application/vnd.microsoft.appconfig.keyvaultref+json;charset=utf-8"
+)
 
 type KeyResourceModel struct {
 	ConfigurationStoreId string                 `tfschema:"configuration_store_id"`
@@ -30,6 +37,12 @@ type KeyResourceModel struct {
 	Value                string                 `tfschema:"value"`
 	Locked               bool                   `tfschema:"locked"`
 	Tags                 map[string]interface{} `tfschema:"tags"`
+	Type                 string                 `tfschema:"type"`
+	VaultKeyReference    string                 `tfschema:"vault_key_reference"`
+}
+
+type VaultKeyReference struct {
+	URI string `json:"uri"`
 }
 
 func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
@@ -40,17 +53,16 @@ func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: azure.ValidateResourceID,
 		},
-
 		"key": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
-
 		"content_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Computed: true,
 		},
 		"etag": {
 			Type:     pluginsdk.TypeString,
@@ -65,11 +77,22 @@ func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 		"value": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Computed: true,
 		},
 		"locked": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
+		},
+		"type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "kv",
+		},
+		"vault_key_reference": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		},
 		"tags": tags.Schema(),
 	}
@@ -116,11 +139,22 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			}
 
 			entity := appconfiguration.KeyValue{
-				Key:         utils.String(model.Key),
-				Label:       utils.String(model.Label),
-				ContentType: utils.String(model.ContentType),
-				Value:       utils.String(model.Value),
-				Tags:        tags.Expand(model.Tags),
+				Key:   utils.String(model.Key),
+				Label: utils.String(model.Label),
+				Tags:  tags.Expand(model.Tags),
+			}
+
+			switch model.Type {
+			case KeyTypeKV:
+				entity.ContentType = utils.String(model.ContentType)
+				entity.Value = utils.String(model.Value)
+			case KeyTypeVault:
+				entity.ContentType = utils.String(VaultKeyContentType)
+				ref, err := json.Marshal(VaultKeyReference{URI: model.VaultKeyReference})
+				if err != nil {
+					return fmt.Errorf("while encoding vault key reference: %+v", err)
+				}
+				entity.Value = utils.String(string(ref))
 			}
 
 			if _, err = client.PutKeyValue(ctx, model.Key, model.Label, &entity, "", ""); err != nil {
@@ -173,8 +207,24 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 				Key:                  utils.NormalizeNilableString(kv.Key),
 				ContentType:          utils.NormalizeNilableString(kv.ContentType),
 				Label:                utils.NormalizeNilableString(kv.Label),
-				Value:                utils.NormalizeNilableString(kv.Value),
 				Tags:                 tags.Flatten(kv.Tags),
+			}
+
+			if utils.NormalizeNilableString(kv.ContentType) != VaultKeyContentType {
+				model.Type = KeyTypeKV
+				model.Value = utils.NormalizeNilableString(kv.Value)
+			} else {
+				var ref VaultKeyReference
+				refBytes := []byte(utils.NormalizeNilableString(kv.Value))
+				err := json.Unmarshal(refBytes, &ref)
+				if err != nil {
+					return fmt.Errorf("while unmarshalling vault reference: %+v", err)
+				}
+
+				model.Type = KeyTypeVault
+				model.VaultKeyReference = ref.URI
+				model.ContentType = VaultKeyContentType
+				model.Value = utils.NormalizeNilableString(kv.Value)
 			}
 
 			if kv.Locked != nil {
@@ -205,16 +255,26 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			if metadata.ResourceData.HasChange("value") || metadata.ResourceData.HasChange("content_type") || metadata.ResourceData.HasChange("tags") {
+			if metadata.ResourceData.HasChange("value") || metadata.ResourceData.HasChange("content_type") || metadata.ResourceData.HasChange("tags") || metadata.ResourceData.HasChange("type") || metadata.ResourceData.HasChange("vault_key_reference") {
 
 				entity := appconfiguration.KeyValue{
-					Key:         utils.String(model.Key),
-					Label:       utils.String(model.Label),
-					ContentType: utils.String(model.ContentType),
-					Value:       utils.String(model.Value),
-					Tags:        tags.Expand(model.Tags),
+					Key:   utils.String(model.Key),
+					Label: utils.String(model.Label),
+					Tags:  tags.Expand(model.Tags),
 				}
 
+				switch model.Type {
+				case KeyTypeKV:
+					entity.ContentType = utils.String(model.ContentType)
+					entity.Value = utils.String(model.Value)
+				case KeyTypeVault:
+					entity.ContentType = utils.String(VaultKeyContentType)
+					ref, err := json.Marshal(VaultKeyReference{URI: model.VaultKeyReference})
+					if err != nil {
+						return fmt.Errorf("while encoding vault key reference: %+v", err)
+					}
+					entity.Value = utils.String(string(ref))
+				}
 				if _, err = client.PutKeyValue(ctx, model.Key, model.Label, &entity, "", ""); err != nil {
 					return fmt.Errorf("while updating key/label pair %s/%s: %+v", model.Key, model.Label, err)
 				}
@@ -265,6 +325,33 @@ func (k KeyResource) Delete() sdk.ResourceFunc {
 	}
 }
 
+func (k KeyResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+			keyType := rd.Get("type").(string)
+			if keyType == KeyTypeVault {
+				contentType := rd.Get("content_type").(string)
+				if rd.HasChange("content_type") && contentType != VaultKeyContentType {
+					return fmt.Errorf("vault reference key %q cannot have content type other than %q (found %q)", rd.Get("key").(string), VaultKeyContentType, contentType)
+				}
+
+				value := rd.Get("value").(string)
+				var v VaultKeyReference
+				if rd.HasChange("value") {
+					if err := json.Unmarshal([]byte(value), &v); err != nil {
+						return fmt.Errorf("while validating attribute 'value' (%q): %+v", value, err)
+					}
+					if v.URI == "" {
+						return fmt.Errorf("invalid data in 'value' contents: URI cannot be empty")
+					}
+				}
+			}
+			return nil
+		},
+		Timeout: 30 * time.Minute,
+	}
+}
 func (k KeyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.AppConfigurationKeyID
 }
