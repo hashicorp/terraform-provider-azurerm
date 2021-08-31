@@ -323,7 +323,7 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestvault%[3]d"
+  name                     = "acctest%[3]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
@@ -351,6 +351,6 @@ resource "azurerm_machine_learning_workspace" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary,
-		data.RandomIntOfLength(12), data.RandomIntOfLength(15), data.RandomIntOfLength(16),
+		data.RandomStringOfLength(17), data.RandomIntOfLength(15), data.RandomIntOfLength(16),
 		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
