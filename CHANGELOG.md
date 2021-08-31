@@ -11,6 +11,11 @@ ENHANCEMENTS:
 * upgrading `dataprotection` to API Version `2021-07-01` [GH-13161]
 * `azurerm_application_insights` - support the `local_authentication_disabled` property [GH-13174]
 * `azurerm_data_factory_linked_service_azure_blob_storage` - support for the `key_vault_sas_token` property [GH-12880]
+* `azurerm_hdinsight_hadoop_cluster` - support for the `security_profile` block [GH-12866]
+* `azurerm_hdinsight_hbase_cluster` - support for the `security_profile` block [GH-12866]
+* `azurerm_hdinsight_interactive_query_cluster` - support for the `security_profile` block [GH-12866]
+* `azurerm_hdinsight_kafka_cluster` - support for the `security_profile` block [GH-12866]
+* `azurerm_hdinsight_spark_cluster` - support for the `security_profile` block [GH-12866]
 * `azurerm_mssql_server`- refactoring to use an ID Formatter/Parser [GH-13151]
 * `azurerm_policy_virtual_machine_configuration_assignment` - support for the `assignment_type`, `content_uri`, and `content_hash` properties [GH-13176]
 
