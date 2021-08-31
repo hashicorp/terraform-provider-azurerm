@@ -51,6 +51,59 @@ resource "azurerm_logic_app_standard" "example" {
 }
 ```
 
+## Example Usage (for container mode)
+
+~> **Note:** You must set `azurerm_app_service_plan` `kind` to `Linux` and `reserved` to `true` when used with `linux_fx_version`
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "azure-functions-test-rg"
+  location = "West Europe"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "functionsapptestsa"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "example" {
+  name                = "azure-functions-test-service-plan"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  kind                = "Linux"
+  reserved            = true
+
+  sku {
+    tier = "ElasticPremium"
+    size = "EP1"
+  }
+}
+
+resource "azurerm_logic_app_standard" "example" {
+  name                       = "test-azure-functions"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  app_service_plan_id        = azurerm_app_service_plan.example.id
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
+
+  site_config {
+    linux_fx_version = "DOCKER|mcr.microsoft.com/azure-functions/dotnet:3.0-appservice"
+  }
+
+  app_settings = {
+    "DOCKER_REGISTRY_SERVER_URL"      = "https://<server-name>.azurecr.io"
+    "DOCKER_REGISTRY_SERVER_USERNAME" = "username"
+    "DOCKER_REGISTRY_SERVER_PASSWORD" = "password"
+  }
+
+}
+```
+
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -65,9 +118,11 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
 
-~> **NOTE:** The values for `AzureWebJobsStorage` and `FUNCTIONS_EXTENSION_VERSION` will be filled by other input arguments and shouldn't be configured separately. `AzureWebJobsStorage` is filled based on `storage_account_name` and `storage_account_access_key`. `FUNCTIONS_EXTENSION_VERSION` is filled based on `version`.
+~> **NOTE:** There are a number of application settings that will be managed for you by this resource type and shouldn't be configured separately as part of the app_settings you specify.  `AzureWebJobsStorage` is filled based on `storage_account_name` and `storage_account_access_key`. `FUNCTIONS_EXTENSION_VERSION` is filled based on `version`. `APP_KIND` is set to workflowApp and `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` are set as detailed below.
 
-* `auth_settings` - (Optional) A `auth_settings` block as defined below.
+* `use_extension_bundle` - (Optional) Should the logic app use the bundled extension package? If true, then application settings for `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` will be created. Default true
+
+* `bundle_version_range` - (Optional) If `use_extension_bundle` then controls the allowed range for bundle versions. Default `[1.*, 2.0.0)`
 
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
@@ -128,6 +183,8 @@ The following arguments are supported:
 * `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
 
 -> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
+
+* `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`. Setting this value will also set the `kind` of application deployed to `functionapp,linux,container,workflowapp`
 
 * `min_tls_version` - (Optional) The minimum supported TLS version for the Logic App Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new Logic Apps.
 

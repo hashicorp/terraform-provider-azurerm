@@ -67,6 +67,18 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				},
 			},
 
+			"use_extension_bundle": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"bundle_version_range": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  "[1.*, 2.0.0)",
+			},
+
 			"client_affinity_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -242,7 +254,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	kind := "functionapp,workflowapp"
+
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
@@ -259,6 +271,11 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	siteConfig, err := expandLogicAppStandardSiteConfig(d)
 	if err != nil {
 		return fmt.Errorf("expanding `site_config` for Logic App Standard %q (Resource Group %q): %s", name, resourceGroup, err)
+	}
+
+	kind := "functionapp,workflowapp"
+	if siteConfig.LinuxFxVersion != nil && len(*siteConfig.LinuxFxVersion) > 0 {
+		kind = "functionapp,linux,container,workflowapp"
 	}
 
 	siteConfig.AppSettings = &basicAppSettings
@@ -323,7 +340,6 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	kind := "functionapp,workflowapp"
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
@@ -340,6 +356,11 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	siteConfig, err := expandLogicAppStandardSiteConfig(d)
 	if err != nil {
 		return fmt.Errorf("expanding `site_config` for Logic App Standard %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
+	}
+
+	kind := "functionapp,workflowapp"
+	if siteConfig.LinuxFxVersion != nil && len(*siteConfig.LinuxFxVersion) > 0 {
+		kind = "functionapp,linux,container,workflowapp"
 	}
 
 	siteConfig.AppSettings = &basicAppSettings
@@ -468,6 +489,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("name", id.SiteName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("kind", resp.Kind)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -515,6 +537,26 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.Set("version", appSettings["FUNCTIONS_EXTENSION_VERSION"])
+
+	if _, ok := appSettings["AzureFunctionsJobHost__extensionBundle__id"]; ok {
+		d.Set("use_extension_bundle", true)
+		if val, ok := appSettings["AzureFunctionsJobHost__extensionBundle__version"]; ok {
+			d.Set("bundle_version_range", val)
+		}
+	} else {
+		d.Set("use_extension_bundle", false)
+		d.Set("bundle_version_range", "[1.*, 2.0.0)")
+	}
+
+	// Remove all the settings that are created by this resource so we don't to have to specify in app_settings
+	// block whenever we use azurerm_logic_app_standard.
+	delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
+	delete(appSettings, "APP_KIND")
+	delete(appSettings, "AzureFunctionsJobHost__extensionBundle__id")
+	delete(appSettings, "AzureFunctionsJobHost__extensionBundle__version")
+	delete(appSettings, "AzureWebJobsDashboard")
+	delete(appSettings, "AzureWebJobsStorage")
+	delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
 
 	if err = d.Set("app_settings", appSettings); err != nil {
 		return err
@@ -597,6 +639,25 @@ func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) 
 		{Name: &contentFileConnStringPropName, Value: &storageConnection},
 	}
 
+	useExtensionBundle := d.Get("use_extension_bundle").(bool)
+	if useExtensionBundle {
+		extensionBundlePropName := "AzureFunctionsJobHost__extensionBundle__id"
+		extensionBundleName := "Microsoft.Azure.Functions.ExtensionBundle.Workflows"
+		extensionBundleVersionPropName := "AzureFunctionsJobHost__extensionBundle__version"
+		extensionBundleVersion := d.Get("bundle_version_range").(string)
+
+		if extensionBundleVersion == "" {
+			return nil, fmt.Errorf("when `use_extension_bundle` is true, `bundle_version_range` must be specified")
+		}
+
+		bundleSettings := []web.NameValuePair{
+			{Name: &extensionBundlePropName, Value: &extensionBundleName},
+			{Name: &extensionBundleVersionPropName, Value: &extensionBundleVersion},
+		}
+
+		return append(basicSettings, bundleSettings...), nil
+	}
+
 	return basicSettings, nil
 }
 
@@ -634,6 +695,12 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				},
 
 				"ip_restriction": schemaLogicAppStandardIpRestriction(),
+
+				"linux_fx_version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+				},
 
 				"min_tls_version": {
 					Type:     pluginsdk.TypeString,
@@ -965,6 +1032,10 @@ func flattenLogicAppStandardSiteConfig(input *web.SiteConfig) []interface{} {
 		result["websockets_enabled"] = *input.WebSocketsEnabled
 	}
 
+	if input.LinuxFxVersion != nil {
+		result["linux_fx_version"] = *input.LinuxFxVersion
+	}
+
 	if input.HTTP20Enabled != nil {
 		result["http2_enabled"] = *input.HTTP20Enabled
 	}
@@ -1150,6 +1221,10 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 
 	if v, ok := config["websockets_enabled"]; ok {
 		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["linux_fx_version"]; ok {
+		siteConfig.LinuxFxVersion = utils.String(v.(string))
 	}
 
 	if v, ok := config["cors"]; ok {

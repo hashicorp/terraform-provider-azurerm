@@ -3,6 +3,7 @@ package logic_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -30,7 +31,38 @@ func TestAccLogicAppStandard_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
-				check.That(data.ResourceName).Key("app_settings.APP_KIND").HasValue("workflowApp"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppStandard_containerized(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.containerized(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				acceptance.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,linux,container,workflowapp"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppStandard_extensionBundle(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.extensionBundle(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.hasExtensionBundleAppSetting(true)),
 			),
 		},
 		data.ImportStep(),
@@ -715,6 +747,33 @@ func (r LogicAppStandardResource) Exists(ctx context.Context, clients *clients.C
 	return utils.Bool(true), nil
 }
 
+func (r LogicAppStandardResource) hasExtensionBundleAppSetting(shouldExist bool) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		id, err := parse.FunctionAppID(state.ID)
+		if err != nil {
+			return err
+		}
+
+		appSettingsResp, err := clients.Web.AppServicesClient.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+		if err != nil {
+			return fmt.Errorf("listing AppSettings: %+v", err)
+		}
+
+		exists := false
+		for k := range appSettingsResp.Properties {
+			if strings.EqualFold("AzureFunctionsJobHost__extensionBundle__id", k) {
+				exists = true
+				break
+			}
+		}
+		if exists != shouldExist {
+			return fmt.Errorf("expected %t but got %t", shouldExist, exists)
+		}
+
+		return nil
+	}
+}
+
 func (r LogicAppStandardResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -752,6 +811,96 @@ resource "azurerm_logic_app_standard" "test" {
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r LogicAppStandardResource) containerized(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "Linux"
+  reserved            = true
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%[1]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    linux_fx_version = "DOCKER|mcr.microsoft.com/azure-functions/dotnet:3.0-appservice"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r LogicAppStandardResource) extensionBundle(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%[1]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  use_extension_bundle       = true
+  bundle_version_range       = "[1.*, 2.0.0)"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -944,13 +1093,9 @@ resource "azurerm_logic_app_standard" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   app_settings = {
-    "hello"                                    = "world"
-    "APPINSIGHTS_INSTRUMENTATIONKEY"           = azurerm_storage_account.test.primary_connection_string
-    "FUNCTIONS_EXTENSION_VERSION"              = "~3"
-    "AzureWebJobsStorage"                      = azurerm_storage_account.test.primary_connection_string
-    "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = azurerm_storage_account.test.primary_connection_string
-    "WEBSITE_CONTENTSHARE"                     = "acctest-%[1]d-func-content"
-    "APP_KIND"                                 = "workflowApp"
+    "hello"                          = "world"
+    "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_storage_account.test.primary_connection_string
+    "WEBSITE_CONTENTSHARE"           = "acctest-%[1]d-func-content"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -1000,13 +1145,9 @@ resource "azurerm_logic_app_standard" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   app_settings = {
-    "hello"                                    = "world"
-    "APPINSIGHTS_INSTRUMENTATIONKEY"           = azurerm_storage_account.test.primary_connection_string
-    "FUNCTIONS_EXTENSION_VERSION"              = "~3"
-    "AzureWebJobsStorage"                      = azurerm_storage_account.test.primary_connection_string
-    "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = azurerm_storage_account.test.primary_connection_string
-    "WEBSITE_CONTENTSHARE"                     = azurerm_storage_share.custom.name
-    "APP_KIND"                                 = "workflowApp"
+    "hello"                          = "world"
+    "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_storage_account.test.primary_connection_string
+    "WEBSITE_CONTENTSHARE"           = azurerm_storage_share.custom.name
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
