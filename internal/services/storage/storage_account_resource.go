@@ -1595,8 +1595,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			//lintignore:R001
 			d.Set(allowPublicNestedItemsName, allowBlobPublicAccess)
 		} else {
-			//lintignore:R001,R002
-			d.Set(allowPublicNestedItemsName, *props.AllowBlobPublicAccess)
+			//lintignore:R001
+			d.Set(allowPublicNestedItemsName, props.AllowBlobPublicAccess)
 		}
 
 		// For all Clouds except Public, China, and USGovernmentCloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
