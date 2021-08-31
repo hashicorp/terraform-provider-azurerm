@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * `azurerm_hdinsight_spark_cluster` - support for the `security_profile` block [GH-12866]
 * `azurerm_mssql_server`- refactoring to use an ID Formatter/Parser [GH-13151]
 * `azurerm_policy_virtual_machine_configuration_assignment` - support for the `assignment_type`, `content_uri`, and `content_hash` properties [GH-13176]
+* `azurerm_data_factory_linked_service_azure_function` support for the `key_vault_key` block [GH-13159]
 
 ## 2.74.0 (August 27, 2021)
 
