@@ -173,7 +173,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
     priority = 500
     action   = "Deny"
     rule {
-      name = "app_rule_collection1_rule1"
+      name        = "app_rule_collection1_rule1"
       description = "app_rule_collection1_rule1"
       protocols {
         type = "Http"
@@ -183,15 +183,15 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
         type = "Https"
         port = 443
       }
-      source_addresses  = ["10.0.0.1"]
+      source_addresses      = ["10.0.0.1"]
       destination_addresses = ["10.0.0.1"]
-      destination_urls = ["www.google.com/en"]
-      destination_fqdns = ["pluginsdk.io"]
-      terminate_tls = true
-      web_categories = ["Liability"]
+      destination_urls      = ["www.google.com/en"]
+      destination_fqdns     = ["pluginsdk.io"]
+      terminate_tls         = true
+      web_categories        = ["Liability"]
     }
     rule {
-      name = "app_rule_collection1_rule2"
+      name        = "app_rule_collection1_rule2"
       description = "app_rule_collection1_rule2"
       protocols {
         type = "Http"
@@ -201,15 +201,15 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
         type = "Https"
         port = 443
       }
-      source_ip_groups  = [azurerm_ip_group.test_source.id]
+      source_ip_groups      = [azurerm_ip_group.test_source.id]
       destination_addresses = ["10.0.0.1"]
-      destination_urls = ["www.google.com/en"]
-      destination_fqdns = ["pluginsdk.io"]
-      terminate_tls = true
-      web_categories = ["Liability"]
+      destination_urls      = ["www.google.com/en"]
+      destination_fqdns     = ["pluginsdk.io"]
+      terminate_tls         = true
+      web_categories        = ["Liability"]
     }
     rule {
-      name = "app_rule_collection1_rule3"
+      name        = "app_rule_collection1_rule3"
       description = "app_rule_collection1_rule3"
       protocols {
         type = "Http"
@@ -221,10 +221,10 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       }
       source_addresses      = ["10.0.0.1"]
       destination_addresses = ["10.0.0.1"]
-      destination_urls = ["www.google.com/en"]
+      destination_urls      = ["www.google.com/en"]
       destination_fqdn_tags = ["WindowsDiagnostics"]
-      terminate_tls = true
-      web_categories = ["Liability"]
+      terminate_tls         = true
+      web_categories        = ["Liability"]
     }
   }
 
