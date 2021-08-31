@@ -1,5 +1,5 @@
 ---
-subcategory: "App Service (Web Apps)"
+subcategory: "Logic App"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_logic_app_standard"
 description: |-
