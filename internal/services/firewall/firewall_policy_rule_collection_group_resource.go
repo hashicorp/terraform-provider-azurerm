@@ -611,7 +611,7 @@ func expandFirewallPolicyRuleApplication(input []interface{}) *[]network.BasicFi
 			TargetFqdns:          utils.ExpandStringSlice(condition["destination_fqdns"].(*pluginsdk.Set).List()),
 			TargetUrls:           utils.ExpandStringSlice(condition["destination_urls"].(*pluginsdk.Set).List()),
 			FqdnTags:             utils.ExpandStringSlice(condition["destination_fqdn_tags"].(*pluginsdk.Set).List()),
-			TerminateTLS:         utils.Bool(condition["terminate_tls"]),
+			TerminateTLS:         utils.Bool(condition["terminate_tls"].(bool)),
 			WebCategories:        utils.ExpandStringSlice(condition["web_categories"].(*pluginsdk.Set).List()),
 		}
 		result = append(result, output)
