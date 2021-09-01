@@ -85,9 +85,10 @@ func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 		"type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "kv",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "kv",
+			ValidateFunc: validation.StringInSlice([]string{KeyTypeVault, KeyTypeKV}, false),
 		},
 		"vault_key_reference": {
 			Type:         pluginsdk.TypeString,
