@@ -109,7 +109,7 @@ resource "azurerm_key_vault" "example" {
 
 resource "azurerm_key_vault_secret" "example" {
   name         = "example"
-  value        = "Server=acctest-postgresql-server-henglu830.postgres.database.azure.com;Database=${azurerm_postgresql_database.test.name};Port=5432;User Id=psqladminun@acctest-postgresql-server-henglu830;Password=H@Sh1CoR3!;Ssl Mode=Require;"
+  value        = "Server=${azurerm_postgresql_server.example.name}.postgres.database.azure.com;Database=${azurerm_postgresql_database.example.name};Port=5432;User Id=psqladminun@${azurerm_postgresql_server.example.name};Password=H@Sh1CoR3!;Ssl Mode=Require;"
   key_vault_id = azurerm_key_vault.example.id
 }
 
@@ -151,7 +151,7 @@ The following arguments are supported:
 
 * `backup_policy_id` - (Required) The ID of the Backup Policy.
 
-* `database_credential_key_vault_secret_id` - (Optional) The ID of the key vault secret where stores the connection string of the database.
+* `database_credential_key_vault_secret_id` - (Optional) The ID of the key vault secret which stores the connection string of the database.
 
 ## Attributes Reference
 

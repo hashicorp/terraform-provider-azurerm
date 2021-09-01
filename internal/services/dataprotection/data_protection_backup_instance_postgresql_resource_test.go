@@ -215,7 +215,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_secret" "test" {
   name         = "acctestsecret%[1]d"
-  value        = "Server=${azurerm_postgresql_server.test.name}.postgres.database.azure.com;Database=${azurerm_postgresql_database.test.name};Port=5432;User Id=psqladminun@acctest-postgresql-server-henglu830;Password=H@Sh1CoR3!;Ssl Mode=Require;"
+  value        = "Server=${azurerm_postgresql_server.test.name}.postgres.database.azure.com;Database=${azurerm_postgresql_database.test.name};Port=5432;User Id=psqladminun@${azurerm_postgresql_server.test.name};Password=H@Sh1CoR3!;Ssl Mode=Require;"
   key_vault_id = azurerm_key_vault.test.id
 }
 
