@@ -139,10 +139,7 @@ func resourceDataFactoryTriggerScheduleCreateUpdate(d *pluginsdk.ResourceData, m
 	triggerName := d.Get("name").(string)
 	dataFactoryName := d.Get("data_factory_name").(string)
 
-	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
-	if err != nil {
-		return err
-	}
+	dataFactoryId := parse.NewDataFactoryID(subscriptionId, resourceGroupName, dataFactoryName)
 
 	id := parse.NewTriggerID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
 
