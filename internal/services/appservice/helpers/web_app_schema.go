@@ -914,7 +914,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"java_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					// Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"1.7",
 						"1.8",
@@ -924,7 +924,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 
 				"java_container": {Type: pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					// Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"JAVA",
 						"JETTY",
@@ -938,7 +938,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"java_container_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					// Computed: true,
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.java_container",
 					},
@@ -3267,32 +3267,15 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		winAppStack.NetFrameworkVersion = *appSiteConfig.NetFrameworkVersion
 	}
 
-	if appSiteConfig.PhpVersion != nil {
-		winAppStack.PhpVersion = *appSiteConfig.PhpVersion
-	}
+	winAppStack.PhpVersion = utils.NormalizeNilableString(appSiteConfig.PhpVersion)
+	winAppStack.NodeVersion = utils.NormalizeNilableString(appSiteConfig.NodeVersion)
+	winAppStack.PythonVersion = utils.NormalizeNilableString(appSiteConfig.PythonVersion)
+	winAppStack.JavaVersion = utils.NormalizeNilableString(appSiteConfig.JavaVersion)
+	winAppStack.JavaContainer = utils.NormalizeNilableString(appSiteConfig.JavaContainer)
+	winAppStack.JavaContainerVersion = utils.NormalizeNilableString(appSiteConfig.JavaContainerVersion)
 
-	if appSiteConfig.NodeVersion != nil {
-		winAppStack.NodeVersion = *appSiteConfig.NodeVersion
-	}
-
-	if appSiteConfig.PythonVersion != nil {
-		winAppStack.PythonVersion = *appSiteConfig.PythonVersion
-	}
-
-	if appSiteConfig.JavaVersion != nil {
-		winAppStack.JavaVersion = *appSiteConfig.JavaVersion
-	}
-
-	if appSiteConfig.JavaContainer != nil {
-		winAppStack.JavaContainer = *appSiteConfig.JavaContainer
-	}
-
-	if appSiteConfig.JavaContainerVersion != nil {
-		winAppStack.JavaContainerVersion = *appSiteConfig.JavaContainerVersion
-	}
-
-	if appSiteConfig.WindowsFxVersion != nil {
-		siteConfig.WindowsFxVersion = *appSiteConfig.WindowsFxVersion
+	siteConfig.WindowsFxVersion = utils.NormalizeNilableString(appSiteConfig.WindowsFxVersion)
+	if siteConfig.WindowsFxVersion != "" {
 		// Decode the string to docker values
 		parts := strings.Split(strings.TrimPrefix(siteConfig.WindowsFxVersion, "DOCKER|"), ":")
 		winAppStack.DockerContainerTag = parts[1]
@@ -3306,13 +3289,11 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 
 	siteConfig.VirtualApplications = flattenVirtualApplications(appSiteConfig.VirtualApplications)
 
-	if appSiteConfig.AutoSwapSlotName != nil {
-		siteConfig.AutoSwapSlotName = *appSiteConfig.AutoSwapSlotName
-	}
+	siteConfig.AutoSwapSlotName = utils.NormalizeNilableString(appSiteConfig.AutoSwapSlotName)
 
 	if appSiteConfig.Cors != nil {
-		corsSettings := appSiteConfig.Cors
 		cors := CorsSetting{}
+		corsSettings := appSiteConfig.Cors
 		if corsSettings.SupportCredentials != nil {
 			cors.SupportCredentials = *corsSettings.SupportCredentials
 		}
@@ -3323,7 +3304,12 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		siteConfig.Cors = []CorsSetting{cors}
 	}
 
-	siteConfig.AutoHeal = *appSiteConfig.AutoHealEnabled
+	autoHeal := false
+	if appSiteConfig.AutoHealEnabled != nil {
+		autoHeal = *appSiteConfig.AutoHealEnabled
+	}
+	siteConfig.AutoHeal = autoHeal
+
 	siteConfig.AutoHealSettings = flattenAutoHealSettingsWindows(appSiteConfig.AutoHealRules)
 
 	return []SiteConfigWindows{siteConfig}

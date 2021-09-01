@@ -603,13 +603,13 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				existing.Tags = tags.FromTypedObject(state.Tags)
 			}
 
-			var currentStack *string
+			currentStack := ""
 			if metadata.ResourceData.HasChange("site_config") {
 				siteConfig, stack, err := helpers.ExpandSiteConfigWindows(state.SiteConfig)
 				if err != nil {
 					return fmt.Errorf("expanding Site Config for Windows %s: %+v", id, err)
 				}
-				currentStack = stack
+				currentStack = *stack
 				existing.SiteConfig = siteConfig
 			}
 
@@ -621,12 +621,10 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("wating to update %s: %+v", id, err)
 			}
 
-			if currentStack != nil && *currentStack != "" {
-				siteMetadata := web.StringDictionary{Properties: map[string]*string{}}
-				siteMetadata.Properties["CURRENT_STACK"] = currentStack
-				if _, err := client.UpdateMetadata(ctx, id.ResourceGroup, id.SiteName, siteMetadata); err != nil {
-					return fmt.Errorf("setting Site Metadata for Current Stack on Windows %s: %+v", id, err)
-				}
+			siteMetadata := web.StringDictionary{Properties: map[string]*string{}}
+			siteMetadata.Properties["CURRENT_STACK"] = utils.String(currentStack)
+			if _, err := client.UpdateMetadata(ctx, id.ResourceGroup, id.SiteName, siteMetadata); err != nil {
+				return fmt.Errorf("setting Site Metadata for Current Stack on Windows %s: %+v", id, err)
 			}
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
