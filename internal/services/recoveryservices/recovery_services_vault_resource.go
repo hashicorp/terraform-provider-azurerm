@@ -137,7 +137,7 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 		Properties: &recoveryservices.VaultProperties{},
 	}
 
-	vault, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, vault)
+	_, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, vault)
 	if err != nil {
 		return fmt.Errorf("creating/updating Recovery Service %s: %+v", id.String(), err)
 	}
