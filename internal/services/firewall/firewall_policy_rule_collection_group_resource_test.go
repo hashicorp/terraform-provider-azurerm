@@ -188,7 +188,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       destination_urls      = ["www.google.com/en"]
       destination_fqdns     = ["pluginsdk.io"]
       terminate_tls         = true
-      web_categories        = ["Liability"]
+      web_categories        = ["News"]
     }
     rule {
       name        = "app_rule_collection1_rule2"
@@ -206,7 +206,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       destination_urls      = ["www.google.com/en"]
       destination_fqdns     = ["pluginsdk.io"]
       terminate_tls         = true
-      web_categories        = ["Liability"]
+      web_categories        = ["News"]
     }
     rule {
       name        = "app_rule_collection1_rule3"
@@ -224,7 +224,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       destination_urls      = ["www.google.com/en"]
       destination_fqdn_tags = ["WindowsDiagnostics"]
       terminate_tls         = true
-      web_categories        = ["Liability"]
+      web_categories        = ["News"]
     }
   }
 
