@@ -102,7 +102,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 									},
 									"protocols": {
 										Type:     pluginsdk.TypeSet,
-										Required: true,
+										Optional: true,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"type": {
