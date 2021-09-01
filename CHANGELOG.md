@@ -5,6 +5,7 @@ FEATURES:
 * **New Data Source:** `azurerm_cosmosdb_mongo_database` [GH-13123]
 * **New Resource:** `azurerm_cognitive_account_customer_managed_key` [GH-12901]
 * **New Resource:** `azurerm_logic_app_integration_account_partner` [GH-13157]
+* **New Resource:** `azurerm_app_configuration_key` [GH-13118]
 
 ENHANCEMENTS:
 
