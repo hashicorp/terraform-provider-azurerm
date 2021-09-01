@@ -144,6 +144,7 @@ resource "azurerm_firewall_policy" "test" {
   name                = "acctest-fwpolicy-RCG-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
   dns {
     network_rule_fqdn_enabled = false
     proxy_enabled             = true
@@ -186,7 +187,6 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       source_addresses      = ["10.0.0.1"]
       destination_addresses = ["10.0.0.1"]
       destination_urls      = ["www.google.com/en"]
-      destination_fqdns     = ["pluginsdk.io"]
       terminate_tls         = true
       web_categories        = ["News"]
     }
@@ -203,7 +203,6 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       }
       source_ip_groups      = [azurerm_ip_group.test_source.id]
       destination_addresses = ["10.0.0.1"]
-      destination_urls      = ["www.google.com/en"]
       destination_fqdns     = ["pluginsdk.io"]
       terminate_tls         = true
       web_categories        = ["News"]
@@ -222,7 +221,6 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       source_addresses      = ["10.0.0.1"]
       destination_addresses = ["10.0.0.1"]
       destination_urls      = ["www.google.com/en"]
-      destination_fqdn_tags = ["WindowsDiagnostics"]
       terminate_tls         = true
       web_categories        = ["News"]
     }
