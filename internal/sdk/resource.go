@@ -63,7 +63,6 @@ type Resource interface {
 	IDValidationFunc() pluginsdk.SchemaValidateFunc
 }
 
-// TODO: ResourceWithCustomizeDiff
 // TODO: ResourceWithStateMigration
 // TODO: a generic state migration for updating ID's
 
@@ -100,6 +99,14 @@ type ResourceWithDeprecation interface {
 	DeprecationMessage() string
 }
 
+// ResourceWithCustomizeDiff is an optional interface
+type ResourceWithCustomizeDiff interface {
+	Resource
+
+	// CustomizeDiff returns a ResourceFunc that runs the Custom Diff logic
+	CustomizeDiff() ResourceFunc
+}
+
 // ResourceRunFunc is the function which can be run
 // ctx provides a Context instance with the user-provided timeout
 // metadata is a reference to an object containing the Client, ResourceData and a Logger
@@ -109,6 +116,8 @@ type ResourceFunc struct {
 	// Func is the function which should be called for this Resource Func
 	// for example, during Read this is the Read function, during Update this is the Update function
 	Func ResourceRunFunc
+
+	DiffFunc ResourceRunFunc
 
 	// Timeout is the default timeout, which can be overridden by users
 	// for this method - in-turn used for the Azure API
@@ -126,6 +135,9 @@ type ResourceMetaData struct {
 	// This is used to be able to call operations directly should Encode/Decode be insufficient
 	// for example, to determine if a field has changes
 	ResourceData *schema.ResourceData
+
+	// ResourceDiff is a reference to the ResourceDiff object from Terraform's Plugin SDK
+	ResourceDiff *schema.ResourceDiff
 
 	// serializationDebugLogger is used for testing purposes
 	serializationDebugLogger Logger
