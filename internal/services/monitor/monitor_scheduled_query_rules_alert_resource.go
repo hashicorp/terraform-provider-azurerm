@@ -92,6 +92,11 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
+			"auto_mitigate": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 			"description": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -239,6 +244,7 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 		}
 	}
 
+	autoMitigate := d.Get("auto_mitigate").(bool)
 	description := d.Get("description").(string)
 	enabledRaw := d.Get("enabled").(bool)
 
@@ -257,11 +263,12 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 	parameters := insights.LogSearchRuleResource{
 		Location: utils.String(location),
 		LogSearchRule: &insights.LogSearchRule{
-			Description: utils.String(description),
-			Enabled:     enabled,
-			Source:      source,
-			Schedule:    schedule,
-			Action:      action,
+			Description:  utils.String(description),
+			Enabled:      enabled,
+			Source:       source,
+			Schedule:     schedule,
+			Action:       action,
+			AutoMitigate: &autoMitigate,
 		},
 		Tags: expandedTags,
 	}
@@ -310,6 +317,7 @@ func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	d.Set("auto_mitigate", resp.AutoMitigate)
 	d.Set("description", resp.Description)
 	if resp.Enabled == insights.EnabledTrue {
 		d.Set("enabled", true)

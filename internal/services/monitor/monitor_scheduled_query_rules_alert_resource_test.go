@@ -125,6 +125,8 @@ QUERY
     action_group = [azurerm_monitor_action_group.test.id]
   }
 
+  auto_mitigate       = false
+
   trigger {
     operator  = "GreaterThan"
     threshold = 5000

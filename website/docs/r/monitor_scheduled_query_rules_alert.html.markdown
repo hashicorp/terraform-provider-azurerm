@@ -143,6 +143,7 @@ The following arguments are supported:
 * `trigger` - (Required) The condition that results in the alert rule being run.
 * `action` - (Required) An `action` block as defined below.
 * `authorized_resource_ids` - (Optional) List of Resource IDs referred into query.
+* `auto_mitigate` - (Optional) Should the alerts in this Metric Alert be auto resolved? Defaults to `true`.
 * `description` - (Optional) The description of the scheduled query rule.
 * `enabled` - (Optional) Whether this scheduled query rule is enabled.  Default is `true`.
 * `severity` - (Optional) Severity of the alert. Possible values include: 0, 1, 2, 3, or 4.
