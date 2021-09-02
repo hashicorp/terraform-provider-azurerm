@@ -95,7 +95,7 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 			"auto_mitigate": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
+				Default:  false,
 			},
 			"description": {
 				Type:         pluginsdk.TypeString,
@@ -222,7 +222,7 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 	}
 	throttling := d.Get("throttling").(int)
 	if !d.Get("auto_mitigate").(bool) && throttling > 0 {
-		return fmt.Errorf("in parameter values for Scheduled Query Rules %q (Resource Group %q): Only one of `auto_resolve` or `throttling` can be set", name, resourceGroup)
+		return fmt.Errorf("in parameter values for Scheduled Query Rules %q (Resource Group %q): Only one of `auto_mitigate` or `throttling` can be set", name, resourceGroup)
 	}
 
 	query := d.Get("query").(string)

@@ -87,7 +87,7 @@ func TestAccMonitorScheduledQueryRules_AlertingActionCrossResource(t *testing.T)
 	})
 }
 
-func TestAccApplicationGateway_backendHttpSettingsHostNameAndPick(t *testing.T) {
+func TestAccMonitorScheduledQueryRules_AutoResolveAndThrottling(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
 	r := MonitorScheduledQueryRulesResource{}
 	ts := time.Now().Format(time.RFC3339)
@@ -95,7 +95,7 @@ func TestAccApplicationGateway_backendHttpSettingsHostNameAndPick(t *testing.T) 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.AlertingActionBadConfig(data, ts),
-			ExpectError: regexp.MustCompile("Only one of `auto_resolve` or `throttling` can be set"),
+			ExpectError: regexp.MustCompile("Only one of `auto_mitigate` or `throttling` can be set"),
 		},
 	})
 }
