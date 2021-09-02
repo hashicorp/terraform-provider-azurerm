@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -121,24 +122,23 @@ func dataSourceEventGridDomain() *pluginsdk.Resource {
 
 func dataSourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainsClient
+	subscriptionId := meta.(*clients.Client).EventGrid.DomainsClient.SubscriptionID
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewDomainID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: EventGrid Domain %s (Resource Group %s) was not found: %+v", name, resourceGroup, err)
+			return fmt.Errorf("%s was not found", id)
 		}
-
-		return fmt.Errorf("making Read request on EventGrid Domain '%s': %+v", name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.SetId(id.ID())
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -151,34 +151,34 @@ func dataSourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 		inputMappingFields, err := flattenAzureRmEventgridDomainInputMapping(props.InputSchemaMapping)
 		if err != nil {
-			return fmt.Errorf("flattening `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("flattening `input_schema_mapping_fields` for %s: %+v", id, err)
 		}
 		if err := d.Set("input_mapping_fields", inputMappingFields); err != nil {
-			return fmt.Errorf("setting `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("setting `input_schema_mapping_fields` for %s: %+v", id, err)
 		}
 
 		inputMappingDefaultValues, err := flattenAzureRmEventgridDomainInputMappingDefaultValues(props.InputSchemaMapping)
 		if err != nil {
-			return fmt.Errorf("flattening `input_schema_mapping_default_values` for EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("flattening `input_schema_mapping_default_values` for %s: %+v", id, err)
 		}
 		if err := d.Set("input_mapping_default_values", inputMappingDefaultValues); err != nil {
-			return fmt.Errorf("setting `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("setting `input_schema_mapping_fields` for %s: %+v", id, err)
 		}
 
 		publicNetworkAccessEnabled := flattenPublicNetworkAccess(props.PublicNetworkAccess)
 		if err := d.Set("public_network_access_enabled", publicNetworkAccessEnabled); err != nil {
-			return fmt.Errorf("setting `public_network_access_enabled` in EventGrid Domain %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("setting `public_network_access_enabled` in %s: %+v", id, err)
 		}
 
 		inboundIPRules := flattenInboundIPRules(props.InboundIPRules)
 		if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
-			return fmt.Errorf("setting `inbound_ip_rule` in EventGrid Domain %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("setting `inbound_ip_rule` in %s: %+v", id, err)
 		}
 	}
 
-	keys, err := client.ListSharedAccessKeys(ctx, resourceGroup, name)
+	keys, err := client.ListSharedAccessKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving Shared Access Keys for EventGrid Domain %q: %+v", name, err)
+		return fmt.Errorf("retrieving Shared Access Keys for %s: %+v", id, err)
 	}
 	d.Set("primary_access_key", keys.Key1)
 	d.Set("secondary_access_key", keys.Key2)
