@@ -181,8 +181,8 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
 QUERY
 
 
-  frequency     = 60
-  time_window   = 60
+  frequency   = 60
+  time_window = 60
 
   action {
     action_group = [azurerm_monitor_action_group.test.id]
@@ -281,8 +281,8 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
   frequency   = 60
   time_window = 60
 
-  severity      = 3
-  throttling    = 5
+  severity   = 3
+  throttling = 5
 
   action {
     action_group           = [azurerm_monitor_action_group.test.id]
