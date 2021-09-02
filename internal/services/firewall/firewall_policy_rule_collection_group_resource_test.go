@@ -113,18 +113,12 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-fwpolicy-RCG-%[1]d"
   location = "%[2]s"
-  lifecycle {
-    ignore_changes = [tags]
-  }
 }
 
 resource "azurerm_firewall_policy" "test" {
   name                = "acctest-fwpolicy-RCG-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  lifecycle {
-    ignore_changes = [tags]
-  }
 }
 
 resource "azurerm_firewall_policy_rule_collection_group" "test" {
@@ -143,9 +137,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-fwpolicy-RCG-%[1]d"
   location = "%[2]s"
-  lifecycle {
-    ignore_changes = [tags]
-  }
 }
 resource "azurerm_firewall_policy" "test" {
   name                = "acctest-fwpolicy-RCG-%[1]d"
@@ -155,27 +146,18 @@ resource "azurerm_firewall_policy" "test" {
     network_rule_fqdn_enabled = false
     proxy_enabled             = true
   }
-  lifecycle {
-    ignore_changes = [tags]
-  }
 }
 resource "azurerm_ip_group" "test_source" {
   name                = "acctestIpGroupForFirewallPolicySource"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   cidrs               = ["1.2.3.4/32", "12.34.56.0/24"]
-  lifecycle {
-    ignore_changes = [tags]
-  }
 }
 resource "azurerm_ip_group" "test_destination" {
   name                = "acctestIpGroupForFirewallPolicyDest"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   cidrs               = ["192.168.0.0/25", "192.168.0.192/26"]
-  lifecycle {
-    ignore_changes = [tags]
-  }
 }
 resource "azurerm_firewall_policy_rule_collection_group" "test" {
   name               = "acctest-fwpolicy-RCG-%[1]d"
@@ -293,9 +275,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-fwpolicy-RCG-%[1]d"
   location = "%[2]s"
-  lifecycle {
-    ignore_changes = [tags]
-  }
 }
 resource "azurerm_firewall_policy" "test" {
   name                = "acctest-fwpolicy-RCG-%[1]d"
@@ -422,9 +401,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-fwpolicy-RCG-%[1]d"
   location = "%[2]s"
-  lifecycle {
-    ignore_changes = [tags]
-  }
 }
 
 resource "azurerm_firewall_policy" "test" {
@@ -436,9 +412,6 @@ resource "azurerm_firewall_policy" "test" {
     network_rule_fqdn_enabled = false
     proxy_enabled             = true
   }
-  lifecycle {
-    ignore_changes = [tags]
-  }
 }
 
 resource "azurerm_ip_group" "test_source" {
@@ -446,9 +419,6 @@ resource "azurerm_ip_group" "test_source" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   cidrs               = ["1.2.3.4/32", "12.34.56.0/24"]
-  lifecycle {
-    ignore_changes = [tags]
-  }
 }
 
 resource "azurerm_ip_group" "test_destination" {
@@ -456,9 +426,6 @@ resource "azurerm_ip_group" "test_destination" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   cidrs               = ["192.168.0.0/25", "192.168.0.192/26"]
-  lifecycle {
-    ignore_changes = [tags]
-  }
 }
 
 resource "azurerm_firewall_policy_rule_collection_group" "test" {
@@ -592,9 +559,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-fwpolicy-RCG-%[1]d"
   location = "%[2]s"
-  lifecycle {
-    ignore_changes = [tags]
-  }
 }
 
 resource "azurerm_firewall_policy" "test" {
