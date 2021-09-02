@@ -120,7 +120,6 @@ QUERY
 
   frequency     = 60
   time_window   = 60
-  auto_mitigate = false
 
   action {
     action_group = [azurerm_monitor_action_group.test.id]
@@ -219,8 +218,9 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
   frequency   = 60
   time_window = 60
 
-  severity   = 3
-  throttling = 5
+  severity      = 3
+  throttling    = 5
+  auto_mitigate = false
   action {
     action_group           = [azurerm_monitor_action_group.test.id]
     email_subject          = "Custom alert email subject"
