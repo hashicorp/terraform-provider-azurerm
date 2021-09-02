@@ -97,7 +97,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 									},
 									"description": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validate.FirewallPolicyRuleName(),
 									},
 									"protocols": {
