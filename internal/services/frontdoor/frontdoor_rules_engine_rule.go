@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -27,7 +28,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 		SchemaVersion: 1,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.WebApplicationFirewallPolicyIDInsensitively(id)
+			_, err := parse.RulesEngineID(id)
 			return err
 		}),
 
@@ -59,18 +60,43 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
+
+			"rule": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 100,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"priority": {
+							Type:     pluginsdk.TypeInt,
+							Required: true,
+							Default:  1,							
+						}
+					},
+				},
+			},
 		},
 	}
 }
 
 func resourceFrontDoorRulesEngineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsRulesEnginesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	frontDoorName := d.Get("frontdoor_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	rulesEngineName := d.Get("name").(string)
+
+	rules := d.Get("rule").([]interface{})
+
+	id := parse.NewRulesEngineID(subscriptionId, resourceGroup, frontDoorName, rulesEngineName).ID()
 
 	frontdoorRulesEngineRuleHeaderAction := frontdoor.HeaderAction{
 		HeaderActionType: "Append", // HeaderActionType - 'Append', 'Delete', 'Overwrite'
@@ -116,7 +142,15 @@ func resourceFrontDoorRulesEngineCreateUpdate(d *pluginsdk.ResourceData, meta in
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of Front Door Rules Engine %q (Resource Group %q): %+v", rulesEngineName, resourceGroup, err)
 	}
+
+	d.SetId(id)
 	return resourceFrontDoorRulesEngineRead(d, meta)
+}
+
+func expandFrontDoorRulesEngineRules(input []interface{}) *frontdoor.RulesEngineRule {
+	if len(input) == 0 {
+		return nil
+	}
 }
 
 func resourceFrontDoorRulesEngineRead(d *pluginsdk.ResourceData, meta interface{}) error {
