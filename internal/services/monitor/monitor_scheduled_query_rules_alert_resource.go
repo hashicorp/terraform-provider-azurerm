@@ -220,6 +220,10 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 	if timeWindow < frequency {
 		return fmt.Errorf("in parameter values for Scheduled Query Rules %q (Resource Group %q): time_window must be greater than or equal to frequency", name, resourceGroup)
 	}
+	throttling := d.Get("throttling").(int)
+	if !d.Get("auto_mitigate").(bool) && throttling > 0 {
+		return fmt.Errorf("in parameter values for Scheduled Query Rules %q (Resource Group %q): Only one of `auto_resolve` or `throttling` can be set", name, resourceGroup)
+	}
 
 	query := d.Get("query").(string)
 	_, ok := d.GetOk("metric_trigger")
