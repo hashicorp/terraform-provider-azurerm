@@ -46,6 +46,21 @@ func TestAccFirewallPolicyRuleCollectionGroup_complete(t *testing.T) {
 	})
 }
 
+func TestAccFirewallPolicyRuleCollectionGroup_completePremium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
+	r := FirewallPolicyRuleCollectionGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completePremium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccFirewallPolicyRuleCollectionGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
 	r := FirewallPolicyRuleCollectionGroupResource{}
@@ -67,6 +82,35 @@ func TestAccFirewallPolicyRuleCollectionGroup_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFirewallPolicyRuleCollectionGroup_updatePremium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
+	r := FirewallPolicyRuleCollectionGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completePremium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updatePremium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completePremium(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
