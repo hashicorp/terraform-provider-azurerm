@@ -159,11 +159,9 @@ resource "azurerm_logic_app_integration_account_map" "test" {
   map_type                 = "Xslt"
   content                  = file("testdata/integration_account_map_content.xsd")
 
-  metadata = <<METADATA
-    {
-        "foo": "bar"
-    }
-METADATA
+  metadata = {
+    foo = "bar"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -179,11 +177,9 @@ resource "azurerm_logic_app_integration_account_map" "test" {
   map_type                 = "Xslt20"
   content                  = file("testdata/integration_account_map_content2.xsd")
 
-  metadata = <<METADATA
-    {
-        "foo": "bar2"
-    }
-METADATA
+  metadata = {
+    foo = "bar2"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

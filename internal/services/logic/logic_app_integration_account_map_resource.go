@@ -71,10 +71,12 @@ func resourceLogicAppIntegrationAccountMap() *pluginsdk.Resource {
 			},
 
 			"metadata": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+				Type:     pluginsdk.TypeMap,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 			},
 		},
 	}
@@ -109,8 +111,8 @@ func resourceLogicAppIntegrationAccountMapCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if v, ok := d.GetOk("metadata"); ok {
-		metadata, _ := pluginsdk.ExpandJsonFromString(v.(string))
-		parameters.IntegrationAccountMapProperties.Metadata = metadata
+		metadata := v.(map[string]interface{})
+		parameters.IntegrationAccountMapProperties.Metadata = &metadata
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IntegrationAccountName, id.MapName, parameters); err != nil {
@@ -150,9 +152,8 @@ func resourceLogicAppIntegrationAccountMapRead(d *pluginsdk.ResourceData, meta i
 		d.Set("content", d.Get("content").(string))
 
 		if props.Metadata != nil {
-			metadataValue := props.Metadata.(map[string]interface{})
-			metadataStr, _ := pluginsdk.FlattenJsonToString(metadataValue)
-			d.Set("metadata", metadataStr)
+			metadata := props.Metadata.(map[string]interface{})
+			d.Set("metadata", metadata)
 		}
 	}
 
