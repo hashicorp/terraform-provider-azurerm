@@ -207,6 +207,8 @@ func resourceDataProtectionBackupInstancePostgreSQLRead(d *schema.ResourceData, 
 				if credential.SecretStoreResource != nil {
 					d.Set("database_credential_key_vault_secret_id", credential.SecretStoreResource.URI)
 				}
+			} else {
+				log.Printf("[DEBUG] Skipping setting database_credential_key_vault_secret_id since this DatasourceAuthCredentials is not supported")
 			}
 		}
 	}

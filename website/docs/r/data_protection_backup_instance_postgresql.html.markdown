@@ -151,7 +151,7 @@ The following arguments are supported:
 
 * `backup_policy_id` - (Required) The ID of the Backup Policy.
 
-* `database_credential_key_vault_secret_id` - (Optional) The ID of the key vault secret which stores the connection string of the database.
+* `database_credential_key_vault_secret_id` - (Optional) The ID or versionless ID of the key vault secret which stores the connection string of the database.
 
 ## Attributes Reference
 
