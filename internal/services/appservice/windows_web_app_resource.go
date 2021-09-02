@@ -131,7 +131,7 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"site_config": helpers.SiteConfigSchemaWindows(),
 
-		"storage_account": helpers.StorageAccountSchema(),
+		"storage_account": helpers.StorageAccountSchemaWindows(),
 
 		"tags": tags.Schema(),
 	}

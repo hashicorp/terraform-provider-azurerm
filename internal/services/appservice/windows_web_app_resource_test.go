@@ -330,6 +330,57 @@ func TestAccWindowsWebApp_withAuthSettingsUpdate(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebApp_withStorageAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withStorageAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsWebApp_withStorageAccountUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withStorageAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withStorageAccountUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Windows Specific
 func TestAccWindowsWebApp_virtualDirectories(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
@@ -1028,6 +1079,60 @@ resource "azurerm_windows_web_app" "test" {
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, data.Client().TenantID)
+}
+
+func (r WindowsWebAppResource) withStorageAccount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account {
+    name         = "files"
+    type         = "AzureFiles"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_share.test.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "\\files"
+  }
+
+}
+`, r.templateWithStorageAccount(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) withStorageAccountUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account {
+    name         = "updatedfiles"
+    type         = "AzureFiles"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_share.test.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "\\otherfiles"
+  }
+
+}
+`, r.templateWithStorageAccount(data), data.RandomInteger)
 }
 
 func (r WindowsWebAppResource) withAuthSettingsUpdate(data acceptance.TestData) string {

@@ -2068,7 +2068,7 @@ func StorageAccountSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
-		Computed: true,
+		//Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -2114,9 +2114,57 @@ func StorageAccountSchema() *pluginsdk.Schema {
 	}
 }
 
-func StorageAccountSchemaComputed() *pluginsdk.Schema {
+func StorageAccountSchemaWindows() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"type": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.AzureStorageTypeAzureFiles),
+					}, false),
+				},
+
+				"account_name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"share_name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"access_key": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"mount_path": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+			},
+		},
+	}
+}
+
+func StorageAccountSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -2982,12 +3030,13 @@ func ExpandBackupConfig(backupConfigs []Backup) *web.BackupRequest {
 }
 
 func ExpandStorageConfig(storageConfigs []StorageAccount) *web.AzureStoragePropertyDictionaryResource {
+	storageAccounts := make(map[string]*web.AzureStorageInfoValue)
 	result := &web.AzureStoragePropertyDictionaryResource{}
 	if len(storageConfigs) == 0 {
+		result.Properties = storageAccounts
 		return result
 	}
 
-	storageAccounts := make(map[string]*web.AzureStorageInfoValue)
 	for _, v := range storageConfigs {
 		storageAccounts[v.Name] = &web.AzureStorageInfoValue{
 			Type:        web.AzureStorageType(v.Type),
