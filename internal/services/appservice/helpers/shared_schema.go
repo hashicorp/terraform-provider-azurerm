@@ -434,7 +434,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		// Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -454,6 +454,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"allowed_external_redirect_urls": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
+					Computed: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -1318,9 +1319,11 @@ func FlattenAuthSettings(auth web.SiteAuthSettings) []AuthSettings {
 		result.AdditionalLoginParameters = params
 	}
 
+	var allowedRedirectUrls []string
 	if props.AllowedExternalRedirectUrls != nil {
-		result.AllowedExternalRedirectUrls = *props.AllowedExternalRedirectUrls
+		allowedRedirectUrls = *props.AllowedExternalRedirectUrls
 	}
+	result.AllowedExternalRedirectUrls = allowedRedirectUrls
 
 	if props.Issuer != nil {
 		result.Issuer = *props.Issuer

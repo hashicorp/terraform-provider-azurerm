@@ -93,7 +93,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		// Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -859,13 +859,14 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"dotnet_framework_version": { // Windows Only
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					// Default:  "4.0",
 					ValidateFunc: validation.StringInSlice([]string{
 						"v2.0",
 						"v3.0",
@@ -877,7 +878,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"php_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					// Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"5.6",
 						"7.3",
@@ -1078,7 +1079,6 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"dotnet_framework_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"2.1",
 						"3.1",
@@ -1096,7 +1096,6 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"php_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"5.6", // TODO - Remove? 5.6 is available, but deprecated in the service
 						"7.2", // TODO - Remove? 7.2 is available, but deprecated in the service
@@ -1180,7 +1179,8 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					},
 				},
 
-				"java_server": {Type: pluginsdk.TypeString,
+				"java_server": {
+					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"JAVA",
@@ -1307,7 +1307,7 @@ type AutoHealRequestTrigger struct {
 type AutoHealStatusCodeTrigger struct {
 	StatusCodeRange string `tfschema:"status_code_range"` // Conflicts with `StatusCode`, `Win32Code`, and `SubStatus` when not a single value...
 	SubStatus       int    `tfschema:"sub_status"`
-	Win32Status     string `tfschema:"win_32_status"`
+	Win32Status     string `tfschema:"win32_status"`
 	Path            string `tfschema:"path"`
 	Count           int    `tfschema:"count"`
 	Interval        string `tfschema:"interval"` // Format - hh:mm:ss
@@ -1598,7 +1598,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 								ValidateFunc: nil, // TODO - no docs on this, needs investigation
 							},
 
-							"win_32_status": {
+							"win32_status": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								ValidateFunc: nil, // TODO - no docs on this, needs investigation
@@ -1703,7 +1703,7 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 								Computed: true,
 							},
 
-							"win_32_status": {
+							"win32_status": {
 								Type:     pluginsdk.TypeString,
 								Computed: true,
 							},
@@ -1806,7 +1806,7 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 								ValidateFunc: nil, // TODO - no docs on this, needs investigation
 							},
 
-							"win_32_status": {
+							"win32_status": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								ValidateFunc: nil, // TODO - no docs on this, needs investigation
@@ -1906,7 +1906,7 @@ func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 								Computed: true,
 							},
 
-							"win_32_status": {
+							"win32_status": {
 								Type:     pluginsdk.TypeString,
 								Computed: true,
 							},
@@ -1965,22 +1965,22 @@ type VirtualDirectory struct {
 
 func virtualApplicationsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"virtual_path": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Computed:     true,
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					//Computed:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"physical_path": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Computed:     true,
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					//Computed:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
@@ -1991,22 +1991,22 @@ func virtualApplicationsSchema() *pluginsdk.Schema {
 				},
 
 				"virtual_directory": {
-					Type:     pluginsdk.TypeSet,
-					Computed: true,
+					Type: pluginsdk.TypeList,
+					//Computed: true,
 					Optional: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"virtual_path": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								Computed:     true,
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								//Computed:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 
 							"physical_path": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								Computed:     true,
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								//Computed:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
@@ -3263,10 +3263,7 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	}
 
 	var winAppStack ApplicationStackWindows
-	if appSiteConfig.NetFrameworkVersion != nil {
-		winAppStack.NetFrameworkVersion = *appSiteConfig.NetFrameworkVersion
-	}
-
+	winAppStack.NetFrameworkVersion = utils.NormalizeNilableString(appSiteConfig.NetFrameworkVersion)
 	winAppStack.PhpVersion = utils.NormalizeNilableString(appSiteConfig.PhpVersion)
 	winAppStack.NodeVersion = utils.NormalizeNilableString(appSiteConfig.NodeVersion)
 	winAppStack.PythonVersion = utils.NormalizeNilableString(appSiteConfig.PythonVersion)

@@ -347,6 +347,36 @@ func TestAccWindowsWebApp_virtualDirectories(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebApp_virtualDirectoriesUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.virtualDirectories(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // App Stacks
 func TestAccWindowsWebApp_withDotNet2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
@@ -1354,7 +1384,7 @@ resource "azurerm_windows_web_app" "test" {
     account_name = azurerm_storage_account.test.name
     share_name   = azurerm_storage_share.test.name
     access_key   = azurerm_storage_account.test.primary_access_key
-    mount_path   = "\\mounts\\files"
+    mount_path   = "/mounts/files"
   }
 
   tags = {
@@ -1508,15 +1538,6 @@ resource "azurerm_windows_web_app" "test" {
       }
     }
     // auto_swap_slot_name = // TODO - Not supported yet
-  }
-
-  storage_account {
-    name         = "files"
-    type         = "AzureFiles"
-    account_name = azurerm_storage_account.test.name
-    share_name   = azurerm_storage_share.test.name
-    access_key   = azurerm_storage_account.test.primary_access_key
-    mount_path   = "\\mounts\\updatedfiles"
   }
 
   tags = {
