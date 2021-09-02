@@ -33,32 +33,39 @@ func dataSourceEventGridDomain() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"input_schema": {
-				Type: pluginsdk.TypeString,
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			//lintignore:XS003
 			"input_mapping_fields": {
 				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
+				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"id": {
-							Type: pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 						"topic": {
-							Type: pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 						"event_time": {
-							Type: pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 						"event_type": {
-							Type: pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 						"subject": {
-							Type: pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 						"data_version": {
-							Type: pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -67,17 +74,20 @@ func dataSourceEventGridDomain() *pluginsdk.Resource {
 			//lintignore:XS003
 			"input_mapping_default_values": {
 				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
+				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"event_type": {
-							Type: pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 						"subject": {
-							Type: pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 						"data_version": {
-							Type: pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 					},
 				},
