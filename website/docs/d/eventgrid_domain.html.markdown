@@ -18,9 +18,13 @@ data "azurerm_eventgrid_domain" "example" {
   name                = "my-eventgrid-domain"
   resource_group_name = "example-resources"
 }
+
+output "eventgrid_domain_mapping_topic" {
+  value = data.azurerm_eventgrid_domain.example.input_mapping_fields.0.topic
+}
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -48,7 +52,7 @@ The following attributes are exported:
 
 * `inbound_ip_rule` - One or more `inbound_ip_rule` blocks as defined below.
 
-* `tags` - A mapping of tags assigned to the resource.
+* `tags` - A mapping of tags assigned to the EventGrid Domain.
 
 ---
 
