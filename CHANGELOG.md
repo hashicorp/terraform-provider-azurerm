@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `azurerm_application_insights` - support the `local_authentication_disabled` property [GH-13174]
 * `azurerm_data_factory_linked_service_azure_blob_storage` - support for the `key_vault_sas_token` property [GH-12880]
 * `azurerm_data_factory_linked_service_azure_function` support for the `key_vault_key` block [GH-13159]
+* `azurerm_data_protection_backup_instance_postgresql` - support the `database_credential_key_vault_secret_id` property [GH-13183]
 * `azurerm_hdinsight_hadoop_cluster` - support for the `security_profile` block [GH-12866]
 * `azurerm_hdinsight_hbase_cluster` - support for the `security_profile` block [GH-12866]
 * `azurerm_hdinsight_interactive_query_cluster` - support for the `security_profile` block [GH-12866]
