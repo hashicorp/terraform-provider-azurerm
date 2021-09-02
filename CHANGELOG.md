@@ -23,6 +23,8 @@ ENHANCEMENTS:
 * `azurerm_mssql_server`- refactoring to use an ID Formatter/Parser [GH-13151]
 * `azurerm_policy_virtual_machine_configuration_assignment` - support for the `assignment_type`, `content_uri`, and `content_hash` properties [GH-13176]
 * `azurerm_storage_account` - handle nil values for AllowBlobPublicAccess [GH-12689]
+* `azurerm_synapse_spark_pool` - add support spark for `3.1` [GH-13181]
+
 
 ## 2.74.0 (August 27, 2021)
 
