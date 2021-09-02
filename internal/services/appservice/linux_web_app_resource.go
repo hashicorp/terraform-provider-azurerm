@@ -483,33 +483,21 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
 			}
 
-			if appAuthSettings := helpers.FlattenAuthSettings(auth); appAuthSettings != nil {
-				state.AuthSettings = appAuthSettings
-			}
+			state.AuthSettings = helpers.FlattenAuthSettings(auth)
 
-			if appBackupSettings := helpers.FlattenBackupConfig(backup); appBackupSettings != nil {
-				state.Backup = appBackupSettings
-			}
+			state.Backup = helpers.FlattenBackupConfig(backup)
 
 			if identity := helpers.FlattenIdentity(webApp.Identity); identity != nil {
 				state.Identity = identity
 			}
 
-			if logs := helpers.FlattenLogsConfig(logsConfig); logs != nil {
-				state.LogsConfig = logs
-			}
+			state.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
-			if siteConfig := helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig); siteConfig != nil {
-				state.SiteConfig = siteConfig
-			}
+			state.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig)
 
-			if appStorageAccounts := helpers.FlattenStorageAccounts(storageAccounts); appStorageAccounts != nil {
-				state.StorageAccounts = appStorageAccounts
-			}
+			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
-			if appConnectionStrings := helpers.FlattenConnectionStrings(connectionStrings); appConnectionStrings != nil {
-				state.ConnectionStrings = appConnectionStrings
-			}
+			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
 			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 			return metadata.Encode(&state)

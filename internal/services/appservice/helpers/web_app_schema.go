@@ -93,7 +93,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		// Computed: true,
+		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1965,48 +1965,43 @@ type VirtualDirectory struct {
 
 func virtualApplicationsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+		Type:     pluginsdk.TypeSet,
 		Optional: true,
-		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"virtual_path": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					//Computed:     true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"physical_path": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					//Computed:     true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"preload": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true,
+					Default:  false,
 				},
 
 				"virtual_directory": {
-					Type: pluginsdk.TypeList,
+					Type: pluginsdk.TypeSet,
 					//Computed: true,
 					Optional: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"virtual_path": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								//Computed:     true,
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 
 							"physical_path": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								//Computed:     true,
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
@@ -2019,7 +2014,7 @@ func virtualApplicationsSchema() *pluginsdk.Schema {
 
 func virtualApplicationsSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
+		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -2039,7 +2034,7 @@ func virtualApplicationsSchemaComputed() *pluginsdk.Schema {
 				},
 
 				"virtual_directory": {
-					Type:     pluginsdk.TypeSet,
+					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
