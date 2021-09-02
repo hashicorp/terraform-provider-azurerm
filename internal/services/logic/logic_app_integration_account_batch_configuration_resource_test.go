@@ -185,11 +185,9 @@ resource "azurerm_logic_app_integration_account_batch_configuration" "test" {
     }
   }
 
-  metadata = <<METADATA
-    {
-        "foo": "bar"
-    }
-METADATA
+  metadata = {
+    foo = "bar"
+  }
 }
 `, r.template(data), data.RandomString)
 }
@@ -223,11 +221,9 @@ resource "azurerm_logic_app_integration_account_batch_configuration" "test" {
     }
   }
 
-  metadata = <<METADATA
-    {
-        "foo": "bar2"
-    }
-METADATA
+  metadata = {
+    foo = "bar2"
+  }
 }
 `, r.template(data), data.RandomString)
 }

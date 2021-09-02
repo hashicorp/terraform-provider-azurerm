@@ -21,22 +21,22 @@ func TestIntegrationAccountBatchConfigurationName(t *testing.T) {
 		},
 		{
 			input: "a2-.()b",
-			valid: true,
+			valid: false,
 		},
 		{
 			input: "a2&b",
 			valid: false,
 		},
 		{
-			input: strings.Repeat("s", 79),
+			input: strings.Repeat("s", 19),
 			valid: true,
 		},
 		{
-			input: strings.Repeat("s", 80),
+			input: strings.Repeat("s", 20),
 			valid: true,
 		},
 		{
-			input: strings.Repeat("s", 81),
+			input: strings.Repeat("s", 21),
 			valid: false,
 		},
 	}

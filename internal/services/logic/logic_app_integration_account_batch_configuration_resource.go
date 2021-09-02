@@ -230,10 +230,12 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 			},
 
 			"metadata": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+				Type:     pluginsdk.TypeMap,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 			},
 		},
 
@@ -288,8 +290,8 @@ func resourceLogicAppIntegrationAccountBatchConfigurationCreateUpdate(d *plugins
 	}
 
 	if v, ok := d.GetOk("metadata"); ok {
-		metadata, _ := pluginsdk.ExpandJsonFromString(v.(string))
-		parameters.Properties.Metadata = metadata
+		metadata := v.(map[string]interface{})
+		parameters.Properties.Metadata = &metadata
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IntegrationAccountName, id.BatchConfigurationName, parameters); err != nil {
@@ -332,9 +334,8 @@ func resourceLogicAppIntegrationAccountBatchConfigurationRead(d *pluginsdk.Resou
 		}
 
 		if props.Metadata != nil {
-			metadataValue := props.Metadata.(map[string]interface{})
-			metadataStr, _ := pluginsdk.FlattenJsonToString(metadataValue)
-			d.Set("metadata", metadataStr)
+			metadata := props.Metadata.(map[string]interface{})
+			d.Set("metadata", metadata)
 		}
 	}
 
