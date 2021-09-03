@@ -116,7 +116,7 @@ The following attributes are exported:
 
 ---
 
-A `identity` block exports the following:
+A `identity` block supports the following:
 
 * `type` - Specifies the type of Managed Service Identity that is configured on this Event Grid Domain.
 
