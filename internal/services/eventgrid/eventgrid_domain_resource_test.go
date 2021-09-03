@@ -238,3 +238,50 @@ resource "azurerm_eventgrid_domain" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
+
+func (EventGridDomainResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventgrid_domain" "test" {
+  name                = "acctesteg-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  public_network_access_enabled = true
+
+  inbound_ip_rule {
+    ip_mask = "10.0.0.0/16"
+    action  = "Allow"
+  }
+
+  inbound_ip_rule {
+    ip_mask = "10.1.0.0/16"
+    action  = "Allow"
+  }
+
+  input_schema = "CustomEventSchema"
+
+  input_mapping_fields {
+    topic      = "test"
+    event_type = "test"
+  }
+
+  input_mapping_default_values {
+    data_version = "1.0"
+    subject      = "DefaultSubject"
+  }
+
+  tags = {
+    "foo" = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
