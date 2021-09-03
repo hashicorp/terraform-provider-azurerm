@@ -235,6 +235,20 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 							Optional: true,
 						},
 
+						"vpn_auth_types": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							MaxItems: 3,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(network.VpnAuthenticationTypeCertificate),
+									string(network.VpnAuthenticationTypeAAD),
+									string(network.VpnAuthenticationTypeRadius),
+								}, false),
+							},
+						},
+
 						"vpn_client_protocols": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
@@ -741,6 +755,12 @@ func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData) *netw
 	confRadiusServerAddress := conf["radius_server_address"].(string)
 	confRadiusServerSecret := conf["radius_server_secret"].(string)
 
+	var vpnAuthTypes []network.VpnAuthenticationType
+	for _, vpnAuthType := range conf["vpn_auth_types"].(*pluginsdk.Set).List() {
+		a := network.VpnAuthenticationType(vpnAuthType.(string))
+		vpnAuthTypes = append(vpnAuthTypes, a)
+	}
+
 	return &network.VpnClientConfiguration{
 		VpnClientAddressPool: &network.AddressSpace{
 			AddressPrefixes: &addresses,
@@ -753,6 +773,7 @@ func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData) *netw
 		VpnClientProtocols:           &vpnClientProtocols,
 		RadiusServerAddress:          &confRadiusServerAddress,
 		RadiusServerSecret:           &confRadiusServerSecret,
+		VpnAuthenticationTypes:       &vpnAuthTypes,
 	}
 }
 
@@ -919,6 +940,14 @@ func flattenVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfigura
 	}
 	flat["vpn_client_protocols"] = vpnClientProtocols
 
+	vpnAuthTypes := &pluginsdk.Set{F: pluginsdk.HashString}
+	if authTypes := cfg.VpnAuthenticationTypes; authTypes != nil {
+		for _, authType := range *authTypes {
+			vpnAuthTypes.Add(string(authType))
+		}
+	}
+	flat["vpn_auth_types"] = vpnAuthTypes
+
 	if v := cfg.RadiusServerAddress; v != nil {
 		flat["radius_server_address"] = *v
 	}
@@ -1019,6 +1048,21 @@ func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, diff *plugi
 			}
 			if !hasRadiusAddress && hasRadiusSecret {
 				return fmt.Errorf("if radius_server_secret is set radius_server_address must also be set")
+			}
+
+			hasRootCert := len(vpnClientConfig["root_certificate"].(*pluginsdk.Set).List()) > 0
+
+			vpnAuthTypes := utils.ExpandStringSlice(vpnClientConfig["vpn_auth_types"].(*pluginsdk.Set).List())
+			for _, authType := range *vpnAuthTypes {
+				if authType == "Certificate" && !hasRootCert {
+					return fmt.Errorf("if Certificate is listed in vpn_auth_types then root_certificate must also be set")
+				}
+				if authType == "Radius" && (!hasRadiusAddress || !hasRadiusSecret) {
+					return fmt.Errorf("if Radius is listed in vpn_auth_types then radius_server_address and radius_server_secret must also be set")
+				}
+				if authType == "AAD" && (!hasAadTenant || !hasAadIssuer || !hasAadAudience) {
+					return fmt.Errorf("if AAD is listed in vpn_auth_types then aad_issuer, aad_tenant and aad_audience must also be set")
+				}
 			}
 		}
 	}
