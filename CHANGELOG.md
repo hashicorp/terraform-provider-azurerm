@@ -4,10 +4,11 @@ FEATURES:
 
 * **New Data Source:** `azurerm_eventgrid_domain` [GH-13033]
 * **New Resource:** `azurerm_data_protection_backup_instance_blob_storage` [GH-12683]
-* 
+
 ENHANCEMENTS:
 
 * upgrading `cosmos` to API Version `2021-06-15` [GH-13188]
+* `azurerm_firewall_policy_rule_collection_group` - support for the `description`, `destination_addresses`, `destination_urls`, `terminate_tls`, and `web_categories` properties [GH-13190]
 
 ## 2.75.0 (September 02, 2021)
 
