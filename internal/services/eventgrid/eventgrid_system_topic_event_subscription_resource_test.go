@@ -189,7 +189,7 @@ func TestAccEventGridSystemTopicEventSubscription_advancedFilterMaxItems(t *test
 }
 
 func TestAccEventGridSystemTopicEventSubscription_identity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
 	r := EventGridSystemTopicEventSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
