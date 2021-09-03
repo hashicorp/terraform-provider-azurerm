@@ -2533,7 +2533,7 @@ func applicationLogSchema() *pluginsdk.Schema {
 				"file_system_level": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  "Off",
+					Default:  string(web.LogLevelOff),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.LogLevelError),
 						string(web.LogLevelInformation),
@@ -2570,12 +2570,14 @@ func appLogBlobStorageSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"level": {
 					Type:     pluginsdk.TypeString,
-					Required: true,
+					Optional: true,
+					Default:  string(web.LogLevelOff),
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.LogLevelError),
 						string(web.LogLevelInformation),
@@ -2591,7 +2593,8 @@ func appLogBlobStorageSchema() *pluginsdk.Schema {
 				},
 				"retention_in_days": {
 					Type:     pluginsdk.TypeInt,
-					Required: true,
+					Optional: true,
+					Default:  0,
 					// TODO: Validation here?
 				},
 			},
@@ -2699,9 +2702,9 @@ func httpLogFileSystemSchemaComputed() *pluginsdk.Schema {
 
 func httpLogBlobStorageSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:          pluginsdk.TypeList,
-		Optional:      true,
-		Computed:      true,
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		// Computed:      true,
 		MaxItems:      1,
 		ConflictsWith: []string{"logs.0.http_logs.0.file_system"},
 		Elem: &pluginsdk.Resource{
@@ -2714,6 +2717,7 @@ func httpLogBlobStorageSchema() *pluginsdk.Schema {
 				"retention_in_days": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
+					Default:      0,
 					ValidateFunc: validation.IntAtLeast(0), // Variable validation here based on the Service Plan SKU
 				},
 			},
@@ -3188,6 +3192,7 @@ func FlattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
 			if httpLogs.FileSystem.RetentionInDays != nil {
 				fileSystem.RetentionDays = int(*httpLogs.FileSystem.RetentionInDays)
 			}
+
 			httpLog.FileSystems = []FileSystem{fileSystem}
 		}
 
@@ -3201,7 +3206,9 @@ func FlattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
 				blobStorage.RetentionInDays = int(*httpLogs.AzureBlobStorage.RetentionInDays)
 			}
 
-			httpLog.AzureBlobStorage = []AzureBlobStorageHttp{blobStorage}
+			if blobStorage.RetentionInDays != 0 && blobStorage.SasUrl != "" {
+				httpLog.AzureBlobStorage = []AzureBlobStorageHttp{blobStorage}
+			}
 		}
 
 		logs.HttpLogs = []HttpLog{httpLog}

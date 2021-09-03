@@ -111,7 +111,7 @@ func TestAccWindowsWebApp_backupUpdate(t *testing.T) {
 	})
 }
 
-func TestAccWindowsWebApp_completeLogging(t *testing.T) {
+func TestAccWindowsWebApp_withLogging(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
 
@@ -128,7 +128,7 @@ func TestAccWindowsWebApp_completeLogging(t *testing.T) {
 	})
 }
 
-func TestAccWindowsWebApp_completeLoggingUpdate(t *testing.T) {
+func TestAccWindowsWebApp_withLoggingUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
 
