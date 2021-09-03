@@ -118,7 +118,7 @@ The following attributes are exported:
 
 A `identity` block supports the following:
 
-* `type` - Specifies the type of Managed Service Identity that is configured on this Event Grid Domain.
+* `type` - Specifies the type of Managed Service Identity that is configured on this Event Grid Topic.
 
 * `principal_id` - Specifies the Principal ID of the System Assigned Managed Service Identity that is configured on this Event Grid Domain.
 
