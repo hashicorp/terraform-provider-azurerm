@@ -1398,7 +1398,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   vpn_client_configuration {
     address_space        = ["10.2.0.0/24"]
     vpn_client_protocols = ["OpenVPN"]
-    vpn_auth_types        = ["AAD", "Radius"]
+    vpn_auth_types       = ["AAD", "Radius"]
 
     aad_tenant   = "https://login.microsoftonline.com/%s/"
     aad_audience = "41b23e61-6c1e-4545-b367-cd054e0ed4b4"
