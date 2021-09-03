@@ -76,6 +76,8 @@ The `rule` block supports the following:
 
 * `rule_action` - (Required) A `rule_action` block as defined below.
 
+* `match_condition` - A `match_condition` block as defined below.
+
 ---
 
 The `rule_action` block supports the following:
@@ -103,3 +105,19 @@ The `response_header_actions` block supports the following:
 * `header_name`
 
 * `value`
+
+---
+
+The `match_condition` block supports the following:
+
+* `match_variable`
+
+* `selector`
+
+* `operator`
+
+* `transform`
+
+* `negate_condition`
+
+* `match_value`
