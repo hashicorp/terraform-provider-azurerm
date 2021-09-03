@@ -72,11 +72,89 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+
 						"priority": {
 							Type:     pluginsdk.TypeInt,
 							Required: true,
-							Default:  1,							
-						}
+						},
+
+						"rule_action": {
+							Type:     pluginsdk.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"request_header_actions": {
+										Type:     pluginsdk.TypeList,
+										MaxItems: 100,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+
+												"header_action_type": {
+													Type: pluginsdk.TypeString,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(frontdoor.Append),
+														string(frontdoor.Delete),
+														string(frontdoor.Overwrite),
+													}, false),
+													Optional: true,
+												},
+
+												"header_name": {
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringIsNotEmpty,
+													Optional:     true,
+												},
+
+												"value": {
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringIsNotEmpty,
+													Optional:     true,
+												},
+											},
+										},
+									},
+									"response_header_actions": {
+										Type:     pluginsdk.TypeList,
+										MaxItems: 100,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+
+												"header_action_type": {
+													Type: pluginsdk.TypeString,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(frontdoor.Append),
+														string(frontdoor.Delete),
+														string(frontdoor.Overwrite),
+													}, false),
+													Optional: true,
+												},
+
+												"header_name": {
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringIsNotEmpty,
+													Optional:     true,
+												},
+
+												"value": {
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringIsNotEmpty,
+													Optional:     true,
+												},
+											},
+										},
+									},
+									//"route_configuration_override": {
+									//	Type:         pluginsdk.TypeString,
+									//	Optional:     true,
+									//	ValidateFunc: validation.StringIsNotEmpty,
+									//},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -98,34 +176,8 @@ func resourceFrontDoorRulesEngineCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	id := parse.NewRulesEngineID(subscriptionId, resourceGroup, frontDoorName, rulesEngineName).ID()
 
-	frontdoorRulesEngineRuleHeaderAction := frontdoor.HeaderAction{
-		HeaderActionType: "Append", // HeaderActionType - 'Append', 'Delete', 'Overwrite'
-		HeaderName:       utils.String("X-TEST-HEADER"),
-		Value:            utils.String("this is a test"),
-	}
-
-	frontdoorRulesEngineRuleHeaderActions := make([]frontdoor.HeaderAction, 0)
-	frontdoorRulesEngineRuleHeaderActions = append(frontdoorRulesEngineRuleHeaderActions, frontdoorRulesEngineRuleHeaderAction)
-
-	frontdoorRulesEngineRuleAction := frontdoor.RulesEngineAction{
-		RequestHeaderActions: &frontdoorRulesEngineRuleHeaderActions,
-		//ResponseHeaderActions
-		//RouteConfigurationOverride
-	}
-
-	frontdoorRulesEngineRule := frontdoor.RulesEngineRule{
-		Name:     utils.String("testrule"),
-		Priority: utils.Int32(1),
-		Action:   &frontdoorRulesEngineRuleAction,
-		//MatchConditions:
-		//MatchProcessingBehavior:
-	}
-
-	frontdoorRulesEngineRules := make([]frontdoor.RulesEngineRule, 0)
-	frontdoorRulesEngineRules = append(frontdoorRulesEngineRules, frontdoorRulesEngineRule)
-
 	frontdoorRulesEngineProperties := frontdoor.RulesEngineProperties{
-		Rules: &frontdoorRulesEngineRules,
+		Rules: expandFrontDoorRulesEngineRules(rules),
 	}
 
 	frontdoorRulesEngine := frontdoor.RulesEngine{
@@ -147,10 +199,94 @@ func resourceFrontDoorRulesEngineCreateUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceFrontDoorRulesEngineRead(d, meta)
 }
 
-func expandFrontDoorRulesEngineRules(input []interface{}) *frontdoor.RulesEngineRule {
+func expandFrontDoorRulesEngineAction(input []interface{}) *frontdoor.RulesEngineAction {
 	if len(input) == 0 {
 		return nil
 	}
+
+	ruleAction := input[0].(map[string]interface{})
+
+	requestHeaderActions := ruleAction["request_header_actions"].([]interface{})
+	responseHeaderActions := ruleAction["response_header_actions"].([]interface{})
+	//routeConfigurationOverride := ruleAction["route_configuration_override"].([]interface{})
+
+	frontdoorRulesEngineRuleAction := frontdoor.RulesEngineAction{
+		RequestHeaderActions:  expandHeaderAction(requestHeaderActions),
+		ResponseHeaderActions: expandHeaderAction(responseHeaderActions),
+		//RouteConfigurationOverride: expandRouteConfigOverride(routeConfigurationOverride),
+	}
+
+	return &frontdoorRulesEngineRuleAction
+}
+
+func expandHeaderAction(input []interface{}) *[]frontdoor.HeaderAction {
+	if len(input) == 0 {
+		return nil
+	}
+	output := make([]frontdoor.HeaderAction, 0)
+
+	for _, a := range input {
+		action := a.(map[string]interface{})
+
+		headerName := action["header_name"].(string)
+		value := action["value"].(string)
+		headerActionType := action["header_action_type"].(string)
+
+		frontdoorRulesEngineRuleHeaderAction := frontdoor.HeaderAction{
+			HeaderName: utils.String(headerName),
+			Value:      utils.String(value),
+		}
+
+		if headerActionType == "Append" {
+			frontdoorRulesEngineRuleHeaderAction.HeaderActionType = frontdoor.Append
+		}
+		if headerActionType == "Delete" {
+			frontdoorRulesEngineRuleHeaderAction.HeaderActionType = frontdoor.Delete
+		}
+		if headerActionType == "Overwrite" {
+			frontdoorRulesEngineRuleHeaderAction.HeaderActionType = frontdoor.Overwrite
+		}
+
+		output = append(output, frontdoorRulesEngineRuleHeaderAction)
+	}
+
+	return &output
+}
+
+//func expandRouteConfigOverride(input []interface{}) frontdoor.BasicRouteConfiguration {
+//	if len(input) == 0 {
+//		return nil
+//	}
+//	return nil
+//}
+
+func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoor.RulesEngineRule {
+	if len(input) == 0 {
+		return nil
+	}
+
+	output := make([]frontdoor.RulesEngineRule, 0)
+
+	for _, r := range input {
+		rule := r.(map[string]interface{})
+
+		ruleName := rule["name"].(string)
+		priority := int32(rule["priority"].(int))
+		actions := rule["rule_action"].([]interface{})
+
+		frontdoorRulesEngineRule := frontdoor.RulesEngineRule{
+			Name:     utils.String(ruleName),
+			Priority: utils.Int32(priority),
+			Action:   expandFrontDoorRulesEngineAction(actions),
+			//MatchConditions:
+			//MatchProcessingBehavior:
+		}
+
+		output = append(output, frontdoorRulesEngineRule)
+	}
+
+	return &output
+
 }
 
 func resourceFrontDoorRulesEngineRead(d *pluginsdk.ResourceData, meta interface{}) error {
