@@ -9,6 +9,8 @@ ENHANCEMENTS:
 
 * upgrading `cosmos` to API Version `2021-06-15` [GH-13188]
 * `azurerm_firewall_policy_rule_collection_group` - support for the `description`, `destination_addresses`, `destination_urls`, `terminate_tls`, and `web_categories` properties [GH-13190]
+* `azurerm_eventgrid_event_subscription` - support for the `delivery_identity` and `dead_letter_identity` blocks [GH-12945]
+* `azurerm_eventgrid_system_topic_event_subscription` - support for the `delivery_identity` and `dead_letter_identity` blocks [GH-12945]
 
 ## 2.75.0 (September 02, 2021)
 
