@@ -162,7 +162,7 @@ The following arguments are supported:
 
 * `metric_column` - (Required) Evaluation of metric on a particular column.
 * `metric_trigger_type` - (Required) Metric Trigger Type - 'Consecutive' or 'Total'.
-* `operator` - (Required) Evaluation operation for rule - 'Equal', 'GreaterThan' or 'LessThan'.
+* `operator` - (Required) Evaluation operation for rule - 'Equal', 'GreaterThan', GreaterThanOrEqual', 'LessThan' or 'LessThanOrEqual'.
 * `threshold` - (Required) The threshold of the metric trigger.    Values must be between 0 and 10000 inclusive.
 
 ---
@@ -170,7 +170,7 @@ The following arguments are supported:
 `trigger` supports the following:
 
 * `metric_trigger` - (Optional) A `metric_trigger` block as defined above. Trigger condition for metric query rule.
-* `operator` - (Required) Evaluation operation for rule - 'Equal', 'GreaterThan' or 'LessThan'.
+* `operator` - (Required) Evaluation operation for rule - 'GreaterThan', GreaterThanOrEqual', 'LessThan' or 'LessThanOrEqual'.
 * `threshold` - (Required) Result or count threshold based on which rule should be triggered.  Values must be between 0 and 10000 inclusive.
 
 ## Attributes Reference
