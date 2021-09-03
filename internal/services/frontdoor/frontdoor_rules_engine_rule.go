@@ -129,16 +129,20 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 									},
 
 									"transform": {
-										Type:     pluginsdk.TypeString,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"Lowercase",
-											"RemoveNulls",
-											"Trim",
-											"Uppercase",
-											"UrlDecode",
-											"UrlEncode",
-										}, false),
+										MaxItems: 6,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"Lowercase",
+												"RemoveNulls",
+												"Trim",
+												"Uppercase",
+												"UrlDecode",
+												"UrlEncode",
+											}, false),
+										},
 									},
 
 									"negate_condition": {
@@ -148,9 +152,13 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 									},
 
 									"match_value": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 25,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
 									},
 								},
 							},
@@ -352,9 +360,7 @@ func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoor.RulesEngi
 
 		output = append(output, frontdoorRulesEngineRule)
 	}
-
 	return &output
-
 }
 
 func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoor.RulesEngineMatchCondition {
@@ -371,23 +377,40 @@ func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoor.
 		negateCondition := condition["negate_condition"].(bool)
 		matchVariable := condition["match_variable"].(string)
 		operator := condition["operator"].(string)
-		//transform := condition["transform"].(string)
-		//matchValue := condition["match_value"].(string)
+		transform := condition["transform"].([]interface{})
+		matchValue := condition["match_value"].([]interface{})
+
+		matchValueArray := make([]string, 0)
+		for _, v := range matchValue {
+			matchValueArray = append(matchValueArray, v.(string))
+		}
 
 		matchCondition := frontdoor.RulesEngineMatchCondition{
 			RulesEngineMatchVariable: frontdoor.RulesEngineMatchVariable(matchVariable),
 			Selector:                 utils.String(selector),
 			RulesEngineOperator:      frontdoor.RulesEngineOperator(operator),
 			NegateCondition:          &negateCondition,
-			//RulesEngineMatchValue:    utils.String(matchValue),
-			//Transforms: frontdoor.Transform(transform),
+			RulesEngineMatchValue:    &matchValueArray,
+			Transforms:               expandFrontDoorRulesEngineMatchConditionTransform(transform),
 		}
-
 		output = append(output, matchCondition)
 	}
-
 	return &output
+}
 
+func expandFrontDoorRulesEngineMatchConditionTransform(input []interface{}) *[]frontdoor.Transform {
+	if len(input) == 0 {
+		return &[]frontdoor.Transform{}
+	}
+
+	output := make([]frontdoor.Transform, 0)
+
+	for _, t := range input {
+		result := frontdoor.Transform(t.(string))
+
+		output = append(output, result)
+	}
+	return &output
 }
 
 func resourceFrontDoorRulesEngineRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -408,7 +431,6 @@ func resourceFrontDoorRulesEngineRead(d *pluginsdk.ResourceData, meta interface{
 		}
 		return fmt.Errorf("retrieving Front Door Rules Engine %q (Resource Group %q): %+v", rulesEngineName, resourceGroup, err)
 	}
-
 	return nil
 }
 
@@ -432,6 +454,5 @@ func resourceFrontDoorRulesEngineDelete(d *pluginsdk.ResourceData, meta interfac
 			return fmt.Errorf("waiting for deleting Front Door Rules Engine %q (Resource Group %q): %+v", rulesEngineName, resourceGroup, err)
 		}
 	}
-
 	return nil
 }
