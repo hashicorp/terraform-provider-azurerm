@@ -120,7 +120,7 @@ A `identity` block supports the following:
 
 * `type` - Specifies the type of Managed Service Identity that is configured on this Event Grid Topic.
 
-* `principal_id` - Specifies the Principal ID of the System Assigned Managed Service Identity that is configured on this Event Grid Domain.
+* `principal_id` - Specifies the Principal ID of the System Assigned Managed Service Identity that is configured on this Event Grid Topic.
 
 * `tenant_id` - Specifies the Tenant ID of the System Assigned Managed Service Identity that is configured on this Event Grid Topic.
 
