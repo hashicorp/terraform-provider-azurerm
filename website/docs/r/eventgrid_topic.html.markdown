@@ -112,7 +112,7 @@ The following attributes are exported:
 
 * `secondary_access_key` - The Secondary Shared Access Key associated with the EventGrid Topic.
 
-* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Event Grid Domain.
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Event Grid Topic.
 
 ---
 
