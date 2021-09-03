@@ -1,5 +1,9 @@
 ## 2.75.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_eventgrid_domain` [GH-13033]
+
 ENHANCEMENTS:
 
 * upgrading `cosmos` to API Version `2021-06-15` [GH-13188]
