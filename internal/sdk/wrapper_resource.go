@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -124,6 +125,20 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 		resource.Timeouts.Update = d(v.Update().Timeout)
 	}
 
+	if v, ok := rw.resource.(ResourceWithCustomizeDiff); ok {
+		resource.CustomizeDiff = func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			client := meta.(*clients.Client)
+			metaData := ResourceMetaData{
+				Client:                   client,
+				Logger:                   rw.logger,
+				ResourceDiff:             d,
+				serializationDebugLogger: NullLogger{},
+			}
+
+			return v.CustomizeDiff().Func(ctx, metaData)
+		}
+	}
+
 	if v, ok := rw.resource.(ResourceWithDeprecation); ok {
 		message := v.DeprecationMessage()
 		if message == "" {
@@ -132,8 +147,6 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 
 		resource.DeprecationMessage = message
 	}
-
-	// TODO: CustomizeDiff
 	// TODO: State Migrations
 
 	return &resource, nil

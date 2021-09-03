@@ -1,18 +1,32 @@
 ## 2.75.0 (Unreleased)
 
+## 2.75.0 (September 02, 2021)
+
 FEATURES:
 
-* **New Data Source:** `azurerm_cosmosdb_mongo_database` [GH-13123]
-* **New Resource:** `azurerm_logic_app_integration_account_partner` [GH-13157]
+* **New Data Source:** `azurerm_cosmosdb_mongo_database` ([#13123](https://github.com/hashicorp/terraform-provider-azurerm/issues/13123))
+* **New Resource:** `azurerm_cognitive_account_customer_managed_key` ([#12901](https://github.com/hashicorp/terraform-provider-azurerm/issues/12901))
+* **New Resource:** `azurerm_logic_app_integration_account_partner` ([#13157](https://github.com/hashicorp/terraform-provider-azurerm/issues/13157))
+* **New Resource:** `azurerm_logic_app_integration_account_map` ([#13187](https://github.com/hashicorp/terraform-provider-azurerm/issues/13187))
+* **New Resource:** `azurerm_app_configuration_key` ([#13118](https://github.com/hashicorp/terraform-provider-azurerm/issues/13118))
 
 ENHANCEMENTS:
 
-* dependencies: upgrading to `v57.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-13160]
-* upgrading `dataprotection` to API Version `2021-07-01` [GH-13161]
-* `azurerm_application_insights` - support the `local_authentication_disabled` property [GH-13174]
-* `azurerm_data_factory_linked_service_azure_blob_storage` - support for the `key_vault_sas_token` property [GH-12880]
-* `azurerm_mssql_server`- refactoring to use an ID Formatter/Parser [GH-13151]
-* `azurerm_policy_virtual_machine_configuration_assignment` - support for the `assignment_type`, `content_uri`, and `content_hash` properties [GH-13176]
+* dependencies: upgrading to `v57.0.0` of `github.com/Azure/azure-sdk-for-go` ([#13160](https://github.com/hashicorp/terraform-provider-azurerm/issues/13160))
+* upgrading `dataprotection` to API Version `2021-07-01` ([#13161](https://github.com/hashicorp/terraform-provider-azurerm/issues/13161))
+* `azurerm_application_insights` - support the `local_authentication_disabled` property ([#13174](https://github.com/hashicorp/terraform-provider-azurerm/issues/13174))
+* `azurerm_data_factory_linked_service_azure_blob_storage` - support for the `key_vault_sas_token` property ([#12880](https://github.com/hashicorp/terraform-provider-azurerm/issues/12880))
+* `azurerm_data_factory_linked_service_azure_function` support for the `key_vault_key` block ([#13159](https://github.com/hashicorp/terraform-provider-azurerm/issues/13159))
+* `azurerm_data_protection_backup_instance_postgresql` - support the `database_credential_key_vault_secret_id` property ([#13183](https://github.com/hashicorp/terraform-provider-azurerm/issues/13183))
+* `azurerm_hdinsight_hadoop_cluster` - support for the `security_profile` block ([#12866](https://github.com/hashicorp/terraform-provider-azurerm/issues/12866))
+* `azurerm_hdinsight_hbase_cluster` - support for the `security_profile` block ([#12866](https://github.com/hashicorp/terraform-provider-azurerm/issues/12866))
+* `azurerm_hdinsight_interactive_query_cluster` - support for the `security_profile` block ([#12866](https://github.com/hashicorp/terraform-provider-azurerm/issues/12866))
+* `azurerm_hdinsight_kafka_cluster` - support for the `security_profile` block ([#12866](https://github.com/hashicorp/terraform-provider-azurerm/issues/12866))
+* `azurerm_hdinsight_spark_cluster` - support for the `security_profile` block ([#12866](https://github.com/hashicorp/terraform-provider-azurerm/issues/12866))
+* `azurerm_mssql_server`- refactoring to use an ID Formatter/Parser ([#13151](https://github.com/hashicorp/terraform-provider-azurerm/issues/13151))
+* `azurerm_policy_virtual_machine_configuration_assignment` - support for the `assignment_type`, `content_uri`, and `content_hash` properties ([#13176](https://github.com/hashicorp/terraform-provider-azurerm/issues/13176))
+* `azurerm_storage_account` - handle nil values for AllowBlobPublicAccess ([#12689](https://github.com/hashicorp/terraform-provider-azurerm/issues/12689))
+* `azurerm_synapse_spark_pool` - add support spark for `3.1` ([#13181](https://github.com/hashicorp/terraform-provider-azurerm/issues/13181))
 
 ## 2.74.0 (August 27, 2021)
 

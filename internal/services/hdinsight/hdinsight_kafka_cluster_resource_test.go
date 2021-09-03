@@ -429,6 +429,29 @@ func TestAccHDInsightKafkaCluster_encryptionInTransitEnabled(t *testing.T) {
 	})
 }
 
+func testAccHDInsightKafkaCluster_securityProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
+	r := HDInsightKafkaClusterResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.securityProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account",
+			"security_profile.0.domain_user_password",
+			"gateway.0.password"),
+	})
+}
+
 func (t HDInsightKafkaClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ClusterID(state.ID)
 	if err != nil {
@@ -1379,4 +1402,76 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r HDInsightKafkaClusterResource) securityProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_hdinsight_kafka_cluster" "test" {
+  name                = "acctesthdikafka-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "4.0"
+  tier                = "Premium"
+
+  component_version {
+    kafka = "2.1"
+  }
+
+  gateway {
+    enabled  = true
+    username = "sshuser"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size            = "Standard_E4_V3"
+      username           = "sshuser"
+      password           = "TerrAform123!"
+      subnet_id          = azurerm_subnet.test.id
+      virtual_network_id = azurerm_virtual_network.test.id
+    }
+
+    worker_node {
+      vm_size                  = "Standard_E4_V3"
+      username                 = "sshuser"
+      password                 = "TerrAform123!"
+      target_instance_count    = 3
+      number_of_disks_per_node = 1
+      subnet_id                = azurerm_subnet.test.id
+      virtual_network_id       = azurerm_virtual_network.test.id
+    }
+
+    zookeeper_node {
+      vm_size            = "Standard_D3_V2"
+      username           = "sshuser"
+      password           = "TerrAform123!"
+      subnet_id          = azurerm_subnet.test.id
+      virtual_network_id = azurerm_virtual_network.test.id
+    }
+  }
+
+  security_profile {
+    aadds_resource_id       = azurerm_active_directory_domain_service.test.resource_id
+    domain_name             = azurerm_active_directory_domain_service.test.domain_name
+    domain_username         = azuread_user.test.user_principal_name
+    domain_user_password    = azuread_user.test.password
+    ldaps_urls              = ["ldaps://${azurerm_active_directory_domain_service.test.domain_name}:636"]
+    msi_resource_id         = azurerm_user_assigned_identity.test.id
+    cluster_users_group_dns = [azuread_group.test.display_name]
+  }
+
+  depends_on = [
+    azurerm_virtual_network_dns_servers.test,
+  ]
+}
+`, hdInsightsecurityProfileCommonTemplate(data), data.RandomInteger)
 }
