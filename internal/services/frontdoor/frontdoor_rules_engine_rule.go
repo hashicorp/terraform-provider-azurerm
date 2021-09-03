@@ -78,6 +78,84 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 							Required: true,
 						},
 
+						"match_conditions": {
+							Type:     pluginsdk.TypeList,
+							MaxItems: 100,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+
+									"match_variable": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"IsMobile",
+											"RemoteAddr",
+											"RequestMethod",
+											"QueryString",
+											"PostArgs",
+											"RequestURI",
+											"RequestPath",
+											"RequestFilename",
+											"RequestFilenameExtension",
+											"RequestHeader",
+											"RequestBody",
+											"RequestScheme",
+										}, false),
+									},
+
+									"selector": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"operator": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Any",
+											"IPMatch",
+											"GeoMatch",
+											"Equal",
+											"Contains",
+											"LessThan",
+											"GreaterThan",
+											"LessThanOrEqual",
+											"GreaterThanOrEqual",
+											"BeginsWith",
+											"EndsWith",
+										}, false),
+									},
+
+									"transform": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Lowercase",
+											"RemoveNulls",
+											"Trim",
+											"Uppercase",
+											"UrlDecode",
+											"UrlEncode",
+										}, false),
+									},
+
+									"negate_condition": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  true,
+									},
+
+									"match_value": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+
 						"rule_action": {
 							Type:     pluginsdk.TypeList,
 							MaxItems: 1,
@@ -183,8 +261,6 @@ func resourceFrontDoorRulesEngineCreateUpdate(d *pluginsdk.ResourceData, meta in
 	frontdoorRulesEngine := frontdoor.RulesEngine{
 		Name:                  utils.String(rulesEngineName),
 		RulesEngineProperties: &frontdoorRulesEngineProperties,
-		//Type
-		//ID
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, frontDoorName, rulesEngineName, frontdoorRulesEngine)
@@ -233,18 +309,9 @@ func expandHeaderAction(input []interface{}) *[]frontdoor.HeaderAction {
 		headerActionType := action["header_action_type"].(string)
 
 		frontdoorRulesEngineRuleHeaderAction := frontdoor.HeaderAction{
-			HeaderName: utils.String(headerName),
-			Value:      utils.String(value),
-		}
-
-		if headerActionType == "Append" {
-			frontdoorRulesEngineRuleHeaderAction.HeaderActionType = frontdoor.Append
-		}
-		if headerActionType == "Delete" {
-			frontdoorRulesEngineRuleHeaderAction.HeaderActionType = frontdoor.Delete
-		}
-		if headerActionType == "Overwrite" {
-			frontdoorRulesEngineRuleHeaderAction.HeaderActionType = frontdoor.Overwrite
+			HeaderName:       utils.String(headerName),
+			Value:            utils.String(value),
+			HeaderActionType: frontdoor.HeaderActionType(headerActionType),
 		}
 
 		output = append(output, frontdoorRulesEngineRuleHeaderAction)
@@ -273,16 +340,50 @@ func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoor.RulesEngi
 		ruleName := rule["name"].(string)
 		priority := int32(rule["priority"].(int))
 		actions := rule["rule_action"].([]interface{})
+		matchConditions := rule["match_conditions"].([]interface{})
 
 		frontdoorRulesEngineRule := frontdoor.RulesEngineRule{
-			Name:     utils.String(ruleName),
-			Priority: utils.Int32(priority),
-			Action:   expandFrontDoorRulesEngineAction(actions),
-			//MatchConditions:
+			Name:            utils.String(ruleName),
+			Priority:        utils.Int32(priority),
+			Action:          expandFrontDoorRulesEngineAction(actions),
+			MatchConditions: expandFrontDoorRulesEngineMatchCondition(matchConditions),
 			//MatchProcessingBehavior:
 		}
 
 		output = append(output, frontdoorRulesEngineRule)
+	}
+
+	return &output
+
+}
+
+func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoor.RulesEngineMatchCondition {
+	if len(input) == 0 {
+		return nil
+	}
+
+	output := make([]frontdoor.RulesEngineMatchCondition, 0)
+
+	for _, c := range input {
+		condition := c.(map[string]interface{})
+
+		selector := condition["selector"].(string)
+		negateCondition := condition["negate_condition"].(bool)
+		matchVariable := condition["match_variable"].(string)
+		operator := condition["operator"].(string)
+		//transform := condition["transform"].(string)
+		//matchValue := condition["match_value"].(string)
+
+		matchCondition := frontdoor.RulesEngineMatchCondition{
+			RulesEngineMatchVariable: frontdoor.RulesEngineMatchVariable(matchVariable),
+			Selector:                 utils.String(selector),
+			RulesEngineOperator:      frontdoor.RulesEngineOperator(operator),
+			NegateCondition:          &negateCondition,
+			//RulesEngineMatchValue:    utils.String(matchValue),
+			//Transforms: frontdoor.Transform(transform),
+		}
+
+		output = append(output, matchCondition)
 	}
 
 	return &output
