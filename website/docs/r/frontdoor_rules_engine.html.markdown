@@ -1,0 +1,105 @@
+---
+subcategory: "Network"
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_frontdoor_rules_engine"
+description: |-
+  Manages an Azure Front Door Rules Engine configuration and rules.
+---
+
+# azurerm_frontdoor_rules_engine
+
+Manages an Azure Front Door Rules Engine configuration and rules.
+
+## Example Usage
+
+```hcl
+resource "azurerm_frontdoor_rules_engine" "example_rules_engine" {
+  name                = "exampleRulesEngineConfig1"
+  frontdoor_name      = azurerm_frontdoor.example.name
+  resource_group_name = azurerm_frontdoor.example.resource_group_name
+
+  rule {
+    name = "debuggingoutput"
+    priority = 1
+
+    rule_action {
+      response_header_actions {
+        header_action_type = "Append"
+        header_name = "X-TEST-HEADER"
+        value = "Append Header Rule"
+      }
+    }
+  }
+
+  rule {
+    name = "overwriteorigin"
+    priority = 2
+
+    rule_action {
+
+      response_header_actions {
+        header_action_type = "Overwrite"
+        header_name        = "Access-Control-Allow-Origin"
+        value              = "*"
+      }
+
+      response_header_actions {
+        header_action_type = "Overwrite"
+        header_name        = "Access-Control-Allow-Credentials"
+        value              = "true"
+      }
+
+    }
+  }
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `name` - (Required) The name of the policy. Changing this forces a new resource to be created.
+
+* `frontdoor_name`
+
+* `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
+
+* `rule` - (Required) A `rule` block as defined below.
+
+---
+
+The `rule` block supports the following:
+
+* `name`
+
+* `priority`
+
+* `rule_action` - (Required) A `rule_action` block as defined below.
+
+---
+
+The `rule_action` block supports the following:
+
+* `request_header_actions` - A `request_header_actions` block as defined below.
+
+* `response_header_actions` - A `response_header_actions` block as defined below.
+
+---
+
+The `request_header_actions` block supports the following:
+
+* `header_action_type` can be set to `Overwrite`, `Append` or `Delete`.
+
+* `header_name`
+
+* `value`
+
+---
+
+The `response_header_actions` block supports the following:
+
+* `header_action_type` can be set to `Overwrite`, `Append` or `Delete`.
+
+* `header_name`
+
+* `value`
