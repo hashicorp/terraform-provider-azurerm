@@ -1,3 +1,5 @@
+## 2.75.0 (Unreleased)
+
 ## 2.75.0 (September 02, 2021)
 
 FEATURES:
@@ -25,7 +27,6 @@ ENHANCEMENTS:
 * `azurerm_policy_virtual_machine_configuration_assignment` - support for the `assignment_type`, `content_uri`, and `content_hash` properties ([#13176](https://github.com/hashicorp/terraform-provider-azurerm/issues/13176))
 * `azurerm_storage_account` - handle nil values for AllowBlobPublicAccess ([#12689](https://github.com/hashicorp/terraform-provider-azurerm/issues/12689))
 * `azurerm_synapse_spark_pool` - add support spark for `3.1` ([#13181](https://github.com/hashicorp/terraform-provider-azurerm/issues/13181))
-
 
 ## 2.74.0 (August 27, 2021)
 
