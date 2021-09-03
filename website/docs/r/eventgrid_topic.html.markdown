@@ -122,7 +122,7 @@ A `identity` block exports the following:
 
 * `principal_id` - Specifies the Principal ID of the System Assigned Managed Service Identity that is configured on this Event Grid Domain.
 
-* `tenant_id` - Specifies the Tenant ID of the System Assigned Managed Service Identity that is configured on this Event Grid Domain.
+* `tenant_id` - Specifies the Tenant ID of the System Assigned Managed Service Identity that is configured on this Event Grid Topic.
 
 * `identity_ids` - A list of IDs for User Assigned Managed Identity resources to be assigned.
 
