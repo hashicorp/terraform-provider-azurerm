@@ -1,5 +1,9 @@
 ## 2.75.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* upgrading `cosmos` to API Version `2021-06-15` [GH-13188]
+
 ## 2.75.0 (September 02, 2021)
 
 FEATURES:
