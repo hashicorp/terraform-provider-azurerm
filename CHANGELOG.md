@@ -12,6 +12,10 @@ ENHANCEMENTS:
 * `azurerm_eventgrid_event_subscription` - support for the `delivery_identity` and `dead_letter_identity` blocks [GH-12945]
 * `azurerm_eventgrid_system_topic_event_subscription` - support for the `delivery_identity` and `dead_letter_identity` blocks [GH-12945]
 
+BUG FIXES:
+
+* `azurerm_api_management_subscription` - relax `subscription_id` validation [GH-13203]
+
 ## 2.75.0 (September 02, 2021)
 
 FEATURES:
@@ -73,7 +77,7 @@ ENHANCEMENTS:
 * `azurerm_servicebus_topic_authorization_rule` - support for the `primary_connection_string_alias` and `secondary_connection_string_alias` properties ([#12997](https://github.com/hashicorp/terraform-provider-azurerm/issues/12997))
 * `azurerm_dev_test_global_vm_shutdown_schedule` - support for the `mail` property ([#13074](https://github.com/hashicorp/terraform-provider-azurerm/issues/13074))
 
-BUG FIXES
+BUG FIXES:
 
 * `azurerm_data_factory_dataset_delimited_text` - support empty values for the `column_delimiter`, `row_delimiter`, `quote_character`, `escape_character`, and `encoding` propeties ([#13149](https://github.com/hashicorp/terraform-provider-azurerm/issues/13149))
 * `azurerm_cosmosdb_cassandra_table` - correctly update `throughput` ([#13102](https://github.com/hashicorp/terraform-provider-azurerm/issues/13102))
