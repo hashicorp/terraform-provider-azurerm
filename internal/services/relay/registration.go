@@ -26,7 +26,9 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_relay_hybrid_connection": resourceArmRelayHybridConnection(),
-		"azurerm_relay_namespace":         resourceRelayNamespace(),
+		"azurerm_relay_hybrid_connection":                    resourceArmRelayHybridConnection(),
+		"azurerm_relay_hybrid_connection_authorization_rule": resourceRelayHybridConnectionAuthorizationRule(),
+		"azurerm_relay_namespace":                            resourceRelayNamespace(),
+		"azurerm_relay_namespace_authorization_rule":         resourceRelayNamespaceAuthorizationRule(),
 	}
 }

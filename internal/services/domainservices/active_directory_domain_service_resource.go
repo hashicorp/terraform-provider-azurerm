@@ -252,6 +252,11 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"resource_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"sync_owner": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -434,6 +439,7 @@ func resourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta in
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_id", resp.ID)
 
 	loc := location.NormalizeNilable(resp.Location)
 	d.Set("location", loc)

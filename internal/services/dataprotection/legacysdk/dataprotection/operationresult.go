@@ -8,11 +8,10 @@ package dataprotection
 
 import (
 	"context"
-	"net/http"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
+	"net/http"
 )
 
 // OperationResultClient is the open API 2.0 Specs for Azure Data Protection service
@@ -73,7 +72,7 @@ func (client OperationResultClient) GetPreparer(ctx context.Context, operationID
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -103,6 +103,8 @@ import (
 
 func SupportedTypedServices() []sdk.TypedServiceRegistration {
 	return []sdk.TypedServiceRegistration{
+		apimanagement.Registration{},
+		appconfiguration.Registration{},
 		batch.Registration{},
 		eventhub.Registration{},
 		loadbalancer.Registration{},

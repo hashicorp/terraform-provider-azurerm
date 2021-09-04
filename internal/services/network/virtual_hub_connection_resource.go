@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -175,6 +175,14 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 	locks.ByName(id.Name, virtualHubResourceName)
 	defer locks.UnlockByName(id.Name, virtualHubResourceName)
 
+	remoteVirtualNetworkId, err := parse.VirtualNetworkID(d.Get("remote_virtual_network_id").(string))
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(remoteVirtualNetworkId.Name, VirtualNetworkResourceName)
+	defer locks.UnlockByName(remoteVirtualNetworkId.Name, VirtualNetworkResourceName)
+
 	name := d.Get("name").(string)
 
 	if d.IsNewResource() {
@@ -193,7 +201,7 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 		Name: utils.String(name),
 		HubVirtualNetworkConnectionProperties: &network.HubVirtualNetworkConnectionProperties{
 			RemoteVirtualNetwork: &network.SubResource{
-				ID: utils.String(d.Get("remote_virtual_network_id").(string)),
+				ID: utils.String(remoteVirtualNetworkId.ID()),
 			},
 			EnableInternetSecurity: utils.Bool(d.Get("internet_security_enabled").(bool)),
 		},

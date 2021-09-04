@@ -290,7 +290,7 @@ func resourceHDInsightStormClusterRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("failure flattening `component_version`: %+v", err)
 			}
 
-			if err := d.Set("gateway", FlattenHDInsightsConfigurations(gateway)); err != nil {
+			if err := d.Set("gateway", FlattenHDInsightsConfigurations(gateway, d)); err != nil {
 				return fmt.Errorf("failure flattening `gateway`: %+v", err)
 			}
 

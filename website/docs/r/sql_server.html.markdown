@@ -75,6 +75,8 @@ The following arguments are supported:
 
 * `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
 
+* `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -84,6 +86,16 @@ An `identity` block supports the following:
 * `type` - (Required) Specifies the identity type of the Microsoft SQL Server. At this time the only allowed value is `SystemAssigned`.
 
 ~> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the Microsoft SQL Server has been created. More details are available below.
+
+`threat_detection_policy` supports the following:
+
+* `state` - (Required) The State of the Policy. Possible values are `Enabled`, `Disabled` or `New`.
+* `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Data_Exfiltration`, `Sql_Injection`, `Sql_Injection_Vulnerability` and `Unsafe_Action"`,.
+* `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered?
+* `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.
+* `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs.
+* `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. Required if `state` is `Enabled`.
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. `https://MyAccount.blob.core.windows.net`). This blob storage will hold all Threat Detection audit logs. Required if `state` is `Enabled`.
 
 ## Attributes Reference
 

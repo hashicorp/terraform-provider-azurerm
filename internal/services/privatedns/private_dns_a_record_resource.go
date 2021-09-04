@@ -54,6 +54,7 @@ func resourcePrivateDnsARecord() *pluginsdk.Resource {
 			"records": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
+				MaxItems: 20,
 				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Set:      pluginsdk.HashString,
 			},

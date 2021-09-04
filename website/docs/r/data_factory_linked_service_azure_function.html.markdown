@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_data_factory_linked_service_azure_function
 
-Manages a Linked Service (connection) between a SFTP Server and Azure Data Factory.
+Manages a Linked Service (connection) between an Azure Function and Azure Data Factory.
 
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
@@ -66,7 +66,19 @@ The following supported arguments are specific to Azure Function Linked Service:
 
 * `url` - (Required) The url of the Azure Function. 
 
-* `key` - (Required) The system key of the Azure Function. 
+* `key` - (Optional) The system key of the Azure Function. Exactly one of either `key` or `key_vault_key` is required
+
+* `key_vault_key` - (Optional) A `key_vault_key` block as defined below. Use this Argument to store the system key of the Azure Function in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service. Exactly one of either `key` or `key_vault_key` is required.
+
+---
+
+A `key_vault_key` block supports the following:
+
+* `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores the system key of the Azure Function.
+
+---
 
 ## Attributes Reference
 

@@ -149,6 +149,34 @@ func TestAccSqlServer_updateWithBlobAuditingPolices(t *testing.T) {
 	})
 }
 
+func TestAccSqlServer_threatDetectionPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
+	r := SqlServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.threatDetectionPolicy(data, "Enabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.state").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.retention_days").HasValue("15"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.disabled_alerts.#").HasValue("1"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.email_account_admins").HasValue("true"),
+			),
+		},
+		data.ImportStep("administrator_login_password", "threat_detection_policy.0.storage_account_access_key"),
+		{
+			Config: r.threatDetectionPolicy(data, "Disabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("threat_detection_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.state").HasValue("Disabled"),
+			),
+		},
+	})
+}
+
 func (r SqlServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServerID(state.ID)
 	if err != nil {
@@ -384,4 +412,43 @@ resource "azurerm_sql_server" "test" {
   }
 }
 `, data.RandomIntOfLength(15), data.Locations.Primary)
+}
+
+func (r SqlServerResource) threatDetectionPolicy(data acceptance.TestData, state string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "test%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_sql_server" "test" {
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+
+  threat_detection_policy {
+    retention_days             = 15
+    state                      = "%s"
+    disabled_alerts            = ["Sql_Injection"]
+    email_account_admins       = true
+    storage_account_access_key = azurerm_storage_account.test.primary_access_key
+    storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, state)
 }

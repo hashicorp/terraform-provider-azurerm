@@ -13,6 +13,7 @@ import (
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -160,6 +161,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
 				ForceNew: true,
+				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -218,6 +220,13 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"pod_subnet_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: networkValidate.SubnetID,
+			},
+
 			"priority": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -242,6 +251,13 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				ForceNew:     true,
 				Default:      -1.0,
 				ValidateFunc: computeValidate.SpotMaxPrice,
+			},
+
+			"ultra_ssd_enabled": {
+				Type:     pluginsdk.TypeBool,
+				ForceNew: true,
+				Default:  false,
+				Optional: true,
 			},
 
 			"vnet_subnet_id": {
@@ -324,6 +340,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		OsType:                 containerservice.OSType(osType),
 		EnableAutoScaling:      utils.Bool(enableAutoScaling),
 		EnableFIPS:             utils.Bool(d.Get("fips_enabled").(bool)),
+		EnableUltraSSD:         utils.Bool(d.Get("ultra_ssd_enabled").(bool)),
 		EnableNodePublicIP:     utils.Bool(d.Get("enable_node_public_ip").(bool)),
 		KubeletDiskType:        containerservice.KubeletDiskType(d.Get("kubelet_disk_type").(string)),
 		Mode:                   mode,
@@ -394,6 +411,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	if osDiskType := d.Get("os_disk_type").(string); osDiskType != "" {
 		profile.OsDiskType = containerservice.OSDiskType(osDiskType)
+	}
+
+	if podSubnetID := d.Get("pod_subnet_id").(string); podSubnetID != "" {
+		profile.PodSubnetID = utils.String(podSubnetID)
 	}
 
 	if vnetSubnetID := d.Get("vnet_subnet_id").(string); vnetSubnetID != "" {
@@ -665,6 +686,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("enable_node_public_ip", props.EnableNodePublicIP)
 		d.Set("enable_host_encryption", props.EnableEncryptionAtHost)
 		d.Set("fips_enabled", props.EnableFIPS)
+		d.Set("ultra_ssd_enabled", props.EnableUltraSSD)
 		d.Set("kubelet_disk_type", string(props.KubeletDiskType))
 
 		evictionPolicy := ""
@@ -738,6 +760,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		}
 		d.Set("os_disk_type", osDiskType)
 		d.Set("os_type", string(props.OsType))
+		d.Set("pod_subnet_id", props.PodSubnetID)
 
 		// not returned from the API if not Spot
 		priority := string(containerservice.ScaleSetPriorityRegular)

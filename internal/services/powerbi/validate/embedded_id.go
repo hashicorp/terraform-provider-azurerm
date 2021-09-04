@@ -3,7 +3,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/powerbi/sdk/capacities"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/powerbi/sdk/2021-01-01/capacities"
 )
 
 func EmbeddedID(input interface{}, key string) (warnings []string, errors []error) {

@@ -42,6 +42,27 @@ func apiManagementResourceHostnameSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Default:  false,
 		},
+
+		"ssl_keyvault_identity_client_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsUUID,
+		},
+
+		"expiry": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"subject": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"thumbprint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 

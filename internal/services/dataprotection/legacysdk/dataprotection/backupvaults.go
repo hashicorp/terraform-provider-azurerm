@@ -8,12 +8,11 @@ package dataprotection
 
 import (
 	"context"
-	"net/http"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
+	"net/http"
 )
 
 // BackupVaultsClient is the open API 2.0 Specs for Azure Data Protection service
@@ -78,7 +77,7 @@ func (client BackupVaultsClient) CheckNameAvailabilityPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -157,7 +156,7 @@ func (client BackupVaultsClient) CreateOrUpdatePreparer(ctx context.Context, vau
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -244,7 +243,7 @@ func (client BackupVaultsClient) DeletePreparer(ctx context.Context, vaultName s
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -319,7 +318,7 @@ func (client BackupVaultsClient) GetPreparer(ctx context.Context, vaultName stri
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -350,12 +349,12 @@ func (client BackupVaultsClient) GetResponder(resp *http.Response) (result Backu
 	return
 }
 
-// GetResourcesInResourceGroup returns resource collection belonging to a resource group.
+// GetInResourceGroup returns resource collection belonging to a resource group.
 // Parameters:
 // resourceGroupName - the name of the resource group where the backup vault is present.
-func (client BackupVaultsClient) GetResourcesInResourceGroup(ctx context.Context, resourceGroupName string) (result BackupVaultResourceListPage, err error) {
+func (client BackupVaultsClient) GetInResourceGroup(ctx context.Context, resourceGroupName string) (result BackupVaultResourceListPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BackupVaultsClient.GetResourcesInResourceGroup")
+		ctx = tracing.StartSpan(ctx, fqdn+"/BackupVaultsClient.GetInResourceGroup")
 		defer func() {
 			sc := -1
 			if result.bvrl.Response.Response != nil {
@@ -364,23 +363,23 @@ func (client BackupVaultsClient) GetResourcesInResourceGroup(ctx context.Context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.fn = client.getResourcesInResourceGroupNextResults
-	req, err := client.GetResourcesInResourceGroupPreparer(ctx, resourceGroupName)
+	result.fn = client.getInResourceGroupNextResults
+	req, err := client.GetInResourceGroupPreparer(ctx, resourceGroupName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "GetResourcesInResourceGroup", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "GetInResourceGroup", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.GetResourcesInResourceGroupSender(req)
+	resp, err := client.GetInResourceGroupSender(req)
 	if err != nil {
 		result.bvrl.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "GetResourcesInResourceGroup", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "GetInResourceGroup", resp, "Failure sending request")
 		return
 	}
 
-	result.bvrl, err = client.GetResourcesInResourceGroupResponder(resp)
+	result.bvrl, err = client.GetInResourceGroupResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "GetResourcesInResourceGroup", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "GetInResourceGroup", resp, "Failure responding to request")
 		return
 	}
 	if result.bvrl.hasNextLink() && result.bvrl.IsEmpty() {
@@ -391,14 +390,14 @@ func (client BackupVaultsClient) GetResourcesInResourceGroup(ctx context.Context
 	return
 }
 
-// GetResourcesInResourceGroupPreparer prepares the GetResourcesInResourceGroup request.
-func (client BackupVaultsClient) GetResourcesInResourceGroupPreparer(ctx context.Context, resourceGroupName string) (*http.Request, error) {
+// GetInResourceGroupPreparer prepares the GetInResourceGroup request.
+func (client BackupVaultsClient) GetInResourceGroupPreparer(ctx context.Context, resourceGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -411,15 +410,15 @@ func (client BackupVaultsClient) GetResourcesInResourceGroupPreparer(ctx context
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// GetResourcesInResourceGroupSender sends the GetResourcesInResourceGroup request. The method will close the
+// GetInResourceGroupSender sends the GetInResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
-func (client BackupVaultsClient) GetResourcesInResourceGroupSender(req *http.Request) (*http.Response, error) {
+func (client BackupVaultsClient) GetInResourceGroupSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
-// GetResourcesInResourceGroupResponder handles the response to the GetResourcesInResourceGroup request. The method always
+// GetInResourceGroupResponder handles the response to the GetInResourceGroup request. The method always
 // closes the http.Response Body.
-func (client BackupVaultsClient) GetResourcesInResourceGroupResponder(resp *http.Response) (result BackupVaultResourceList, err error) {
+func (client BackupVaultsClient) GetInResourceGroupResponder(resp *http.Response) (result BackupVaultResourceList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -429,31 +428,31 @@ func (client BackupVaultsClient) GetResourcesInResourceGroupResponder(resp *http
 	return
 }
 
-// getResourcesInResourceGroupNextResults retrieves the next set of results, if any.
-func (client BackupVaultsClient) getResourcesInResourceGroupNextResults(ctx context.Context, lastResults BackupVaultResourceList) (result BackupVaultResourceList, err error) {
+// getInResourceGroupNextResults retrieves the next set of results, if any.
+func (client BackupVaultsClient) getInResourceGroupNextResults(ctx context.Context, lastResults BackupVaultResourceList) (result BackupVaultResourceList, err error) {
 	req, err := lastResults.backupVaultResourceListPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "getResourcesInResourceGroupNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "getInResourceGroupNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
 	}
-	resp, err := client.GetResourcesInResourceGroupSender(req)
+	resp, err := client.GetInResourceGroupSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "getResourcesInResourceGroupNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "getInResourceGroupNextResults", resp, "Failure sending next results request")
 	}
-	result, err = client.GetResourcesInResourceGroupResponder(resp)
+	result, err = client.GetInResourceGroupResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "getResourcesInResourceGroupNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "getInResourceGroupNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
-// GetResourcesInResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
-func (client BackupVaultsClient) GetResourcesInResourceGroupComplete(ctx context.Context, resourceGroupName string) (result BackupVaultResourceListIterator, err error) {
+// GetInResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
+func (client BackupVaultsClient) GetInResourceGroupComplete(ctx context.Context, resourceGroupName string) (result BackupVaultResourceListIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BackupVaultsClient.GetResourcesInResourceGroup")
+		ctx = tracing.StartSpan(ctx, fqdn+"/BackupVaultsClient.GetInResourceGroup")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -462,14 +461,14 @@ func (client BackupVaultsClient) GetResourcesInResourceGroupComplete(ctx context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.GetResourcesInResourceGroup(ctx, resourceGroupName)
+	result.page, err = client.GetInResourceGroup(ctx, resourceGroupName)
 	return
 }
 
-// GetResourcesInSubscription returns resource collection belonging to a subscription.
-func (client BackupVaultsClient) GetResourcesInSubscription(ctx context.Context) (result BackupVaultResourceListPage, err error) {
+// GetInSubscription returns resource collection belonging to a subscription.
+func (client BackupVaultsClient) GetInSubscription(ctx context.Context) (result BackupVaultResourceListPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BackupVaultsClient.GetResourcesInSubscription")
+		ctx = tracing.StartSpan(ctx, fqdn+"/BackupVaultsClient.GetInSubscription")
 		defer func() {
 			sc := -1
 			if result.bvrl.Response.Response != nil {
@@ -478,23 +477,23 @@ func (client BackupVaultsClient) GetResourcesInSubscription(ctx context.Context)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.fn = client.getResourcesInSubscriptionNextResults
-	req, err := client.GetResourcesInSubscriptionPreparer(ctx)
+	result.fn = client.getInSubscriptionNextResults
+	req, err := client.GetInSubscriptionPreparer(ctx)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "GetResourcesInSubscription", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "GetInSubscription", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.GetResourcesInSubscriptionSender(req)
+	resp, err := client.GetInSubscriptionSender(req)
 	if err != nil {
 		result.bvrl.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "GetResourcesInSubscription", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "GetInSubscription", resp, "Failure sending request")
 		return
 	}
 
-	result.bvrl, err = client.GetResourcesInSubscriptionResponder(resp)
+	result.bvrl, err = client.GetInSubscriptionResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "GetResourcesInSubscription", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "GetInSubscription", resp, "Failure responding to request")
 		return
 	}
 	if result.bvrl.hasNextLink() && result.bvrl.IsEmpty() {
@@ -505,13 +504,13 @@ func (client BackupVaultsClient) GetResourcesInSubscription(ctx context.Context)
 	return
 }
 
-// GetResourcesInSubscriptionPreparer prepares the GetResourcesInSubscription request.
-func (client BackupVaultsClient) GetResourcesInSubscriptionPreparer(ctx context.Context) (*http.Request, error) {
+// GetInSubscriptionPreparer prepares the GetInSubscription request.
+func (client BackupVaultsClient) GetInSubscriptionPreparer(ctx context.Context) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -524,15 +523,15 @@ func (client BackupVaultsClient) GetResourcesInSubscriptionPreparer(ctx context.
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// GetResourcesInSubscriptionSender sends the GetResourcesInSubscription request. The method will close the
+// GetInSubscriptionSender sends the GetInSubscription request. The method will close the
 // http.Response Body if it receives an error.
-func (client BackupVaultsClient) GetResourcesInSubscriptionSender(req *http.Request) (*http.Response, error) {
+func (client BackupVaultsClient) GetInSubscriptionSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
-// GetResourcesInSubscriptionResponder handles the response to the GetResourcesInSubscription request. The method always
+// GetInSubscriptionResponder handles the response to the GetInSubscription request. The method always
 // closes the http.Response Body.
-func (client BackupVaultsClient) GetResourcesInSubscriptionResponder(resp *http.Response) (result BackupVaultResourceList, err error) {
+func (client BackupVaultsClient) GetInSubscriptionResponder(resp *http.Response) (result BackupVaultResourceList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -542,31 +541,31 @@ func (client BackupVaultsClient) GetResourcesInSubscriptionResponder(resp *http.
 	return
 }
 
-// getResourcesInSubscriptionNextResults retrieves the next set of results, if any.
-func (client BackupVaultsClient) getResourcesInSubscriptionNextResults(ctx context.Context, lastResults BackupVaultResourceList) (result BackupVaultResourceList, err error) {
+// getInSubscriptionNextResults retrieves the next set of results, if any.
+func (client BackupVaultsClient) getInSubscriptionNextResults(ctx context.Context, lastResults BackupVaultResourceList) (result BackupVaultResourceList, err error) {
 	req, err := lastResults.backupVaultResourceListPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "getResourcesInSubscriptionNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "getInSubscriptionNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
 	}
-	resp, err := client.GetResourcesInSubscriptionSender(req)
+	resp, err := client.GetInSubscriptionSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "getResourcesInSubscriptionNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "getInSubscriptionNextResults", resp, "Failure sending next results request")
 	}
-	result, err = client.GetResourcesInSubscriptionResponder(resp)
+	result, err = client.GetInSubscriptionResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "getResourcesInSubscriptionNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "getInSubscriptionNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
-// GetResourcesInSubscriptionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client BackupVaultsClient) GetResourcesInSubscriptionComplete(ctx context.Context) (result BackupVaultResourceListIterator, err error) {
+// GetInSubscriptionComplete enumerates all values, automatically crossing page boundaries as required.
+func (client BackupVaultsClient) GetInSubscriptionComplete(ctx context.Context) (result BackupVaultResourceListIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BackupVaultsClient.GetResourcesInSubscription")
+		ctx = tracing.StartSpan(ctx, fqdn+"/BackupVaultsClient.GetInSubscription")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -575,18 +574,18 @@ func (client BackupVaultsClient) GetResourcesInSubscriptionComplete(ctx context.
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.GetResourcesInSubscription(ctx)
+	result.page, err = client.GetInSubscription(ctx)
 	return
 }
 
-// Patch updates a BackupVault resource belonging to a resource group. For example, updating tags for a resource.
+// Update updates a BackupVault resource belonging to a resource group. For example, updating tags for a resource.
 // Parameters:
 // vaultName - the name of the backup vault.
 // resourceGroupName - the name of the resource group where the backup vault is present.
 // parameters - request body for operation
-func (client BackupVaultsClient) Patch(ctx context.Context, vaultName string, resourceGroupName string, parameters PatchResourceRequestInput) (result BackupVaultsPatchFuture, err error) {
+func (client BackupVaultsClient) Update(ctx context.Context, vaultName string, resourceGroupName string, parameters PatchResourceRequestInput) (result BackupVaultsUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BackupVaultsClient.Patch")
+		ctx = tracing.StartSpan(ctx, fqdn+"/BackupVaultsClient.Update")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -595,30 +594,30 @@ func (client BackupVaultsClient) Patch(ctx context.Context, vaultName string, re
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.PatchPreparer(ctx, vaultName, resourceGroupName, parameters)
+	req, err := client.UpdatePreparer(ctx, vaultName, resourceGroupName, parameters)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "Patch", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "Update", nil, "Failure preparing request")
 		return
 	}
 
-	result, err = client.PatchSender(req)
+	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "Patch", nil, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "dataprotection.BackupVaultsClient", "Update", nil, "Failure sending request")
 		return
 	}
 
 	return
 }
 
-// PatchPreparer prepares the Patch request.
-func (client BackupVaultsClient) PatchPreparer(ctx context.Context, vaultName string, resourceGroupName string, parameters PatchResourceRequestInput) (*http.Request, error) {
+// UpdatePreparer prepares the Update request.
+func (client BackupVaultsClient) UpdatePreparer(ctx context.Context, vaultName string, resourceGroupName string, parameters PatchResourceRequestInput) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -633,9 +632,9 @@ func (client BackupVaultsClient) PatchPreparer(ctx context.Context, vaultName st
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// PatchSender sends the Patch request. The method will close the
+// UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client BackupVaultsClient) PatchSender(req *http.Request) (future BackupVaultsPatchFuture, err error) {
+func (client BackupVaultsClient) UpdateSender(req *http.Request) (future BackupVaultsUpdateFuture, err error) {
 	var resp *http.Response
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
@@ -648,9 +647,9 @@ func (client BackupVaultsClient) PatchSender(req *http.Request) (future BackupVa
 	return
 }
 
-// PatchResponder handles the response to the Patch request. The method always
+// UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
-func (client BackupVaultsClient) PatchResponder(resp *http.Response) (result BackupVaultResource, err error) {
+func (client BackupVaultsClient) UpdateResponder(resp *http.Response) (result BackupVaultResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),

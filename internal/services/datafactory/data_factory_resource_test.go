@@ -117,7 +117,7 @@ func TestAccDataFactory_github(t *testing.T) {
 				check.That(data.ResourceName).Key("github_configuration.0.account_name").HasValue(fmt.Sprintf("acctestGH-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("github_configuration.0.git_url").HasValue("https://github.com/hashicorp/"),
 				check.That(data.ResourceName).Key("github_configuration.0.repository_name").HasValue("terraform-provider-azurerm"),
-				check.That(data.ResourceName).Key("github_configuration.0.branch_name").HasValue("master"),
+				check.That(data.ResourceName).Key("github_configuration.0.branch_name").HasValue("main"),
 				check.That(data.ResourceName).Key("github_configuration.0.root_folder").HasValue("/"),
 			),
 		},
