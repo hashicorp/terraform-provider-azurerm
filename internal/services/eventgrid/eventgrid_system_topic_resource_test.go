@@ -151,12 +151,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eg-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestegst%d"
+  name                     = "acctestegst%[3]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -164,13 +164,13 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctestEGST%d"
+  name                   = "acctestEGST%[1]d"
   location               = azurerm_resource_group.test.location
   resource_group_name    = azurerm_resource_group.test.name
   source_arm_resource_id = azurerm_storage_account.test.id
   topic_type             = "Microsoft.Storage.StorageAccounts"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12), data.RandomIntOfLength(10))
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
 }
 
 func (r EventGridSystemTopicResource) requiresImport(data acceptance.TestData) string {
@@ -194,12 +194,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eg-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestegst%d"
+  name                     = "acctestegst%[3]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -207,7 +207,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctestEGST%d"
+  name                   = "acctestEGST%[1]d"
   location               = azurerm_resource_group.test.location
   resource_group_name    = azurerm_resource_group.test.name
   source_arm_resource_id = azurerm_storage_account.test.id
@@ -217,7 +217,7 @@ resource "azurerm_eventgrid_system_topic" "test" {
     "Foo" = "Bar"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12), data.RandomIntOfLength(10))
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
 }
 
 func (EventGridSystemTopicResource) policyStates(data acceptance.TestData) string {
@@ -229,12 +229,12 @@ provider "azurerm" {
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eg-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctestEGST%d"
+  name                   = "acctestEGST%[1]d"
   location               = "Global"
   resource_group_name    = azurerm_resource_group.test.name
   source_arm_resource_id = format("/subscriptions/%%s", data.azurerm_subscription.current.subscription_id)
@@ -259,7 +259,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestegst%[1]d"
+  name                     = "acctestegst%[3]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -277,7 +277,7 @@ resource "azurerm_eventgrid_system_topic" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
 }
 
 func (EventGridSystemTopicResource) basicWithUserAssignedManagedIdentity(data acceptance.TestData) string {
@@ -292,7 +292,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestegst%[1]d"
+  name                     = "acctestegst%[3]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -319,5 +319,5 @@ resource "azurerm_eventgrid_system_topic" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
 }
