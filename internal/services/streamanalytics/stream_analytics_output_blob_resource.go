@@ -164,15 +164,20 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 		},
 	}
 
-	if batchTimeWindow := d.Get("batch_time_window").(string); batchTimeWindow != "" {
-		props.TimeWindow = utils.String(batchTimeWindow)
+	if batchTimeWindow, ok := d.GetOk("batch_time_window"); ok != false {
+		props.TimeWindow = utils.String(batchTimeWindow.(string))
 	}
 
-	if batchMinRows := d.Get("batch_min_rows").(float64); batchMinRows != 0 {
-		props.SizeWindow = utils.Float(batchMinRows)
+	if batchMinRows, ok := d.GetOk("batch_min_rows"); ok != false {
+		props.SizeWindow = utils.Float(batchMinRows.(float64))
 	}
 
+	serializationFormat, _ := serialization.AsSerialization()
 	//TODO Parquet serialization check here
+	//Cannot be unset and cannot be 0 or 00:00:00
+	if serializationFormat.Type == streamanalytics.TypeParquet && props.TimeWindow == nil && props.SizeWindow == nil {
+		return fmt.Errorf("cannot create Stream Analytics Output Blob %q (Job %q / Resource Group %q): batch_min_rows and batch_time_window must be set for Parquet serialization", name, jobName, resourceGroup)
+	}
 
 	if d.IsNewResource() {
 		if _, err := client.CreateOrReplace(ctx, props, resourceGroup, jobName, name, "", ""); err != nil {
