@@ -89,6 +89,19 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 			},
 
 			"serialization": schemaStreamAnalyticsOutputSerialization(),
+
+			"batch_time_window": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				//TODO write validation func
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			//TODO check naming
+			"batch_min_rows": {
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				ValidateFunc: validation.FloatBetween(0, 10000),
+			},
 		},
 	}
 }
@@ -150,6 +163,16 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 			Serialization: serialization,
 		},
 	}
+
+	if batchTimeWindow := d.Get("batch_time_window").(string); batchTimeWindow != "" {
+		props.TimeWindow = utils.String(batchTimeWindow)
+	}
+
+	if batchMinRows := d.Get("batch_min_rows").(float64); batchMinRows != 0 {
+		props.SizeWindow = utils.Float(batchMinRows)
+	}
+
+	//TODO Parquet serialization check here
 
 	if d.IsNewResource() {
 		if _, err := client.CreateOrReplace(ctx, props, resourceGroup, jobName, name, "", ""); err != nil {
@@ -216,6 +239,9 @@ func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta inter
 		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)
 		}
+		d.Set("batch_time_window", props.TimeWindow)
+		d.Set("batch_min_rows", props.SizeWindow)
+
 	}
 
 	return nil
