@@ -1121,7 +1121,7 @@ func expandEventGridEventSubscriptionRetryPolicy(d *pluginsdk.ResourceData) *eve
 	return nil
 }
 
-func expandIdentity(input []interface{}) *eventgrid.EventSubscriptionIdentity {
+func expandEventGridEventSubscriptionIdentity(input []interface{}) *eventgrid.EventSubscriptionIdentity {
 	if len(input) == 0 || input[0] == nil {
 		return &eventgrid.EventSubscriptionIdentity{
 			Type: eventgrid.EventSubscriptionIdentityType("None"),
@@ -1483,7 +1483,7 @@ func flattenKey(inputKey *string) map[string]interface{} {
 	}
 }
 
-func flattenIdentity(input *eventgrid.EventSubscriptionIdentity) []interface{} {
+func flattenEventGridEventSubscriptionIdentity(input *eventgrid.EventSubscriptionIdentity) []interface{} {
 	if input == nil || string(input.Type) == "None" {
 		return []interface{}{}
 	}
