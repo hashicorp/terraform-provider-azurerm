@@ -169,6 +169,11 @@ func flattenStreamAnalyticsOutputSerialization(input streamanalytics.BasicSerial
 
 		outputType = string(streamanalytics.TypeJSON)
 	}
+
+	if _, ok := input.AsParquetSerialization(); ok {
+		outputType = string(streamanalytics.TypeParquet)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"encoding":        encoding,
