@@ -11,8 +11,8 @@ import (
 var _ resourceid.Formatter = RulesEngineId{}
 
 func TestRulesEngineIDFormatter(t *testing.T) {
-	actual := NewRulesEngineID("c45eeda7-1811-4ab1-8fe2-efdd99c9d489", "FrontDoorExampleResourceGroup", "heoelri-example-fd", "rule1").ID()
-	expected := "/subscriptions/c45eeda7-1811-4ab1-8fe2-efdd99c9d489/resourceGroups/FrontDoorExampleResourceGroup/providers/Microsoft.Network/frontdoors/heoelri-example-fd/rulesengines/rule1"
+	actual := NewRulesEngineID("12345678-1234-9876-4563-123456789012", "resGroup1", "frontdoor1", "rule1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/frontdoor1/rulesengines/rule1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -45,54 +45,54 @@ func TestRulesEngineID(t *testing.T) {
 
 		{
 			// missing ResourceGroup
-			Input: "/subscriptions/c45eeda7-1811-4ab1-8fe2-efdd99c9d489/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
 			Error: true,
 		},
 
 		{
 			// missing value for ResourceGroup
-			Input: "/subscriptions/c45eeda7-1811-4ab1-8fe2-efdd99c9d489/resourceGroups/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Error: true,
 		},
 
 		{
 			// missing FrontdoorName
-			Input: "/subscriptions/c45eeda7-1811-4ab1-8fe2-efdd99c9d489/resourceGroups/FrontDoorExampleResourceGroup/providers/Microsoft.Network/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
 			Error: true,
 		},
 
 		{
 			// missing value for FrontdoorName
-			Input: "/subscriptions/c45eeda7-1811-4ab1-8fe2-efdd99c9d489/resourceGroups/FrontDoorExampleResourceGroup/providers/Microsoft.Network/frontdoors/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/",
 			Error: true,
 		},
 
 		{
 			// missing Name
-			Input: "/subscriptions/c45eeda7-1811-4ab1-8fe2-efdd99c9d489/resourceGroups/FrontDoorExampleResourceGroup/providers/Microsoft.Network/frontdoors/heoelri-example-fd/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/frontdoor1/",
 			Error: true,
 		},
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/c45eeda7-1811-4ab1-8fe2-efdd99c9d489/resourceGroups/FrontDoorExampleResourceGroup/providers/Microsoft.Network/frontdoors/heoelri-example-fd/rulesengines/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/frontdoor1/rulesengines/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/c45eeda7-1811-4ab1-8fe2-efdd99c9d489/resourceGroups/FrontDoorExampleResourceGroup/providers/Microsoft.Network/frontdoors/heoelri-example-fd/rulesengines/rule1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/frontdoor1/rulesengines/rule1",
 			Expected: &RulesEngineId{
-				SubscriptionId: "c45eeda7-1811-4ab1-8fe2-efdd99c9d489",
-				ResourceGroup:  "FrontDoorExampleResourceGroup",
-				FrontdoorName:  "heoelri-example-fd",
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				FrontdoorName:  "frontdoor1",
 				Name:           "rule1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/C45EEDA7-1811-4AB1-8FE2-EFDD99C9D489/RESOURCEGROUPS/FRONTDOOREXAMPLERESOURCEGROUP/PROVIDERS/MICROSOFT.NETWORK/FRONTDOORS/HEOELRI-EXAMPLE-FD/RULESENGINES/RULE1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/FRONTDOORS/FRONTDOOR1/RULESENGINES/RULE1",
 			Error: true,
 		},
 	}
@@ -101,6 +101,142 @@ func TestRulesEngineID(t *testing.T) {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
 		actual, err := RulesEngineID(v.Input)
+		if err != nil {
+			if v.Error {
+				continue
+			}
+
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
+		}
+
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
+		}
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
+		if actual.FrontdoorName != v.Expected.FrontdoorName {
+			t.Fatalf("Expected %q but got %q for FrontdoorName", v.Expected.FrontdoorName, actual.FrontdoorName)
+		}
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		}
+	}
+}
+
+func TestRulesEngineIDInsensitively(t *testing.T) {
+	testData := []struct {
+		Input    string
+		Error    bool
+		Expected *RulesEngineId
+	}{
+
+		{
+			// empty
+			Input: "",
+			Error: true,
+		},
+
+		{
+			// missing SubscriptionId
+			Input: "/",
+			Error: true,
+		},
+
+		{
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Error: true,
+		},
+
+		{
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
+			Error: true,
+		},
+
+		{
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Error: true,
+		},
+
+		{
+			// missing FrontdoorName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
+			Error: true,
+		},
+
+		{
+			// missing value for FrontdoorName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/",
+			Error: true,
+		},
+
+		{
+			// missing Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/frontdoor1/",
+			Error: true,
+		},
+
+		{
+			// missing value for Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/frontdoor1/rulesengines/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/frontdoor1/rulesengines/rule1",
+			Expected: &RulesEngineId{
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				FrontdoorName:  "frontdoor1",
+				Name:           "rule1",
+			},
+		},
+
+		{
+			// lower-cased segment names
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/frontdoor1/rulesengines/rule1",
+			Expected: &RulesEngineId{
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				FrontdoorName:  "frontdoor1",
+				Name:           "rule1",
+			},
+		},
+
+		{
+			// upper-cased segment names
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FRONTDOORS/frontdoor1/RULESENGINES/rule1",
+			Expected: &RulesEngineId{
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				FrontdoorName:  "frontdoor1",
+				Name:           "rule1",
+			},
+		},
+
+		{
+			// mixed-cased segment names
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FrOnTdOoRs/frontdoor1/RuLeSeNgInEs/rule1",
+			Expected: &RulesEngineId{
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				FrontdoorName:  "frontdoor1",
+				Name:           "rule1",
+			},
+		},
+	}
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %q", v.Input)
+
+		actual, err := RulesEngineIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
