@@ -163,11 +163,11 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 		},
 	}
 
-	if batchMaxWaitTime, ok := d.GetOk("batch_max_wait_time"); ok != false {
+	if batchMaxWaitTime, ok := d.GetOk("batch_max_wait_time"); ok {
 		props.TimeWindow = utils.String(batchMaxWaitTime.(string))
 	}
 
-	if batchMinRows, ok := d.GetOk("batch_min_rows"); ok != false {
+	if batchMinRows, ok := d.GetOk("batch_min_rows"); ok {
 		props.SizeWindow = utils.Float(batchMinRows.(float64))
 	}
 
