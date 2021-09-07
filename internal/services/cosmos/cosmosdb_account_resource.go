@@ -499,7 +499,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
 	enableAnalyticalStorage := d.Get("analytical_storage_enabled").(bool)
-	localAuthenticationDisabled := d.Get("local_authentication_disabled").(bool)
+	disableLocalAuthentication := d.Get("local_authentication_disabled").(bool)
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
@@ -548,7 +548,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			DisableKeyBasedMetadataWriteAccess: utils.Bool(!d.Get("access_key_metadata_writes_enabled").(bool)),
 			NetworkACLBypass:                   networkByPass,
 			NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
-			DisableLocalAuth:                   utils.Bool(localAuthenticationDisabled),
+			DisableLocalAuth:                   utils.Bool(disableLocalAuthentication),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -621,7 +621,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
 	enableAnalyticalStorage := d.Get("analytical_storage_enabled").(bool)
-	localAuthenticationDisabled := d.Get("local_authentication_disabled").(bool)
+	disableLocalAuthentication := d.Get("local_authentication_disabled").(bool)
 
 	newLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
@@ -682,7 +682,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			DisableKeyBasedMetadataWriteAccess: utils.Bool(!d.Get("access_key_metadata_writes_enabled").(bool)),
 			NetworkACLBypass:                   networkByPass,
 			NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
-			DisableLocalAuth:                   utils.Bool(localAuthenticationDisabled),
+			DisableLocalAuth:                   utils.Bool(disableLocalAuthentication),
 		},
 		Tags: tags.Expand(t),
 	}
