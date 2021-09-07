@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
 type ManagedInstanceId struct {

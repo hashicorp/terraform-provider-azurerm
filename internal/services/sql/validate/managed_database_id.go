@@ -5,17 +5,17 @@ package validate
 import (
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 )
 
-func ManagedInstanceID(input interface{}, key string) (warnings []string, errors []error) {
+func ManagedDatabaseID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := parse.ManagedInstanceID(v); err != nil {
+	if _, err := parse.ManagedDatabaseID(v); err != nil {
 		errors = append(errors, err)
 	}
 
