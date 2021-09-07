@@ -8,6 +8,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * upgrading `cosmos` to API Version `2021-06-15` [GH-13188]
+* `azurerm_data_factory_integration_runtime_azure` -  support for the `cleanup_enabled` and `subnet_id` properties [GH-13222]
 * `azurerm_firewall_policy_rule_collection_group` - support for the `description`, `destination_addresses`, `destination_urls`, `terminate_tls`, and `web_categories` properties [GH-13190]
 * `azurerm_eventgrid_event_subscription` - support for the `delivery_identity` and `dead_letter_identity` blocks [GH-12945]
 * `azurerm_eventgrid_system_topic_event_subscription` - support for the `delivery_identity` and `dead_letter_identity` blocks [GH-12945]
@@ -15,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_eventgrid_topic` support for the `identity` block [GH-12951]
 * `azurerm_eventgrid_system_topic` support for the `identity` block [GH-12951]
 * `azurerm_cosmosdb_account` support for the `local_authentication_disabled` property [GH-13237]
+
 BUG FIXES:
 
 * `azurerm_api_management_subscription` - relax `subscription_id` validation [GH-13203]
