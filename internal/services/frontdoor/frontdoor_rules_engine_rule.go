@@ -112,7 +112,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 
 									"operator": {
 										Type:     pluginsdk.TypeString,
-										Optional: true,
+										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"Any",
 											"IPMatch",

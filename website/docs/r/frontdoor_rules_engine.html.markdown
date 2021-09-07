@@ -35,6 +35,12 @@ resource "azurerm_frontdoor_rules_engine" "example_rules_engine" {
     name = "overwriteorigin"
     priority = 2
 
+    match_condition {
+      match_variable = "RequestMethod"
+      operator = "Equal"
+      match_value = [ "GET", "POST" ]
+    }
+
     rule_action {
 
       response_header_actions {
