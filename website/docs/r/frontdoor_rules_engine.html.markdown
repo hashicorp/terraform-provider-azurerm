@@ -19,26 +19,26 @@ resource "azurerm_frontdoor_rules_engine" "example_rules_engine" {
   resource_group_name = azurerm_frontdoor.example.resource_group_name
 
   rule {
-    name = "debuggingoutput"
+    name     = "debuggingoutput"
     priority = 1
 
     rule_action {
       response_header_actions {
         header_action_type = "Append"
-        header_name = "X-TEST-HEADER"
-        value = "Append Header Rule"
+        header_name        = "X-TEST-HEADER"
+        value              = "Append Header Rule"
       }
     }
   }
 
   rule {
-    name = "overwriteorigin"
+    name     = "overwriteorigin"
     priority = 2
 
     match_condition {
       match_variable = "RequestMethod"
-      operator = "Equal"
-      match_value = [ "GET", "POST" ]
+      operator       = "Equal"
+      match_value    = ["GET", "POST"]
     }
 
     rule_action {
