@@ -167,7 +167,7 @@ func testAccDataSourceKubernetesCluster_localAccountDisabled(t *testing.T) {
 				check.That(data.ResourceName).Key("kube_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("kube_config_raw").Exists(),
 				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_admin_config_raw").DoesNotExist(),
+				check.That(data.ResourceName).Key("kube_admin_config_raw").HasValue(""),
 			),
 		},
 	})
