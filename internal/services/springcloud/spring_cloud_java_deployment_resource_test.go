@@ -184,7 +184,7 @@ resource "azurerm_spring_cloud_java_deployment" "test" {
   name                = "acctest-scjd%s"
   spring_cloud_app_id = azurerm_spring_cloud_app.test.id
   cpu_units           = "500m"
-  memory_in_mb        = "512Mi"
+  memory              = "512Mi"
 }
 `, r.template(data), data.RandomString)
 }
@@ -197,7 +197,7 @@ resource "azurerm_spring_cloud_java_deployment" "test" {
   name                = "acctest-scjd%s"
   spring_cloud_app_id = azurerm_spring_cloud_app.test.id
   cpu_units           = "2"
-  memory_in_mb        = "4Gi"
+  memory              = "4Gi"
 }
 `, r.template(data), data.RandomString)
 }

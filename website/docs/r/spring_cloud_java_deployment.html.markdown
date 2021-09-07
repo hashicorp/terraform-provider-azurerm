@@ -41,10 +41,10 @@ resource "azurerm_spring_cloud_app" "example" {
 resource "azurerm_spring_cloud_java_deployment" "example" {
   name                = "deploy1"
   spring_cloud_app_id = azurerm_spring_cloud_app.example.id
-  cpu                 = 2
+  cpu_units           = 2
   instance_count      = 2
   jvm_options         = "-XX:+PrintGC"
-  memory_in_gb        = 4
+  memory              = "4Gi"
   runtime_version     = "Java_11"
 
   environment_variables = {
@@ -62,9 +62,9 @@ The following arguments are supported:
 
 * `spring_cloud_app_id` - (Required) Specifies the id of the Spring Cloud Application in which to create the Deployment. Changing this forces a new resource to be created.
 
-* `cpu` - (Deprecated) Specifies the required cpu of the Spring Cloud Deployment. Possible Values are between `1` and `4`. Defaults to `1` if not specified.
+* `cpu_units` - (Optional) Specifies the required cpu of the Spring Cloud Deployment. Possible Values are `500m`, `1`, `2`, `3` and `4`. Defaults to `1` if not specified.
 
-* `cpu_units` - (Optional) Specifies the required cpu of the Spring Cloud Deployment. Possible Values are `500m`, and between `1` and `4`. Defaults to `1` if not specified.
+-> **Note:** `cpu_units` supports `500m` and `1` for Basic tier, `500m`, `1`, `2`, `3` and `4` for Standard tier.
 
 * `environment_variables` - (Optional) Specifies the environment variables of the Spring Cloud Deployment as a map of key-value pairs.
 
@@ -72,9 +72,9 @@ The following arguments are supported:
 
 * `jvm_options` - (Optional) Specifies the jvm option of the Spring Cloud Deployment.
 
-* `memory_in_gb` - (Deprecated) Specifies the required memory size of the Spring Cloud Deployment. Possible Values are between `1` and `8`. Defaults to `1` if not specified.
+* `memory` - (Optional) Specifies the required memory size of the Spring Cloud Deployment. Possible Values are `512Mi`, `1Gi`, `2Gi`, `3Gi`, `4Gi`, `5Gi`, `6Gi`, `7Gi`, and `8Gi`. Defaults to `1Gi` if not specified.
 
-* `memory_in_mb` - (Optional) Specifies the required memory size of the Spring Cloud Deployment. Possible Values are `512Mi`, and between `1Gi` and `8Gi`. Defaults to `1Gi` if not specified.
+-> **Note:** `memory` supports `512Mi`, `1Gi` and `2Gi` for Basic tier, `512Mi`, `1Gi`, `2Gi`, `3Gi`, `4Gi`, `5Gi`, `6Gi`, `7Gi`, and `8Gi` for Standard tier.
 
 * `runtime_version` - (Optional) Specifies the runtime version of the Spring Cloud Deployment. Possible Values are `Java_8` and `Java_11`. Defaults to `Java_8`.
 
