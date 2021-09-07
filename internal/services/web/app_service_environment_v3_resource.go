@@ -136,7 +136,7 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 			},
 		},
 
-		"tags": tags.ForceNewSchema(),
+		"tags": tags.Schema(),
 	}
 }
 
