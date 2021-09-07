@@ -59,6 +59,12 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			"cleanup_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true, // Defaults to true
+			},
+
 			"compute_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -227,6 +233,8 @@ func resourceDataFactoryIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, m
 			if timeToLive := dataFlowProps.TimeToLive; timeToLive != nil {
 				d.Set("time_to_live_min", timeToLive)
 			}
+
+			d.Set("cleanup_enabled", dataFlowProps.Cleanup)
 		}
 	}
 
@@ -263,13 +271,18 @@ func expandDataFactoryIntegrationRuntimeAzureComputeProperties(d *pluginsdk.Reso
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	coreCount := int32(d.Get("core_count").(int))
 	timeToLiveMin := int32(d.Get("time_to_live_min").(int))
-
+	cleanup := true
+	// nolint staticcheck
+	if v, ok := d.GetOkExists("cleanup_enabled"); ok {
+		cleanup = v.(bool)
+	}
 	return &datafactory.IntegrationRuntimeComputeProperties{
 		Location: &location,
 		DataFlowProperties: &datafactory.IntegrationRuntimeDataFlowProperties{
 			ComputeType: datafactory.DataFlowComputeType(d.Get("compute_type").(string)),
 			CoreCount:   &coreCount,
 			TimeToLive:  &timeToLiveMin,
+			Cleanup:     utils.Bool(cleanup),
 		},
 	}
 }
