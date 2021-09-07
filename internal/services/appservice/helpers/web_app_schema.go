@@ -2,13 +2,13 @@ package helpers
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -1966,7 +1966,6 @@ func virtualApplicationsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
-		// Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"virtual_path": {

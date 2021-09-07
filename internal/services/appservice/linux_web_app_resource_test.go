@@ -1385,42 +1385,6 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, loadBalancingMode)
 }
 
-func (r LinuxWebAppResource) logsEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_linux_web_app" "test" {
-  name                = "acctestWA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  logs {
-    application_logs {
-      file_system_level = "Warning"
-      azure_blob_storage {
-        level             = "Information"
-        sas_url           = "http://x.com/"
-        retention_in_days = 2
-      }
-    }
-
-    http_logs {
-      azure_blob_storage {
-        sas_url           = "https://${azurerm_storage_account.test.name}.blob.core.windows.net/${azurerm_storage_container.test.name}${data.azurerm_storage_account_sas.test.sas}&sr=b"
-        retention_in_days = 3
-      }
-    }
-  }
-}
-
-`, r.templateWithStorageAccount(data), data.RandomInteger)
-}
-
 func (r LinuxWebAppResource) withDetailedLogging(data acceptance.TestData, detailedErrorLogging bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
