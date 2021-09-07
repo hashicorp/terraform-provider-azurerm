@@ -96,7 +96,7 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeBool,
 				Optional:      true,
 				Default:       true,
-				ConflictsWith: []string{"throttle"},
+				ConflictsWith: []string{"throttling"},
 			},
 			"description": {
 				Type:         pluginsdk.TypeString,
