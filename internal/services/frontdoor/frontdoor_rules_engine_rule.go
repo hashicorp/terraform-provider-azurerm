@@ -78,7 +78,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 							Required: true,
 						},
 
-						"match_conditions": {
+						"match_condition": {
 							Type:     pluginsdk.TypeList,
 							MaxItems: 100,
 							Optional: true,
@@ -348,7 +348,7 @@ func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoor.RulesEngi
 		ruleName := rule["name"].(string)
 		priority := int32(rule["priority"].(int))
 		actions := rule["rule_action"].([]interface{})
-		matchConditions := rule["match_conditions"].([]interface{})
+		matchConditions := rule["match_condition"].([]interface{})
 
 		frontdoorRulesEngineRule := frontdoor.RulesEngineRule{
 			Name:            utils.String(ruleName),
