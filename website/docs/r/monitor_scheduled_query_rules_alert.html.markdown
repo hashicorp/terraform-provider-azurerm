@@ -162,7 +162,7 @@ The following arguments are supported:
 
 * `metric_column` - (Required) Evaluation of metric on a particular column.
 * `metric_trigger_type` - (Required) Metric Trigger Type - 'Consecutive' or 'Total'.
-* `operator` - (Required) Evaluation operation for rule - 'Equal', 'GreaterThan', GreaterThanOrEqual', 'LessThan' or 'LessThanOrEqual'.
+* `operator` - (Required) Evaluation operation for rule - 'Equal', 'GreaterThan', GreaterThanOrEqual', 'LessThan', or 'LessThanOrEqual'.
 * `threshold` - (Required) The threshold of the metric trigger.    Values must be between 0 and 10000 inclusive.
 
 ---
