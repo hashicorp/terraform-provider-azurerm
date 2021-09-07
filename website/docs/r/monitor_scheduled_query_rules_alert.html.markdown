@@ -170,7 +170,7 @@ The following arguments are supported:
 `trigger` supports the following:
 
 * `metric_trigger` - (Optional) A `metric_trigger` block as defined above. Trigger condition for metric query rule.
-* `operator` - (Required) Evaluation operation for rule - 'GreaterThan', GreaterThanOrEqual', 'LessThan' or 'LessThanOrEqual'.
+* `operator` - (Required) Evaluation operation for rule - 'GreaterThan', GreaterThanOrEqual', 'LessThan', or 'LessThanOrEqual'.
 * `threshold` - (Required) Result or count threshold based on which rule should be triggered.  Values must be between 0 and 10000 inclusive.
 
 ## Attributes Reference
