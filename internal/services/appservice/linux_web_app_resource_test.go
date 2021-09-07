@@ -943,6 +943,8 @@ resource "azurerm_linux_web_app" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }
@@ -1060,7 +1062,7 @@ resource "azurerm_linux_web_app" "test" {
     remote_debugging            = true
     remote_debugging_version    = "VS2019"
     use_32_bit_worker           = true
-    websockets                  = true
+    websockets_enabled          = true
     ftps_state                  = "FtpsOnly"
     health_check_path           = "/health"
     number_of_workers           = 1
@@ -1075,8 +1077,8 @@ resource "azurerm_linux_web_app" "test" {
       support_credentials = true
     }
 
-    container_registry_use_managed_identity = true
-    container_registry_managed_identity_id  = azurerm_user_assigned_identity.test.id
+    container_registry_use_managed_identity       = true
+    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.id
 
     // auto_swap_slot_name = // TODO
     auto_heal = true
@@ -1222,7 +1224,7 @@ resource "azurerm_linux_web_app" "test" {
     managed_pipeline_mode       = "Integrated"
     remote_debugging            = true
     remote_debugging_version    = "VS2017"
-    websockets                  = true
+    websockets_enabled          = true
     ftps_state                  = "FtpsOnly"
     health_check_path           = "/health2"
     number_of_workers           = 2

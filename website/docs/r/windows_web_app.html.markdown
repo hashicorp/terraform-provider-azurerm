@@ -36,6 +36,8 @@ resource "azurerm_windows_web_app" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_service_plan.example.location
   service_plan_id     = azurerm_service_plan.example.id
+  
+  site_config {}
 }
 ```
 
@@ -75,7 +77,7 @@ The following arguments are supported:
 
 * `logs` - (Optional) A `logs` block as defined below.
 
-* `site_config` - (Optional) A `site_config` block as defined below.
+* `site_config` - (Required) A `site_config` block as defined below.
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
@@ -525,13 +527,13 @@ A `twitter` block supports the following:
 
 A `virtual_application` block supports the following:
 
-* `physical_path` - (Optional) The physical path for the Virtual Application.
+* `physical_path` - (Required) The physical path for the Virtual Application.
 
-* `preload` - (Optional) Should pre-loading be enabled. Defaults to `false`.
+* `preload` - (Required) Should pre-loading be enabled. Defaults to `false`.
 
 * `virtual_directory` - (Optional) One or more `virtual_directory` blocks as defined below.
 
-* `virtual_path` - (Optional) The Virtual Path for the Virtual Application.
+* `virtual_path` - (Required) The Virtual Path for the Virtual Application.
 
 ---
 

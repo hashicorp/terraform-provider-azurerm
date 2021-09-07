@@ -422,6 +422,7 @@ func TestAccWindowsWebApp_virtualDirectoriesUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.virtual_application.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -800,7 +801,7 @@ func TestAccWindowsWebApp_containerRegistryCredentialsUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.container_registry_use_managed_identity").HasValue("true"),
-				check.That(data.ResourceName).Key("site_config.0.container_registry_managed_identity_id").HasValue(""),
+				check.That(data.ResourceName).Key("site_config.0.container_registry_managed_identity_client_id").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -809,7 +810,7 @@ func TestAccWindowsWebApp_containerRegistryCredentialsUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.container_registry_use_managed_identity").HasValue("true"),
-				check.That(data.ResourceName).Key("site_config.0.container_registry_managed_identity_id").HasValue(fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.ManagedIdentity/userAssignedIdentities/acct-%d", data.Client().SubscriptionID, data.RandomInteger, data.RandomInteger)),
+				check.That(data.ResourceName).Key("site_config.0.container_registry_managed_identity_client_id").HasValue(fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.ManagedIdentity/userAssignedIdentities/acct-%d", data.Client().SubscriptionID, data.RandomInteger, data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
@@ -818,7 +819,7 @@ func TestAccWindowsWebApp_containerRegistryCredentialsUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.container_registry_use_managed_identity").HasValue("true"),
-				check.That(data.ResourceName).Key("site_config.0.container_registry_managed_identity_id").HasValue(""),
+				check.That(data.ResourceName).Key("site_config.0.container_registry_managed_identity_client_id").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -943,6 +944,8 @@ resource "azurerm_windows_web_app" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }
@@ -1018,6 +1021,7 @@ resource "azurerm_windows_web_app" "test" {
     virtual_application {
       virtual_path  = "/"
       physical_path = "site\\wwwroot"
+      preload       = true
 
       virtual_directory {
         virtual_path  = "/stuff"
@@ -1028,6 +1032,7 @@ resource "azurerm_windows_web_app" "test" {
     virtual_application {
       virtual_path  = "/static-content"
       physical_path = "site\\static"
+      preload       = true
 
       virtual_directory {
         virtual_path  = "/images"
@@ -1446,7 +1451,7 @@ resource "azurerm_windows_web_app" "test" {
     remote_debugging            = true
     remote_debugging_version    = "VS2019"
     use_32_bit_worker           = true
-    websockets                  = true
+    websockets_enabled          = true
     ftps_state                  = "FtpsOnly"
     health_check_path           = "/health"
     number_of_workers           = 1
@@ -1461,11 +1466,22 @@ resource "azurerm_windows_web_app" "test" {
       support_credentials = true
     }
 
-    container_registry_use_managed_identity = true
-    container_registry_managed_identity_id  = azurerm_user_assigned_identity.test.id
+    container_registry_use_managed_identity       = true
+    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.id
 
     // auto_swap_slot_name = // TODO
     auto_heal = true
+
+    virtual_application {
+      virtual_path  = "/"
+      physical_path = "site\\wwwroot"
+      preload       = true
+
+      virtual_directory {
+        virtual_path  = "/stuff"
+        physical_path = "site\\stuff"
+      }
+    }
 
     auto_heal_setting {
       trigger {
@@ -1608,7 +1624,7 @@ resource "azurerm_windows_web_app" "test" {
     managed_pipeline_mode       = "Integrated"
     remote_debugging            = true
     remote_debugging_version    = "VS2017"
-    websockets                  = true
+    websockets_enabled          = true
     ftps_state                  = "FtpsOnly"
     health_check_path           = "/health2"
     number_of_workers           = 2
@@ -2090,8 +2106,8 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    container_registry_use_managed_identity = true
-    container_registry_managed_identity_id  = azurerm_user_assigned_identity.test.id
+    container_registry_use_managed_identity       = true
+    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.id
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)

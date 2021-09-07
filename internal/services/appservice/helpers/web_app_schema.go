@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"strconv"
 	"strings"
 	"time"
@@ -24,7 +25,7 @@ type SiteConfigWindows struct {
 	AutoHeal                 bool                      `tfschema:"auto_heal"`
 	AutoHealSettings         []AutoHealSettingWindows  `tfschema:"auto_heal_setting"`
 	UseManagedIdentityACR    bool                      `tfschema:"container_registry_use_managed_identity"`
-	ContainerRegistryUserMSI string                    `tfschema:"container_registry_managed_identity_id"`
+	ContainerRegistryUserMSI string                    `tfschema:"container_registry_managed_identity_client_id"`
 	DefaultDocuments         []string                  `tfschema:"default_documents"`
 	Http2Enabled             bool                      `tfschema:"http2_enabled"`
 	IpRestriction            []IpRestriction           `tfschema:"ip_restriction"`
@@ -37,7 +38,7 @@ type SiteConfigWindows struct {
 	RemoteDebuggingVersion   string                    `tfschema:"remote_debugging_version"`
 	ScmType                  string                    `tfschema:"scm_type"`
 	Use32BitWorker           bool                      `tfschema:"use_32_bit_worker"`
-	WebSockets               bool                      `tfschema:"websockets"`
+	WebSockets               bool                      `tfschema:"websockets_enabled"`
 	FtpsState                string                    `tfschema:"ftps_state"`
 	HealthCheckPath          string                    `tfschema:"health_check_path"`
 	NumberOfWorkers          int                       `tfschema:"number_of_workers"`
@@ -62,7 +63,7 @@ type SiteConfigLinux struct {
 	AutoHeal                bool                    `tfschema:"auto_heal"`
 	AutoHealSettings        []AutoHealSettingLinux  `tfschema:"auto_heal_setting"`
 	UseManagedIdentityACR   bool                    `tfschema:"container_registry_use_managed_identity"`
-	ContainerRegistryMSI    string                  `tfschema:"container_registry_managed_identity_id"`
+	ContainerRegistryMSI    string                  `tfschema:"container_registry_managed_identity_client_id"`
 	DefaultDocuments        []string                `tfschema:"default_documents"`
 	Http2Enabled            bool                    `tfschema:"http2_enabled"`
 	IpRestriction           []IpRestriction         `tfschema:"ip_restriction"`
@@ -75,7 +76,7 @@ type SiteConfigLinux struct {
 	RemoteDebuggingVersion  string                  `tfschema:"remote_debugging_version"`
 	ScmType                 string                  `tfschema:"scm_type"`
 	Use32BitWorker          bool                    `tfschema:"use_32_bit_worker"`
-	WebSockets              bool                    `tfschema:"websockets"`
+	WebSockets              bool                    `tfschema:"websockets_enabled"`
 	FtpsState               string                  `tfschema:"ftps_state"`
 	HealthCheckPath         string                  `tfschema:"health_check_path"`
 	NumberOfWorkers         int                     `tfschema:"number_of_workers"`
@@ -92,15 +93,14 @@ type SiteConfigLinux struct {
 func SiteConfigSchemaWindows() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true,
+		Required: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true, // The default here depends on the application stack in use, so this needs to be computed.
+					Default:  true,
 				},
 
 				"api_management_api_id": {
@@ -139,7 +139,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				"container_registry_managed_identity_id": {
+				"container_registry_managed_identity_client_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: msiValidate.UserAssignedIdentityID,
@@ -179,14 +179,14 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"load_balancing_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  "LeastRequests",
+					Default:  string(web.SiteLoadBalancingLeastRequests),
 					ValidateFunc: validation.StringInSlice([]string{
-						"LeastRequests",
-						"WeightedRoundRobin",
-						"LeastResponseTime",
-						"WeightedTotalTraffic",
-						"RequestHash",
-						"PerSiteRoundRobin",
+						string(web.SiteLoadBalancingLeastRequests),
+						string(web.SiteLoadBalancingWeightedRoundRobin),
+						string(web.SiteLoadBalancingLeastResponseTime),
+						string(web.SiteLoadBalancingWeightedTotalTraffic),
+						string(web.SiteLoadBalancingRequestHash),
+						string(web.SiteLoadBalancingPerSiteRoundRobin),
 					}, false),
 				},
 
@@ -209,7 +209,6 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
@@ -227,7 +226,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				"websockets": {
+				"websockets_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -347,7 +346,7 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"container_registry_managed_identity_id": {
+				"container_registry_managed_identity_client_id": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -409,7 +408,7 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"websockets": {
+				"websockets_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -470,15 +469,14 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 func SiteConfigSchemaLinux() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true,
+		Required: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true, // The default here depends on the application stack in use, so this needs to be computed.
+					Default:  true,
 				},
 
 				"api_management_api_id": {
@@ -516,7 +514,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				"container_registry_managed_identity_id": {
+				"container_registry_managed_identity_client_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: msiValidate.UserAssignedIdentityID,
@@ -604,7 +602,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				"websockets": {
+				"websockets_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -722,7 +720,7 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"container_registry_managed_identity_id": {
+				"container_registry_managed_identity_client_id": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -784,7 +782,7 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"websockets": {
+				"websockets_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -1073,6 +1071,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1967,29 +1966,28 @@ func virtualApplicationsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
+		// Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"virtual_path": {
 					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"physical_path": {
 					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"preload": {
 					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Required: true,
 				},
 
 				"virtual_directory": {
-					Type: pluginsdk.TypeSet,
-					//Computed: true,
+					Type:     pluginsdk.TypeSet,
 					Optional: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -2745,27 +2743,39 @@ func httpLogBlobStorageSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows) (*web.SiteConfig, *string, error) {
+func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteConfig, metadata sdk.ResourceMetaData) (*web.SiteConfig, *string, error) {
 	if len(siteConfig) == 0 {
 		return nil, nil, nil
 	}
+
 	expanded := &web.SiteConfig{}
+	if existing != nil {
+		expanded = existing
+	}
+
 	currentStack := ""
 
 	winSiteConfig := siteConfig[0]
+
 	expanded.AlwaysOn = utils.Bool(winSiteConfig.AlwaysOn)
 
-	expanded.APIManagementConfig = &web.APIManagementConfig{
-		ID: utils.String(winSiteConfig.ApiManagementConfigId),
+	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
+		expanded.APIManagementConfig = &web.APIManagementConfig{
+			ID: utils.String(winSiteConfig.ApiManagementConfigId),
+		}
 	}
 
-	expanded.APIDefinition = &web.APIDefinitionInfo{
-		URL: utils.String(winSiteConfig.ApiDefinition),
+	if metadata.ResourceData.HasChange("site_config.0.api_definition_url") {
+		expanded.APIDefinition = &web.APIDefinitionInfo{
+			URL: utils.String(winSiteConfig.ApiDefinition),
+		}
 	}
 
-	expanded.AppCommandLine = utils.String(winSiteConfig.AppCommandLine)
+	if metadata.ResourceData.HasChange("site_config.0.app_command_line") {
+		expanded.AppCommandLine = utils.String(winSiteConfig.AppCommandLine)
+	}
 
-	if len(winSiteConfig.ApplicationStack) > 0 {
+	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
 		winAppStack := winSiteConfig.ApplicationStack[0]
 		expanded.NetFrameworkVersion = utils.String(winAppStack.NetFrameworkVersion)
 		expanded.PhpVersion = utils.String(winAppStack.PhpVersion)
@@ -2774,87 +2784,139 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows) (*web.SiteConfig, *
 		expanded.JavaVersion = utils.String(winAppStack.JavaVersion)
 		expanded.JavaContainer = utils.String(winAppStack.JavaContainer)
 		expanded.JavaContainerVersion = utils.String(winAppStack.JavaContainerVersion)
-		expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+		if winAppStack.DockerContainerName != "" {
+			expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+		}
 		currentStack = winAppStack.CurrentStack
 	}
-	expanded.VirtualApplications = expandVirtualApplications(winSiteConfig.VirtualApplications)
+
+	if metadata.ResourceData.HasChange("site_config.0.virtual_application") {
+		expanded.VirtualApplications = expandVirtualApplicationsForUpdate(winSiteConfig.VirtualApplications)
+	} else {
+		expanded.VirtualApplications = expandVirtualApplications(winSiteConfig.VirtualApplications)
+	}
 
 	expanded.AcrUseManagedIdentityCreds = utils.Bool(winSiteConfig.UseManagedIdentityACR)
-	expanded.AcrUserManagedIdentityID = utils.String(winSiteConfig.ContainerRegistryUserMSI)
 
-	expanded.DefaultDocuments = &winSiteConfig.DefaultDocuments
+	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
+		expanded.AcrUserManagedIdentityID = utils.String(winSiteConfig.ContainerRegistryUserMSI)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
+		expanded.DefaultDocuments = &winSiteConfig.DefaultDocuments
+	}
 
 	expanded.HTTP20Enabled = utils.Bool(winSiteConfig.Http2Enabled)
 
-	ipRestrictions, err := ExpandIpRestrictions(winSiteConfig.IpRestriction)
-	if err != nil {
-		return nil, nil, err
+	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
+		ipRestrictions, err := ExpandIpRestrictions(winSiteConfig.IpRestriction)
+		if err != nil {
+			return nil, nil, err
+		}
+		expanded.IPSecurityRestrictions = ipRestrictions
 	}
-	expanded.IPSecurityRestrictions = ipRestrictions
 
 	expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(winSiteConfig.ScmUseMainIpRestriction)
 
-	scmIpRestrictions, err := ExpandIpRestrictions(winSiteConfig.ScmIpRestriction)
-	if err != nil {
-		return nil, nil, err
+	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
+		scmIpRestrictions, err := ExpandIpRestrictions(winSiteConfig.ScmIpRestriction)
+		if err != nil {
+			return nil, nil, err
+		}
+		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
-	expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 
 	expanded.LocalMySQLEnabled = utils.Bool(winSiteConfig.LocalMysql)
 
-	expanded.LoadBalancing = web.SiteLoadBalancing(winSiteConfig.LoadBalancing)
+	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
+		expanded.LoadBalancing = web.SiteLoadBalancing(winSiteConfig.LoadBalancing)
+	}
 
-	expanded.ManagedPipelineMode = web.ManagedPipelineMode(winSiteConfig.ManagedPipelineMode)
+	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
+		expanded.ManagedPipelineMode = web.ManagedPipelineMode(winSiteConfig.ManagedPipelineMode)
+	}
 
-	expanded.RemoteDebuggingEnabled = utils.Bool(winSiteConfig.RemoteDebugging)
+	if metadata.ResourceData.HasChange("site_config.0.remote_debugging") {
+		expanded.RemoteDebuggingEnabled = utils.Bool(winSiteConfig.RemoteDebugging)
+	}
 
-	expanded.RemoteDebuggingVersion = utils.String(winSiteConfig.RemoteDebuggingVersion)
+	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
+		expanded.RemoteDebuggingVersion = utils.String(winSiteConfig.RemoteDebuggingVersion)
+	}
 
 	expanded.Use32BitWorkerProcess = utils.Bool(winSiteConfig.Use32BitWorker)
 
 	expanded.WebSocketsEnabled = utils.Bool(winSiteConfig.WebSockets)
 
+	// if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
+	// }
 	expanded.FtpsState = web.FtpsState(winSiteConfig.FtpsState)
 
-	expanded.HealthCheckPath = utils.String(winSiteConfig.HealthCheckPath)
+	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
+		expanded.HealthCheckPath = utils.String(winSiteConfig.HealthCheckPath)
+	}
 
-	if winSiteConfig.NumberOfWorkers != 0 {
+	if metadata.ResourceData.HasChange("site_config.0.number_of_workers") {
 		expanded.NumberOfWorkers = utils.Int32(int32(winSiteConfig.NumberOfWorkers))
 	}
 
-	expanded.MinTLSVersion = web.SupportedTLSVersions(winSiteConfig.MinTlsVersion)
-	expanded.ScmMinTLSVersion = web.SupportedTLSVersions(winSiteConfig.ScmMinTlsVersion)
+	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
+		expanded.MinTLSVersion = web.SupportedTLSVersions(winSiteConfig.MinTlsVersion)
+	}
 
-	expanded.AutoSwapSlotName = utils.String(winSiteConfig.AutoSwapSlotName)
+	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
+		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(winSiteConfig.ScmMinTlsVersion)
+	}
 
-	expanded.Cors = ExpandCorsSettings(winSiteConfig.Cors)
+	if metadata.ResourceData.HasChange("site_config.0.auto_swap_slot_name") {
+		expanded.AutoSwapSlotName = utils.String(winSiteConfig.AutoSwapSlotName)
+	}
 
-	expanded.AutoHealEnabled = utils.Bool(winSiteConfig.AutoHeal)
-	expanded.AutoHealRules = expandAutoHealSettingsWindows(winSiteConfig.AutoHealSettings)
+	if metadata.ResourceData.HasChange("site_config.0.cors") {
+		expanded.Cors = ExpandCorsSettings(winSiteConfig.Cors)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.auto_heal") {
+		expanded.AutoHealEnabled = utils.Bool(winSiteConfig.AutoHeal)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.auto_heal_setting") {
+		expanded.AutoHealRules = expandAutoHealSettingsWindows(winSiteConfig.AutoHealSettings)
+	}
 
 	return expanded, &currentStack, nil
 }
 
-func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux) (*web.SiteConfig, error) {
+func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfig, metadata sdk.ResourceMetaData) (*web.SiteConfig, error) {
 	if len(siteConfig) == 0 {
 		return nil, nil
 	}
 	expanded := &web.SiteConfig{}
+	if existing != nil {
+		expanded = existing
+	}
 
 	linuxSiteConfig := siteConfig[0]
+
 	expanded.AlwaysOn = utils.Bool(linuxSiteConfig.AlwaysOn)
 
-	expanded.APIManagementConfig = &web.APIManagementConfig{
-		ID: utils.String(linuxSiteConfig.ApiManagementConfigId),
+	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
+		expanded.APIManagementConfig = &web.APIManagementConfig{
+			ID: utils.String(linuxSiteConfig.ApiManagementConfigId),
+		}
 	}
 
-	expanded.APIDefinition = &web.APIDefinitionInfo{
-		URL: utils.String(linuxSiteConfig.ApiDefinition),
+	if metadata.ResourceData.HasChange("site_config.0.api_definition_url") {
+		expanded.APIDefinition = &web.APIDefinitionInfo{
+			URL: utils.String(linuxSiteConfig.ApiDefinition),
+		}
 	}
 
-	expanded.AppCommandLine = utils.String(linuxSiteConfig.AppCommandLine)
+	if metadata.ResourceData.HasChange("site_config.0.app_command_line") {
+		expanded.AppCommandLine = utils.String(linuxSiteConfig.AppCommandLine)
+	}
 
-	if len(linuxSiteConfig.ApplicationStack) > 0 {
+	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
 		linuxAppStack := linuxSiteConfig.ApplicationStack[0]
 		if linuxAppStack.NetFrameworkVersion != "" {
 			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
@@ -2888,58 +2950,88 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux) (*web.SiteConfig, error
 	}
 
 	expanded.AcrUseManagedIdentityCreds = utils.Bool(linuxSiteConfig.UseManagedIdentityACR)
-	expanded.AcrUserManagedIdentityID = utils.String(linuxSiteConfig.ContainerRegistryMSI)
 
-	expanded.DefaultDocuments = &linuxSiteConfig.DefaultDocuments
+	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
+		expanded.AcrUserManagedIdentityID = utils.String(linuxSiteConfig.ContainerRegistryMSI)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
+		expanded.DefaultDocuments = &linuxSiteConfig.DefaultDocuments
+	}
 
 	expanded.HTTP20Enabled = utils.Bool(linuxSiteConfig.Http2Enabled)
 
-	ipRestrictions, err := ExpandIpRestrictions(linuxSiteConfig.IpRestriction)
-	if err != nil {
-		return nil, err
+	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
+		ipRestrictions, err := ExpandIpRestrictions(linuxSiteConfig.IpRestriction)
+		if err != nil {
+			return nil, err
+		}
+		expanded.IPSecurityRestrictions = ipRestrictions
 	}
-	expanded.IPSecurityRestrictions = ipRestrictions
 
 	expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(linuxSiteConfig.ScmUseMainIpRestriction)
 
-	scmIpRestrictions, err := ExpandIpRestrictions(linuxSiteConfig.ScmIpRestriction)
-	if err != nil {
-		return nil, err
+	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
+		scmIpRestrictions, err := ExpandIpRestrictions(linuxSiteConfig.ScmIpRestriction)
+		if err != nil {
+			return nil, err
+		}
+		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
-	expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 
 	expanded.LocalMySQLEnabled = utils.Bool(linuxSiteConfig.LocalMysql)
 
-	expanded.LoadBalancing = web.SiteLoadBalancing(linuxSiteConfig.LoadBalancing)
+	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
+		expanded.LoadBalancing = web.SiteLoadBalancing(linuxSiteConfig.LoadBalancing)
+	}
 
-	expanded.ManagedPipelineMode = web.ManagedPipelineMode(linuxSiteConfig.ManagedPipelineMode)
+	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
+		expanded.ManagedPipelineMode = web.ManagedPipelineMode(linuxSiteConfig.ManagedPipelineMode)
+	}
 
 	expanded.RemoteDebuggingEnabled = utils.Bool(linuxSiteConfig.RemoteDebugging)
 
-	expanded.RemoteDebuggingVersion = utils.String(linuxSiteConfig.RemoteDebuggingVersion)
+	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
+		expanded.RemoteDebuggingVersion = utils.String(linuxSiteConfig.RemoteDebuggingVersion)
+	}
 
 	expanded.Use32BitWorkerProcess = utils.Bool(linuxSiteConfig.Use32BitWorker)
 
 	expanded.WebSocketsEnabled = utils.Bool(linuxSiteConfig.WebSockets)
 
-	expanded.FtpsState = web.FtpsState(linuxSiteConfig.FtpsState)
+	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
+		expanded.FtpsState = web.FtpsState(linuxSiteConfig.FtpsState)
+	}
 
-	expanded.HealthCheckPath = utils.String(linuxSiteConfig.HealthCheckPath)
+	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
+		expanded.HealthCheckPath = utils.String(linuxSiteConfig.HealthCheckPath)
+	}
 
-	if linuxSiteConfig.NumberOfWorkers != 0 {
+	if metadata.ResourceData.HasChange("site_config.0.number_of_workers") {
 		expanded.NumberOfWorkers = utils.Int32(int32(linuxSiteConfig.NumberOfWorkers))
 	}
 
-	expanded.MinTLSVersion = web.SupportedTLSVersions(linuxSiteConfig.MinTlsVersion)
+	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
+		expanded.MinTLSVersion = web.SupportedTLSVersions(linuxSiteConfig.MinTlsVersion)
+	}
 
-	expanded.ScmMinTLSVersion = web.SupportedTLSVersions(linuxSiteConfig.ScmMinTlsVersion)
+	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
+		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(linuxSiteConfig.ScmMinTlsVersion)
+	}
 
-	expanded.AutoSwapSlotName = utils.String(linuxSiteConfig.AutoSwapSlotName)
+	if metadata.ResourceData.HasChange("site_config.0.auto_swap_slot_name") {
+		expanded.AutoSwapSlotName = utils.String(linuxSiteConfig.AutoSwapSlotName)
+	}
 
-	expanded.Cors = ExpandCorsSettings(linuxSiteConfig.Cors)
+	if metadata.ResourceData.HasChange("site_config.0.cors") {
+		expanded.Cors = ExpandCorsSettings(linuxSiteConfig.Cors)
+	}
 
 	expanded.AutoHealEnabled = utils.Bool(linuxSiteConfig.AutoHeal)
-	expanded.AutoHealRules = expandAutoHealSettingsLinux(linuxSiteConfig.AutoHealSettings)
+
+	if metadata.ResourceData.HasChange("site_config.0.auto_heal_setting") {
+		expanded.AutoHealRules = expandAutoHealSettingsLinux(linuxSiteConfig.AutoHealSettings)
+	}
 
 	return expanded, nil
 }
@@ -3078,7 +3170,45 @@ func expandVirtualApplications(virtualApplicationConfig []VirtualApplication) *[
 	if len(virtualApplicationConfig) == 0 {
 		return nil
 	}
+
 	result := make([]web.VirtualApplication, 0)
+
+	for _, v := range virtualApplicationConfig {
+		virtualApp := web.VirtualApplication{
+			VirtualPath:    utils.String(v.VirtualPath),
+			PhysicalPath:   utils.String(v.PhysicalPath),
+			PreloadEnabled: utils.Bool(v.Preload),
+		}
+		if len(v.VirtualDirectories) > 0 {
+			virtualDirs := make([]web.VirtualDirectory, 0)
+			for _, d := range v.VirtualDirectories {
+				virtualDirs = append(virtualDirs, web.VirtualDirectory{
+					VirtualPath:  utils.String(d.VirtualPath),
+					PhysicalPath: utils.String(d.PhysicalPath),
+				})
+			}
+			virtualApp.VirtualDirectories = &virtualDirs
+		}
+
+		result = append(result, virtualApp)
+	}
+	return &result
+}
+
+func expandVirtualApplicationsForUpdate(virtualApplicationConfig []VirtualApplication) *[]web.VirtualApplication {
+	if len(virtualApplicationConfig) == 0 {
+		// to remove this block from the config we need to give the service the original default back, sending an empty struct leaves the previous config in place
+		return &[]web.VirtualApplication{
+			{
+				VirtualPath:    utils.String("/"),
+				PhysicalPath:   utils.String("site\\wwwroot"),
+				PreloadEnabled: utils.Bool(true),
+			},
+		}
+	}
+
+	result := make([]web.VirtualApplication, 0)
+
 	for _, v := range virtualApplicationConfig {
 		virtualApp := web.VirtualApplication{
 			VirtualPath:    utils.String(v.VirtualPath),
@@ -3442,15 +3572,13 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 		siteConfig.NumberOfWorkers = int(*appSiteConfig.NumberOfWorkers)
 	}
 
-	var linuxAppStack ApplicationStackLinux
-
 	if appSiteConfig.LinuxFxVersion != nil {
+		var linuxAppStack ApplicationStackLinux
 		siteConfig.LinuxFxVersion = *appSiteConfig.LinuxFxVersion
 		// Decode the string to docker values
 		linuxAppStack = decodeApplicationStackLinux(siteConfig.LinuxFxVersion)
+		siteConfig.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
 	}
-
-	siteConfig.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
 
 	if appSiteConfig.LinuxFxVersion != nil {
 		siteConfig.LinuxFxVersion = *appSiteConfig.LinuxFxVersion
@@ -3560,7 +3688,7 @@ func FlattenAppSettings(input web.StringDictionary) map[string]string {
 }
 
 func flattenVirtualApplications(appVirtualApplications *[]web.VirtualApplication) []VirtualApplication {
-	if appVirtualApplications == nil {
+	if appVirtualApplications == nil || onlyDefaultVirtualApplication(*appVirtualApplications) {
 		return nil
 	}
 
@@ -3586,6 +3714,20 @@ func flattenVirtualApplications(appVirtualApplications *[]web.VirtualApplication
 	}
 
 	return virtualApplications
+}
+
+func onlyDefaultVirtualApplication(input []web.VirtualApplication) bool {
+	if len(input) > 1 {
+		return false
+	}
+	app := input[0]
+	if app.VirtualPath == nil || app.PhysicalPath == nil {
+		return false
+	}
+	if *app.VirtualPath == "/" && *app.PhysicalPath == "site\\wwwroot" && *app.PreloadEnabled && app.VirtualDirectories == nil {
+		return true
+	}
+	return false
 }
 
 func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *web.AutoHealRules {
