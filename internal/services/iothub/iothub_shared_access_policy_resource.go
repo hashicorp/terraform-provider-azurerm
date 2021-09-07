@@ -142,7 +142,7 @@ func resourceIotHubSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, met
 			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
 	keyName := d.Get("name").(string)
@@ -159,7 +159,7 @@ func resourceIotHubSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, met
 	alreadyExists := false
 	for accessPolicyIterator, err := client.ListKeysComplete(ctx, resourceGroup, iothubName); accessPolicyIterator.NotDone(); err = accessPolicyIterator.NextWithContext(ctx) {
 		if err != nil {
-			return fmt.Errorf("Error loading Shared Access Profiles of IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+			return fmt.Errorf("loading Shared Access Profiles of IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 		}
 		existingAccessPolicy := accessPolicyIterator.Value()
 
@@ -193,11 +193,11 @@ func resourceIotHubSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, met
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("Error updating IotHub %q (Resource Group %q) with Shared Access Profile %q: %+v", iothubName, resourceGroup, keyName, err)
+		return fmt.Errorf("updating IotHub %q (Resource Group %q) with Shared Access Profile %q: %+v", iothubName, resourceGroup, keyName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for IotHub %q (Resource Group %q) to finish updating Shared Access Profile %q: %+v", iothubName, resourceGroup, keyName, err)
+		return fmt.Errorf("waiting for IotHub %q (Resource Group %q) to finish updating Shared Access Profile %q: %+v", iothubName, resourceGroup, keyName, err)
 	}
 
 	d.SetId(resourceId)
@@ -227,12 +227,12 @@ func resourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta interf
 			return nil
 		}
 
-		return fmt.Errorf("Error loading IotHub Shared Access Policy %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub Shared Access Policy %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
-		return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
 	d.Set("name", keyName)
@@ -241,11 +241,11 @@ func resourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta interf
 
 	d.Set("primary_key", accessPolicy.PrimaryKey)
 	if err := d.Set("primary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, keyName, *accessPolicy.PrimaryKey)); err != nil {
-		return fmt.Errorf("error setting `primary_connection_string`: %v", err)
+		return fmt.Errorf("setting `primary_connection_string`: %v", err)
 	}
 	d.Set("secondary_key", accessPolicy.SecondaryKey)
 	if err := d.Set("secondary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, keyName, *accessPolicy.SecondaryKey)); err != nil {
-		return fmt.Errorf("error setting `secondary_connection_string`: %v", err)
+		return fmt.Errorf("setting `secondary_connection_string`: %v", err)
 	}
 
 	rights := flattenAccessRights(accessPolicy.Rights)
@@ -280,14 +280,14 @@ func resourceIotHubSharedAccessPolicyDelete(d *pluginsdk.ResourceData, meta inte
 			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
 	accessPolicies := make([]devices.SharedAccessSignatureAuthorizationRule, 0)
 
 	for accessPolicyIterator, err := client.ListKeysComplete(ctx, resourceGroup, iothubName); accessPolicyIterator.NotDone(); err = accessPolicyIterator.NextWithContext(ctx) {
 		if err != nil {
-			return fmt.Errorf("Error loading Shared Access Profiles of IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+			return fmt.Errorf("loading Shared Access Profiles of IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 		}
 		existingAccessPolicy := accessPolicyIterator.Value()
 
@@ -300,11 +300,11 @@ func resourceIotHubSharedAccessPolicyDelete(d *pluginsdk.ResourceData, meta inte
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("Error updating IotHub %q (Resource Group %q) with Shared Access Profile %q: %+v", iothubName, resourceGroup, keyName, err)
+		return fmt.Errorf("updating IotHub %q (Resource Group %q) with Shared Access Profile %q: %+v", iothubName, resourceGroup, keyName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for IotHub %q (Resource Group %q) to finish updating Shared Access Profile %q: %+v", iothubName, resourceGroup, keyName, err)
+		return fmt.Errorf("waiting for IotHub %q (Resource Group %q) to finish updating Shared Access Profile %q: %+v", iothubName, resourceGroup, keyName, err)
 	}
 
 	return nil

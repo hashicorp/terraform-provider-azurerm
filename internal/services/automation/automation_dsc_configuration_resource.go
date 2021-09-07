@@ -100,7 +100,7 @@ func resourceAutomationDscConfigurationCreateUpdate(d *pluginsdk.ResourceData, m
 		existing, err := client.Get(ctx, resGroup, accName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Automation DSC Configuration %q (Account %q / Resource Group %q): %s", name, accName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Automation DSC Configuration %q (Account %q / Resource Group %q): %s", name, accName, resGroup, err)
 			}
 		}
 
@@ -166,7 +166,7 @@ func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta inte
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Dsc Configuration %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM Automation Dsc Configuration %q: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -185,12 +185,12 @@ func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta inte
 
 	contentresp, err := client.GetContent(ctx, resGroup, accName, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM Automation Dsc Configuration content %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM Automation Dsc Configuration content %q: %+v", name, err)
 	}
 
 	buf := new(bytes.Buffer)
 	if _, err := buf.ReadFrom(contentresp.Body); err != nil {
-		return fmt.Errorf("Error reading from AzureRM Automation Dsc Configuration buffer %q: %+v", name, err)
+		return fmt.Errorf("reading from AzureRM Automation Dsc Configuration buffer %q: %+v", name, err)
 	}
 	content := buf.String()
 
@@ -218,7 +218,7 @@ func resourceAutomationDscConfigurationDelete(d *pluginsdk.ResourceData, meta in
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for Automation Dsc Configuration %q: %+v", name, err)
+		return fmt.Errorf("issuing AzureRM delete request for Automation Dsc Configuration %q: %+v", name, err)
 	}
 
 	return nil

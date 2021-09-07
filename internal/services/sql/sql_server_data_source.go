@@ -88,7 +88,7 @@ func dataSourceArmSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("Sql Server %q was not found in Resource Group %q", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Sql Server %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Sql Server %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	if id := resp.ID; id != nil {
@@ -106,7 +106,7 @@ func dataSourceArmSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if err := d.Set("identity", flattenAzureRmSqlServerIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

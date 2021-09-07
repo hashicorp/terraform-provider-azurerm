@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -433,6 +433,12 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 				},
 
+				"vnet_route_all_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+
 				"websockets_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -491,11 +497,13 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
+
 				"acr_use_managed_identity_credentials": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
+
 				"acr_user_managed_identity_client_id": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
@@ -521,10 +529,9 @@ func schemaAppServiceLogsConfig() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"file_system_level": {
-								Type:          pluginsdk.TypeString,
-								Optional:      true,
-								Default:       "Off",
-								ConflictsWith: []string{"logs.0.http_logs.0.azure_blob_storage"},
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								Default:  "Off",
 								ValidateFunc: validation.StringInSlice([]string{
 									string(web.LogLevelError),
 									string(web.LogLevelInformation),
@@ -777,6 +784,11 @@ func schemaAppServiceDataSourceSiteConfig() *pluginsdk.Schema {
 					Computed: true,
 				},
 
+				"vnet_route_all_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
 				"websockets_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -829,10 +841,12 @@ func schemaAppServiceDataSourceSiteConfig() *pluginsdk.Schema {
 						},
 					},
 				},
+
 				"acr_use_managed_identity_credentials": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
+
 				"acr_user_managed_identity_client_id": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
@@ -1708,8 +1722,7 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 	}
 
 	if v, ok := config["ip_restriction"]; ok {
-		ipSecurityRestrictions := v.(interface{})
-		restrictions, err := expandAppServiceIpRestriction(ipSecurityRestrictions)
+		restrictions, err := expandAppServiceIpRestriction(v)
 		if err != nil {
 			return siteConfig, err
 		}
@@ -1782,8 +1795,7 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 	}
 
 	if v, ok := config["cors"]; ok {
-		corsSettings := v.(interface{})
-		expand := ExpandWebCorsSettings(corsSettings)
+		expand := ExpandWebCorsSettings(v)
 		siteConfig.Cors = &expand
 	}
 
@@ -1797,6 +1809,10 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 
 	if v, ok := config["acr_user_managed_identity_client_id"]; ok {
 		siteConfig.AcrUserManagedIdentityID = utils.String(v.(string))
+	}
+
+	if v, ok := config["vnet_route_all_enabled"]; ok {
+		siteConfig.VnetRouteAllEnabled = utils.Bool(v.(bool))
 	}
 
 	return siteConfig, nil
@@ -1917,6 +1933,12 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	if input.AcrUserManagedIdentityID != nil {
 		result["acr_user_managed_identity_client_id"] = *input.AcrUserManagedIdentityID
 	}
+
+	vnetRouteAllEnabled := false
+	if input.VnetRouteAllEnabled != nil {
+		vnetRouteAllEnabled = *input.VnetRouteAllEnabled
+	}
+	result["vnet_route_all_enabled"] = vnetRouteAllEnabled
 
 	return append(results, result)
 }

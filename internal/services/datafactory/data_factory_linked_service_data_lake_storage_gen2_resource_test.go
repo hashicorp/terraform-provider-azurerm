@@ -133,6 +133,7 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
   data_factory_name     = azurerm_data_factory.test.name
   service_principal_id  = data.azurerm_client_config.current.client_id
   service_principal_key = "testkey"
+  tenant                = "11111111-1111-1111-1111-111111111111"
   url                   = "https://test.azure.com"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

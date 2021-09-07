@@ -255,7 +255,7 @@ func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta int
 		}
 
 		if err := d.Set("geo_locations", flattenApplicationInsightsWebTestGeoLocations(props.Locations)); err != nil {
-			return fmt.Errorf("Error setting `geo_locations`: %+v", err)
+			return fmt.Errorf("setting `geo_locations`: %+v", err)
 		}
 	}
 
@@ -279,7 +279,7 @@ func resourceApplicationInsightsWebTestsDelete(d *pluginsdk.ResourceData, meta i
 		if resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
-		return fmt.Errorf("Error issuing AzureRM delete request for Application Insights WebTest '%s': %+v", id.Name, err)
+		return fmt.Errorf("issuing AzureRM delete request for Application Insights WebTest '%s': %+v", id.Name, err)
 	}
 
 	return err

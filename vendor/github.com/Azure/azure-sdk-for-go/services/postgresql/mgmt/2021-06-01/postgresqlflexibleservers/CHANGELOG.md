@@ -2,28 +2,21 @@
 
 ## Breaking Changes
 
-### Removed Constants
+### Signature Changes
 
-1. ResourceIdentityType.ResourceIdentityTypeSystemAssigned
+#### Struct Fields
 
-### Removed Funcs
+1. RestartParameter.FailoverMode changed type from *string to FailoverMode
 
-1. Identity.MarshalJSON() ([]byte, error)
-1. PossibleResourceIdentityTypeValues() []ResourceIdentityType
-1. ResourceModelWithAllowedPropertySet.MarshalJSON() ([]byte, error)
-1. ResourceModelWithAllowedPropertySetIdentity.MarshalJSON() ([]byte, error)
+## Additive Changes
 
-### Struct Changes
+### New Constants
 
-#### Removed Structs
+1. FailoverMode.FailoverModeForcedFailover
+1. FailoverMode.FailoverModeForcedSwitchover
+1. FailoverMode.FailoverModePlannedFailover
+1. FailoverMode.FailoverModePlannedSwitchover
 
-1. Identity
-1. Plan
-1. ResourceModelWithAllowedPropertySet
-1. ResourceModelWithAllowedPropertySetIdentity
-1. ResourceModelWithAllowedPropertySetPlan
-1. ResourceModelWithAllowedPropertySetSku
+### New Funcs
 
-#### Removed Struct Fields
-
-1. Server.Identity
+1. PossibleFailoverModeValues() []FailoverMode

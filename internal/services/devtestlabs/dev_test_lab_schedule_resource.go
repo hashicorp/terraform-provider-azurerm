@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
+	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2018-09-15/dtl"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -153,10 +153,10 @@ func resourceDevTestLabSchedules() *pluginsdk.Resource {
 						"status": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  dtl.NotificationStatusDisabled,
+							Default:  dtl.EnableStatusDisabled,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(dtl.NotificationStatusEnabled),
-								string(dtl.NotificationStatusDisabled),
+								string(dtl.EnableStatusEnabled),
+								string(dtl.EnableStatusDisabled),
 							}, false),
 						},
 						"time_in_minutes": {
@@ -190,7 +190,7 @@ func resourceDevTestLabSchedulesCreateUpdate(d *pluginsdk.ResourceData, meta int
 		existing, err := client.Get(ctx, resGroup, devTestLabName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Schedule %q (Dev Test Lab %q / Resource Group %q): %s", name, devTestLabName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Schedule %q (Dev Test Lab %q / Resource Group %q): %s", name, devTestLabName, resGroup, err)
 			}
 		}
 
@@ -283,7 +283,7 @@ func resourceDevTestLabSchedulesRead(d *pluginsdk.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Dev Test Lab Schedule %s: %s", name, err)
+		return fmt.Errorf("making Read request on Dev Test Lab Schedule %s: %s", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -300,19 +300,19 @@ func resourceDevTestLabSchedulesRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("status", string(props.Status))
 
 		if err := d.Set("weekly_recurrence", flattenAzureRmDevTestLabScheduleRecurrenceWeekly(props.WeeklyRecurrence)); err != nil {
-			return fmt.Errorf("Error setting `weeklyRecurrence`: %#v", err)
+			return fmt.Errorf("setting `weeklyRecurrence`: %#v", err)
 		}
 
 		if err := d.Set("daily_recurrence", flattenAzureRmDevTestLabScheduleRecurrenceDaily(props.DailyRecurrence)); err != nil {
-			return fmt.Errorf("Error setting `dailyRecurrence`: %#v", err)
+			return fmt.Errorf("setting `dailyRecurrence`: %#v", err)
 		}
 
 		if err := d.Set("hourly_recurrence", flattenAzureRmDevTestLabScheduleRecurrenceHourly(props.HourlyRecurrence)); err != nil {
-			return fmt.Errorf("Error setting `dailyRecurrence`: %#v", err)
+			return fmt.Errorf("setting `dailyRecurrence`: %#v", err)
 		}
 
 		if err := d.Set("notification_settings", flattenAzureRmDevTestLabScheduleNotificationSettings(props.NotificationSettings)); err != nil {
-			return fmt.Errorf("Error setting `notificationSettings`: %#v", err)
+			return fmt.Errorf("setting `notificationSettings`: %#v", err)
 		}
 	}
 
@@ -430,7 +430,7 @@ func expandDevTestScheduleNotificationSettings(d *pluginsdk.ResourceData) *dtl.N
 	webhookUrl := notificationSettingsConfig["webhook_url"].(string)
 	timeInMinutes := int32(notificationSettingsConfig["time_in_minutes"].(int))
 
-	notificationStatus := dtl.NotificationStatus(notificationSettingsConfig["status"].(string))
+	notificationStatus := dtl.EnableStatus(notificationSettingsConfig["status"].(string))
 
 	return &dtl.NotificationSettings{
 		WebhookURL:    &webhookUrl,

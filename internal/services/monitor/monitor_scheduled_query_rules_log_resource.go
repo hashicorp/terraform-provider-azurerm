@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -132,7 +132,7 @@ func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *pluginsdk.ResourceData
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Monitor Scheduled Query Rules %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Monitor Scheduled Query Rules %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -144,9 +144,9 @@ func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *pluginsdk.ResourceData
 	description := d.Get("description").(string)
 	enabledRaw := d.Get("enabled").(bool)
 
-	enabled := insights.True
+	enabled := insights.EnabledTrue
 	if !enabledRaw {
-		enabled = insights.False
+		enabled = insights.EnabledFalse
 	}
 
 	location := azure.NormalizeLocation(d.Get("location"))
@@ -168,7 +168,7 @@ func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("Error creating or updating Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating or updating Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
@@ -202,7 +202,7 @@ func resourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta i
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error getting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("getting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -212,7 +212,7 @@ func resourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	d.Set("description", resp.Description)
-	if resp.Enabled == insights.True {
+	if resp.Enabled == insights.EnabledTrue {
 		d.Set("enabled", true)
 	} else {
 		d.Set("enabled", false)
@@ -223,7 +223,7 @@ func resourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("Wrong action type in Scheduled Query Rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
 	}
 	if err = d.Set("criteria", flattenAzureRmScheduledQueryRulesLogCriteria(action.Criteria)); err != nil {
-		return fmt.Errorf("Error setting `criteria`: %+v", err)
+		return fmt.Errorf("setting `criteria`: %+v", err)
 	}
 
 	if source := resp.Source; source != nil {
@@ -252,7 +252,7 @@ func resourceMonitorScheduledQueryRulesLogDelete(d *pluginsdk.ResourceData, meta
 
 	if resp, err := client.Delete(ctx, resourceGroup, name); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("deleting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -304,7 +304,7 @@ func expandMonitorScheduledQueryRulesLogToMetricAction(d *pluginsdk.ResourceData
 
 	action := insights.LogToMetricAction{
 		Criteria:  criteria,
-		OdataType: insights.OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesLogToMetricAction,
+		OdataType: insights.OdataTypeBasicActionOdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesLogToMetricAction,
 	}
 
 	return &action

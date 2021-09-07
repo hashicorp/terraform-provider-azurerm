@@ -8,11 +8,10 @@ package dataprotection
 
 import (
 	"context"
-	"net/http"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
+	"net/http"
 )
 
 // OperationsClient is the open API 2.0 Specs for Azure Data Protection service
@@ -72,7 +71,7 @@ func (client OperationsClient) List(ctx context.Context) (result ClientDiscovery
 
 // ListPreparer prepares the List request.
 func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

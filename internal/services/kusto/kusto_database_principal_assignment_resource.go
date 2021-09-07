@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -96,12 +96,12 @@ func resourceKustoDatabasePrincipalAssignment() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(kusto.Admin),
-					string(kusto.Ingestor),
-					string(kusto.Monitor),
-					string(kusto.User),
-					string(kusto.UnrestrictedViewers),
-					string(kusto.Viewer),
+					string(kusto.DatabasePrincipalRoleAdmin),
+					string(kusto.DatabasePrincipalRoleIngestor),
+					string(kusto.DatabasePrincipalRoleMonitor),
+					string(kusto.DatabasePrincipalRoleUser),
+					string(kusto.DatabasePrincipalRoleUnrestrictedViewer),
+					string(kusto.DatabasePrincipalRoleViewer),
 				}, false),
 			},
 		},
@@ -123,7 +123,7 @@ func resourceKustoDatabasePrincipalAssignmentCreate(d *pluginsdk.ResourceData, m
 	existing, err := client.Get(ctx, resourceGroup, clusterName, databaseName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", name, resourceGroup, clusterName, databaseName, err)
+			return fmt.Errorf("checking for presence of existing Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", name, resourceGroup, clusterName, databaseName, err)
 		}
 	}
 
@@ -237,11 +237,11 @@ func resourceKustoDatabasePrincipalAssignmentDelete(d *pluginsdk.ResourceData, m
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.PrincipalAssignmentName)
 	if err != nil {
-		return fmt.Errorf("Error deleting Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
+		return fmt.Errorf("deleting Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
+		return fmt.Errorf("waiting for deletion of Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	return nil

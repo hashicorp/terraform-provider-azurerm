@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -151,7 +151,7 @@ func dataSourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta in
 			return fmt.Errorf("Error: App Service Certificate Order %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM App Service Certificate Order %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM App Service Certificate Order %q: %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)

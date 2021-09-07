@@ -2,8 +2,8 @@ package client
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/hybridconnections"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/namespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/hybridconnections"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
 )
 
 type Client struct {

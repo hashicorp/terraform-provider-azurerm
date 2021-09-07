@@ -92,6 +92,10 @@ func resourceServiceBusNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resou
 
 	d.SetId(resourceId.ID())
 
+	if err := waitForPairedNamespaceReplication(ctx, meta, resourceId.ResourceGroup, resourceId.NamespaceName, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
+		return fmt.Errorf("waiting for replication to complete for Service Bus Namespace Disaster Recovery Configs (Namespace %q / Resource Group %q): %s", resourceId.NamespaceName, resourceId.ResourceGroup, err)
+	}
+
 	return resourceServiceBusNamespaceAuthorizationRuleRead(d, meta)
 }
 
@@ -134,6 +138,8 @@ func resourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData,
 	d.Set("primary_connection_string", keysResp.PrimaryConnectionString)
 	d.Set("secondary_key", keysResp.SecondaryKey)
 	d.Set("secondary_connection_string", keysResp.SecondaryConnectionString)
+	d.Set("primary_connection_string_alias", keysResp.AliasPrimaryConnectionString)
+	d.Set("secondary_connection_string_alias", keysResp.AliasSecondaryConnectionString)
 
 	return nil
 }
@@ -150,6 +156,10 @@ func resourceServiceBusNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceDat
 
 	if _, err = client.DeleteAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.AuthorizationRuleName); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
+	}
+
+	if err := waitForPairedNamespaceReplication(ctx, meta, id.ResourceGroup, id.NamespaceName, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
+		return fmt.Errorf("waiting for replication to complete for Service Bus Namespace Disaster Recovery Configs (Namespace %q / Resource Group %q): %s", id.NamespaceName, id.ResourceGroup, err)
 	}
 
 	return nil

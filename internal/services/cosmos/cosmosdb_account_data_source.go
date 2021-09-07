@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
@@ -237,7 +237,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error: CosmosDB Account %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM CosmosDB Account %s (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on AzureRM CosmosDB Account %s (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -262,7 +262,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		if err = d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
-			return fmt.Errorf("Error setting `consistency_policy`: %+v", err)
+			return fmt.Errorf("setting `consistency_policy`: %+v", err)
 		}
 
 		// sort `geo_locations` by fail over priority
@@ -275,15 +275,15 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 		if err = d.Set("geo_location", locations); err != nil {
-			return fmt.Errorf("Error setting `geo_location`: %+v", err)
+			return fmt.Errorf("setting `geo_location`: %+v", err)
 		}
 
 		if err = d.Set("capabilities", flattenAzureRmCosmosDBAccountCapabilitiesAsList(resp.Capabilities)); err != nil {
-			return fmt.Errorf("Error setting `capabilities`: %+v", err)
+			return fmt.Errorf("setting `capabilities`: %+v", err)
 		}
 
 		if err = d.Set("virtual_network_rule", flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(props.VirtualNetworkRules)); err != nil {
-			return fmt.Errorf("Error setting `virtual_network_rule`: %+v", err)
+			return fmt.Errorf("setting `virtual_network_rule`: %+v", err)
 		}
 
 		readEndpoints := make([]string, 0)
@@ -297,7 +297,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 		if err := d.Set("read_endpoints", readEndpoints); err != nil {
-			return fmt.Errorf("Error setting `read_endpoints`: %s", err)
+			return fmt.Errorf("setting `read_endpoints`: %s", err)
 		}
 
 		writeEndpoints := make([]string, 0)
@@ -311,7 +311,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 		if err := d.Set("write_endpoints", writeEndpoints); err != nil {
-			return fmt.Errorf("Error setting `write_endpoints`: %s", err)
+			return fmt.Errorf("setting `write_endpoints`: %s", err)
 		}
 
 		d.Set("enable_multiple_write_locations", resp.EnableMultipleWriteLocations)

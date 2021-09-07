@@ -6,19 +6,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2020-06-01/appconfiguration"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/configurationstores"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+type appConfigurationIdentityType = identity.SystemAssignedUserAssigned
 
 func resourceAppConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -35,7 +37,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := configurationstores.ConfigurationStoreID(id)
+			_, err := configurationstores.ParseConfigurationStoreID(id)
 			return err
 		}),
 
@@ -49,30 +51,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(appconfiguration.IdentityTypeSystemAssigned),
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": appConfigurationIdentityType{}.Schema(),
 
 			// the API changed and now returns the rg in lowercase
 			// revert when https://github.com/Azure/azure-sdk-for-go/issues/6606 is fixed
@@ -223,7 +202,11 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	parameters.Identity = expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+	parameters.Identity = identity
 
 	if err := client.CreateThenPoll(ctx, resourceId, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", resourceId, err)
@@ -239,7 +222,7 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM App Configuration update.")
-	id, err := configurationstores.ConfigurationStoreID(d.Id())
+	id, err := configurationstores.ParseConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -252,7 +235,11 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("identity") {
-		parameters.Identity = expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
+		identity, err := expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		parameters.Identity = identity
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -267,7 +254,7 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := configurationstores.ConfigurationStoreID(d.Id())
+	id, err := configurationstores.ParseConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -319,7 +306,7 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := configurationstores.ConfigurationStoreID(d.Id())
+	id, err := configurationstores.ParseConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -338,7 +325,7 @@ type flattenedAccessKeys struct {
 	secondaryWriteKey []interface{}
 }
 
-func flattenAppConfigurationAccessKeys(values []configurationstores.AccessKey) flattenedAccessKeys {
+func flattenAppConfigurationAccessKeys(values []configurationstores.ApiKey) flattenedAccessKeys {
 	result := flattenedAccessKeys{
 		primaryReadKey:    make([]interface{}, 0),
 		primaryWriteKey:   make([]interface{}, 0),
@@ -375,7 +362,7 @@ func flattenAppConfigurationAccessKeys(values []configurationstores.AccessKey) f
 	return result
 }
 
-func flattenAppConfigurationAccessKey(input configurationstores.AccessKey) []interface{} {
+func flattenAppConfigurationAccessKey(input configurationstores.ApiKey) []interface{} {
 	connectionString := ""
 
 	if input.ConnectionString != nil {
@@ -383,8 +370,8 @@ func flattenAppConfigurationAccessKey(input configurationstores.AccessKey) []int
 	}
 
 	id := ""
-	if input.ID != nil {
-		id = *input.ID
+	if input.Id != nil {
+		id = *input.Id
 	}
 
 	secret := ""
@@ -401,46 +388,22 @@ func flattenAppConfigurationAccessKey(input configurationstores.AccessKey) []int
 	}
 }
 
-func expandAppConfigurationIdentity(identities []interface{}) *configurationstores.ResourceIdentity {
-	var out = func(in configurationstores.IdentityType) *configurationstores.ResourceIdentity {
-		return &configurationstores.ResourceIdentity{
-			Type: &in,
-		}
+func expandAppConfigurationIdentity(input []interface{}) (*identity.SystemUserAssignedIdentityMap, error) {
+	expanded, err := appConfigurationIdentityType{}.Expand(input)
+	if err != nil {
+		return nil, err
 	}
 
-	if len(identities) == 0 {
-		return out(configurationstores.IdentityTypeNone)
-	}
-	identity := identities[0].(map[string]interface{})
-	identityType := configurationstores.IdentityType(identity["type"].(string))
-	return out(identityType)
+	result := identity.SystemUserAssignedIdentityMap{}
+	result.FromExpandedConfig(*expanded)
+	return &result, nil
 }
 
-func flattenAppConfigurationIdentity(identity *configurationstores.ResourceIdentity) []interface{} {
-	if identity == nil || identity.Type == nil || *identity.Type == configurationstores.IdentityTypeNone {
+func flattenAppConfigurationIdentity(identity *identity.SystemUserAssignedIdentityMap) []interface{} {
+	if identity == nil {
 		return []interface{}{}
 	}
 
-	identityType := ""
-	if identity.Type != nil {
-		identityType = string(*identity.Type)
-	}
-
-	principalId := ""
-	if identity.PrincipalId != nil {
-		principalId = *identity.PrincipalId
-	}
-
-	tenantId := ""
-	if identity.TenantId != nil {
-		tenantId = *identity.TenantId
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         identityType,
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-		},
-	}
+	config := identity.ToExpandedConfig()
+	return appConfigurationIdentityType{}.Flatten(&config)
 }

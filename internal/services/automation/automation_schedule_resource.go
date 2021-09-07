@@ -214,7 +214,7 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		existing, err := client.Get(ctx, resGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Automation Schedule %q (Account %q / Resource Group %q): %s", name, accountName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Automation Schedule %q (Account %q / Resource Group %q): %s", name, accountName, resGroup, err)
 			}
 		}
 
@@ -307,7 +307,7 @@ func resourceAutomationScheduleRead(d *pluginsdk.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Schedule '%s': %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM Automation Schedule '%s': %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -333,13 +333,13 @@ func resourceAutomationScheduleRead(d *pluginsdk.ResourceData, meta interface{})
 
 	if v := resp.AdvancedSchedule; v != nil {
 		if err := d.Set("week_days", flattenArmAutomationScheduleAdvancedWeekDays(v)); err != nil {
-			return fmt.Errorf("Error setting `week_days`: %+v", err)
+			return fmt.Errorf("setting `week_days`: %+v", err)
 		}
 		if err := d.Set("month_days", flattenArmAutomationScheduleAdvancedMonthDays(v)); err != nil {
-			return fmt.Errorf("Error setting `month_days`: %+v", err)
+			return fmt.Errorf("setting `month_days`: %+v", err)
 		}
 		if err := d.Set("monthly_occurrence", flattenArmAutomationScheduleAdvancedMonthlyOccurrences(v)); err != nil {
-			return fmt.Errorf("Error setting `monthly_occurrence`: %+v", err)
+			return fmt.Errorf("setting `monthly_occurrence`: %+v", err)
 		}
 	}
 	return nil
@@ -362,7 +362,7 @@ func resourceAutomationScheduleDelete(d *pluginsdk.ResourceData, meta interface{
 	resp, err := client.Delete(ctx, resGroup, accountName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error issuing AzureRM delete request for Automation Schedule '%s': %+v", name, err)
+			return fmt.Errorf("issuing AzureRM delete request for Automation Schedule '%s': %+v", name, err)
 		}
 	}
 

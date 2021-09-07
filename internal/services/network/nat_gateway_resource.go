@@ -5,8 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -117,7 +116,7 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error checking for present of existing NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for present of existing NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 	if resp.ID != nil && *resp.ID != "" {
@@ -148,15 +147,15 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err = client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("Cannot read NAT Gateway %q (Resource Group %q) ID", name, resourceGroup)
@@ -260,7 +259,7 @@ func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading NAT Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("reading NAT Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -279,16 +278,16 @@ func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("resource_guid", props.ResourceGUID)
 
 		if err := d.Set("public_ip_address_ids", flattenNetworkSubResourceID(props.PublicIPAddresses)); err != nil {
-			return fmt.Errorf("Error setting `public_ip_address_ids`: %+v", err)
+			return fmt.Errorf("setting `public_ip_address_ids`: %+v", err)
 		}
 
 		if err := d.Set("public_ip_prefix_ids", flattenNetworkSubResourceID(props.PublicIPPrefixes)); err != nil {
-			return fmt.Errorf("Error setting `public_ip_prefix_ids`: %+v", err)
+			return fmt.Errorf("setting `public_ip_prefix_ids`: %+v", err)
 		}
 	}
 
 	if err := d.Set("zones", utils.FlattenStringSlice(resp.Zones)); err != nil {
-		return fmt.Errorf("Error setting `zones`: %+v", err)
+		return fmt.Errorf("setting `zones`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -309,16 +308,11 @@ func resourceNatGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error deleting NAT Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting NAT Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-		}
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil

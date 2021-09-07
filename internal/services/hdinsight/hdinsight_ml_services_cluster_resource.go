@@ -164,7 +164,7 @@ func resourceHDInsightMLServicesClusterCreate(d *pluginsdk.ResourceData, meta in
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, nil)
 	if err != nil {
-		return fmt.Errorf("Error expanding `storage_account`: %s", err)
+		return fmt.Errorf("expanding `storage_account`: %s", err)
 	}
 
 	mlServicesRoles := hdInsightRoleDefinition{
@@ -176,13 +176,13 @@ func resourceHDInsightMLServicesClusterCreate(d *pluginsdk.ResourceData, meta in
 	rolesRaw := d.Get("roles").([]interface{})
 	roles, err := expandHDInsightRoles(rolesRaw, mlServicesRoles)
 	if err != nil {
-		return fmt.Errorf("Error expanding `roles`: %+v", err)
+		return fmt.Errorf("expanding `roles`: %+v", err)
 	}
 
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -213,20 +213,20 @@ func resourceHDInsightMLServicesClusterCreate(d *pluginsdk.ResourceData, meta in
 	}
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
-		return fmt.Errorf("Error creating HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Error reading ID for HDInsight MLServices Cluster %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("reading ID for HDInsight MLServices Cluster %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(id.ID())
@@ -256,17 +256,17 @@ func resourceHDInsightMLServicesClusterRead(d *pluginsdk.ResourceData, meta inte
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	configuration, err := configurationsClient.Get(ctx, resourceGroup, name, "gateway")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Gateway Configuration for HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Gateway Configuration for HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	rStudioConfig, err := configurationsClient.Get(ctx, resourceGroup, name, "rserver")
 	if err != nil {
-		return fmt.Errorf("Error retrieving RStudio Configuration for HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving RStudio Configuration for HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -282,8 +282,8 @@ func resourceHDInsightMLServicesClusterRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("tls_min_version", props.MinSupportedTLSVersion)
 
 		if def := props.ClusterDefinition; def != nil {
-			if err := d.Set("gateway", FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
-				return fmt.Errorf("Error flattening `gateway`: %+v", err)
+			if err := d.Set("gateway", FlattenHDInsightsConfigurations(configuration.Value, d)); err != nil {
+				return fmt.Errorf("flattening `gateway`: %+v", err)
 			}
 
 			var rStudio bool
@@ -307,7 +307,7 @@ func resourceHDInsightMLServicesClusterRead(d *pluginsdk.ResourceData, meta inte
 		}
 		flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, mlServicesRoles)
 		if err := d.Set("roles", flattenedRoles); err != nil {
-			return fmt.Errorf("Error flattening `roles`: %+v", err)
+			return fmt.Errorf("flattening `roles`: %+v", err)
 		}
 
 		edgeSSHEndpoint := FindHDInsightConnectivityEndpoint("EDGESSH", props.ConnectivityEndpoints)

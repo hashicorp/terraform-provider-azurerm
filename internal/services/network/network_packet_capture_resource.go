@@ -5,8 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -167,7 +166,7 @@ func resourceNetworkPacketCaptureCreate(d *pluginsdk.ResourceData, meta interfac
 	existing, err := client.Get(ctx, resourceGroup, watcherName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Packet Capture %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing Packet Capture %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
 	}
 
@@ -193,16 +192,16 @@ func resourceNetworkPacketCaptureCreate(d *pluginsdk.ResourceData, meta interfac
 
 	future, err := client.Create(ctx, resourceGroup, watcherName, name, properties)
 	if err != nil {
-		return fmt.Errorf("Error creating Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("creating Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, watcherName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("retrieving Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -228,7 +227,7 @@ func resourceNetworkPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Packet Capture %q (Watcher %q / Resource Group %q) %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Packet Capture %q (Watcher %q / Resource Group %q) %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -243,12 +242,12 @@ func resourceNetworkPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{
 
 		location := flattenNetworkPacketCaptureStorageLocation(props.StorageLocation)
 		if err := d.Set("storage_location", location); err != nil {
-			return fmt.Errorf("Error setting `storage_location`: %+v", err)
+			return fmt.Errorf("setting `storage_location`: %+v", err)
 		}
 
 		filters := flattenNetworkPacketCaptureFilters(props.Filters)
 		if err := d.Set("filter", filters); err != nil {
-			return fmt.Errorf("Error setting `filter`: %+v", err)
+			return fmt.Errorf("setting `filter`: %+v", err)
 		}
 	}
 
@@ -267,19 +266,13 @@ func resourceNetworkPacketCaptureDelete(d *pluginsdk.ResourceData, meta interfac
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 
-		return fmt.Errorf("Error deleting Packet Capture %q (Watcher %q / Resource Group %q): %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Packet Capture %q (Watcher %q / Resource Group %q): %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 
-		return fmt.Errorf("Error waiting for the deletion of Packet Capture %q (Watcher %q / Resource Group %q): %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of Packet Capture %q (Watcher %q / Resource Group %q): %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -288,7 +281,7 @@ func resourceNetworkPacketCaptureDelete(d *pluginsdk.ResourceData, meta interfac
 func expandNetworkPacketCaptureStorageLocation(d *pluginsdk.ResourceData) (*network.PacketCaptureStorageLocation, error) {
 	locations := d.Get("storage_location").([]interface{})
 	if len(locations) == 0 {
-		return nil, fmt.Errorf("Error expandng `storage_location`: not found")
+		return nil, fmt.Errorf("expandng `storage_location`: not found")
 	}
 
 	location := locations[0].(map[string]interface{})

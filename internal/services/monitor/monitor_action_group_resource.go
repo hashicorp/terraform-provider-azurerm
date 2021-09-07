@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -377,7 +377,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Monitor Action Group Service Plan %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Monitor Action Group Service Plan %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
@@ -423,12 +423,12 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, name, parameters); err != nil {
-		return fmt.Errorf("Error creating or updating action group %q (resource group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating or updating action group %q (resource group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error getting action group %q (resource group %q) after creation: %+v", name, resGroup, err)
+		return fmt.Errorf("getting action group %q (resource group %q) after creation: %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Action group %q (resource group %q) ID is empty", name, resGroup)
@@ -457,7 +457,7 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error getting action group %q (resource group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("getting action group %q (resource group %q): %+v", name, resGroup, err)
 	}
 
 	d.Set("name", name)
@@ -468,42 +468,42 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("enabled", group.Enabled)
 
 		if err = d.Set("email_receiver", flattenMonitorActionGroupEmailReceiver(group.EmailReceivers)); err != nil {
-			return fmt.Errorf("Error setting `email_receiver`: %+v", err)
+			return fmt.Errorf("setting `email_receiver`: %+v", err)
 		}
 
 		if err = d.Set("itsm_receiver", flattenMonitorActionGroupItsmReceiver(group.ItsmReceivers)); err != nil {
-			return fmt.Errorf("Error setting `itsm_receiver`: %+v", err)
+			return fmt.Errorf("setting `itsm_receiver`: %+v", err)
 		}
 
 		if err = d.Set("azure_app_push_receiver", flattenMonitorActionGroupAzureAppPushReceiver(group.AzureAppPushReceivers)); err != nil {
-			return fmt.Errorf("Error setting `azure_app_push_receiver`: %+v", err)
+			return fmt.Errorf("setting `azure_app_push_receiver`: %+v", err)
 		}
 
 		if err = d.Set("sms_receiver", flattenMonitorActionGroupSmsReceiver(group.SmsReceivers)); err != nil {
-			return fmt.Errorf("Error setting `sms_receiver`: %+v", err)
+			return fmt.Errorf("setting `sms_receiver`: %+v", err)
 		}
 
 		if err = d.Set("webhook_receiver", flattenMonitorActionGroupWebHookReceiver(group.WebhookReceivers)); err != nil {
-			return fmt.Errorf("Error setting `webhook_receiver`: %+v", err)
+			return fmt.Errorf("setting `webhook_receiver`: %+v", err)
 		}
 
 		if err = d.Set("automation_runbook_receiver", flattenMonitorActionGroupAutomationRunbookReceiver(group.AutomationRunbookReceivers)); err != nil {
-			return fmt.Errorf("Error setting `automation_runbook_receiver`: %+v", err)
+			return fmt.Errorf("setting `automation_runbook_receiver`: %+v", err)
 		}
 
 		if err = d.Set("voice_receiver", flattenMonitorActionGroupVoiceReceiver(group.VoiceReceivers)); err != nil {
-			return fmt.Errorf("Error setting `voice_receiver`: %+v", err)
+			return fmt.Errorf("setting `voice_receiver`: %+v", err)
 		}
 
 		if err = d.Set("logic_app_receiver", flattenMonitorActionGroupLogicAppReceiver(group.LogicAppReceivers)); err != nil {
-			return fmt.Errorf("Error setting `logic_app_receiver`: %+v", err)
+			return fmt.Errorf("setting `logic_app_receiver`: %+v", err)
 		}
 
 		if err = d.Set("azure_function_receiver", flattenMonitorActionGroupAzureFunctionReceiver(group.AzureFunctionReceivers)); err != nil {
-			return fmt.Errorf("Error setting `azure_function_receiver`: %+v", err)
+			return fmt.Errorf("setting `azure_function_receiver`: %+v", err)
 		}
 		if err = d.Set("arm_role_receiver", flattenMonitorActionGroupRoleReceiver(group.ArmRoleReceivers)); err != nil {
-			return fmt.Errorf("Error setting `arm_role_receiver`: %+v", err)
+			return fmt.Errorf("setting `arm_role_receiver`: %+v", err)
 		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -524,7 +524,7 @@ func resourceMonitorActionGroupDelete(d *pluginsdk.ResourceData, meta interface{
 	resp, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting action group %q (resource group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("deleting action group %q (resource group %q): %+v", name, resGroup, err)
 		}
 	}
 

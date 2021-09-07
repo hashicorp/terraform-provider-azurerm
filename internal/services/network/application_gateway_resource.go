@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -1383,22 +1383,22 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, id.ID())
 	if err != nil {
-		return fmt.Errorf("Error expanding `request_routing_rule`: %+v", err)
+		return fmt.Errorf("expanding `request_routing_rule`: %+v", err)
 	}
 
 	urlPathMaps, err := expandApplicationGatewayURLPathMaps(d, id.ID())
 	if err != nil {
-		return fmt.Errorf("Error expanding `url_path_map`: %+v", err)
+		return fmt.Errorf("expanding `url_path_map`: %+v", err)
 	}
 
 	redirectConfigurations, err := expandApplicationGatewayRedirectConfigurations(d, id.ID())
 	if err != nil {
-		return fmt.Errorf("Error expanding `redirect_configuration`: %+v", err)
+		return fmt.Errorf("expanding `redirect_configuration`: %+v", err)
 	}
 
 	sslCertificates, err := expandApplicationGatewaySslCertificates(d)
 	if err != nil {
-		return fmt.Errorf("Error expanding `ssl_certificate`: %+v", err)
+		return fmt.Errorf("expanding `ssl_certificate`: %+v", err)
 	}
 
 	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
@@ -1410,7 +1410,7 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	rewriteRuleSets, err := expandApplicationGatewayRewriteRuleSets(d)
 	if err != nil {
-		return fmt.Errorf("error expanding `rewrite_rule_set`: %v", err)
+		return fmt.Errorf("expanding `rewrite_rule_set`: %v", err)
 	}
 
 	gateway := network.ApplicationGateway{
@@ -1566,102 +1566,102 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 
 	if props := applicationGateway.ApplicationGatewayPropertiesFormat; props != nil {
 		if err = d.Set("authentication_certificate", flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates, d)); err != nil {
-			return fmt.Errorf("Error setting `authentication_certificate`: %+v", err)
+			return fmt.Errorf("setting `authentication_certificate`: %+v", err)
 		}
 
 		if err = d.Set("trusted_root_certificate", flattenApplicationGatewayTrustedRootCertificates(props.TrustedRootCertificates, d)); err != nil {
-			return fmt.Errorf("Error setting `trusted_root_certificate`: %+v", err)
+			return fmt.Errorf("setting `trusted_root_certificate`: %+v", err)
 		}
 
 		if setErr := d.Set("backend_address_pool", flattenApplicationGatewayBackendAddressPools(props.BackendAddressPools)); setErr != nil {
-			return fmt.Errorf("Error setting `backend_address_pool`: %+v", setErr)
+			return fmt.Errorf("setting `backend_address_pool`: %+v", setErr)
 		}
 
 		backendHttpSettings, err := flattenApplicationGatewayBackendHTTPSettings(props.BackendHTTPSettingsCollection)
 		if err != nil {
-			return fmt.Errorf("Error flattening `backend_http_settings`: %+v", err)
+			return fmt.Errorf("flattening `backend_http_settings`: %+v", err)
 		}
 		if setErr := d.Set("backend_http_settings", backendHttpSettings); setErr != nil {
-			return fmt.Errorf("Error setting `backend_http_settings`: %+v", setErr)
+			return fmt.Errorf("setting `backend_http_settings`: %+v", setErr)
 		}
 
 		if setErr := d.Set("ssl_policy", flattenApplicationGatewaySslPolicy(props.SslPolicy)); setErr != nil {
-			return fmt.Errorf("Error setting `ssl_policy`: %+v", setErr)
+			return fmt.Errorf("setting `ssl_policy`: %+v", setErr)
 		}
 
 		d.Set("enable_http2", props.EnableHTTP2)
 
 		httpListeners, err := flattenApplicationGatewayHTTPListeners(props.HTTPListeners)
 		if err != nil {
-			return fmt.Errorf("Error flattening `http_listener`: %+v", err)
+			return fmt.Errorf("flattening `http_listener`: %+v", err)
 		}
 		if setErr := d.Set("http_listener", httpListeners); setErr != nil {
-			return fmt.Errorf("Error setting `http_listener`: %+v", setErr)
+			return fmt.Errorf("setting `http_listener`: %+v", setErr)
 		}
 
 		if setErr := d.Set("frontend_port", flattenApplicationGatewayFrontendPorts(props.FrontendPorts)); setErr != nil {
-			return fmt.Errorf("Error setting `frontend_port`: %+v", setErr)
+			return fmt.Errorf("setting `frontend_port`: %+v", setErr)
 		}
 
 		if setErr := d.Set("frontend_ip_configuration", flattenApplicationGatewayFrontendIPConfigurations(props.FrontendIPConfigurations)); setErr != nil {
-			return fmt.Errorf("Error setting `frontend_ip_configuration`: %+v", setErr)
+			return fmt.Errorf("setting `frontend_ip_configuration`: %+v", setErr)
 		}
 
 		if setErr := d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(props.GatewayIPConfigurations)); setErr != nil {
-			return fmt.Errorf("Error setting `gateway_ip_configuration`: %+v", setErr)
+			return fmt.Errorf("setting `gateway_ip_configuration`: %+v", setErr)
 		}
 
 		if setErr := d.Set("probe", flattenApplicationGatewayProbes(props.Probes)); setErr != nil {
-			return fmt.Errorf("Error setting `probe`: %+v", setErr)
+			return fmt.Errorf("setting `probe`: %+v", setErr)
 		}
 
 		requestRoutingRules, err := flattenApplicationGatewayRequestRoutingRules(props.RequestRoutingRules)
 		if err != nil {
-			return fmt.Errorf("Error flattening `request_routing_rule`: %+v", err)
+			return fmt.Errorf("flattening `request_routing_rule`: %+v", err)
 		}
 		if setErr := d.Set("request_routing_rule", requestRoutingRules); setErr != nil {
-			return fmt.Errorf("Error setting `request_routing_rule`: %+v", setErr)
+			return fmt.Errorf("setting `request_routing_rule`: %+v", setErr)
 		}
 
 		redirectConfigurations, err := flattenApplicationGatewayRedirectConfigurations(props.RedirectConfigurations)
 		if err != nil {
-			return fmt.Errorf("Error flattening `redirect configuration`: %+v", err)
+			return fmt.Errorf("flattening `redirect configuration`: %+v", err)
 		}
 		if setErr := d.Set("redirect_configuration", redirectConfigurations); setErr != nil {
-			return fmt.Errorf("Error setting `redirect configuration`: %+v", setErr)
+			return fmt.Errorf("setting `redirect configuration`: %+v", setErr)
 		}
 
 		rewriteRuleSets := flattenApplicationGatewayRewriteRuleSets(props.RewriteRuleSets)
 		if setErr := d.Set("rewrite_rule_set", rewriteRuleSets); setErr != nil {
-			return fmt.Errorf("Error setting `rewrite_rule_set`: %+v", setErr)
+			return fmt.Errorf("setting `rewrite_rule_set`: %+v", setErr)
 		}
 
 		if setErr := d.Set("sku", flattenApplicationGatewaySku(props.Sku)); setErr != nil {
-			return fmt.Errorf("Error setting `sku`: %+v", setErr)
+			return fmt.Errorf("setting `sku`: %+v", setErr)
 		}
 
 		if setErr := d.Set("autoscale_configuration", flattenApplicationGatewayAutoscaleConfiguration(props.AutoscaleConfiguration)); setErr != nil {
-			return fmt.Errorf("Error setting `autoscale_configuration`: %+v", setErr)
+			return fmt.Errorf("setting `autoscale_configuration`: %+v", setErr)
 		}
 
 		if setErr := d.Set("ssl_certificate", flattenApplicationGatewaySslCertificates(props.SslCertificates, d)); setErr != nil {
-			return fmt.Errorf("Error setting `ssl_certificate`: %+v", setErr)
+			return fmt.Errorf("setting `ssl_certificate`: %+v", setErr)
 		}
 
 		if setErr := d.Set("custom_error_configuration", flattenApplicationGatewayCustomErrorConfigurations(props.CustomErrorConfigurations)); setErr != nil {
-			return fmt.Errorf("Error setting `custom_error_configuration`: %+v", setErr)
+			return fmt.Errorf("setting `custom_error_configuration`: %+v", setErr)
 		}
 
 		urlPathMaps, err := flattenApplicationGatewayURLPathMaps(props.URLPathMaps)
 		if err != nil {
-			return fmt.Errorf("Error flattening `url_path_map`: %+v", err)
+			return fmt.Errorf("flattening `url_path_map`: %+v", err)
 		}
 		if setErr := d.Set("url_path_map", urlPathMaps); setErr != nil {
-			return fmt.Errorf("Error setting `url_path_map`: %+v", setErr)
+			return fmt.Errorf("setting `url_path_map`: %+v", setErr)
 		}
 
 		if setErr := d.Set("waf_configuration", flattenApplicationGatewayWafConfig(props.WebApplicationFirewallConfiguration)); setErr != nil {
-			return fmt.Errorf("Error setting `waf_configuration`: %+v", setErr)
+			return fmt.Errorf("setting `waf_configuration`: %+v", setErr)
 		}
 
 		if props.FirewallPolicy != nil {

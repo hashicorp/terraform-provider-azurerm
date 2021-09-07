@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
@@ -220,11 +220,11 @@ func resourceNetworkWatcherFlowLogCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.NetworkWatcherName, id.Name(), parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating %q: %+v", id, err)
+		return fmt.Errorf("creating %q: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of creating %q: %+v", id, err)
+		return fmt.Errorf("waiting for completion of creating %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -251,7 +251,7 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving %q: %+v", id, err)
+		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
 	d.Set("network_watcher_name", id.NetworkWatcherName)
@@ -262,7 +262,7 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 
 	if prop := resp.FlowLogPropertiesFormat; prop != nil {
 		if err := d.Set("traffic_analytics", flattenAzureRmNetworkWatcherFlowLogTrafficAnalytics(prop.FlowAnalyticsConfiguration)); err != nil {
-			return fmt.Errorf("Error setting `traffic_analytics`: %+v", err)
+			return fmt.Errorf("setting `traffic_analytics`: %+v", err)
 		}
 
 		d.Set("enabled", prop.Enabled)
@@ -278,7 +278,7 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if err := d.Set("retention_policy", flattenAzureRmNetworkWatcherFlowLogRetentionPolicy(prop.RetentionPolicy)); err != nil {
-			return fmt.Errorf("Error setting `retention_policy`: %+v", err)
+			return fmt.Errorf("setting `retention_policy`: %+v", err)
 		}
 	}
 

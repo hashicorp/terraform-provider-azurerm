@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-01-15/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -127,6 +127,12 @@ func resourceAppServicePlan() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"zone_redundant": {
+				Type:     pluginsdk.TypeBool,
+				ForceNew: true,
+				Optional: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -146,7 +152,7 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing App Service Plan %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing App Service Plan %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
@@ -200,22 +206,26 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		appServicePlan.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(v))
 	}
 
+	if v := d.Get("zone_redundant").(bool); v {
+		appServicePlan.AppServicePlanProperties.ZoneRedundant = utils.Bool(v)
+	}
+
 	if reserved {
 		appServicePlan.AppServicePlanProperties.Reserved = utils.Bool(reserved)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, appServicePlan)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating/updating App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the create/update of App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for the create/update of App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("retrieving App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read AzureRM App Service Plan %q (resource group %q) ID", name, resGroup)
@@ -244,7 +254,7 @@ func resourceAppServicePlanRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on App Service Plan %q (Resource Group %q): %+v", id.ServerfarmName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on App Service Plan %q (Resource Group %q): %+v", id.ServerfarmName, id.ResourceGroup, err)
 	}
 
 	// A 404 doesn't error from the app service plan sdk so we'll add this check here to catch resource not found responses
@@ -284,10 +294,11 @@ func resourceAppServicePlanRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("per_site_scaling", props.PerSiteScaling)
 		d.Set("reserved", props.Reserved)
 		d.Set("is_xenon", props.IsXenon)
+		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
 	if err := d.Set("sku", flattenAppServicePlanSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
+		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -308,7 +319,7 @@ func resourceAppServicePlanDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServerfarmName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting App Service Plan %q (Resource Group %q): %+v", id.ServerfarmName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting App Service Plan %q (Resource Group %q): %+v", id.ServerfarmName, id.ResourceGroup, err)
 		}
 	}
 

@@ -109,7 +109,7 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 			if utils.ResponseWasNotFound(resp.Response) {
 				return pluginsdk.RetryableError(fmt.Errorf("Expected schema %q (API Management Service %q / API %q / Resource Group %q) to be created but was in non existent state, retrying", schemaID, serviceName, apiName, resourceGroup))
 			}
-			return pluginsdk.NonRetryableError(fmt.Errorf("Error getting schema %q (API Management Service %q / API %q / Resource Group %q): %+v", schemaID, serviceName, apiName, resourceGroup, err))
+			return pluginsdk.NonRetryableError(fmt.Errorf("getting schema %q (API Management Service %q / API %q / Resource Group %q): %+v", schemaID, serviceName, apiName, resourceGroup, err))
 		}
 		if resp.ID == nil {
 			return pluginsdk.NonRetryableError(fmt.Errorf("Cannot read ID for API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err))
@@ -118,7 +118,7 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("Error getting schema %q (API Management Service %q / API %q / Resource Group %q): %+v", schemaID, serviceName, apiName, resourceGroup, err)
+		return fmt.Errorf("getting schema %q (API Management Service %q / API %q / Resource Group %q): %+v", schemaID, serviceName, apiName, resourceGroup, err)
 	}
 	return resourceApiManagementApiSchemaRead(d, meta)
 }

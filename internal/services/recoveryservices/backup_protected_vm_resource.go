@@ -95,7 +95,7 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 		existing, err2 := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 		if err2 != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err2)
+				return fmt.Errorf("checking for presence of existing Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err2)
 			}
 		}
 
@@ -117,7 +117,7 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, item); err != nil {
-		return fmt.Errorf("Error creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 	}
 
 	resp, err := resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyId, d)
@@ -155,7 +155,7 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 	}
 
 	d.Set("resource_group_name", resourceGroup)
@@ -194,7 +194,7 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 	resp, err := client.Delete(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error issuing delete request for Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+			return fmt.Errorf("issuing delete request for Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 		}
 	}
 
@@ -223,7 +223,7 @@ func resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx conte
 	resp, err := state.WaitForStateContext(ctx)
 	if err != nil {
 		i, _ := resp.(backup.ProtectedItemResource)
-		return i, fmt.Errorf("Error waiting for the Azure Backup Protected VM %q to be true (Resource Group %q) to provision: %+v", protectedItemName, resourceGroup, err)
+		return i, fmt.Errorf("waiting for the Azure Backup Protected VM %q to be true (Resource Group %q) to provision: %+v", protectedItemName, resourceGroup, err)
 	}
 
 	return resp.(backup.ProtectedItemResource), nil
@@ -242,7 +242,7 @@ func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Contex
 	resp, err := state.WaitForStateContext(ctx)
 	if err != nil {
 		i, _ := resp.(backup.ProtectedItemResource)
-		return i, fmt.Errorf("Error waiting for the Azure Backup Protected VM %q to be false (Resource Group %q) to provision: %+v", protectedItemName, resourceGroup, err)
+		return i, fmt.Errorf("waiting for the Azure Backup Protected VM %q to be false (Resource Group %q) to provision: %+v", protectedItemName, resourceGroup, err)
 	}
 
 	return resp.(backup.ProtectedItemResource), nil
@@ -257,7 +257,7 @@ func resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx context.Context, c
 				return resp, "NotFound", nil
 			}
 
-			return resp, "Error", fmt.Errorf("Error making Read request on Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+			return resp, "Error", fmt.Errorf("making Read request on Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 		} else if !newResource && policyId != "" {
 			if properties := resp.Properties; properties != nil {
 				if vm, ok := properties.AsAzureIaaSComputeVMProtectedItem(); ok {
@@ -266,13 +266,13 @@ func resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx context.Context, c
 							return resp, "NotFound", nil
 						}
 					} else {
-						return resp, "Error", fmt.Errorf("Error reading policy ID attribute nil on Azure Backup Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
+						return resp, "Error", fmt.Errorf("reading policy ID attribute nil on Azure Backup Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
 					}
 				} else {
-					return resp, "Error", fmt.Errorf("Error reading properties on Azure Backup Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
+					return resp, "Error", fmt.Errorf("reading properties on Azure Backup Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
 				}
 			} else {
-				return resp, "Error", fmt.Errorf("Error reading properties on empty Azure Backup Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
+				return resp, "Error", fmt.Errorf("reading properties on empty Azure Backup Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
 			}
 		}
 		return resp, "Found", nil

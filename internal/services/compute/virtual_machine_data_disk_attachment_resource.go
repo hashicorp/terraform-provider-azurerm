@@ -96,7 +96,7 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 	virtualMachineId := d.Get("virtual_machine_id").(string)
 	parsedVirtualMachineId, err := azure.ParseAzureResourceID(virtualMachineId)
 	if err != nil {
-		return fmt.Errorf("Error parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
+		return fmt.Errorf("parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
 	}
 
 	resourceGroup := parsedVirtualMachineId.ResourceGroup
@@ -111,13 +111,13 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 			return fmt.Errorf("Virtual Machine %q (Resource Group %q) was not found", virtualMachineName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error loading Virtual Machine %q (Resource Group %q): %+v", virtualMachineName, resourceGroup, err)
+		return fmt.Errorf("loading Virtual Machine %q (Resource Group %q): %+v", virtualMachineName, resourceGroup, err)
 	}
 
 	managedDiskId := d.Get("managed_disk_id").(string)
 	managedDisk, err := retrieveDataDiskAttachmentManagedDisk(d, meta, managedDiskId)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Managed Disk %q: %+v", managedDiskId, err)
+		return fmt.Errorf("retrieving Managed Disk %q: %+v", managedDiskId, err)
 	}
 
 	if managedDisk.Sku == nil {
@@ -179,11 +179,11 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 	// which we're intentionally not wrapping, since the errors good.
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualMachineName, virtualMachine)
 	if err != nil {
-		return fmt.Errorf("Error updating Virtual Machine %q (Resource Group %q) with Disk %q: %+v", virtualMachineName, resourceGroup, name, err)
+		return fmt.Errorf("updating Virtual Machine %q (Resource Group %q) with Disk %q: %+v", virtualMachineName, resourceGroup, name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for Virtual Machine %q (Resource Group %q) to finish updating Disk %q: %+v", virtualMachineName, resourceGroup, name, err)
+		return fmt.Errorf("waiting for Virtual Machine %q (Resource Group %q) to finish updating Disk %q: %+v", virtualMachineName, resourceGroup, name, err)
 	}
 
 	d.SetId(resourceId)
@@ -212,7 +212,7 @@ func resourceVirtualMachineDataDiskAttachmentRead(d *pluginsdk.ResourceData, met
 			return nil
 		}
 
-		return fmt.Errorf("Error loading Virtual Machine %q (Resource Group %q): %+v", virtualMachineName, resourceGroup, err)
+		return fmt.Errorf("loading Virtual Machine %q (Resource Group %q): %+v", virtualMachineName, resourceGroup, err)
 	}
 
 	var disk *compute.DataDisk
@@ -273,7 +273,7 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 			return fmt.Errorf("Virtual Machine %q (Resource Group %q) was not found", virtualMachineName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error loading Virtual Machine %q (Resource Group %q): %+v", virtualMachineName, resourceGroup, err)
+		return fmt.Errorf("loading Virtual Machine %q (Resource Group %q): %+v", virtualMachineName, resourceGroup, err)
 	}
 
 	dataDisks := make([]compute.DataDisk, 0)
@@ -293,11 +293,11 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualMachineName, virtualMachine)
 	if err != nil {
-		return fmt.Errorf("Error removing Disk %q from Virtual Machine %q (Resource Group %q): %+v", name, virtualMachineName, resourceGroup, err)
+		return fmt.Errorf("removing Disk %q from Virtual Machine %q (Resource Group %q): %+v", name, virtualMachineName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for Disk %q to be removed from Virtual Machine %q (Resource Group %q): %+v", name, virtualMachineName, resourceGroup, err)
+		return fmt.Errorf("waiting for Disk %q to be removed from Virtual Machine %q (Resource Group %q): %+v", name, virtualMachineName, resourceGroup, err)
 	}
 
 	return nil
@@ -310,7 +310,7 @@ func retrieveDataDiskAttachmentManagedDisk(d *pluginsdk.ResourceData, meta inter
 
 	parsedId, err := azure.ParseAzureResourceID(id)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing Managed Disk ID %q: %+v", id, err)
+		return nil, fmt.Errorf("parsing Managed Disk ID %q: %+v", id, err)
 	}
 	resourceGroup := parsedId.ResourceGroup
 	name := parsedId.Path["disks"]
@@ -318,10 +318,10 @@ func retrieveDataDiskAttachmentManagedDisk(d *pluginsdk.ResourceData, meta inter
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return nil, fmt.Errorf("Error Managed Disk %q (Resource Group %q) was not found!", name, resourceGroup)
+			return nil, fmt.Errorf("Managed Disk %q (Resource Group %q) was not found!", name, resourceGroup)
 		}
 
-		return nil, fmt.Errorf("Error making Read request on Azure Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return nil, fmt.Errorf("making Read request on Azure Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return &resp, nil

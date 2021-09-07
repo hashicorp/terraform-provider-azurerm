@@ -69,7 +69,7 @@ func resourceLighthouseAssignmentCreate(d *pluginsdk.ResourceData, meta interfac
 	if lighthouseAssignmentName == "" {
 		uuid, err := uuid.GenerateUUID()
 		if err != nil {
-			return fmt.Errorf("Error generating UUID for Lighthouse Assignment: %+v", err)
+			return fmt.Errorf("generating UUID for Lighthouse Assignment: %+v", err)
 		}
 
 		lighthouseAssignmentName = uuid
@@ -80,7 +80,7 @@ func resourceLighthouseAssignmentCreate(d *pluginsdk.ResourceData, meta interfac
 	existing, err := client.Get(ctx, scope, lighthouseAssignmentName, utils.Bool(false))
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Lighthouse Assignment %q (Scope %q): %+v", lighthouseAssignmentName, scope, err)
+			return fmt.Errorf("checking for presence of existing Lighthouse Assignment %q (Scope %q): %+v", lighthouseAssignmentName, scope, err)
 		}
 	}
 
@@ -130,7 +130,7 @@ func resourceLighthouseAssignmentRead(d *pluginsdk.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Lighthouse Assignment %q (Scope %q): %+v", id.Name, id.Scope, err)
+		return fmt.Errorf("making Read request on Lighthouse Assignment %q (Scope %q): %+v", id.Name, id.Scope, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -154,7 +154,7 @@ func resourceLighthouseAssignmentDelete(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if _, err = client.Delete(ctx, id.Scope, id.Name); err != nil {
-		return fmt.Errorf("Error deleting Lighthouse Assignment %q at Scope %q: %+v", id.Name, id.Scope, err)
+		return fmt.Errorf("deleting Lighthouse Assignment %q at Scope %q: %+v", id.Name, id.Scope, err)
 	}
 
 	stateConf := &pluginsdk.StateChangeConf{
@@ -166,7 +166,7 @@ func resourceLighthouseAssignmentDelete(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("Error waiting for Lighthouse Assignment %q (Scope %q) to be deleted: %s", id.Name, id.Scope, err)
+		return fmt.Errorf("waiting for Lighthouse Assignment %q (Scope %q) to be deleted: %s", id.Name, id.Scope, err)
 	}
 
 	return nil
@@ -180,7 +180,7 @@ func lighthouseAssignmentDeleteRefreshFunc(ctx context.Context, client *manageds
 			if utils.ResponseWasNotFound(res.Response) {
 				return res, "Deleted", nil
 			}
-			return nil, "Error", fmt.Errorf("Error issuing read request in lighthouseAssignmentDeleteRefreshFunc to Lighthouse Assignment %q (Scope %q): %s", lighthouseAssignmentName, scope, err)
+			return nil, "Error", fmt.Errorf("issuing read request in lighthouseAssignmentDeleteRefreshFunc to Lighthouse Assignment %q (Scope %q): %s", lighthouseAssignmentName, scope, err)
 		}
 
 		return res, "Deleting", nil

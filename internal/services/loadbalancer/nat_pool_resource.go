@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -264,9 +264,9 @@ func resourceArmLoadBalancerNatPoolDelete(d *pluginsdk.ResourceData, meta interf
 		return nil
 	}
 
-	oldNatPools := *loadBalancer.LoadBalancerPropertiesFormat.InboundNatPools
-	newNatPools := append(oldNatPools[:index], oldNatPools[index+1:]...)
-	loadBalancer.LoadBalancerPropertiesFormat.InboundNatPools = &newNatPools
+	natPools := *loadBalancer.LoadBalancerPropertiesFormat.InboundNatPools
+	natPools = append(natPools[:index], natPools[index+1:]...)
+	loadBalancer.LoadBalancerPropertiesFormat.InboundNatPools = &natPools
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
 	if err != nil {

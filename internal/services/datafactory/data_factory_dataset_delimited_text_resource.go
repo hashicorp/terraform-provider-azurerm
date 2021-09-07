@@ -78,10 +78,20 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_path_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_filename_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -102,13 +112,23 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 						},
 						"path": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_path_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_filename_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -142,34 +162,30 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 
 			// Delimited Text Specific Field
 			"column_delimiter": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			// Delimited Text Specific Field
 			"row_delimiter": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			// Delimited Text Specific Field
-			"encoding": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			// Delimited Text Specific Field
 			"quote_character": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			// Delimited Text Specific Field
 			"escape_character": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
+			// Delimited Text Specific Field
+			"encoding": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -304,7 +320,7 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 			}
 		}
 
@@ -319,16 +335,43 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	delimited_textDatasetProperties := datafactory.DelimitedTextDatasetTypeProperties{
-		Location:         location,
-		ColumnDelimiter:  d.Get("column_delimiter").(string),
-		RowDelimiter:     d.Get("row_delimiter").(string),
-		EncodingName:     d.Get("encoding").(string),
-		QuoteChar:        d.Get("quote_character").(string),
-		EscapeChar:       d.Get("escape_character").(string),
-		FirstRowAsHeader: d.Get("first_row_as_header").(bool),
-		NullValue:        d.Get("null_value").(string),
-		CompressionLevel: d.Get("compression_level").(string),
-		CompressionCodec: d.Get("compression_codec").(string),
+		Location: location,
+	}
+
+	if v, ok := d.Get("column_delimiter").(string); ok {
+		delimited_textDatasetProperties.ColumnDelimiter = v
+	}
+
+	if v, ok := d.Get("row_delimiter").(string); ok {
+		delimited_textDatasetProperties.RowDelimiter = v
+	}
+
+	if v, ok := d.Get("quote_character").(string); ok {
+		delimited_textDatasetProperties.QuoteChar = v
+	}
+
+	if v, ok := d.Get("escape_character").(string); ok {
+		delimited_textDatasetProperties.EscapeChar = v
+	}
+
+	if v, ok := d.GetOk("encoding"); ok {
+		delimited_textDatasetProperties.EncodingName = v.(string)
+	}
+
+	if v, ok := d.GetOk("first_row_as_header"); ok {
+		delimited_textDatasetProperties.FirstRowAsHeader = v.(bool)
+	}
+
+	if v, ok := d.GetOk("null_value"); ok {
+		delimited_textDatasetProperties.NullValue = v.(string)
+	}
+
+	if v, ok := d.GetOk("compression_level"); ok {
+		delimited_textDatasetProperties.CompressionLevel = v.(string)
+	}
+
+	if v, ok := d.GetOk("compression_codec"); ok {
+		delimited_textDatasetProperties.CompressionCodec = v.(string)
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)
@@ -377,12 +420,12 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, dataset, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Dataset DelimitedText  %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Data Factory Dataset DelimitedText  %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
@@ -411,7 +454,7 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -420,7 +463,7 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta
 
 	delimited_textTable, ok := resp.Properties.AsDelimitedTextDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicDatasetTypeDelimitedText, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicDatasetTypeDelimitedText, *resp.Type)
 	}
 
 	d.Set("additional_properties", delimited_textTable.AdditionalProperties)
@@ -431,12 +474,12 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta
 
 	parameters := flattenDataFactoryParameters(delimited_textTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
-		return fmt.Errorf("Error setting `parameters`: %+v", err)
+		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
 	annotations := flattenDataFactoryAnnotations(delimited_textTable.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
-		return fmt.Errorf("Error setting `annotations`: %+v", err)
+		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
 	if linkedService := delimited_textTable.LinkedServiceName; linkedService != nil {
@@ -529,7 +572,7 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta
 
 	structureColumns := flattenDataFactoryStructureColumns(delimited_textTable.Structure)
 	if err := d.Set("schema_column", structureColumns); err != nil {
-		return fmt.Errorf("Error setting `schema_column`: %+v", err)
+		return fmt.Errorf("setting `schema_column`: %+v", err)
 	}
 
 	return nil
@@ -548,7 +591,7 @@ func resourceDataFactoryDatasetDelimitedTextDelete(d *pluginsdk.ResourceData, me
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
 		}
 	}
 

@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
+	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2018-09-15/dtl"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -88,6 +88,10 @@ func resourceDevTestGlobalVMShutdownSchedule() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
+						"email": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -116,7 +120,7 @@ func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceDa
 		existing, err := client.Get(ctx, id.ResourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Schedule %q (Resource Group %q): %s", name, id.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Schedule %q (Resource Group %q): %s", name, id.ResourceGroup, err)
 			}
 		}
 
@@ -191,7 +195,7 @@ func resourceDevTestGlobalVMShutdownScheduleRead(d *pluginsdk.ResourceData, meta
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Dev Test Global Schedule %s: %s", id.Name, err)
+		return fmt.Errorf("making Read request on Dev Test Global Schedule %s: %s", id.Name, err)
 	}
 
 	if location := resp.Location; location != nil {
@@ -204,11 +208,11 @@ func resourceDevTestGlobalVMShutdownScheduleRead(d *pluginsdk.ResourceData, meta
 		d.Set("enabled", props.Status == dtl.EnableStatusEnabled)
 
 		if err := d.Set("daily_recurrence_time", flattenDevTestGlobalVMShutdownScheduleRecurrenceDaily(props.DailyRecurrence)); err != nil {
-			return fmt.Errorf("Error setting `dailyRecurrence`: %#v", err)
+			return fmt.Errorf("setting `dailyRecurrence`: %#v", err)
 		}
 
 		if err := d.Set("notification_settings", flattenDevTestGlobalVMShutdownScheduleNotificationSettings(props.NotificationSettings)); err != nil {
-			return fmt.Errorf("Error setting `notificationSettings`: %#v", err)
+			return fmt.Errorf("setting `notificationSettings`: %#v", err)
 		}
 	}
 
@@ -257,18 +261,20 @@ func expandDevTestGlobalVMShutdownScheduleNotificationSettings(d *pluginsdk.Reso
 	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]interface{})
 	webhookUrl := notificationSettingsConfig["webhook_url"].(string)
 	timeInMinutes := int32(notificationSettingsConfig["time_in_minutes"].(int))
+	email := notificationSettingsConfig["email"].(string)
 
-	var notificationStatus dtl.NotificationStatus
+	var notificationStatus dtl.EnableStatus
 	if notificationSettingsConfig["enabled"].(bool) {
-		notificationStatus = dtl.NotificationStatusEnabled
+		notificationStatus = dtl.EnableStatusEnabled
 	} else {
-		notificationStatus = dtl.NotificationStatusDisabled
+		notificationStatus = dtl.EnableStatusDisabled
 	}
 
 	return &dtl.NotificationSettings{
-		WebhookURL:    &webhookUrl,
-		TimeInMinutes: &timeInMinutes,
-		Status:        notificationStatus,
+		WebhookURL:     &webhookUrl,
+		TimeInMinutes:  &timeInMinutes,
+		Status:         notificationStatus,
+		EmailRecipient: &email,
 	}
 }
 
@@ -287,7 +293,8 @@ func flattenDevTestGlobalVMShutdownScheduleNotificationSettings(notificationSett
 		result["time_in_minutes"] = *notificationSettings.TimeInMinutes
 	}
 
-	result["enabled"] = notificationSettings.Status == dtl.NotificationStatusEnabled
+	result["enabled"] = notificationSettings.Status == dtl.EnableStatusEnabled
+	result["email"] = notificationSettings.EmailRecipient
 
 	return []interface{}{result}
 }

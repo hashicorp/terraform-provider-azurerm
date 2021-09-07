@@ -68,11 +68,11 @@ func dataSourceNetAppSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: NetApp Snapshot %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error reading NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Error retrieving NetApp Snapshot %q (Resource Group %q): ID was nil or empty", name, resourceGroup)
+		return fmt.Errorf("retrieving NetApp Snapshot %q (Resource Group %q): ID was nil or empty", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)

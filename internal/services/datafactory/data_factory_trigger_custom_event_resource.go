@@ -239,7 +239,7 @@ func resourceDataFactoryTriggerCustomEventRead(d *pluginsdk.ResourceData, meta i
 
 	trigger, ok := resp.Properties.AsCustomEventsTrigger()
 	if !ok {
-		return fmt.Errorf("classifiying %s: Expected: %q", id, datafactory.TypeBasicTriggerTypeCustomEventsTrigger)
+		return fmt.Errorf("classifying %s: Expected: %q", id, datafactory.TypeBasicTriggerTypeCustomEventsTrigger)
 	}
 
 	d.Set("name", id.Name)

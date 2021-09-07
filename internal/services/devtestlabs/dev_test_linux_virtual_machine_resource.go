@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
+	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2018-09-15/dtl"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -156,7 +156,7 @@ func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *pluginsdk.ResourceData
 		existing, err := client.Get(ctx, resourceGroup, labName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Linux Virtual Machine %q (Lab %q / Resource Group %q): %s", name, labName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Linux Virtual Machine %q (Lab %q / Resource Group %q): %s", name, labName, resourceGroup, err)
 			}
 		}
 
@@ -220,16 +220,16 @@ func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *pluginsdk.ResourceData
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, labName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating DevTest Linux Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("creating/updating DevTest Linux Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation/update of DevTest Linux Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of DevTest Linux Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, labName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving DevTest Linux Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("retrieving DevTest Linux Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -262,7 +262,7 @@ func resourceArmDevTestLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta i
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on DevTest Linux Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("making Read request on DevTest Linux Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	d.Set("name", read.Name)
@@ -282,7 +282,7 @@ func resourceArmDevTestLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta i
 
 		flattenedImage := flattenDevTestVirtualMachineGalleryImage(props.GalleryImageReference)
 		if err := d.Set("gallery_image_reference", flattenedImage); err != nil {
-			return fmt.Errorf("Error setting `gallery_image_reference`: %+v", err)
+			return fmt.Errorf("setting `gallery_image_reference`: %+v", err)
 		}
 
 		// Computed fields
@@ -314,16 +314,16 @@ func resourceArmDevTestLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving DevTest Linux Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("retrieving DevTest Linux Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	future, err := client.Delete(ctx, resourceGroup, labName, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting DevTest Linux Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("deleting DevTest Linux Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the deletion of DevTest Linux Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of DevTest Linux Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	return err

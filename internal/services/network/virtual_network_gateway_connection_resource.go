@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -306,7 +306,7 @@ func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *pluginsdk.ResourceDa
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Virtual Network Gateway Connection %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Virtual Network Gateway Connection %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
@@ -332,11 +332,11 @@ func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *pluginsdk.ResourceDa
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, connection)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating AzureRM Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Creating/Updating AzureRM Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for completion of Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if properties.SharedKey != nil && !d.IsNewResource() {
@@ -380,7 +380,7 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Virtual Network Gateway Connection %q: %+v", name, err)
+		return fmt.Errorf("making Read request on AzureRM Virtual Network Gateway Connection %q: %+v", name, err)
 	}
 
 	conn := *resp.VirtualNetworkGatewayConnectionPropertiesFormat
@@ -449,13 +449,13 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 		ipsecPolicies := flattenVirtualNetworkGatewayConnectionIpsecPolicies(conn.IpsecPolicies)
 
 		if err := d.Set("ipsec_policy", ipsecPolicies); err != nil {
-			return fmt.Errorf("Error setting `ipsec_policy`: %+v", err)
+			return fmt.Errorf("setting `ipsec_policy`: %+v", err)
 		}
 	}
 
 	trafficSelectorPolicies := flattenVirtualNetworkGatewayConnectionTrafficSelectorPolicies(conn.TrafficSelectorPolicies)
 	if err := d.Set("traffic_selector_policy", trafficSelectorPolicies); err != nil {
-		return fmt.Errorf("Error setting `traffic_selector_policy`: %+v", err)
+		return fmt.Errorf("setting `traffic_selector_policy`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -473,11 +473,11 @@ func resourceVirtualNetworkGatewayConnectionDelete(d *pluginsdk.ResourceData, me
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error Deleting Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Deleting Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for deletion of Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	return nil
@@ -548,7 +548,7 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData) (*n
 		localNetworkGatewayId := v.(string)
 		_, name, err := resourceGroupAndLocalNetworkGatewayFromId(localNetworkGatewayId)
 		if err != nil {
-			return nil, fmt.Errorf("Error Getting LocalNetworkGateway Name and Group:: %+v", err)
+			return nil, fmt.Errorf("Getting LocalNetworkGateway Name and Group:: %+v", err)
 		}
 
 		props.LocalNetworkGateway2 = &network.LocalNetworkGateway{

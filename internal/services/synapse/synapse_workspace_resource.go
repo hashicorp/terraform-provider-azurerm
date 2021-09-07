@@ -389,11 +389,11 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		repoType, repo := flattenWorkspaceRepositoryConfiguration(props.WorkspaceRepositoryConfiguration)
 		if repoType == workspaceVSTSConfiguration {
 			if err := d.Set("azure_devops_repo", repo); err != nil {
-				return fmt.Errorf("Error setting `azure_devops_repo`: %+v", err)
+				return fmt.Errorf("setting `azure_devops_repo`: %+v", err)
 			}
 		} else if repoType == workspaceGitHubConfiguration {
 			if err := d.Set("github_repo", repo); err != nil {
-				return fmt.Errorf("Error setting `github_repo`: %+v", err)
+				return fmt.Errorf("setting `github_repo`: %+v", err)
 			}
 		}
 	}

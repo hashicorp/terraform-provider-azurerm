@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -157,7 +157,7 @@ func dataSourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, me
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("[DEBUG] Scheduled Query Rule %q was not found in Resource Group %q: %+v", name, resourceGroup, err)
 		}
-		return fmt.Errorf("Error getting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("getting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -169,7 +169,7 @@ func dataSourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, me
 	}
 
 	d.Set("description", resp.Description)
-	if resp.Enabled == insights.True {
+	if resp.Enabled == insights.EnabledTrue {
 		d.Set("enabled", true)
 	} else {
 		d.Set("enabled", false)
@@ -180,16 +180,16 @@ func dataSourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("Wrong action type in Scheduled Query Rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
 	}
 	if err = d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
-		return fmt.Errorf("Error setting `action`: %+v", err)
+		return fmt.Errorf("setting `action`: %+v", err)
 	}
 	severity, err := strconv.Atoi(string(action.Severity))
 	if err != nil {
-		return fmt.Errorf("Error converting action.Severity %q in query rule %q to int (resource group %q): %+v", action.Severity, name, resourceGroup, err)
+		return fmt.Errorf("converting action.Severity %q in query rule %q to int (resource group %q): %+v", action.Severity, name, resourceGroup, err)
 	}
 	d.Set("severity", severity)
 	d.Set("throttling", action.ThrottlingInMin)
 	if err = d.Set("trigger", flattenAzureRmScheduledQueryRulesAlertTrigger(action.Trigger)); err != nil {
-		return fmt.Errorf("Error setting `trigger`: %+v", err)
+		return fmt.Errorf("setting `trigger`: %+v", err)
 	}
 
 	if schedule := resp.Schedule; schedule != nil {

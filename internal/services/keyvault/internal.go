@@ -77,7 +77,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 		if strings.Contains(err.Error(), "is currently being deleted") {
 			return pluginsdk.RetryableError(fmt.Errorf("%s is currently being deleted, retrying", description))
 		}
-		return pluginsdk.NonRetryableError(fmt.Errorf("Error purging of %s : %+v", description, err))
+		return pluginsdk.NonRetryableError(fmt.Errorf("purging of %s : %+v", description, err))
 	})
 	if err != nil {
 		return err
@@ -124,7 +124,7 @@ func keyVaultChildItemRefreshFunc(secretUri string) pluginsdk.StateRefreshFunc {
 		conn, err := client.Get(secretUri)
 		if err != nil {
 			log.Printf("[DEBUG] Didn't find KeyVault secret at %q", secretUri)
-			return nil, "pending", fmt.Errorf("Error checking secret at %q: %s", secretUri, err)
+			return nil, "pending", fmt.Errorf("checking secret at %q: %s", secretUri, err)
 		}
 
 		defer conn.Body.Close()

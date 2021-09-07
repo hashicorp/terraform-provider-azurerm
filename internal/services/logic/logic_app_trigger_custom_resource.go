@@ -58,7 +58,7 @@ func resourceLogicAppTriggerCustomCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	var body map[string]interface{}
 	if err := json.Unmarshal([]byte(bodyRaw), &body); err != nil {
-		return fmt.Errorf("Error unmarshalling JSON for Custom Trigger %q: %+v", name, err)
+		return fmt.Errorf("unmarshalling JSON for Custom Trigger %q: %+v", name, err)
 	}
 
 	if err := resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, body, "azurerm_logic_app_trigger_custom"); err != nil {
@@ -96,11 +96,11 @@ func resourceLogicAppTriggerCustomRead(d *pluginsdk.ResourceData, meta interface
 
 	body, err := json.Marshal(action)
 	if err != nil {
-		return fmt.Errorf("Error serializing `body` for Trigger %q: %+v", name, err)
+		return fmt.Errorf("serializing `body` for Trigger %q: %+v", name, err)
 	}
 
 	if err := d.Set("body", string(body)); err != nil {
-		return fmt.Errorf("Error setting `body` for Trigger %q: %+v", name, err)
+		return fmt.Errorf("setting `body` for Trigger %q: %+v", name, err)
 	}
 
 	return nil
@@ -118,7 +118,7 @@ func resourceLogicAppTriggerCustomDelete(d *pluginsdk.ResourceData, meta interfa
 
 	err = resourceLogicAppTriggerRemove(d, meta, resourceGroup, logicAppName, name)
 	if err != nil {
-		return fmt.Errorf("Error removing Trigger %q from Logic App %q (Resource Group %q): %+v", name, logicAppName, resourceGroup, err)
+		return fmt.Errorf("removing Trigger %q from Logic App %q (Resource Group %q): %+v", name, logicAppName, resourceGroup, err)
 	}
 
 	return nil

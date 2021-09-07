@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -56,11 +56,11 @@ func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta i
 	// then retrieve the possible Diagnostics Categories for this Resource
 	categories, err := categoriesClient.List(ctx, resourceId)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Diagnostics Categories for Resource %q: %+v", actualResourceId, err)
+		return fmt.Errorf("retrieving Diagnostics Categories for Resource %q: %+v", actualResourceId, err)
 	}
 
 	if categories.Value == nil {
-		return fmt.Errorf("Error retrieving Diagnostics Categories for Resource %q: `categories.Value` was nil", actualResourceId)
+		return fmt.Errorf("retrieving Diagnostics Categories for Resource %q: `categories.Value` was nil", actualResourceId)
 	}
 
 	d.SetId(actualResourceId)
@@ -76,9 +76,9 @@ func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta i
 
 		if category := v.DiagnosticSettingsCategory; category != nil {
 			switch category.CategoryType {
-			case insights.Logs:
+			case insights.CategoryTypeLogs:
 				logs = append(logs, *v.Name)
-			case insights.Metrics:
+			case insights.CategoryTypeMetrics:
 				metrics = append(metrics, *v.Name)
 			default:
 				return fmt.Errorf("Unsupported category type %q", string(category.CategoryType))
@@ -87,11 +87,11 @@ func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	if err := d.Set("logs", logs); err != nil {
-		return fmt.Errorf("Error setting `logs`: %+v", err)
+		return fmt.Errorf("setting `logs`: %+v", err)
 	}
 
 	if err := d.Set("metrics", metrics); err != nil {
-		return fmt.Errorf("Error setting `metrics`: %+v", err)
+		return fmt.Errorf("setting `metrics`: %+v", err)
 	}
 
 	return nil

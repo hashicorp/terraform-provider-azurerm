@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
+	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2018-09-15/dtl"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -106,7 +106,7 @@ func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Dev Test Lab %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Dev Test Lab %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -129,16 +129,16 @@ func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation/update of DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -170,7 +170,7 @@ func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", read.Name)
@@ -214,16 +214,16 @@ func resourceDevTestLabDelete(d *pluginsdk.ResourceData, meta interface{}) error
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the deletion of DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return err

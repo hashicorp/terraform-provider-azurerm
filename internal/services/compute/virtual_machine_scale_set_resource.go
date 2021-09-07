@@ -1264,9 +1264,14 @@ func flattenAzureRmVirtualMachineScaleSetOsProfileSecrets(secrets *[]compute.Vau
 }
 
 func flattenAzureRmVirtualMachineScaleSetBootDiagnostics(bootDiagnostic *compute.BootDiagnostics) []interface{} {
-	b := map[string]interface{}{
-		"enabled":     *bootDiagnostic.Enabled,
-		"storage_uri": *bootDiagnostic.StorageURI,
+	b := make(map[string]interface{})
+
+	if bootDiagnostic.Enabled != nil {
+		b["enabled"] = *bootDiagnostic.Enabled
+	}
+
+	if bootDiagnostic.StorageURI != nil {
+		b["storage_uri"] = *bootDiagnostic.StorageURI
 	}
 
 	return []interface{}{b}

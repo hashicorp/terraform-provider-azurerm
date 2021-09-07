@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -249,15 +249,15 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		if err := d.Set("ddos_protection_plan", flattenVirtualNetworkDDoSProtectionPlan(props)); err != nil {
-			return fmt.Errorf("Error setting `ddos_protection_plan`: %+v", err)
+			return fmt.Errorf("setting `ddos_protection_plan`: %+v", err)
 		}
 
 		if err := d.Set("subnet", flattenVirtualNetworkSubnets(props.Subnets)); err != nil {
-			return fmt.Errorf("Error setting `subnets`: %+v", err)
+			return fmt.Errorf("setting `subnets`: %+v", err)
 		}
 
 		if err := d.Set("dns_servers", flattenVirtualNetworkDNSServers(props.DhcpOptions)); err != nil {
-			return fmt.Errorf("Error setting `dns_servers`: %+v", err)
+			return fmt.Errorf("setting `dns_servers`: %+v", err)
 		}
 
 		bgpCommunity := ""
@@ -267,7 +267,7 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 		}
 		if err := d.Set("bgp_community", bgpCommunity); err != nil {
-			return fmt.Errorf("Error setting `bgp_community`: %+v", err)
+			return fmt.Errorf("setting `bgp_community`: %+v", err)
 		}
 
 		d.Set("vm_protection_enabled", props.EnableVMProtection)
@@ -288,7 +288,7 @@ func resourceVirtualNetworkDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	nsgNames, err := expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d)
 	if err != nil {
-		return fmt.Errorf("Error parsing Network Security Group ID's: %+v", err)
+		return fmt.Errorf("parsing Network Security Group ID's: %+v", err)
 	}
 
 	locks.MultipleByName(&nsgNames, VirtualNetworkResourceName)

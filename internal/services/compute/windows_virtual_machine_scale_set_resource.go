@@ -635,8 +635,14 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		}
 	}
 	if d.HasChange("automatic_os_upgrade_policy") || d.HasChange("rolling_upgrade_policy") {
-		upgradePolicy := compute.UpgradePolicy{
-			Mode: upgradeMode,
+		upgradePolicy := compute.UpgradePolicy{}
+		if existing.VirtualMachineScaleSetProperties.UpgradePolicy == nil {
+			upgradePolicy = compute.UpgradePolicy{
+				Mode: compute.UpgradeMode(d.Get("upgrade_mode").(string)),
+			}
+		} else {
+			upgradePolicy = *existing.VirtualMachineScaleSetProperties.UpgradePolicy
+			upgradePolicy.Mode = compute.UpgradeMode(d.Get("upgrade_mode").(string))
 		}
 
 		if d.HasChange("automatic_os_upgrade_policy") {

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-01-01/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -59,12 +59,12 @@ func resourceKustoDatabasePrincipal() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(kusto.Admin),
-					string(kusto.Ingestor),
-					string(kusto.Monitor),
-					string(kusto.User),
-					string(kusto.UnrestrictedViewers),
-					string(kusto.Viewer),
+					string(kusto.DatabasePrincipalRoleAdmin),
+					string(kusto.DatabasePrincipalRoleIngestor),
+					string(kusto.DatabasePrincipalRoleMonitor),
+					string(kusto.DatabasePrincipalRoleUser),
+					string(kusto.DatabasePrincipalRoleUnrestrictedViewer),
+					string(kusto.DatabasePrincipalRoleViewer),
 				}, false),
 			},
 
@@ -149,10 +149,10 @@ func resourceKustoDatabasePrincipalCreate(d *pluginsdk.ResourceData, meta interf
 			return fmt.Errorf("Kusto Database %q (Resource Group %q, Cluster %q) was not found", databaseName, resourceGroup, clusterName)
 		}
 
-		return fmt.Errorf("Error loading Kusto Database %q (Resource Group %q, Cluster %q): %+v", databaseName, resourceGroup, clusterName, err)
+		return fmt.Errorf("loading Kusto Database %q (Resource Group %q, Cluster %q): %+v", databaseName, resourceGroup, clusterName, err)
 	}
 	if resp.Value == nil {
-		return fmt.Errorf("Error loading Kusto Database %q (Resource Group %q, Cluster %q): Invalid resource response", databaseName, resourceGroup, clusterName)
+		return fmt.Errorf("loading Kusto Database %q (Resource Group %q, Cluster %q): Invalid resource response", databaseName, resourceGroup, clusterName)
 	}
 
 	database, ok := resp.Value.AsReadWriteDatabase()
@@ -166,7 +166,7 @@ func resourceKustoDatabasePrincipalCreate(d *pluginsdk.ResourceData, meta interf
 		resp, err := client.ListPrincipals(ctx, resourceGroup, clusterName, databaseName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for presence of existing Kusto Database Principals (Resource Group %q, Cluster %q): %s", resourceGroup, clusterName, err)
+				return fmt.Errorf("checking for presence of existing Kusto Database Principals (Resource Group %q, Cluster %q): %s", resourceGroup, clusterName, err)
 			}
 		}
 
@@ -195,13 +195,13 @@ func resourceKustoDatabasePrincipalCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if _, err = client.AddPrincipals(ctx, resourceGroup, clusterName, databaseName, request); err != nil {
-		return fmt.Errorf("Error creating Kusto Database Principal (Resource Group %q, Cluster %q): %+v", resourceGroup, clusterName, err)
+		return fmt.Errorf("creating Kusto Database Principal (Resource Group %q, Cluster %q): %+v", resourceGroup, clusterName, err)
 	}
 
 	principalsResp, err := client.ListPrincipals(ctx, resourceGroup, clusterName, databaseName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(principalsResp.Response) {
-			return fmt.Errorf("Error checking for presence of existing Kusto Database Principals (Resource Group %q, Cluster %q): %s", resourceGroup, clusterName, err)
+			return fmt.Errorf("checking for presence of existing Kusto Database Principals (Resource Group %q, Cluster %q): %s", resourceGroup, clusterName, err)
 		}
 	}
 
@@ -226,13 +226,13 @@ func resourceKustoDatabasePrincipalRead(d *pluginsdk.ResourceData, meta interfac
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Kusto Database %q (Resource Group %q, Cluster %q): %+v", id.DatabaseName, id.ResourceGroup, id.ClusterName, err)
+		return fmt.Errorf("retrieving Kusto Database %q (Resource Group %q, Cluster %q): %+v", id.DatabaseName, id.ResourceGroup, id.ClusterName, err)
 	}
 
 	databasePrincipals, err := client.ListPrincipals(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(databasePrincipals.Response) {
-			return fmt.Errorf("Error checking for presence of existing Kusto Database Principals %q (Resource Group %q, Cluster %q): %s", id, id.ResourceGroup, id.ClusterName, err)
+			return fmt.Errorf("checking for presence of existing Kusto Database Principals %q (Resource Group %q, Cluster %q): %s", id, id.ResourceGroup, id.ClusterName, err)
 		}
 	}
 
@@ -315,7 +315,7 @@ func resourceKustoDatabasePrincipalDelete(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if _, err = client.RemovePrincipals(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, request); err != nil {
-		return fmt.Errorf("Error deleting Kusto Database Principal %q (Resource Group %q, Cluster %q, Database %q): %+v", id, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
+		return fmt.Errorf("deleting Kusto Database Principal %q (Resource Group %q, Cluster %q, Database %q): %+v", id, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	return nil

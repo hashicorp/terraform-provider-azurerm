@@ -458,7 +458,7 @@ func (r StorageBlobResource) blobMatchesFile(kind blobs.BlobType, filePath strin
 
 		account, err := clients.Storage.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", accountName, name, containerName, err)
+			return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", accountName, name, containerName, err)
 		}
 		if account == nil {
 			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
@@ -466,14 +466,14 @@ func (r StorageBlobResource) blobMatchesFile(kind blobs.BlobType, filePath strin
 
 		client, err := clients.Storage.BlobsClient(ctx, *account)
 		if err != nil {
-			return fmt.Errorf("Error building Blobs Client: %s", err)
+			return fmt.Errorf("building Blobs Client: %s", err)
 		}
 
 		// first check the type
 		getPropsInput := blobs.GetPropertiesInput{}
 		props, err := client.GetProperties(ctx, accountName, containerName, name, getPropsInput)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Properties for Blob %q (Container %q): %s", name, containerName, err)
+			return fmt.Errorf("retrieving Properties for Blob %q (Container %q): %s", name, containerName, err)
 		}
 
 		if props.BlobType != kind {
@@ -484,7 +484,7 @@ func (r StorageBlobResource) blobMatchesFile(kind blobs.BlobType, filePath strin
 		getInput := blobs.GetInput{}
 		actualProps, err := client.Get(ctx, accountName, containerName, name, getInput)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Blob %q (Container %q): %s", name, containerName, err)
+			return fmt.Errorf("retrieving Blob %q (Container %q): %s", name, containerName, err)
 		}
 
 		actualContents := actualProps.Contents

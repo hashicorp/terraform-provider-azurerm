@@ -62,6 +62,20 @@ func TestAccPostgresqlFlexibleServerDatabase_charsetLowercase(t *testing.T) {
 	})
 }
 
+func TestAccPostgresqlFlexibleServerDatabase_withoutCharsetAndCollation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_database", "test")
+	r := PostgresqlFlexibleServerDatabaseResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withoutCharsetAndCollation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (PostgresqlFlexibleServerDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FlexibleServerDatabaseID(state.ID)
 	if err != nil {
@@ -111,6 +125,17 @@ resource "azurerm_postgresql_flexible_server_database" "test" {
   server_id = azurerm_postgresql_flexible_server.test.id
   collation = "en_US.UTF8"
   charset   = "UTF8"
+}
+`, PostgresqlFlexibleServerResource{}.basic(data), data.RandomInteger)
+}
+
+func (PostgresqlFlexibleServerDatabaseResource) withoutCharsetAndCollation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server_database" "test" {
+  name      = "acctest-fsd-%d"
+  server_id = azurerm_postgresql_flexible_server.test.id
 }
 `, PostgresqlFlexibleServerResource{}.basic(data), data.RandomInteger)
 }

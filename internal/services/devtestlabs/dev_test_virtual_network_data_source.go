@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
+	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2018-09-15/dtl"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
@@ -110,7 +110,7 @@ func dataSourceArmDevTestVnetRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error: Virtual Network %q in Dev Test Lab %q (Resource Group %q) was not found", name, labName, resGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on Virtual Network %q in Dev Test Lab %q (Resource Group %q): %+v", name, labName, resGroup, err)
+		return fmt.Errorf("making Read request on Virtual Network %q in Dev Test Lab %q (Resource Group %q): %+v", name, labName, resGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
@@ -121,12 +121,12 @@ func dataSourceArmDevTestVnetRead(d *pluginsdk.ResourceData, meta interface{}) e
 	if props := resp.VirtualNetworkProperties; props != nil {
 		if as := props.AllowedSubnets; as != nil {
 			if err := d.Set("allowed_subnets", flattenDevTestVirtualNetworkAllowedSubnets(as)); err != nil {
-				return fmt.Errorf("error setting `allowed_subnets`: %v", err)
+				return fmt.Errorf("setting `allowed_subnets`: %v", err)
 			}
 		}
 		if so := props.SubnetOverrides; so != nil {
 			if err := d.Set("subnet_overrides", flattenDevTestVirtualNetworkSubnetOverrides(so)); err != nil {
-				return fmt.Errorf("error setting `subnet_overrides`: %v", err)
+				return fmt.Errorf("setting `subnet_overrides`: %v", err)
 			}
 		}
 		d.Set("unique_identifier", props.UniqueIdentifier)

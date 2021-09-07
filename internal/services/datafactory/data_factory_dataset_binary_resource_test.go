@@ -337,8 +337,10 @@ resource "azurerm_data_factory_dataset_binary" "test" {
   linked_service_name = azurerm_data_factory_linked_service_sftp.test.name
 
   sftp_server_location {
-    path     = "/test/"
-    filename = "**"
+    path                     = "@concat('/test/',formatDateTime(convertTimeZone(utcnow(),'UTC','W. Europe Standard Time'),'yyyy-MM-dd'))"
+    dynamic_path_enabled     = true
+    filename                 = "@concat('hashi', 'corp')"
+    dynamic_filename_enabled = true
   }
 
   compression {

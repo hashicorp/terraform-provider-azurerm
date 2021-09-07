@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -201,7 +201,7 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 			return fmt.Errorf("Virtual Network Gateway Connection %q (Resource Group %q) was not found", name, resGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("making Read request on AzureRM Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -254,12 +254,12 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 
 		ipsecPoliciesSettingsFlat := flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(gwc.IpsecPolicies)
 		if err := d.Set("ipsec_policy", ipsecPoliciesSettingsFlat); err != nil {
-			return fmt.Errorf("Error setting `ipsec_policy`: %+v", err)
+			return fmt.Errorf("setting `ipsec_policy`: %+v", err)
 		}
 
 		trafficSelectorsPolicyFlat := flattenVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(gwc.TrafficSelectorPolicies)
 		if err := d.Set("traffic_selector_policy", trafficSelectorsPolicyFlat); err != nil {
-			return fmt.Errorf("Error setting `traffic_selector_policy`: %+v", err)
+			return fmt.Errorf("setting `traffic_selector_policy`: %+v", err)
 		}
 	}
 

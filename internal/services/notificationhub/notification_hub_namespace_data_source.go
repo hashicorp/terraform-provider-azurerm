@@ -91,7 +91,7 @@ func resourceArmDataSourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData
 
 	sku := flattenNotificationHubDataSourceNamespacesSku(resp.Sku)
 	if err := d.Set("sku", sku); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
+		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 
 	if props := resp.NamespaceProperties; props != nil {

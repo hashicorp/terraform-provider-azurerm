@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -114,6 +113,31 @@ func resourceDataLakeStore() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"identity": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, false),
+						},
+						"principal_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -131,7 +155,7 @@ func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{})
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Lake Store %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Data Lake Store %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -154,11 +178,13 @@ func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{})
 	dateLakeStore := account.CreateDataLakeStoreAccountParameters{
 		Location: &location,
 		Tags:     tags.Expand(t),
+		Identity: expandDataLakeStoreIdentity(d.Get("identity").([]interface{})),
 		CreateDataLakeStoreAccountProperties: &account.CreateDataLakeStoreAccountProperties{
 			NewTier:               account.TierType(tier),
 			FirewallState:         firewallState,
 			FirewallAllowAzureIps: firewallAllowAzureIPs,
 			EncryptionState:       encryptionState,
+
 			EncryptionConfig: &account.EncryptionConfig{
 				Type: encryptionType,
 			},
@@ -167,16 +193,16 @@ func resourceArmDateLakeStoreCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.Create(ctx, resourceGroup, name, dateLakeStore)
 	if err != nil {
-		return fmt.Errorf("Error issuing create request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("issuing create request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error creating Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Data Lake Store %s (resource group %s) ID", name, resourceGroup)
@@ -210,11 +236,11 @@ func resourceArmDateLakeStoreUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.Update(ctx, resourceGroup, name, props)
 	if err != nil {
-		return fmt.Errorf("Error issuing update request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("issuing update request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the update of Data Lake Store %q (Resource Group %q) to commplete: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the update of Data Lake Store %q (Resource Group %q) to commplete: %+v", name, resourceGroup, err)
 	}
 
 	return resourceArmDateLakeStoreRead(d, meta)
@@ -240,13 +266,17 @@ func resourceArmDateLakeStoreRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if err := d.Set("identity", flattenDataLakeStoreIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("flattening identity on Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if properties := resp.DataLakeStoreAccountProperties; properties != nil {
@@ -280,18 +310,48 @@ func resourceArmDateLakeStoreDelete(d *pluginsdk.ResourceData, meta interface{})
 	name := id.Path["accounts"]
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error issuing delete request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error deleting Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
+}
+
+func expandDataLakeStoreIdentity(input []interface{}) *account.EncryptionIdentity {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &account.EncryptionIdentity{
+		Type: utils.String(v["type"].(string)),
+	}
+}
+
+func flattenDataLakeStoreIdentity(identity *account.EncryptionIdentity) []interface{} {
+	if identity == nil {
+		return []interface{}{}
+	}
+
+	principalID := ""
+	if identity.PrincipalID != nil {
+		principalID = identity.PrincipalID.String()
+	}
+
+	tenantID := ""
+	if identity.TenantID != nil {
+		tenantID = identity.TenantID.String()
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         identity.Type,
+			"principal_id": principalID,
+			"tenant_id":    tenantID,
+		},
+	}
 }

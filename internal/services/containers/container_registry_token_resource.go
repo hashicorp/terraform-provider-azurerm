@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -79,7 +78,7 @@ func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interf
 		existing, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing token %q in Container Registry %q (Resource Group %q): %s", name, containerRegistryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing token %q in Container Registry %q (Resource Group %q): %s", name, containerRegistryName, resourceGroup, err)
 			}
 		}
 
@@ -105,16 +104,16 @@ func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interf
 
 	future, err := client.Create(ctx, resourceGroup, containerRegistryName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating token %q in Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("creating token %q in Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of token %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of token %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving token %q for Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("retrieving token %q for Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -151,16 +150,16 @@ func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interf
 
 	future, err := client.Update(ctx, resourceGroup, containerRegistryName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error updating token %q for Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("updating token %q for Container Registry %q (Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of token %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("waiting for update of token %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving token %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("retrieving token %q (Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -191,7 +190,7 @@ func resourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interfac
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on token %q in Azure Container Registry %q (Resource Group %q): %+v", id.TokenName, id.RegistryName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on token %q in Azure Container Registry %q (Resource Group %q): %+v", id.TokenName, id.RegistryName, id.ResourceGroup, err)
 	}
 
 	status := true
@@ -220,17 +219,11 @@ func resourceContainerRegistryTokenDelete(d *pluginsdk.ResourceData, meta interf
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.RegistryName, id.TokenName)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry token '%s': %+v", id.TokenName, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry token '%s': %+v", id.TokenName, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

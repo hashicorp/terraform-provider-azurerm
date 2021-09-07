@@ -589,6 +589,13 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ConflictsWith: []string{"private_link_enabled"},
 			},
 
+			"private_cluster_public_fqdn_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
 			"private_dns_zone_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -948,8 +955,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	apiAccessProfile := containerservice.ManagedClusterAPIServerAccessProfile{
-		EnablePrivateCluster: &enablePrivateCluster,
-		AuthorizedIPRanges:   apiServerAuthorizedIPRanges,
+		EnablePrivateCluster:           &enablePrivateCluster,
+		AuthorizedIPRanges:             apiServerAuthorizedIPRanges,
+		EnablePrivateClusterPublicFQDN: utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool)),
 	}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
@@ -1165,7 +1173,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			props.EnableRBAC = utils.Bool(rbacEnabled)
 
 			// Reset AAD profile is only possible if not managed
-			if props.AadProfile.Managed == nil || !*props.AadProfile.Managed {
+			if props.AadProfile != nil && (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
 				log.Printf("[DEBUG] Updating the RBAC AAD profile")
 				future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.ManagedClusterName, *props.AadProfile)
 				if err != nil {
@@ -1489,7 +1497,15 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
 			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
-			d.Set("private_dns_zone_id", accessProfile.PrivateDNSZone)
+			d.Set("private_cluster_public_fqdn_enabled", accessProfile.EnablePrivateClusterPublicFQDN)
+			switch {
+			case accessProfile.PrivateDNSZone != nil && strings.EqualFold("System", *accessProfile.PrivateDNSZone):
+				d.Set("private_dns_zone_id", "System")
+			case accessProfile.PrivateDNSZone != nil && strings.EqualFold("None", *accessProfile.PrivateDNSZone):
+				d.Set("private_dns_zone_id", "None")
+			default:
+				d.Set("private_dns_zone_id", accessProfile.PrivateDNSZone)
+			}
 		}
 
 		addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)

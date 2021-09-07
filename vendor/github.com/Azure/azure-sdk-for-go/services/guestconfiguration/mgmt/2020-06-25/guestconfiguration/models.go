@@ -75,7 +75,7 @@ type AssignmentProperties struct {
 	TargetResourceID *string `json:"targetResourceId,omitempty"`
 	// GuestConfiguration - The guest configuration to assign.
 	GuestConfiguration *Navigation `json:"guestConfiguration,omitempty"`
-	// ComplianceStatus - READ-ONLY; A value indicating compliance status of the machine for the assigned guest configuration. Possible values include: 'Compliant', 'NonCompliant', 'Pending'
+	// ComplianceStatus - READ-ONLY; A value indicating compliance status of the machine for the assigned guest configuration. Possible values include: 'ComplianceStatusCompliant', 'ComplianceStatusNonCompliant', 'ComplianceStatusPending'
 	ComplianceStatus ComplianceStatus `json:"complianceStatus,omitempty"`
 	// LastComplianceStatusChecked - READ-ONLY; Date and time when last compliance status was checked.
 	LastComplianceStatusChecked *date.Time `json:"lastComplianceStatusChecked,omitempty"`
@@ -87,7 +87,7 @@ type AssignmentProperties struct {
 	Context *string `json:"context,omitempty"`
 	// AssignmentHash - READ-ONLY; Combined hash of the configuration package and parameters.
 	AssignmentHash *string `json:"assignmentHash,omitempty"`
-	// ProvisioningState - READ-ONLY; The provisioning state, which only appears in the response. Possible values include: 'Succeeded', 'Failed', 'Canceled', 'Created'
+	// ProvisioningState - READ-ONLY; The provisioning state, which only appears in the response. Possible values include: 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled', 'ProvisioningStateCreated'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
@@ -120,9 +120,9 @@ type AssignmentReport struct {
 	StartTime *date.Time `json:"startTime,omitempty"`
 	// EndTime - READ-ONLY; End date and time of the guest configuration assignment compliance status check.
 	EndTime *date.Time `json:"endTime,omitempty"`
-	// ComplianceStatus - READ-ONLY; A value indicating compliance status of the machine for the assigned guest configuration. Possible values include: 'Compliant', 'NonCompliant', 'Pending'
+	// ComplianceStatus - READ-ONLY; A value indicating compliance status of the machine for the assigned guest configuration. Possible values include: 'ComplianceStatusCompliant', 'ComplianceStatusNonCompliant', 'ComplianceStatusPending'
 	ComplianceStatus ComplianceStatus `json:"complianceStatus,omitempty"`
-	// OperationType - READ-ONLY; Type of report, Consistency or Initial. Possible values include: 'Consistency', 'Initial'
+	// OperationType - READ-ONLY; Type of report, Consistency or Initial. Possible values include: 'TypeConsistency', 'TypeInitial'
 	OperationType Type `json:"operationType,omitempty"`
 	// Resources - The list of resources for which guest configuration assignment compliance is checked.
 	Resources *[]AssignmentReportResource `json:"resources,omitempty"`
@@ -145,7 +145,7 @@ func (ar AssignmentReport) MarshalJSON() ([]byte, error) {
 
 // AssignmentReportDetails details of the guest configuration assignment report.
 type AssignmentReportDetails struct {
-	// ComplianceStatus - READ-ONLY; A value indicating compliance status of the machine for the assigned guest configuration. Possible values include: 'Compliant', 'NonCompliant', 'Pending'
+	// ComplianceStatus - READ-ONLY; A value indicating compliance status of the machine for the assigned guest configuration. Possible values include: 'ComplianceStatusCompliant', 'ComplianceStatusNonCompliant', 'ComplianceStatusPending'
 	ComplianceStatus ComplianceStatus `json:"complianceStatus,omitempty"`
 	// StartTime - READ-ONLY; Start date and time of the guest configuration assignment compliance status check.
 	StartTime *date.Time `json:"startTime,omitempty"`
@@ -153,7 +153,7 @@ type AssignmentReportDetails struct {
 	EndTime *date.Time `json:"endTime,omitempty"`
 	// JobID - READ-ONLY; GUID of the report.
 	JobID *string `json:"jobId,omitempty"`
-	// OperationType - READ-ONLY; Type of report, Consistency or Initial. Possible values include: 'Consistency', 'Initial'
+	// OperationType - READ-ONLY; Type of report, Consistency or Initial. Possible values include: 'TypeConsistency', 'TypeInitial'
 	OperationType Type `json:"operationType,omitempty"`
 	// Resources - The list of resources for which guest configuration assignment compliance is checked.
 	Resources *[]AssignmentReportResource `json:"resources,omitempty"`
@@ -178,7 +178,7 @@ type AssignmentReportList struct {
 // AssignmentReportProperties report for the guest configuration assignment. Report contains information
 // such as compliance status, reason, and more.
 type AssignmentReportProperties struct {
-	// ComplianceStatus - READ-ONLY; A value indicating compliance status of the machine for the assigned guest configuration. Possible values include: 'Compliant', 'NonCompliant', 'Pending'
+	// ComplianceStatus - READ-ONLY; A value indicating compliance status of the machine for the assigned guest configuration. Possible values include: 'ComplianceStatusCompliant', 'ComplianceStatusNonCompliant', 'ComplianceStatusPending'
 	ComplianceStatus ComplianceStatus `json:"complianceStatus,omitempty"`
 	// ReportID - READ-ONLY; GUID that identifies the guest configuration assignment report under a subscription, resource group.
 	ReportID *string `json:"reportId,omitempty"`
@@ -211,7 +211,7 @@ func (arp AssignmentReportProperties) MarshalJSON() ([]byte, error) {
 
 // AssignmentReportResource the guest configuration assignment resource.
 type AssignmentReportResource struct {
-	// ComplianceStatus - READ-ONLY; A value indicating compliance status of the machine for the assigned guest configuration. Possible values include: 'Compliant', 'NonCompliant', 'Pending'
+	// ComplianceStatus - READ-ONLY; A value indicating compliance status of the machine for the assigned guest configuration. Possible values include: 'ComplianceStatusCompliant', 'ComplianceStatusNonCompliant', 'ComplianceStatusPending'
 	ComplianceStatus ComplianceStatus `json:"complianceStatus,omitempty"`
 	// ResourceID - READ-ONLY; Name of the guest configuration assignment resource setting.
 	ResourceID *string `json:"resourceId,omitempty"`
@@ -290,11 +290,11 @@ type ConfigurationParameter struct {
 
 // ConfigurationSetting configuration setting of LCM (Local Configuration Manager).
 type ConfigurationSetting struct {
-	// ConfigurationMode - Specifies how the LCM(Local Configuration Manager) actually applies the configuration to the target nodes. Possible values are ApplyOnly, ApplyAndMonitor, and ApplyAndAutoCorrect. Possible values include: 'ApplyOnly', 'ApplyAndMonitor', 'ApplyAndAutoCorrect'
+	// ConfigurationMode - Specifies how the LCM(Local Configuration Manager) actually applies the configuration to the target nodes. Possible values are ApplyOnly, ApplyAndMonitor, and ApplyAndAutoCorrect. Possible values include: 'ConfigurationModeApplyOnly', 'ConfigurationModeApplyAndMonitor', 'ConfigurationModeApplyAndAutoCorrect'
 	ConfigurationMode ConfigurationMode `json:"configurationMode,omitempty"`
 	// AllowModuleOverwrite - If true - new configurations downloaded from the pull service are allowed to overwrite the old ones on the target node. Otherwise, false
 	AllowModuleOverwrite *bool `json:"allowModuleOverwrite,omitempty"`
-	// ActionAfterReboot - Specifies what happens after a reboot during the application of a configuration. The possible values are ContinueConfiguration and StopConfiguration. Possible values include: 'ContinueConfiguration', 'StopConfiguration'
+	// ActionAfterReboot - Specifies what happens after a reboot during the application of a configuration. The possible values are ContinueConfiguration and StopConfiguration. Possible values include: 'ActionAfterRebootContinueConfiguration', 'ActionAfterRebootStopConfiguration'
 	ActionAfterReboot ActionAfterReboot `json:"actionAfterReboot,omitempty"`
 	// RefreshFrequencyMins - The time interval, in minutes, at which the LCM checks a pull service to get updated configurations. This value is ignored if the LCM is not configured in pull mode. The default value is 30.
 	RefreshFrequencyMins *float64 `json:"refreshFrequencyMins,omitempty"`
@@ -321,41 +321,22 @@ type ErrorResponseError struct {
 // The artifact is a zip file containing DSC configuration (as MOF) and dependent resources and other
 // dependencies like modules.
 type Navigation struct {
-	// Kind - Kind of the guest configuration. For example:DSC. Possible values include: 'DSC'
+	// Kind - Kind of the guest configuration. For example:DSC. Possible values include: 'KindDSC'
 	Kind Kind `json:"kind,omitempty"`
 	// Name - Name of the guest configuration.
 	Name *string `json:"name,omitempty"`
 	// Version - Version of the guest configuration.
 	Version *string `json:"version,omitempty"`
-	// ContentURI - READ-ONLY; Uri of the storage where guest configuration package is uploaded.
+	// ContentURI - Uri of the storage where guest configuration package is uploaded.
 	ContentURI *string `json:"contentUri,omitempty"`
-	// ContentHash - READ-ONLY; Combined hash of the guest configuration package and configuration parameters.
+	// ContentHash - Combined hash of the guest configuration package and configuration parameters.
 	ContentHash *string `json:"contentHash,omitempty"`
+	// AssignmentType - Specifies the assignment type and execution of the configuration. Possible values are Audit, DeployAndAutoCorrect, ApplyAndAutoCorrect and ApplyAndMonitor. Possible values include: 'AssignmentTypeAudit', 'AssignmentTypeDeployAndAutoCorrect', 'AssignmentTypeApplyAndAutoCorrect', 'AssignmentTypeApplyAndMonitor'
+	AssignmentType AssignmentType `json:"assignmentType,omitempty"`
 	// ConfigurationParameter - The configuration parameters for the guest configuration.
 	ConfigurationParameter *[]ConfigurationParameter `json:"configurationParameter,omitempty"`
 	// ConfigurationSetting - The configuration setting for the guest configuration.
 	ConfigurationSetting *ConfigurationSetting `json:"configurationSetting,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for Navigation.
-func (n Navigation) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if n.Kind != "" {
-		objectMap["kind"] = n.Kind
-	}
-	if n.Name != nil {
-		objectMap["name"] = n.Name
-	}
-	if n.Version != nil {
-		objectMap["version"] = n.Version
-	}
-	if n.ConfigurationParameter != nil {
-		objectMap["configurationParameter"] = n.ConfigurationParameter
-	}
-	if n.ConfigurationSetting != nil {
-		objectMap["configurationSetting"] = n.ConfigurationSetting
-	}
-	return json.Marshal(objectMap)
 }
 
 // Operation guestConfiguration REST API operation

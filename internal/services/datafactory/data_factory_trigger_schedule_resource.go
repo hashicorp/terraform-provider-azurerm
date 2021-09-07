@@ -135,7 +135,7 @@ func resourceDataFactoryTriggerScheduleCreateUpdate(d *pluginsdk.ResourceData, m
 		existing, err := client.Get(ctx, resourceGroupName, dataFactoryName, triggerName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Trigger Schedule %q (Resource Group %q / Data Factory %q): %s", triggerName, resourceGroupName, dataFactoryName, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Trigger Schedule %q (Resource Group %q / Data Factory %q): %s", triggerName, resourceGroupName, dataFactoryName, err)
 			}
 		}
 
@@ -188,12 +188,12 @@ func resourceDataFactoryTriggerScheduleCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroupName, dataFactoryName, triggerName, trigger, ""); err != nil {
-		return fmt.Errorf("Error creating Data Factory Trigger Schedule %q (Resource Group %q / Data Factory %q): %+v", triggerName, resourceGroupName, dataFactoryName, err)
+		return fmt.Errorf("creating Data Factory Trigger Schedule %q (Resource Group %q / Data Factory %q): %+v", triggerName, resourceGroupName, dataFactoryName, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroupName, dataFactoryName, triggerName, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Trigger Schedule %q (Resource Group %q / Data Factory %q): %+v", triggerName, resourceGroupName, dataFactoryName, err)
+		return fmt.Errorf("retrieving Data Factory Trigger Schedule %q (Resource Group %q / Data Factory %q): %+v", triggerName, resourceGroupName, dataFactoryName, err)
 	}
 
 	if read.ID == nil {
@@ -224,7 +224,7 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 			log.Printf("[DEBUG] Data Factory Trigger Schedule %q was not found in Resource Group %q - removing from state!", triggerName, id.ResourceGroup)
 			return nil
 		}
-		return fmt.Errorf("Error reading the state of Data Factory Trigger Schedule %q: %+v", triggerName, err)
+		return fmt.Errorf("reading the state of Data Factory Trigger Schedule %q: %+v", triggerName, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -233,7 +233,7 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 
 	scheduleTriggerProps, ok := resp.Properties.AsScheduleTrigger()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Trigger Schedule %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", triggerName, dataFactoryName, id.ResourceGroup, datafactory.TypeBasicTriggerTypeScheduleTrigger, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Trigger Schedule %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", triggerName, dataFactoryName, id.ResourceGroup, datafactory.TypeBasicTriggerTypeScheduleTrigger, *resp.Type)
 	}
 
 	if scheduleTriggerProps != nil {
@@ -260,7 +260,7 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 
 		annotations := flattenDataFactoryAnnotations(scheduleTriggerProps.Annotations)
 		if err := d.Set("annotations", annotations); err != nil {
-			return fmt.Errorf("Error setting `annotations`: %+v", err)
+			return fmt.Errorf("setting `annotations`: %+v", err)
 		}
 	}
 
@@ -280,7 +280,7 @@ func resourceDataFactoryTriggerScheduleDelete(d *pluginsdk.ResourceData, meta in
 	triggerName := id.Path["triggers"]
 
 	if _, err = client.Delete(ctx, id.ResourceGroup, dataFactoryName, triggerName); err != nil {
-		return fmt.Errorf("Error deleting Data Factory Trigger Schedule %q (Resource Group %q / Data Factory %q): %+v", triggerName, id.ResourceGroup, dataFactoryName, err)
+		return fmt.Errorf("deleting Data Factory Trigger Schedule %q (Resource Group %q / Data Factory %q): %+v", triggerName, id.ResourceGroup, dataFactoryName, err)
 	}
 
 	return nil

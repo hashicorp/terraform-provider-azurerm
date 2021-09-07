@@ -135,7 +135,7 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Batch Account %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Batch Account %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -162,11 +162,11 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		keyVaultReferenceSet := d.Get("key_vault_reference").([]interface{})
 		keyVaultReference, err := expandBatchAccountKeyVaultReference(keyVaultReferenceSet)
 		if err != nil {
-			return fmt.Errorf("Error creating Batch account %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("creating Batch account %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		if keyVaultReference == nil {
-			return fmt.Errorf("Error creating Batch account %q (Resource Group %q): When setting pool allocation mode to UserSubscription, a Key Vault reference needs to be set", name, resourceGroup)
+			return fmt.Errorf("creating Batch account %q (Resource Group %q): When setting pool allocation mode to UserSubscription, a Key Vault reference needs to be set", name, resourceGroup)
 		}
 
 		parameters.KeyVaultReference = keyVaultReference
@@ -180,16 +180,16 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	future, err := client.Create(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating Batch account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Batch account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Batch account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Batch account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Batch account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Batch account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -218,7 +218,7 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 			log.Printf("[DEBUG] Batch Account %q was not found in Resource Group %q - removing from state!", id.BatchAccountName, id.ResourceGroup)
 			return nil
 		}
-		return fmt.Errorf("Error reading the state of Batch account %q: %+v", id.BatchAccountName, err)
+		return fmt.Errorf("reading the state of Batch account %q: %+v", id.BatchAccountName, err)
 	}
 
 	d.Set("name", id.BatchAccountName)
@@ -279,12 +279,12 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if _, err = client.Update(ctx, id.ResourceGroup, id.BatchAccountName, parameters); err != nil {
-		return fmt.Errorf("Error updating Batch account %q (Resource Group %q): %+v", id.BatchAccountName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Batch account %q (Resource Group %q): %+v", id.BatchAccountName, id.ResourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Batch account %q (Resource Group %q): %+v", id.BatchAccountName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Batch account %q (Resource Group %q): %+v", id.BatchAccountName, id.ResourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -308,12 +308,12 @@ func resourceBatchAccountDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.BatchAccountName)
 	if err != nil {
-		return fmt.Errorf("Error deleting Batch account %q (Resource Group %q): %+v", id.BatchAccountName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Batch account %q (Resource Group %q): %+v", id.BatchAccountName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deletion of Batch account %q (Resource Group %q): %+v", id.BatchAccountName, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for deletion of Batch account %q (Resource Group %q): %+v", id.BatchAccountName, id.ResourceGroup, err)
 		}
 	}
 

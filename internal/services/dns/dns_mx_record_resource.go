@@ -103,7 +103,7 @@ func resourceDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.MX)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing DNS MX Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing DNS MX Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 			}
 		}
 
@@ -125,7 +125,7 @@ func resourceDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.MX, parameters, "", ""); err != nil {
-		return fmt.Errorf("Error creating/updating DNS MX Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+		return fmt.Errorf("creating/updating DNS MX Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -149,7 +149,7 @@ func resourceDnsMxRecordRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS MX record %s: %v", id.MXName, err)
+		return fmt.Errorf("reading DNS MX record %s: %v", id.MXName, err)
 	}
 
 	d.Set("name", id.MXName)
@@ -177,7 +177,7 @@ func resourceDnsMxRecordDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.MXName, dns.MX, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS MX Record %s: %+v", id.MXName, err)
+		return fmt.Errorf("deleting DNS MX Record %s: %+v", id.MXName, err)
 	}
 
 	return nil

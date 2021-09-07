@@ -127,12 +127,20 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"vnet_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
+							ExactlyOneOf: []string{"vnet_integration.0.vnet_id", "vnet_integration.0.subnet_id"},
 							ValidateFunc: azure.ValidateResourceID,
+						},
+						"subnet_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ExactlyOneOf: []string{"vnet_integration.0.vnet_id", "vnet_integration.0.subnet_id"},
+							ValidateFunc: networkValidate.SubnetID,
 						},
 						"subnet_name": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
+							RequiredWith: []string{"vnet_integration.0.vnet_id"},
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"public_ips": {
@@ -420,7 +428,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisCreateUpdate(d *pluginsdk.Res
 		existing, err := client.Get(ctx, resourceGroup, factoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %s", name, resourceGroup, factoryName, err)
+				return fmt.Errorf("checking for presence of existing Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %s", name, resourceGroup, factoryName, err)
 			}
 		}
 
@@ -447,12 +455,12 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisCreateUpdate(d *pluginsdk.Res
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, factoryName, name, integrationRuntime, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+		return fmt.Errorf("creating/updating Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, factoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+		return fmt.Errorf("retrieving Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
 	}
 
 	if resp.ID == nil {
@@ -484,7 +492,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+		return fmt.Errorf("retrieving Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
 	}
 
 	d.Set("name", name)
@@ -493,7 +501,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 
 	managedIntegrationRuntime, convertSuccess := resp.Properties.AsManagedIntegrationRuntime()
 	if !convertSuccess {
-		return fmt.Errorf("Error converting integration runtime to Azure-SSIS integration runtime %q (Resource Group %q, Data Factory %q)", name, resourceGroup, factoryName)
+		return fmt.Errorf("converting integration runtime to Azure-SSIS integration runtime %q (Resource Group %q, Data Factory %q)", name, resourceGroup, factoryName)
 	}
 
 	if managedIntegrationRuntime.Description != nil {
@@ -518,7 +526,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 		}
 
 		if err := d.Set("vnet_integration", flattenDataFactoryIntegrationRuntimeAzureSsisVnetIntegration(computeProps.VNetProperties)); err != nil {
-			return fmt.Errorf("Error setting `vnet_integration`: %+v", err)
+			return fmt.Errorf("setting `vnet_integration`: %+v", err)
 		}
 	}
 
@@ -566,7 +574,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisDelete(d *pluginsdk.ResourceD
 	response, err := client.Delete(ctx, resourceGroup, factoryName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+			return fmt.Errorf("deleting Data Factory Azure-SSIS Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
 		}
 	}
 
@@ -584,9 +592,16 @@ func expandDataFactoryIntegrationRuntimeAzureSsisComputeProperties(d *pluginsdk.
 
 	if vnetIntegrations, ok := d.GetOk("vnet_integration"); ok && len(vnetIntegrations.([]interface{})) > 0 {
 		vnetProps := vnetIntegrations.([]interface{})[0].(map[string]interface{})
-		computeProperties.VNetProperties = &datafactory.IntegrationRuntimeVNetProperties{
-			VNetID: utils.String(vnetProps["vnet_id"].(string)),
-			Subnet: utils.String(vnetProps["subnet_name"].(string)),
+		if vnetId := vnetProps["vnet_id"].(string); len(vnetId) > 0 {
+			computeProperties.VNetProperties = &datafactory.IntegrationRuntimeVNetProperties{
+				VNetID: utils.String(vnetId),
+				Subnet: utils.String(vnetProps["subnet_name"].(string)),
+			}
+		}
+		if subnetId := vnetProps["subnet_id"].(string); len(subnetId) > 0 {
+			computeProperties.VNetProperties = &datafactory.IntegrationRuntimeVNetProperties{
+				SubnetID: utils.String(subnetId),
+			}
 		}
 
 		if publicIPs := vnetProps["public_ips"].([]interface{}); len(publicIPs) > 0 {
@@ -793,17 +808,21 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisVnetIntegration(vnetProperties
 		return []interface{}{}
 	}
 
-	var vnetId, subnetName string
+	var vnetId, subnetName, subnetId string
 	if vnetProperties.VNetID != nil {
 		vnetId = *vnetProperties.VNetID
 	}
 	if vnetProperties.Subnet != nil {
 		subnetName = *vnetProperties.Subnet
 	}
+	if vnetProperties.SubnetID != nil {
+		subnetId = *vnetProperties.SubnetID
+	}
 
 	return []interface{}{
 		map[string]interface{}{
 			"vnet_id":     vnetId,
+			"subnet_id":   subnetId,
 			"subnet_name": subnetName,
 			"public_ips":  utils.FlattenStringSlice(vnetProperties.PublicIPs),
 		},
