@@ -93,9 +93,10 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 			"auto_mitigate": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:          pluginsdk.TypeBool,
+				Optional:      true,
+				Default:       true,
+				ConflictsWith: []string{"throttle"},
 			},
 			"description": {
 				Type:         pluginsdk.TypeString,
@@ -131,9 +132,10 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(0, 4),
 			},
 			"throttling": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(0, 10000),
+				Type:          pluginsdk.TypeInt,
+				Optional:      true,
+				ValidateFunc:  validation.IntBetween(0, 10000),
+				ConflictsWith: []string{"auto_mitigate"},
 			},
 			"time_window": {
 				Type:         pluginsdk.TypeInt,
@@ -219,10 +221,6 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 	timeWindow := d.Get("time_window").(int)
 	if timeWindow < frequency {
 		return fmt.Errorf("in parameter values for Scheduled Query Rules %q (Resource Group %q): time_window must be greater than or equal to frequency", name, resourceGroup)
-	}
-	throttling := d.Get("throttling").(int)
-	if d.Get("auto_mitigate").(bool) && throttling > 0 {
-		return fmt.Errorf("in parameter values for Scheduled Query Rules %q (Resource Group %q): Only one of `auto_mitigate` or `throttling` can be set", name, resourceGroup)
 	}
 
 	query := d.Get("query").(string)
