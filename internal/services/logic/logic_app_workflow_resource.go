@@ -79,6 +79,18 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 				},
 			},
 
+			"state": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(logic.WorkflowStateEnabled),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(logic.WorkflowStateEnabled),
+					string(logic.WorkflowStateDisabled),
+					string(logic.WorkflowStateDeleted),
+					string(logic.WorkflowStateSuspended),
+				}, false),
+			},
+
 			"workflow_schema": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -181,6 +193,7 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 				"parameters":     workflowParameters,
 			},
 			Parameters: parameters,
+			State:      logic.WorkflowState(d.Get("state").(string)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -265,6 +278,7 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 		WorkflowProperties: &logic.WorkflowProperties{
 			Definition: definition,
 			Parameters: parameters,
+			State:      logic.WorkflowState(d.Get("state").(string)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -313,6 +327,10 @@ func resourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if props := resp.WorkflowProperties; props != nil {
 		d.Set("access_endpoint", props.AccessEndpoint)
+
+		if props.State != "" {
+			d.Set("state", props.State)
+		}
 
 		if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Connector == nil {
 			d.Set("connector_endpoint_ip_addresses", []interface{}{})
