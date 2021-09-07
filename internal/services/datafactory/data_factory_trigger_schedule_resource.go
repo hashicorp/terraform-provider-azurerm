@@ -53,6 +53,86 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 				ValidateFunc: validate.DataFactoryName(),
 			},
 
+			"description": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"schedule": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"days_of_month": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeInt,
+								ValidateFunc: validation.Any(
+									validation.IntBetween(1, 31),
+									validation.IntBetween(-31, -1),
+								),
+							},
+						},
+
+						"days_of_week": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 7,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.IsDayOfTheWeek(false),
+							},
+						},
+
+						"hours": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeInt,
+								ValidateFunc: validation.IntBetween(0, 24),
+							},
+						},
+
+						"minutes": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeInt,
+								ValidateFunc: validation.IntBetween(0, 60),
+							},
+						},
+
+						"monthly_occurrence": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MinItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"day": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.IsDayOfTheWeek(false),
+									},
+
+									"occurrence": {
+										Type:     pluginsdk.TypeInt,
+										Optional: true,
+										ValidateFunc: validation.Any(
+											validation.IntBetween(1, 5),
+											validation.IntBetween(-5, -1),
+										),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			// This time can only be  represented in UTC.
 			// An issue has been filed in the SDK for the timezone attribute that doesn't seem to work
 			// https://github.com/Azure/azure-sdk-for-go/issues/6244
@@ -148,6 +228,7 @@ func resourceDataFactoryTriggerScheduleCreateUpdate(d *pluginsdk.ResourceData, m
 		Recurrence: &datafactory.ScheduleTriggerRecurrence{
 			Frequency: datafactory.RecurrenceFrequency(d.Get("frequency").(string)),
 			Interval:  utils.Int32(int32(d.Get("interval").(int))),
+			Schedule:  expandDataFactorySchedule(d.Get("schedule").([]interface{})),
 		},
 	}
 
@@ -176,6 +257,7 @@ func resourceDataFactoryTriggerScheduleCreateUpdate(d *pluginsdk.ResourceData, m
 				Parameters:        d.Get("pipeline_parameters").(map[string]interface{}),
 			},
 		},
+		Description: utils.String(d.Get("description").(string)),
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -246,6 +328,10 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 			}
 			d.Set("frequency", recurrence.Frequency)
 			d.Set("interval", recurrence.Interval)
+
+			if schedule := recurrence.Schedule; schedule != nil {
+				d.Set("schedule", flattenDataFactorySchedule(schedule))
+			}
 		}
 
 		if pipelines := scheduleTriggerProps.Pipelines; pipelines != nil {
@@ -262,6 +348,8 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 		if err := d.Set("annotations", annotations); err != nil {
 			return fmt.Errorf("setting `annotations`: %+v", err)
 		}
+
+		d.Set("description", scheduleTriggerProps.Description)
 	}
 
 	return nil
@@ -284,4 +372,66 @@ func resourceDataFactoryTriggerScheduleDelete(d *pluginsdk.ResourceData, meta in
 	}
 
 	return nil
+}
+
+func expandDataFactorySchedule(input []interface{}) *datafactory.RecurrenceSchedule {
+	if len(input) == 0 {
+		return nil
+	}
+	value := input[0].(map[string]interface{})
+	weekDays := make([]datafactory.DaysOfWeek, 0)
+	for _, v := range value["days_of_week"].([]interface{}) {
+		weekDays = append(weekDays, datafactory.DaysOfWeek(v.(string)))
+	}
+	monthlyOccurrences := make([]datafactory.RecurrenceScheduleOccurrence, 0)
+	for _, v := range value["monthly_occurrence"].([]interface{}) {
+		value := v.(map[string]interface{})
+		monthlyOccurrences = append(monthlyOccurrences, datafactory.RecurrenceScheduleOccurrence{
+			Day:        datafactory.DayOfWeek(value["day"].(string)),
+			Occurrence: utils.Int32(int32(value["occurrence"].(int))),
+		})
+	}
+	return &datafactory.RecurrenceSchedule{
+		Minutes:            utils.ExpandInt32Slice(value["minutes"].([]interface{})),
+		Hours:              utils.ExpandInt32Slice(value["hours"].([]interface{})),
+		WeekDays:           &weekDays,
+		MonthDays:          utils.ExpandInt32Slice(value["days_of_month"].([]interface{})),
+		MonthlyOccurrences: &monthlyOccurrences,
+	}
+}
+
+func flattenDataFactorySchedule(schedule *datafactory.RecurrenceSchedule) []interface{} {
+	if schedule == nil {
+		return []interface{}{}
+	}
+	value := make(map[string]interface{})
+	if schedule.Minutes != nil {
+		value["minutes"] = utils.FlattenInt32Slice(schedule.Minutes)
+	}
+	if schedule.Hours != nil {
+		value["hours"] = utils.FlattenInt32Slice(schedule.Hours)
+	}
+	if schedule.WeekDays != nil {
+		weekDays := make([]interface{}, 0)
+		for _, v := range *schedule.WeekDays {
+			weekDays = append(weekDays, string(v))
+		}
+		value["days_of_week"] = weekDays
+	}
+	if schedule.MonthDays != nil {
+		value["days_of_month"] = utils.FlattenInt32Slice(schedule.MonthDays)
+	}
+	if schedule.MonthlyOccurrences != nil {
+		monthlyOccurrences := make([]interface{}, 0)
+		for _, v := range *schedule.MonthlyOccurrences {
+			occurrence := make(map[string]interface{})
+			occurrence["day"] = string(v.Day)
+			if v.Occurrence != nil {
+				occurrence["occurrence"] = *v.Occurrence
+			}
+			monthlyOccurrences = append(monthlyOccurrences, occurrence)
+		}
+		value["monthly_occurrence"] = monthlyOccurrences
+	}
+	return []interface{}{value}
 }
