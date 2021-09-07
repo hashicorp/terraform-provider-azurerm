@@ -169,6 +169,11 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if appCfgKeyResourceID.Label == "" {
+				// We set an empty label as %00 in the resource ID
+				// Otherwise it breaks the ID parsing logic
+				appCfgKeyResourceID.Label = "%00"
+			}
 			metadata.SetID(appCfgKeyResourceID)
 			return nil
 		},
@@ -182,6 +187,12 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 			resourceID, err := parse.AppConfigurationKeyID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
+			}
+
+			// We set an empty label as %00 in the ID to make the ID validator happy
+			// but in reality the label is just an empty string
+			if resourceID.Label == "%00" {
+				resourceID.Label = ""
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)

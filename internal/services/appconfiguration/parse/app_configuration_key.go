@@ -26,12 +26,20 @@ func AppConfigurationKeyID(input string) (*AppConfigurationKeyId, error) {
 
 	keyName := resourceID.Path["AppConfigurationKey"]
 	label := resourceID.Path["Label"]
-	cfgStoreId := strings.TrimSuffix(input, fmt.Sprintf("/AppConfigurationKey/%s/Label/%s", keyName, label))
+
 	appcfgID := AppConfigurationKeyId{
-		ConfigurationStoreId: cfgStoreId,
-		Key:                  keyName,
-		Label:                label,
+		Key:   keyName,
+		Label: label,
 	}
+
+	// Golang's URL parser will translate %00 to \000 (NUL). This will only happen if we're dealing with an empty
+	// label, so we set the label to the expected value (empty string) and trim the input string, so we can properly
+	// extract the configuration store ID out of it.
+	if label == "\000" {
+		appcfgID.Label = ""
+		input = strings.TrimSuffix(input, "%00")
+	}
+	appcfgID.ConfigurationStoreId = strings.TrimSuffix(input, fmt.Sprintf("/AppConfigurationKey/%s/Label/%s", appcfgID.Key, appcfgID.Label))
 
 	return &appcfgID, nil
 }
