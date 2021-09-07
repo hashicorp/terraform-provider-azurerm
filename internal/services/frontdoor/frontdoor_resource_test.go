@@ -973,20 +973,20 @@ resource "azurerm_frontdoor_rules_engine" "sample_engine_config" {
   resource_group_name = azurerm_resource_group.test.name
 
   rule {
-    name = "debug"
+    name     = "debug"
     priority = 1
 
     rule_action {
       response_header_actions {
         header_action_type = "Append"
-        header_name = "X-TEST-HEADER"
-        value = "CORS API Rule"
+        header_name        = "X-TEST-HEADER"
+        value              = "CORS API Rule"
       }
     }
   }
 
   rule {
-    name = "origin"
+    name     = "origin"
     priority = 2
 
     rule_action {
