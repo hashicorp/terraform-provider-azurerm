@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -38,7 +38,7 @@ func suppressConsistencyPolicyStalenessConfiguration(_, _, _ string, d *pluginsd
 
 	consistencyPolicy := consistencyPolicyList[0].(map[string]interface{})
 
-	return consistencyPolicy["consistency_level"].(string) != string(documentdb.BoundedStaleness)
+	return consistencyPolicy["consistency_level"].(string) != string(documentdb.DefaultConsistencyLevelBoundedStaleness)
 }
 
 func resourceCosmosDbAccount() *pluginsdk.Resource {
@@ -78,7 +78,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Required:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(documentdb.Standard),
+					string(documentdb.DatabaseAccountOfferTypeStandard),
 				}, true),
 			},
 
@@ -86,12 +86,12 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          string(documentdb.GlobalDocumentDB),
+				Default:          string(documentdb.DatabaseAccountKindGlobalDocumentDB),
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(documentdb.GlobalDocumentDB),
-					string(documentdb.MongoDB),
-					string(documentdb.Parse),
+					string(documentdb.DatabaseAccountKindGlobalDocumentDB),
+					string(documentdb.DatabaseAccountKindMongoDB),
+					string(documentdb.DatabaseAccountKindParse),
 				}, true),
 			},
 
@@ -149,11 +149,11 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(documentdb.BoundedStaleness),
-								string(documentdb.ConsistentPrefix),
-								string(documentdb.Eventual),
-								string(documentdb.Session),
-								string(documentdb.Strong),
+								string(documentdb.DefaultConsistencyLevelBoundedStaleness),
+								string(documentdb.DefaultConsistencyLevelConsistentPrefix),
+								string(documentdb.DefaultConsistencyLevelEventual),
+								string(documentdb.DefaultConsistencyLevelSession),
+								string(documentdb.DefaultConsistencyLevelStrong),
 							}, true),
 						},
 
@@ -288,9 +288,9 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				ForceNew: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(documentdb.ThreeFullStopTwo),
-					string(documentdb.ThreeFullStopSix),
-					string(documentdb.FourFullStopZero),
+					string(documentdb.ServerVersionThreeFullStopTwo),
+					string(documentdb.ServerVersionThreeFullStopSix),
+					string(documentdb.ServerVersionFourFullStopZero),
 				}, false),
 			},
 
@@ -510,9 +510,9 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("expanding CosmosDB Account %q (Resource Group %q) geo locations: %+v", name, resourceGroup, err)
 	}
 
-	publicNetworkAccess := documentdb.Enabled
+	publicNetworkAccess := documentdb.PublicNetworkAccessEnabled
 	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
-		publicNetworkAccess = documentdb.Disabled
+		publicNetworkAccess = documentdb.PublicNetworkAccessDisabled
 	}
 
 	networkByPass := documentdb.NetworkACLBypassNone
@@ -569,7 +569,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	// additional validation on MaxStalenessPrefix as it varies depending on if the DB is multi region or not
 	consistencyPolicy := account.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy
-	if len(geoLocations) > 1 && consistencyPolicy != nil && consistencyPolicy.DefaultConsistencyLevel == documentdb.BoundedStaleness {
+	if len(geoLocations) > 1 && consistencyPolicy != nil && consistencyPolicy.DefaultConsistencyLevel == documentdb.DefaultConsistencyLevelBoundedStaleness {
 		if msp := consistencyPolicy.MaxStalenessPrefix; msp != nil && *msp < 100000 {
 			return fmt.Errorf("max_staleness_prefix (%d) must be greater then 100000 when more then one geo_location is used", *msp)
 		}
@@ -640,9 +640,9 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		oldLocationsMap[azure.NormalizeLocation(*location.LocationName)] = location
 	}
 
-	publicNetworkAccess := documentdb.Enabled
+	publicNetworkAccess := documentdb.PublicNetworkAccessEnabled
 	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
-		publicNetworkAccess = documentdb.Disabled
+		publicNetworkAccess = documentdb.PublicNetworkAccessDisabled
 	}
 
 	networkByPass := documentdb.NetworkACLBypassNone
@@ -788,7 +788,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 		d.Set("enable_free_tier", props.EnableFreeTier)
 		d.Set("analytical_storage_enabled", props.EnableAnalyticalStorage)
-		d.Set("public_network_access_enabled", props.PublicNetworkAccess == documentdb.Enabled)
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == documentdb.PublicNetworkAccessEnabled)
 
 		if v := resp.IsVirtualNetworkFilterEnabled; v != nil {
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)

@@ -68,6 +68,27 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				ExactlyOneOf: []string{"connection_string", "sas_uri", "service_endpoint"},
 			},
 
+			"key_vault_sas_token": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"linked_service_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"secret_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"description": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -180,9 +201,14 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if v, ok := d.GetOk("sas_uri"); ok {
-		blobStorageProperties.SasURI = &datafactory.SecureString{
-			Value: utils.String(v.(string)),
-			Type:  datafactory.TypeSecureString,
+		if sasToken, ok := d.GetOk("key_vault_sas_token"); ok {
+			blobStorageProperties.SasURI = utils.String(v.(string))
+			blobStorageProperties.SasToken = expandAzureKeyVaultSecretReference(sasToken.([]interface{}))
+		} else {
+			blobStorageProperties.SasURI = &datafactory.SecureString{
+				Value: utils.String(v.(string)),
+				Type:  datafactory.TypeSecureString,
+			}
 		}
 	}
 
@@ -286,6 +312,16 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 		} else {
 			d.Set("service_endpoint", blobStorage.ServiceEndpoint)
 			d.Set("use_managed_identity", true)
+		}
+	}
+
+	if properties := blobStorage.AzureBlobStorageLinkedServiceTypeProperties; properties != nil {
+		if sasToken := properties.SasToken; sasToken != nil {
+			if keyVaultPassword, ok := sasToken.AsAzureKeyVaultSecretReference(); ok {
+				if err := d.Set("key_vault_sas_token", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
+					return fmt.Errorf("Error setting `key_vault_sas_token`: %+v", err)
+				}
+			}
 		}
 	}
 

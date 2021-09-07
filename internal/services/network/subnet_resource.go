@@ -116,6 +116,7 @@ func resourceSubnet() *pluginsdk.Resource {
 											"Microsoft.BareMetal/CrayServers",
 											"Microsoft.Batch/batchAccounts",
 											"Microsoft.ContainerInstance/containerGroups",
+											"Microsoft.ContainerService/managedClusters",
 											"Microsoft.Databricks/workspaces",
 											"Microsoft.DBforMySQL/flexibleServers",
 											"Microsoft.DBforMySQL/serversv2",

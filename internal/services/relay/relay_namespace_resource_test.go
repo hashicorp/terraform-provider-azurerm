@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -86,6 +87,10 @@ func (t RelayNamespaceResource) Exists(ctx context.Context, clients *clients.Cli
 
 	resp, err := clients.Relay.NamespacesClient.Get(ctx, *id)
 	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return utils.Bool(false), nil
+		}
+
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 

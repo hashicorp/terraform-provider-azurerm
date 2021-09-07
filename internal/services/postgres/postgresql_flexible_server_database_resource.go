@@ -49,17 +49,19 @@ func resourcePostgresqlFlexibleServerDatabase() *pluginsdk.Resource {
 
 			"charset": {
 				Type:             pluginsdk.TypeString,
-				Required:         true,
+				Optional:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     validate.DatabaseCharset,
+				Default:          "UTF8",
 			},
 
 			"collation": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DatabaseCollation,
+				Default:      "en_US.utf8",
 			},
 		},
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
+	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -239,6 +240,74 @@ func SchemaHDInsightsNetwork() *pluginsdk.Schema {
 	}
 }
 
+func SchemaHDInsightsSecurityProfile() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"aadds_resource_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+
+				"domain_name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"domain_username": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"domain_user_password": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"ldaps_urls": {
+					Type:     pluginsdk.TypeSet,
+					Required: true,
+					ForceNew: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validate.HDInsightClusterLdapsUrls,
+					},
+				},
+
+				"msi_resource_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: msiValidate.UserAssignedIdentityID,
+				},
+
+				"cluster_users_group_dns": {
+					Type:     pluginsdk.TypeSet,
+					Optional: true,
+					ForceNew: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+	}
+}
+
 func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} {
 	vs := input[0].(map[string]interface{})
 
@@ -394,7 +463,7 @@ func FlattenHDInsightsNetwork(input *hdinsight.NetworkProperties) []interface{} 
 	}
 }
 
-func FlattenHDInsightsConfigurations(input map[string]*string) []interface{} {
+func FlattenHDInsightsConfigurations(input map[string]*string, d *pluginsdk.ResourceData) []interface{} {
 	enabled := true
 
 	username := ""
@@ -405,6 +474,8 @@ func FlattenHDInsightsConfigurations(input map[string]*string) []interface{} {
 	password := ""
 	if v, exists := input["restAuthCredential.password"]; exists && v != nil {
 		password = *v
+	} else {
+		password = d.Get("gateway.0.password").(string)
 	}
 
 	return []interface{}{
@@ -1025,6 +1096,30 @@ func ExpandHDInsightAutoscaleRecurrenceDefinition(input []interface{}) *hdinsigh
 	return result
 }
 
+func ExpandHDInsightSecurityProfile(input []interface{}) *hdinsight.SecurityProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	result := hdinsight.SecurityProfile{
+		DirectoryType:      hdinsight.DirectoryTypeActiveDirectory,
+		Domain:             utils.String(v["domain_name"].(string)),
+		LdapsUrls:          utils.ExpandStringSlice(v["ldaps_urls"].(*pluginsdk.Set).List()),
+		DomainUsername:     utils.String(v["domain_username"].(string)),
+		DomainUserPassword: utils.String(v["domain_user_password"].(string)),
+		AaddsResourceID:    utils.String(v["aadds_resource_id"].(string)),
+		MsiResourceID:      utils.String(v["msi_resource_id"].(string)),
+	}
+
+	if clusterUsersGroupDNS := v["cluster_users_group_dns"].(*pluginsdk.Set).List(); len(clusterUsersGroupDNS) != 0 {
+		result.ClusterUsersGroupDNS = utils.ExpandStringSlice(clusterUsersGroupDNS)
+	}
+
+	return &result
+}
+
 func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{}, definition HDInsightNodeDefinition) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -1208,6 +1303,44 @@ func FlattenHDInsightAutoscaleRecurrenceDefinition(input *hdinsight.AutoscaleRec
 		map[string]interface{}{
 			"timezone": input.TimeZone,
 			"schedule": &schedules,
+		},
+	}
+}
+
+func flattenHDInsightSecurityProfile(input *hdinsight.SecurityProfile, d *pluginsdk.ResourceData) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var aaddsResourceId string
+	if input.AaddsResourceID != nil {
+		aaddsResourceId = *input.AaddsResourceID
+	}
+
+	var domain string
+	if input.Domain != nil {
+		domain = *input.Domain
+	}
+
+	var domainUsername string
+	if input.DomainUsername != nil {
+		domainUsername = *input.DomainUsername
+	}
+
+	var msiResourceId string
+	if input.MsiResourceID != nil {
+		msiResourceId = *input.MsiResourceID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"aadds_resource_id":       aaddsResourceId,
+			"cluster_users_group_dns": utils.FlattenStringSlice(input.ClusterUsersGroupDNS),
+			"domain_name":             domain,
+			"domain_username":         domainUsername,
+			"domain_user_password":    d.Get("security_profile.0.domain_user_password"),
+			"ldaps_urls":              utils.FlattenStringSlice(input.LdapsUrls),
+			"msi_resource_id":         msiResourceId,
 		},
 	}
 }

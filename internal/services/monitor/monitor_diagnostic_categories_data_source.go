@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -76,9 +76,9 @@ func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta i
 
 		if category := v.DiagnosticSettingsCategory; category != nil {
 			switch category.CategoryType {
-			case insights.Logs:
+			case insights.CategoryTypeLogs:
 				logs = append(logs, *v.Name)
-			case insights.Metrics:
+			case insights.CategoryTypeMetrics:
 				metrics = append(metrics, *v.Name)
 			default:
 				return fmt.Errorf("Unsupported category type %q", string(category.CategoryType))

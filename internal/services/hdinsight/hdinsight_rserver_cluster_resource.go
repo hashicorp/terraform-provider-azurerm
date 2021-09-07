@@ -282,7 +282,7 @@ func resourceHDInsightRServerClusterRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("tls_min_version", props.MinSupportedTLSVersion)
 
 		if def := props.ClusterDefinition; def != nil {
-			if err := d.Set("gateway", FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
+			if err := d.Set("gateway", FlattenHDInsightsConfigurations(configuration.Value, d)); err != nil {
 				return fmt.Errorf("flattening `gateway`: %+v", err)
 			}
 

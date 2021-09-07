@@ -1541,8 +1541,8 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 type RestartParameter struct {
 	// RestartWithFailover - Indicates whether to restart the server with failover.
 	RestartWithFailover *bool `json:"restartWithFailover,omitempty"`
-	// FailoverMode - Failover mode.
-	FailoverMode *string `json:"failoverMode,omitempty"`
+	// FailoverMode - Failover mode. Possible values include: 'FailoverModePlannedFailover', 'FailoverModeForcedFailover', 'FailoverModePlannedSwitchover', 'FailoverModeForcedSwitchover'
+	FailoverMode FailoverMode `json:"failoverMode,omitempty"`
 }
 
 // Server represents a server.

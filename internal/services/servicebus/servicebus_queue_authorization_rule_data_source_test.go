@@ -26,6 +26,26 @@ func TestAccDataSourceServiceBusQueueAuthorizationRule_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("secondary_key").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string_alias").HasValue(""),
+				check.That(data.ResourceName).Key("secondary_connection_string_alias").HasValue(""),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceServiceBusQueueAuthorizationRule_withAliasConnectionString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_queue_authorization_rule", "test")
+	r := ServiceBusQueueAuthorizationRuleDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.queueAliasPolicy(data),
+		},
+		{
+			Config: r.queueAliasPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("primary_connection_string_alias").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string_alias").Exists(),
 			),
 		},
 	})
@@ -42,4 +62,17 @@ data "azurerm_servicebus_queue_authorization_rule" "test" {
   queue_name          = azurerm_servicebus_queue_authorization_rule.test.queue_name
 }
 `, ServiceBusQueueAuthorizationRuleResource{}.base(data, true, true, true))
+}
+
+func (ServiceBusQueueAuthorizationRuleDataSource) queueAliasPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_servicebus_queue_authorization_rule" "test" {
+  name                = azurerm_servicebus_queue_authorization_rule.test.name
+  namespace_name      = azurerm_servicebus_namespace.primary_namespace_test.name
+  resource_group_name = azurerm_resource_group.primary.name
+  queue_name          = azurerm_servicebus_queue.example.name
+}
+`, ServiceBusQueueAuthorizationRuleResource{}.withAliasConnectionString(data))
 }

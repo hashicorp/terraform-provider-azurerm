@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -114,7 +114,7 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 				"indexing_mode": {
 					Type:             pluginsdk.TypeString,
 					Optional:         true,
-					Default:          documentdb.Consistent,
+					Default:          documentdb.IndexingModeConsistent,
 					DiffSuppressFunc: suppress.CaseDifference, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
 					ValidateFunc: validation.StringInSlice([]string{
 						"Consistent",
@@ -171,8 +171,8 @@ func ConflictResolutionPolicy() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(documentdb.LastWriterWins),
-						string(documentdb.Custom),
+						string(documentdb.ConflictResolutionModeLastWriterWins),
+						string(documentdb.ConflictResolutionModeCustom),
 					}, false),
 				},
 

@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
+	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2018-09-15/dtl"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -85,6 +85,10 @@ func resourceDevTestGlobalVMShutdownSchedule() *pluginsdk.Resource {
 							ValidateFunc: validation.IntBetween(15, 120),
 						},
 						"webhook_url": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+						"email": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
@@ -257,18 +261,20 @@ func expandDevTestGlobalVMShutdownScheduleNotificationSettings(d *pluginsdk.Reso
 	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]interface{})
 	webhookUrl := notificationSettingsConfig["webhook_url"].(string)
 	timeInMinutes := int32(notificationSettingsConfig["time_in_minutes"].(int))
+	email := notificationSettingsConfig["email"].(string)
 
-	var notificationStatus dtl.NotificationStatus
+	var notificationStatus dtl.EnableStatus
 	if notificationSettingsConfig["enabled"].(bool) {
-		notificationStatus = dtl.NotificationStatusEnabled
+		notificationStatus = dtl.EnableStatusEnabled
 	} else {
-		notificationStatus = dtl.NotificationStatusDisabled
+		notificationStatus = dtl.EnableStatusDisabled
 	}
 
 	return &dtl.NotificationSettings{
-		WebhookURL:    &webhookUrl,
-		TimeInMinutes: &timeInMinutes,
-		Status:        notificationStatus,
+		WebhookURL:     &webhookUrl,
+		TimeInMinutes:  &timeInMinutes,
+		Status:         notificationStatus,
+		EmailRecipient: &email,
 	}
 }
 
@@ -287,7 +293,8 @@ func flattenDevTestGlobalVMShutdownScheduleNotificationSettings(notificationSett
 		result["time_in_minutes"] = *notificationSettings.TimeInMinutes
 	}
 
-	result["enabled"] = notificationSettings.Status == dtl.NotificationStatusEnabled
+	result["enabled"] = notificationSettings.Status == dtl.EnableStatusEnabled
+	result["email"] = notificationSettings.EmailRecipient
 
 	return []interface{}{result}
 }

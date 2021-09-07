@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -95,9 +95,14 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: validate.FirewallPolicyRuleName(),
 									},
+									"description": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validate.FirewallPolicyRuleName(),
+									},
 									"protocols": {
 										Type:     pluginsdk.TypeSet,
-										Required: true,
+										Optional: true,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"type": {
@@ -136,6 +141,18 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
+									"destination_addresses": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.Any(
+												validation.IsIPAddress,
+												validation.IsCIDR,
+												validation.StringInSlice([]string{`*`}, false),
+											),
+										},
+									},
 									"destination_fqdns": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
@@ -144,7 +161,27 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
+									"destination_urls": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+									},
 									"destination_fqdn_tags": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+									},
+									"terminate_tls": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+									},
+									"web_categories": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
@@ -564,13 +601,18 @@ func expandFirewallPolicyRuleApplication(input []interface{}) *[]network.BasicFi
 			})
 		}
 		output := &network.ApplicationRule{
-			Name:            utils.String(condition["name"].(string)),
-			RuleType:        network.RuleTypeApplicationRule,
-			Protocols:       &protocols,
-			SourceAddresses: utils.ExpandStringSlice(condition["source_addresses"].(*pluginsdk.Set).List()),
-			SourceIPGroups:  utils.ExpandStringSlice(condition["source_ip_groups"].(*pluginsdk.Set).List()),
-			TargetFqdns:     utils.ExpandStringSlice(condition["destination_fqdns"].(*pluginsdk.Set).List()),
-			FqdnTags:        utils.ExpandStringSlice(condition["destination_fqdn_tags"].(*pluginsdk.Set).List()),
+			Name:                 utils.String(condition["name"].(string)),
+			Description:          utils.String(condition["description"].(string)),
+			RuleType:             network.RuleTypeApplicationRule,
+			Protocols:            &protocols,
+			SourceAddresses:      utils.ExpandStringSlice(condition["source_addresses"].(*pluginsdk.Set).List()),
+			SourceIPGroups:       utils.ExpandStringSlice(condition["source_ip_groups"].(*pluginsdk.Set).List()),
+			DestinationAddresses: utils.ExpandStringSlice(condition["destination_addresses"].(*pluginsdk.Set).List()),
+			TargetFqdns:          utils.ExpandStringSlice(condition["destination_fqdns"].(*pluginsdk.Set).List()),
+			TargetUrls:           utils.ExpandStringSlice(condition["destination_urls"].(*pluginsdk.Set).List()),
+			FqdnTags:             utils.ExpandStringSlice(condition["destination_fqdn_tags"].(*pluginsdk.Set).List()),
+			TerminateTLS:         utils.Bool(condition["terminate_tls"].(bool)),
+			WebCategories:        utils.ExpandStringSlice(condition["web_categories"].(*pluginsdk.Set).List()),
 		}
 		result = append(result, output)
 	}
@@ -739,6 +781,16 @@ func flattenFirewallPolicyRuleApplication(input *[]network.BasicFirewallPolicyRu
 			name = *rule.Name
 		}
 
+		var description string
+		if rule.Description != nil {
+			description = *rule.Description
+		}
+
+		var terminate_tls bool
+		if rule.TerminateTLS != nil {
+			terminate_tls = *rule.TerminateTLS
+		}
+
 		protocols := make([]interface{}, 0)
 		if rule.Protocols != nil {
 			for _, protocol := range *rule.Protocols {
@@ -755,11 +807,16 @@ func flattenFirewallPolicyRuleApplication(input *[]network.BasicFirewallPolicyRu
 
 		output = append(output, map[string]interface{}{
 			"name":                  name,
+			"description":           description,
 			"protocols":             protocols,
 			"source_addresses":      utils.FlattenStringSlice(rule.SourceAddresses),
 			"source_ip_groups":      utils.FlattenStringSlice(rule.SourceIPGroups),
+			"destination_addresses": utils.FlattenStringSlice(rule.DestinationAddresses),
+			"destination_urls":      utils.FlattenStringSlice(rule.TargetUrls),
 			"destination_fqdns":     utils.FlattenStringSlice(rule.TargetFqdns),
 			"destination_fqdn_tags": utils.FlattenStringSlice(rule.FqdnTags),
+			"terminate_tls":         terminate_tls,
+			"web_categories":        utils.FlattenStringSlice(rule.WebCategories),
 		})
 	}
 

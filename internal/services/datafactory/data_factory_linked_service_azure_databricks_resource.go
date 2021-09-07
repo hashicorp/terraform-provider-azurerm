@@ -77,6 +77,7 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						// TODO use LinkedServiceDataSetName and NestedItemName validate here and in other linked service resources
 						"linked_service_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
