@@ -756,6 +756,30 @@ func TestAccCosmosDBAccount_mongoVersion40(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDBAccount_localAuthenticationDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_disabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithLocalAuthenticationDisabled(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_disabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CosmosDBAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DatabaseAccountID(state.ID)
 	if err != nil {
@@ -2101,4 +2125,36 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
+}
+
+func (CosmosDBAccountResource) basicWithLocalAuthenticationDisabled(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  local_authentication_disabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }

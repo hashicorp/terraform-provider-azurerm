@@ -282,6 +282,12 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"local_authentication_disabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"mongo_server_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -493,6 +499,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
 	enableAnalyticalStorage := d.Get("analytical_storage_enabled").(bool)
+	disableLocalAuthentication := d.Get("local_authentication_disabled").(bool)
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
@@ -541,6 +548,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			DisableKeyBasedMetadataWriteAccess: utils.Bool(!d.Get("access_key_metadata_writes_enabled").(bool)),
 			NetworkACLBypass:                   networkByPass,
 			NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
+			DisableLocalAuth:                   utils.Bool(disableLocalAuthentication),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -613,6 +621,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
 	enableAnalyticalStorage := d.Get("analytical_storage_enabled").(bool)
+	disableLocalAuthentication := d.Get("local_authentication_disabled").(bool)
 
 	newLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
@@ -673,6 +682,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			DisableKeyBasedMetadataWriteAccess: utils.Bool(!d.Get("access_key_metadata_writes_enabled").(bool)),
 			NetworkACLBypass:                   networkByPass,
 			NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
+			DisableLocalAuth:                   utils.Bool(disableLocalAuthentication),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -828,6 +838,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 		d.Set("network_acl_bypass_for_azure_services", props.NetworkACLBypass == documentdb.NetworkACLBypassAzureServices)
 		d.Set("network_acl_bypass_ids", utils.FlattenStringSlice(props.NetworkACLBypassResourceIds))
+		d.Set("local_authentication_disabled", props.DisableLocalAuth)
 
 		policy, err := flattenCosmosdbAccountBackup(props.BackupPolicy)
 		if err != nil {
