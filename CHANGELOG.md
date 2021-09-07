@@ -15,10 +15,10 @@ ENHANCEMENTS:
 * `azurerm_eventgrid_topic` support for the `identity` block [GH-12951]
 * `azurerm_eventgrid_system_topic` support for the `identity` block [GH-12951]
 * `azurerm_cosmosdb_account` support for the `local_authentication_disabled` property [GH-13237]
-
 BUG FIXES:
 
 * `azurerm_api_management_subscription` - relax `subscription_id` validation [GH-13203]
+* `azurerm_app_configuration_key` - fix KV import with no label [GH-13253]
 
 ## 2.75.0 (September 02, 2021)
 
