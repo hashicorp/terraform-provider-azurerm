@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-files=$(find . | egrep "/azurerm/internal/services/[a-z]+/[a-z_]+(resource|data_source)[a-z_]+\.go$" | egrep "test.go")
+files=$(find . | egrep "/internal/services/[a-z]+/[a-z_]+(resource|data_source)[a-z_]+\.go$" | egrep "test.go")
 error=false
 
 echo "==> Checking that acceptance test packages are used..."

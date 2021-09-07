@@ -345,6 +345,8 @@ A `metric_trigger` block supports the following:
 
 * `dimensions` - (Optional) One or more `dimensions` block as defined below.
 
+* `divide_by_instance_count` - (Optional) Whether to enable metric divide by instance count.
+
 ---
 
 A `scale_action` block supports the following:

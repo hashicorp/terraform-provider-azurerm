@@ -40,6 +40,8 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the IoTHub.
+* `hostname` - The Hostname of the IoTHub.
+ 
 
 ## Timeouts
 
