@@ -3,6 +3,7 @@ package monitor_test
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
@@ -84,6 +85,83 @@ func TestAccMonitorScheduledQueryRules_AlertingActionCrossResource(t *testing.T)
 		},
 		data.ImportStep(),
 	})
+}
+func TestAccMonitorScheduledQueryRules_AutoMitigate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
+	r := MonitorScheduledQueryRulesResource{}
+	ts := time.Now().Format(time.RFC3339)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.AlertingActionAutoMitigate(data, ts, 0, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.AlertingActionAutoMitigate(data, ts, 50, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.AlertingActionAutoMitigate(data, ts, 50, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.AlertingActionAutoMitigate(data, ts, 0, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (MonitorScheduledQueryRulesResource) AlertingActionAutoMitigate(data acceptance.TestData, ts string, throttling int, autoMitigate bool) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-monitor-%d"
+  location = "%s"
+}
+resource "azurerm_application_insights" "test" {
+  name                = "acctestAppInsights-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag"
+}
+resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
+  name                = "acctestsqr-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  data_source_id = azurerm_application_insights.test.id
+  query          = <<-QUERY
+	let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%s', 25.4, '%s', 75.4 ];
+	d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h)
+QUERY
+  frequency             = 60
+  time_window           = 60
+  throttling            = %d
+  auto_mitigate_enabled = %s
+  action {
+    action_group = [azurerm_monitor_action_group.test.id]
+  }
+  trigger {
+    operator  = "GreaterThan"
+    threshold = 5000
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, ts, ts, throttling, strconv.FormatBool(autoMitigate))
 }
 
 func (MonitorScheduledQueryRulesResource) AlertingActionConfigBasic(data acceptance.TestData, ts string) string {
