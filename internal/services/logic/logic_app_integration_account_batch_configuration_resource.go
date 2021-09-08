@@ -155,12 +155,12 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 													ConflictsWith: []string{"release_criteria.0.recurrence.0.schedule.0.week_days"},
 												},
 
-												"monthly_occurrence": {
+												"monthly": {
 													Type:     pluginsdk.TypeSet,
 													Optional: true,
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*pluginsdk.Schema{
-															"day": {
+															"weekday": {
 																Type:             pluginsdk.TypeString,
 																Required:         true,
 																DiffSuppressFunc: suppress.CaseDifference,
@@ -175,7 +175,7 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 																}, true),
 															},
 
-															"occurrence": {
+															"week": {
 																Type:     pluginsdk.TypeInt,
 																Required: true,
 																ValidateFunc: validation.All(
@@ -204,7 +204,7 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 															string(logic.Sunday),
 														}, true),
 													},
-													ConflictsWith: []string{"release_criteria.0.recurrence.0.schedule.0.month_days", "release_criteria.0.recurrence.0.schedule.0.monthly_occurrence"},
+													ConflictsWith: []string{"release_criteria.0.recurrence.0.schedule.0.month_days", "release_criteria.0.recurrence.0.schedule.0.monthly"},
 												},
 											},
 										},
@@ -252,9 +252,9 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 				return fmt.Errorf("`month_days` can only be set when frequency is `Month`")
 			}
 
-			_, hasMonthlyOccurrences := diff.GetOk("release_criteria.0.recurrence.0.schedule.0.monthly_occurrence")
+			_, hasMonthlyOccurrences := diff.GetOk("release_criteria.0.recurrence.0.schedule.0.monthly")
 			if hasMonthlyOccurrences && frequency != "month" {
-				return fmt.Errorf("`monthly_occurrence` can only be set when frequency is `Month`")
+				return fmt.Errorf("`monthly` can only be set when frequency is `Month`")
 			}
 
 			return nil
@@ -440,7 +440,7 @@ func expandIntegrationAccountBatchConfigurationRecurrenceSchedule(input []interf
 		result.MonthDays = utils.ExpandInt32Slice(monthDays)
 	}
 
-	if monthlyOccurrence := v["monthly_occurrence"].(*pluginsdk.Set).List(); len(monthlyOccurrence) != 0 {
+	if monthlyOccurrence := v["monthly"].(*pluginsdk.Set).List(); len(monthlyOccurrence) != 0 {
 		result.MonthlyOccurrences = expandIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrences(monthlyOccurrence)
 	}
 
@@ -454,8 +454,8 @@ func expandIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrences(inp
 		v := item.(map[string]interface{})
 
 		results = append(results, logic.RecurrenceScheduleOccurrence{
-			Day:        logic.DayOfWeek(v["day"].(string)),
-			Occurrence: utils.Int32(int32(v["occurrence"].(int))),
+			Day:        logic.DayOfWeek(v["weekday"].(string)),
+			Occurrence: utils.Int32(int32(v["week"].(int))),
 		})
 	}
 
@@ -544,11 +544,11 @@ func flattenIntegrationAccountBatchConfigurationRecurrenceSchedule(input *logic.
 
 	return []interface{}{
 		map[string]interface{}{
-			"hours":              utils.FlattenInt32Slice(input.Hours),
-			"minutes":            utils.FlattenInt32Slice(input.Minutes),
-			"month_days":         utils.FlattenInt32Slice(input.MonthDays),
-			"monthly_occurrence": flattenIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrence(input.MonthlyOccurrences),
-			"week_days":          weekDays,
+			"hours":      utils.FlattenInt32Slice(input.Hours),
+			"minutes":    utils.FlattenInt32Slice(input.Minutes),
+			"month_days": utils.FlattenInt32Slice(input.MonthDays),
+			"monthly":    flattenIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrence(input.MonthlyOccurrences),
+			"week_days":  weekDays,
 		},
 	}
 }
@@ -571,8 +571,8 @@ func flattenIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrence(inp
 		}
 
 		results = append(results, map[string]interface{}{
-			"day":        day,
-			"occurrence": occurrence,
+			"weekday": day,
+			"week":    occurrence,
 		})
 	}
 

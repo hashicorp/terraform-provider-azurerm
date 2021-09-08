@@ -177,9 +177,9 @@ resource "azurerm_logic_app_integration_account_batch_configuration" "test" {
         minutes    = [4, 5]
         month_days = [6, 7]
 
-        monthly_occurrence {
-          day        = "Monday"
-          occurrence = 1
+        monthly {
+          weekday    = "Monday"
+          week     = 1
         }
       }
     }

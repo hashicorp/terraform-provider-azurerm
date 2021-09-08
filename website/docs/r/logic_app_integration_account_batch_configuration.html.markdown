@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `batch_group_name` - (Required) The batch group name of the Logic App Integration Batch Configuration. Changing this forces a new resource to be created.
 
-* `release_criteria` - (Required) A `release_criteria` block as documented below.
+* `release_criteria` - (Required) A `release_criteria` block as documented below, which is used to select the criteria to meet before processing each batch.
 
 * `metadata` - (Optional) A JSON mapping of any Metadata for this Logic App Integration Account Batch Configuration.
 
@@ -71,11 +71,11 @@ A `recurrence` block exports the following:
 
 * `interval` - (Required) The number of `frequency`s between runs.
 
-* `end_time` - (Optional) The end time of the schedule.
+* `end_time` - (Optional) The end time of the schedule, formatted as an RFC3339 string.
 
 * `schedule` - (Optional) A `schedule` block as documented below.
 
-* `start_time` - (Optional) The start time of the schedule.
+* `start_time` - (Optional) The start time of the schedule, formatted as an RFC3339 string.
 
 * `time_zone` - (Optional) The timezone of the start/end time.
 
@@ -89,17 +89,17 @@ A `schedule` block exports the following:
 
 * `month_days` - (Optional) A list of days of the month that the job should execute on.
 
-* `monthly_occurrence` - (Optional) A `monthly_occurrence` block as documented below.
+* `monthly` - (Optional) A `monthly` block as documented below.
 
 * `week_days` - (Optional) A list of days of the week that the job should execute on. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
 
 ---
 
-A `monthly_occurrence` block exports the following:
+A `monthly` block exports the following:
 
-* `day` - (Required) The day of the occurrence. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
+* `weekday` - (Required) The day of the occurrence. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
 
-* `occurrence` - (Required) The occurrence of the week within the month.
+* `week` - (Required) The occurrence of the week within the month.
 
 ## Attributes Reference
 
