@@ -86,9 +86,9 @@ The following arguments are supported:
 
 -> **NOTE:** The `admin_enabled` should be `true` in order to associate the Container Registry to this Machine Learning Workspace.
 
-* `public_access_behind_vnet_enabled` - (Optional) Enable public access when this Machine Learning Workspace is behind VNet.
+* `public_network_access` - (Optional) Enable public access when this Machine Learning Workspace is behind VNet.
 
-* `image_build_compute_name` - (Optional) The compute name for image build of the Machine Learning Workspace.
+* `image_build_compute` - (Optional) The compute name for image build of the Machine Learning Workspace.
 
 * `description` - (Optional) The description of this Machine Learning Workspace.
 
