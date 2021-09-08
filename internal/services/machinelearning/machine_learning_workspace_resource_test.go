@@ -221,6 +221,8 @@ resource "azurerm_machine_learning_workspace" "test" {
   container_registry_id   = azurerm_container_registry.test.id
   sku_name                = "Basic"
   high_business_impact    = true
+  public_network_access   = true
+  image_build_compute     = "terraformCompute"
 
   identity {
     type = "SystemAssigned"
@@ -259,6 +261,8 @@ resource "azurerm_machine_learning_workspace" "test" {
   container_registry_id   = azurerm_container_registry.test.id
   sku_name                = "Basic"
   high_business_impact    = true
+  public_network_access   = true
+  image_build_compute     = "terraformCompute"
 
   identity {
     type = "SystemAssigned"
