@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -18,13 +17,13 @@ type KeyVaultManagedStorageAccountSasDefinitionResource struct {
 }
 
 func TestAccKeyVaultManagedStorageAccountSasDefinition_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sasdefinition", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sas_token_definition", "test")
 	r := KeyVaultManagedStorageAccountSasDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -33,13 +32,13 @@ func TestAccKeyVaultManagedStorageAccountSasDefinition_basic(t *testing.T) {
 }
 
 func TestAccKeyVaultManagedStorageAccountSasDefinitionSasDefinition_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sasdefinition", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sas_token_definition", "test")
 	r := KeyVaultManagedStorageAccountSasDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -48,13 +47,13 @@ func TestAccKeyVaultManagedStorageAccountSasDefinitionSasDefinition_requiresImpo
 }
 
 func TestAccKeyVaultManagedStorageAccountSasDefinition_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sasdefinition", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sas_token_definition", "test")
 	r := KeyVaultManagedStorageAccountSasDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, "P1D"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sas_type").HasValue("account"),
 				check.That(data.ResourceName).Key("validity_period").HasValue("P1D"),
@@ -68,13 +67,13 @@ func TestAccKeyVaultManagedStorageAccountSasDefinition_complete(t *testing.T) {
 }
 
 func TestAccKeyVaultManagedStorageAccountSasDefinition_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sasdefinition", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sas_token_definition", "test")
 	r := KeyVaultManagedStorageAccountSasDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, "P1D"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sas_type").HasValue("account"),
 				check.That(data.ResourceName).Key("validity_period").HasValue("P1D"),
@@ -86,7 +85,7 @@ func TestAccKeyVaultManagedStorageAccountSasDefinition_update(t *testing.T) {
 		data.ImportStep("managed_storage_account_id"),
 		{
 			Config: r.complete(data, "P2D"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sas_type").HasValue("account"),
 				check.That(data.ResourceName).Key("validity_period").HasValue("P2D"),
@@ -100,13 +99,13 @@ func TestAccKeyVaultManagedStorageAccountSasDefinition_update(t *testing.T) {
 }
 
 func TestAccKeyVaultManagedStorageAccountSasDefinition_recovery(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sasdefinition", "test")
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sas_token_definition", "test")
 	r := KeyVaultManagedStorageAccountSasDefinitionResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.softDeleteRecovery(data, false, "1"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -118,7 +117,7 @@ func TestAccKeyVaultManagedStorageAccountSasDefinition_recovery(t *testing.T) {
 		{
 			// purge true here to make sure when we end the test there's no soft-deleted items left behind
 			Config: r.softDeleteRecovery(data, true, "2"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -135,15 +134,15 @@ provider "azurerm" {
 %s
 
 resource "azurerm_key_vault_managed_storage_account" "test" {
-  name                = "acctestKVstorage"
-  key_vault_id        = azurerm_key_vault.test.id
-  storage_account_id  = azurerm_storage_account.test.id
-  storage_account_key = "key1"
-  auto_regenerate_key = false
-  regeneration_period = "P1D"
+  name                         = "acctestKVstorage"
+  key_vault_id                 = azurerm_key_vault.test.id
+  storage_account_id           = azurerm_storage_account.test.id
+  storage_account_key          = "key1"
+  regenerate_key_automatically = false
+  regeneration_period          = "P1D"
 }
 
-resource "azurerm_key_vault_managed_storage_account_sasdefinition" "test" {
+resource "azurerm_key_vault_managed_storage_account_sas_token_definition" "test" {
   name                       = "acctestKVsasdefinition"
   managed_storage_account_id = azurerm_key_vault_managed_storage_account.test.id
   sas_type                   = "account"
@@ -157,8 +156,8 @@ func (r KeyVaultManagedStorageAccountSasDefinitionResource) requiresImport(data 
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_key_vault_managed_storage_account_sasdefinition" "import" {
-  name                       = azurerm_key_vault_managed_storage_account_sasdefinition.test.name
+resource "azurerm_key_vault_managed_storage_account_sas_token_definition" "import" {
+  name                       = azurerm_key_vault_managed_storage_account_sas_token_definition.test.name
   managed_storage_account_id = azurerm_key_vault_managed_storage_account.test.id
   sas_type                   = "account"
   sas_template_uri           = data.azurerm_storage_account_sas.test.sas
@@ -176,15 +175,15 @@ provider "azurerm" {
 %s
 
 resource "azurerm_key_vault_managed_storage_account" "test" {
-  name                = "acctestKVstorage"
-  key_vault_id        = azurerm_key_vault.test.id
-  storage_account_id  = azurerm_storage_account.test.id
-  storage_account_key = "key1"
-  auto_regenerate_key = false
-  regeneration_period = "P1D"
+  name                         = "acctestKVstorage"
+  key_vault_id                 = azurerm_key_vault.test.id
+  storage_account_id           = azurerm_storage_account.test.id
+  storage_account_key          = "key1"
+  regenerate_key_automatically = false
+  regeneration_period          = "P1D"
 }
 
-resource "azurerm_key_vault_managed_storage_account_sasdefinition" "test" {
+resource "azurerm_key_vault_managed_storage_account_sas_token_definition" "test" {
   name                       = "acctestKVsasdefinition"
   managed_storage_account_id = azurerm_key_vault_managed_storage_account.test.id
   sas_type                   = "account"
@@ -212,15 +211,15 @@ provider "azurerm" {
 %s
 
 resource "azurerm_key_vault_managed_storage_account" "test" {
-  name                = "acctestKVstorage%s"
-  key_vault_id        = azurerm_key_vault.test.id
-  storage_account_id  = azurerm_storage_account.test.id
-  storage_account_key = "key1"
-  auto_regenerate_key = false
-  regeneration_period = "P1D"
+  name                         = "acctestKVstorage%s"
+  key_vault_id                 = azurerm_key_vault.test.id
+  storage_account_id           = azurerm_storage_account.test.id
+  storage_account_key          = "key1"
+  regenerate_key_automatically = false
+  regeneration_period          = "P1D"
 }
 
-resource "azurerm_key_vault_managed_storage_account_sasdefinition" "test" {
+resource "azurerm_key_vault_managed_storage_account_sas_token_definition" "test" {
   name                       = "acctestKVsasdefinition%s"
   managed_storage_account_id = azurerm_key_vault_managed_storage_account.test.id
   sas_type                   = "account"
@@ -311,7 +310,7 @@ resource "azurerm_key_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func (KeyVaultManagedStorageAccountSasDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (KeyVaultManagedStorageAccountSasDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	dataPlaneClient := client.KeyVault.ManagementClient
 	keyVaultsClient := client.KeyVault
 

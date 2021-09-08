@@ -90,11 +90,11 @@ resource "azurerm_key_vault" "example" {
 }
 
 resource "azurerm_key_vault_managed_storage_account" "example" {
-  name                = "examplemanagedstorage"
-  key_vault_id        = azurerm_key_vault.example.id
-  storage_account_id  = azurerm_storage_account.example.id
-  storage_account_key = "key1"
-  auto_regenerate_key = false
+  name                         = "examplemanagedstorage"
+  key_vault_id                 = azurerm_key_vault.example.id
+  storage_account_id           = azurerm_storage_account.example.id
+  storage_account_key          = "key1"
+  regenerate_key_automatically = false
 }
 ```
 
@@ -184,12 +184,12 @@ resource "azurerm_role_assignment" "example" {
 }
 
 resource "azurerm_key_vault_managed_storage_account" "example" {
-  name                = "examplemanagedstorage"
-  key_vault_id        = azurerm_key_vault.example.id
-  storage_account_id  = azurerm_storage_account.example.id
-  storage_account_key = "key1"
-  auto_regenerate_key = true
-  regeneration_period = "P1D"
+  name                         = "examplemanagedstorage"
+  key_vault_id                 = azurerm_key_vault.example.id
+  storage_account_id           = azurerm_storage_account.example.id
+  storage_account_key          = "key1"
+  regenerate_key_automatically = true
+  regeneration_period          = "P1D"
 }
 ```
 
@@ -207,7 +207,7 @@ The following arguments are supported:
 
 ---
 
-* `auto_regenerate_key` - (Optional) Should Storage Account access key be regenerated periodically?
+* `regenerate_key_automatically` - (Optional) Should Storage Account access key be regenerated periodically?
 
 ~> **NOTE:** Azure Key Vault application needs to have access to Storage Account for auto regeneration to work. Example can be found above.
 

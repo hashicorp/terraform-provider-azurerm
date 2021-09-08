@@ -69,7 +69,7 @@ func resourceKeyVaultManagedStorageAccount() *pluginsdk.Resource {
 				ValidateFunc: storageValidate.StorageAccountID,
 			},
 
-			"auto_regenerate_key": {
+			"regenerate_key_automatically": {
 				Type:         pluginsdk.TypeBool,
 				Optional:     true,
 				Default:      false,
@@ -80,7 +80,7 @@ func resourceKeyVaultManagedStorageAccount() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.ISO8601Duration,
-				RequiredWith: []string{"auto_regenerate_key"},
+				RequiredWith: []string{"regenerate_key_automatically"},
 			},
 
 			"tags": tags.ForceNewSchema(),
@@ -109,7 +109,7 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 		existing, err := client.GetStorageAccount(ctx, *keyVaultBaseUrl, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Managed Storage Account %q (Key Vault %q): %s", name, *keyVaultBaseUrl, err)
+				return fmt.Errorf("checking for presence of existing Managed Storage Account %q (Key Vault %q): %s", name, *keyVaultId, err)
 			}
 		}
 
@@ -123,13 +123,9 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 	parameters := keyvault.StorageAccountCreateParameters{
 		ResourceID:         utils.String(d.Get("storage_account_id").(string)),
 		ActiveKeyName:      utils.String(d.Get("storage_account_key").(string)),
-		AutoRegenerateKey:  utils.Bool(d.Get("auto_regenerate_key").(bool)),
+		AutoRegenerateKey:  utils.Bool(d.Get("regenerate_key_automatically").(bool)),
 		RegenerationPeriod: utils.String(d.Get("regeneration_period").(string)),
 		Tags:               tags.Expand(t),
-	}
-
-	if _, err := client.SetStorageAccount(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
-		return fmt.Errorf("creating %s: %+v", name, err)
 	}
 
 	if resp, err := client.SetStorageAccount(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
@@ -138,9 +134,9 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
 			recoveredStorageAccount, err := client.RecoverDeletedStorageAccount(ctx, *keyVaultBaseUrl, name)
 			if err != nil {
-				return err
+				return fmt.Errorf("recovery of Managed Storage Account %q (Key Vault %q): %s", name, *keyVaultBaseUrl, err)
 			}
-			log.Printf("[DEBUG] Recovering Managed Storage Account %q with ID: %q", name, *recoveredStorageAccount.ID)
+			log.Printf("[DEBUG] Recovering Managed Storage Account %q (Key Vault %q)", name, *keyVaultBaseUrl)
 			// We need to wait for consistency, recovered Key Vault Child items are not as readily available as newly created
 			if secret := recoveredStorageAccount.ID; secret != nil {
 				stateConf := &pluginsdk.StateChangeConf{
@@ -154,18 +150,16 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 				}
 
 				if _, err := stateConf.WaitForState(); err != nil {
-					return fmt.Errorf("Error waiting for Managed Storage Account %q to become available: %s", name, err)
+					return fmt.Errorf("waiting for Managed Storage Account %q (Key Vault %q) to become available after recovery: %s", name, *keyVaultId, err)
 				}
 				log.Printf("[DEBUG] Managed Storage Account %q recovered with ID: %q", name, *recoveredStorageAccount.ID)
 
-				_, err := client.SetStorageAccount(ctx, *keyVaultBaseUrl, name, parameters)
-				if err != nil {
-					return err
+				if _, err := client.SetStorageAccount(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
+					return fmt.Errorf("creating Managed Storage Account %s (Key Vault %q): %+v", name, *keyVaultId, err)
 				}
 			}
 		} else {
-			// If the error response was anything else, or `recover_soft_deleted_key_vaults` is `false` just return the error
-			return err
+			return fmt.Errorf("creating Managed Storage Account %s: %+v", name, err)
 		}
 	}
 
@@ -176,7 +170,7 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("cannot read Managed Storage Account '%s' (in key vault '%s')", name, *keyVaultBaseUrl)
+		return fmt.Errorf("cannot read Managed Storage Account %q (Key Vault %q)", name, *keyVaultId)
 	}
 
 	d.SetId(*read.ID)
@@ -198,7 +192,7 @@ func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta i
 
 	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
-		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("retrieving the Resource ID of the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
 	if keyVaultIdRaw == nil {
 		log.Printf("[DEBUG] Unable to determine the Resource ID for the Key Vault at URL %q - removing from state!", id.KeyVaultBaseUrl)
@@ -213,10 +207,10 @@ func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta i
 
 	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error checking if key vault %q for Managed Storage Account %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("checking if Key Vault %q for Managed Storage Account %q exists: %v", *keyVaultId, id.Name, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Managed Storage Account %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Managed Storage Account %q (Key Vault %q) was not found - removing from state", id.Name, *keyVaultId)
 		d.SetId("")
 		return nil
 	}
@@ -224,18 +218,18 @@ func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta i
 	resp, err := client.GetStorageAccount(ctx, id.KeyVaultBaseUrl, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Managed Storage Account %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseUrl)
+			log.Printf("[DEBUG] Managed Storage Account %q (Key Vault %q) was not found - removing from state", id.Name, *keyVaultId)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure KeyVault Managed Storage Account %s: %+v", id.Name, err)
+		return fmt.Errorf("Error making Read request on Managed Storage Account %q (Key Vault %q): %+v", id.Name, *keyVaultId, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("key_vault_id", keyVaultId.ID())
 	d.Set("storage_account_id", resp.ResourceID)
 	d.Set("storage_account_key", resp.ActiveKeyName)
-	d.Set("auto_regenerate_key", resp.AutoRegenerateKey)
+	d.Set("regenerate_key_automatically", resp.AutoRegenerateKey)
 	d.Set("regeneration_period", resp.RegenerationPeriod)
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -255,10 +249,10 @@ func resourceKeyVaultManagedStorageAccountDelete(d *pluginsdk.ResourceData, meta
 
 	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
-		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
 	if keyVaultIdRaw == nil {
-		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
+		return fmt.Errorf("determining the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
 	}
 	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
 	if err != nil {
@@ -267,10 +261,10 @@ func resourceKeyVaultManagedStorageAccountDelete(d *pluginsdk.ResourceData, meta
 
 	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error checking if key vault %q for Managed Storage Account %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("checking for existance of Key Vault %q for Managed Storage Account %q in Vault at url %q: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Managed Storage Account %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Managed Storage Account %q (Key Vault %q) was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
 		d.SetId("")
 		return nil
 	}

@@ -1,12 +1,12 @@
 ---
 subcategory: "Key Vault"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_key_vault_managed_storage_account_sasdefinition"
+page_title: "Azure Resource Manager: azurerm_key_vault_managed_storage_account_sas_token_definition"
 description: |-
   Manages a Key Vault Managed Storage Account SAS Definition.
 ---
 
-# azurerm_key_vault_managed_storage_account_sasdefinition
+# azurerm_key_vault_managed_storage_account_sas_token_definition
 
 Manages a Key Vault Managed Storage Account SAS Definition.
 
@@ -90,15 +90,15 @@ resource "azurerm_key_vault" "example" {
 }
 
 resource "azurerm_key_vault_managed_storage_account" "test" {
-  name                = "examplemanagedstorage"
-  key_vault_id        = azurerm_key_vault.example.id
-  storage_account_id  = azurerm_storage_account.example.id
-  storage_account_key = "key1"
-  auto_regenerate_key = false
-  regeneration_period = "P1D"
+  name                         = "examplemanagedstorage"
+  key_vault_id                 = azurerm_key_vault.example.id
+  storage_account_id           = azurerm_storage_account.example.id
+  storage_account_key          = "key1"
+  regenerate_key_automatically = false
+  regeneration_period          = "P1D"
 }
 
-resource "azurerm_key_vault_managed_storage_account_sasdefinition" "example" {
+resource "azurerm_key_vault_managed_storage_account_sas_token_definition" "example" {
   name                       = "examplesasdefinition"
   validity_period            = "P1D"
   managed_storage_account_id = azurerm_key_vault_managed_storage_account.example.id
@@ -147,5 +147,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Key Vaults can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_key_vault_managed_storage_account_sasdefinition.example https://example-keyvault.vault.azure.net/storage/exampleStorageAcc01/sas/exampleSasDefinition01
+terraform import azurerm_key_vault_managed_storage_account_sas_token_definition.example https://example-keyvault.vault.azure.net/storage/exampleStorageAcc01/sas/exampleSasDefinition01
 ```

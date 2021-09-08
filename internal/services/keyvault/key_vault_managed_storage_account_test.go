@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccKeyVaultManagedStorageAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account", "test")
 	r := KeyVaultManagedStorageAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,10 @@ func TestAccKeyVaultManagedStorageAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account", "test")
 	r := KeyVaultManagedStorageAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,13 +50,13 @@ func TestAccKeyVaultManagedStorageAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account", "test")
 	r := KeyVaultManagedStorageAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, true, "P1D"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_account_key").HasValue("key1"),
-				check.That(data.ResourceName).Key("auto_regenerate_key").HasValue("true"),
+				check.That(data.ResourceName).Key("regenerate_key_automatically").HasValue("true"),
 				check.That(data.ResourceName).Key("regeneration_period").HasValue("P1D"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
@@ -71,23 +70,23 @@ func TestAccKeyVaultManagedStorageAccount_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account", "test")
 	r := KeyVaultManagedStorageAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, true, "P1D"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_account_key").HasValue("key1"),
-				check.That(data.ResourceName).Key("auto_regenerate_key").HasValue("true"),
+				check.That(data.ResourceName).Key("regenerate_key_automatically").HasValue("true"),
 				check.That(data.ResourceName).Key("regeneration_period").HasValue("P1D"),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data, false, "P2D"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_account_key").HasValue("key1"),
-				check.That(data.ResourceName).Key("auto_regenerate_key").HasValue("false"),
+				check.That(data.ResourceName).Key("regenerate_key_automatically").HasValue("false"),
 				check.That(data.ResourceName).Key("regeneration_period").HasValue("P2D"),
 			),
 		},
@@ -99,10 +98,10 @@ func TestAccKeyVaultManagedStorageAccount_recovery(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account", "test")
 	r := KeyVaultManagedStorageAccountResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.softDeleteRecovery(data, false, "1"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -114,7 +113,7 @@ func TestAccKeyVaultManagedStorageAccount_recovery(t *testing.T) {
 		{
 			// purge true here to make sure when we end the test there's no soft-deleted items left behind
 			Config: r.softDeleteRecovery(data, true, "2"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -131,12 +130,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_key_vault_managed_storage_account" "test" {
-  name                = "acctestKVstorage"
-  key_vault_id        = azurerm_key_vault.test.id
-  storage_account_id  = azurerm_storage_account.test.id
-  storage_account_key = "key1"
-  auto_regenerate_key = false
-  regeneration_period = "P1D"
+  name                         = "acctestKVstorage"
+  key_vault_id                 = azurerm_key_vault.test.id
+  storage_account_id           = azurerm_storage_account.test.id
+  storage_account_key          = "key1"
+  regenerate_key_automatically = false
+  regeneration_period          = "P1D"
 }
 `, r.template(data))
 }
@@ -146,12 +145,12 @@ func (r KeyVaultManagedStorageAccountResource) requiresImport(data acceptance.Te
 %s
 
 resource "azurerm_key_vault_managed_storage_account" "import" {
-  name                = azurerm_key_vault_managed_storage_account.test.name
-  key_vault_id        = azurerm_key_vault_managed_storage_account.test.key_vault_id
-  storage_account_id  = azurerm_key_vault_managed_storage_account.test.storage_account_id
-  storage_account_key = "key2"
-  auto_regenerate_key = false
-  regeneration_period = "P1D"
+  name                         = azurerm_key_vault_managed_storage_account.test.name
+  key_vault_id                 = azurerm_key_vault_managed_storage_account.test.key_vault_id
+  storage_account_id           = azurerm_key_vault_managed_storage_account.test.storage_account_id
+  storage_account_key          = "key2"
+  regenerate_key_automatically = false
+  regeneration_period          = "P1D"
 }
 `, r.basic(data))
 }
@@ -172,12 +171,12 @@ resource "azurerm_role_assignment" "test" {
 
 
 resource "azurerm_key_vault_managed_storage_account" "test" {
-  name                = "acctestKVstorage"
-  key_vault_id        = azurerm_key_vault.test.id
-  storage_account_id  = azurerm_storage_account.test.id
-  storage_account_key = "key1"
-  auto_regenerate_key = %t
-  regeneration_period = "%s"
+  name                         = "acctestKVstorage"
+  key_vault_id                 = azurerm_key_vault.test.id
+  storage_account_id           = azurerm_storage_account.test.id
+  storage_account_key          = "key1"
+  regenerate_key_automatically = %t
+  regeneration_period          = "%s"
 
   tags = {
     "hello" = "world"
@@ -202,12 +201,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_key_vault_managed_storage_account" "test" {
-  name                = "acctestKVstorage%s"
-  key_vault_id        = azurerm_key_vault.test.id
-  storage_account_id  = azurerm_storage_account.test.id
-  storage_account_key = "key1"
-  auto_regenerate_key = false
-  regeneration_period = "P1D"
+  name                         = "acctestKVstorage%s"
+  key_vault_id                 = azurerm_key_vault.test.id
+  storage_account_id           = azurerm_storage_account.test.id
+  storage_account_key          = "key1"
+  regenerate_key_automatically = false
+  regeneration_period          = "P1D"
 }
 `, purge, r.template(data), name)
 }
@@ -259,7 +258,7 @@ resource "azurerm_key_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func (KeyVaultManagedStorageAccountResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (KeyVaultManagedStorageAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	dataPlaneClient := client.KeyVault.ManagementClient
 	keyVaultsClient := client.KeyVault
 

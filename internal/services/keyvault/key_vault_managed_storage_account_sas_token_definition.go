@@ -18,12 +18,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceKeyVaultManagedStorageAccountSasToken() *pluginsdk.Resource {
+func resourceKeyVaultManagedStorageAccountSasTokenDefinition() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceKeyVaultManagedStorageAccountSasTokenCreateUpdate,
-		Read:   resourceKeyVaultManagedStorageAccountSasTokenRead,
-		Update: resourceKeyVaultManagedStorageAccountSasTokenCreateUpdate,
-		Delete: resourceKeyVaultManagedStorageAccountSasTokenDelete,
+		Create: resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate,
+		Read:   resourceKeyVaultManagedStorageAccountSasTokenDefinitionRead,
+		Update: resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate,
+		Delete: resourceKeyVaultManagedStorageAccountSasTokenDefinitionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SasDefinitionID(id)
@@ -81,7 +81,7 @@ func resourceKeyVaultManagedStorageAccountSasToken() *pluginsdk.Resource {
 	}
 }
 
-func resourceKeyVaultManagedStorageAccountSasTokenCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -118,7 +118,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenCreateUpdate(d *pluginsdk.Reso
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_key_vault_managed_storage_account_sasdefinition", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_key_vault_managed_storage_account_sas_token_definition", *existing.ID)
 		}
 	}
 
@@ -139,7 +139,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenCreateUpdate(d *pluginsdk.Reso
 		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
 			recoveredStorageAccount, err := client.RecoverDeletedSasDefinition(ctx, *keyVaultBaseUri, storageAccount.Name, name)
 			if err != nil {
-				return err
+				return fmt.Errorf("recovery of SAS definition %q in %s: %+v", name, *recoveredStorageAccount.ID, err)
 			}
 			log.Printf("[DEBUG] Recovering Managed Storage Account Sas Definition %q with ID: %q", name, *recoveredStorageAccount.ID)
 			// We need to wait for consistency, recovered Key Vault Child items are not as readily available as newly created
@@ -155,18 +155,16 @@ func resourceKeyVaultManagedStorageAccountSasTokenCreateUpdate(d *pluginsdk.Reso
 				}
 
 				if _, err := stateConf.WaitForState(); err != nil {
-					return fmt.Errorf("Error waiting for Key Vault Managed Storage Account Sas Definition %q to become available: %s", name, err)
+					return fmt.Errorf("waiting for Key Vault Managed Storage Account Sas Definition %q to become available: %s", name, err)
 				}
 				log.Printf("[DEBUG] Managed Storage Account Sas Definition %q recovered with ID: %q", name, *recoveredStorageAccount.ID)
 
-				_, err := client.SetSasDefinition(ctx, *keyVaultBaseUri, storageAccount.Name, name, parameters)
-				if err != nil {
-					return err
+				if _, err := client.SetSasDefinition(ctx, *keyVaultBaseUri, storageAccount.Name, name, parameters); err != nil {
+					return fmt.Errorf("creation of SAS definition %q in %s: %+v", name, *recoveredStorageAccount.ID, err)
 				}
 			}
 		} else {
-			// If the error response was anything else, or `recover_soft_deleted_key_vaults` is `false` just return the error
-			return err
+			return fmt.Errorf("creation of SAS definition %q in %s: %+v", name, *keyVaultId, err)
 		}
 	}
 
@@ -182,10 +180,10 @@ func resourceKeyVaultManagedStorageAccountSasTokenCreateUpdate(d *pluginsdk.Reso
 
 	d.SetId(*read.ID)
 
-	return resourceKeyVaultManagedStorageAccountSasTokenRead(d, meta)
+	return resourceKeyVaultManagedStorageAccountSasTokenDefinitionRead(d, meta)
 }
 
-func resourceKeyVaultManagedStorageAccountSasTokenRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultManagedStorageAccountSasTokenDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	resourcesClient := meta.(*clients.Client).Resource
@@ -236,7 +234,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenRead(d *pluginsdk.ResourceData
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceKeyVaultManagedStorageAccountSasTokenDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultManagedStorageAccountSasTokenDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	resourcesClient := meta.(*clients.Client).Resource
