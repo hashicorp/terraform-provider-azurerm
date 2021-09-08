@@ -53,8 +53,7 @@ type LinuxWebAppModel struct {
 
 var _ sdk.ResourceWithUpdate = LinuxWebAppResource{}
 
-// TODO - Feature: Deployments (Preview)?
-// TODO - Feature: App Insights? - Part of site_settings map
+var _ sdk.ResourceWithCustomImporter = LinuxWebAppResource{}
 
 func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -136,6 +135,9 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": tags.Schema(),
 	}
 }
+
+// TODO - Feature: Deployments (Preview)?
+// TODO - Feature: App Insights? - Part of site_settings map
 
 func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -655,5 +657,39 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 
 			return nil
 		},
+	}
+}
+
+func (r LinuxWebAppResource) CustomImporter() sdk.ResourceRunFunc {
+	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+		client := metadata.Client.AppService.WebAppsClient
+		servicePlanClient := metadata.Client.AppService.ServicePlanClient
+
+		id, err := parse.WebAppID(metadata.ResourceData.Id())
+		if err != nil {
+			return err
+		}
+		site, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+		if err != nil || site.SiteProperties == nil {
+			return fmt.Errorf("reading Linux %s: %+v", id, err)
+		}
+		props := site.SiteProperties
+		if props.ServerFarmID == nil {
+			return fmt.Errorf("determining Service Plan ID for Linux %s: %+v", id, err)
+		}
+		servicePlanId, err := parse.ServicePlanID(*props.ServerFarmID)
+		if err != nil {
+			return err
+		}
+
+		sp, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
+		if err != nil || sp.Kind == nil {
+			return fmt.Errorf("reading Service Plan for Linux %s: %+v", id, err)
+		}
+		if !strings.Contains(*sp.Kind, "linux") && !strings.Contains(*sp.Kind, "Linux") {
+			return fmt.Errorf("specified Service Plan is not a Linux plan")
+		}
+
+		return nil
 	}
 }

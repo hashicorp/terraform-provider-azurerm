@@ -50,10 +50,7 @@ type WindowsWebAppModel struct {
 	Tags                          map[string]string           `tfschema:"tags"`
 }
 
-var _ sdk.ResourceWithUpdate = WindowsWebAppResource{}
-
-// TODO - Feature: Deployments (Preview)?
-// TODO - Feature: App Insights?
+var _ sdk.ResourceWithCustomImporter = WindowsWebAppResource{}
 
 func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -135,6 +132,9 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": tags.Schema(),
 	}
 }
+
+// TODO - Feature: Deployments (Preview)?
+// TODO - Feature: App Insights?
 
 func (r WindowsWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -672,5 +672,39 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 
 			return nil
 		},
+	}
+}
+
+func (r WindowsWebAppResource) CustomImporter() sdk.ResourceRunFunc {
+	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+		client := metadata.Client.AppService.WebAppsClient
+		servicePlanClient := metadata.Client.AppService.ServicePlanClient
+
+		id, err := parse.WebAppID(metadata.ResourceData.Id())
+		if err != nil {
+			return err
+		}
+		site, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+		if err != nil || site.SiteProperties == nil {
+			return fmt.Errorf("reading Windows %s: %+v", id, err)
+		}
+		props := site.SiteProperties
+		if props.ServerFarmID == nil {
+			return fmt.Errorf("determining Service Plan ID for Windows %s: %+v", id, err)
+		}
+		servicePlanId, err := parse.ServicePlanID(*props.ServerFarmID)
+		if err != nil {
+			return err
+		}
+
+		sp, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
+		if err != nil || sp.Kind == nil {
+			return fmt.Errorf("reading Service Plan for Windows %s: %+v", id, err)
+		}
+		if strings.Contains(*sp.Kind, "linux") || strings.Contains(*sp.Kind, "Linux") {
+			return fmt.Errorf("specified Service Plan is not a Windows plan")
+		}
+
+		return nil
 	}
 }
