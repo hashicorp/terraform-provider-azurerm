@@ -163,12 +163,19 @@ provider "azurerm" {
 
 %s
 
+provider "azuread" {}
+
+data "azuread_service_principal" "test" {
+  # https://docs.microsoft.com/en-us/azure/key-vault/secrets/overview-storage-keys-powershell#service-principal-application-id
+  # application_id = "cfa8b339-82a2-471a-a3c9-0fc0be7a4093"
+  display_name = "Azure Key Vault"
+}
+
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Account Key Operator Service Role"
-  principal_id         = "727055f9-0386-4ccb-bcf1-9237237ee102"
+  principal_id         = data.azuread_service_principal.test.id
 }
-
 
 resource "azurerm_key_vault_managed_storage_account" "test" {
   name                         = "acctestKVstorage"
