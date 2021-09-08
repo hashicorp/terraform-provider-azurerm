@@ -178,8 +178,8 @@ resource "azurerm_logic_app_integration_account_batch_configuration" "test" {
         month_days = [6, 7]
 
         monthly {
-          weekday    = "Monday"
-          week     = 1
+          weekday = "Monday"
+          week    = 1
         }
       }
     }
