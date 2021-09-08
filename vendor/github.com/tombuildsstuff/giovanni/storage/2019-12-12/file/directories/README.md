@@ -22,7 +22,7 @@ import (
 	"time"
 	
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/directories"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/directories"
 )
 
 func Example() error {

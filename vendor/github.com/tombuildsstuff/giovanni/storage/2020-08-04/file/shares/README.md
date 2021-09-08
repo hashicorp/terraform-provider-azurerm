@@ -1,4 +1,4 @@
-## File Storage Shares SDK for API version 2019-12-12
+## File Storage Shares SDK for API version 2020-08-04
 
 This package allows you to interact with the Shares File Storage API
 
