@@ -372,6 +372,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"cors_rule": schemaStorageAccountCorsRule(true),
+
 						"delete_retention_policy": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -423,6 +424,22 @@ func resourceStorageAccount() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeInt,
 										Optional:     true,
 										Default:      7,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
+
+						"point_in_time_restore_policy": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"days": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      6,
 										ValidateFunc: validation.IntBetween(1, 365),
 									},
 								},
@@ -1061,6 +1078,10 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v.([]interface{}), false)
 			}
 
+			if v, ok := d.GetOk("blob_properties.0.point_in_time_restore_policy"); ok {
+				blobProperties.RestorePolicy = expandBlobPropertiesPITRestorePolicy(v.([]interface{}), false)
+			}
+
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, *blobProperties); err != nil {
 				return fmt.Errorf("updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
 			}
@@ -1433,6 +1454,10 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 			if d.HasChange("blob_properties.0.container_delete_retention_policy") {
 				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{}), true)
+			}
+
+			if d.HasChange("blob_properties.0.point_in_time_restore_policy") {
+				blobProperties.RestorePolicy = expandBlobPropertiesPITRestorePolicy(d.Get("blob_properties.0.point_in_time_restore_policy").([]interface{}), true)
 			}
 
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, *blobProperties); err != nil {
@@ -2079,6 +2104,26 @@ func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}, isupdate boo
 	}
 }
 
+func expandBlobPropertiesPITRestorePolicy(input []interface{}, isupdate bool) *storage.RestorePolicyProperties {
+	result := storage.RestorePolicyProperties{
+		Enabled: utils.Bool(false),
+	}
+	if (len(input) == 0 || input[0] == nil) && !isupdate {
+		return nil
+	}
+
+	if (len(input) == 0 || input[0] == nil) && isupdate {
+		return &result
+	}
+
+	policy := input[0].(map[string]interface{})
+
+	return &storage.RestorePolicyProperties{
+		Enabled: utils.Bool(true),
+		Days:    utils.Int32(int32(policy["days"].(int))),
+	}
+}
+
 func expandBlobPropertiesCors(input []interface{}) *storage.CorsRules {
 	blobCorsRules := storage.CorsRules{}
 
@@ -2479,6 +2524,11 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		flattenedContainerDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(containerDeletePolicy)
 	}
 
+	flattenedPITRestorePolicy := make([]interface{}, 0)
+	if pointInTimeRestorePolicy := input.BlobServicePropertiesProperties.RestorePolicy; pointInTimeRestorePolicy != nil {
+		flattenedPITRestorePolicy = flattenBlobPropertiesRestorePolicy(pointInTimeRestorePolicy)
+	}
+
 	versioning, changeFeed := false, false
 	if input.BlobServicePropertiesProperties.IsVersioningEnabled != nil {
 		versioning = *input.BlobServicePropertiesProperties.IsVersioningEnabled
@@ -2507,6 +2557,7 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 			"default_service_version":           defaultServiceVersion,
 			"last_access_time_enabled":          LastAccessTimeTrackingPolicy,
 			"container_delete_retention_policy": flattenedContainerDeletePolicy,
+			"point_in_time_restore_policy":      flattenedPITRestorePolicy,
 		},
 	}
 }
@@ -2575,6 +2626,27 @@ func flattenBlobPropertiesDeleteRetentionPolicy(input *storage.DeleteRetentionPo
 	}
 
 	return deleteRetentionPolicy
+}
+
+func flattenBlobPropertiesRestorePolicy(input *storage.RestorePolicyProperties) []interface{} {
+	restorePolicyProperties := make([]interface{}, 0)
+
+	if input == nil {
+		return restorePolicyProperties
+	}
+
+	if enabled := input.Enabled; enabled != nil && *enabled {
+		days := 0
+		if input.Days != nil {
+			days = int(*input.Days)
+		}
+
+		restorePolicyProperties = append(restorePolicyProperties, map[string]interface{}{
+			"days": days,
+		})
+	}
+
+	return restorePolicyProperties
 }
 
 func flattenQueueProperties(input *queues.StorageServiceProperties) []interface{} {

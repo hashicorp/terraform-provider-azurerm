@@ -619,6 +619,7 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("blob_properties.0.cors_rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.0.days").HasValue("300"),
+				check.That(data.ResourceName).Key("blob_properties.0.point_in_time_restore_policy.0.days").HasValue("6"),
 			),
 		},
 		data.ImportStep(),
@@ -2107,6 +2108,9 @@ resource "azurerm_storage_account" "test" {
     last_access_time_enabled = true
     container_delete_retention_policy {
       days = 7
+    }
+    point_in_time_restore_policy {
+      days = 6
     }
 
   }
