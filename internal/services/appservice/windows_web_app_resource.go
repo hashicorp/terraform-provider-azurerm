@@ -318,10 +318,12 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			logsConfig := helpers.ExpandLogsConfig(webApp.LogsConfig)
-			if logsConfig.SiteLogsConfigProperties != nil {
-				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, *logsConfig); err != nil {
-					return fmt.Errorf("setting Diagnostic Logs Configuration for Windows %s: %+v", id, err)
+			if metadata.ResourceData.HasChange("logs") {
+				logsConfig := helpers.ExpandLogsConfig(webApp.LogsConfig)
+				if logsConfig.SiteLogsConfigProperties != nil {
+					if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, *logsConfig); err != nil {
+						return fmt.Errorf("setting Diagnostic Logs Configuration for Windows %s: %+v", id, err)
+					}
 				}
 			}
 
