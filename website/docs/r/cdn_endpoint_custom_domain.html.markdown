@@ -75,7 +75,31 @@ The following arguments are supported:
 
 * `host_name` - (Required) The host name of the custom domain. Changing this forces a new CDN Endpoint Custom Domain to be created.
 
-~> **Note:** At this time only HTTP Custom Domains are supported.
+* `cdn_managed_https_settings` (Optional) - A `cdn_managed_https_settings` block as defined below. 
+
+* `user_managed_https_settings` (Optional) - A `user_managed_https_settings` block as defined below.
+
+~> **NOTE** Only one of `cdn_managed_https_settings` and `user_managed_https_settings` can be specified.
+
+!> **Warning** It is allowed to update the HTTPS settings on the CDN Endpoint Custom Domain only by toggling it. In-place update on HTTPS settings is not allowed. This is because setting different HTTPS settings will need a disable-then-enable process. When HTTPS settings got disabled, the service will take ~8 hours to clean up your previous enablement request for the same custom domain and there is no way to get notification when that clean up has done.
+
+---
+
+A `cdn_managed_https_settings` block supports the following:
+
+* `certificate_type` - (Required) The type of the HTTPS certificate. Possible values are `Shared` and `Dedicated`.
+* 
+* `protocol_type` - (Required) The type of the protocol. Possible values are `ServerNameIndication` and `IPBased`.
+
+---
+
+A `user_managed_https_settings` block supports the following:
+
+* `key_vault_id` - (Required) The ID of the Key Vault that contains the HTTPS certificate.
+
+* `secret_name` - (Required) The name of Key Vault Certificate that contains the HTTPS certificate.
+
+* `secret_version` - (Required) The version of Key Vault Certificate that contains the HTTPS certificate.
 
 ## Attributes Reference
 
@@ -88,9 +112,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to
 specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Custom Domain for this CDN Endpoint.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Custom Domain for this CDN Endpoint.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Custom Domain for this CDN Endpoint.
+* `create` - (Defaults to 20 hours) Used when creating the CDN Endpoint Custom Domain.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CDN Endpoint Custom Domain.
+* `update` - (Defaults to 20 hours) Used when updating the CDN Endpoint Custom Domain.
+* `delete` - (Defaults to 20 hours) Used when deleting the CDN Endpoint Custom Domain.
 
 ## Import
 
