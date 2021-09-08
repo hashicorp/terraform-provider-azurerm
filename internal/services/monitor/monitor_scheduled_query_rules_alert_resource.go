@@ -134,6 +134,7 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 			"throttling": {
 				Type:          pluginsdk.TypeInt,
 				Optional:      true,
+				Default:       nil,
 				ValidateFunc:  validation.IntBetween(0, 10000),
 				ConflictsWith: []string{"auto_mitigation_enabled"},
 			},
@@ -395,17 +396,20 @@ func expandMonitorScheduledQueryRulesAlertingAction(d *pluginsdk.ResourceData) *
 	alertAction := expandMonitorScheduledQueryRulesAlertAction(alertActionRaw)
 	severityRaw := d.Get("severity").(int)
 	severity := strconv.Itoa(severityRaw)
-	throttling := d.Get("throttling").(int)
+	throttling, throttlingOk := d.GetOk("throttling")
 
 	triggerRaw := d.Get("trigger").([]interface{})
 	trigger := expandMonitorScheduledQueryRulesAlertTrigger(triggerRaw)
 
 	action := insights.AlertingAction{
-		AznsAction:      alertAction,
-		Severity:        insights.AlertSeverity(severity),
-		ThrottlingInMin: utils.Int32(int32(throttling)),
-		Trigger:         trigger,
-		OdataType:       insights.OdataTypeBasicActionOdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction,
+		AznsAction: alertAction,
+		Severity:   insights.AlertSeverity(severity),
+		Trigger:    trigger,
+		OdataType:  insights.OdataTypeBasicActionOdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction,
+	}
+
+	if throttlingOk {
+		action.ThrottlingInMin = utils.Int32(int32(throttling.(int)))
 	}
 
 	return &action
