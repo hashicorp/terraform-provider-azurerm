@@ -1456,13 +1456,36 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{}), true)
 			}
 
-			if d.HasChange("blob_properties.0.point_in_time_restore_policy") {
-				blobProperties.RestorePolicy = expandBlobPropertiesPITRestorePolicy(d.Get("blob_properties.0.point_in_time_restore_policy").([]interface{}), true)
+			// Disable `point_in_time_restore_policy` first.`point_in_time_restore_policy` is dependent on `versioning_enabled`,`change_feed_enabled`,`delete_retention_policy`, could not update together
+			// Issue: https://github.com/Azure/azure-rest-api-specs/issues/11237
+			if v := d.Get("blob_properties.0.point_in_time_restore_policy"); d.HasChange("blob_properties.0.point_in_time_restore_policy") && len(v.([]interface{})) == 0 {
+				props := storage.BlobServiceProperties{
+					BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
+						RestorePolicy: expandBlobPropertiesPITRestorePolicy(v.([]interface{}), true),
+					},
+				}
+				if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, props); err != nil {
+					return fmt.Errorf("updating Azure Storage Account `blob_properties.0.point_in_time_restore_policy` %q: %+v", storageAccountName, err)
+				}
 			}
 
+			// Update other properties
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, *blobProperties); err != nil {
 				return fmt.Errorf("updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
 			}
+
+			// Enable `point_in_time_restore_policy`. `point_in_time_restore_policy` is dependent on `versioning_enabled`,`change_feed_enabled`,`delete_retention_policy`, could not update together
+			if v := d.Get("blob_properties.0.point_in_time_restore_policy"); d.HasChange("blob_properties.0.point_in_time_restore_policy") && len(v.([]interface{})) > 0 {
+				props := storage.BlobServiceProperties{
+					BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
+						RestorePolicy: expandBlobPropertiesPITRestorePolicy(v.([]interface{}), true),
+					},
+				}
+				if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, props); err != nil {
+					return fmt.Errorf("updating Azure Storage Account `blob_properties.0.point_in_time_restore_policy` %q: %+v", storageAccountName, err)
+				}
+			}
+
 		} else {
 			return fmt.Errorf("`blob_properties` aren't supported for File Storage accounts.")
 		}
