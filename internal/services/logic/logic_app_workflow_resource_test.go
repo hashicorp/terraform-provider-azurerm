@@ -398,18 +398,11 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_logic_app_integration_account" "test" {
-  name                = "acctest-IA-%[1]d"
+resource "azurerm_logic_app_workflow" "test" {
+  name                = "acctestlaw-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Standard"
-}
-
-resource "azurerm_logic_app_workflow" "test" {
-  name                             = "acctestlaw-%[1]d"
-  location                         = azurerm_resource_group.test.location
-  resource_group_name              = azurerm_resource_group.test.name
-  logic_app_integration_account_id = azurerm_logic_app_integration_account.test.id
+  state               = "Enabled"
 
   access_control {
     content {
@@ -419,12 +412,12 @@ resource "azurerm_logic_app_workflow" "test" {
         name = "testpolicy1"
 
         claim {
-          name = "iss"
+          name  = "iss"
           value = "https://sts.windows.net/"
         }
 
         claim {
-          name = "aud"
+          name  = "aud"
           value = "https://management.core.windows.net/"
         }
       }
@@ -445,18 +438,11 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_logic_app_integration_account" "test" {
-  name                = "acctest-IA-%[1]d"
+resource "azurerm_logic_app_workflow" "test" {
+  name                = "acctestlaw-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Standard"
-}
-
-resource "azurerm_logic_app_workflow" "test" {
-  name                             = "acctestlaw-%[1]d"
-  location                         = azurerm_resource_group.test.location
-  resource_group_name              = azurerm_resource_group.test.name
-  logic_app_integration_account_id = azurerm_logic_app_integration_account.test.id
+  state               = "Disabled"
 
   access_control {
     content {
@@ -466,12 +452,12 @@ resource "azurerm_logic_app_workflow" "test" {
         name = "testpolicy2"
 
         claim {
-          name = "iss"
+          name  = "iss"
           value = "https://sts.windows.net/"
         }
 
         claim {
-          name = "testclaimname"
+          name  = "testclaimname"
           value = "testclaimvalue"
         }
       }

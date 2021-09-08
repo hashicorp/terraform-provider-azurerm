@@ -78,7 +78,7 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"allowed_caller_ip_address_range": {
 										Type:     pluginsdk.TypeSet,
-										Optional: true,
+										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.Any(
@@ -133,7 +133,7 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"allowed_caller_ip_address_range": {
 										Type:     pluginsdk.TypeSet,
-										Optional: true,
+										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.Any(
@@ -188,7 +188,7 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"allowed_caller_ip_address_range": {
 										Type:     pluginsdk.TypeSet,
-										Optional: true,
+										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.Any(
@@ -243,7 +243,7 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"allowed_caller_ip_address_range": {
 										Type:     pluginsdk.TypeSet,
-										Optional: true,
+										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.Any(
@@ -870,10 +870,8 @@ func expandLogicAppWorkflowAccessControlConfigurationPolicy(input []interface{})
 	}
 	v := input[0].(map[string]interface{})
 
-	result := logic.FlowAccessControlConfigurationPolicy{}
-
-	if allowedCallerIPAddressRanges := v["allowed_caller_ip_address_range"].(*pluginsdk.Set).List(); len(allowedCallerIPAddressRanges) != 0 {
-		result.AllowedCallerIPAddresses = expandLogicAppWorkflowIPAddressRanges(allowedCallerIPAddressRanges)
+	result := logic.FlowAccessControlConfigurationPolicy{
+		AllowedCallerIPAddresses: expandLogicAppWorkflowIPAddressRanges(v["allowed_caller_ip_address_range"].(*pluginsdk.Set).List()),
 	}
 
 	if openAuthenticationPolicies := v["open_authentication_policy"].(*pluginsdk.Set).List(); len(openAuthenticationPolicies) != 0 {
