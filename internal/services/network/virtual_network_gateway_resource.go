@@ -238,6 +238,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						"vpn_auth_types": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
+							Computed: true,
 							MaxItems: 3,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
