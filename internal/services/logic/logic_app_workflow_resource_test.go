@@ -148,6 +148,28 @@ func TestAccLogicAppWorkflow_parameters(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppWorkflow_accessControl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
+	r := LogicAppWorkflowResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.accessControl(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateAccessControl(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (LogicAppWorkflowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
@@ -363,4 +385,98 @@ resource "azurerm_logic_app_workflow" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (LogicAppWorkflowResource) accessControl(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-logic-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_logic_app_integration_account" "test" {
+  name                = "acctest-IA-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard"
+}
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                             = "acctestlaw-%[1]d"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  logic_app_integration_account_id = azurerm_logic_app_integration_account.test.id
+
+  access_control {
+    content {
+      allowed_caller_ip_address_range = ["10.0.5.0-10.0.5.10"]
+
+      open_authentication_policy {
+        name = "testpolicy1"
+
+        claim {
+          name = "iss"
+          value = "https://sts.windows.net/"
+        }
+
+        claim {
+          name = "aud"
+          value = "https://management.core.windows.net/"
+        }
+      }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (LogicAppWorkflowResource) updateAccessControl(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-logic-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_logic_app_integration_account" "test" {
+  name                = "acctest-IA-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard"
+}
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                             = "acctestlaw-%[1]d"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  logic_app_integration_account_id = azurerm_logic_app_integration_account.test.id
+
+  access_control {
+    content {
+      allowed_caller_ip_address_range = ["10.10.3.0/24"]
+
+      open_authentication_policy {
+        name = "testpolicy2"
+
+        claim {
+          name = "iss"
+          value = "https://sts.windows.net/"
+        }
+
+        claim {
+          name = "testclaimname"
+          value = "testclaimvalue"
+        }
+      }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
