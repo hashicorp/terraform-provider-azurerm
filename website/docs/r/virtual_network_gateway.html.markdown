@@ -214,6 +214,8 @@ The `vpn_client_configuration` block supports:
 
 * `vpn_auth_types` - (Optional) List of the vpn authentication types for the virtual network gateway.
     The supported values are `AAD`, `Radius` and `Certificate`.
+
+-> **NOTE:** `vpn_auth_types` must be set when using multiple vpn authentication types.
 ---
 
 The `bgp_settings` block supports:
