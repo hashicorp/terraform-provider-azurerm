@@ -106,19 +106,19 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 							},
 						},
 
-						"monthly_occurrence": {
+						"monthly": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MinItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"day": {
+									"weekday": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.IsDayOfTheWeek(false),
 									},
 
-									"occurrence": {
+									"week": {
 										Type:     pluginsdk.TypeInt,
 										Optional: true,
 										ValidateFunc: validation.Any(
@@ -375,7 +375,7 @@ func resourceDataFactoryTriggerScheduleDelete(d *pluginsdk.ResourceData, meta in
 }
 
 func expandDataFactorySchedule(input []interface{}) *datafactory.RecurrenceSchedule {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	value := input[0].(map[string]interface{})
@@ -384,11 +384,11 @@ func expandDataFactorySchedule(input []interface{}) *datafactory.RecurrenceSched
 		weekDays = append(weekDays, datafactory.DaysOfWeek(v.(string)))
 	}
 	monthlyOccurrences := make([]datafactory.RecurrenceScheduleOccurrence, 0)
-	for _, v := range value["monthly_occurrence"].([]interface{}) {
+	for _, v := range value["monthly"].([]interface{}) {
 		value := v.(map[string]interface{})
 		monthlyOccurrences = append(monthlyOccurrences, datafactory.RecurrenceScheduleOccurrence{
-			Day:        datafactory.DayOfWeek(value["day"].(string)),
-			Occurrence: utils.Int32(int32(value["occurrence"].(int))),
+			Day:        datafactory.DayOfWeek(value["weekday"].(string)),
+			Occurrence: utils.Int32(int32(value["week"].(int))),
 		})
 	}
 	return &datafactory.RecurrenceSchedule{
@@ -425,13 +425,13 @@ func flattenDataFactorySchedule(schedule *datafactory.RecurrenceSchedule) []inte
 		monthlyOccurrences := make([]interface{}, 0)
 		for _, v := range *schedule.MonthlyOccurrences {
 			occurrence := make(map[string]interface{})
-			occurrence["day"] = string(v.Day)
+			occurrence["weekday"] = string(v.Day)
 			if v.Occurrence != nil {
-				occurrence["occurrence"] = *v.Occurrence
+				occurrence["week"] = *v.Occurrence
 			}
 			monthlyOccurrences = append(monthlyOccurrences, occurrence)
 		}
-		value["monthly_occurrence"] = monthlyOccurrences
+		value["monthly"] = monthlyOccurrences
 	}
 	return []interface{}{value}
 }

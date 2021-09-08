@@ -208,9 +208,9 @@ resource "azurerm_data_factory_trigger_schedule" "test" {
     days_of_week  = ["Monday", "Tuesday"]
     hours         = [0, 12, 24]
     minutes       = [0, 30, 60]
-    monthly_occurrence {
-      day        = "Monday"
-      occurrence = 1
+    monthly {
+      weekday = "Monday"
+      week    = 1
     }
   }
 }

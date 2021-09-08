@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The Schedule Trigger's description.
 
-* `schedule` - (Optional) The recurrence schedule for the trigger. A trigger with a specified frequency value alters its recurrence based on a recurrence schedule. The schedule property contains modifications for the recurrence that are based on minutes, hours, weekdays, month days, and week number. A `schedule` block as documented below.
+* `schedule` - (Optional) A `schedule` block as defined below, which further specifies the recurrence schedule for the trigger. A schedule is capable of limiting or increasing the number of trigger executions specified by the `frequency` and `interval` properties.
 
 * `start_time` - (Optional) The time the Schedule Trigger will start. This defaults to the current time. The time will be represented in UTC.
 
@@ -71,25 +71,25 @@ The following arguments are supported:
 
 ---
 
-`schedule` supports the following:
+A `schedule` block supports the following:
 
-* `days_of_month` - (Optional) 	Day of the month on which the trigger runs. The value can be specified with a monthly frequency only.
+* `days_of_month` - (Optional) Day(s) of the month on which the trigger is scheduled. This value can be specified with a monthly frequency only.
 
-* `days_of_week` - (Optional) Days of the week the trigger runs. The value can be specified only with a weekly frequency.
+* `days_of_week` - (Optional) Days of the week on which the trigger is scheduled. This value can be specified only with a weekly frequency.
 
-* `hours` - (Optional) Hours of the day at which the trigger runs.
+* `hours` - (Optional) Hours of the day on which the trigger is scheduled.
 
-* `minutes` - (Optional) Minutes of the hour at which the trigger runs.
+* `minutes` - (Optional) Minutes of the hour on which the trigger is scheduled.
 
-* `monthly_occurrence` - (Optional) Days of the month on which the trigger runs. The value can be specified with a monthly frequency only. A `monthly_occurrence` block as documented below.
+* `monthly` - (Optional) A `monthly` block as documented below, which specifies the days of the month on which the trigger is scheduled. The value can be specified only with a monthly frequency.
 
 ---
 
-`monthly_occurrence` supports the following:
+A `monthly` block supports the following:
 
-* `day` - (Required) The day of the week on which the trigger runs. For example, a `monthly_occurrence` property with a day value of `Sunday` means every Sunday of the month.
+* `weekday` - (Required) The day of the week on which the trigger runs. For example, a `monthly` property with a `weekday` value of `Sunday` means every Sunday of the month.
 
-* `occurrence` - (Optional) The occurrence of the specified day during the month. For example, a `monthly_occurrence` property with day and occurrence values of `Sunday, -1` means the last Sunday of the month.
+* `week` - (Optional) The occurrence of the specified day during the month. For example, a `monthly` property with `weekday` and `week` values of `Sunday, -1` means the last Sunday of the month.
 
 ## Attributes Reference
 
