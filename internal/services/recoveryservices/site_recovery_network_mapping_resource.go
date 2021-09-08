@@ -170,7 +170,7 @@ func resourceSiteRecoveryNetworkMappingRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("source_network_id", props.PrimaryNetworkID)
 		d.Set("target_network_id", props.RecoveryNetworkID)
 
-		//TODO update to use parser when fabric parser added
+		// TODO update to use parser when fabric parser added
 		targetFabricId, err := azure.ParseAzureResourceID(handleAzureSdkForGoBug2824(*resp.Properties.RecoveryFabricArmID))
 		if err != nil {
 			return err
