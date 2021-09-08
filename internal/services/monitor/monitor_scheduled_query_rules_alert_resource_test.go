@@ -93,28 +93,21 @@ func TestAccMonitorScheduledQueryRules_AutoMitigate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.AlertingActionAutoMitigate(data, ts, 0, false),
+			Config: r.AlertingActionAutoMitigate(data, ts, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.AlertingActionAutoMitigate(data, ts, 50, true),
+			Config: r.AlertingActionConfigComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.AlertingActionAutoMitigate(data, ts, 50, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.AlertingActionAutoMitigate(data, ts, 0, true),
+			Config: r.AlertingActionAutoMitigate(data, ts, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -123,7 +116,7 @@ func TestAccMonitorScheduledQueryRules_AutoMitigate(t *testing.T) {
 	})
 }
 
-func (MonitorScheduledQueryRulesResource) AlertingActionAutoMitigate(data acceptance.TestData, ts string, throttling int, autoMitigate bool) string {
+func (MonitorScheduledQueryRulesResource) AlertingActionAutoMitigate(data acceptance.TestData, ts string, autoMitigate bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-monitor-%d"
@@ -151,7 +144,6 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
 QUERY
   frequency             = 60
   time_window           = 60
-  throttling            = %d
   auto_mitigate_enabled = %s
   action {
     action_group = [azurerm_monitor_action_group.test.id]
@@ -161,7 +153,7 @@ QUERY
     threshold = 5000
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, ts, ts, throttling, strconv.FormatBool(autoMitigate))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, ts, ts, strconv.FormatBool(autoMitigate))
 }
 
 func (MonitorScheduledQueryRulesResource) AlertingActionConfigBasic(data acceptance.TestData, ts string) string {
