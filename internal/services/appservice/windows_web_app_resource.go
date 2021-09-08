@@ -651,6 +651,9 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("logs") {
 				logsUpdate := helpers.ExpandLogsConfig(state.LogsConfig)
+				if logsUpdate.SiteLogsConfigProperties == nil {
+					logsUpdate = helpers.DisabledLogsConfig() // The API is update only, so we need to send an update with everything switched of when a user removes the "logs" block
+				}
 				if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, *logsUpdate); err != nil {
 					return fmt.Errorf("updating Logs Config for Windows %s: %+v", id, err)
 				}

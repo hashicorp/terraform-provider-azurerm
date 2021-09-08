@@ -129,6 +129,30 @@ func TestAccLinuxWebApp_withLogging(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_removeLogging(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withLoggingComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("true"),
+				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxWebApp_withLoggingUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
@@ -142,14 +166,15 @@ func TestAccLinuxWebApp_withLoggingUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withDetailedLogging(data, false),
+			Config: r.withDetailedLogging(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("false"),
-				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("false"),
+				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("true"),
+				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("true"),
 			),
 		},
-		data.ImportStep(), {
+		data.ImportStep(),
+		{
 			Config: r.withLogsHttpBlob(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -1291,6 +1316,8 @@ resource "azurerm_linux_web_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
+  site_config {}
+
   backup {
     name                = "acctest"
     storage_account_url = "https://${azurerm_storage_account.test.name}.blob.core.windows.net/${azurerm_storage_container.test.name}${data.azurerm_storage_account_sas.test.sas}&sr=b"
@@ -1316,6 +1343,8 @@ resource "azurerm_linux_web_app" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
 
   app_settings = {
     foo    = "bar"
@@ -1346,6 +1375,9 @@ resource "azurerm_linux_web_app" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test2.id
+
+  site_config {}
+
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }
@@ -1360,6 +1392,9 @@ resource "azurerm_linux_web_app" "import" {
   location            = azurerm_linux_web_app.test.location
   resource_group_name = azurerm_linux_web_app.test.resource_group_name
   service_plan_id     = azurerm_linux_web_app.test.service_plan_id
+
+  site_config {}
+
 }
 `, r.basic(data))
 }
@@ -1399,6 +1434,8 @@ resource "azurerm_linux_web_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
+  site_config {}
+
   logs {
     detailed_error_messages = %t
   }
@@ -1419,6 +1456,8 @@ resource "azurerm_linux_web_app" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
 
   logs {
     detailed_error_messages = true
@@ -1458,6 +1497,8 @@ resource "azurerm_linux_web_app" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
 
   logs {
     application_logs {
@@ -1559,6 +1600,8 @@ resource "azurerm_linux_web_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
+  site_config {}
+
   auth_settings {
     enabled = true
     issuer  = "https://sts.windows.net/%s"
@@ -1595,6 +1638,8 @@ resource "azurerm_linux_web_app" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
 
   auth_settings {
     enabled = true
@@ -1670,6 +1715,8 @@ resource "azurerm_linux_web_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
+  site_config {}
+
   storage_account {
     name         = "files"
     type         = "AzureFiles"
@@ -1697,6 +1744,8 @@ resource "azurerm_linux_web_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
+  site_config {}
+
   storage_account {
     name         = "updatedfiles"
     type         = "AzureBlob"
@@ -1723,6 +1772,8 @@ resource "azurerm_linux_web_app" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
 
   site_config {
     application_stack {

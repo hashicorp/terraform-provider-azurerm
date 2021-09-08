@@ -113,7 +113,7 @@ A `application_logs` block supports the following:
 
 * `azure_blob_storage` - (Optional) A `azure_blob_storage` block as defined below.
 
-* `file_system_level` - (Optional) Log level. Possible values include: `Off`, `Verbose`, `Information`, `Warning`, and `Error`.
+* `file_system_level` - (Optional) Log level. Possible values include: `Verbose`, `Information`, `Warning`, and `Error`.
 
 ---
 
@@ -307,7 +307,7 @@ A `http_logs` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The ype of managed service identity. Possible values include: `ManagedServiceIdentityTypeSystemAssigned`, `ManagedServiceIdentityTypeUserAssigned`, `ManagedServiceIdentityTypeSystemAssignedUserAssigned`, and `ManagedServiceIdentityTypeNone`.
+* `type` - (Required) The type of managed service identity. Possible values include: `ManagedServiceIdentityTypeSystemAssigned`, `ManagedServiceIdentityTypeUserAssigned`, `ManagedServiceIdentityTypeSystemAssignedUserAssigned`, and `ManagedServiceIdentityTypeNone`.
 
 * `identity_ids` - (Optional) Specifies a list of Identity IDs.
 
@@ -339,7 +339,7 @@ A `logs` block supports the following:
 
 * `detailed_error_messages` - (Optional) Should detailed error messages be enabled.
 
-* `failed_request_tracing` - (Optional) Should failed request tracing be enabled.
+* `failed_request_tracing` - (Optional) Should tracing be enabled for failed requests.
 
 * `http_logs` - (Optional) A `http_logs` block as defined above.
 

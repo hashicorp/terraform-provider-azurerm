@@ -12,7 +12,6 @@ import (
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -2065,7 +2064,6 @@ func StorageAccountSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
-		//Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -2370,7 +2368,6 @@ func ConnectionStringSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
-		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -2395,7 +2392,6 @@ func ConnectionStringSchema() *pluginsdk.Schema {
 						string(web.ConnectionStringTypeSQLAzure),
 						string(web.ConnectionStringTypeSQLServer),
 					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
 				},
 
 				"value": {
@@ -2453,7 +2449,7 @@ type AzureBlobStorage struct {
 }
 
 type HttpLog struct {
-	FileSystems      []FileSystem           `tfschema:"file_system"`
+	FileSystems      []LogsFileSystem       `tfschema:"file_system"`
 	AzureBlobStorage []AzureBlobStorageHttp `tfschema:"azure_blob_storage"`
 }
 
@@ -2462,7 +2458,7 @@ type AzureBlobStorageHttp struct {
 	RetentionInDays int    `tfschema:"retention_in_days"`
 }
 
-type FileSystem struct {
+type LogsFileSystem struct {
 	RetentionMB   int `tfschema:"retention_in_mb"`
 	RetentionDays int `tfschema:"retention_in_days"`
 }
@@ -2471,7 +2467,6 @@ func LogsConfigSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -2523,18 +2518,15 @@ func applicationLogSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"file_system_level": {
 					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(web.LogLevelOff),
+					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.LogLevelError),
 						string(web.LogLevelInformation),
-						string(web.LogLevelOff),
 						string(web.LogLevelVerbose),
 						string(web.LogLevelWarning),
 					}, false),
@@ -2567,31 +2559,26 @@ func appLogBlobStorageSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"level": {
 					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(web.LogLevelOff),
+					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.LogLevelError),
 						string(web.LogLevelInformation),
-						string(web.LogLevelOff),
 						string(web.LogLevelVerbose),
 						string(web.LogLevelWarning),
 					}, false),
 				},
 				"sas_url": {
-					Type:      pluginsdk.TypeString,
-					Required:  true,
-					Sensitive: true,
+					Type:     pluginsdk.TypeString,
+					Required: true,
 				},
 				"retention_in_days": {
 					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Default:  0,
+					Required: true,
 					// TODO: Validation here?
 				},
 			},
@@ -2627,7 +2614,6 @@ func httpLogSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -2699,9 +2685,8 @@ func httpLogFileSystemSchemaComputed() *pluginsdk.Schema {
 
 func httpLogBlobStorageSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		// Computed:      true,
+		Type:          pluginsdk.TypeList,
+		Optional:      true,
 		MaxItems:      1,
 		ConflictsWith: []string{"logs.0.http_logs.0.file_system"},
 		Elem: &pluginsdk.Resource{
@@ -3283,37 +3268,41 @@ func FlattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
 	if logsConfig.SiteLogsConfigProperties == nil {
 		return nil
 	}
+	props := *logsConfig.SiteLogsConfigProperties
+	if onlyDefaultLoggingConfig(props) {
+		return nil
+	}
 
 	logs := LogsConfig{}
-	props := *logsConfig.SiteLogsConfigProperties
 
 	if props.ApplicationLogs != nil {
-		applicationLog := ApplicationLog{}
 		appLogs := *props.ApplicationLogs
-		if appLogs.FileSystem != nil {
+		applicationLog := ApplicationLog{}
+
+		if appLogs.FileSystem != nil && appLogs.FileSystem.Level != web.LogLevelOff {
 			applicationLog.FileSystemLevel = string(appLogs.FileSystem.Level)
-		}
+			if appLogs.AzureBlobStorage != nil && appLogs.AzureBlobStorage.Level != web.LogLevelOff {
+				blobStorage := AzureBlobStorage{
+					Level: string(appLogs.AzureBlobStorage.Level),
+				}
 
-		if appLogs.AzureBlobStorage != nil {
-			blobStorage := AzureBlobStorage{
-				Level: string(appLogs.AzureBlobStorage.Level),
+				blobStorage.SasUrl = utils.NormalizeNilableString(appLogs.AzureBlobStorage.SasURL)
+
+				blobStorage.RetentionInDays = int(utils.NormaliseNilableInt32(appLogs.AzureBlobStorage.RetentionInDays))
+
+				applicationLog.AzureBlobStorage = []AzureBlobStorage{blobStorage}
 			}
-
-			blobStorage.SasUrl = utils.NormalizeNilableString(appLogs.AzureBlobStorage.SasURL)
-
-			blobStorage.RetentionInDays = int(utils.NormaliseNilableInt32(appLogs.AzureBlobStorage.RetentionInDays))
-
-			applicationLog.AzureBlobStorage = []AzureBlobStorage{blobStorage}
+			logs.ApplicationLogs = []ApplicationLog{applicationLog}
 		}
-		logs.ApplicationLogs = []ApplicationLog{applicationLog}
+
 	}
 
 	if props.HTTPLogs != nil {
 		httpLogs := *props.HTTPLogs
 		httpLog := HttpLog{}
 
-		if httpLogs.FileSystem != nil && *httpLogs.FileSystem.Enabled {
-			fileSystem := FileSystem{}
+		if httpLogs.FileSystem != nil && (httpLogs.FileSystem.Enabled != nil && *httpLogs.FileSystem.Enabled) {
+			fileSystem := LogsFileSystem{}
 			if httpLogs.FileSystem.RetentionInMb != nil {
 				fileSystem.RetentionMB = int(*httpLogs.FileSystem.RetentionInMb)
 			}
@@ -3322,10 +3311,10 @@ func FlattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
 				fileSystem.RetentionDays = int(*httpLogs.FileSystem.RetentionInDays)
 			}
 
-			httpLog.FileSystems = []FileSystem{fileSystem}
+			httpLog.FileSystems = []LogsFileSystem{fileSystem}
 		}
 
-		if httpLogs.AzureBlobStorage != nil {
+		if httpLogs.AzureBlobStorage != nil && (httpLogs.AzureBlobStorage.Enabled != nil && *httpLogs.AzureBlobStorage.Enabled) {
 			blobStorage := AzureBlobStorageHttp{}
 			if httpLogs.AzureBlobStorage.SasURL != nil {
 				blobStorage.SasUrl = *httpLogs.AzureBlobStorage.SasURL
@@ -3340,18 +3329,47 @@ func FlattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
 			}
 		}
 
-		logs.HttpLogs = []HttpLog{httpLog}
+		if httpLog.FileSystems != nil || httpLog.AzureBlobStorage != nil {
+			logs.HttpLogs = []HttpLog{httpLog}
+		}
 	}
 
-	if props.DetailedErrorMessages != nil {
+	// logs.DetailedErrorMessages = false
+	if props.DetailedErrorMessages != nil && props.DetailedErrorMessages.Enabled != nil {
 		logs.DetailedErrorMessages = *props.DetailedErrorMessages.Enabled
 	}
 
-	if props.FailedRequestsTracing != nil {
+	// logs.FailedRequestTracing = false
+	if props.FailedRequestsTracing != nil && props.FailedRequestsTracing.Enabled != nil {
 		logs.FailedRequestTracing = *props.FailedRequestsTracing.Enabled
 	}
 
 	return []LogsConfig{logs}
+}
+
+func onlyDefaultLoggingConfig(props web.SiteLogsConfigProperties) bool {
+	if props.ApplicationLogs == nil || props.HTTPLogs == nil || props.FailedRequestsTracing == nil || props.DetailedErrorMessages == nil {
+		return false
+	}
+	if props.ApplicationLogs.FileSystem != nil && props.ApplicationLogs.FileSystem.Level != web.LogLevelOff {
+		return false
+	}
+	if props.ApplicationLogs.AzureBlobStorage != nil && props.ApplicationLogs.AzureBlobStorage.Level != web.LogLevelOff {
+		return false
+	}
+	if props.HTTPLogs.FileSystem != nil && props.HTTPLogs.FileSystem.Enabled != nil && (*props.HTTPLogs.FileSystem.Enabled) {
+		return false
+	}
+	if props.HTTPLogs.AzureBlobStorage != nil && props.HTTPLogs.AzureBlobStorage.Enabled != nil && (*props.HTTPLogs.AzureBlobStorage.Enabled) {
+		return false
+	}
+	if props.FailedRequestsTracing.Enabled == nil || *props.FailedRequestsTracing.Enabled {
+		return false
+	}
+	if props.DetailedErrorMessages.Enabled == nil || *props.DetailedErrorMessages.Enabled {
+		return false
+	}
+	return true
 }
 
 func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string) []SiteConfigWindows {
@@ -4030,4 +4048,33 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 		Triggers: []AutoHealTriggerLinux{resultTrigger},
 		Actions:  []AutoHealActionLinux{resultActions},
 	}}
+}
+
+func DisabledLogsConfig() *web.SiteLogsConfig {
+	return &web.SiteLogsConfig{
+		SiteLogsConfigProperties: &web.SiteLogsConfigProperties{
+			DetailedErrorMessages: &web.EnabledConfig{
+				Enabled: utils.Bool(false),
+			},
+			FailedRequestsTracing: &web.EnabledConfig{
+				Enabled: utils.Bool(false),
+			},
+			ApplicationLogs: &web.ApplicationLogsConfig{
+				FileSystem: &web.FileSystemApplicationLogsConfig{
+					Level: web.LogLevelOff,
+				},
+				AzureBlobStorage: &web.AzureBlobStorageApplicationLogsConfig{
+					Level: web.LogLevelOff,
+				},
+			},
+			HTTPLogs: &web.HTTPLogsConfig{
+				FileSystem: &web.FileSystemHTTPLogsConfig{
+					Enabled: utils.Bool(false),
+				},
+				AzureBlobStorage: &web.AzureBlobStorageHTTPLogsConfig{
+					Enabled: utils.Bool(false),
+				},
+			},
+		},
+	}
 }
