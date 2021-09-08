@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -91,20 +93,13 @@ func resourceSiteRecoveryNetworkMappingCreate(d *pluginsdk.ResourceData, meta in
 	defer cancel()
 
 	// get network name from id
-	parsedSourceNetworkId, err := azure.ParseAzureResourceID(sourceNetworkId)
+	parsedSourceNetworkId, err := networkParse.VirtualNetworkID(sourceNetworkId)
 	if err != nil {
 		return fmt.Errorf("[ERROR] Unable to parse source_network_id '%s' (network mapping %s): %+v", sourceNetworkId, name, err)
 	}
-	sourceNetworkName, hasName := parsedSourceNetworkId.Path["virtualNetworks"]
-	if !hasName {
-		sourceNetworkName, hasName = parsedSourceNetworkId.Path["virtualnetworks"] // Handle that different APIs return different ID casings
-		if !hasName {
-			return fmt.Errorf("[ERROR] parsed source_network_id '%s' doesn't contain 'virtualnetworks'", parsedSourceNetworkId)
-		}
-	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, fabricName, sourceNetworkName, name)
+		existing, err := client.Get(ctx, fabricName, parsedSourceNetworkId.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) &&
 				// todo this workaround can be removed when this bug is fixed
@@ -128,7 +123,7 @@ func resourceSiteRecoveryNetworkMappingCreate(d *pluginsdk.ResourceData, meta in
 			},
 		},
 	}
-	future, err := client.Create(ctx, fabricName, sourceNetworkName, name, parameters)
+	future, err := client.Create(ctx, fabricName, parsedSourceNetworkId.Name, name, parameters)
 	if err != nil {
 		return fmt.Errorf("creating site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 	}
@@ -136,7 +131,7 @@ func resourceSiteRecoveryNetworkMappingCreate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("creating site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	resp, err := client.Get(ctx, fabricName, sourceNetworkName, name)
+	resp, err := client.Get(ctx, fabricName, parsedSourceNetworkId.Name, name)
 	if err != nil {
 		return fmt.Errorf("retrieving site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 	}
@@ -147,38 +142,33 @@ func resourceSiteRecoveryNetworkMappingCreate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceSiteRecoveryNetworkMappingRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ReplicationNetworkMappingID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	vaultName := id.Path["vaults"]
-	fabricName := id.Path["replicationFabrics"]
-	networkName := id.Path["replicationNetworks"]
-	name := id.Path["replicationNetworkMappings"]
-
-	client := meta.(*clients.Client).RecoveryServices.NetworkMappingClient(resGroup, vaultName)
+	client := meta.(*clients.Client).RecoveryServices.NetworkMappingClient(id.ResourceGroup, id.VaultName)
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resp, err := client.Get(ctx, fabricName, networkName, name)
+	resp, err := client.Get(ctx, id.ReplicationFabricName, id.ReplicationNetworkName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("making Read request on site recovery network mapping %s (vault %s): %+v", id.Name, id.VaultName, err)
 	}
 
-	d.Set("resource_group_name", resGroup)
-	d.Set("recovery_vault_name", vaultName)
-	d.Set("source_recovery_fabric_name", fabricName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("recovery_vault_name", id.VaultName)
+	d.Set("source_recovery_fabric_name", id.ReplicationFabricName)
 	d.Set("name", resp.Name)
 	if props := resp.Properties; props != nil {
 		d.Set("source_network_id", props.PrimaryNetworkID)
 		d.Set("target_network_id", props.RecoveryNetworkID)
 
+		//TODO update to use parser when fabric parser added
 		targetFabricId, err := azure.ParseAzureResourceID(handleAzureSdkForGoBug2824(*resp.Properties.RecoveryFabricArmID))
 		if err != nil {
 			return err
@@ -190,28 +180,22 @@ func resourceSiteRecoveryNetworkMappingRead(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceSiteRecoveryNetworkMappingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ReplicationNetworkMappingID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	vaultName := id.Path["vaults"]
-	fabricName := id.Path["replicationFabrics"]
-	networkName := id.Path["replicationNetworks"]
-	name := id.Path["replicationNetworkMappings"]
-
-	client := meta.(*clients.Client).RecoveryServices.NetworkMappingClient(resGroup, vaultName)
+	client := meta.(*clients.Client).RecoveryServices.NetworkMappingClient(id.ResourceGroup, id.VaultName)
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	future, err := client.Delete(ctx, fabricName, networkName, name)
+	future, err := client.Delete(ctx, id.ReplicationFabricName, id.ReplicationNetworkName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("deleting site recovery network mapping %s (vault %s): %+v", id.Name, id.VaultName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of site recovery network mapping  %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("waiting for deletion of site recovery network mapping  %s (vault %s): %+v", id.Name, id.VaultName, err)
 	}
 
 	return nil
