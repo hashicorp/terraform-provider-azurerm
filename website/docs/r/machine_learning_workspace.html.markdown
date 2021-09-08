@@ -3,7 +3,7 @@ subcategory: "Machine Learning"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_machine_learning_workspace"
 description: |-
-Manages a Azure Machine Learning Workspace.
+  Manages a Azure Machine Learning Workspace.
 ---
 # azurerm_machine_learning_workspace
 
