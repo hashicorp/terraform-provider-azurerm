@@ -3713,7 +3713,7 @@ func FlattenAppSettings(input web.StringDictionary) map[string]string {
 
 	appSettings := FlattenWebStringDictionary(input)
 
-	// Remove the settings the service adds when logging settings are specified.
+	// Remove the settings the service adds for legacy reasons when logging settings are specified.
 	for _, v := range unmanagedSettings { //nolint:typecheck
 		delete(appSettings, v)
 	}
@@ -3731,7 +3731,9 @@ func flattenVirtualApplications(appVirtualApplications *[]web.VirtualApplication
 		virtualApp := VirtualApplication{
 			VirtualPath:  utils.NormalizeNilableString(v.VirtualPath),
 			PhysicalPath: utils.NormalizeNilableString(v.PhysicalPath),
-			Preload:      *v.PreloadEnabled,
+		}
+		if preload := v.PreloadEnabled; preload != nil {
+			virtualApp.Preload = *preload
 		}
 		if v.VirtualDirectories != nil && len(*v.VirtualDirectories) > 0 {
 			virtualDirs := make([]VirtualDirectory, 0)

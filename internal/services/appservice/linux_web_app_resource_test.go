@@ -993,6 +993,7 @@ func TestAccLinuxWebApp_appSettings(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.secret").HasValue("sauce"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 

@@ -79,7 +79,6 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"app_settings": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
-			Computed: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
