@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -90,29 +89,29 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"administrator_account": {
+			"ssh_settings": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"user_name": {
+						"admin_username": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
-						"password": {
+						"admin_password": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							AtLeastOneOf: []string{"administrator_account.0.password", "administrator_account.0.ssh_public_key"},
+							AtLeastOneOf: []string{"ssh_settings.0.admin_password", "ssh_settings.0.ssh_key_value"},
 						},
-						"ssh_public_key": {
+						"ssh_key_value": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							AtLeastOneOf: []string{"administrator_account.0.password", "administrator_account.0.ssh_public_key"},
+							AtLeastOneOf: []string{"ssh_settings.0.admin_password", "ssh_settings.0.ssh_key_value"},
 						},
 					},
 				},
@@ -137,35 +136,17 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"os_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Computed: true, // `os_type` sets to `Linux` by default even if unspecified
-				ValidateFunc: validation.StringInSlice([]string{
-					string(machinelearningservices.OsTypeLinux),
-					string(machinelearningservices.OsTypeWindows),
-				}, false),
-			},
-
-			"public_ssh_access_enabled": {
+			"ssh_public_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
-				Computed: true, // `public_ssh_access_enabled` sets to `true` by default even if unspecified
+				Computed: true, // `ssh_public_access_enabled` sets to `true` by default even if unspecified
 			},
 
 			"subnet_resource_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-			},
-
-			"virtual_machine_image_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: computeValidate.SharedImageVersionID,
 			},
 
 			"tags": tags.ForceNewSchema(),
@@ -202,7 +183,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		VMSize:                 utils.String(d.Get("vm_size").(string)),
 		VMPriority:             machinelearningservices.VMPriority(d.Get("vm_priority").(string)),
 		ScaleSettings:          expandScaleSettings(d.Get("scale_settings").([]interface{})),
-		UserAccountCredentials: expandUserAccountCredentials(d.Get("administrator_account").([]interface{})),
+		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh_settings").([]interface{})),
 	}
 
 	if isolatedNetworkEnabled, ok := d.GetOk("isolated_network_enabled"); ok {
@@ -211,19 +192,10 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if nodePublicIpEnabled, ok := d.GetOk("node_public_ip_enabled"); ok {
 		computeClusterAmlComputeProperties.EnableNodePublicIP = utils.Bool(nodePublicIpEnabled.(bool))
 	}
-	if osType, ok := d.GetOk("os_type"); ok {
-		computeClusterAmlComputeProperties.OsType = machinelearningservices.OsType(osType.(string))
-	}
 
 	computeClusterAmlComputeProperties.RemoteLoginPortPublicAccess = machinelearningservices.RemoteLoginPortPublicAccessDisabled
-	if d.Get("public_ssh_access_enabled").(bool) {
+	if d.Get("ssh_public_access_enabled").(bool) {
 		computeClusterAmlComputeProperties.RemoteLoginPortPublicAccess = machinelearningservices.RemoteLoginPortPublicAccessEnabled
-	}
-
-	if virtualMachineImageId, ok := d.GetOk("virtual_machine_image_id"); ok {
-		computeClusterAmlComputeProperties.VirtualMachineImage = &machinelearningservices.VirtualMachineImage{
-			ID: utils.String(virtualMachineImageId.(string)),
-		}
 	}
 
 	if subnetId, ok := d.GetOk("subnet_resource_id"); ok && subnetId.(string) != "" {
@@ -307,24 +279,21 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if props := computeCluster.Properties; props != nil {
 		d.Set("vm_size", props.VMSize)
 		d.Set("vm_priority", props.VMPriority)
-		d.Set("os_type", props.OsType)
 		d.Set("node_public_ip_enabled", props.EnableNodePublicIP)
 		d.Set("isolated_network_enabled", props.IsolatedNetwork)
 		d.Set("scale_settings", flattenScaleSettings(props.ScaleSettings))
-		d.Set("administrator_account", flattenUserAccountCredentials(props.UserAccountCredentials))
+		d.Set("ssh_settings", flattenUserAccountCredentials(props.UserAccountCredentials))
 		if props.Subnet != nil {
 			d.Set("subnet_resource_id", props.Subnet.ID)
 		}
-		if props.VirtualMachineImage != nil {
-			d.Set("virtual_machine_image_id", props.VirtualMachineImage.ID)
-		}
+
 		switch props.RemoteLoginPortPublicAccess {
 		case machinelearningservices.RemoteLoginPortPublicAccessNotSpecified:
-			d.Set("public_ssh_access_enabled", nil)
+			d.Set("ssh_public_access_enabled", nil)
 		case machinelearningservices.RemoteLoginPortPublicAccessEnabled:
-			d.Set("public_ssh_access_enabled", true)
+			d.Set("ssh_public_access_enabled", true)
 		case machinelearningservices.RemoteLoginPortPublicAccessDisabled:
-			d.Set("public_ssh_access_enabled", false)
+			d.Set("ssh_public_access_enabled", false)
 		}
 	}
 
@@ -384,9 +353,9 @@ func expandUserAccountCredentials(input []interface{}) *machinelearningservices.
 	v := input[0].(map[string]interface{})
 
 	return &machinelearningservices.UserAccountCredentials{
-		AdminUserName:         utils.String(v["user_name"].(string)),
-		AdminUserPassword:     utils.String(v["password"].(string)),
-		AdminUserSSHPublicKey: utils.String(v["ssh_public_key"].(string)),
+		AdminUserName:         utils.String(v["admin_username"].(string)),
+		AdminUserPassword:     utils.String(v["admin_password"].(string)),
+		AdminUserSSHPublicKey: utils.String(v["ssh_key_value"].(string)),
 	}
 }
 
@@ -413,9 +382,9 @@ func flattenUserAccountCredentials(credentials *machinelearningservices.UserAcco
 		username = *credentials.AdminUserName
 	}
 
-	var password string
+	var admin_password string
 	if credentials.AdminUserPassword != nil {
-		password = *credentials.AdminUserPassword
+		admin_password = *credentials.AdminUserPassword
 	}
 
 	var sshPublicKey string
@@ -425,9 +394,9 @@ func flattenUserAccountCredentials(credentials *machinelearningservices.UserAcco
 
 	return []interface{}{
 		map[string]interface{}{
-			"user_name":      username,
-			"password":       password,
-			"ssh_public_key": sshPublicKey,
+			"admin_username": username,
+			"admin_password": admin_password,
+			"ssh_key_value":  sshPublicKey,
 		},
 	}
 }

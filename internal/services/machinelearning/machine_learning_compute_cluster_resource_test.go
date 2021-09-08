@@ -194,13 +194,12 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  public_ssh_access_enabled = false
+  ssh_public_access_enabled = false
   isolated_network_enabled  = true
   node_public_ip_enabled    = true
-  os_type                   = "Windows"
-  administrator_account {
-    user_name      = "adminuser"
-    ssh_public_key = var.ssh_key
+  ssh_settings {
+    admin_username = "adminuser"
+    ssh_key_value  = var.ssh_key
   }
   depends_on = [
     azurerm_subnet_network_security_group_association.test

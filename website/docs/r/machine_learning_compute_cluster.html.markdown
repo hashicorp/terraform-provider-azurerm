@@ -113,7 +113,7 @@ The following arguments are supported:
 * `scale_settings` - (Required) A `scale_settings` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
   
 ---
-* `administrator_account` - (Optional) Credentials for an administrator user account that will be created on each compute node. A `administrator_account` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `ssh_settings` - (Optional) Credentials for an administrator user account that will be created on each compute node. A `ssh_settings` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `description` - (Optional) The description of the Machine Learning compute. Changing this forces a new Machine Learning Compute Cluster to be created.
 
@@ -123,13 +123,9 @@ The following arguments are supported:
 
 * `node_public_ip_enabled` - (Optional)  A boolean value indicating whether enable node public IP address provisioning. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `os_type` - (Optional)  Compute OS Type. Possible values include: `Linux`, `Windows`. Changing this forces a new Machine Learning Compute Cluster to be created.
-
-* `public_ssh_access_enabled` - (Optional)  A boolean value indicating whether enable the public SSH port. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `ssh_public_access_enabled` - (Optional)  A boolean value indicating whether enable the public SSH port. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `subnet_resource_id` - (Optional) The ID of the Subnet that the Compute Cluster should reside in. Changing this forces a new Machine Learning Compute Cluster to be created.
-
-* `virtual_machine_image_id` - (Optional) The ID of Virtual Machine image. This property is used only `os_type` sets to `Windows`. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning Compute Cluster. Changing this forces a new Machine Learning Compute Cluster to be created.
 
@@ -142,13 +138,13 @@ A `identity` block supports the following:
 * `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Machine Learning Compute Cluster. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 ---
-A `administrator_account` block supports the following:
+A `ssh_settings` block supports the following:
 
-* `username` - (Required) Name of the administrator user account which can be used to SSH to nodes. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `admin_username` - (Required) Name of the administrator user account which can be used to SSH to nodes. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `password` - (Optional) Password of the administrator user account. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `admin_password` - (Optional) Password of the administrator user account. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `ssh_public_key` - (Optional) SSH public key of the administrator user account. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `ssh_key_value` - (Optional) SSH public key of the administrator user account. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 ---
 
