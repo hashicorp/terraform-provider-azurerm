@@ -42,6 +42,62 @@ func base64EncodedStateFunc(v interface{}) string {
 	}
 }
 
+func sslPolicySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"disabled_protocols": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(network.ApplicationGatewaySslProtocolTLSv10),
+							string(network.ApplicationGatewaySslProtocolTLSv11),
+							string(network.ApplicationGatewaySslProtocolTLSv12),
+						}, false),
+					},
+				},
+
+				"policy_type": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(network.ApplicationGatewaySslPolicyTypeCustom),
+						string(network.ApplicationGatewaySslPolicyTypePredefined),
+					}, false),
+				},
+
+				"policy_name": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+
+				"cipher_suites": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringInSlice(possibleApplicationGatewaySslCipherSuiteValues(), false),
+					},
+				},
+
+				"min_protocol_version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(network.ApplicationGatewaySslProtocolTLSv10),
+						string(network.ApplicationGatewaySslProtocolTLSv11),
+						string(network.ApplicationGatewaySslProtocolTLSv12),
+					}, false),
+				},
+			},
+		},
+	}
+}
 func resourceApplicationGateway() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApplicationGatewayCreateUpdate,
@@ -418,6 +474,11 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Optional: true,
 						},
 
+						"ssl_profile": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
 						"require_sni": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -746,61 +807,33 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:XS003
-			"ssl_policy": {
-				Type:     pluginsdk.TypeList,
+			"trusted_client_certificate": {
+				Type:     pluginsdk.TypeList, // todo this should probably be a map
 				Optional: true,
-				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"disabled_protocols": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(network.ApplicationGatewaySslProtocolTLSv10),
-									string(network.ApplicationGatewaySslProtocolTLSv11),
-									string(network.ApplicationGatewaySslProtocolTLSv12),
-								}, false),
-							},
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"policy_type": {
+						"data": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+							Sensitive:    true,
+						},
+
+						"id": {
 							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.ApplicationGatewaySslPolicyTypeCustom),
-								string(network.ApplicationGatewaySslPolicyTypePredefined),
-							}, false),
-						},
-
-						"policy_name": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-
-						"cipher_suites": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice(possibleApplicationGatewaySslCipherSuiteValues(), false),
-							},
-						},
-
-						"min_protocol_version": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.ApplicationGatewaySslProtocolTLSv10),
-								string(network.ApplicationGatewaySslProtocolTLSv11),
-								string(network.ApplicationGatewaySslProtocolTLSv12),
-							}, false),
+							Computed: true,
 						},
 					},
 				},
 			},
+
+			"ssl_policy": sslPolicySchema(),
 
 			"enable_http2": {
 				Type:     pluginsdk.TypeBool,
@@ -1064,6 +1097,36 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+					},
+				},
+			},
+
+			"ssl_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+						"client_certificate_names": {
+							Type:     pluginsdk.TypeSet,
+							Required: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+						"verify_client_cert_issuer_dn": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"ssl_policy": sslPolicySchema(),
 					},
 				},
 			},
@@ -1381,6 +1444,8 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	// Gateway ID is needed to link sub-resources together in expand functions
 	trustedRootCertificates := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]interface{}))
 
+	trustedClientCertificates := expandApplicationGatewayTrustedClientCertificates(d.Get("trusted_client_certificate").([]interface{}))
+
 	requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, id.ID())
 	if err != nil {
 		return fmt.Errorf("expanding `request_routing_rule`: %+v", err)
@@ -1401,6 +1466,7 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("expanding `ssl_certificate`: %+v", err)
 	}
 
+	sslProfiles := expandApplicationGatewaySslProfiles(d.Get("ssl_profile").([]interface{}), id.ID())
 	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
 
 	httpListeners, err := expandApplicationGatewayHTTPListeners(d, id.ID())
@@ -1435,7 +1501,9 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			RedirectConfigurations:        redirectConfigurations,
 			Sku:                           expandApplicationGatewaySku(d),
 			SslCertificates:               sslCertificates,
-			SslPolicy:                     expandApplicationGatewaySslPolicy(d),
+			SslPolicy:                     expandApplicationGatewaySslPolicy(d.Get("ssl_policy").([]interface{})),
+			SslProfiles:                   sslProfiles,
+			TrustedClientCertificates:     trustedClientCertificates,
 
 			RewriteRuleSets: rewriteRuleSets,
 			URLPathMaps:     urlPathMaps,
@@ -1573,6 +1641,10 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `trusted_root_certificate`: %+v", err)
 		}
 
+		if err = d.Set("trusted_client_certificate", flattenApplicationGatewayTrustedClientCertificates(props.TrustedClientCertificates, d)); err != nil {
+			return fmt.Errorf("setting `trusted_client_certificate`: %+v", err)
+		}
+
 		if setErr := d.Set("backend_address_pool", flattenApplicationGatewayBackendAddressPools(props.BackendAddressPools)); setErr != nil {
 			return fmt.Errorf("setting `backend_address_pool`: %+v", setErr)
 		}
@@ -1587,6 +1659,15 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 
 		if setErr := d.Set("ssl_policy", flattenApplicationGatewaySslPolicy(props.SslPolicy)); setErr != nil {
 			return fmt.Errorf("setting `ssl_policy`: %+v", setErr)
+		}
+
+		sslProfiles, err := flattenApplicationGatewaySslProfiles(props.SslProfiles)
+		if err != nil {
+			return fmt.Errorf("flattening `ssl_profiles`: %+v", err)
+		}
+
+		if setErr := d.Set("ssl_profile", sslProfiles); setErr != nil {
+			return fmt.Errorf("setting `ssl_profiles`: %+v", setErr)
 		}
 
 		d.Set("enable_http2", props.EnableHTTP2)
@@ -1791,6 +1872,32 @@ func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) *[]net
 	return &results
 }
 
+func expandApplicationGatewayTrustedClientCertificates(certs []interface{}) *[]network.ApplicationGatewayTrustedClientCertificate {
+	results := make([]network.ApplicationGatewayTrustedClientCertificate, 0)
+
+	for _, raw := range certs {
+		v := raw.(map[string]interface{})
+
+		name := v["name"].(string)
+		data := v["data"].(string)
+
+		if data == "" {
+			continue
+		}
+
+		output := network.ApplicationGatewayTrustedClientCertificate{
+			ApplicationGatewayTrustedClientCertificatePropertiesFormat: &network.ApplicationGatewayTrustedClientCertificatePropertiesFormat{
+				Data: utils.String(utils.Base64EncodeIfNot(data)),
+			},
+			Name: utils.String(name),
+		}
+
+		results = append(results, output)
+	}
+
+	return &results
+}
+
 func flattenApplicationGatewayAuthenticationCertificates(certs *[]network.ApplicationGatewayAuthenticationCertificate, d *pluginsdk.ResourceData) []interface{} {
 	results := make([]interface{}, 0)
 	if certs == nil {
@@ -1873,6 +1980,41 @@ func flattenApplicationGatewayTrustedRootCertificates(certs *[]network.Applicati
 	return results
 }
 
+func flattenApplicationGatewayTrustedClientCertificates(certs *[]network.ApplicationGatewayTrustedClientCertificate, d *pluginsdk.ResourceData) []interface{} {
+	results := make([]interface{}, 0)
+	if certs == nil {
+		return results
+	}
+
+	// since the certificate data isn't returned lets load any existing data
+	nameToDataMap := map[string]string{}
+	if existing, ok := d.GetOk("trusted_client_certificate"); ok && existing != nil {
+		for _, c := range existing.([]interface{}) {
+			b := c.(map[string]interface{})
+			nameToDataMap[b["name"].(string)] = b["data"].(string)
+		}
+	}
+
+	for _, cert := range *certs {
+		output := map[string]interface{}{}
+
+		if v := cert.ID; v != nil {
+			output["id"] = *v
+		}
+
+		if v := cert.Name; v != nil {
+			output["name"] = *v
+
+			// if theres no key vauld ID and we have a name, so try and look up the old data to pass it along
+			if data, ok := nameToDataMap[*v]; ok && data != "" {
+				output["data"] = data
+			}
+		}
+
+		results = append(results, output)
+	}
+	return results
+}
 func expandApplicationGatewayBackendAddressPools(d *pluginsdk.ResourceData) *[]network.ApplicationGatewayBackendAddressPool {
 	vs := d.Get("backend_address_pool").([]interface{})
 	results := make([]network.ApplicationGatewayBackendAddressPool, 0)
@@ -2171,14 +2313,12 @@ func flattenApplicationGatewayConnectionDraining(input *network.ApplicationGatew
 	return []interface{}{result}
 }
 
-func expandApplicationGatewaySslPolicy(d *pluginsdk.ResourceData) *network.ApplicationGatewaySslPolicy {
+func expandApplicationGatewaySslPolicy(sslPolicies []interface{}) *network.ApplicationGatewaySslPolicy {
 	policy := network.ApplicationGatewaySslPolicy{}
 	disabledSSLProtocols := make([]network.ApplicationGatewaySslProtocol, 0)
 
-	vs := d.Get("ssl_policy").([]interface{})
-
-	if len(vs) > 0 && vs[0] != nil {
-		v := vs[0].(map[string]interface{})
+	if len(sslPolicies) > 0 && sslPolicies[0] != nil {
+		v := sslPolicies[0].(map[string]interface{})
 		policyType := network.ApplicationGatewaySslPolicyType(v["policy_type"].(string))
 
 		for _, policy := range v["disabled_protocols"].([]interface{}) {
@@ -2248,6 +2388,36 @@ func flattenApplicationGatewaySslPolicy(input *network.ApplicationGatewaySslPoli
 	return results
 }
 
+func flattenApplicationGatewaySslProfiles(profiles *[]network.ApplicationGatewaySslProfile) ([]interface{}, error) {
+	results := make([]interface{}, 0)
+	if profiles == nil {
+		return results, nil
+	}
+
+	for _, profile := range *profiles {
+		output := map[string]interface{}{}
+		output["name"] = utils.NormalizeNilableString(profile.Name)
+		output["verify_client_cert_issuer_dn"] = profile.ClientAuthConfiguration.VerifyClientCertIssuerDN
+		certNames := make([]string, 0)
+		if tcc := profile.TrustedClientCertificates; tcc != nil {
+			for _, cert := range *tcc {
+				certId := utils.NormalizeNilableString(cert.ID)
+				toks := strings.Split(certId, "/")
+				if len(toks) == 1 {
+					return nil, fmt.Errorf("invalid Trusted Client Certificate ID (%q)", certId)
+				}
+				certName := toks[len(toks)-1]
+				certNames = append(certNames, certName)
+			}
+			output["client_certificate_names"] = certNames
+			output["ssl_policy"] = flattenApplicationGatewaySslPolicy(profile.SslPolicy)
+		}
+		results = append(results, output)
+	}
+
+	return results, nil
+}
+
 func expandApplicationGatewayHTTPListeners(d *pluginsdk.ResourceData, gatewayID string) (*[]network.ApplicationGatewayHTTPListener, error) {
 	vs := d.Get("http_listener").([]interface{})
 	results := make([]network.ApplicationGatewayHTTPListener, 0)
@@ -2280,6 +2450,14 @@ func expandApplicationGatewayHTTPListeners(d *pluginsdk.ResourceData, gatewayID 
 				RequireServerNameIndication: utils.Bool(requireSNI),
 				CustomErrorConfigurations:   customErrorConfigurations,
 			},
+		}
+
+		sslProfile := v["ssl_profile"].(string)
+		sslProfileId := fmt.Sprintf("%s/sslProfiles/%s", gatewayID, sslProfile)
+		if sslProfile != "" {
+			listener.SslProfile = &network.SubResource{
+				ID: utils.String(sslProfileId),
+			}
 		}
 
 		host := v["host_name"].(string)
@@ -2387,6 +2565,15 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 
 			if fwp := props.FirewallPolicy; fwp != nil && fwp.ID != nil {
 				output["firewall_policy_id"] = *fwp.ID
+			}
+
+			if sslProfile := props.SslProfile; sslProfile != nil {
+				profileId := utils.NormalizeNilableString(sslProfile.ID)
+				toks := strings.Split(profileId, "/")
+				if len(toks) == 1 {
+					return nil, fmt.Errorf("invalid SSL Profile ID (%q)", profileId)
+				}
+				output["ssl_profile"] = toks[len(toks)-1]
 			}
 
 			output["custom_error_configuration"] = flattenApplicationGatewayCustomErrorConfigurations(props.CustomErrorConfigurations)
@@ -3413,6 +3600,42 @@ func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewa
 	return results
 }
 
+func expandApplicationGatewaySslProfiles(profiles []interface{}, gatewayID string) *[]network.ApplicationGatewaySslProfile {
+	results := make([]network.ApplicationGatewaySslProfile, 0)
+
+	for _, raw := range profiles {
+		v := raw.(map[string]interface{})
+
+		name := v["name"].(string)
+		verify := v["verify_client_cert_issuer_dn"].(bool)
+
+		output := network.ApplicationGatewaySslProfile{
+			ApplicationGatewaySslProfilePropertiesFormat: &network.ApplicationGatewaySslProfilePropertiesFormat{
+				ClientAuthConfiguration: &network.ApplicationGatewayClientAuthConfiguration{
+					VerifyClientCertIssuerDN: utils.Bool(verify),
+				},
+			},
+			Name: utils.String(name),
+		}
+
+		certs := v["client_certificate_names"].(*pluginsdk.Set).List()
+		certList := make([]network.SubResource, 0)
+		for _, cert := range certs {
+			certName := cert.(string)
+			if certName == "" {
+				continue
+			}
+			certId := fmt.Sprintf("%s/trustedClientCertificates/%s", gatewayID, cert.(string))
+			tmpSubResource := network.SubResource{ID: utils.String(certId)}
+			certList = append(certList, tmpSubResource)
+		}
+		output.TrustedClientCertificates = &certList
+		output.SslPolicy = expandApplicationGatewaySslPolicy(v["ssl_policy"].([]interface{}))
+		results = append(results, output)
+	}
+	return &results
+}
+
 func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID string) (*[]network.ApplicationGatewayURLPathMap, error) {
 	vs := d.Get("url_path_map").([]interface{})
 	results := make([]network.ApplicationGatewayURLPathMap, 0)
@@ -3886,6 +4109,17 @@ func flattenApplicationGatewayCustomErrorConfigurations(input *[]network.Applica
 	return results
 }
 
+func checkSslPolicy(sslPolicy []interface{}) error {
+	if len(sslPolicy) > 0 && sslPolicy[0] != nil {
+		v := sslPolicy[0].(map[string]interface{})
+		disabledProtocols := v["disabled_protocols"].([]interface{})
+		policyType := v["policy_type"].(string)
+		if len(disabledProtocols) > 0 && policyType != "" {
+			return fmt.Errorf("setting disabled_protocols is not allowed when policy_type is defined")
+		}
+	}
+	return nil
+}
 func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
 	capacity, hasCapacity := d.GetOk("sku.0.capacity")
@@ -3896,15 +4130,24 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 	}
 
 	sslPolicy := d.Get("ssl_policy").([]interface{})
-	if len(sslPolicy) > 0 && sslPolicy[0] != nil {
-		v := sslPolicy[0].(map[string]interface{})
-		disabledProtocols := v["disabled_protocols"].([]interface{})
-		policyType := v["policy_type"].(string)
-		if len(disabledProtocols) > 0 && policyType != "" {
-			return fmt.Errorf("setting disabled_protocols is not allowed when policy_type is defined")
-		}
+	if err := checkSslPolicy(sslPolicy); err != nil {
+		return err
 	}
 
+	sslProfiles := d.Get("ssl_profile").([]interface{})
+	if len(sslProfiles) > 0 {
+		for _, profile := range sslProfiles {
+			if profile == nil {
+				continue
+			}
+			v := profile.(map[string]interface{})
+			if policy, ok := v["ssl_policy"]; ok && policy != nil {
+				if err := checkSslPolicy(policy.([]interface{})); err != nil {
+					return err
+				}
+			}
+		}
+	}
 	if hasCapacity {
 		if (strings.EqualFold(tier, string(network.ApplicationGatewayTierStandard)) || strings.EqualFold(tier, string(network.ApplicationGatewayTierWAF))) && (capacity.(int) < 1 || capacity.(int) > 32) {
 			return fmt.Errorf("The value '%d' exceeds the maximum capacity allowed for a %q V1 SKU, the %q SKU must have a capacity value between 1 and 32", capacity, tier, tier)

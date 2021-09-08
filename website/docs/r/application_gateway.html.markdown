@@ -151,7 +151,11 @@ The following arguments are supported:
 
 * `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
 
-* `ssl_policy` (Optional) a `ssl policy` block as defined below.
+* `trusted_client_certificate` - (Optional) One or more `trusted_client_certificate` blocks as defined below.
+
+* `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
+
+* `ssl_profile` - (Optional) One or more `ssl_profile` blocks as defined below.
 
 * `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
 
@@ -186,6 +190,14 @@ A `authentication_certificate` block supports the following:
 ---
 
 A `trusted_root_certificate` block supports the following:
+
+* `name` - (Required) The Name of the Trusted Root Certificate to use.
+
+* `data` - (Required) The contents of the Trusted Root Certificate which should be used.
+
+---
+
+A `trusted_client_certificate` block supports the following:
 
 * `name` - (Required) The Name of the Trusted Root Certificate to use.
 
@@ -297,6 +309,8 @@ A `http_listener` block supports the following:
 * `require_sni` - (Optional) Should Server Name Indication be Required? Defaults to `false`.
 
 * `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this HTTP Listener.
+
+* `ssl_profile` - (Optional) The name of the associated ssl profile which should be used for this HTTP Listener.
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
@@ -449,7 +463,17 @@ When using a `policy_type` of `Custom` the following fields are supported:
 
 * `min_protocol_version` - (Optional) The minimal TLS version. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
 
+---
 
+A `ssl_profile` block supports the following:
+
+* `name` - (Required) The name of the SSL Profile
+
+* `client_certificate_names` - (Required) A list of `trusted_client_certificate` names.
+
+* `verify_client_cert_issuer_dn` - (Optional) Verify the client certificate's immediate issuer Distinguished Name if set to `true`.
+
+* `ssl_policy` - (Optional) A `ssl_policy` block as defined above.
 
 ---
 
