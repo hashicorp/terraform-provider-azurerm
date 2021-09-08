@@ -20,6 +20,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_kubernetes_cluster` - correctly read resource when `local_account_disabled` is `true` [GH-13260]
 * `azurerm_api_management_subscription` - relax `subscription_id` validation [GH-13203]
 * `azurerm_app_configuration_key` - fix KV import with no label [GH-13253]
 
