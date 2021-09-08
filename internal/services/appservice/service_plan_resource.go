@@ -23,9 +23,9 @@ import (
  TODO - Should this resource be split into the O/S variants for clarity of purpose?
 */
 
-type AppServicePlanResource struct{}
+type ServicePlanResource struct{}
 
-var _ sdk.ResourceWithUpdate = AppServicePlanResource{}
+var _ sdk.ResourceWithUpdate = ServicePlanResource{}
 
 type OSType string
 
@@ -35,16 +35,16 @@ const (
 	OSTypeWindowsContainer OSType = "WindowsContainer"
 )
 
-type AppServicePlanModel struct {
+type ServicePlanModel struct {
 	Name                      string            `tfschema:"name"`
 	ResourceGroup             string            `tfschema:"resource_group_name"`
 	Location                  string            `tfschema:"location"`
-	Kind                      string            `tfschema:"kind"` // Computed Only
+	Kind                      string            `tfschema:"kind"`
 	OSType                    OSType            `tfschema:"os_type"`
 	Sku                       string            `tfschema:"sku_name"`
 	AppServiceEnvironmentId   string            `tfschema:"app_service_environment_id"`
 	PerSiteScaling            bool              `tfschema:"per_site_scaling_enabled"`
-	Reserved                  bool              `tfschema:"reserved"` // Computed Only?
+	Reserved                  bool              `tfschema:"reserved"`
 	NumberOfWorkers           int               `tfschema:"number_of_workers"`
 	MaximumElasticWorkerCount int               `tfschema:"maximum_elastic_worker_count"`
 	Tags                      map[string]string `tfschema:"tags"`
@@ -52,7 +52,7 @@ type AppServicePlanModel struct {
 	// KubernetesID string `tfschema:"kubernetes_id"` // AKS Cluster resource ID?
 }
 
-func (r AppServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
+func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -82,7 +82,7 @@ func (r AppServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 				"PC2", "PC3", "PC4", // Consumption Plans - Function Apps
 				"EP1", "EP2", "EP3", // Elastic Premium Plans - Function Apps
 			}, false),
-			// Note - need to look at Isolated as separate property via ExactlyOneOf?
+			// TODO - need to look at Isolated as separate property via ExactlyOneOf?
 		},
 
 		"os_type": {
@@ -126,7 +126,7 @@ func (r AppServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AppServicePlanResource) Attributes() map[string]*pluginsdk.Schema {
+func (r ServicePlanResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"kind": {
 			Type:     pluginsdk.TypeString,
@@ -140,19 +140,19 @@ func (r AppServicePlanResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AppServicePlanResource) ModelObject() interface{} {
-	return AppServicePlanModel{}
+func (r ServicePlanResource) ModelObject() interface{} {
+	return ServicePlanModel{}
 }
 
-func (r AppServicePlanResource) ResourceType() string {
+func (r ServicePlanResource) ResourceType() string {
 	return "azurerm_service_plan"
 }
 
-func (r AppServicePlanResource) Create() sdk.ResourceFunc {
+func (r ServicePlanResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var servicePlan AppServicePlanModel
+			var servicePlan ServicePlanModel
 			if err := metadata.Decode(&servicePlan); err != nil {
 				return err
 			}
@@ -219,7 +219,7 @@ func (r AppServicePlanResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r AppServicePlanResource) Read() sdk.ResourceFunc {
+func (r ServicePlanResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -237,7 +237,7 @@ func (r AppServicePlanResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", id, err)
 			}
 
-			state := AppServicePlanModel{
+			state := ServicePlanModel{
 				Name:          id.ServerfarmName,
 				ResourceGroup: id.ResourceGroup,
 				Location:      location.NormalizeNilable(servicePlan.Location),
@@ -285,7 +285,7 @@ func (r AppServicePlanResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r AppServicePlanResource) Delete() sdk.ResourceFunc {
+func (r ServicePlanResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -306,11 +306,11 @@ func (r AppServicePlanResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r AppServicePlanResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r ServicePlanResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.ServicePlanID
 }
 
-func (r AppServicePlanResource) Update() sdk.ResourceFunc {
+func (r ServicePlanResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -321,7 +321,7 @@ func (r AppServicePlanResource) Update() sdk.ResourceFunc {
 
 			client := metadata.Client.AppService.ServicePlanClient
 
-			var state AppServicePlanModel
+			var state ServicePlanModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}

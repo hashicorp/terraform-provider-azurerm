@@ -15,19 +15,34 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppServicePlanDataSource struct{}
+type ServicePlanDataSource struct{}
 
-var _ sdk.DataSource = AppServicePlanDataSource{}
+var _ sdk.DataSource = ServicePlanDataSource{}
 
-func (r AppServicePlanDataSource) ModelObject() interface{} {
-	return AppServicePlanModel{}
+type ServicePlanDataSourceModel struct {
+	Name                      string            `tfschema:"name"`
+	ResourceGroup             string            `tfschema:"resource_group_name"`
+	Location                  string            `tfschema:"location"`
+	Kind                      string            `tfschema:"kind"`
+	OSType                    OSType            `tfschema:"os_type"`
+	Sku                       string            `tfschema:"sku_name"`
+	AppServiceEnvironmentId   string            `tfschema:"app_service_environment_id"`
+	PerSiteScaling            bool              `tfschema:"per_site_scaling_enabled"`
+	Reserved                  bool              `tfschema:"reserved"`
+	NumberOfWorkers           int               `tfschema:"number_of_workers"`
+	MaximumElasticWorkerCount int               `tfschema:"maximum_elastic_worker_count"`
+	Tags                      map[string]string `tfschema:"tags"`
 }
 
-func (r AppServicePlanDataSource) ResourceType() string {
+func (r ServicePlanDataSource) ModelObject() interface{} {
+	return ServicePlanDataSourceModel{}
+}
+
+func (r ServicePlanDataSource) ResourceType() string {
 	return "azurerm_service_plan"
 }
 
-func (r AppServicePlanDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r ServicePlanDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -39,7 +54,7 @@ func (r AppServicePlanDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AppServicePlanDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r ServicePlanDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": location.SchemaComputed(),
 
@@ -58,7 +73,7 @@ func (r AppServicePlanDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"per_site_scaling": {
+		"per_site_scaling_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
@@ -87,14 +102,14 @@ func (r AppServicePlanDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AppServicePlanDataSource) Read() sdk.ResourceFunc {
+func (r ServicePlanDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.ServicePlanClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var servicePlan AppServicePlanModel
+			var servicePlan ServicePlanModel
 			if err := metadata.Decode(&servicePlan); err != nil {
 				return err
 			}
