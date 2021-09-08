@@ -1,1251 +1,716 @@
 # Change History
 
-## Breaking Changes
-
-### Removed Constants
-
-1. AuthenticationType.AuthenticationTypeAnonymous
-1. AuthenticationType.AuthenticationTypeBasic
-1. AuthenticationType.AuthenticationTypeClientCertificate
-1. AuthenticationType.AuthenticationTypeWebLinkedServiceTypeProperties
-1. AuthorizationType.AuthorizationTypeKey
-1. AuthorizationType.AuthorizationTypeLinkedIntegrationRuntimeType
-1. AuthorizationType.AuthorizationTypeRBAC
-1. AvroCompressionCodec.Bzip2
-1. AvroCompressionCodec.Deflate
-1. AvroCompressionCodec.None
-1. AvroCompressionCodec.Snappy
-1. AvroCompressionCodec.Xz
-1. AzureFunctionActivityMethod.DELETE
-1. AzureFunctionActivityMethod.GET
-1. AzureFunctionActivityMethod.HEAD
-1. AzureFunctionActivityMethod.OPTIONS
-1. AzureFunctionActivityMethod.POST
-1. AzureFunctionActivityMethod.PUT
-1. AzureFunctionActivityMethod.TRACE
-1. AzureSearchIndexWriteBehaviorType.Merge
-1. AzureSearchIndexWriteBehaviorType.Upload
-1. BlobEventTypes.MicrosoftStorageBlobCreated
-1. BlobEventTypes.MicrosoftStorageBlobDeleted
-1. CassandraSourceReadConsistencyLevels.ALL
-1. CassandraSourceReadConsistencyLevels.EACHQUORUM
-1. CassandraSourceReadConsistencyLevels.LOCALONE
-1. CassandraSourceReadConsistencyLevels.LOCALQUORUM
-1. CassandraSourceReadConsistencyLevels.LOCALSERIAL
-1. CassandraSourceReadConsistencyLevels.ONE
-1. CassandraSourceReadConsistencyLevels.QUORUM
-1. CassandraSourceReadConsistencyLevels.SERIAL
-1. CassandraSourceReadConsistencyLevels.THREE
-1. CassandraSourceReadConsistencyLevels.TWO
-1. CopyBehaviorType.FlattenHierarchy
-1. CopyBehaviorType.MergeFiles
-1. CopyBehaviorType.PreserveHierarchy
-1. CosmosDbConnectionMode.Direct
-1. CosmosDbConnectionMode.Gateway
-1. CosmosDbServicePrincipalCredentialType.ServicePrincipalCert
-1. CosmosDbServicePrincipalCredentialType.ServicePrincipalKey
-1. DataFlowComputeType.ComputeOptimized
-1. DataFlowComputeType.General
-1. DataFlowComputeType.MemoryOptimized
-1. DataFlowDebugCommandType.ExecuteExpressionQuery
-1. DataFlowDebugCommandType.ExecutePreviewQuery
-1. DataFlowDebugCommandType.ExecuteStatisticsQuery
-1. DayOfWeek.Friday
-1. DayOfWeek.Monday
-1. DayOfWeek.Saturday
-1. DayOfWeek.Sunday
-1. DayOfWeek.Thursday
-1. DayOfWeek.Tuesday
-1. DayOfWeek.Wednesday
-1. Db2AuthenticationType.Basic
-1. DependencyCondition.Completed
-1. DependencyCondition.Failed
-1. DependencyCondition.Skipped
-1. DependencyCondition.Succeeded
-1. DynamicsAuthenticationType.AADServicePrincipal
-1. DynamicsAuthenticationType.Ifd
-1. DynamicsAuthenticationType.Office365
-1. DynamicsDeploymentType.OnPremisesWithIfd
-1. DynamicsDeploymentType.Online
-1. DynamicsSinkWriteBehavior.Upsert
-1. EventSubscriptionStatus.Deprovisioning
-1. EventSubscriptionStatus.Disabled
-1. EventSubscriptionStatus.Enabled
-1. EventSubscriptionStatus.Provisioning
-1. EventSubscriptionStatus.Unknown
-1. FactoryIdentityType.SystemAssigned
-1. FactoryIdentityType.SystemAssignedUserAssigned
-1. FactoryIdentityType.UserAssigned
-1. GlobalParameterType.Array
-1. GlobalParameterType.Bool
-1. GlobalParameterType.Float
-1. GlobalParameterType.Int
-1. GlobalParameterType.Object
-1. GlobalParameterType.String
-1. GoogleAdWordsAuthenticationType.ServiceAuthentication
-1. GoogleAdWordsAuthenticationType.UserAuthentication
-1. HiveAuthenticationType.Anonymous
-1. HiveAuthenticationType.Username
-1. HiveAuthenticationType.UsernameAndPassword
-1. HiveAuthenticationType.WindowsAzureHDInsightService
-1. HiveServerType.HiveServer1
-1. HiveServerType.HiveServer2
-1. HiveServerType.HiveThriftServer
-1. HiveThriftTransportProtocol.Binary
-1. HiveThriftTransportProtocol.HTTP
-1. HiveThriftTransportProtocol.SASL
-1. IntegrationRuntimeAuthKeyName.AuthKey1
-1. IntegrationRuntimeAuthKeyName.AuthKey2
-1. IntegrationRuntimeAutoUpdate.Off
-1. IntegrationRuntimeAutoUpdate.On
-1. IntegrationRuntimeEdition.Enterprise
-1. IntegrationRuntimeEdition.Standard
-1. IntegrationRuntimeInternalChannelEncryptionMode.NotEncrypted
-1. IntegrationRuntimeInternalChannelEncryptionMode.NotSet
-1. IntegrationRuntimeInternalChannelEncryptionMode.SslEncrypted
-1. IntegrationRuntimeLicenseType.BasePrice
-1. IntegrationRuntimeLicenseType.LicenseIncluded
-1. IntegrationRuntimeType.Managed
-1. IntegrationRuntimeType.SelfHosted
-1. JSONWriteFilePattern.ArrayOfObjects
-1. JSONWriteFilePattern.SetOfObjects
-1. ManagedIntegrationRuntimeNodeStatus.Available
-1. ManagedIntegrationRuntimeNodeStatus.Recycling
-1. ManagedIntegrationRuntimeNodeStatus.Starting
-1. ManagedIntegrationRuntimeNodeStatus.Unavailable
-1. PolybaseSettingsRejectType.Percentage
-1. PolybaseSettingsRejectType.Value
-1. RecurrenceFrequency.Day
-1. RecurrenceFrequency.Hour
-1. RecurrenceFrequency.Minute
-1. RecurrenceFrequency.Month
-1. RecurrenceFrequency.NotSpecified
-1. RecurrenceFrequency.Week
-1. RecurrenceFrequency.Year
-1. RunQueryFilterOperand.ActivityName
-1. RunQueryFilterOperand.ActivityRunEnd
-1. RunQueryFilterOperand.ActivityRunStart
-1. RunQueryFilterOperand.ActivityType
-1. RunQueryFilterOperand.LatestOnly
-1. RunQueryFilterOperand.PipelineName
-1. RunQueryFilterOperand.RunEnd
-1. RunQueryFilterOperand.RunGroupID
-1. RunQueryFilterOperand.RunStart
-1. RunQueryFilterOperand.Status
-1. RunQueryFilterOperand.TriggerName
-1. RunQueryFilterOperand.TriggerRunTimestamp
-1. RunQueryFilterOperator.Equals
-1. RunQueryFilterOperator.In
-1. RunQueryFilterOperator.NotEquals
-1. RunQueryFilterOperator.NotIn
-1. RunQueryOrder.ASC
-1. RunQueryOrder.DESC
-1. SQLAlwaysEncryptedAkvAuthType.ManagedIdentity
-1. SQLAlwaysEncryptedAkvAuthType.ServicePrincipal
-1. SalesforceSourceReadBehavior.Query
-1. SalesforceSourceReadBehavior.QueryAll
-1. SapCloudForCustomerSinkWriteBehavior.Insert
-1. SapCloudForCustomerSinkWriteBehavior.Update
-1. SparkServerType.SharkServer
-1. SparkServerType.SharkServer2
-1. SparkServerType.SparkThriftServer
-1. SsisObjectMetadataType.Environment
-1. SsisObjectMetadataType.Folder
-1. SsisObjectMetadataType.Package
-1. SsisObjectMetadataType.Project
-1. Type.TypeAzureKeyVaultSecret
-1. Type.TypeSecretBase
-1. Type.TypeSecureString
-1. TypeBasicActivity.TypeActivity
-1. TypeBasicActivity.TypeAppendVariable
-1. TypeBasicActivity.TypeAzureDataExplorerCommand
-1. TypeBasicActivity.TypeAzureFunctionActivity
-1. TypeBasicActivity.TypeAzureMLBatchExecution
-1. TypeBasicActivity.TypeAzureMLExecutePipeline
-1. TypeBasicActivity.TypeAzureMLUpdateResource
-1. TypeBasicActivity.TypeContainer
-1. TypeBasicActivity.TypeCopy
-1. TypeBasicActivity.TypeCustom
-1. TypeBasicActivity.TypeDataLakeAnalyticsUSQL
-1. TypeBasicActivity.TypeDatabricksNotebook
-1. TypeBasicActivity.TypeDatabricksSparkJar
-1. TypeBasicActivity.TypeDatabricksSparkPython
-1. TypeBasicActivity.TypeDelete
-1. TypeBasicActivity.TypeExecuteDataFlow
-1. TypeBasicActivity.TypeExecutePipeline
-1. TypeBasicActivity.TypeExecuteSSISPackage
-1. TypeBasicActivity.TypeExecution
-1. TypeBasicActivity.TypeFilter
-1. TypeBasicActivity.TypeForEach
-1. TypeBasicActivity.TypeGetMetadata
-1. TypeBasicActivity.TypeHDInsightHive
-1. TypeBasicActivity.TypeHDInsightMapReduce
-1. TypeBasicActivity.TypeHDInsightPig
-1. TypeBasicActivity.TypeHDInsightSpark
-1. TypeBasicActivity.TypeHDInsightStreaming
-1. TypeBasicActivity.TypeIfCondition
-1. TypeBasicActivity.TypeLookup
-1. TypeBasicActivity.TypeSQLServerStoredProcedure
-1. TypeBasicActivity.TypeSetVariable
-1. TypeBasicActivity.TypeSwitch
-1. TypeBasicActivity.TypeUntil
-1. TypeBasicActivity.TypeValidation
-1. TypeBasicActivity.TypeWait
-1. TypeBasicActivity.TypeWebActivity
-1. TypeBasicActivity.TypeWebHook
-1. TypeBasicCompressionReadSettings.TypeCompressionReadSettings
-1. TypeBasicCompressionReadSettings.TypeTarGZipReadSettings
-1. TypeBasicCompressionReadSettings.TypeTarReadSettings
-1. TypeBasicCompressionReadSettings.TypeZipDeflateReadSettings
-1. TypeBasicCopySink.TypeAvroSink
-1. TypeBasicCopySink.TypeAzureBlobFSSink
-1. TypeBasicCopySink.TypeAzureDataExplorerSink
-1. TypeBasicCopySink.TypeAzureDataLakeStoreSink
-1. TypeBasicCopySink.TypeAzureDatabricksDeltaLakeSink
-1. TypeBasicCopySink.TypeAzureMySQLSink
-1. TypeBasicCopySink.TypeAzurePostgreSQLSink
-1. TypeBasicCopySink.TypeAzureQueueSink
-1. TypeBasicCopySink.TypeAzureSQLSink
-1. TypeBasicCopySink.TypeAzureSearchIndexSink
-1. TypeBasicCopySink.TypeAzureTableSink
-1. TypeBasicCopySink.TypeBinarySink
-1. TypeBasicCopySink.TypeBlobSink
-1. TypeBasicCopySink.TypeCommonDataServiceForAppsSink
-1. TypeBasicCopySink.TypeCopySink
-1. TypeBasicCopySink.TypeCosmosDbMongoDbAPISink
-1. TypeBasicCopySink.TypeCosmosDbSQLAPISink
-1. TypeBasicCopySink.TypeDelimitedTextSink
-1. TypeBasicCopySink.TypeDocumentDbCollectionSink
-1. TypeBasicCopySink.TypeDynamicsCrmSink
-1. TypeBasicCopySink.TypeDynamicsSink
-1. TypeBasicCopySink.TypeFileSystemSink
-1. TypeBasicCopySink.TypeInformixSink
-1. TypeBasicCopySink.TypeJSONSink
-1. TypeBasicCopySink.TypeMicrosoftAccessSink
-1. TypeBasicCopySink.TypeMongoDbAtlasSink
-1. TypeBasicCopySink.TypeMongoDbV2Sink
-1. TypeBasicCopySink.TypeOdbcSink
-1. TypeBasicCopySink.TypeOracleSink
-1. TypeBasicCopySink.TypeOrcSink
-1. TypeBasicCopySink.TypeParquetSink
-1. TypeBasicCopySink.TypeRestSink
-1. TypeBasicCopySink.TypeSQLDWSink
-1. TypeBasicCopySink.TypeSQLMISink
-1. TypeBasicCopySink.TypeSQLServerSink
-1. TypeBasicCopySink.TypeSQLSink
-1. TypeBasicCopySink.TypeSalesforceServiceCloudSink
-1. TypeBasicCopySink.TypeSalesforceSink
-1. TypeBasicCopySink.TypeSapCloudForCustomerSink
-1. TypeBasicCopySink.TypeSnowflakeSink
-1. TypeBasicCopySource.TypeAmazonMWSSource
-1. TypeBasicCopySource.TypeAmazonRedshiftSource
-1. TypeBasicCopySource.TypeAvroSource
-1. TypeBasicCopySource.TypeAzureBlobFSSource
-1. TypeBasicCopySource.TypeAzureDataExplorerSource
-1. TypeBasicCopySource.TypeAzureDataLakeStoreSource
-1. TypeBasicCopySource.TypeAzureDatabricksDeltaLakeSource
-1. TypeBasicCopySource.TypeAzureMariaDBSource
-1. TypeBasicCopySource.TypeAzureMySQLSource
-1. TypeBasicCopySource.TypeAzurePostgreSQLSource
-1. TypeBasicCopySource.TypeAzureSQLSource
-1. TypeBasicCopySource.TypeAzureTableSource
-1. TypeBasicCopySource.TypeBinarySource
-1. TypeBasicCopySource.TypeBlobSource
-1. TypeBasicCopySource.TypeCassandraSource
-1. TypeBasicCopySource.TypeCommonDataServiceForAppsSource
-1. TypeBasicCopySource.TypeConcurSource
-1. TypeBasicCopySource.TypeCopySource
-1. TypeBasicCopySource.TypeCosmosDbMongoDbAPISource
-1. TypeBasicCopySource.TypeCosmosDbSQLAPISource
-1. TypeBasicCopySource.TypeCouchbaseSource
-1. TypeBasicCopySource.TypeDb2Source
-1. TypeBasicCopySource.TypeDelimitedTextSource
-1. TypeBasicCopySource.TypeDocumentDbCollectionSource
-1. TypeBasicCopySource.TypeDrillSource
-1. TypeBasicCopySource.TypeDynamicsAXSource
-1. TypeBasicCopySource.TypeDynamicsCrmSource
-1. TypeBasicCopySource.TypeDynamicsSource
-1. TypeBasicCopySource.TypeEloquaSource
-1. TypeBasicCopySource.TypeExcelSource
-1. TypeBasicCopySource.TypeFileSystemSource
-1. TypeBasicCopySource.TypeGoogleAdWordsSource
-1. TypeBasicCopySource.TypeGoogleBigQuerySource
-1. TypeBasicCopySource.TypeGreenplumSource
-1. TypeBasicCopySource.TypeHBaseSource
-1. TypeBasicCopySource.TypeHTTPSource
-1. TypeBasicCopySource.TypeHdfsSource
-1. TypeBasicCopySource.TypeHiveSource
-1. TypeBasicCopySource.TypeHubspotSource
-1. TypeBasicCopySource.TypeImpalaSource
-1. TypeBasicCopySource.TypeInformixSource
-1. TypeBasicCopySource.TypeJSONSource
-1. TypeBasicCopySource.TypeJiraSource
-1. TypeBasicCopySource.TypeMagentoSource
-1. TypeBasicCopySource.TypeMariaDBSource
-1. TypeBasicCopySource.TypeMarketoSource
-1. TypeBasicCopySource.TypeMicrosoftAccessSource
-1. TypeBasicCopySource.TypeMongoDbAtlasSource
-1. TypeBasicCopySource.TypeMongoDbSource
-1. TypeBasicCopySource.TypeMongoDbV2Source
-1. TypeBasicCopySource.TypeMySQLSource
-1. TypeBasicCopySource.TypeNetezzaSource
-1. TypeBasicCopySource.TypeODataSource
-1. TypeBasicCopySource.TypeOdbcSource
-1. TypeBasicCopySource.TypeOffice365Source
-1. TypeBasicCopySource.TypeOracleServiceCloudSource
-1. TypeBasicCopySource.TypeOracleSource
-1. TypeBasicCopySource.TypeOrcSource
-1. TypeBasicCopySource.TypeParquetSource
-1. TypeBasicCopySource.TypePaypalSource
-1. TypeBasicCopySource.TypePhoenixSource
-1. TypeBasicCopySource.TypePostgreSQLSource
-1. TypeBasicCopySource.TypePrestoSource
-1. TypeBasicCopySource.TypeQuickBooksSource
-1. TypeBasicCopySource.TypeRelationalSource
-1. TypeBasicCopySource.TypeResponsysSource
-1. TypeBasicCopySource.TypeRestSource
-1. TypeBasicCopySource.TypeSQLDWSource
-1. TypeBasicCopySource.TypeSQLMISource
-1. TypeBasicCopySource.TypeSQLServerSource
-1. TypeBasicCopySource.TypeSQLSource
-1. TypeBasicCopySource.TypeSalesforceMarketingCloudSource
-1. TypeBasicCopySource.TypeSalesforceServiceCloudSource
-1. TypeBasicCopySource.TypeSalesforceSource
-1. TypeBasicCopySource.TypeSapBwSource
-1. TypeBasicCopySource.TypeSapCloudForCustomerSource
-1. TypeBasicCopySource.TypeSapEccSource
-1. TypeBasicCopySource.TypeSapHanaSource
-1. TypeBasicCopySource.TypeSapOpenHubSource
-1. TypeBasicCopySource.TypeSapTableSource
-1. TypeBasicCopySource.TypeServiceNowSource
-1. TypeBasicCopySource.TypeSharePointOnlineListSource
-1. TypeBasicCopySource.TypeShopifySource
-1. TypeBasicCopySource.TypeSnowflakeSource
-1. TypeBasicCopySource.TypeSparkSource
-1. TypeBasicCopySource.TypeSquareSource
-1. TypeBasicCopySource.TypeSybaseSource
-1. TypeBasicCopySource.TypeTabularSource
-1. TypeBasicCopySource.TypeTeradataSource
-1. TypeBasicCopySource.TypeVerticaSource
-1. TypeBasicCopySource.TypeWebSource
-1. TypeBasicCopySource.TypeXMLSource
-1. TypeBasicCopySource.TypeXeroSource
-1. TypeBasicCopySource.TypeZohoSource
-1. TypeBasicCopyTranslator.TypeCopyTranslator
-1. TypeBasicCopyTranslator.TypeTabularTranslator
-1. TypeBasicCustomSetupBase.TypeAzPowerShellSetup
-1. TypeBasicCustomSetupBase.TypeCmdkeySetup
-1. TypeBasicCustomSetupBase.TypeComponentSetup
-1. TypeBasicCustomSetupBase.TypeCustomSetupBase
-1. TypeBasicCustomSetupBase.TypeEnvironmentVariableSetup
-1. TypeBasicDataFlow.TypeDataFlow
-1. TypeBasicDataFlow.TypeMappingDataFlow
-1. TypeBasicDataset.TypeAmazonMWSObject
-1. TypeBasicDataset.TypeAmazonRedshiftTable
-1. TypeBasicDataset.TypeAmazonS3Object
-1. TypeBasicDataset.TypeAvro
-1. TypeBasicDataset.TypeAzureBlob
-1. TypeBasicDataset.TypeAzureBlobFSFile
-1. TypeBasicDataset.TypeAzureDataExplorerTable
-1. TypeBasicDataset.TypeAzureDataLakeStoreFile
-1. TypeBasicDataset.TypeAzureDatabricksDeltaLakeDataset
-1. TypeBasicDataset.TypeAzureMariaDBTable
-1. TypeBasicDataset.TypeAzureMySQLTable
-1. TypeBasicDataset.TypeAzurePostgreSQLTable
-1. TypeBasicDataset.TypeAzureSQLDWTable
-1. TypeBasicDataset.TypeAzureSQLMITable
-1. TypeBasicDataset.TypeAzureSQLTable
-1. TypeBasicDataset.TypeAzureSearchIndex
-1. TypeBasicDataset.TypeAzureTable
-1. TypeBasicDataset.TypeBinary
-1. TypeBasicDataset.TypeCassandraTable
-1. TypeBasicDataset.TypeCommonDataServiceForAppsEntity
-1. TypeBasicDataset.TypeConcurObject
-1. TypeBasicDataset.TypeCosmosDbMongoDbAPICollection
-1. TypeBasicDataset.TypeCosmosDbSQLAPICollection
-1. TypeBasicDataset.TypeCouchbaseTable
-1. TypeBasicDataset.TypeCustomDataset
-1. TypeBasicDataset.TypeDataset
-1. TypeBasicDataset.TypeDb2Table
-1. TypeBasicDataset.TypeDelimitedText
-1. TypeBasicDataset.TypeDocumentDbCollection
-1. TypeBasicDataset.TypeDrillTable
-1. TypeBasicDataset.TypeDynamicsAXResource
-1. TypeBasicDataset.TypeDynamicsCrmEntity
-1. TypeBasicDataset.TypeDynamicsEntity
-1. TypeBasicDataset.TypeEloquaObject
-1. TypeBasicDataset.TypeExcel
-1. TypeBasicDataset.TypeFileShare
-1. TypeBasicDataset.TypeGoogleAdWordsObject
-1. TypeBasicDataset.TypeGoogleBigQueryObject
-1. TypeBasicDataset.TypeGreenplumTable
-1. TypeBasicDataset.TypeHBaseObject
-1. TypeBasicDataset.TypeHTTPFile
-1. TypeBasicDataset.TypeHiveObject
-1. TypeBasicDataset.TypeHubspotObject
-1. TypeBasicDataset.TypeImpalaObject
-1. TypeBasicDataset.TypeInformixTable
-1. TypeBasicDataset.TypeJSON
-1. TypeBasicDataset.TypeJiraObject
-1. TypeBasicDataset.TypeMagentoObject
-1. TypeBasicDataset.TypeMariaDBTable
-1. TypeBasicDataset.TypeMarketoObject
-1. TypeBasicDataset.TypeMicrosoftAccessTable
-1. TypeBasicDataset.TypeMongoDbAtlasCollection
-1. TypeBasicDataset.TypeMongoDbCollection
-1. TypeBasicDataset.TypeMongoDbV2Collection
-1. TypeBasicDataset.TypeMySQLTable
-1. TypeBasicDataset.TypeNetezzaTable
-1. TypeBasicDataset.TypeODataResource
-1. TypeBasicDataset.TypeOdbcTable
-1. TypeBasicDataset.TypeOffice365Table
-1. TypeBasicDataset.TypeOracleServiceCloudObject
-1. TypeBasicDataset.TypeOracleTable
-1. TypeBasicDataset.TypeOrc
-1. TypeBasicDataset.TypeParquet
-1. TypeBasicDataset.TypePaypalObject
-1. TypeBasicDataset.TypePhoenixObject
-1. TypeBasicDataset.TypePostgreSQLTable
-1. TypeBasicDataset.TypePrestoObject
-1. TypeBasicDataset.TypeQuickBooksObject
-1. TypeBasicDataset.TypeRelationalTable
-1. TypeBasicDataset.TypeResponsysObject
-1. TypeBasicDataset.TypeRestResource
-1. TypeBasicDataset.TypeSQLServerTable
-1. TypeBasicDataset.TypeSalesforceMarketingCloudObject
-1. TypeBasicDataset.TypeSalesforceObject
-1. TypeBasicDataset.TypeSalesforceServiceCloudObject
-1. TypeBasicDataset.TypeSapBwCube
-1. TypeBasicDataset.TypeSapCloudForCustomerResource
-1. TypeBasicDataset.TypeSapEccResource
-1. TypeBasicDataset.TypeSapHanaTable
-1. TypeBasicDataset.TypeSapOpenHubTable
-1. TypeBasicDataset.TypeSapTableResource
-1. TypeBasicDataset.TypeServiceNowObject
-1. TypeBasicDataset.TypeSharePointOnlineListResource
-1. TypeBasicDataset.TypeShopifyObject
-1. TypeBasicDataset.TypeSnowflakeTable
-1. TypeBasicDataset.TypeSparkObject
-1. TypeBasicDataset.TypeSquareObject
-1. TypeBasicDataset.TypeSybaseTable
-1. TypeBasicDataset.TypeTeradataTable
-1. TypeBasicDataset.TypeVerticaTable
-1. TypeBasicDataset.TypeWebTable
-1. TypeBasicDataset.TypeXML
-1. TypeBasicDataset.TypeXeroObject
-1. TypeBasicDataset.TypeZohoObject
-1. TypeBasicDatasetCompression.TypeBZip2
-1. TypeBasicDatasetCompression.TypeDatasetCompression
-1. TypeBasicDatasetCompression.TypeDeflate
-1. TypeBasicDatasetCompression.TypeGZip
-1. TypeBasicDatasetCompression.TypeTar
-1. TypeBasicDatasetCompression.TypeTarGZip
-1. TypeBasicDatasetCompression.TypeZipDeflate
-1. TypeBasicDatasetLocation.TypeAmazonS3CompatibleLocation
-1. TypeBasicDatasetLocation.TypeAmazonS3Location
-1. TypeBasicDatasetLocation.TypeAzureBlobFSLocation
-1. TypeBasicDatasetLocation.TypeAzureBlobStorageLocation
-1. TypeBasicDatasetLocation.TypeAzureDataLakeStoreLocation
-1. TypeBasicDatasetLocation.TypeAzureFileStorageLocation
-1. TypeBasicDatasetLocation.TypeDatasetLocation
-1. TypeBasicDatasetLocation.TypeFileServerLocation
-1. TypeBasicDatasetLocation.TypeFtpServerLocation
-1. TypeBasicDatasetLocation.TypeGoogleCloudStorageLocation
-1. TypeBasicDatasetLocation.TypeHTTPServerLocation
-1. TypeBasicDatasetLocation.TypeHdfsLocation
-1. TypeBasicDatasetLocation.TypeOracleCloudStorageLocation
-1. TypeBasicDatasetLocation.TypeSftpLocation
-1. TypeBasicDatasetStorageFormat.TypeAvroFormat
-1. TypeBasicDatasetStorageFormat.TypeDatasetStorageFormat
-1. TypeBasicDatasetStorageFormat.TypeJSONFormat
-1. TypeBasicDatasetStorageFormat.TypeOrcFormat
-1. TypeBasicDatasetStorageFormat.TypeParquetFormat
-1. TypeBasicDatasetStorageFormat.TypeTextFormat
-1. TypeBasicDependencyReference.TypeDependencyReference
-1. TypeBasicDependencyReference.TypeSelfDependencyTumblingWindowTriggerReference
-1. TypeBasicDependencyReference.TypeTriggerDependencyReference
-1. TypeBasicDependencyReference.TypeTumblingWindowTriggerDependencyReference
-1. TypeBasicExportSettings.TypeAzureDatabricksDeltaLakeExportCommand
-1. TypeBasicExportSettings.TypeExportSettings
-1. TypeBasicExportSettings.TypeSnowflakeExportCopyCommand
-1. TypeBasicFactoryRepoConfiguration.TypeFactoryGitHubConfiguration
-1. TypeBasicFactoryRepoConfiguration.TypeFactoryRepoConfiguration
-1. TypeBasicFactoryRepoConfiguration.TypeFactoryVSTSConfiguration
-1. TypeBasicFormatReadSettings.TypeBinaryReadSettings
-1. TypeBasicFormatReadSettings.TypeDelimitedTextReadSettings
-1. TypeBasicFormatReadSettings.TypeFormatReadSettings
-1. TypeBasicFormatReadSettings.TypeJSONReadSettings
-1. TypeBasicFormatReadSettings.TypeXMLReadSettings
-1. TypeBasicFormatWriteSettings.TypeAvroWriteSettings
-1. TypeBasicFormatWriteSettings.TypeDelimitedTextWriteSettings
-1. TypeBasicFormatWriteSettings.TypeFormatWriteSettings
-1. TypeBasicFormatWriteSettings.TypeJSONWriteSettings
-1. TypeBasicFormatWriteSettings.TypeOrcWriteSettings
-1. TypeBasicFormatWriteSettings.TypeParquetWriteSettings
-1. TypeBasicImportSettings.TypeAzureDatabricksDeltaLakeImportCommand
-1. TypeBasicImportSettings.TypeImportSettings
-1. TypeBasicImportSettings.TypeSnowflakeImportCopyCommand
-1. TypeBasicIntegrationRuntime.TypeIntegrationRuntime
-1. TypeBasicIntegrationRuntime.TypeManaged
-1. TypeBasicIntegrationRuntime.TypeSelfHosted
-1. TypeBasicLinkedService.TypeAmazonMWS
-1. TypeBasicLinkedService.TypeAmazonRedshift
-1. TypeBasicLinkedService.TypeAmazonS3
-1. TypeBasicLinkedService.TypeAmazonS3Compatible
-1. TypeBasicLinkedService.TypeAzureBatch
-1. TypeBasicLinkedService.TypeAzureBlobFS
-1. TypeBasicLinkedService.TypeAzureBlobStorage
-1. TypeBasicLinkedService.TypeAzureDataExplorer
-1. TypeBasicLinkedService.TypeAzureDataLakeAnalytics
-1. TypeBasicLinkedService.TypeAzureDataLakeStore
-1. TypeBasicLinkedService.TypeAzureDatabricks
-1. TypeBasicLinkedService.TypeAzureDatabricksDeltaLake
-1. TypeBasicLinkedService.TypeAzureFileStorage
-1. TypeBasicLinkedService.TypeAzureFunction
-1. TypeBasicLinkedService.TypeAzureKeyVault
-1. TypeBasicLinkedService.TypeAzureML
-1. TypeBasicLinkedService.TypeAzureMLService
-1. TypeBasicLinkedService.TypeAzureMariaDB
-1. TypeBasicLinkedService.TypeAzureMySQL
-1. TypeBasicLinkedService.TypeAzurePostgreSQL
-1. TypeBasicLinkedService.TypeAzureSQLDW
-1. TypeBasicLinkedService.TypeAzureSQLDatabase
-1. TypeBasicLinkedService.TypeAzureSQLMI
-1. TypeBasicLinkedService.TypeAzureSearch
-1. TypeBasicLinkedService.TypeAzureStorage
-1. TypeBasicLinkedService.TypeAzureTableStorage
-1. TypeBasicLinkedService.TypeCassandra
-1. TypeBasicLinkedService.TypeCommonDataServiceForApps
-1. TypeBasicLinkedService.TypeConcur
-1. TypeBasicLinkedService.TypeCosmosDb
-1. TypeBasicLinkedService.TypeCosmosDbMongoDbAPI
-1. TypeBasicLinkedService.TypeCouchbase
-1. TypeBasicLinkedService.TypeCustomDataSource
-1. TypeBasicLinkedService.TypeDb2
-1. TypeBasicLinkedService.TypeDrill
-1. TypeBasicLinkedService.TypeDynamics
-1. TypeBasicLinkedService.TypeDynamicsAX
-1. TypeBasicLinkedService.TypeDynamicsCrm
-1. TypeBasicLinkedService.TypeEloqua
-1. TypeBasicLinkedService.TypeFileServer
-1. TypeBasicLinkedService.TypeFtpServer
-1. TypeBasicLinkedService.TypeGoogleAdWords
-1. TypeBasicLinkedService.TypeGoogleBigQuery
-1. TypeBasicLinkedService.TypeGoogleCloudStorage
-1. TypeBasicLinkedService.TypeGreenplum
-1. TypeBasicLinkedService.TypeHBase
-1. TypeBasicLinkedService.TypeHDInsight
-1. TypeBasicLinkedService.TypeHDInsightOnDemand
-1. TypeBasicLinkedService.TypeHTTPServer
-1. TypeBasicLinkedService.TypeHdfs
-1. TypeBasicLinkedService.TypeHive
-1. TypeBasicLinkedService.TypeHubspot
-1. TypeBasicLinkedService.TypeImpala
-1. TypeBasicLinkedService.TypeInformix
-1. TypeBasicLinkedService.TypeJira
-1. TypeBasicLinkedService.TypeLinkedService
-1. TypeBasicLinkedService.TypeMagento
-1. TypeBasicLinkedService.TypeMariaDB
-1. TypeBasicLinkedService.TypeMarketo
-1. TypeBasicLinkedService.TypeMicrosoftAccess
-1. TypeBasicLinkedService.TypeMongoDb
-1. TypeBasicLinkedService.TypeMongoDbAtlas
-1. TypeBasicLinkedService.TypeMongoDbV2
-1. TypeBasicLinkedService.TypeMySQL
-1. TypeBasicLinkedService.TypeNetezza
-1. TypeBasicLinkedService.TypeOData
-1. TypeBasicLinkedService.TypeOdbc
-1. TypeBasicLinkedService.TypeOffice365
-1. TypeBasicLinkedService.TypeOracle
-1. TypeBasicLinkedService.TypeOracleCloudStorage
-1. TypeBasicLinkedService.TypeOracleServiceCloud
-1. TypeBasicLinkedService.TypePaypal
-1. TypeBasicLinkedService.TypePhoenix
-1. TypeBasicLinkedService.TypePostgreSQL
-1. TypeBasicLinkedService.TypePresto
-1. TypeBasicLinkedService.TypeQuickBooks
-1. TypeBasicLinkedService.TypeResponsys
-1. TypeBasicLinkedService.TypeRestService
-1. TypeBasicLinkedService.TypeSQLServer
-1. TypeBasicLinkedService.TypeSalesforce
-1. TypeBasicLinkedService.TypeSalesforceMarketingCloud
-1. TypeBasicLinkedService.TypeSalesforceServiceCloud
-1. TypeBasicLinkedService.TypeSapBW
-1. TypeBasicLinkedService.TypeSapCloudForCustomer
-1. TypeBasicLinkedService.TypeSapEcc
-1. TypeBasicLinkedService.TypeSapHana
-1. TypeBasicLinkedService.TypeSapOpenHub
-1. TypeBasicLinkedService.TypeSapTable
-1. TypeBasicLinkedService.TypeServiceNow
-1. TypeBasicLinkedService.TypeSftp
-1. TypeBasicLinkedService.TypeSharePointOnlineList
-1. TypeBasicLinkedService.TypeShopify
-1. TypeBasicLinkedService.TypeSnowflake
-1. TypeBasicLinkedService.TypeSpark
-1. TypeBasicLinkedService.TypeSquare
-1. TypeBasicLinkedService.TypeSybase
-1. TypeBasicLinkedService.TypeTeradata
-1. TypeBasicLinkedService.TypeVertica
-1. TypeBasicLinkedService.TypeWeb
-1. TypeBasicLinkedService.TypeXero
-1. TypeBasicLinkedService.TypeZoho
-1. TypeBasicSsisObjectMetadata.TypeEnvironment
-1. TypeBasicSsisObjectMetadata.TypeFolder
-1. TypeBasicSsisObjectMetadata.TypePackage
-1. TypeBasicSsisObjectMetadata.TypeProject
-1. TypeBasicSsisObjectMetadata.TypeSsisObjectMetadata
-1. TypeBasicStoreReadSettings.TypeAmazonS3CompatibleReadSettings
-1. TypeBasicStoreReadSettings.TypeAmazonS3ReadSettings
-1. TypeBasicStoreReadSettings.TypeAzureBlobFSReadSettings
-1. TypeBasicStoreReadSettings.TypeAzureBlobStorageReadSettings
-1. TypeBasicStoreReadSettings.TypeAzureDataLakeStoreReadSettings
-1. TypeBasicStoreReadSettings.TypeAzureFileStorageReadSettings
-1. TypeBasicStoreReadSettings.TypeFileServerReadSettings
-1. TypeBasicStoreReadSettings.TypeFtpReadSettings
-1. TypeBasicStoreReadSettings.TypeGoogleCloudStorageReadSettings
-1. TypeBasicStoreReadSettings.TypeHTTPReadSettings
-1. TypeBasicStoreReadSettings.TypeHdfsReadSettings
-1. TypeBasicStoreReadSettings.TypeOracleCloudStorageReadSettings
-1. TypeBasicStoreReadSettings.TypeSftpReadSettings
-1. TypeBasicStoreReadSettings.TypeStoreReadSettings
-1. TypeBasicStoreWriteSettings.TypeAzureBlobFSWriteSettings
-1. TypeBasicStoreWriteSettings.TypeAzureBlobStorageWriteSettings
-1. TypeBasicStoreWriteSettings.TypeAzureDataLakeStoreWriteSettings
-1. TypeBasicStoreWriteSettings.TypeAzureFileStorageWriteSettings
-1. TypeBasicStoreWriteSettings.TypeFileServerWriteSettings
-1. TypeBasicStoreWriteSettings.TypeSftpWriteSettings
-1. TypeBasicStoreWriteSettings.TypeStoreWriteSettings
-1. TypeBasicTrigger.TypeBlobEventsTrigger
-1. TypeBasicTrigger.TypeBlobTrigger
-1. TypeBasicTrigger.TypeChainingTrigger
-1. TypeBasicTrigger.TypeCustomEventsTrigger
-1. TypeBasicTrigger.TypeMultiplePipelineTrigger
-1. TypeBasicTrigger.TypeRerunTumblingWindowTrigger
-1. TypeBasicTrigger.TypeScheduleTrigger
-1. TypeBasicTrigger.TypeTrigger
-1. TypeBasicTrigger.TypeTumblingWindowTrigger
-
 ## Additive Changes
 
 ### New Constants
 
-1. AuthenticationType.AuthenticationTypeAuthenticationTypeAnonymous
-1. AuthenticationType.AuthenticationTypeAuthenticationTypeBasic
-1. AuthenticationType.AuthenticationTypeAuthenticationTypeClientCertificate
-1. AuthenticationType.AuthenticationTypeAuthenticationTypeWebLinkedServiceTypeProperties
-1. AuthorizationType.AuthorizationTypeAuthorizationTypeKey
-1. AuthorizationType.AuthorizationTypeAuthorizationTypeLinkedIntegrationRuntimeType
-1. AuthorizationType.AuthorizationTypeAuthorizationTypeRBAC
-1. AvroCompressionCodec.AvroCompressionCodecBzip2
-1. AvroCompressionCodec.AvroCompressionCodecDeflate
-1. AvroCompressionCodec.AvroCompressionCodecNone
-1. AvroCompressionCodec.AvroCompressionCodecSnappy
-1. AvroCompressionCodec.AvroCompressionCodecXz
-1. AzureFunctionActivityMethod.AzureFunctionActivityMethodDELETE
-1. AzureFunctionActivityMethod.AzureFunctionActivityMethodGET
-1. AzureFunctionActivityMethod.AzureFunctionActivityMethodHEAD
-1. AzureFunctionActivityMethod.AzureFunctionActivityMethodOPTIONS
-1. AzureFunctionActivityMethod.AzureFunctionActivityMethodPOST
-1. AzureFunctionActivityMethod.AzureFunctionActivityMethodPUT
-1. AzureFunctionActivityMethod.AzureFunctionActivityMethodTRACE
-1. AzureSearchIndexWriteBehaviorType.AzureSearchIndexWriteBehaviorTypeMerge
-1. AzureSearchIndexWriteBehaviorType.AzureSearchIndexWriteBehaviorTypeUpload
-1. BlobEventTypes.BlobEventTypesMicrosoftStorageBlobCreated
-1. BlobEventTypes.BlobEventTypesMicrosoftStorageBlobDeleted
-1. CassandraSourceReadConsistencyLevels.CassandraSourceReadConsistencyLevelsALL
-1. CassandraSourceReadConsistencyLevels.CassandraSourceReadConsistencyLevelsEACHQUORUM
-1. CassandraSourceReadConsistencyLevels.CassandraSourceReadConsistencyLevelsLOCALONE
-1. CassandraSourceReadConsistencyLevels.CassandraSourceReadConsistencyLevelsLOCALQUORUM
-1. CassandraSourceReadConsistencyLevels.CassandraSourceReadConsistencyLevelsLOCALSERIAL
-1. CassandraSourceReadConsistencyLevels.CassandraSourceReadConsistencyLevelsONE
-1. CassandraSourceReadConsistencyLevels.CassandraSourceReadConsistencyLevelsQUORUM
-1. CassandraSourceReadConsistencyLevels.CassandraSourceReadConsistencyLevelsSERIAL
-1. CassandraSourceReadConsistencyLevels.CassandraSourceReadConsistencyLevelsTHREE
-1. CassandraSourceReadConsistencyLevels.CassandraSourceReadConsistencyLevelsTWO
-1. CopyBehaviorType.CopyBehaviorTypeFlattenHierarchy
-1. CopyBehaviorType.CopyBehaviorTypeMergeFiles
-1. CopyBehaviorType.CopyBehaviorTypePreserveHierarchy
-1. CosmosDbConnectionMode.CosmosDbConnectionModeDirect
-1. CosmosDbConnectionMode.CosmosDbConnectionModeGateway
-1. CosmosDbServicePrincipalCredentialType.CosmosDbServicePrincipalCredentialTypeServicePrincipalCert
-1. CosmosDbServicePrincipalCredentialType.CosmosDbServicePrincipalCredentialTypeServicePrincipalKey
-1. DataFlowComputeType.DataFlowComputeTypeComputeOptimized
-1. DataFlowComputeType.DataFlowComputeTypeGeneral
-1. DataFlowComputeType.DataFlowComputeTypeMemoryOptimized
-1. DataFlowDebugCommandType.DataFlowDebugCommandTypeExecuteExpressionQuery
-1. DataFlowDebugCommandType.DataFlowDebugCommandTypeExecutePreviewQuery
-1. DataFlowDebugCommandType.DataFlowDebugCommandTypeExecuteStatisticsQuery
-1. DayOfWeek.DayOfWeekFriday
-1. DayOfWeek.DayOfWeekMonday
-1. DayOfWeek.DayOfWeekSaturday
-1. DayOfWeek.DayOfWeekSunday
-1. DayOfWeek.DayOfWeekThursday
-1. DayOfWeek.DayOfWeekTuesday
-1. DayOfWeek.DayOfWeekWednesday
-1. Db2AuthenticationType.Db2AuthenticationTypeBasic
-1. DependencyCondition.DependencyConditionCompleted
-1. DependencyCondition.DependencyConditionFailed
-1. DependencyCondition.DependencyConditionSkipped
-1. DependencyCondition.DependencyConditionSucceeded
-1. DynamicsAuthenticationType.DynamicsAuthenticationTypeAADServicePrincipal
-1. DynamicsAuthenticationType.DynamicsAuthenticationTypeIfd
-1. DynamicsAuthenticationType.DynamicsAuthenticationTypeOffice365
-1. DynamicsDeploymentType.DynamicsDeploymentTypeOnPremisesWithIfd
-1. DynamicsDeploymentType.DynamicsDeploymentTypeOnline
-1. DynamicsSinkWriteBehavior.DynamicsSinkWriteBehaviorUpsert
-1. EventSubscriptionStatus.EventSubscriptionStatusDeprovisioning
-1. EventSubscriptionStatus.EventSubscriptionStatusDisabled
-1. EventSubscriptionStatus.EventSubscriptionStatusEnabled
-1. EventSubscriptionStatus.EventSubscriptionStatusProvisioning
-1. EventSubscriptionStatus.EventSubscriptionStatusUnknown
-1. FactoryIdentityType.FactoryIdentityTypeSystemAssigned
-1. FactoryIdentityType.FactoryIdentityTypeSystemAssignedUserAssigned
-1. FactoryIdentityType.FactoryIdentityTypeUserAssigned
-1. GlobalParameterType.GlobalParameterTypeArray
-1. GlobalParameterType.GlobalParameterTypeBool
-1. GlobalParameterType.GlobalParameterTypeFloat
-1. GlobalParameterType.GlobalParameterTypeInt
-1. GlobalParameterType.GlobalParameterTypeObject
-1. GlobalParameterType.GlobalParameterTypeString
-1. GoogleAdWordsAuthenticationType.GoogleAdWordsAuthenticationTypeServiceAuthentication
-1. GoogleAdWordsAuthenticationType.GoogleAdWordsAuthenticationTypeUserAuthentication
-1. HiveAuthenticationType.HiveAuthenticationTypeAnonymous
-1. HiveAuthenticationType.HiveAuthenticationTypeUsername
-1. HiveAuthenticationType.HiveAuthenticationTypeUsernameAndPassword
-1. HiveAuthenticationType.HiveAuthenticationTypeWindowsAzureHDInsightService
-1. HiveServerType.HiveServerTypeHiveServer1
-1. HiveServerType.HiveServerTypeHiveServer2
-1. HiveServerType.HiveServerTypeHiveThriftServer
-1. HiveThriftTransportProtocol.HiveThriftTransportProtocolBinary
-1. HiveThriftTransportProtocol.HiveThriftTransportProtocolHTTP
-1. HiveThriftTransportProtocol.HiveThriftTransportProtocolSASL
-1. IntegrationRuntimeAuthKeyName.IntegrationRuntimeAuthKeyNameAuthKey1
-1. IntegrationRuntimeAuthKeyName.IntegrationRuntimeAuthKeyNameAuthKey2
-1. IntegrationRuntimeAutoUpdate.IntegrationRuntimeAutoUpdateOff
-1. IntegrationRuntimeAutoUpdate.IntegrationRuntimeAutoUpdateOn
-1. IntegrationRuntimeEdition.IntegrationRuntimeEditionEnterprise
-1. IntegrationRuntimeEdition.IntegrationRuntimeEditionStandard
-1. IntegrationRuntimeInternalChannelEncryptionMode.IntegrationRuntimeInternalChannelEncryptionModeNotEncrypted
-1. IntegrationRuntimeInternalChannelEncryptionMode.IntegrationRuntimeInternalChannelEncryptionModeNotSet
-1. IntegrationRuntimeInternalChannelEncryptionMode.IntegrationRuntimeInternalChannelEncryptionModeSslEncrypted
-1. IntegrationRuntimeLicenseType.IntegrationRuntimeLicenseTypeBasePrice
-1. IntegrationRuntimeLicenseType.IntegrationRuntimeLicenseTypeLicenseIncluded
-1. IntegrationRuntimeType.IntegrationRuntimeTypeManaged
-1. IntegrationRuntimeType.IntegrationRuntimeTypeSelfHosted
-1. JSONWriteFilePattern.JSONWriteFilePatternArrayOfObjects
-1. JSONWriteFilePattern.JSONWriteFilePatternSetOfObjects
-1. ManagedIntegrationRuntimeNodeStatus.ManagedIntegrationRuntimeNodeStatusAvailable
-1. ManagedIntegrationRuntimeNodeStatus.ManagedIntegrationRuntimeNodeStatusRecycling
-1. ManagedIntegrationRuntimeNodeStatus.ManagedIntegrationRuntimeNodeStatusStarting
-1. ManagedIntegrationRuntimeNodeStatus.ManagedIntegrationRuntimeNodeStatusUnavailable
-1. PolybaseSettingsRejectType.PolybaseSettingsRejectTypePercentage
-1. PolybaseSettingsRejectType.PolybaseSettingsRejectTypeValue
-1. RecurrenceFrequency.RecurrenceFrequencyDay
-1. RecurrenceFrequency.RecurrenceFrequencyHour
-1. RecurrenceFrequency.RecurrenceFrequencyMinute
-1. RecurrenceFrequency.RecurrenceFrequencyMonth
-1. RecurrenceFrequency.RecurrenceFrequencyNotSpecified
-1. RecurrenceFrequency.RecurrenceFrequencyWeek
-1. RecurrenceFrequency.RecurrenceFrequencyYear
-1. RunQueryFilterOperand.RunQueryFilterOperandActivityName
-1. RunQueryFilterOperand.RunQueryFilterOperandActivityRunEnd
-1. RunQueryFilterOperand.RunQueryFilterOperandActivityRunStart
-1. RunQueryFilterOperand.RunQueryFilterOperandActivityType
-1. RunQueryFilterOperand.RunQueryFilterOperandLatestOnly
-1. RunQueryFilterOperand.RunQueryFilterOperandPipelineName
-1. RunQueryFilterOperand.RunQueryFilterOperandRunEnd
-1. RunQueryFilterOperand.RunQueryFilterOperandRunGroupID
-1. RunQueryFilterOperand.RunQueryFilterOperandRunStart
-1. RunQueryFilterOperand.RunQueryFilterOperandStatus
-1. RunQueryFilterOperand.RunQueryFilterOperandTriggerName
-1. RunQueryFilterOperand.RunQueryFilterOperandTriggerRunTimestamp
-1. RunQueryFilterOperator.RunQueryFilterOperatorEquals
-1. RunQueryFilterOperator.RunQueryFilterOperatorIn
-1. RunQueryFilterOperator.RunQueryFilterOperatorNotEquals
-1. RunQueryFilterOperator.RunQueryFilterOperatorNotIn
-1. RunQueryOrder.RunQueryOrderASC
-1. RunQueryOrder.RunQueryOrderDESC
-1. SQLAlwaysEncryptedAkvAuthType.SQLAlwaysEncryptedAkvAuthTypeManagedIdentity
-1. SQLAlwaysEncryptedAkvAuthType.SQLAlwaysEncryptedAkvAuthTypeServicePrincipal
-1. SalesforceSourceReadBehavior.SalesforceSourceReadBehaviorQuery
-1. SalesforceSourceReadBehavior.SalesforceSourceReadBehaviorQueryAll
-1. SapCloudForCustomerSinkWriteBehavior.SapCloudForCustomerSinkWriteBehaviorInsert
-1. SapCloudForCustomerSinkWriteBehavior.SapCloudForCustomerSinkWriteBehaviorUpdate
-1. SparkServerType.SparkServerTypeSharkServer
-1. SparkServerType.SparkServerTypeSharkServer2
-1. SparkServerType.SparkServerTypeSparkThriftServer
-1. SsisObjectMetadataType.SsisObjectMetadataTypeEnvironment
-1. SsisObjectMetadataType.SsisObjectMetadataTypeFolder
-1. SsisObjectMetadataType.SsisObjectMetadataTypePackage
-1. SsisObjectMetadataType.SsisObjectMetadataTypeProject
-1. Type.TypeTypeAzureKeyVaultSecret
-1. Type.TypeTypeSecretBase
-1. Type.TypeTypeSecureString
-1. TypeBasicActivity.TypeBasicActivityTypeActivity
-1. TypeBasicActivity.TypeBasicActivityTypeAppendVariable
-1. TypeBasicActivity.TypeBasicActivityTypeAzureDataExplorerCommand
-1. TypeBasicActivity.TypeBasicActivityTypeAzureFunctionActivity
-1. TypeBasicActivity.TypeBasicActivityTypeAzureMLBatchExecution
-1. TypeBasicActivity.TypeBasicActivityTypeAzureMLExecutePipeline
-1. TypeBasicActivity.TypeBasicActivityTypeAzureMLUpdateResource
-1. TypeBasicActivity.TypeBasicActivityTypeContainer
-1. TypeBasicActivity.TypeBasicActivityTypeCopy
-1. TypeBasicActivity.TypeBasicActivityTypeCustom
-1. TypeBasicActivity.TypeBasicActivityTypeDataLakeAnalyticsUSQL
-1. TypeBasicActivity.TypeBasicActivityTypeDatabricksNotebook
-1. TypeBasicActivity.TypeBasicActivityTypeDatabricksSparkJar
-1. TypeBasicActivity.TypeBasicActivityTypeDatabricksSparkPython
-1. TypeBasicActivity.TypeBasicActivityTypeDelete
-1. TypeBasicActivity.TypeBasicActivityTypeExecuteDataFlow
-1. TypeBasicActivity.TypeBasicActivityTypeExecutePipeline
-1. TypeBasicActivity.TypeBasicActivityTypeExecuteSSISPackage
-1. TypeBasicActivity.TypeBasicActivityTypeExecution
-1. TypeBasicActivity.TypeBasicActivityTypeFilter
-1. TypeBasicActivity.TypeBasicActivityTypeForEach
-1. TypeBasicActivity.TypeBasicActivityTypeGetMetadata
-1. TypeBasicActivity.TypeBasicActivityTypeHDInsightHive
-1. TypeBasicActivity.TypeBasicActivityTypeHDInsightMapReduce
-1. TypeBasicActivity.TypeBasicActivityTypeHDInsightPig
-1. TypeBasicActivity.TypeBasicActivityTypeHDInsightSpark
-1. TypeBasicActivity.TypeBasicActivityTypeHDInsightStreaming
-1. TypeBasicActivity.TypeBasicActivityTypeIfCondition
-1. TypeBasicActivity.TypeBasicActivityTypeLookup
-1. TypeBasicActivity.TypeBasicActivityTypeSQLServerStoredProcedure
-1. TypeBasicActivity.TypeBasicActivityTypeSetVariable
-1. TypeBasicActivity.TypeBasicActivityTypeSwitch
-1. TypeBasicActivity.TypeBasicActivityTypeUntil
-1. TypeBasicActivity.TypeBasicActivityTypeValidation
-1. TypeBasicActivity.TypeBasicActivityTypeWait
-1. TypeBasicActivity.TypeBasicActivityTypeWebActivity
-1. TypeBasicActivity.TypeBasicActivityTypeWebHook
-1. TypeBasicCompressionReadSettings.TypeBasicCompressionReadSettingsTypeCompressionReadSettings
-1. TypeBasicCompressionReadSettings.TypeBasicCompressionReadSettingsTypeTarGZipReadSettings
-1. TypeBasicCompressionReadSettings.TypeBasicCompressionReadSettingsTypeTarReadSettings
-1. TypeBasicCompressionReadSettings.TypeBasicCompressionReadSettingsTypeZipDeflateReadSettings
-1. TypeBasicCopySink.TypeBasicCopySinkTypeAvroSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeAzureBlobFSSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeAzureDataExplorerSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeAzureDataLakeStoreSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeAzureDatabricksDeltaLakeSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeAzureMySQLSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeAzurePostgreSQLSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeAzureQueueSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeAzureSQLSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeAzureSearchIndexSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeAzureTableSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeBinarySink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeBlobSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeCommonDataServiceForAppsSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeCopySink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeCosmosDbMongoDbAPISink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeCosmosDbSQLAPISink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeDelimitedTextSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeDocumentDbCollectionSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeDynamicsCrmSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeDynamicsSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeFileSystemSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeInformixSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeJSONSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeMicrosoftAccessSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeMongoDbAtlasSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeMongoDbV2Sink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeOdbcSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeOracleSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeOrcSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeParquetSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeRestSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeSQLDWSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeSQLMISink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeSQLServerSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeSQLSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeSalesforceServiceCloudSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeSalesforceSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeSapCloudForCustomerSink
-1. TypeBasicCopySink.TypeBasicCopySinkTypeSnowflakeSink
-1. TypeBasicCopySource.TypeBasicCopySourceTypeAmazonMWSSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeAmazonRedshiftSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeAvroSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeAzureBlobFSSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeAzureDataExplorerSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeAzureDataLakeStoreSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeAzureDatabricksDeltaLakeSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeAzureMariaDBSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeAzureMySQLSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeAzurePostgreSQLSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeAzureSQLSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeAzureTableSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeBinarySource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeBlobSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeCassandraSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeCommonDataServiceForAppsSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeConcurSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeCopySource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeCosmosDbMongoDbAPISource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeCosmosDbSQLAPISource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeCouchbaseSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeDb2Source
-1. TypeBasicCopySource.TypeBasicCopySourceTypeDelimitedTextSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeDocumentDbCollectionSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeDrillSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeDynamicsAXSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeDynamicsCrmSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeDynamicsSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeEloquaSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeExcelSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeFileSystemSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeGoogleAdWordsSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeGoogleBigQuerySource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeGreenplumSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeHBaseSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeHTTPSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeHdfsSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeHiveSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeHubspotSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeImpalaSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeInformixSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeJSONSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeJiraSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeMagentoSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeMariaDBSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeMarketoSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeMicrosoftAccessSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeMongoDbAtlasSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeMongoDbSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeMongoDbV2Source
-1. TypeBasicCopySource.TypeBasicCopySourceTypeMySQLSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeNetezzaSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeODataSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeOdbcSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeOffice365Source
-1. TypeBasicCopySource.TypeBasicCopySourceTypeOracleServiceCloudSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeOracleSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeOrcSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeParquetSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypePaypalSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypePhoenixSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypePostgreSQLSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypePrestoSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeQuickBooksSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeRelationalSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeResponsysSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeRestSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSQLDWSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSQLMISource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSQLServerSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSQLSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSalesforceMarketingCloudSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSalesforceServiceCloudSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSalesforceSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSapBwSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSapCloudForCustomerSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSapEccSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSapHanaSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSapOpenHubSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSapTableSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeServiceNowSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSharePointOnlineListSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeShopifySource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSnowflakeSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSparkSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSquareSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeSybaseSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeTabularSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeTeradataSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeVerticaSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeWebSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeXMLSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeXeroSource
-1. TypeBasicCopySource.TypeBasicCopySourceTypeZohoSource
-1. TypeBasicCopyTranslator.TypeBasicCopyTranslatorTypeCopyTranslator
-1. TypeBasicCopyTranslator.TypeBasicCopyTranslatorTypeTabularTranslator
-1. TypeBasicCustomSetupBase.TypeBasicCustomSetupBaseTypeAzPowerShellSetup
-1. TypeBasicCustomSetupBase.TypeBasicCustomSetupBaseTypeCmdkeySetup
-1. TypeBasicCustomSetupBase.TypeBasicCustomSetupBaseTypeComponentSetup
-1. TypeBasicCustomSetupBase.TypeBasicCustomSetupBaseTypeCustomSetupBase
-1. TypeBasicCustomSetupBase.TypeBasicCustomSetupBaseTypeEnvironmentVariableSetup
-1. TypeBasicDataFlow.TypeBasicDataFlowTypeDataFlow
-1. TypeBasicDataFlow.TypeBasicDataFlowTypeMappingDataFlow
-1. TypeBasicDataset.TypeBasicDatasetTypeAmazonMWSObject
-1. TypeBasicDataset.TypeBasicDatasetTypeAmazonRedshiftTable
-1. TypeBasicDataset.TypeBasicDatasetTypeAmazonS3Object
-1. TypeBasicDataset.TypeBasicDatasetTypeAvro
-1. TypeBasicDataset.TypeBasicDatasetTypeAzureBlob
-1. TypeBasicDataset.TypeBasicDatasetTypeAzureBlobFSFile
-1. TypeBasicDataset.TypeBasicDatasetTypeAzureDataExplorerTable
-1. TypeBasicDataset.TypeBasicDatasetTypeAzureDataLakeStoreFile
-1. TypeBasicDataset.TypeBasicDatasetTypeAzureDatabricksDeltaLakeDataset
-1. TypeBasicDataset.TypeBasicDatasetTypeAzureMariaDBTable
-1. TypeBasicDataset.TypeBasicDatasetTypeAzureMySQLTable
-1. TypeBasicDataset.TypeBasicDatasetTypeAzurePostgreSQLTable
-1. TypeBasicDataset.TypeBasicDatasetTypeAzureSQLDWTable
-1. TypeBasicDataset.TypeBasicDatasetTypeAzureSQLMITable
-1. TypeBasicDataset.TypeBasicDatasetTypeAzureSQLTable
-1. TypeBasicDataset.TypeBasicDatasetTypeAzureSearchIndex
-1. TypeBasicDataset.TypeBasicDatasetTypeAzureTable
-1. TypeBasicDataset.TypeBasicDatasetTypeBinary
-1. TypeBasicDataset.TypeBasicDatasetTypeCassandraTable
-1. TypeBasicDataset.TypeBasicDatasetTypeCommonDataServiceForAppsEntity
-1. TypeBasicDataset.TypeBasicDatasetTypeConcurObject
-1. TypeBasicDataset.TypeBasicDatasetTypeCosmosDbMongoDbAPICollection
-1. TypeBasicDataset.TypeBasicDatasetTypeCosmosDbSQLAPICollection
-1. TypeBasicDataset.TypeBasicDatasetTypeCouchbaseTable
-1. TypeBasicDataset.TypeBasicDatasetTypeCustomDataset
-1. TypeBasicDataset.TypeBasicDatasetTypeDataset
-1. TypeBasicDataset.TypeBasicDatasetTypeDb2Table
-1. TypeBasicDataset.TypeBasicDatasetTypeDelimitedText
-1. TypeBasicDataset.TypeBasicDatasetTypeDocumentDbCollection
-1. TypeBasicDataset.TypeBasicDatasetTypeDrillTable
-1. TypeBasicDataset.TypeBasicDatasetTypeDynamicsAXResource
-1. TypeBasicDataset.TypeBasicDatasetTypeDynamicsCrmEntity
-1. TypeBasicDataset.TypeBasicDatasetTypeDynamicsEntity
-1. TypeBasicDataset.TypeBasicDatasetTypeEloquaObject
-1. TypeBasicDataset.TypeBasicDatasetTypeExcel
-1. TypeBasicDataset.TypeBasicDatasetTypeFileShare
-1. TypeBasicDataset.TypeBasicDatasetTypeGoogleAdWordsObject
-1. TypeBasicDataset.TypeBasicDatasetTypeGoogleBigQueryObject
-1. TypeBasicDataset.TypeBasicDatasetTypeGreenplumTable
-1. TypeBasicDataset.TypeBasicDatasetTypeHBaseObject
-1. TypeBasicDataset.TypeBasicDatasetTypeHTTPFile
-1. TypeBasicDataset.TypeBasicDatasetTypeHiveObject
-1. TypeBasicDataset.TypeBasicDatasetTypeHubspotObject
-1. TypeBasicDataset.TypeBasicDatasetTypeImpalaObject
-1. TypeBasicDataset.TypeBasicDatasetTypeInformixTable
-1. TypeBasicDataset.TypeBasicDatasetTypeJSON
-1. TypeBasicDataset.TypeBasicDatasetTypeJiraObject
-1. TypeBasicDataset.TypeBasicDatasetTypeMagentoObject
-1. TypeBasicDataset.TypeBasicDatasetTypeMariaDBTable
-1. TypeBasicDataset.TypeBasicDatasetTypeMarketoObject
-1. TypeBasicDataset.TypeBasicDatasetTypeMicrosoftAccessTable
-1. TypeBasicDataset.TypeBasicDatasetTypeMongoDbAtlasCollection
-1. TypeBasicDataset.TypeBasicDatasetTypeMongoDbCollection
-1. TypeBasicDataset.TypeBasicDatasetTypeMongoDbV2Collection
-1. TypeBasicDataset.TypeBasicDatasetTypeMySQLTable
-1. TypeBasicDataset.TypeBasicDatasetTypeNetezzaTable
-1. TypeBasicDataset.TypeBasicDatasetTypeODataResource
-1. TypeBasicDataset.TypeBasicDatasetTypeOdbcTable
-1. TypeBasicDataset.TypeBasicDatasetTypeOffice365Table
-1. TypeBasicDataset.TypeBasicDatasetTypeOracleServiceCloudObject
-1. TypeBasicDataset.TypeBasicDatasetTypeOracleTable
-1. TypeBasicDataset.TypeBasicDatasetTypeOrc
-1. TypeBasicDataset.TypeBasicDatasetTypeParquet
-1. TypeBasicDataset.TypeBasicDatasetTypePaypalObject
-1. TypeBasicDataset.TypeBasicDatasetTypePhoenixObject
-1. TypeBasicDataset.TypeBasicDatasetTypePostgreSQLTable
-1. TypeBasicDataset.TypeBasicDatasetTypePrestoObject
-1. TypeBasicDataset.TypeBasicDatasetTypeQuickBooksObject
-1. TypeBasicDataset.TypeBasicDatasetTypeRelationalTable
-1. TypeBasicDataset.TypeBasicDatasetTypeResponsysObject
-1. TypeBasicDataset.TypeBasicDatasetTypeRestResource
-1. TypeBasicDataset.TypeBasicDatasetTypeSQLServerTable
-1. TypeBasicDataset.TypeBasicDatasetTypeSalesforceMarketingCloudObject
-1. TypeBasicDataset.TypeBasicDatasetTypeSalesforceObject
-1. TypeBasicDataset.TypeBasicDatasetTypeSalesforceServiceCloudObject
-1. TypeBasicDataset.TypeBasicDatasetTypeSapBwCube
-1. TypeBasicDataset.TypeBasicDatasetTypeSapCloudForCustomerResource
-1. TypeBasicDataset.TypeBasicDatasetTypeSapEccResource
-1. TypeBasicDataset.TypeBasicDatasetTypeSapHanaTable
-1. TypeBasicDataset.TypeBasicDatasetTypeSapOpenHubTable
-1. TypeBasicDataset.TypeBasicDatasetTypeSapTableResource
-1. TypeBasicDataset.TypeBasicDatasetTypeServiceNowObject
-1. TypeBasicDataset.TypeBasicDatasetTypeSharePointOnlineListResource
-1. TypeBasicDataset.TypeBasicDatasetTypeShopifyObject
-1. TypeBasicDataset.TypeBasicDatasetTypeSnowflakeTable
-1. TypeBasicDataset.TypeBasicDatasetTypeSparkObject
-1. TypeBasicDataset.TypeBasicDatasetTypeSquareObject
-1. TypeBasicDataset.TypeBasicDatasetTypeSybaseTable
-1. TypeBasicDataset.TypeBasicDatasetTypeTeradataTable
-1. TypeBasicDataset.TypeBasicDatasetTypeVerticaTable
-1. TypeBasicDataset.TypeBasicDatasetTypeWebTable
-1. TypeBasicDataset.TypeBasicDatasetTypeXML
-1. TypeBasicDataset.TypeBasicDatasetTypeXeroObject
-1. TypeBasicDataset.TypeBasicDatasetTypeZohoObject
-1. TypeBasicDatasetCompression.TypeBasicDatasetCompressionTypeBZip2
-1. TypeBasicDatasetCompression.TypeBasicDatasetCompressionTypeDatasetCompression
-1. TypeBasicDatasetCompression.TypeBasicDatasetCompressionTypeDeflate
-1. TypeBasicDatasetCompression.TypeBasicDatasetCompressionTypeGZip
-1. TypeBasicDatasetCompression.TypeBasicDatasetCompressionTypeTar
-1. TypeBasicDatasetCompression.TypeBasicDatasetCompressionTypeTarGZip
-1. TypeBasicDatasetCompression.TypeBasicDatasetCompressionTypeZipDeflate
-1. TypeBasicDatasetLocation.TypeBasicDatasetLocationTypeAmazonS3CompatibleLocation
-1. TypeBasicDatasetLocation.TypeBasicDatasetLocationTypeAmazonS3Location
-1. TypeBasicDatasetLocation.TypeBasicDatasetLocationTypeAzureBlobFSLocation
-1. TypeBasicDatasetLocation.TypeBasicDatasetLocationTypeAzureBlobStorageLocation
-1. TypeBasicDatasetLocation.TypeBasicDatasetLocationTypeAzureDataLakeStoreLocation
-1. TypeBasicDatasetLocation.TypeBasicDatasetLocationTypeAzureFileStorageLocation
-1. TypeBasicDatasetLocation.TypeBasicDatasetLocationTypeDatasetLocation
-1. TypeBasicDatasetLocation.TypeBasicDatasetLocationTypeFileServerLocation
-1. TypeBasicDatasetLocation.TypeBasicDatasetLocationTypeFtpServerLocation
-1. TypeBasicDatasetLocation.TypeBasicDatasetLocationTypeGoogleCloudStorageLocation
-1. TypeBasicDatasetLocation.TypeBasicDatasetLocationTypeHTTPServerLocation
-1. TypeBasicDatasetLocation.TypeBasicDatasetLocationTypeHdfsLocation
-1. TypeBasicDatasetLocation.TypeBasicDatasetLocationTypeOracleCloudStorageLocation
-1. TypeBasicDatasetLocation.TypeBasicDatasetLocationTypeSftpLocation
-1. TypeBasicDatasetStorageFormat.TypeBasicDatasetStorageFormatTypeAvroFormat
-1. TypeBasicDatasetStorageFormat.TypeBasicDatasetStorageFormatTypeDatasetStorageFormat
-1. TypeBasicDatasetStorageFormat.TypeBasicDatasetStorageFormatTypeJSONFormat
-1. TypeBasicDatasetStorageFormat.TypeBasicDatasetStorageFormatTypeOrcFormat
-1. TypeBasicDatasetStorageFormat.TypeBasicDatasetStorageFormatTypeParquetFormat
-1. TypeBasicDatasetStorageFormat.TypeBasicDatasetStorageFormatTypeTextFormat
-1. TypeBasicDependencyReference.TypeBasicDependencyReferenceTypeDependencyReference
-1. TypeBasicDependencyReference.TypeBasicDependencyReferenceTypeSelfDependencyTumblingWindowTriggerReference
-1. TypeBasicDependencyReference.TypeBasicDependencyReferenceTypeTriggerDependencyReference
-1. TypeBasicDependencyReference.TypeBasicDependencyReferenceTypeTumblingWindowTriggerDependencyReference
-1. TypeBasicExportSettings.TypeBasicExportSettingsTypeAzureDatabricksDeltaLakeExportCommand
-1. TypeBasicExportSettings.TypeBasicExportSettingsTypeExportSettings
-1. TypeBasicExportSettings.TypeBasicExportSettingsTypeSnowflakeExportCopyCommand
-1. TypeBasicFactoryRepoConfiguration.TypeBasicFactoryRepoConfigurationTypeFactoryGitHubConfiguration
-1. TypeBasicFactoryRepoConfiguration.TypeBasicFactoryRepoConfigurationTypeFactoryRepoConfiguration
-1. TypeBasicFactoryRepoConfiguration.TypeBasicFactoryRepoConfigurationTypeFactoryVSTSConfiguration
-1. TypeBasicFormatReadSettings.TypeBasicFormatReadSettingsTypeBinaryReadSettings
-1. TypeBasicFormatReadSettings.TypeBasicFormatReadSettingsTypeDelimitedTextReadSettings
-1. TypeBasicFormatReadSettings.TypeBasicFormatReadSettingsTypeFormatReadSettings
-1. TypeBasicFormatReadSettings.TypeBasicFormatReadSettingsTypeJSONReadSettings
-1. TypeBasicFormatReadSettings.TypeBasicFormatReadSettingsTypeXMLReadSettings
-1. TypeBasicFormatWriteSettings.TypeBasicFormatWriteSettingsTypeAvroWriteSettings
-1. TypeBasicFormatWriteSettings.TypeBasicFormatWriteSettingsTypeDelimitedTextWriteSettings
-1. TypeBasicFormatWriteSettings.TypeBasicFormatWriteSettingsTypeFormatWriteSettings
-1. TypeBasicFormatWriteSettings.TypeBasicFormatWriteSettingsTypeJSONWriteSettings
-1. TypeBasicFormatWriteSettings.TypeBasicFormatWriteSettingsTypeOrcWriteSettings
-1. TypeBasicFormatWriteSettings.TypeBasicFormatWriteSettingsTypeParquetWriteSettings
-1. TypeBasicImportSettings.TypeBasicImportSettingsTypeAzureDatabricksDeltaLakeImportCommand
-1. TypeBasicImportSettings.TypeBasicImportSettingsTypeImportSettings
-1. TypeBasicImportSettings.TypeBasicImportSettingsTypeSnowflakeImportCopyCommand
-1. TypeBasicIntegrationRuntime.TypeBasicIntegrationRuntimeTypeIntegrationRuntime
-1. TypeBasicIntegrationRuntime.TypeBasicIntegrationRuntimeTypeManaged
-1. TypeBasicIntegrationRuntime.TypeBasicIntegrationRuntimeTypeSelfHosted
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAmazonMWS
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAmazonRedshift
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAmazonS3
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAmazonS3Compatible
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureBatch
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureBlobFS
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureBlobStorage
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureDataExplorer
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureDataLakeAnalytics
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureDataLakeStore
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureDatabricks
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureDatabricksDeltaLake
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureFileStorage
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureFunction
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureKeyVault
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureML
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureMLService
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureMariaDB
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureMySQL
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzurePostgreSQL
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureSQLDW
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureSQLDatabase
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureSQLMI
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureSearch
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureStorage
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAzureTableStorage
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeCassandra
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeCommonDataServiceForApps
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeConcur
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeCosmosDb
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeCosmosDbMongoDbAPI
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeCouchbase
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeCustomDataSource
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeDb2
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeDrill
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeDynamics
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeDynamicsAX
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeDynamicsCrm
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeEloqua
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeFileServer
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeFtpServer
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeGoogleAdWords
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeGoogleBigQuery
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeGoogleCloudStorage
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeGreenplum
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeHBase
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeHDInsight
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeHDInsightOnDemand
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeHTTPServer
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeHdfs
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeHive
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeHubspot
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeImpala
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeInformix
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeJira
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeLinkedService
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeMagento
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeMariaDB
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeMarketo
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeMicrosoftAccess
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeMongoDb
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeMongoDbAtlas
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeMongoDbV2
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeMySQL
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeNetezza
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeOData
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeOdbc
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeOffice365
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeOracle
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeOracleCloudStorage
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeOracleServiceCloud
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypePaypal
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypePhoenix
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypePostgreSQL
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypePresto
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeQuickBooks
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeResponsys
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeRestService
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeSQLServer
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeSalesforce
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeSalesforceMarketingCloud
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeSalesforceServiceCloud
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeSapBW
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeSapCloudForCustomer
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeSapEcc
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeSapHana
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeSapOpenHub
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeSapTable
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeServiceNow
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeSftp
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeSharePointOnlineList
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeShopify
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeSnowflake
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeSpark
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeSquare
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeSybase
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeTeradata
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeVertica
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeWeb
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeXero
-1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeZoho
-1. TypeBasicSsisObjectMetadata.TypeBasicSsisObjectMetadataTypeEnvironment
-1. TypeBasicSsisObjectMetadata.TypeBasicSsisObjectMetadataTypeFolder
-1. TypeBasicSsisObjectMetadata.TypeBasicSsisObjectMetadataTypePackage
-1. TypeBasicSsisObjectMetadata.TypeBasicSsisObjectMetadataTypeProject
-1. TypeBasicSsisObjectMetadata.TypeBasicSsisObjectMetadataTypeSsisObjectMetadata
-1. TypeBasicStoreReadSettings.TypeBasicStoreReadSettingsTypeAmazonS3CompatibleReadSettings
-1. TypeBasicStoreReadSettings.TypeBasicStoreReadSettingsTypeAmazonS3ReadSettings
-1. TypeBasicStoreReadSettings.TypeBasicStoreReadSettingsTypeAzureBlobFSReadSettings
-1. TypeBasicStoreReadSettings.TypeBasicStoreReadSettingsTypeAzureBlobStorageReadSettings
-1. TypeBasicStoreReadSettings.TypeBasicStoreReadSettingsTypeAzureDataLakeStoreReadSettings
-1. TypeBasicStoreReadSettings.TypeBasicStoreReadSettingsTypeAzureFileStorageReadSettings
-1. TypeBasicStoreReadSettings.TypeBasicStoreReadSettingsTypeFileServerReadSettings
-1. TypeBasicStoreReadSettings.TypeBasicStoreReadSettingsTypeFtpReadSettings
-1. TypeBasicStoreReadSettings.TypeBasicStoreReadSettingsTypeGoogleCloudStorageReadSettings
-1. TypeBasicStoreReadSettings.TypeBasicStoreReadSettingsTypeHTTPReadSettings
-1. TypeBasicStoreReadSettings.TypeBasicStoreReadSettingsTypeHdfsReadSettings
-1. TypeBasicStoreReadSettings.TypeBasicStoreReadSettingsTypeOracleCloudStorageReadSettings
-1. TypeBasicStoreReadSettings.TypeBasicStoreReadSettingsTypeSftpReadSettings
-1. TypeBasicStoreReadSettings.TypeBasicStoreReadSettingsTypeStoreReadSettings
-1. TypeBasicStoreWriteSettings.TypeBasicStoreWriteSettingsTypeAzureBlobFSWriteSettings
-1. TypeBasicStoreWriteSettings.TypeBasicStoreWriteSettingsTypeAzureBlobStorageWriteSettings
-1. TypeBasicStoreWriteSettings.TypeBasicStoreWriteSettingsTypeAzureDataLakeStoreWriteSettings
-1. TypeBasicStoreWriteSettings.TypeBasicStoreWriteSettingsTypeAzureFileStorageWriteSettings
-1. TypeBasicStoreWriteSettings.TypeBasicStoreWriteSettingsTypeFileServerWriteSettings
-1. TypeBasicStoreWriteSettings.TypeBasicStoreWriteSettingsTypeSftpWriteSettings
-1. TypeBasicStoreWriteSettings.TypeBasicStoreWriteSettingsTypeStoreWriteSettings
-1. TypeBasicTrigger.TypeBasicTriggerTypeBlobEventsTrigger
-1. TypeBasicTrigger.TypeBasicTriggerTypeBlobTrigger
-1. TypeBasicTrigger.TypeBasicTriggerTypeChainingTrigger
-1. TypeBasicTrigger.TypeBasicTriggerTypeCustomEventsTrigger
-1. TypeBasicTrigger.TypeBasicTriggerTypeMultiplePipelineTrigger
-1. TypeBasicTrigger.TypeBasicTriggerTypeRerunTumblingWindowTrigger
-1. TypeBasicTrigger.TypeBasicTriggerTypeScheduleTrigger
-1. TypeBasicTrigger.TypeBasicTriggerTypeTrigger
-1. TypeBasicTrigger.TypeBasicTriggerTypeTumblingWindowTrigger
+1. AmazonRdsForOraclePartitionOption.AmazonRdsForOraclePartitionOptionDynamicRange
+1. AmazonRdsForOraclePartitionOption.AmazonRdsForOraclePartitionOptionNone
+1. AmazonRdsForOraclePartitionOption.AmazonRdsForOraclePartitionOptionPhysicalPartitionsOfTable
+1. TypeBasicActivity.TypeBasicActivityTypeExecuteWranglingDataflow
+1. TypeBasicCopySource.TypeBasicCopySourceTypeAmazonRdsForOracleSource
+1. TypeBasicDataFlow.TypeBasicDataFlowTypeWranglingDataFlow
+1. TypeBasicDataset.TypeBasicDatasetTypeAmazonRdsForOracleTable
+1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAmazonRdsForOracle
+
+### New Funcs
+
+1. *AmazonRdsForLinkedServiceTypeProperties.UnmarshalJSON([]byte) error
+1. *AmazonRdsForOracleLinkedService.UnmarshalJSON([]byte) error
+1. *AmazonRdsForOracleSource.UnmarshalJSON([]byte) error
+1. *AmazonRdsForOracleTableDataset.UnmarshalJSON([]byte) error
+1. *ExecuteWranglingDataflowActivity.UnmarshalJSON([]byte) error
+1. *WranglingDataFlow.UnmarshalJSON([]byte) error
+1. Activity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. AmazonMWSLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AmazonMWSObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AmazonMWSSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AmazonRdsForOracleLinkedService.AsAmazonMWSLinkedService() (*AmazonMWSLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAmazonRedshiftLinkedService() (*AmazonRedshiftLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAmazonS3CompatibleLinkedService() (*AmazonS3CompatibleLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAmazonS3LinkedService() (*AmazonS3LinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureBatchLinkedService() (*AzureBatchLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureBlobFSLinkedService() (*AzureBlobFSLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureBlobStorageLinkedService() (*AzureBlobStorageLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureDataExplorerLinkedService() (*AzureDataExplorerLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureDataLakeAnalyticsLinkedService() (*AzureDataLakeAnalyticsLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureDataLakeStoreLinkedService() (*AzureDataLakeStoreLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureDatabricksDeltaLakeLinkedService() (*AzureDatabricksDeltaLakeLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureDatabricksLinkedService() (*AzureDatabricksLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureFileStorageLinkedService() (*AzureFileStorageLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureFunctionLinkedService() (*AzureFunctionLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureKeyVaultLinkedService() (*AzureKeyVaultLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureMLLinkedService() (*AzureMLLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureMLServiceLinkedService() (*AzureMLServiceLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureMariaDBLinkedService() (*AzureMariaDBLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureMySQLLinkedService() (*AzureMySQLLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzurePostgreSQLLinkedService() (*AzurePostgreSQLLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureSQLDWLinkedService() (*AzureSQLDWLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureSQLDatabaseLinkedService() (*AzureSQLDatabaseLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureSQLMILinkedService() (*AzureSQLMILinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureSearchLinkedService() (*AzureSearchLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureStorageLinkedService() (*AzureStorageLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureTableStorageLinkedService() (*AzureTableStorageLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsBasicLinkedService() (BasicLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsCassandraLinkedService() (*CassandraLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsCommonDataServiceForAppsLinkedService() (*CommonDataServiceForAppsLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsConcurLinkedService() (*ConcurLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsCosmosDbLinkedService() (*CosmosDbLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsCosmosDbMongoDbAPILinkedService() (*CosmosDbMongoDbAPILinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsCouchbaseLinkedService() (*CouchbaseLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsCustomDataSourceLinkedService() (*CustomDataSourceLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsDb2LinkedService() (*Db2LinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsDrillLinkedService() (*DrillLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsDynamicsAXLinkedService() (*DynamicsAXLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsDynamicsCrmLinkedService() (*DynamicsCrmLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsDynamicsLinkedService() (*DynamicsLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsEloquaLinkedService() (*EloquaLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsFileServerLinkedService() (*FileServerLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsFtpServerLinkedService() (*FtpServerLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsGoogleAdWordsLinkedService() (*GoogleAdWordsLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsGoogleBigQueryLinkedService() (*GoogleBigQueryLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsGoogleCloudStorageLinkedService() (*GoogleCloudStorageLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsGreenplumLinkedService() (*GreenplumLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsHBaseLinkedService() (*HBaseLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsHDInsightLinkedService() (*HDInsightLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsHDInsightOnDemandLinkedService() (*HDInsightOnDemandLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsHTTPLinkedService() (*HTTPLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsHdfsLinkedService() (*HdfsLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsHiveLinkedService() (*HiveLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsHubspotLinkedService() (*HubspotLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsImpalaLinkedService() (*ImpalaLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsInformixLinkedService() (*InformixLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsJiraLinkedService() (*JiraLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsLinkedService() (*LinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsMagentoLinkedService() (*MagentoLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsMariaDBLinkedService() (*MariaDBLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsMarketoLinkedService() (*MarketoLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsMicrosoftAccessLinkedService() (*MicrosoftAccessLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsMongoDbAtlasLinkedService() (*MongoDbAtlasLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsMongoDbLinkedService() (*MongoDbLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsMongoDbV2LinkedService() (*MongoDbV2LinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsMySQLLinkedService() (*MySQLLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsNetezzaLinkedService() (*NetezzaLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsODataLinkedService() (*ODataLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsOdbcLinkedService() (*OdbcLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsOffice365LinkedService() (*Office365LinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsOracleCloudStorageLinkedService() (*OracleCloudStorageLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsOracleLinkedService() (*OracleLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsOracleServiceCloudLinkedService() (*OracleServiceCloudLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsPaypalLinkedService() (*PaypalLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsPhoenixLinkedService() (*PhoenixLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsPostgreSQLLinkedService() (*PostgreSQLLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsPrestoLinkedService() (*PrestoLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsQuickBooksLinkedService() (*QuickBooksLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsResponsysLinkedService() (*ResponsysLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsRestServiceLinkedService() (*RestServiceLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSQLServerLinkedService() (*SQLServerLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSalesforceLinkedService() (*SalesforceLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSalesforceMarketingCloudLinkedService() (*SalesforceMarketingCloudLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSalesforceServiceCloudLinkedService() (*SalesforceServiceCloudLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSapBWLinkedService() (*SapBWLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSapCloudForCustomerLinkedService() (*SapCloudForCustomerLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSapEccLinkedService() (*SapEccLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSapHanaLinkedService() (*SapHanaLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSapOpenHubLinkedService() (*SapOpenHubLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSapTableLinkedService() (*SapTableLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsServiceNowLinkedService() (*ServiceNowLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSftpServerLinkedService() (*SftpServerLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSharePointOnlineListLinkedService() (*SharePointOnlineListLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsShopifyLinkedService() (*ShopifyLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSnowflakeLinkedService() (*SnowflakeLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSparkLinkedService() (*SparkLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSquareLinkedService() (*SquareLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSybaseLinkedService() (*SybaseLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsTeradataLinkedService() (*TeradataLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsVerticaLinkedService() (*VerticaLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsWebLinkedService() (*WebLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsXeroLinkedService() (*XeroLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsZohoLinkedService() (*ZohoLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.MarshalJSON() ([]byte, error)
+1. AmazonRdsForOracleSource.AsAmazonMWSSource() (*AmazonMWSSource, bool)
+1. AmazonRdsForOracleSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AmazonRdsForOracleSource.AsAmazonRedshiftSource() (*AmazonRedshiftSource, bool)
+1. AmazonRdsForOracleSource.AsAvroSource() (*AvroSource, bool)
+1. AmazonRdsForOracleSource.AsAzureBlobFSSource() (*AzureBlobFSSource, bool)
+1. AmazonRdsForOracleSource.AsAzureDataExplorerSource() (*AzureDataExplorerSource, bool)
+1. AmazonRdsForOracleSource.AsAzureDataLakeStoreSource() (*AzureDataLakeStoreSource, bool)
+1. AmazonRdsForOracleSource.AsAzureDatabricksDeltaLakeSource() (*AzureDatabricksDeltaLakeSource, bool)
+1. AmazonRdsForOracleSource.AsAzureMariaDBSource() (*AzureMariaDBSource, bool)
+1. AmazonRdsForOracleSource.AsAzureMySQLSource() (*AzureMySQLSource, bool)
+1. AmazonRdsForOracleSource.AsAzurePostgreSQLSource() (*AzurePostgreSQLSource, bool)
+1. AmazonRdsForOracleSource.AsAzureSQLSource() (*AzureSQLSource, bool)
+1. AmazonRdsForOracleSource.AsAzureTableSource() (*AzureTableSource, bool)
+1. AmazonRdsForOracleSource.AsBasicCopySource() (BasicCopySource, bool)
+1. AmazonRdsForOracleSource.AsBasicTabularSource() (BasicTabularSource, bool)
+1. AmazonRdsForOracleSource.AsBinarySource() (*BinarySource, bool)
+1. AmazonRdsForOracleSource.AsBlobSource() (*BlobSource, bool)
+1. AmazonRdsForOracleSource.AsCassandraSource() (*CassandraSource, bool)
+1. AmazonRdsForOracleSource.AsCommonDataServiceForAppsSource() (*CommonDataServiceForAppsSource, bool)
+1. AmazonRdsForOracleSource.AsConcurSource() (*ConcurSource, bool)
+1. AmazonRdsForOracleSource.AsCopySource() (*CopySource, bool)
+1. AmazonRdsForOracleSource.AsCosmosDbMongoDbAPISource() (*CosmosDbMongoDbAPISource, bool)
+1. AmazonRdsForOracleSource.AsCosmosDbSQLAPISource() (*CosmosDbSQLAPISource, bool)
+1. AmazonRdsForOracleSource.AsCouchbaseSource() (*CouchbaseSource, bool)
+1. AmazonRdsForOracleSource.AsDb2Source() (*Db2Source, bool)
+1. AmazonRdsForOracleSource.AsDelimitedTextSource() (*DelimitedTextSource, bool)
+1. AmazonRdsForOracleSource.AsDocumentDbCollectionSource() (*DocumentDbCollectionSource, bool)
+1. AmazonRdsForOracleSource.AsDrillSource() (*DrillSource, bool)
+1. AmazonRdsForOracleSource.AsDynamicsAXSource() (*DynamicsAXSource, bool)
+1. AmazonRdsForOracleSource.AsDynamicsCrmSource() (*DynamicsCrmSource, bool)
+1. AmazonRdsForOracleSource.AsDynamicsSource() (*DynamicsSource, bool)
+1. AmazonRdsForOracleSource.AsEloquaSource() (*EloquaSource, bool)
+1. AmazonRdsForOracleSource.AsExcelSource() (*ExcelSource, bool)
+1. AmazonRdsForOracleSource.AsFileSystemSource() (*FileSystemSource, bool)
+1. AmazonRdsForOracleSource.AsGoogleAdWordsSource() (*GoogleAdWordsSource, bool)
+1. AmazonRdsForOracleSource.AsGoogleBigQuerySource() (*GoogleBigQuerySource, bool)
+1. AmazonRdsForOracleSource.AsGreenplumSource() (*GreenplumSource, bool)
+1. AmazonRdsForOracleSource.AsHBaseSource() (*HBaseSource, bool)
+1. AmazonRdsForOracleSource.AsHTTPSource() (*HTTPSource, bool)
+1. AmazonRdsForOracleSource.AsHdfsSource() (*HdfsSource, bool)
+1. AmazonRdsForOracleSource.AsHiveSource() (*HiveSource, bool)
+1. AmazonRdsForOracleSource.AsHubspotSource() (*HubspotSource, bool)
+1. AmazonRdsForOracleSource.AsImpalaSource() (*ImpalaSource, bool)
+1. AmazonRdsForOracleSource.AsInformixSource() (*InformixSource, bool)
+1. AmazonRdsForOracleSource.AsJSONSource() (*JSONSource, bool)
+1. AmazonRdsForOracleSource.AsJiraSource() (*JiraSource, bool)
+1. AmazonRdsForOracleSource.AsMagentoSource() (*MagentoSource, bool)
+1. AmazonRdsForOracleSource.AsMariaDBSource() (*MariaDBSource, bool)
+1. AmazonRdsForOracleSource.AsMarketoSource() (*MarketoSource, bool)
+1. AmazonRdsForOracleSource.AsMicrosoftAccessSource() (*MicrosoftAccessSource, bool)
+1. AmazonRdsForOracleSource.AsMongoDbAtlasSource() (*MongoDbAtlasSource, bool)
+1. AmazonRdsForOracleSource.AsMongoDbSource() (*MongoDbSource, bool)
+1. AmazonRdsForOracleSource.AsMongoDbV2Source() (*MongoDbV2Source, bool)
+1. AmazonRdsForOracleSource.AsMySQLSource() (*MySQLSource, bool)
+1. AmazonRdsForOracleSource.AsNetezzaSource() (*NetezzaSource, bool)
+1. AmazonRdsForOracleSource.AsODataSource() (*ODataSource, bool)
+1. AmazonRdsForOracleSource.AsOdbcSource() (*OdbcSource, bool)
+1. AmazonRdsForOracleSource.AsOffice365Source() (*Office365Source, bool)
+1. AmazonRdsForOracleSource.AsOracleServiceCloudSource() (*OracleServiceCloudSource, bool)
+1. AmazonRdsForOracleSource.AsOracleSource() (*OracleSource, bool)
+1. AmazonRdsForOracleSource.AsOrcSource() (*OrcSource, bool)
+1. AmazonRdsForOracleSource.AsParquetSource() (*ParquetSource, bool)
+1. AmazonRdsForOracleSource.AsPaypalSource() (*PaypalSource, bool)
+1. AmazonRdsForOracleSource.AsPhoenixSource() (*PhoenixSource, bool)
+1. AmazonRdsForOracleSource.AsPostgreSQLSource() (*PostgreSQLSource, bool)
+1. AmazonRdsForOracleSource.AsPrestoSource() (*PrestoSource, bool)
+1. AmazonRdsForOracleSource.AsQuickBooksSource() (*QuickBooksSource, bool)
+1. AmazonRdsForOracleSource.AsRelationalSource() (*RelationalSource, bool)
+1. AmazonRdsForOracleSource.AsResponsysSource() (*ResponsysSource, bool)
+1. AmazonRdsForOracleSource.AsRestSource() (*RestSource, bool)
+1. AmazonRdsForOracleSource.AsSQLDWSource() (*SQLDWSource, bool)
+1. AmazonRdsForOracleSource.AsSQLMISource() (*SQLMISource, bool)
+1. AmazonRdsForOracleSource.AsSQLServerSource() (*SQLServerSource, bool)
+1. AmazonRdsForOracleSource.AsSQLSource() (*SQLSource, bool)
+1. AmazonRdsForOracleSource.AsSalesforceMarketingCloudSource() (*SalesforceMarketingCloudSource, bool)
+1. AmazonRdsForOracleSource.AsSalesforceServiceCloudSource() (*SalesforceServiceCloudSource, bool)
+1. AmazonRdsForOracleSource.AsSalesforceSource() (*SalesforceSource, bool)
+1. AmazonRdsForOracleSource.AsSapBwSource() (*SapBwSource, bool)
+1. AmazonRdsForOracleSource.AsSapCloudForCustomerSource() (*SapCloudForCustomerSource, bool)
+1. AmazonRdsForOracleSource.AsSapEccSource() (*SapEccSource, bool)
+1. AmazonRdsForOracleSource.AsSapHanaSource() (*SapHanaSource, bool)
+1. AmazonRdsForOracleSource.AsSapOpenHubSource() (*SapOpenHubSource, bool)
+1. AmazonRdsForOracleSource.AsSapTableSource() (*SapTableSource, bool)
+1. AmazonRdsForOracleSource.AsServiceNowSource() (*ServiceNowSource, bool)
+1. AmazonRdsForOracleSource.AsSharePointOnlineListSource() (*SharePointOnlineListSource, bool)
+1. AmazonRdsForOracleSource.AsShopifySource() (*ShopifySource, bool)
+1. AmazonRdsForOracleSource.AsSnowflakeSource() (*SnowflakeSource, bool)
+1. AmazonRdsForOracleSource.AsSparkSource() (*SparkSource, bool)
+1. AmazonRdsForOracleSource.AsSquareSource() (*SquareSource, bool)
+1. AmazonRdsForOracleSource.AsSybaseSource() (*SybaseSource, bool)
+1. AmazonRdsForOracleSource.AsTabularSource() (*TabularSource, bool)
+1. AmazonRdsForOracleSource.AsTeradataSource() (*TeradataSource, bool)
+1. AmazonRdsForOracleSource.AsVerticaSource() (*VerticaSource, bool)
+1. AmazonRdsForOracleSource.AsWebSource() (*WebSource, bool)
+1. AmazonRdsForOracleSource.AsXMLSource() (*XMLSource, bool)
+1. AmazonRdsForOracleSource.AsXeroSource() (*XeroSource, bool)
+1. AmazonRdsForOracleSource.AsZohoSource() (*ZohoSource, bool)
+1. AmazonRdsForOracleSource.MarshalJSON() ([]byte, error)
+1. AmazonRdsForOracleTableDataset.AsAmazonMWSObjectDataset() (*AmazonMWSObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAmazonRedshiftTableDataset() (*AmazonRedshiftTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAmazonS3Dataset() (*AmazonS3Dataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAvroDataset() (*AvroDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureBlobDataset() (*AzureBlobDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureBlobFSDataset() (*AzureBlobFSDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureDataExplorerTableDataset() (*AzureDataExplorerTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureDataLakeStoreDataset() (*AzureDataLakeStoreDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureDatabricksDeltaLakeDataset() (*AzureDatabricksDeltaLakeDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureMariaDBTableDataset() (*AzureMariaDBTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureMySQLTableDataset() (*AzureMySQLTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzurePostgreSQLTableDataset() (*AzurePostgreSQLTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureSQLDWTableDataset() (*AzureSQLDWTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureSQLMITableDataset() (*AzureSQLMITableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureSQLTableDataset() (*AzureSQLTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureSearchIndexDataset() (*AzureSearchIndexDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureTableDataset() (*AzureTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsBasicDataset() (BasicDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsBinaryDataset() (*BinaryDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsCassandraTableDataset() (*CassandraTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsCommonDataServiceForAppsEntityDataset() (*CommonDataServiceForAppsEntityDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsConcurObjectDataset() (*ConcurObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsCosmosDbMongoDbAPICollectionDataset() (*CosmosDbMongoDbAPICollectionDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsCosmosDbSQLAPICollectionDataset() (*CosmosDbSQLAPICollectionDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsCouchbaseTableDataset() (*CouchbaseTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsCustomDataset() (*CustomDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsDataset() (*Dataset, bool)
+1. AmazonRdsForOracleTableDataset.AsDb2TableDataset() (*Db2TableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsDelimitedTextDataset() (*DelimitedTextDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsDocumentDbCollectionDataset() (*DocumentDbCollectionDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsDrillTableDataset() (*DrillTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsDynamicsAXResourceDataset() (*DynamicsAXResourceDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsDynamicsCrmEntityDataset() (*DynamicsCrmEntityDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsDynamicsEntityDataset() (*DynamicsEntityDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsEloquaObjectDataset() (*EloquaObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsExcelDataset() (*ExcelDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsFileShareDataset() (*FileShareDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsGoogleAdWordsObjectDataset() (*GoogleAdWordsObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsGoogleBigQueryObjectDataset() (*GoogleBigQueryObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsGreenplumTableDataset() (*GreenplumTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsHBaseObjectDataset() (*HBaseObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsHTTPDataset() (*HTTPDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsHiveObjectDataset() (*HiveObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsHubspotObjectDataset() (*HubspotObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsImpalaObjectDataset() (*ImpalaObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsInformixTableDataset() (*InformixTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsJSONDataset() (*JSONDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsJiraObjectDataset() (*JiraObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsMagentoObjectDataset() (*MagentoObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsMariaDBTableDataset() (*MariaDBTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsMarketoObjectDataset() (*MarketoObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsMicrosoftAccessTableDataset() (*MicrosoftAccessTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsMongoDbAtlasCollectionDataset() (*MongoDbAtlasCollectionDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsMongoDbCollectionDataset() (*MongoDbCollectionDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsMongoDbV2CollectionDataset() (*MongoDbV2CollectionDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsMySQLTableDataset() (*MySQLTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsNetezzaTableDataset() (*NetezzaTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsODataResourceDataset() (*ODataResourceDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsOdbcTableDataset() (*OdbcTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsOffice365Dataset() (*Office365Dataset, bool)
+1. AmazonRdsForOracleTableDataset.AsOracleServiceCloudObjectDataset() (*OracleServiceCloudObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsOracleTableDataset() (*OracleTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsOrcDataset() (*OrcDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsParquetDataset() (*ParquetDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsPaypalObjectDataset() (*PaypalObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsPhoenixObjectDataset() (*PhoenixObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsPostgreSQLTableDataset() (*PostgreSQLTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsPrestoObjectDataset() (*PrestoObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsQuickBooksObjectDataset() (*QuickBooksObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsRelationalTableDataset() (*RelationalTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsResponsysObjectDataset() (*ResponsysObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsRestResourceDataset() (*RestResourceDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSQLServerTableDataset() (*SQLServerTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSalesforceMarketingCloudObjectDataset() (*SalesforceMarketingCloudObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSalesforceObjectDataset() (*SalesforceObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSalesforceServiceCloudObjectDataset() (*SalesforceServiceCloudObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSapBwCubeDataset() (*SapBwCubeDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSapCloudForCustomerResourceDataset() (*SapCloudForCustomerResourceDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSapEccResourceDataset() (*SapEccResourceDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSapHanaTableDataset() (*SapHanaTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSapOpenHubTableDataset() (*SapOpenHubTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSapTableResourceDataset() (*SapTableResourceDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsServiceNowObjectDataset() (*ServiceNowObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSharePointOnlineListResourceDataset() (*SharePointOnlineListResourceDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsShopifyObjectDataset() (*ShopifyObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSnowflakeDataset() (*SnowflakeDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSparkObjectDataset() (*SparkObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSquareObjectDataset() (*SquareObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSybaseTableDataset() (*SybaseTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsTeradataTableDataset() (*TeradataTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsVerticaTableDataset() (*VerticaTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsWebTableDataset() (*WebTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsXMLDataset() (*XMLDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsXeroObjectDataset() (*XeroObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsZohoObjectDataset() (*ZohoObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.MarshalJSON() ([]byte, error)
+1. AmazonRedshiftLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AmazonRedshiftSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AmazonRedshiftTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AmazonS3CompatibleLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AmazonS3Dataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AmazonS3LinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AppendVariableActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. AvroDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AvroSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureBatchLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureBlobDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureBlobFSDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureBlobFSLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureBlobFSSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureBlobStorageLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureDataExplorerCommandActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. AzureDataExplorerLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureDataExplorerSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureDataExplorerTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureDataLakeAnalyticsLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureDataLakeStoreDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureDataLakeStoreLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureDataLakeStoreSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureDatabricksDeltaLakeDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureDatabricksDeltaLakeLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureDatabricksDeltaLakeSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureDatabricksLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureFileStorageLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureFunctionActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. AzureFunctionLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureKeyVaultLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureMLBatchExecutionActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. AzureMLExecutePipelineActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. AzureMLLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureMLServiceLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureMLUpdateResourceActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. AzureMariaDBLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureMariaDBSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureMariaDBTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureMySQLLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureMySQLSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureMySQLTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzurePostgreSQLLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzurePostgreSQLSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzurePostgreSQLTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureSQLDWLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureSQLDWTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureSQLDatabaseLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureSQLMILinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureSQLMITableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureSQLSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureSQLTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureSearchIndexDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureSearchLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureStorageLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureTableSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureTableStorageLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. BinaryDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. BinarySource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. BlobSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. CassandraLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. CassandraSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. CassandraTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. CommonDataServiceForAppsEntityDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. CommonDataServiceForAppsLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. CommonDataServiceForAppsSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. ConcurLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. ConcurObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ConcurSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. ControlActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. CopyActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. CopySource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. CosmosDbLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. CosmosDbMongoDbAPICollectionDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. CosmosDbMongoDbAPILinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. CosmosDbMongoDbAPISource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. CosmosDbSQLAPICollectionDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. CosmosDbSQLAPISource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. CouchbaseLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. CouchbaseSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. CouchbaseTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. CustomActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. CustomDataSourceLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. CustomDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. DataFlow.AsWranglingDataFlow() (*WranglingDataFlow, bool)
+1. DataLakeAnalyticsUSQLActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. DatabricksNotebookActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. DatabricksSparkJarActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. DatabricksSparkPythonActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. Dataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. Db2LinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. Db2Source.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. Db2TableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. DeleteActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. DelimitedTextDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. DelimitedTextSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. DocumentDbCollectionDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. DocumentDbCollectionSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. DrillLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. DrillSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. DrillTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. DynamicsAXLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. DynamicsAXResourceDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. DynamicsAXSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. DynamicsCrmEntityDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. DynamicsCrmLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. DynamicsCrmSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. DynamicsEntityDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. DynamicsLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. DynamicsSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. EloquaLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. EloquaObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. EloquaSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. ExcelDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ExcelSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. ExecuteDataFlowActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. ExecutePipelineActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. ExecutePowerQueryActivityTypeProperties.MarshalJSON() ([]byte, error)
+1. ExecuteSSISPackageActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsActivity() (*Activity, bool)
+1. ExecuteWranglingDataflowActivity.AsAppendVariableActivity() (*AppendVariableActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsAzureDataExplorerCommandActivity() (*AzureDataExplorerCommandActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsAzureFunctionActivity() (*AzureFunctionActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsAzureMLBatchExecutionActivity() (*AzureMLBatchExecutionActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsAzureMLExecutePipelineActivity() (*AzureMLExecutePipelineActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsAzureMLUpdateResourceActivity() (*AzureMLUpdateResourceActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsBasicActivity() (BasicActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsBasicControlActivity() (BasicControlActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsBasicExecutionActivity() (BasicExecutionActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsControlActivity() (*ControlActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsCopyActivity() (*CopyActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsCustomActivity() (*CustomActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsDataLakeAnalyticsUSQLActivity() (*DataLakeAnalyticsUSQLActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsDatabricksNotebookActivity() (*DatabricksNotebookActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsDatabricksSparkJarActivity() (*DatabricksSparkJarActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsDatabricksSparkPythonActivity() (*DatabricksSparkPythonActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsDeleteActivity() (*DeleteActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsExecuteDataFlowActivity() (*ExecuteDataFlowActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsExecutePipelineActivity() (*ExecutePipelineActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsExecuteSSISPackageActivity() (*ExecuteSSISPackageActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsExecutionActivity() (*ExecutionActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsFilterActivity() (*FilterActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsForEachActivity() (*ForEachActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsGetMetadataActivity() (*GetMetadataActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsHDInsightHiveActivity() (*HDInsightHiveActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsHDInsightMapReduceActivity() (*HDInsightMapReduceActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsHDInsightPigActivity() (*HDInsightPigActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsHDInsightSparkActivity() (*HDInsightSparkActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsHDInsightStreamingActivity() (*HDInsightStreamingActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsIfConditionActivity() (*IfConditionActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsLookupActivity() (*LookupActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsSQLServerStoredProcedureActivity() (*SQLServerStoredProcedureActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsSetVariableActivity() (*SetVariableActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsSwitchActivity() (*SwitchActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsUntilActivity() (*UntilActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsValidationActivity() (*ValidationActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsWaitActivity() (*WaitActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsWebActivity() (*WebActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsWebHookActivity() (*WebHookActivity, bool)
+1. ExecuteWranglingDataflowActivity.MarshalJSON() ([]byte, error)
+1. ExecutionActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. FileServerLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. FileShareDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. FileSystemSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. FilterActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. ForEachActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. FtpServerLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. GetMetadataActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. GoogleAdWordsLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. GoogleAdWordsObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. GoogleAdWordsSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. GoogleBigQueryLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. GoogleBigQueryObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. GoogleBigQuerySource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. GoogleCloudStorageLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. GreenplumLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. GreenplumSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. GreenplumTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. HBaseLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. HBaseObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. HBaseSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. HDInsightHiveActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. HDInsightLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. HDInsightMapReduceActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. HDInsightOnDemandLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. HDInsightPigActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. HDInsightSparkActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. HDInsightStreamingActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. HTTPDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. HTTPLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. HTTPSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. HdfsLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. HdfsSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. HiveLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. HiveObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. HiveSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. HubspotLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. HubspotObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. HubspotSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. IfConditionActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. ImpalaLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. ImpalaObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ImpalaSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. InformixLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. InformixSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. InformixTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. JSONDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. JSONSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. JiraLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. JiraObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. JiraSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. LinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. LookupActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. MagentoLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. MagentoObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. MagentoSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. MappingDataFlow.AsWranglingDataFlow() (*WranglingDataFlow, bool)
+1. MariaDBLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. MariaDBSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. MariaDBTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. MarketoLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. MarketoObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. MarketoSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. MicrosoftAccessLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. MicrosoftAccessSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. MicrosoftAccessTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. MongoDbAtlasCollectionDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. MongoDbAtlasLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. MongoDbAtlasSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. MongoDbCollectionDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. MongoDbLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. MongoDbSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. MongoDbV2CollectionDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. MongoDbV2LinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. MongoDbV2Source.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. MySQLLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. MySQLSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. MySQLTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. NetezzaLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. NetezzaSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. NetezzaTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ODataLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. ODataResourceDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ODataSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. OdbcLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. OdbcSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. OdbcTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. Office365Dataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. Office365LinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. Office365Source.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. OracleCloudStorageLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. OracleLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. OracleServiceCloudLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. OracleServiceCloudObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. OracleServiceCloudSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. OracleSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. OracleTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. OrcDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. OrcSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. ParquetDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ParquetSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. PaypalLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. PaypalObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. PaypalSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. PhoenixLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. PhoenixObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. PhoenixSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. PossibleAmazonRdsForOraclePartitionOptionValues() []AmazonRdsForOraclePartitionOption
+1. PostgreSQLLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. PostgreSQLSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. PostgreSQLTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. PrestoLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. PrestoObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. PrestoSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. QuickBooksLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. QuickBooksObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. QuickBooksSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. RelationalSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. RelationalTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ResponsysLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. ResponsysObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ResponsysSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. RestResourceDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. RestServiceLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. RestSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SQLDWSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SQLMISource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SQLServerLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SQLServerSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SQLServerStoredProcedureActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. SQLServerTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SQLSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SalesforceLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SalesforceMarketingCloudLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SalesforceMarketingCloudObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SalesforceMarketingCloudSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SalesforceObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SalesforceServiceCloudLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SalesforceServiceCloudObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SalesforceServiceCloudSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SalesforceSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SapBWLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SapBwCubeDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SapBwSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SapCloudForCustomerLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SapCloudForCustomerResourceDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SapCloudForCustomerSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SapEccLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SapEccResourceDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SapEccSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SapHanaLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SapHanaSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SapHanaTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SapOpenHubLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SapOpenHubSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SapOpenHubTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SapTableLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SapTableResourceDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SapTableSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. ServiceNowLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. ServiceNowObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ServiceNowSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SetVariableActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. SftpServerLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SharePointOnlineListLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SharePointOnlineListResourceDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SharePointOnlineListSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. ShopifyLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. ShopifyObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ShopifySource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SnowflakeDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SnowflakeLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SnowflakeSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SparkLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SparkObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SparkSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SquareLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SquareObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SquareSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SwitchActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. SybaseLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SybaseSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SybaseTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. TabularSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. TeradataLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. TeradataSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. TeradataTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. UntilActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. ValidationActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. VerticaLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. VerticaSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. VerticaTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. WaitActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. WebActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. WebHookActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. WebLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. WebSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. WebTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. WranglingDataFlow.AsBasicDataFlow() (BasicDataFlow, bool)
+1. WranglingDataFlow.AsDataFlow() (*DataFlow, bool)
+1. WranglingDataFlow.AsMappingDataFlow() (*MappingDataFlow, bool)
+1. WranglingDataFlow.AsWranglingDataFlow() (*WranglingDataFlow, bool)
+1. WranglingDataFlow.MarshalJSON() ([]byte, error)
+1. XMLDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. XMLSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. XeroLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. XeroObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. XeroSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. ZohoLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. ZohoObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ZohoSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+
+### Struct Changes
+
+#### New Structs
+
+1. AmazonRdsForLinkedServiceTypeProperties
+1. AmazonRdsForOracleLinkedService
+1. AmazonRdsForOraclePartitionSettings
+1. AmazonRdsForOracleSource
+1. AmazonRdsForOracleTableDataset
+1. AmazonRdsForOracleTableDatasetTypeProperties
+1. ExecutePowerQueryActivityTypeProperties
+1. ExecuteWranglingDataflowActivity
+1. PowerQuerySink
+1. PowerQuerySource
+1. PowerQueryTypeProperties
+1. WranglingDataFlow

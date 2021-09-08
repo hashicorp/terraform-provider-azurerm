@@ -13,7 +13,7 @@ Manages a Redis Cache.
 
 ## Example Usage
 
-This example provisions a Standard Redis Cache. Other examples of the `azurerm_redis_cache` resource can be found in [the `./examples/redis-cache` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/redis-cache)
+This example provisions a Standard Redis Cache. Other examples of the `azurerm_redis_cache` resource can be found in [the `./examples/redis-cache` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/redis-cache)
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -72,6 +72,12 @@ The following arguments are supported:
 * `replicas_per_master` - (Optional) Amount of replicas to create per master for this Redis Cache.
 
 ~> **Note:** Configuring the number of replicas per master is only available when using the Premium SKU and cannot be used in conjunction with shards.
+
+* `replicas_per_primary` - (Optional) Amount of replicas to create per primary for this Redis Cache. If both `replicas_per_primary` and `replicas_per_master` are set, they need to be equal.
+
+* `redis_version` - (Optional) Redis version. Only major version needed. Valid values: `4`, `6`.
+
+* `tenant_settings` - (Optional) A mapping of tenant settings to assign to the resource.
 
 * `shard_count` - (Optional) *Only available when using the Premium SKU* The number of Shards to create on the Redis Cluster.
 
@@ -148,7 +154,7 @@ redis_configuration {
 | maxmemory_delta                 | 2            | 50           | 200          |
 | maxmemory_policy                | volatile-lru | volatile-lru | volatile-lru |
 
-~> **NOTE:** The `maxmemory_reserved`, `maxmemory_delta` and `maxfragmentationmemory-reserved` settings are only available for Standard and Premium caches. More details are available in the Relevant Links section below._
+~> **NOTE:** The `maxmemory_reserved`, `maxmemory_delta` and `maxfragmentationmemory_reserved` settings are only available for Standard and Premium caches. More details are available in the Relevant Links section below.
 
 ---
 
@@ -159,6 +165,8 @@ A `patch_schedule` block supports the following:
 * `start_hour_utc` - (Optional) the Start Hour for maintenance in UTC - possible values range from `0 - 23`.
 
 ~> **Note:** The Patch Window lasts for `5` hours from the `start_hour_utc`.
+
+* `maintenance_window` - (Optional) The ISO 8601 timespan which specifies the amount of time the Redis Cache can be updated. Defaults to `PT5H`.
 
 ## Attributes Reference
 

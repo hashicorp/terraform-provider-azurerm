@@ -1815,6 +1815,12 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
 // Scope target scope for a given action rule. By default scope will be the subscription. User can also
 // provide list of resource groups or list of resources from the scope subscription as well.
 type Scope struct {

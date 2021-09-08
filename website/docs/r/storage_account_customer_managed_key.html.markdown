@@ -95,6 +95,8 @@ The following arguments are supported:
 
 * `key_version` - (Optional) The version of Key Vault Key. Remove or omit this argument to enable Automatic Key Rotation.
 
+* `user_assigned_identity_id` - (Optional) The ID of a user assigned identity.
+
 ## Attributes Reference
 
 The following attributes are exported in addition to the arguments listed above:

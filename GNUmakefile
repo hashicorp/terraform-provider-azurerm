@@ -17,14 +17,14 @@ tools:
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.32.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.41.1
 
 build: fmtcheck generate
 	go install
 
 build-docker:
 	mkdir -p bin
-	docker run --rm -v $$(pwd)/bin:/go/bin -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm -e GOOS golang:1.16 make build
+	docker run --rm -v $$(pwd)/bin:/go/bin -v $$(pwd):/go/src/github.com/hashicorp/terraform-provider-azurerm -w /go/src/github.com/hashicorp/terraform-provider-azurerm -e GOOS golang:1.16 make build
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
@@ -44,13 +44,13 @@ fmtcheck:
 
 terrafmt:
 	@echo "==> Fixing acceptance test terraform blocks code with terrafmt..."
-	@find azurerm | egrep "_test.go" | sort | while read f; do terrafmt fmt -f $$f; done
+	@find internal | egrep "_test.go" | sort | while read f; do terrafmt fmt -f $$f; done
 	@echo "==> Fixing website terraform blocks code with terrafmt..."
 	@find . | egrep html.markdown | sort | while read f; do terrafmt fmt $$f; done
 
 generate:
-	go generate ./azurerm/internal/services/...
-	go generate ./azurerm/internal/provider/
+	go generate ./internal/services/...
+	go generate ./internal/provider/
 
 goimports:
 	@echo "==> Fixing imports code with goimports..."
@@ -84,7 +84,7 @@ whitespace:
 	golangci-lint run ./... --no-config --disable-all --enable=whitespace --fix
 
 test-docker:
-	docker run --rm -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm golang:1.13 make test
+	docker run --rm -v $$(pwd):/go/src/github.com/hashicorp/terraform-provider-azurerm -w /go/src/github.com/hashicorp/terraform-provider-azurerm golang:1.13 make test
 
 test: fmtcheck
 	@TEST=$(TEST) ./scripts/run-gradually-deprecated.sh
@@ -99,15 +99,20 @@ test-compile:
 	go test -c $(TEST) $(TESTARGS)
 
 testacc: fmtcheck
-	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/terraform-providers/terraform-provider-azurerm/version.ProviderVersion=acc"
+	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 
 acctests: fmtcheck
-	TF_ACC=1 go test -v ./azurerm/internal/services/$(SERVICE) $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/terraform-providers/terraform-provider-azurerm/version.ProviderVersion=acc"
+	TF_ACC=1 go test -v ./internal/services/$(SERVICE) $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 
 debugacc: fmtcheck
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
 
 website-lint:
+	@echo "==> Checking documentation for .html.markdown extension present"
+	@if ! find website/docs -type f -not -name "*.html.markdown" -print -exec false {} +; then \
+		echo "ERROR: file extension should be .html.markdown"; \
+		exit 1; \
+	fi
 	@echo "==> Checking documentation spelling..."
 	@misspell -error -source=text -i hdinsight,exportfs website/
 	@echo "==> Checking documentation for errors..."

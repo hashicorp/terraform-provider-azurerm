@@ -10,6 +10,9 @@ jobs:
     steps:
       - uses: actions-ecosystem/action-remove-labels@v1
         with:
-          labels: |
-            stale
-            waiting-reply
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          labels: stale
+      - uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          labels: waiting-response

@@ -59,7 +59,11 @@ The following arguments are supported:
 
 * `api_id` - (Optional) The ID of the API which should be assigned to this Subscription. Changing this forces a new resource to be created.
 
--> **Info:** Only one of `product_id` and `api_id` can be set. If both are missing `all_apis` scope is used for the subscription.
+-> **Info:** Only one of `product_id` and `api_id` can be set. If both are missing `/apis` scope is used for the subscription and all apis are accessible.
+
+* `primary_key` - (Optional) The primary subscription key to use for the subscription.
+
+* `secondary_key` - (Optional) The secondary subscription key to use for the subscription.
 
 ---
 
