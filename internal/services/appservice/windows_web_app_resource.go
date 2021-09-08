@@ -103,7 +103,7 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"client_cert_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  "Required",
+			Default:  string(web.ClientCertModeRequired),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(web.ClientCertModeOptional),
 				string(web.ClientCertModeRequired),
@@ -293,6 +293,8 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for creation of Windows %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			if currentStack != nil && *currentStack != "" {
 				siteMetadata := web.StringDictionary{Properties: map[string]*string{}}
 				siteMetadata.Properties["CURRENT_STACK"] = currentStack
@@ -300,8 +302,6 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("setting Site Metadata for Current Stack on Windows %s: %+v", id, err)
 				}
 			}
-
-			metadata.SetID(id)
 
 			appSettings := helpers.ExpandAppSettings(webApp.AppSettings)
 			if appSettings != nil {

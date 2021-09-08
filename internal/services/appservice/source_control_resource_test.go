@@ -419,6 +419,8 @@ resource "azurerm_windows_web_app" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_app_service_plan.test.id
+
+  site_config {}
 }
 
 `, data.RandomInteger, data.Locations.Primary)

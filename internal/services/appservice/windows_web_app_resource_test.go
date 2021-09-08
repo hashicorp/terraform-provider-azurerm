@@ -1030,6 +1030,8 @@ resource "azurerm_windows_web_app" "test" {
       frequency_unit     = "Day"
     }
   }
+
+  site_config {}
 }
 `, r.templateWithStorageAccount(data), data.RandomInteger)
 }
@@ -1112,6 +1114,8 @@ resource "azurerm_windows_web_app" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test2.id
+
+  site_config {}
 }
 
 `, r.baseTemplate(data), data.RandomInteger)
@@ -1196,6 +1200,8 @@ resource "azurerm_windows_web_app" "test" {
       ]
     }
   }
+
+  site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger, data.Client().TenantID)
 }
@@ -1223,6 +1229,7 @@ resource "azurerm_windows_web_app" "test" {
     mount_path   = "\\files"
   }
 
+  site_config {}
 }
 `, r.templateWithStorageAccount(data), data.RandomInteger)
 }
@@ -1250,6 +1257,7 @@ resource "azurerm_windows_web_app" "test" {
     mount_path   = "\\otherfiles"
   }
 
+  site_config {}
 }
 `, r.templateWithStorageAccount(data), data.RandomInteger)
 }
@@ -1324,6 +1332,8 @@ resource "azurerm_windows_web_app" "test" {
       consumer_secret = "twitterconsumersecret"
     }
   }
+
+  site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger, data.Client().TenantID)
 }
@@ -1345,6 +1355,8 @@ resource "azurerm_windows_web_app" "test" {
   logs {
     detailed_error_messages = %t
   }
+
+  site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger, detailedErrorLogging)
 }
@@ -1384,6 +1396,8 @@ resource "azurerm_windows_web_app" "test" {
       }
     }
   }
+
+  site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }
@@ -1791,6 +1805,8 @@ resource "azurerm_windows_web_app" "import" {
   location            = azurerm_windows_web_app.test.location
   resource_group_name = azurerm_windows_web_app.test.resource_group_name
   service_plan_id     = azurerm_windows_web_app.test.service_plan_id
+
+  site_config {}
 }
 `, r.basic(data))
 }
@@ -2044,6 +2060,8 @@ resource "azurerm_windows_web_app" "test" {
       }
     }
   }
+
+  site_config {}
 }
 
 `, r.templateWithStorageAccount(data), data.RandomInteger)
@@ -2172,6 +2190,8 @@ resource "azurerm_windows_web_app" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
 }
 `, ServicePlanResource{}.aseV3(data), data.RandomInteger)
 }

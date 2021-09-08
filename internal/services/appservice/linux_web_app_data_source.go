@@ -261,22 +261,18 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			webApp.Tags = tags.ToTypedObject(existing.Tags)
 			if props := existing.SiteProperties; props != nil {
 
-				webApp.ClientAffinityEnabled = false
 				if props.ClientAffinityEnabled != nil {
 					webApp.ClientAffinityEnabled = *props.ClientAffinityEnabled
 				}
-				webApp.ClientCertEnabled = false
 				if props.ClientCertEnabled != nil {
 					webApp.ClientCertEnabled = *props.ClientCertEnabled
 				}
 				webApp.ClientCertMode = string(props.ClientCertMode)
 				webApp.CustomDomainVerificationId = utils.NormalizeNilableString(props.CustomDomainVerificationID)
 				webApp.DefaultHostname = utils.NormalizeNilableString(props.DefaultHostName)
-				webApp.Enabled = false
 				if props.Enabled != nil {
 					webApp.Enabled = *props.Enabled
 				}
-				webApp.HttpsOnly = false
 				if props.HTTPSOnly != nil {
 					webApp.HttpsOnly = *props.HTTPSOnly
 				}

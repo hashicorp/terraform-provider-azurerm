@@ -256,8 +256,12 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			webApp.Location = location.NormalizeNilable(existing.Location)
 			webApp.Tags = tags.ToTypedObject(existing.Tags)
 			if props := existing.SiteProperties; props != nil {
-				webApp.ClientAffinityEnabled = *props.ClientAffinityEnabled
-				webApp.ClientCertEnabled = *props.ClientCertEnabled
+				if props.ClientAffinityEnabled != nil {
+					webApp.ClientAffinityEnabled = *props.ClientAffinityEnabled
+				}
+				if props.ClientCertEnabled != nil {
+					webApp.ClientCertEnabled = *props.ClientCertEnabled
+				}
 				webApp.ClientCertMode = string(props.ClientCertMode)
 				webApp.CustomDomainVerificationId = utils.NormalizeNilableString(props.CustomDomainVerificationID)
 				webApp.DefaultHostname = utils.NormalizeNilableString(props.DefaultHostName)
