@@ -24,8 +24,10 @@ func resourceSiteRecoveryNetworkMapping() *pluginsdk.Resource {
 		Create: resourceSiteRecoveryNetworkMappingCreate,
 		Read:   resourceSiteRecoveryNetworkMappingRead,
 		Delete: resourceSiteRecoveryNetworkMappingDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ReplicationNetworkMappingID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
