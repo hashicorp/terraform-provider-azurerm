@@ -592,7 +592,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"private_cluster_public_fqdn_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
 				ForceNew: true,
 			},
 
