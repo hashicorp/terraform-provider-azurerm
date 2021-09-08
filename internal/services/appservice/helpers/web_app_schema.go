@@ -3233,8 +3233,7 @@ func FlattenBackupConfig(backupRequest web.BackupRequest) []Backup {
 		backup.Enabled = *props.Enabled
 	}
 
-	if props.BackupSchedule != nil {
-		schedule := *props.BackupSchedule
+	if schedule := props.BackupSchedule; schedule != nil {
 		backupSchedule := BackupSchedule{
 			FrequencyUnit: string(schedule.FrequencyUnit),
 		}
@@ -3450,7 +3449,9 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		siteConfig.Use32BitWorker = *appSiteConfig.Use32BitWorkerProcess
 	}
 
-	siteConfig.WebSockets = *appSiteConfig.WebSocketsEnabled
+	if appSiteConfig.WebSocketsEnabled != nil {
+		siteConfig.WebSockets = *appSiteConfig.WebSocketsEnabled
+	}
 
 	if appSiteConfig.HealthCheckPath != nil {
 		siteConfig.HealthCheckPath = *appSiteConfig.HealthCheckPath
@@ -3511,7 +3512,6 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 }
 
 func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
-	// TODO - Make this Linux flavoured...
 	if appSiteConfig == nil {
 		return nil
 	}
@@ -3540,7 +3540,9 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 		siteConfig.AppCommandLine = *appSiteConfig.AppCommandLine
 	}
 
-	siteConfig.UseManagedIdentityACR = *appSiteConfig.AcrUseManagedIdentityCreds
+	if appSiteConfig.AcrUseManagedIdentityCreds != nil {
+		siteConfig.UseManagedIdentityACR = *appSiteConfig.AcrUseManagedIdentityCreds
+	}
 
 	if appSiteConfig.AcrUseManagedIdentityCreds != nil && *appSiteConfig.AcrUseManagedIdentityCreds && appSiteConfig.AcrUserManagedIdentityID != nil {
 		siteConfig.ContainerRegistryMSI = *appSiteConfig.AcrUserManagedIdentityID
@@ -3550,25 +3552,35 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 		siteConfig.DefaultDocuments = *appSiteConfig.DefaultDocuments
 	}
 
-	siteConfig.DetailedErrorLogging = *appSiteConfig.DetailedErrorLoggingEnabled
+	if appSiteConfig.DetailedErrorLoggingEnabled != nil {
+		siteConfig.DetailedErrorLogging = *appSiteConfig.DetailedErrorLoggingEnabled
+	}
 
-	siteConfig.Http2Enabled = *appSiteConfig.HTTP20Enabled
+	if appSiteConfig.HTTP20Enabled != nil {
+		siteConfig.Http2Enabled = *appSiteConfig.HTTP20Enabled
+	}
 
 	if appSiteConfig.IPSecurityRestrictions != nil {
 		siteConfig.IpRestriction = FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions)
 	}
 
-	siteConfig.ScmUseMainIpRestriction = *appSiteConfig.ScmIPSecurityRestrictionsUseMain
+	if appSiteConfig.ScmIPSecurityRestrictionsUseMain != nil {
+		siteConfig.ScmUseMainIpRestriction = *appSiteConfig.ScmIPSecurityRestrictionsUseMain
+	}
 
 	if appSiteConfig.ScmIPSecurityRestrictions != nil {
 		siteConfig.ScmIpRestriction = FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions)
 	}
 
-	siteConfig.LocalMysql = *appSiteConfig.LocalMySQLEnabled
+	if appSiteConfig.LocalMySQLEnabled != nil {
+		siteConfig.LocalMysql = *appSiteConfig.LocalMySQLEnabled
+	}
 
 	siteConfig.LoadBalancing = string(appSiteConfig.LoadBalancing)
 
-	siteConfig.RemoteDebugging = *appSiteConfig.RemoteDebuggingEnabled
+	if appSiteConfig.RemoteDebuggingEnabled != nil {
+		siteConfig.RemoteDebugging = *appSiteConfig.RemoteDebuggingEnabled
+	}
 
 	if appSiteConfig.RemoteDebuggingVersion != nil {
 		// Note - This is sometimes returned in lower case, so we ToUpper it to avoid the need for a diff suppression
@@ -3579,7 +3591,9 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 		siteConfig.Use32BitWorker = *appSiteConfig.Use32BitWorkerProcess
 	}
 
-	siteConfig.WebSockets = *appSiteConfig.WebSocketsEnabled
+	if appSiteConfig.WebSocketsEnabled != nil {
+		siteConfig.WebSockets = *appSiteConfig.WebSocketsEnabled
+	}
 
 	if appSiteConfig.HealthCheckPath != nil {
 		siteConfig.HealthCheckPath = *appSiteConfig.HealthCheckPath
@@ -3618,7 +3632,10 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig) []SiteConfigLinux {
 		siteConfig.Cors = []CorsSetting{cors}
 	}
 
-	siteConfig.AutoHeal = *appSiteConfig.AutoHealEnabled
+	if appSiteConfig.AutoHealEnabled != nil {
+		siteConfig.AutoHeal = *appSiteConfig.AutoHealEnabled
+	}
+
 	siteConfig.AutoHealSettings = flattenAutoHealSettingsLinux(appSiteConfig.AutoHealRules)
 
 	return []SiteConfigLinux{siteConfig}
