@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -61,6 +62,13 @@ func resourceLogicAppIntegrationAccountAgreement() *pluginsdk.Resource {
 					string(logic.X12),
 					string(logic.Edifact),
 				}, false),
+			},
+
+			"content": {
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"guest_identity": {
@@ -149,6 +157,12 @@ func resourceLogicAppIntegrationAccountAgreementCreateUpdate(d *pluginsdk.Resour
 		}
 	}
 
+	agreementContent := logic.AgreementContent{}
+	content := d.Get("content").(string)
+	if err := json.Unmarshal([]byte(content), &agreementContent); err != nil {
+		return fmt.Errorf("parsing JSON: %+v", err)
+	}
+
 	parameters := logic.IntegrationAccountAgreement{
 		IntegrationAccountAgreementProperties: &logic.IntegrationAccountAgreementProperties{
 			AgreementType: logic.AgreementType(d.Get("agreement_type").(string)),
@@ -156,6 +170,7 @@ func resourceLogicAppIntegrationAccountAgreementCreateUpdate(d *pluginsdk.Resour
 			GuestPartner:  utils.String(d.Get("guest_partner").(string)),
 			HostIdentity:  expandIntegrationAccountAgreementBusinessIdentity(d.Get("host_identity").([]interface{})),
 			HostPartner:   utils.String(d.Get("host_partner").(string)),
+			Content:       &agreementContent,
 		},
 	}
 
@@ -198,6 +213,14 @@ func resourceLogicAppIntegrationAccountAgreementRead(d *pluginsdk.ResourceData, 
 
 	if props := resp.IntegrationAccountAgreementProperties; props != nil {
 		d.Set("agreement_type", props.AgreementType)
+
+		if props.Content != nil {
+			content, err := json.Marshal(props.Content)
+			if err != nil {
+				return err
+			}
+			d.Set("content", string(content))
+		}
 
 		if err := d.Set("guest_identity", flattenIntegrationAccountAgreementBusinessIdentity(props.GuestIdentity)); err != nil {
 			return fmt.Errorf("setting `guest_identity`: %+v", err)
