@@ -149,7 +149,7 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 					Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 				}
 
-				if _, err := stateConf.WaitForState(); err != nil {
+				if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 					return fmt.Errorf("waiting for Managed Storage Account %q (Key Vault %q) to become available after recovery: %s", name, *keyVaultId, err)
 				}
 				log.Printf("[DEBUG] Managed Storage Account %q recovered with ID: %q", name, *recoveredStorageAccount.ID)
@@ -261,7 +261,7 @@ func resourceKeyVaultManagedStorageAccountDelete(d *pluginsdk.ResourceData, meta
 
 	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("checking for existance of Key Vault %q for Managed Storage Account %q in Vault at url %q: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("checking for existence of Key Vault %q for Managed Storage Account %q in Vault at url %q: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
 		log.Printf("[DEBUG] Managed Storage Account %q (Key Vault %q) was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)

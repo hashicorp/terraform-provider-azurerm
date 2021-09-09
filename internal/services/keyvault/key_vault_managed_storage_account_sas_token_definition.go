@@ -154,7 +154,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 					Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 				}
 
-				if _, err := stateConf.WaitForState(); err != nil {
+				if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 					return fmt.Errorf("waiting for Key Vault Managed Storage Account Sas Definition %q to become available: %s", name, err)
 				}
 				log.Printf("[DEBUG] Managed Storage Account Sas Definition %q recovered with ID: %q", name, *recoveredStorageAccount.ID)
