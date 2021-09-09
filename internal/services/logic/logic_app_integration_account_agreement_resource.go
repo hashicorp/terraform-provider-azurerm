@@ -92,7 +92,7 @@ func resourceLogicAppIntegrationAccountAgreement() *pluginsdk.Resource {
 				},
 			},
 
-			"guest_partner": {
+			"guest_partner_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.IntegrationAccountPartnerName(),
@@ -119,7 +119,7 @@ func resourceLogicAppIntegrationAccountAgreement() *pluginsdk.Resource {
 				},
 			},
 
-			"host_partner": {
+			"host_partner_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.IntegrationAccountPartnerName(),
@@ -167,9 +167,9 @@ func resourceLogicAppIntegrationAccountAgreementCreateUpdate(d *pluginsdk.Resour
 		IntegrationAccountAgreementProperties: &logic.IntegrationAccountAgreementProperties{
 			AgreementType: logic.AgreementType(d.Get("agreement_type").(string)),
 			GuestIdentity: expandIntegrationAccountAgreementBusinessIdentity(d.Get("guest_identity").([]interface{})),
-			GuestPartner:  utils.String(d.Get("guest_partner").(string)),
+			GuestPartner:  utils.String(d.Get("guest_partner_name").(string)),
 			HostIdentity:  expandIntegrationAccountAgreementBusinessIdentity(d.Get("host_identity").([]interface{})),
-			HostPartner:   utils.String(d.Get("host_partner").(string)),
+			HostPartner:   utils.String(d.Get("host_partner_name").(string)),
 			Content:       &agreementContent,
 		},
 	}
@@ -213,6 +213,8 @@ func resourceLogicAppIntegrationAccountAgreementRead(d *pluginsdk.ResourceData, 
 
 	if props := resp.IntegrationAccountAgreementProperties; props != nil {
 		d.Set("agreement_type", props.AgreementType)
+		d.Set("guest_partner_name", props.GuestPartner)
+		d.Set("host_partner_name", props.HostPartner)
 
 		if props.Content != nil {
 			content, err := json.Marshal(props.Content)
@@ -226,12 +228,9 @@ func resourceLogicAppIntegrationAccountAgreementRead(d *pluginsdk.ResourceData, 
 			return fmt.Errorf("setting `guest_identity`: %+v", err)
 		}
 
-		d.Set("guest_partner", props.GuestPartner)
 		if err := d.Set("host_identity", flattenIntegrationAccountAgreementBusinessIdentity(props.HostIdentity)); err != nil {
 			return fmt.Errorf("setting `host_identity`: %+v", err)
 		}
-
-		d.Set("host_partner", props.HostPartner)
 
 		if props.Metadata != nil {
 			metadata := props.Metadata.(map[string]interface{})
