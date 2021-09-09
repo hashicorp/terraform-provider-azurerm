@@ -31,6 +31,188 @@ func NewOriginsClientWithBaseURI(baseURI string, subscriptionID string) OriginsC
 	return OriginsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// Create creates a new origin within the specified endpoint.
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// profileName - name of the CDN profile which is unique within the resource group.
+// endpointName - name of the endpoint under the profile which is unique globally.
+// originName - name of the origin that is unique within the endpoint.
+// origin - origin properties
+func (client OriginsClient) Create(ctx context.Context, resourceGroupName string, profileName string, endpointName string, originName string, origin Origin) (result OriginsCreateFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/OriginsClient.Create")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("cdn.OriginsClient", "Create", err.Error())
+	}
+
+	req, err := client.CreatePreparer(ctx, resourceGroupName, profileName, endpointName, originName, origin)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "cdn.OriginsClient", "Create", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.CreateSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "cdn.OriginsClient", "Create", nil, "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// CreatePreparer prepares the Create request.
+func (client OriginsClient) CreatePreparer(ctx context.Context, resourceGroupName string, profileName string, endpointName string, originName string, origin Origin) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"endpointName":      autorest.Encode("path", endpointName),
+		"originName":        autorest.Encode("path", originName),
+		"profileName":       autorest.Encode("path", profileName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-09-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPut(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/endpoints/{endpointName}/origins/{originName}", pathParameters),
+		autorest.WithJSON(origin),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// CreateSender sends the Create request. The method will close the
+// http.Response Body if it receives an error.
+func (client OriginsClient) CreateSender(req *http.Request) (future OriginsCreateFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// CreateResponder handles the response to the Create request. The method always
+// closes the http.Response Body.
+func (client OriginsClient) CreateResponder(resp *http.Response) (result Origin, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// Delete deletes an existing origin within an endpoint.
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// profileName - name of the CDN profile which is unique within the resource group.
+// endpointName - name of the endpoint under the profile which is unique globally.
+// originName - name of the origin which is unique within the endpoint.
+func (client OriginsClient) Delete(ctx context.Context, resourceGroupName string, profileName string, endpointName string, originName string) (result OriginsDeleteFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/OriginsClient.Delete")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("cdn.OriginsClient", "Delete", err.Error())
+	}
+
+	req, err := client.DeletePreparer(ctx, resourceGroupName, profileName, endpointName, originName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "cdn.OriginsClient", "Delete", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.DeleteSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "cdn.OriginsClient", "Delete", nil, "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// DeletePreparer prepares the Delete request.
+func (client OriginsClient) DeletePreparer(ctx context.Context, resourceGroupName string, profileName string, endpointName string, originName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"endpointName":      autorest.Encode("path", endpointName),
+		"originName":        autorest.Encode("path", originName),
+		"profileName":       autorest.Encode("path", profileName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-09-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsDelete(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/endpoints/{endpointName}/origins/{originName}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DeleteSender sends the Delete request. The method will close the
+// http.Response Body if it receives an error.
+func (client OriginsClient) DeleteSender(req *http.Request) (future OriginsDeleteFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// DeleteResponder handles the response to the Delete request. The method always
+// closes the http.Response Body.
+func (client OriginsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // Get gets an existing origin within an endpoint.
 // Parameters:
 // resourceGroupName - name of the Resource group within the Azure subscription.
@@ -88,7 +270,7 @@ func (client OriginsClient) GetPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-15"
+	const APIVersion = "2020-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -179,7 +361,7 @@ func (client OriginsClient) ListByEndpointPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-15"
+	const APIVersion = "2020-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -298,7 +480,7 @@ func (client OriginsClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-15"
+	const APIVersion = "2020-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
