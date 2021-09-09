@@ -205,7 +205,7 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 						"instrumentation_key": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Deprecated:   "Deprecated in favour of `connection_string`",
+							Deprecated:   "Deprecated in favour of `connection_string` which is the connection string for Application Insights",
 							ExactlyOneOf: []string{"trace.0.instrumentation_key", "trace.0.connection_string"},
 							ValidateFunc: validation.IsUUID,
 						},
