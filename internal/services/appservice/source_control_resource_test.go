@@ -325,6 +325,7 @@ resource azurerm_source_control_token test {
 resource "azurerm_app_service_source_control" "test" {
   app_id   = azurerm_windows_web_app.test.id
   repo_url = "https://github.com/jackofallops/azure-app-service-static-site-tests.git"
+  branch   = "main"
 
   depends_on = [
     azurerm_source_control_token.test,

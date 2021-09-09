@@ -199,11 +199,11 @@ func TestAccWindowsWebApp_withLoggingUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withDetailedLogging(data, false),
+			Config: r.withDetailedLogging(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("false"),
-				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("false"),
+				check.That(data.ResourceName).Key("site_config.0.detailed_error_logging").HasValue("true"),
+				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("true"),
 			),
 		},
 		data.ImportStep(), {
@@ -1226,7 +1226,7 @@ resource "azurerm_windows_web_app" "test" {
     account_name = azurerm_storage_account.test.name
     share_name   = azurerm_storage_share.test.name
     access_key   = azurerm_storage_account.test.primary_access_key
-    mount_path   = "\\files"
+    mount_path   = "\\mounts\\files"
   }
 
   site_config {}
