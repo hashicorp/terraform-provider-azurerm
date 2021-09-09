@@ -4158,6 +4158,18 @@ func flattenApplicationGatewayCustomErrorConfigurations(input *[]network.Applica
 	return results
 }
 
+func checkSslPolicy(sslPolicy []interface{}) error {
+	if len(sslPolicy) > 0 && sslPolicy[0] != nil {
+		v := sslPolicy[0].(map[string]interface{})
+		disabledProtocols := v["disabled_protocols"].([]interface{})
+		policyType := v["policy_type"].(string)
+		if len(disabledProtocols) > 0 && policyType != "" {
+			return fmt.Errorf("setting disabled_protocols is not allowed when policy_type is defined")
+		}
+	}
+	return nil
+}
+
 func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
 	capacity, hasCapacity := d.GetOk("sku.0.capacity")
@@ -4168,12 +4180,22 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 	}
 
 	sslPolicy := d.Get("ssl_policy").([]interface{})
-	if len(sslPolicy) > 0 && sslPolicy[0] != nil {
-		v := sslPolicy[0].(map[string]interface{})
-		disabledProtocols := v["disabled_protocols"].([]interface{})
-		policyType := v["policy_type"].(string)
-		if len(disabledProtocols) > 0 && policyType != "" {
-			return fmt.Errorf("setting disabled_protocols is not allowed when policy_type is defined")
+	if err := checkSslPolicy(sslPolicy); err != nil {
+		return err
+	}
+
+	sslProfiles := d.Get("ssl_profile").([]interface{})
+	if len(sslProfiles) > 0 {
+		for _, profile := range sslProfiles {
+			if profile == nil {
+				continue
+			}
+			v := profile.(map[string]interface{})
+			if policy, ok := v["ssl_policy"]; ok && policy != nil {
+				if err := checkSslPolicy(policy.([]interface{})); err != nil {
+					return err
+				}
+			}
 		}
 	}
 
