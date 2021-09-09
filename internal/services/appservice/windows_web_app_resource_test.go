@@ -1254,7 +1254,7 @@ resource "azurerm_windows_web_app" "test" {
     account_name = azurerm_storage_account.test.name
     share_name   = azurerm_storage_share.test.name
     access_key   = azurerm_storage_account.test.primary_access_key
-    mount_path   = "\\otherfiles"
+    mount_path   = "\\mounts\\otherfiles"
   }
 
   site_config {}
