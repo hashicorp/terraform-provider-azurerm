@@ -6054,7 +6054,7 @@ locals {
   http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
-  ssl_profile_name      		 = "${azurerm_virtual_network.test.name}-sslprof"
+  ssl_profile_name               = "${azurerm_virtual_network.test.name}-sslprof"
   ssl_certificate_name           = "${azurerm_virtual_network.test.name}-ssl1"
 }
 
@@ -6124,9 +6124,9 @@ resource "azurerm_application_gateway" "test" {
   ssl_profile {
     name = local.ssl_profile_name
     ssl_policy {
-		policy_type = "Predefined"
-		policy_name	= "AppGwSslPolicy20150501"
-	}
+      policy_type = "Predefined"
+      policy_name = "AppGwSslPolicy20150501"
+    }
   }
 
   ssl_certificate {
@@ -6150,7 +6150,7 @@ locals {
   http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
-  ssl_profile_name      		 = "${azurerm_virtual_network.test.name}-sslprof"
+  ssl_profile_name               = "${azurerm_virtual_network.test.name}-sslprof"
   ssl_certificate_name           = "${azurerm_virtual_network.test.name}-ssl1"
 }
 
@@ -6221,9 +6221,9 @@ resource "azurerm_application_gateway" "test" {
     name                         = local.ssl_profile_name
     verify_client_cert_issuer_dn = true
     ssl_policy {
-		policy_type = "Predefined"
-		policy_name	= "AppGwSslPolicy20170401"
-	}
+      policy_type = "Predefined"
+      policy_name = "AppGwSslPolicy20170401"
+    }
   }
 
   ssl_certificate {
@@ -6247,7 +6247,7 @@ locals {
   http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
-  ssl_profile_name      		 = "${azurerm_virtual_network.test.name}-sslprof"
+  ssl_profile_name               = "${azurerm_virtual_network.test.name}-sslprof"
   trusted_client_cert_name       = "${azurerm_virtual_network.test.name}-tcc"
   ssl_certificate_name           = "${azurerm_virtual_network.test.name}-ssl1"
 }
@@ -6319,14 +6319,14 @@ resource "azurerm_application_gateway" "test" {
     name                             = local.ssl_profile_name
     trusted_client_certificate_names = [local.trusted_client_cert_name]
     ssl_policy {
-		policy_type          = "Custom"
-    	min_protocol_version = "TLSv1_1"
-    	cipher_suites        = ["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_RSA_WITH_AES_128_GCM_SHA256"]
-	}
+      policy_type          = "Custom"
+      min_protocol_version = "TLSv1_1"
+      cipher_suites        = ["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_RSA_WITH_AES_128_GCM_SHA256"]
+    }
   }
 
   trusted_client_certificate {
-	name = local.trusted_client_cert_name
+    name = local.trusted_client_cert_name
     data = filebase64("testdata/application_gateway_mtls_test.cer")
   }
 
@@ -6351,7 +6351,7 @@ locals {
   http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
-  ssl_profile_name      		 = "${azurerm_virtual_network.test.name}-sslprof"
+  ssl_profile_name               = "${azurerm_virtual_network.test.name}-sslprof"
   trusted_client_cert_name       = "${azurerm_virtual_network.test.name}-tcc"
   ssl_certificate_name           = "${azurerm_virtual_network.test.name}-ssl1"
 }
@@ -6422,14 +6422,14 @@ resource "azurerm_application_gateway" "test" {
   ssl_profile {
     name                             = local.ssl_profile_name
     trusted_client_certificate_names = [local.trusted_client_cert_name]
-	verify_client_cert_issuer_dn     = true
+    verify_client_cert_issuer_dn     = true
     ssl_policy {
-		disabled_protocols = ["TLSv1_0", "TLSv1_1"]
-	}
+      disabled_protocols = ["TLSv1_0", "TLSv1_1"]
+    }
   }
 
   trusted_client_certificate {
-	name = local.trusted_client_cert_name
+    name = local.trusted_client_cert_name
     data = filebase64("testdata/application_gateway_mtls_test_2.cer")
   }
 
@@ -6454,7 +6454,7 @@ locals {
   http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
-  ssl_profile_name      		 = "${azurerm_virtual_network.test.name}-sslprof"
+  ssl_profile_name               = "${azurerm_virtual_network.test.name}-sslprof"
   trusted_client_cert_name       = "${azurerm_virtual_network.test.name}-tcc"
   ssl_certificate_name           = "${azurerm_virtual_network.test.name}-ssl1"
 }
@@ -6528,7 +6528,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   trusted_client_certificate {
-	name = local.trusted_client_cert_name
+    name = local.trusted_client_cert_name
     data = filebase64("testdata/application_gateway_mtls_test_2.cer")
   }
 
