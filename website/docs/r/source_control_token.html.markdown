@@ -1,22 +1,24 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_app_service_github_token"
+page_title: "Azure Resource Manager: azurerm_source_control_token"
 description: |-
   Manages an App Service GitHub Token.
 ---
 
-# azurerm_app_service_github_token
+# azurerm_source_control_token
 
-Manages an App Service GitHub Token.
+Manages an App Service Source Control Token.
 
 ~> **NOTE:** This resource can only manage the token for the user currently running Terraform. Managing tokens for another user is not supported by the service. 
 
+~> **NOTE:** This is a 3.0 Beta resource, please see the [3.0 Beta guide](https://github.com/hashicorp/terraform-provider-azurerm/blob/f/main/website/docs/guides/3.0-beta.html.markdown) for more information on enabling and using this resource.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_app_service_github_token" "example" {
+resource "azurerm_source_control_token" "example" {
+  type  = "GitHub"
   token = "ghp_sometokenvaluesecretsauce"
 }
 ```
@@ -25,7 +27,9 @@ resource "azurerm_app_service_github_token" "example" {
 
 The following arguments are supported:
 
-* `token` - The GitHub generated Access Token.
+* `type` - (Required) The Token type. Possible values include `Bitbucket`, `Dropbox`, `Github`, and `OneDrive`.
+
+* `token` - (Required) The Access Token.
 
 ~> **NOTE:** The token used for deploying App Service needs the following permissions: `repo` and `workflow`.
 

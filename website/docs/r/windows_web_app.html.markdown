@@ -10,7 +10,7 @@ description: |-
 
 Manages a Windows Web App.
 
-!> **NOTE:** This is a 3.0 beta resource intended to provide an improved experience for Web Apps by splitting the older `azurerm_app_service` into O/S Specific variants, allowing better property validation and simpler configuration.
+!> **NOTE:** This is a 3.0 beta resource intended to provide an improved experience for Web Apps by splitting the older `azurerm_app_service` into O/S Specific variants, allowing better property validation and simpler configuration. Please see the [3.0 Beta guide](https://github.com/hashicorp/terraform-provider-azurerm/blob/f/main/website/docs/guides/3.0-beta.html.markdown) for more information on enabling and using this resource.
 
 ## Example Usage
 

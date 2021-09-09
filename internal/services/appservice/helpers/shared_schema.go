@@ -1466,8 +1466,8 @@ func FlattenIdentity(appIdentity *web.ManagedServiceIdentity) []Identity {
 	if len(appIdentity.UserAssignedIdentities) != 0 {
 		var identityIds []string
 		for k := range appIdentity.UserAssignedIdentities {
-			// Service can return broken case IDs, so we normalise here and discard invalid entries
-			id, err := msiParse.UserAssignedIdentityID(k)
+			// Service can return broken case IDs
+			id, err := msiParse.UserAssignedIdentityIDInsensitively(k)
 			if err == nil {
 				identityIds = append(identityIds, id.ID())
 			}

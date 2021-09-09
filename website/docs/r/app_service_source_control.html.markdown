@@ -10,6 +10,8 @@ description: |-
 
 Manages an App Service Web App or Function App Source Control Configuration.
 
+~> **NOTE:** This is a 3.0 Beta resource, please see the [3.0 Beta guide](https://github.com/hashicorp/terraform-provider-azurerm/blob/f/main/website/docs/guides/3.0-beta.html.markdown) for more information on enabling and using this resource.
+
 ## Example Usage
 
 ```hcl
@@ -35,6 +37,8 @@ resource "azurerm_linux_web_app" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_service_plan.example.location
   service_plan_id     = azurerm_service_plan.example.id
+
+  site_config {}
 }
 
 resource "azurerm_app_service_source_control" "example" {
