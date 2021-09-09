@@ -91,6 +91,12 @@ The following arguments are supported:
 
 * `advanced_filter` - (Optional) A `advanced_filter` block as defined below.
 
+* `delivery_identity` - (Optional) A `delivery_identity` block as defined below.
+
+* `dead_letter_identity` - (Optional) A `dead_letter_identity` block as defined below.
+
+-> **Note:** `storage_blob_dead_letter_destination` must be specified when a `dead_letter_identity` is specified
+
 * `storage_blob_dead_letter_destination` - (Optional) A `storage_blob_dead_letter_destination` block as defined below.
 
 * `retry_policy` - (Optional) A `retry_policy` block as defined below.
@@ -178,6 +184,18 @@ Each nested block consists of a key and a value(s) element.
 * `values` - (Required) Specifies an array of values to compare to when using a multiple values operator.
 
 ~> **NOTE:** A maximum of total number of advanced filter values allowed on event subscription is 25.
+
+---
+
+A `delivery_identity` supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that is used for event delivery. Allowed value is `SystemAssigned`.
+
+---
+
+A `dead_letter_identity` supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that is used for dead lettering. Allowed value is `SystemAssigned`.
 
 ---
 

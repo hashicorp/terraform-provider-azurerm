@@ -42,7 +42,7 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
+				ValidateFunc: validation.Any(validate.ApiManagementChildName, validation.StringIsEmpty),
 			},
 
 			// 3.0 this seems to have been renamed to owner id?

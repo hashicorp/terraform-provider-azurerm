@@ -178,45 +178,19 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						"aad_tenant": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ConflictsWith: []string{
-								"vpn_client_configuration.0.radius_server_address",
-								"vpn_client_configuration.0.radius_server_secret",
-								"vpn_client_configuration.0.root_certificate",
-								"vpn_client_configuration.0.revoked_certificate",
-							},
 						},
 						"aad_audience": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ConflictsWith: []string{
-								"vpn_client_configuration.0.radius_server_address",
-								"vpn_client_configuration.0.radius_server_secret",
-								"vpn_client_configuration.0.root_certificate",
-								"vpn_client_configuration.0.revoked_certificate",
-							},
 						},
 						"aad_issuer": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ConflictsWith: []string{
-								"vpn_client_configuration.0.radius_server_address",
-								"vpn_client_configuration.0.radius_server_secret",
-								"vpn_client_configuration.0.root_certificate",
-								"vpn_client_configuration.0.revoked_certificate",
-							},
 						},
 
 						"root_certificate": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-
-							ConflictsWith: []string{
-								"vpn_client_configuration.0.aad_tenant",
-								"vpn_client_configuration.0.aad_audience",
-								"vpn_client_configuration.0.aad_issuer",
-								"vpn_client_configuration.0.radius_server_address",
-								"vpn_client_configuration.0.radius_server_secret",
-							},
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
@@ -235,13 +209,6 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						"revoked_certificate": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							ConflictsWith: []string{
-								"vpn_client_configuration.0.aad_tenant",
-								"vpn_client_configuration.0.aad_audience",
-								"vpn_client_configuration.0.aad_issuer",
-								"vpn_client_configuration.0.radius_server_address",
-								"vpn_client_configuration.0.radius_server_secret",
-							},
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
@@ -258,27 +225,28 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						},
 
 						"radius_server_address": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ConflictsWith: []string{
-								"vpn_client_configuration.0.aad_tenant",
-								"vpn_client_configuration.0.aad_audience",
-								"vpn_client_configuration.0.aad_issuer",
-								"vpn_client_configuration.0.root_certificate",
-								"vpn_client_configuration.0.revoked_certificate",
-							},
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
 							ValidateFunc: validation.IsIPv4Address,
 						},
 
 						"radius_server_secret": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ConflictsWith: []string{
-								"vpn_client_configuration.0.aad_tenant",
-								"vpn_client_configuration.0.aad_audience",
-								"vpn_client_configuration.0.aad_issuer",
-								"vpn_client_configuration.0.root_certificate",
-								"vpn_client_configuration.0.revoked_certificate",
+						},
+
+						"vpn_auth_types": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Computed: true,
+							MaxItems: 3,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(network.VpnAuthenticationTypeCertificate),
+									string(network.VpnAuthenticationTypeAAD),
+									string(network.VpnAuthenticationTypeRadius),
+								}, false),
 							},
 						},
 
@@ -788,6 +756,12 @@ func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData) *netw
 	confRadiusServerAddress := conf["radius_server_address"].(string)
 	confRadiusServerSecret := conf["radius_server_secret"].(string)
 
+	var vpnAuthTypes []network.VpnAuthenticationType
+	for _, vpnAuthType := range conf["vpn_auth_types"].(*pluginsdk.Set).List() {
+		a := network.VpnAuthenticationType(vpnAuthType.(string))
+		vpnAuthTypes = append(vpnAuthTypes, a)
+	}
+
 	return &network.VpnClientConfiguration{
 		VpnClientAddressPool: &network.AddressSpace{
 			AddressPrefixes: &addresses,
@@ -800,6 +774,7 @@ func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData) *netw
 		VpnClientProtocols:           &vpnClientProtocols,
 		RadiusServerAddress:          &confRadiusServerAddress,
 		RadiusServerSecret:           &confRadiusServerSecret,
+		VpnAuthenticationTypes:       &vpnAuthTypes,
 	}
 }
 
@@ -966,6 +941,14 @@ func flattenVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfigura
 	}
 	flat["vpn_client_protocols"] = vpnClientProtocols
 
+	vpnAuthTypes := &pluginsdk.Set{F: pluginsdk.HashString}
+	if authTypes := cfg.VpnAuthenticationTypes; authTypes != nil {
+		for _, authType := range *authTypes {
+			vpnAuthTypes.Add(string(authType))
+		}
+	}
+	flat["vpn_auth_types"] = vpnAuthTypes
+
 	if v := cfg.RadiusServerAddress; v != nil {
 		flat["radius_server_address"] = *v
 	}
@@ -1066,6 +1049,21 @@ func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, diff *plugi
 			}
 			if !hasRadiusAddress && hasRadiusSecret {
 				return fmt.Errorf("if radius_server_secret is set radius_server_address must also be set")
+			}
+
+			hasRootCert := len(vpnClientConfig["root_certificate"].(*pluginsdk.Set).List()) > 0
+
+			vpnAuthTypes := utils.ExpandStringSlice(vpnClientConfig["vpn_auth_types"].(*pluginsdk.Set).List())
+			for _, authType := range *vpnAuthTypes {
+				if authType == "Certificate" && !hasRootCert {
+					return fmt.Errorf("if Certificate is listed in vpn_auth_types then root_certificate must also be set")
+				}
+				if authType == "Radius" && (!hasRadiusAddress || !hasRadiusSecret) {
+					return fmt.Errorf("if Radius is listed in vpn_auth_types then radius_server_address and radius_server_secret must also be set")
+				}
+				if authType == "AAD" && (!hasAadTenant || !hasAadIssuer || !hasAadAudience) {
+					return fmt.Errorf("if AAD is listed in vpn_auth_types then aad_issuer, aad_tenant and aad_audience must also be set")
+				}
 			}
 		}
 	}

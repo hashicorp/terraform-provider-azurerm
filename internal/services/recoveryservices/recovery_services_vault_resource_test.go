@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -111,17 +111,14 @@ func TestAccRecoveryServicesVault_basicWithIdentity(t *testing.T) {
 }
 
 func (t RecoveryServicesVaultResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.VaultID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	name := id.Path["vaults"]
-	resourceGroup := id.ResourceGroup
-
-	resp, err := clients.RecoveryServices.VaultsClient.Get(ctx, resourceGroup, name)
+	resp, err := clients.RecoveryServices.VaultsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Recovery Service Vault (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading Recovery Service (%s): %+v", id.String(), err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

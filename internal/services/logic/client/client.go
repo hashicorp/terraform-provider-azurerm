@@ -7,6 +7,7 @@ import (
 
 type Client struct {
 	IntegrationAccountClient                   *logic.IntegrationAccountsClient
+	IntegrationAccountAssemblyClient           *logic.IntegrationAccountAssembliesClient
 	IntegrationAccountBatchConfigurationClient *logic.IntegrationAccountBatchConfigurationsClient
 	IntegrationAccountCertificateClient        *logic.IntegrationAccountCertificatesClient
 	IntegrationAccountMapClient                *logic.IntegrationAccountMapsClient
@@ -21,6 +22,9 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	integrationAccountClient := logic.NewIntegrationAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&integrationAccountClient.Client, o.ResourceManagerAuthorizer)
+
+	integrationAccountAssemblyClient := logic.NewIntegrationAccountAssembliesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&integrationAccountAssemblyClient.Client, o.ResourceManagerAuthorizer)
 
 	integrationAccountBatchConfigurationClient := logic.NewIntegrationAccountBatchConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&integrationAccountBatchConfigurationClient.Client, o.ResourceManagerAuthorizer)
@@ -51,6 +55,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		IntegrationAccountClient:                   &integrationAccountClient,
+		IntegrationAccountAssemblyClient:           &integrationAccountAssemblyClient,
 		IntegrationAccountBatchConfigurationClient: &integrationAccountBatchConfigurationClient,
 		IntegrationAccountCertificateClient:        &integrationAccountCertificateClient,
 		IntegrationAccountMapClient:                &integrationAccountMapClient,

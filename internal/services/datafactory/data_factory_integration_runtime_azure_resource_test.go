@@ -97,6 +97,35 @@ func TestAccDataFactoryIntegrationRuntimeAzure_virtualNetwork(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryIntegrationRuntimeAzure_cleanup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure", "test")
+	r := IntegrationRuntimeAzureResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cleanup(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cleanup(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cleanup(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (IntegrationRuntimeAzureResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -202,6 +231,33 @@ resource "azurerm_data_factory_integration_runtime_azure" "test" {
   time_to_live_min    = 10
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (IntegrationRuntimeAzureResource) cleanup(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdfirm%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_data_factory_integration_runtime_azure" "test" {
+  name                = "azure-integration-runtime"
+  data_factory_name   = azurerm_data_factory.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cleanup_enabled     = %t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
 }
 
 func (IntegrationRuntimeAzureResource) virtualNetwork(data acceptance.TestData) string {

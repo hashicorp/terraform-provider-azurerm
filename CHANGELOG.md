@@ -1,4 +1,30 @@
-## 2.75.0 (Unreleased)
+## 2.76.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_eventgrid_domain` [GH-13033]
+* **New Resource:** `azurerm_data_protection_backup_instance_blob_storage` [GH-12683]
+* **New Resource:** `azurerm_logic_app_integration_account_assembly` [GH-13239]
+
+ENHANCEMENTS:
+
+* upgrading `cosmos` to API Version `2021-06-15` [GH-13188]
+* `azurerm_app_service_certificate` - support argument `app_service_plan_id` for usage with ASE [GH-13101]
+* `azurerm_data_factory_integration_runtime_azure` -  support for the `cleanup_enabled` and `subnet_id` properties [GH-13222]
+* `azurerm_data_factory_trigger_schedule` - support for the `schedule` and `description` properties [GH-13243]
+* `azurerm_firewall_policy_rule_collection_group` - support for the `description`, `destination_addresses`, `destination_urls`, `terminate_tls`, and `web_categories` properties [GH-13190]
+* `azurerm_eventgrid_event_subscription` - support for the `delivery_identity` and `dead_letter_identity` blocks [GH-12945]
+* `azurerm_eventgrid_system_topic_event_subscription` - support for the `delivery_identity` and `dead_letter_identity` blocks [GH-12945]
+* `azurerm_eventgrid_domain` support for the `identity` block [GH-12951]
+* `azurerm_eventgrid_topic` support for the `identity` block [GH-12951]
+* `azurerm_eventgrid_system_topic` support for the `identity` block [GH-12951]
+* `azurerm_cosmosdb_account` support for the `local_authentication_disabled` property [GH-13237]
+
+BUG FIXES:
+
+* Data Source: `azurerm_kubernetes_cluster` - correctly read resource when `local_account_disabled` is `true` [GH-13260]
+* `azurerm_api_management_subscription` - relax `subscription_id` validation [GH-13203]
+* `azurerm_app_configuration_key` - fix KV import with no label [GH-13253]
 
 ## 2.75.0 (September 02, 2021)
 
@@ -61,7 +87,7 @@ ENHANCEMENTS:
 * `azurerm_servicebus_topic_authorization_rule` - support for the `primary_connection_string_alias` and `secondary_connection_string_alias` properties ([#12997](https://github.com/hashicorp/terraform-provider-azurerm/issues/12997))
 * `azurerm_dev_test_global_vm_shutdown_schedule` - support for the `mail` property ([#13074](https://github.com/hashicorp/terraform-provider-azurerm/issues/13074))
 
-BUG FIXES
+BUG FIXES:
 
 * `azurerm_data_factory_dataset_delimited_text` - support empty values for the `column_delimiter`, `row_delimiter`, `quote_character`, `escape_character`, and `encoding` propeties ([#13149](https://github.com/hashicorp/terraform-provider-azurerm/issues/13149))
 * `azurerm_cosmosdb_cassandra_table` - correctly update `throughput` ([#13102](https://github.com/hashicorp/terraform-provider-azurerm/issues/13102))
