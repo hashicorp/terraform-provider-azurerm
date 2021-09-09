@@ -181,40 +181,6 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedBasic(t *testing.T) {
 	})
 }
 
-func TestAccCdnEndpointCustomDomain_httpsUserManagedUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
-
-	preCheckUserManagedCertificate(t)
-
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME")).
-		WithCertificate(os.Getenv("ARM_TEST_DNS_CERTIFICATE")).
-		WithSubDomain(os.Getenv("ARM_TEST_DNS_SUBDOMAIN_NAME"))
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.httpsUserManaged(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r CdnEndpointCustomDomainResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CustomDomainID(state.ID)
 	if err != nil {
@@ -391,7 +357,7 @@ resource "azurerm_cdn_profile" "test" {
   name                = "acceptancecdnprof%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
