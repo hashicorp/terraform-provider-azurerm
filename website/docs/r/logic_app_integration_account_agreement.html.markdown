@@ -52,8 +52,8 @@ resource "azurerm_logic_app_integration_account_agreement" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   integration_account_name = azurerm_logic_app_integration_account.test.name
   agreement_type           = "AS2"
-  host_partner             = azurerm_logic_app_integration_account_partner.host.name
-  guest_partner            = azurerm_logic_app_integration_account_partner.guest.name
+  host_partner_name        = azurerm_logic_app_integration_account_partner.host.name
+  guest_partner_name       = azurerm_logic_app_integration_account_partner.guest.name
   content                  = file("testdata/integration_account_agreement_content_as2.json")
 
   host_identity {
@@ -84,11 +84,11 @@ The following arguments are supported:
 
 * `guest_identity` - (Required) A `guest_identity` block as documented below.
 
-* `guest_partner` - (Required) The name of the guest Logic App Integration Account Partner.
+* `guest_partner_name` - (Required) The name of the guest Logic App Integration Account Partner.
 
 * `host_identity` - (Required) A `host_identity` block as documented below.
 
-* `host_partner` - (Required) The name of the host Logic App Integration Account Partner.
+* `host_partner_name` - (Required) The name of the host Logic App Integration Account Partner.
 
 * `metadata` - (Optional) The metadata of the Logic App Integration Account Agreement.
 

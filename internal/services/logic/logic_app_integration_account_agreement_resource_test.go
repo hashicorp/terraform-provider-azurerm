@@ -148,8 +148,8 @@ resource "azurerm_logic_app_integration_account_agreement" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   integration_account_name = azurerm_logic_app_integration_account.test.name
   agreement_type           = "AS2"
-  host_partner             = azurerm_logic_app_integration_account_partner.host.name
-  guest_partner            = azurerm_logic_app_integration_account_partner.guest.name
+  host_partner_name        = azurerm_logic_app_integration_account_partner.host.name
+  guest_partner_name       = azurerm_logic_app_integration_account_partner.guest.name
   content                  = file("testdata/integration_account_agreement_content_as2.json")
 
   host_identity {
@@ -174,8 +174,8 @@ resource "azurerm_logic_app_integration_account_agreement" "import" {
   resource_group_name      = azurerm_logic_app_integration_account_agreement.test.resource_group_name
   integration_account_name = azurerm_logic_app_integration_account_agreement.test.integration_account_name
   agreement_type           = azurerm_logic_app_integration_account_agreement.test.agreement_type
-  host_partner             = azurerm_logic_app_integration_account_agreement.test.host_partner
-  guest_partner            = azurerm_logic_app_integration_account_agreement.test.guest_partner
+  host_partner_name        = azurerm_logic_app_integration_account_agreement.test.host_partner_name
+  guest_partner_name       = azurerm_logic_app_integration_account_agreement.test.guest_partner_name
   content                  = azurerm_logic_app_integration_account_agreement.test.content
 
   host_identity {
@@ -222,8 +222,8 @@ resource "azurerm_logic_app_integration_account_agreement" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   integration_account_name = azurerm_logic_app_integration_account.test.name
   agreement_type           = "AS2"
-  host_partner             = azurerm_logic_app_integration_account_partner.host.name
-  guest_partner            = azurerm_logic_app_integration_account_partner.guest.name
+  host_partner_name        = azurerm_logic_app_integration_account_partner.host.name
+  guest_partner_name       = azurerm_logic_app_integration_account_partner.guest.name
   content                  = file("testdata/integration_account_agreement_content_as2.json")
 
   host_identity {
@@ -274,8 +274,8 @@ resource "azurerm_logic_app_integration_account_agreement" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   integration_account_name = azurerm_logic_app_integration_account.test.name
   agreement_type           = "X12"
-  host_partner             = azurerm_logic_app_integration_account_partner.host.name
-  guest_partner            = azurerm_logic_app_integration_account_partner.guest.name
+  host_partner_name        = azurerm_logic_app_integration_account_partner.host.name
+  guest_partner_name       = azurerm_logic_app_integration_account_partner.guest.name
   content                  = file("testdata/integration_account_agreement_content_x12.json")
 
   host_identity {
