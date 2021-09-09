@@ -103,7 +103,7 @@ func TestAccLinuxWebApp_backupUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.withBackupRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1391,6 +1391,25 @@ resource "azurerm_linux_web_app" "test" {
       frequency_unit     = "Day"
     }
   }
+}
+`, r.templateWithStorageAccount(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) withBackupRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
 }
 `, r.templateWithStorageAccount(data), data.RandomInteger)
 }
