@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `azurerm_eventgrid_topic` support for the `identity` block [GH-12951]
 * `azurerm_eventgrid_system_topic` support for the `identity` block [GH-12951]
 * `azurerm_cosmosdb_account` support for the `local_authentication_disabled` property [GH-13237]
+* `azurerm_site_recovery_network_mapping`- refactoring to use an ID Formatter/Parser [GH-13277]
 
 BUG FIXES:
 
