@@ -1563,7 +1563,6 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 				"private_memory_kb": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Default:      0,
 					ValidateFunc: validation.IntBetween(102400, 13631488),
 				},
 
@@ -3768,7 +3767,7 @@ func onlyDefaultVirtualApplication(input []web.VirtualApplication) bool {
 
 func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *web.AutoHealRules {
 	if len(autoHealSettings) == 0 {
-		return nil
+		return &web.AutoHealRules{}
 	}
 
 	result := &web.AutoHealRules{
@@ -3841,10 +3840,10 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 		return nil
 	}
 
-	resultTrigger := AutoHealTriggerWindows{}
-	resultActions := AutoHealActionWindows{}
+	result := AutoHealSettingWindows{}
 	// Triggers
 	if autoHealRules.Triggers != nil {
+		resultTrigger := AutoHealTriggerWindows{}
 		triggers := *autoHealRules.Triggers
 		if triggers.Requests != nil {
 			count := 0
@@ -3857,7 +3856,7 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 			}}
 		}
 
-		if triggers.PrivateBytesInKB != nil {
+		if privateBytes := triggers.PrivateBytesInKB; privateBytes != nil && *privateBytes != 0 {
 			resultTrigger.PrivateMemoryKB = int(*triggers.PrivateBytesInKB)
 		}
 
@@ -3911,6 +3910,7 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 			})
 		}
 		resultTrigger.SlowRequests = slowRequestTriggers
+		result.Triggers = []AutoHealTriggerWindows{resultTrigger}
 	}
 
 	// Actions
@@ -3924,17 +3924,19 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 			})
 		}
 
-		resultActions = AutoHealActionWindows{
+		resultActions := AutoHealActionWindows{
 			ActionType:         string(actions.ActionType),
 			CustomAction:       customActions,
 			MinimumProcessTime: utils.NormalizeNilableString(actions.MinProcessExecutionTime),
 		}
+		result.Actions = []AutoHealActionWindows{resultActions}
 	}
 
-	return []AutoHealSettingWindows{{
-		Triggers: []AutoHealTriggerWindows{resultTrigger},
-		Actions:  []AutoHealActionWindows{resultActions},
-	}}
+	if result.Actions != nil || result.Triggers != nil {
+		return []AutoHealSettingWindows{result}
+	}
+
+	return nil
 }
 
 func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.AutoHealRules {
@@ -4001,10 +4003,11 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 		return nil
 	}
 
-	resultTrigger := AutoHealTriggerLinux{}
-	resultActions := AutoHealActionLinux{}
+	result := AutoHealSettingLinux{}
+
 	// Triggers
 	if autoHealRules.Triggers != nil {
+		resultTrigger := AutoHealTriggerLinux{}
 		triggers := *autoHealRules.Triggers
 		if triggers.Requests != nil {
 			count := 0
@@ -4039,6 +4042,22 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 				statusCodeTriggers = append(statusCodeTriggers, t)
 			}
 		}
+		if triggers.StatusCodesRange != nil {
+			for _, s := range *triggers.StatusCodesRange {
+				t := AutoHealStatusCodeTrigger{
+					Interval: utils.NormalizeNilableString(s.TimeInterval),
+					Path:     utils.NormalizeNilableString(s.Path),
+				}
+				if s.Count != nil {
+					t.Count = int(*s.Count)
+				}
+
+				if s.StatusCodes != nil {
+					t.StatusCodeRange = *s.StatusCodes
+				}
+				statusCodeTriggers = append(statusCodeTriggers, t)
+			}
+		}
 		resultTrigger.StatusCodes = statusCodeTriggers
 
 		slowRequestTriggers := make([]AutoHealSlowRequest, 0)
@@ -4051,22 +4070,24 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 			})
 		}
 		resultTrigger.SlowRequests = slowRequestTriggers
+		result.Triggers = []AutoHealTriggerLinux{resultTrigger}
 	}
 
 	// Actions
 	if autoHealRules.Actions != nil {
 		actions := *autoHealRules.Actions
 
-		resultActions = AutoHealActionLinux{
+		result.Actions = []AutoHealActionLinux{{
 			ActionType:         string(actions.ActionType),
 			MinimumProcessTime: utils.NormalizeNilableString(actions.MinProcessExecutionTime),
-		}
+		}}
 	}
 
-	return []AutoHealSettingLinux{{
-		Triggers: []AutoHealTriggerLinux{resultTrigger},
-		Actions:  []AutoHealActionLinux{resultActions},
-	}}
+	if result.Triggers != nil || result.Actions != nil {
+		return []AutoHealSettingLinux{result}
+	}
+
+	return nil
 }
 
 func DisabledLogsConfig() *web.SiteLogsConfig {
