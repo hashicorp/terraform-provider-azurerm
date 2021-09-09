@@ -9,6 +9,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* upgrading `cdn` to API Version `2021-09-01` [GH-13282]
 * upgrading `cosmos` to API Version `2021-06-15` [GH-13188]
 * `azurerm_app_service_certificate` - support argument `app_service_plan_id` for usage with ASE [GH-13101]
 * `azurerm_application_gateway` - mTLS support for Application Gateways [GH-13273]
