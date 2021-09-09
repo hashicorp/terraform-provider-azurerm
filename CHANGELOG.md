@@ -11,6 +11,7 @@ ENHANCEMENTS:
 
 * upgrading `cosmos` to API Version `2021-06-15` [GH-13188]
 * `azurerm_app_service_certificate` - support argument `app_service_plan_id` for usage with ASE [GH-13101]
+* `azurerm_application_gateway` - mTLS support for Application Gateways [GH-13273]
 * `azurerm_data_factory_integration_runtime_azure` -  support for the `cleanup_enabled` and `subnet_id` properties [GH-13222]
 * `azurerm_data_factory_trigger_schedule` - support for the `schedule` and `description` properties [GH-13243]
 * `azurerm_firewall_policy_rule_collection_group` - support for the `description`, `destination_addresses`, `destination_urls`, `terminate_tls`, and `web_categories` properties [GH-13190]
