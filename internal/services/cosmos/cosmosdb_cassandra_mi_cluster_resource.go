@@ -96,11 +96,6 @@ func resourceCassandraMIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	delegatedManagementSubnetId := d.Get("delegated_management_subnet_id").(string)
 	initialCassandraAdminPassword := d.Get("initial_cassandra_admin_password").(string)
 
-	log.Println("blaaaaaah hello in resourceCassandraMIClusterCreate!!")
-	log.Println("resourceGroup: " + resourceGroup)
-	log.Println("clusterName: " + clusterName)
-	log.Println("location: " + location)
-
 	existing, err := client.GetCluster(ctx, resourceGroup, clusterName, location)
 
 	if err != nil {
@@ -115,34 +110,13 @@ func resourceCassandraMIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_keyspace", *existing.ID)
 	}
 
-	// db := documentdb.CassandraKeyspaceCreateUpdateParameters{
-	// 	CassandraKeyspaceCreateUpdateProperties: &documentdb.CassandraKeyspaceCreateUpdateProperties{
-	// 		Resource: &documentdb.CassandraKeyspaceResource{
-	// 			ID: &clusterName,
-	// 		},
-	// 		Options: &documentdb.CreateUpdateOptions{},
-	// 	},
-	// }
-
 	body := documentdb.CassandraMIClusterCreateUpdateParameters{
-		//CassandraMIClusterCreateUpdateParameters: &documentdb.CassandraMIClusterCreateUpdateParameters{
 		Location: &location,
 		CassandraMIClusterCreateUpdateProperties: &documentdb.CassandraMIClusterCreateUpdateProperties{
 			DelegatedManagementSubnetId:   &delegatedManagementSubnetId,
 			InitialCassandraAdminPassword: &initialCassandraAdminPassword,
 		},
-		//},
 	}
-
-	// if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
-	// 	if throughput != 0 {
-	// 		db.CassandraKeyspaceCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
-	// 	}
-	// }
-
-	// if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
-	// 	db.CassandraKeyspaceCreateUpdateProperties.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
-	// }
 
 	future, err := client.CreateUpdate(ctx, resourceGroup, clusterName, location, body)
 	if err != nil {
@@ -165,7 +139,7 @@ func resourceCassandraMIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 
 	d.SetId(*resp.ID)
 
-	return resourceCosmosDbCassandraKeyspaceRead(d, meta)
+	return resourceCassandraMIClusterRead(d, meta)
 }
 
 func resourceCassandraMIClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -220,46 +194,33 @@ func resourceCassandraMIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceCassandraMIClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CassandraClient
+	client := meta.(*clients.Client).Cosmos.CassandraMIClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CassandraKeyspaceID(d.Id())
+	id, err := parse.CassandraClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetCassandraKeyspace(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
+	resp, err := client.GetCluster(ctx, id.ResourceGroup, id.ClusterName, id.ClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Cosmos Cassandra Keyspace %q (Account: %q) - removing from state", id.Name, id.DatabaseAccountName)
+			log.Printf("[INFO] Error reading Cosmos Cassandra Keyspace %q (Account: %q) - removing from state", id.ClusterName, id.ClusterName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("reading Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
+		return fmt.Errorf("reading Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.ClusterName, id.ClusterName, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_name", id.DatabaseAccountName)
+	d.Set("account_name", id.ClusterName)
 	if props := resp.CassandraKeyspaceGetProperties; props != nil {
 		if res := props.Resource; res != nil {
 			d.Set("name", res.ID)
 		}
 	}
-
-	throughputResp, err := client.GetCassandraKeyspaceThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			return fmt.Errorf("reading Throughput on Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
-		} else {
-			d.Set("throughput", nil)
-			d.Set("autoscale_settings", nil)
-		}
-	} else {
-		common.SetResourceDataThroughputFromResponse(throughputResp, d)
-	}
-
 	return nil
 }
 

@@ -17,29 +17,18 @@ import (
 	"github.com/Azure/go-autorest/tracing"
 )
 
-// CassandraMIResourcesClient is the client for the CassandraMIResources methods of the Documentdb service.
 type CassandraMIResourcesClient struct {
 	BaseClient
 }
 
-// NewCassandraMIResourcesClient creates an instance of the CassandraMIResourcesClient client.
 func NewCassandraMIResourcesClient(subscriptionID string) CassandraMIResourcesClient {
 	return NewCassandraMIResourcesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewCassandraMIResourcesClientWithBaseURI creates an instance of the CassandraMIResourcesClient client using a custom
-// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
-// stack).
 func NewCassandraMIResourcesClientWithBaseURI(baseURI string, subscriptionID string) CassandraMIResourcesClient {
 	return CassandraMIResourcesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateUpdateCassandraMIKeyspace create or update an Azure Cosmos DB CassandraMI keyspace
-// Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
-// accountName - cosmos DB database account name.
-// keyspaceName - cosmos DB keyspace name.
-// createUpdateCassandraMIKeyspaceParameters - the parameters to provide for the current CassandraMI keyspace.
 func (client CassandraMIResourcesClient) CreateUpdate(ctx context.Context, resourceGroupName string, clusterName string, location string, createUpdateCassandraMIClusterParameters CassandraMIClusterCreateUpdateParameters) (result CassandraMIResourcesCreateUpdateCassandraMIClusterFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CassandraMIResourcesClient.CreateUpdateCassandraMICluster")
