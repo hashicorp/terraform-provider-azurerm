@@ -53,6 +53,8 @@ The following arguments are supported:
 
 * `service_plan_id` - (Required) The ID of the Service Plan that this Windows App Service will be created in.
 
+* `site_config` - (Required) A `site_config` block as defined below.
+
 ---
 
 * `app_settings` - (Optional) A map of key-value pairs of App Settings.
@@ -76,8 +78,6 @@ The following arguments are supported:
 * `identity` - (Optional) A `identity` block as defined below.
 
 * `logs` - (Optional) A `logs` block as defined below.
-
-* `site_config` - (Required) A `site_config` block as defined below.
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
@@ -199,7 +199,7 @@ A `azure_blob_storage` block supports the following:
 
 * `retention_in_days` - (Required) The time in days after which to remove blobs. A value of `0` means no retention.
 
-* `sas_url` - (Required) SAS url to a azure blob container with read/write/list/delete permissions.
+* `sas_url` - (Required) SAS url to an Azure blob container with read/write/list/delete permissions.
 
 ---
 
@@ -307,7 +307,7 @@ A `http_logs` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The type of managed service identity. Possible values include: `ManagedServiceIdentityTypeSystemAssigned`, `ManagedServiceIdentityTypeUserAssigned`, `ManagedServiceIdentityTypeSystemAssignedUserAssigned`, and `ManagedServiceIdentityTypeNone`.
+* `type` - (Required) The type of managed service identity. Possible values include: `ManagedServiceIdentityTypeSystemAssigned`, `ManagedServiceIdentityTypeUserAssigned`, and `ManagedServiceIdentityTypeSystemAssignedUserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list of Identity IDs.
 
