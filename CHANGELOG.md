@@ -1,5 +1,8 @@
 ## 2.76.0 (Unreleased)
 
+NOTES
+* Opt-In Beta: Version 2.76 of the Azure Provider introduces an opt-in Beta for some of the new functionality coming in 3.0 - more information can be found [in the 3.0 Notes](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/website/docs/guides/3.0-beta.html.markdown) and [3.0 Upgrade Guide](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/website/docs/guides/3.0-upgrade-guide.html.markdown) [GH-12132]
+
 FEATURES:
 
 * **New Data Source:** `azurerm_eventgrid_domain` [GH-13033]
