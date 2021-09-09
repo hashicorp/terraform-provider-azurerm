@@ -1481,10 +1481,7 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("expanding `trusted_client_certificate`: %+v", err)
 	}
 
-	sslProfiles, err := expandApplicationGatewaySslProfiles(d, id.ID())
-	if err != nil {
-		return fmt.Errorf("expanding `ssl_profile`: %+v", err)
-	}
+	sslProfiles := expandApplicationGatewaySslProfiles(d, id.ID())
 
 	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
 
@@ -3592,7 +3589,7 @@ func flattenApplicationGatewayTrustedClientCertificates(input *[]network.Applica
 	return results
 }
 
-func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID string) (*[]network.ApplicationGatewaySslProfile, error) {
+func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID string) *[]network.ApplicationGatewaySslProfile {
 	vs := d.Get("ssl_profile").([]interface{})
 	results := make([]network.ApplicationGatewaySslProfile, 0)
 
@@ -3633,7 +3630,7 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 		results = append(results, output)
 	}
 
-	return &results, nil
+	return &results
 }
 
 func flattenApplicationGatewaySslProfiles(input *[]network.ApplicationGatewaySslProfile) ([]interface{}, error) {
