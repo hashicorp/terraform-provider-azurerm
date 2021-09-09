@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyVaultManagedStorageAccountSasDefinitionResource struct {
+type KeyVaultManagedStorageAccountSasTokenDefinitionResource struct {
 }
 
-func TestAccKeyVaultManagedStorageAccountSasDefinition_basic(t *testing.T) {
+func TestAccKeyVaultManagedStorageAccountSasTokenDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sas_token_definition", "test")
-	r := KeyVaultManagedStorageAccountSasDefinitionResource{}
+	r := KeyVaultManagedStorageAccountSasTokenDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,9 +31,9 @@ func TestAccKeyVaultManagedStorageAccountSasDefinition_basic(t *testing.T) {
 	})
 }
 
-func TestAccKeyVaultManagedStorageAccountSasDefinitionSasDefinition_requiresImport(t *testing.T) {
+func TestAccKeyVaultManagedStorageAccountSasTokenDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sas_token_definition", "test")
-	r := KeyVaultManagedStorageAccountSasDefinitionResource{}
+	r := KeyVaultManagedStorageAccountSasTokenDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,9 +46,9 @@ func TestAccKeyVaultManagedStorageAccountSasDefinitionSasDefinition_requiresImpo
 	})
 }
 
-func TestAccKeyVaultManagedStorageAccountSasDefinition_complete(t *testing.T) {
+func TestAccKeyVaultManagedStorageAccountSasTokenDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sas_token_definition", "test")
-	r := KeyVaultManagedStorageAccountSasDefinitionResource{}
+	r := KeyVaultManagedStorageAccountSasTokenDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,9 +66,9 @@ func TestAccKeyVaultManagedStorageAccountSasDefinition_complete(t *testing.T) {
 	})
 }
 
-func TestAccKeyVaultManagedStorageAccountSasDefinition_update(t *testing.T) {
+func TestAccKeyVaultManagedStorageAccountSasTokenDefinition_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sas_token_definition", "test")
-	r := KeyVaultManagedStorageAccountSasDefinitionResource{}
+	r := KeyVaultManagedStorageAccountSasTokenDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -98,9 +98,9 @@ func TestAccKeyVaultManagedStorageAccountSasDefinition_update(t *testing.T) {
 	})
 }
 
-func TestAccKeyVaultManagedStorageAccountSasDefinition_recovery(t *testing.T) {
+func TestAccKeyVaultManagedStorageAccountSasTokenDefinition_recovery(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sas_token_definition", "test")
-	r := KeyVaultManagedStorageAccountSasDefinitionResource{}
+	r := KeyVaultManagedStorageAccountSasTokenDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -125,7 +125,7 @@ func TestAccKeyVaultManagedStorageAccountSasDefinition_recovery(t *testing.T) {
 	})
 }
 
-func (r KeyVaultManagedStorageAccountSasDefinitionResource) basic(data acceptance.TestData) string {
+func (r KeyVaultManagedStorageAccountSasTokenDefinitionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -152,7 +152,7 @@ resource "azurerm_key_vault_managed_storage_account_sas_token_definition" "test"
 `, r.template(data))
 }
 
-func (r KeyVaultManagedStorageAccountSasDefinitionResource) requiresImport(data acceptance.TestData) string {
+func (r KeyVaultManagedStorageAccountSasTokenDefinitionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -166,7 +166,7 @@ resource "azurerm_key_vault_managed_storage_account_sas_token_definition" "impor
 `, r.basic(data))
 }
 
-func (r KeyVaultManagedStorageAccountSasDefinitionResource) complete(data acceptance.TestData, validyPeriod string) string {
+func (r KeyVaultManagedStorageAccountSasTokenDefinitionResource) complete(data acceptance.TestData, validyPeriod string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -197,7 +197,7 @@ resource "azurerm_key_vault_managed_storage_account_sas_token_definition" "test"
 `, r.template(data), validyPeriod)
 }
 
-func (r KeyVaultManagedStorageAccountSasDefinitionResource) softDeleteRecovery(data acceptance.TestData, purge bool, name string) string {
+func (r KeyVaultManagedStorageAccountSasTokenDefinitionResource) softDeleteRecovery(data acceptance.TestData, purge bool, name string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -229,7 +229,7 @@ resource "azurerm_key_vault_managed_storage_account_sas_token_definition" "test"
 `, purge, r.template(data), name, name)
 }
 
-func (KeyVaultManagedStorageAccountSasDefinitionResource) template(data acceptance.TestData) string {
+func (KeyVaultManagedStorageAccountSasTokenDefinitionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -310,7 +310,7 @@ resource "azurerm_key_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func (KeyVaultManagedStorageAccountSasDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (KeyVaultManagedStorageAccountSasTokenDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	dataPlaneClient := client.KeyVault.ManagementClient
 	keyVaultsClient := client.KeyVault
 

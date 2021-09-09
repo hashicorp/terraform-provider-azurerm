@@ -102,7 +102,7 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 
 	keyVaultBaseUrl, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("looking up Base URI for Managed Storage Account %q in %s: %+v", name, *keyVaultId, err)
+		return fmt.Errorf("looking up Base URI for Managed Storage Account Key Vault %q in %s: %+v", name, *keyVaultId, err)
 	}
 
 	if d.IsNewResource() {
@@ -164,13 +164,11 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	read, err := client.GetStorageAccount(ctx, *keyVaultBaseUrl, name)
-
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot read Managed Storage Account %q (Key Vault %q): %+v", name, *keyVaultId, err)
 	}
-
 	if read.ID == nil {
-		return fmt.Errorf("cannot read Managed Storage Account %q (Key Vault %q)", name, *keyVaultId)
+		return fmt.Errorf("cannot read Managed Storage Account ID %q (Key Vault %q)", name, *keyVaultId)
 	}
 
 	d.SetId(*read.ID)

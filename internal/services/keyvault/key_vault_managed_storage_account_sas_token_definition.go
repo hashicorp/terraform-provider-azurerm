@@ -86,7 +86,6 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	resourcesClient := meta.(*clients.Client).Resource
-
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -97,7 +96,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 
 	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, storageAccount.KeyVaultBaseUrl)
 	if err != nil {
-		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", storageAccount.KeyVaultBaseUrl, err)
+		return fmt.Errorf("retrieving the Resource ID of the Key Vault at URL %q: %s", storageAccount.KeyVaultBaseUrl, err)
 	}
 	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
 	if err != nil {
@@ -106,14 +105,14 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 
 	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("retrieving base uri for %s: %+v", *keyVaultId, err)
+		return fmt.Errorf("looking up Base URI for Managed Storage Account Key Vault %s: %+v", *keyVaultId, err)
 	}
 
 	if d.IsNewResource() {
 		existing, err := client.GetSasDefinition(ctx, *keyVaultBaseUri, storageAccount.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Managed Storage Account %q (Key Vault %q): %s", name, *keyVaultBaseUri, err)
+				return fmt.Errorf("checking for presence of existing Managed Storage Account Sas Defition %q (Storage Account %q, Key Vault %q): %+v", name, storageAccount.Name, *keyVaultId, err)
 			}
 		}
 
@@ -139,9 +138,9 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
 			recoveredStorageAccount, err := client.RecoverDeletedSasDefinition(ctx, *keyVaultBaseUri, storageAccount.Name, name)
 			if err != nil {
-				return fmt.Errorf("recovery of SAS definition %q in %s: %+v", name, *recoveredStorageAccount.ID, err)
+				return fmt.Errorf("recovery of Managed Storage Account SAS Definition %q (Storage Account %q, Key Vault %q): %+v", name, storageAccount.Name, *keyVaultId, err)
 			}
-			log.Printf("[DEBUG] Recovering Managed Storage Account Sas Definition %q with ID: %q", name, *recoveredStorageAccount.ID)
+			log.Printf("[DEBUG] Recovering Managed Storage Account Sas Definition %q (Storage Account %q, Key Vault %q)", name, storageAccount.Name, *keyVaultId)
 			// We need to wait for consistency, recovered Key Vault Child items are not as readily available as newly created
 			if secret := recoveredStorageAccount.ID; secret != nil {
 				stateConf := &pluginsdk.StateChangeConf{
@@ -155,16 +154,16 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 				}
 
 				if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-					return fmt.Errorf("waiting for Key Vault Managed Storage Account Sas Definition %q to become available: %s", name, err)
+					return fmt.Errorf("waiting for Key Vault Managed Storage Account Sas Definition %q (Storage Account %q, Key Vault %q) to become available: %s", name, storageAccount.Name, *keyVaultId, err)
 				}
-				log.Printf("[DEBUG] Managed Storage Account Sas Definition %q recovered with ID: %q", name, *recoveredStorageAccount.ID)
+				log.Printf("[DEBUG] Managed Storage Account Sas Definition %q (Storage Account %q, Key Vault %q) recovered", name, storageAccount.Name, *keyVaultId)
 
 				if _, err := client.SetSasDefinition(ctx, *keyVaultBaseUri, storageAccount.Name, name, parameters); err != nil {
-					return fmt.Errorf("creation of SAS definition %q in %s: %+v", name, *recoveredStorageAccount.ID, err)
+					return fmt.Errorf("creation of Managed Storage Account SAS Definition %q (Storage Account %q, Key Vault %q): %+v", name, storageAccount.Name, *keyVaultId, err)
 				}
 			}
 		} else {
-			return fmt.Errorf("creation of SAS definition %q in %s: %+v", name, *keyVaultId, err)
+			return fmt.Errorf("creation of Managed Storage Account SAS Definition %q (Storage Account %q, Key Vault %q): %+v", name, storageAccount.Name, *keyVaultId, err)
 		}
 	}
 
@@ -175,7 +174,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("cannot read Managed Storage Account Sas Definition '%s' (in key vault '%s')", name, *keyVaultBaseUri)
+		return fmt.Errorf("cannot read Managed Storage Account Sas Definition  %q (Storage Account %q, Key Vault %q)", name, storageAccount.Name, *keyVaultId)
 	}
 
 	d.SetId(*read.ID)
@@ -197,7 +196,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionRead(d *pluginsdk.Re
 
 	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
-		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("retrieving the Resource ID of the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
 
 	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
@@ -207,7 +206,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionRead(d *pluginsdk.Re
 
 	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error checking if key vault %q for Managed Storage Account Sas Definition %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("checking for presence of existing Managed Storage Account Sas Defition %q (Key Vault %q): %+v", id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
 		log.Printf("[DEBUG] Managed Storage Account Sas Definition %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
@@ -222,7 +221,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionRead(d *pluginsdk.Re
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Managed Storage Account Sas Definition %s: %+v", id.Name, err)
+		return fmt.Errorf("cannot read Managed Storage Account Sas Definition %s: %+v", id.Name, err)
 	}
 
 	d.Set("name", id.Name)
@@ -248,10 +247,10 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionDelete(d *pluginsdk.
 
 	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
 	if err != nil {
-		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("retrieving the Resource ID of the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
 	if keyVaultIdRaw == nil {
-		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
+		return fmt.Errorf("unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
 	}
 	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
 	if err != nil {
@@ -260,7 +259,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionDelete(d *pluginsdk.
 
 	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error checking if key vault %q for Managed Storage Account Sas Definition %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("checking if key vault %q for Managed Storage Account Sas Definition %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
 		log.Printf("[DEBUG] Managed Storage Account Sas Definition %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
