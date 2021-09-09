@@ -231,7 +231,7 @@ The following arguments are supported:
 
 * `minimum_tls_version` - (Optional) The Minimum TLS Version. Default value is `1.2` Valid values include `1.0`, `1.1`, `1.2`. 
 
-* `proxy_override` - (Optional) Specified how the SQL Managed Instance will be accessed. Default value is `Default`. Valid values include `Default`, `Proxy`, and `Redirect`. 
+* `proxy_override` - (Optional) Specifies how the SQL Managed Instance will be accessed. Default value is `Default`. Valid values include `Default`, `Proxy`, and `Redirect`. 
 
 * `timezone_id` - (Optional) The TimeZone ID that the SQL Managed Instance will be operating in. Default value is `UTC`. Changing this forces a new resource to be created.
 
@@ -241,13 +241,14 @@ The following arguments are supported:
 
 A `sku` block supports the following:
 
-* `name` - (Required) Sku of the managed instance. Values can be GP_Gen4 or GP_Gen5.
+* `name` - (Required) Sku of the managed instance. Values can be `GP_Gen4`, `GP_Gen5`, `BC_Gen4`, or `BC_Gen5`.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The SQL Managed Instance ID.
+
 * `fqdn` - The fully qualified domain name of the Azure Managed SQL Instance
 
 ## Import

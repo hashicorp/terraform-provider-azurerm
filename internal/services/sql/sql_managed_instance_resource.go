@@ -200,22 +200,18 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		ManagedInstanceProperties: &sql.ManagedInstanceProperties{
-			LicenseType:               sql.ManagedInstanceLicenseType(d.Get("license_type").(string)),
-			AdministratorLogin:        utils.String(d.Get("administrator_login").(string)),
-			SubnetID:                  utils.String(d.Get("subnet_id").(string)),
-			StorageSizeInGB:           utils.Int32(int32(d.Get("storage_size_in_gb").(int))),
-			VCores:                    utils.Int32(int32(d.Get("vcores").(int))),
-			Collation:                 utils.String(d.Get("collation").(string)),
-			PublicDataEndpointEnabled: utils.Bool(d.Get("public_data_endpoint_enabled").(bool)),
-			MinimalTLSVersion:         utils.String(d.Get("minimum_tls_version").(string)),
-			ProxyOverride:             sql.ManagedInstanceProxyOverride(d.Get("proxy_override").(string)),
-			TimezoneID:                utils.String(d.Get("timezone_id").(string)),
+			LicenseType:                sql.ManagedInstanceLicenseType(d.Get("license_type").(string)),
+			AdministratorLogin:         utils.String(d.Get("administrator_login").(string)),
+			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
+			SubnetID:                   utils.String(d.Get("subnet_id").(string)),
+			StorageSizeInGB:            utils.Int32(int32(d.Get("storage_size_in_gb").(int))),
+			VCores:                     utils.Int32(int32(d.Get("vcores").(int))),
+			Collation:                  utils.String(d.Get("collation").(string)),
+			PublicDataEndpointEnabled:  utils.Bool(d.Get("public_data_endpoint_enabled").(bool)),
+			MinimalTLSVersion:          utils.String(d.Get("minimum_tls_version").(string)),
+			ProxyOverride:              sql.ManagedInstanceProxyOverride(d.Get("proxy_override").(string)),
+			TimezoneID:                 utils.String(d.Get("timezone_id").(string)),
 		},
-	}
-
-	if d.HasChange("administrator_login_password") {
-		adminPassword := d.Get("administrator_login_password").(string)
-		parameters.ManagedInstanceProperties.AdministratorLoginPassword = utils.String(adminPassword)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
@@ -225,7 +221,7 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasConflict(future.Response()) {
-			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", name)
+			return fmt.Errorf("sql managed instance names need to be globally unique and %q is already in use", name)
 		}
 
 		return err
@@ -280,6 +276,8 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("minimum_tls_version", props.MinimalTLSVersion)
 		d.Set("proxy_override", props.ProxyOverride)
 		d.Set("timezone_id", props.TimezoneID)
+		// This value is not returned from the api so we'll just set whatever is in the config
+		d.Set("administrator_login_password", d.Get("administrator_login_password").(string))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

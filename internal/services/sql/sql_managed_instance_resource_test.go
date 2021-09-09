@@ -221,7 +221,7 @@ resource "azurerm_sql_managed_instance" "test1" {
 func (SqlManagedInstanceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-sql-%d"
   location = "%s"
 }
 
