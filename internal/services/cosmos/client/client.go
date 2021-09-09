@@ -7,6 +7,7 @@ import (
 
 type Client struct {
 	CassandraClient         *documentdb.CassandraResourcesClient
+	CassandraMIClient       *documentdb.CassandraMIResourcesClient
 	DatabaseClient          *documentdb.DatabaseAccountsClient
 	GremlinClient           *documentdb.GremlinResourcesClient
 	MongoDbClient           *documentdb.MongoDBResourcesClient
@@ -19,6 +20,9 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	cassandraClient := documentdb.NewCassandraResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&cassandraClient.Client, o.ResourceManagerAuthorizer)
+
+	cassandraMIClient := documentdb.NewCassandraMIResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&cassandraMIClient.Client, o.ResourceManagerAuthorizer)
 
 	databaseClient := documentdb.NewDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&databaseClient.Client, o.ResourceManagerAuthorizer)
@@ -43,6 +47,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		CassandraClient:         &cassandraClient,
+		CassandraMIClient:       &cassandraMIClient,
 		DatabaseClient:          &databaseClient,
 		GremlinClient:           &gremlinClient,
 		MongoDbClient:           &mongoDbClient,
