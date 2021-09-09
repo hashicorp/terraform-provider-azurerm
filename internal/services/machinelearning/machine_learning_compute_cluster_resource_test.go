@@ -195,8 +195,7 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
   }
 
   ssh_public_access_enabled = false
-  isolated_network_enabled  = true
-  node_public_ip_enabled    = true
+  private_ip_only_enabled   = false
   ssh_settings {
     admin_username = "adminuser"
     ssh_key_value  = var.ssh_key

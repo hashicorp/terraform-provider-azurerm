@@ -119,9 +119,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) A `identity` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `isolated_network_enabled` - (Optional) A boolean value indicating whether network is isolated. Changing this forces a new Machine Learning Compute Cluster to be created.
-
-* `node_public_ip_enabled` - (Optional)  A boolean value indicating whether enable node public IP address provisioning. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `private_ip_only_enabled` - (Optional)  A boolean value indicating whether enable private IP only. Defaults to `false`. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `ssh_public_access_enabled` - (Optional)  A boolean value indicating whether enable the public SSH port. Changing this forces a new Machine Learning Compute Cluster to be created.
 

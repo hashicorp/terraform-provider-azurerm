@@ -123,14 +123,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"isolated_network_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-				Computed: true, // `isolated_network_enabled` sets to `false` by default even if unspecified
-			},
-
-			"node_public_ip_enabled": {
+			"private_ip_only_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
@@ -186,11 +179,8 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh_settings").([]interface{})),
 	}
 
-	if isolatedNetworkEnabled, ok := d.GetOk("isolated_network_enabled"); ok {
-		computeClusterAmlComputeProperties.IsolatedNetwork = utils.Bool(isolatedNetworkEnabled.(bool))
-	}
-	if nodePublicIpEnabled, ok := d.GetOk("node_public_ip_enabled"); ok {
-		computeClusterAmlComputeProperties.EnableNodePublicIP = utils.Bool(nodePublicIpEnabled.(bool))
+	if privateIpOnlyEnabled, ok := d.GetOk("private_ip_only_enabled"); ok {
+		computeClusterAmlComputeProperties.EnableNodePublicIP = utils.Bool(!privateIpOnlyEnabled.(bool))
 	}
 
 	computeClusterAmlComputeProperties.RemoteLoginPortPublicAccess = machinelearningservices.RemoteLoginPortPublicAccessDisabled
@@ -279,8 +269,9 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if props := computeCluster.Properties; props != nil {
 		d.Set("vm_size", props.VMSize)
 		d.Set("vm_priority", props.VMPriority)
-		d.Set("node_public_ip_enabled", props.EnableNodePublicIP)
-		d.Set("isolated_network_enabled", props.IsolatedNetwork)
+		if props.EnableNodePublicIP != nil {
+			d.Set("private_ip_only_enabled", !*props.EnableNodePublicIP)
+		}
 		d.Set("scale_settings", flattenScaleSettings(props.ScaleSettings))
 		d.Set("ssh_settings", flattenUserAccountCredentials(props.UserAccountCredentials))
 		if props.Subnet != nil {
