@@ -469,7 +469,7 @@ func enableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.Cust
 		Timeout:    time.Until(deadline),
 	}
 
-	state, err := stateConf.WaitForState()
+	state, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return fmt.Errorf("waiting for HTTPS provision state: %+v", err)
 	}
@@ -499,7 +499,7 @@ func disableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.Cus
 		Timeout:    time.Until(deadline),
 	}
 
-	state, err := stateConf.WaitForState()
+	state, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return fmt.Errorf("waiting for HTTPS provision state: %+v", err)
 	}
