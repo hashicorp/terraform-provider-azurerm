@@ -42,6 +42,63 @@ func base64EncodedStateFunc(v interface{}) string {
 	}
 }
 
+func sslProfileSchema(computed bool) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Computed: computed,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"disabled_protocols": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(network.ApplicationGatewaySslProtocolTLSv10),
+							string(network.ApplicationGatewaySslProtocolTLSv11),
+							string(network.ApplicationGatewaySslProtocolTLSv12),
+						}, false),
+					},
+				},
+
+				"policy_type": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(network.ApplicationGatewaySslPolicyTypeCustom),
+						string(network.ApplicationGatewaySslPolicyTypePredefined),
+					}, false),
+				},
+
+				"policy_name": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+
+				"cipher_suites": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringInSlice(possibleApplicationGatewaySslCipherSuiteValues(), false),
+					},
+				},
+
+				"min_protocol_version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(network.ApplicationGatewaySslProtocolTLSv10),
+						string(network.ApplicationGatewaySslProtocolTLSv11),
+						string(network.ApplicationGatewaySslProtocolTLSv12),
+					}, false),
+				},
+			},
+		},
+	}
+}
+
 func resourceApplicationGateway() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApplicationGatewayCreateUpdate,
@@ -757,60 +814,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			},
 
 			//lintignore:XS003
-			"ssl_policy": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"disabled_protocols": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(network.ApplicationGatewaySslProtocolTLSv10),
-									string(network.ApplicationGatewaySslProtocolTLSv11),
-									string(network.ApplicationGatewaySslProtocolTLSv12),
-								}, false),
-							},
-						},
-
-						"policy_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.ApplicationGatewaySslPolicyTypeCustom),
-								string(network.ApplicationGatewaySslPolicyTypePredefined),
-							}, false),
-						},
-
-						"policy_name": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-
-						"cipher_suites": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice(possibleApplicationGatewaySslCipherSuiteValues(), false),
-							},
-						},
-
-						"min_protocol_version": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.ApplicationGatewaySslProtocolTLSv10),
-								string(network.ApplicationGatewaySslProtocolTLSv11),
-								string(network.ApplicationGatewaySslProtocolTLSv12),
-							}, false),
-						},
-					},
-				},
-			},
+			"ssl_policy": sslProfileSchema(true),
 
 			"enable_http2": {
 				Type:     pluginsdk.TypeBool,
@@ -1129,59 +1133,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						//lintignore:XS003
-						"ssl_policy": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"disabled_protocols": {
-										Type:     pluginsdk.TypeList,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(network.ApplicationGatewaySslProtocolTLSv10),
-												string(network.ApplicationGatewaySslProtocolTLSv11),
-												string(network.ApplicationGatewaySslProtocolTLSv12),
-											}, false),
-										},
-									},
-
-									"policy_type": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(network.ApplicationGatewaySslPolicyTypeCustom),
-											string(network.ApplicationGatewaySslPolicyTypePredefined),
-										}, false),
-									},
-
-									"policy_name": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-
-									"cipher_suites": {
-										Type:     pluginsdk.TypeList,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice(possibleApplicationGatewaySslCipherSuiteValues(), false),
-										},
-									},
-
-									"min_protocol_version": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(network.ApplicationGatewaySslProtocolTLSv10),
-											string(network.ApplicationGatewaySslProtocolTLSv11),
-											string(network.ApplicationGatewaySslProtocolTLSv12),
-										}, false),
-									},
-								},
-							},
-						},
+						"ssl_policy": sslProfileSchema(false),
 
 						"id": {
 							Type:     pluginsdk.TypeString,
