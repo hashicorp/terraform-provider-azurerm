@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `serialization` - (Required) A `serialization` block as defined below.
 
-* `batch_max_wait_time` - (Optional) The maximum wait time per batch e.g. "00:02:00" for two minutes.
+* `batch_max_wait_time` - (Optional) The maximum wait time per batch in `hh:mm:ss` e.g. `00:02:00` for two minutes.
 
 * `batch_min_rows` - (Optional) The minimum number of rows per batch (must be between `0` and `10000`).
 
