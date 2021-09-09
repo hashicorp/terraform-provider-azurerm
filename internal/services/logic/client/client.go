@@ -6,16 +6,17 @@ import (
 )
 
 type Client struct {
-	IntegrationAccountClient            *logic.IntegrationAccountsClient
-	IntegrationAccountAssemblyClient    *logic.IntegrationAccountAssembliesClient
-	IntegrationAccountCertificateClient *logic.IntegrationAccountCertificatesClient
-	IntegrationAccountMapClient         *logic.IntegrationAccountMapsClient
-	IntegrationAccountPartnerClient     *logic.IntegrationAccountPartnersClient
-	IntegrationAccountSchemaClient      *logic.IntegrationAccountSchemasClient
-	IntegrationAccountSessionClient     *logic.IntegrationAccountSessionsClient
-	IntegrationServiceEnvironmentClient *logic.IntegrationServiceEnvironmentsClient
-	WorkflowClient                      *logic.WorkflowsClient
-	TriggersClient                      *logic.WorkflowTriggersClient
+	IntegrationAccountClient                   *logic.IntegrationAccountsClient
+	IntegrationAccountAssemblyClient           *logic.IntegrationAccountAssembliesClient
+	IntegrationAccountBatchConfigurationClient *logic.IntegrationAccountBatchConfigurationsClient
+	IntegrationAccountCertificateClient        *logic.IntegrationAccountCertificatesClient
+	IntegrationAccountMapClient                *logic.IntegrationAccountMapsClient
+	IntegrationAccountPartnerClient            *logic.IntegrationAccountPartnersClient
+	IntegrationAccountSchemaClient             *logic.IntegrationAccountSchemasClient
+	IntegrationAccountSessionClient            *logic.IntegrationAccountSessionsClient
+	IntegrationServiceEnvironmentClient        *logic.IntegrationServiceEnvironmentsClient
+	WorkflowClient                             *logic.WorkflowsClient
+	TriggersClient                             *logic.WorkflowTriggersClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -24,6 +25,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	integrationAccountAssemblyClient := logic.NewIntegrationAccountAssembliesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&integrationAccountAssemblyClient.Client, o.ResourceManagerAuthorizer)
+
+	integrationAccountBatchConfigurationClient := logic.NewIntegrationAccountBatchConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&integrationAccountBatchConfigurationClient.Client, o.ResourceManagerAuthorizer)
 
 	integrationAccountCertificateClient := logic.NewIntegrationAccountCertificatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&integrationAccountCertificateClient.Client, o.ResourceManagerAuthorizer)
@@ -50,15 +54,16 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&triggersClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		IntegrationAccountClient:            &integrationAccountClient,
-		IntegrationAccountAssemblyClient:    &integrationAccountAssemblyClient,
-		IntegrationAccountCertificateClient: &integrationAccountCertificateClient,
-		IntegrationAccountMapClient:         &integrationAccountMapClient,
-		IntegrationAccountPartnerClient:     &integrationAccountPartnerClient,
-		IntegrationAccountSchemaClient:      &integrationAccountSchemaClient,
-		IntegrationAccountSessionClient:     &integrationAccountSessionClient,
-		IntegrationServiceEnvironmentClient: &integrationServiceEnvironmentClient,
-		WorkflowClient:                      &workflowClient,
-		TriggersClient:                      &triggersClient,
+		IntegrationAccountClient:                   &integrationAccountClient,
+		IntegrationAccountAssemblyClient:           &integrationAccountAssemblyClient,
+		IntegrationAccountBatchConfigurationClient: &integrationAccountBatchConfigurationClient,
+		IntegrationAccountCertificateClient:        &integrationAccountCertificateClient,
+		IntegrationAccountMapClient:                &integrationAccountMapClient,
+		IntegrationAccountPartnerClient:            &integrationAccountPartnerClient,
+		IntegrationAccountSchemaClient:             &integrationAccountSchemaClient,
+		IntegrationAccountSessionClient:            &integrationAccountSessionClient,
+		IntegrationServiceEnvironmentClient:        &integrationServiceEnvironmentClient,
+		WorkflowClient:                             &workflowClient,
+		TriggersClient:                             &triggersClient,
 	}
 }
