@@ -5,6 +5,7 @@ FEATURES:
 * **New Data Source:** `azurerm_eventgrid_domain` [GH-13033]
 * **New Resource:** `azurerm_data_protection_backup_instance_blob_storage` [GH-12683]
 * **New Resource:** `azurerm_logic_app_integration_account_assembly` [GH-13239]
+* **New Resource:** `azurerm_logic_app_integration_account_batch_configuration` [GH-13215]
 
 ENHANCEMENTS:
 
