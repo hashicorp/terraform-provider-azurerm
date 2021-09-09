@@ -131,7 +131,7 @@ func dataSourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("description", props.Description)
 		d.Set("eula", props.Eula)
 		d.Set("os_type", string(props.OsType))
-		d.Set("specialized", props.OsState == compute.Specialized)
+		d.Set("specialized", props.OsState == compute.OperatingSystemStateTypesSpecialized)
 		d.Set("hyper_v_generation", string(props.HyperVGeneration))
 		d.Set("privacy_statement_uri", props.PrivacyStatementURI)
 		d.Set("release_note_uri", props.ReleaseNoteURI)

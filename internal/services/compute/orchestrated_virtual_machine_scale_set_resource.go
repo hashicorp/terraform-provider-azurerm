@@ -88,8 +88,8 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Deallocate),
-					string(compute.Delete),
+					string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
+					string(compute.VirtualMachineEvictionPolicyTypesDelete),
 				}, false),
 			},
 
@@ -141,10 +141,10 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(compute.Regular),
+				Default:  string(compute.VirtualMachinePriorityTypesRegular),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Regular),
-					string(compute.Spot),
+					string(compute.VirtualMachinePriorityTypesRegular),
+					string(compute.VirtualMachinePriorityTypesSpot),
 				}, false),
 			},
 
@@ -202,7 +202,8 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	name := d.Get("name").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
+		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -283,7 +284,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	osDiskRaw := d.Get("os_disk").([]interface{})
-	osDisk := ExpandOrchestratedVirtualMachineScaleSetOSDisk(osDiskRaw, compute.Windows)
+	osDisk := ExpandOrchestratedVirtualMachineScaleSetOSDisk(osDiskRaw, compute.OperatingSystemTypesWindows)
 
 	planRaw := d.Get("plan").([]interface{})
 	plan := expandPlan(planRaw)
@@ -330,7 +331,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
-		if priority != compute.Spot {
+		if priority != compute.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
@@ -346,11 +347,11 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
-		if virtualMachineProfile.Priority != compute.Spot {
+		if virtualMachineProfile.Priority != compute.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 		virtualMachineProfile.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
-	} else if priority == compute.Spot {
+	} else if priority == compute.VirtualMachinePriorityTypesSpot {
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
@@ -383,7 +384,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			// OrchestrationMode needs to be hardcoded to Uniform, for the
 			// standard VMSS resource, since virtualMachineProfile is now supported
 			// in both VMSS and Orchestrated VMSS...
-			OrchestrationMode: compute.Flexible,
+			OrchestrationMode: compute.OrchestrationModeFlexible,
 		},
 		Zones: zones,
 	}
@@ -419,7 +420,8 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	log.Printf("[DEBUG] Virtual Machine Scale Set %q (Resource Group %q) was created", name, resourceGroup)
 
 	log.Printf("[DEBUG] Retrieving Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
-	resp, err := client.Get(ctx, resourceGroup, name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -445,7 +447,8 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 	updateInstances := false
 
 	// retrieve
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
@@ -480,7 +483,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
 	if d.HasChange("max_bid_price") {
-		if priority != compute.Spot {
+		if priority != compute.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
@@ -682,7 +685,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		Client:                       meta.(*clients.Client).Compute,
 		Existing:                     existing,
 		ID:                           id,
-		OSType:                       compute.Windows,
+		OSType:                       compute.OperatingSystemTypesWindows,
 	}
 
 	if err := metaData.performUpdate(ctx, update); err != nil {
@@ -702,7 +705,8 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
@@ -774,7 +778,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 
 		// the service just return empty when this is not assigned when provisioned
 		// See discussion on https://github.com/Azure/azure-rest-api-specs/issues/10971
-		priority := compute.Regular
+		priority := compute.VirtualMachinePriorityTypesRegular
 		if profile.Priority != "" {
 			priority = profile.Priority
 		}
@@ -855,7 +859,8 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData,
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil

@@ -50,13 +50,13 @@ func (metadata virtualMachineScaleSetUpdateMetaData) performUpdate(ctx context.C
 		if userWantsToRollInstances {
 			// If the updated image version is not "latest" and upgrade mode is automatic then azure will roll the instances automatically.
 			// Calling upgradeInstancesForAutomaticUpgradePolicy() in this case will cause an error.
-			if upgradeMode == compute.Automatic && isUsingLatestImage(update) {
+			if upgradeMode == compute.UpgradeModeAutomatic && isUsingLatestImage(update) {
 				if err := metadata.upgradeInstancesForAutomaticUpgradePolicy(ctx); err != nil {
 					return err
 				}
 			}
 
-			if upgradeMode == compute.Manual {
+			if upgradeMode == compute.UpgradeModeManual {
 				if err := metadata.upgradeInstancesForManualUpgradePolicy(ctx); err != nil {
 					return err
 				}

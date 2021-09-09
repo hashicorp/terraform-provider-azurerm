@@ -80,8 +80,8 @@ func resourceImage() *pluginsdk.Resource {
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.Linux),
-								string(compute.Windows),
+								string(compute.OperatingSystemTypeLinux),
+								string(compute.OperatingSystemTypeWindows),
 							}, true),
 						},
 
@@ -90,8 +90,8 @@ func resourceImage() *pluginsdk.Resource {
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.Generalized),
-								string(compute.Specialized),
+								string(compute.OperatingSystemStateTypesGeneralized),
+								string(compute.OperatingSystemStateTypesSpecialized),
 							}, true),
 						},
 
@@ -114,7 +114,7 @@ func resourceImage() *pluginsdk.Resource {
 						"caching": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							Default:          string(compute.None),
+							Default:          string(compute.CachingTypesNone),
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.CachingTypesNone),
@@ -161,7 +161,7 @@ func resourceImage() *pluginsdk.Resource {
 						"caching": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(compute.None),
+							Default:  string(compute.CachingTypesNone),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.CachingTypesNone),
 								string(compute.CachingTypesReadOnly),

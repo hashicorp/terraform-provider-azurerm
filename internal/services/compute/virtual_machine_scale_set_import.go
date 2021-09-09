@@ -17,7 +17,8 @@ func importOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.
 	}
 
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
-	vm, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	vm, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
@@ -49,7 +50,8 @@ func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceT
 		}
 
 		client := meta.(*clients.Client).Compute.VMScaleSetClient
-		vm, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+		vm, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
@@ -69,7 +71,7 @@ func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceT
 		isCorrectOS := false
 		hasSshKeys := false
 		if profile := vm.VirtualMachineScaleSetProperties.VirtualMachineProfile.OsProfile; profile != nil {
-			if profile.LinuxConfiguration != nil && osType == compute.Linux {
+			if profile.LinuxConfiguration != nil && osType == compute.OperatingSystemTypesLinux {
 				isCorrectOS = true
 
 				if profile.LinuxConfiguration.SSH != nil && profile.LinuxConfiguration.SSH.PublicKeys != nil {
@@ -77,7 +79,7 @@ func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceT
 				}
 			}
 
-			if profile.WindowsConfiguration != nil && osType == compute.Windows {
+			if profile.WindowsConfiguration != nil && osType == compute.OperatingSystemTypesWindows {
 				isCorrectOS = true
 			}
 		}

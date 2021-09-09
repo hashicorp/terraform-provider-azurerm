@@ -140,9 +140,9 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Automatic),
-					string(compute.Manual),
-					string(compute.Rolling),
+					string(compute.UpgradeModeAutomatic),
+					string(compute.UpgradeModeManual),
+					string(compute.UpgradeModeRolling),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -215,8 +215,8 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Low),
-					string(compute.Regular),
+					string(compute.VirtualMachinePriorityTypesLow),
+					string(compute.VirtualMachinePriorityTypesRegular),
 				}, true),
 			},
 
@@ -225,8 +225,8 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Deallocate),
-					string(compute.Delete),
+					string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
+					string(compute.VirtualMachineEvictionPolicyTypesDelete),
 				}, false),
 			},
 
@@ -800,7 +800,8 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 	resGroup := d.Get("resource_group_name").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing Virtual Machine Scale Set %q (Resource Group %q): %s", name, resGroup, err)
@@ -872,12 +873,12 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 		// OrchestrationMode needs to be hardcoded to Uniform, for the
 		// standard VMSS resource, since virtualMachineProfile is now supported
 		// in both VMSS and Orchestrated VMSS...
-		OrchestrationMode:    compute.Uniform,
+		OrchestrationMode:    compute.OrchestrationModeUniform,
 		Overprovision:        &overprovision,
 		SinglePlacementGroup: &singlePlacementGroup,
 	}
 
-	if strings.EqualFold(priority, string(compute.Low)) {
+	if strings.EqualFold(priority, string(compute.VirtualMachinePriorityTypesLow)) {
 		scaleSetProps.VirtualMachineProfile.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicy)
 	}
 
@@ -928,7 +929,8 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	read, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		return err
 	}
@@ -953,7 +955,8 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 	resGroup := id.ResourceGroup
 	name := id.Path["virtualMachineScaleSets"]
 
-	resp, err := client.Get(ctx, resGroup, name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	resp, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] AzureRM Virtual Machine Scale Set (%s) Not Found. Removing from State", name)
@@ -2084,7 +2087,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d *pluginsdk.Res
 		if managedDiskType != "" {
 			managedDiskVMSS.StorageAccountType = compute.StorageAccountTypes(managedDiskType)
 		} else {
-			managedDiskVMSS.StorageAccountType = compute.StorageAccountTypes(compute.StandardLRS)
+			managedDiskVMSS.StorageAccountType = compute.StorageAccountTypesStandardLRS
 		}
 
 		// assume that data disks in VMSS can only be Managed Disks

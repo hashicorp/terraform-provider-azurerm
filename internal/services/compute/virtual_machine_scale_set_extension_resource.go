@@ -278,7 +278,8 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	vmss, err := vmssClient.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	vmss, err := vmssClient.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(vmss.Response) {
 			log.Printf("Virtual Machine Scale Set %q was not found in Resource Group %q - removing Extension from state!", id.VirtualMachineScaleSetName, id.ResourceGroup)
