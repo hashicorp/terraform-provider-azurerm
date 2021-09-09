@@ -35,7 +35,7 @@ provider "azurerm" {
 
 ## App Service
 
-App Service, aka `web`, was one of the earliest supported services in the provider and has evolved significantly over time, both as a Service and the resources within the provider. Over that time feature additions, behavioural changes, and a host of other change have made the current resources increasingly difficult to maintain and update. We're taking the opportunity in 3.0 to rewrite this service from the ground up.    
+App Service, aka `web`, was one of the earliest supported services in the provider and has evolved significantly over time, both as a Service and the resources within the provider. Over that time feature additions, behavioural changes, and a host of other changes have made the current resources increasingly difficult to maintain and update. We're taking the opportunity in 3.0 to rewrite this service from the ground up.    
 
 In summary this includes changes to better support the various aspects of the service. This includes the separation of the Web App into O/S specific variants. Whilst these resources are very similar, they are sufficiently different in Terraform schema that one resource for both reduced the experience of using it to one of the lowest common denominator. 
 
