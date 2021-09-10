@@ -160,7 +160,7 @@ func TestAccSynapseWorkspace_customerManagedKeyActivation(t *testing.T) {
 			Config: r.customerManagedKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("customer_managed_key_versionless_id").Exists(),
+				check.That(data.ResourceName).Key("customer_managed_key.0.key_versionless_id").Exists(),
 			),
 		},
 		data.ImportStep("sql_administrator_login_password"),
@@ -390,7 +390,10 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
-  customer_managed_key_versionless_id  = azurerm_key_vault_key.test.versionless_id
+  customer_managed_key {
+    key_versionless_id = azurerm_key_vault_key.test.versionless_id
+  }
+
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }

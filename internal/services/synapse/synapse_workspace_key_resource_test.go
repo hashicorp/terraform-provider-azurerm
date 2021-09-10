@@ -16,7 +16,7 @@ import (
 type SynapseWorkspaceKeysResource struct{}
 
 func TestAccSynapseWorkspaceKeys_customerManagedKey(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace_keys", "test")
+	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace_key", "test")
 	r := SynapseWorkspaceKeysResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -27,7 +27,7 @@ func TestAccSynapseWorkspaceKeys_customerManagedKey(t *testing.T) {
 			),
 		},
 		// CMK takes a while to activate, so validation against the plan tends to fail.
-		data.ImportStep("is_active_cmk"),
+		data.ImportStep(),
 	})
 }
 
@@ -95,8 +95,12 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
-  customer_managed_key_versionless_id  = azurerm_key_vault_key.test.versionless_id
-  customer_managed_key_name            = "test_key"
+  customer_managed_key {
+    key_versionless_id = azurerm_key_vault_key.test.versionless_id
+    key_name           = "test_key"
+
+  }
+
 }
 
 
@@ -115,8 +119,8 @@ resource "azurerm_key_vault_access_policy" "workspace_policy" {
 resource "azurerm_synapse_workspace_key" "test" {
   customer_managed_key_versionless_id = azurerm_key_vault_key.test.versionless_id
   synapse_workspace_id                = azurerm_synapse_workspace.test.id
-  is_active_cmk                       = true
-  key_name                            = "test_key"
+  active                              = true
+  cusomter_managed_key_name           = "test_key"
   depends_on                          = [azurerm_key_vault_access_policy.workspace_policy]
 }
 

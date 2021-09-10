@@ -106,7 +106,7 @@ resource "azurerm_key_vault_access_policy" "workspace_policy" {
 resource "azurerm_synapse_workspace_key" "example" {
   customer_managed_key_versionless_id = azurerm_key_vault_key.example.versionless_id
   synapse_workspace_id                = azurerm_synapse_workspace.example.id
-  is_active_cmk                       = true
+  active                       = true
   key_name                            = "enckey"
   depends_on                          = [azurerm_key_vault_access_policy.workspace_policy]
 }
@@ -122,7 +122,7 @@ The following arguments are supported:
 
 * `synapse_workspace_id` - (Required) The ID of the Synapse Workspace where the encryption key should be configured. 
 
-* `is_active_cmk` - (Required) Specifies if the workspace should be encrypted with this key. 
+* `active` - (Required) Specifies if the workspace should be encrypted with this key. 
 
 -> **Note:** Only one key can actively encrypt a workspace. When performing a key rotation, setting a new key as the active key will disable existing keys.
 

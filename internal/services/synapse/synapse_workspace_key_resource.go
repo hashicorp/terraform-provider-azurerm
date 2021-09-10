@@ -43,7 +43,7 @@ func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
 				ValidateFunc: validate.WorkspaceID,
 			},
 
-			"key_name": {
+			"cusomter_managed_key_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
@@ -54,7 +54,7 @@ func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
 				ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
 			},
 
-			"is_active_cmk": {
+			"active": {
 				Type:     pluginsdk.TypeBool,
 				Required: true,
 			},
@@ -75,8 +75,8 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	key := d.Get("customer_managed_key_versionless_id")
-	keyName := d.Get("key_name").(string)
-	isActiveCMK := d.Get("is_active_cmk").(bool)
+	keyName := d.Get("cusomter_managed_key_name").(string)
+	isActiveCMK := d.Get("active").(bool)
 
 	log.Printf("[INFO] Is active CMK: %t", isActiveCMK)
 
@@ -133,8 +133,8 @@ func resourceSynapseWorkspaceKeyRead(d *pluginsdk.ResourceData, meta interface{}
 
 	// Set the properties
 	d.Set("synapse_workspace_id", workspaceID.ID())
-	d.Set("is_active_cmk", resp.KeyProperties.IsActiveCMK)
-	d.Set("key_name", id.KeyName)
+	d.Set("active", resp.KeyProperties.IsActiveCMK)
+	d.Set("cusomter_managed_key_name", id.KeyName)
 	d.Set("customer_managed_key_versionless_id", resp.KeyProperties.KeyVaultURL)
 
 	return nil
