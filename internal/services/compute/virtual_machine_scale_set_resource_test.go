@@ -823,7 +823,8 @@ func (VirtualMachineScaleSetResource) hasLoadBalancer(ctx context.Context, clien
 		return err
 	}
 
-	read, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	read, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return err
 	}
@@ -861,7 +862,8 @@ func (VirtualMachineScaleSetResource) hasApplicationGateway(ctx context.Context,
 		return err
 	}
 
-	read, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	read, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return err
 	}
@@ -901,7 +903,8 @@ func (t VirtualMachineScaleSetResource) Exists(ctx context.Context, clients *cli
 	resGroup := id.ResourceGroup
 	name := id.Path["virtualMachineScaleSets"]
 
-	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, resGroup, name)
+	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
+	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, resGroup, name, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Virtual Machine Scale Set %q", id)
 	}

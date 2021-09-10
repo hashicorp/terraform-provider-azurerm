@@ -203,7 +203,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	if d.IsNewResource() {
 		// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-		existing, err := client.Get(ctx, resourceGroup, name, compute.ExpandTypesForGetVMScaleSets(""))
+		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -423,7 +423,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	log.Printf("[DEBUG] Retrieving Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := client.Get(ctx, resourceGroup, name, compute.ExpandTypesForGetVMScaleSets(""))
+	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -450,7 +450,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	// retrieve
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSets(""))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
@@ -710,7 +710,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSets(""))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
@@ -864,7 +864,7 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData,
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSets(""))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
