@@ -165,6 +165,42 @@ func TestAccAzureRMLoadBalancer_privateIP(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLoadBalancer_updatefrontEndConfigsWithZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	r := LoadBalancer{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.availability_zone_update1(data, "Zone-Redundant"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.availability_zone_update1(data, "No-Zone"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.availability_zone_update1(data, "Zone-Redundant"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.availability_zone_update2(data, "Zone-Redundant"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAzureRMLoadBalancer_ZoneRedundant(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	r := LoadBalancer{}
@@ -584,4 +620,99 @@ resource "azurerm_lb" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, zone)
+}
+
+func (r LoadBalancer) availability_zone_update1(data acceptance.TestData, zone string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-lb-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                          = "Internal-%[3]s"
+    private_ip_address_allocation = "Static"
+    private_ip_address_version    = "IPv4"
+    private_ip_address            = "10.0.2.7"
+    subnet_id                     = azurerm_subnet.test.id
+    availability_zone             = "%[3]s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, zone)
+}
+
+func (r LoadBalancer) availability_zone_update2(data acceptance.TestData, zone string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-lb-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                          = "Internal-%[3]s"
+    private_ip_address_allocation = "Static"
+    private_ip_address_version    = "IPv4"
+    private_ip_address            = "10.0.2.7"
+    subnet_id                     = azurerm_subnet.test.id
+    availability_zone             = "%[3]s"
+  }
+
+  frontend_ip_configuration {
+    name                          = "Internal2-%[3]s"
+    private_ip_address_allocation = "Static"
+    private_ip_address_version    = "IPv4"
+    private_ip_address            = "10.0.2.8"
+    subnet_id                     = azurerm_subnet.test.id
+    availability_zone             = "%[3]s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, zone)
 }
