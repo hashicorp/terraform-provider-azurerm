@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
@@ -23,7 +22,7 @@ func resourceCassandraMICluster() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCassandraMIClusterCreate,
 		Read:   resourceCassandraMIClusterRead,
-		Update: resourceCassandraMIClusterUpdate,
+		//Update: resourceCassandraMIClusterUpdate,
 		Delete: resourceCassandraMIClusterDelete,
 
 		// TODO: replace this with an importer which validates the ID during import
@@ -71,15 +70,6 @@ func resourceCassandraMICluster() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosEntityName,
 			},
-
-			"throughput": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validate.CosmosThroughput,
-			},
-
-			"autoscale_settings": common.DatabaseAutoscaleSettingsSchema(),
 		},
 	}
 }
@@ -118,7 +108,7 @@ func resourceCassandraMIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 		},
 	}
 
-	future, err := client.CreateUpdate(ctx, resourceGroup, clusterName, location, body)
+	future, err := client.CreateUpdateCluster(ctx, resourceGroup, clusterName, location, body)
 	if err != nil {
 		return fmt.Errorf("issuing create request for Cosmos Cassandra Keyspace %q (Account: %q): %+v", clusterName, clusterName, err)
 	}
@@ -140,57 +130,6 @@ func resourceCassandraMIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	d.SetId(*resp.ID)
 
 	return resourceCassandraMIClusterRead(d, meta)
-}
-
-func resourceCassandraMIClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CassandraClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.CassandraKeyspaceID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
-	if err != nil {
-		return fmt.Errorf("updating Cosmos Cassandra Keyspace %q (Account: %q) - %+v", id.Name, id.DatabaseAccountName, err)
-	}
-
-	db := documentdb.CassandraKeyspaceCreateUpdateParameters{
-		CassandraKeyspaceCreateUpdateProperties: &documentdb.CassandraKeyspaceCreateUpdateProperties{
-			Resource: &documentdb.CassandraKeyspaceResource{
-				ID: &id.Name,
-			},
-			Options: &documentdb.CreateUpdateOptions{},
-		},
-	}
-
-	future, err := client.CreateUpdateCassandraKeyspace(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name, db)
-	if err != nil {
-		return fmt.Errorf("issuing create/update request for Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.ResourceGroup, id.DatabaseAccountName, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.ResourceGroup, id.DatabaseAccountName, err)
-	}
-
-	if common.HasThroughputChange(d) {
-		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
-		throughputFuture, err := client.UpdateCassandraKeyspaceThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name, *throughputParameters)
-		if err != nil {
-			if response.WasNotFound(throughputFuture.Response()) {
-				return fmt.Errorf("setting Throughput for Cosmos Cassandra Keyspace %q (Account: %q): %+v - "+
-					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Name, id.DatabaseAccountName, err)
-			}
-		}
-
-		if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting on ThroughputUpdate future for Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
-		}
-	}
-
-	return resourceCosmosDbCassandraKeyspaceRead(d, meta)
 }
 
 func resourceCassandraMIClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {

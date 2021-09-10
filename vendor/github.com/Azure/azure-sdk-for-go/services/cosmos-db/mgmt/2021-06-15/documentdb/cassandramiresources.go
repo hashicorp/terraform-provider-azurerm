@@ -29,7 +29,7 @@ func NewCassandraMIResourcesClientWithBaseURI(baseURI string, subscriptionID str
 	return CassandraMIResourcesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-func (client CassandraMIResourcesClient) CreateUpdate(ctx context.Context, resourceGroupName string, clusterName string, location string, createUpdateCassandraMIClusterParameters CassandraMIClusterCreateUpdateParameters) (result CassandraMIResourcesCreateUpdateCassandraMIClusterFuture, err error) {
+func (client CassandraMIResourcesClient) CreateUpdateCluster(ctx context.Context, resourceGroupName string, clusterName string, location string, createUpdateCassandraMIClusterParameters CassandraMIClusterCreateUpdateParameters) (result CassandraMIResourcesCreateUpdateCassandraMIClusterFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CassandraMIResourcesClient.CreateUpdateCassandraMICluster")
 		defer func() {
@@ -61,13 +61,13 @@ func (client CassandraMIResourcesClient) CreateUpdate(ctx context.Context, resou
 		return result, validation.NewError("documentdb.CassandraMIResourcesClient", "CreateUpdateCassandraMIKeyspace", err.Error())
 	}
 
-	req, err := client.CreateUpdatePreparer(ctx, resourceGroupName, clusterName, location, createUpdateCassandraMIClusterParameters)
+	req, err := client.CreateUpdateClusterPreparer(ctx, resourceGroupName, clusterName, location, createUpdateCassandraMIClusterParameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.CassandraMIResourcesClient", "CreateUpdateCassandraMIKeyspace", nil, "Failure preparing request")
 		return
 	}
 
-	result, err = client.CreateUpdateSender(req)
+	result, err = client.CreateUpdateClusterSender(req)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.CassandraMIResourcesClient", "CreateUpdateCassandraMIKeyspace", nil, "Failure sending request")
 		return
@@ -77,7 +77,7 @@ func (client CassandraMIResourcesClient) CreateUpdate(ctx context.Context, resou
 }
 
 // CreateUpdateCassandraMIKeyspacePreparer prepares the CreateUpdateCassandraMIKeyspace request.
-func (client CassandraMIResourcesClient) CreateUpdatePreparer(ctx context.Context, resourceGroupName string, clusterName string, location string, cassandraMIClusterCreateUpdateParameters CassandraMIClusterCreateUpdateParameters) (*http.Request, error) {
+func (client CassandraMIResourcesClient) CreateUpdateClusterPreparer(ctx context.Context, resourceGroupName string, clusterName string, location string, cassandraMIClusterCreateUpdateParameters CassandraMIClusterCreateUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"clusterName":       autorest.Encode("path", clusterName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -95,7 +95,6 @@ func (client CassandraMIResourcesClient) CreateUpdatePreparer(ctx context.Contex
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/cassandraClusters/{clusterName}", pathParameters),
-		//autorest.WithJSON("{\"location\": \"East US\"}"),
 		autorest.WithJSON(cassandraMIClusterCreateUpdateParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -103,7 +102,7 @@ func (client CassandraMIResourcesClient) CreateUpdatePreparer(ctx context.Contex
 
 // CreateUpdateCassandraMIKeyspaceSender sends the CreateUpdateCassandraMIKeyspace request. The method will close the
 // http.Response Body if it receives an error.
-func (client CassandraMIResourcesClient) CreateUpdateSender(req *http.Request) (future CassandraMIResourcesCreateUpdateCassandraMIClusterFuture, err error) {
+func (client CassandraMIResourcesClient) CreateUpdateClusterSender(req *http.Request) (future CassandraMIResourcesCreateUpdateCassandraMIClusterFuture, err error) {
 	var resp *http.Response
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
@@ -118,7 +117,7 @@ func (client CassandraMIResourcesClient) CreateUpdateSender(req *http.Request) (
 
 // CreateUpdateCassandraMIKeyspaceResponder handles the response to the CreateUpdateCassandraMIKeyspace request. The method always
 // closes the http.Response Body.
-func (client CassandraMIResourcesClient) CreateUpdateResponder(resp *http.Response) (result CassandraKeyspaceGetResults, err error) {
+func (client CassandraMIResourcesClient) CreateUpdateClusterResponder(resp *http.Response) (result CassandraKeyspaceGetResults, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
@@ -129,7 +128,7 @@ func (client CassandraMIResourcesClient) CreateUpdateResponder(resp *http.Respon
 }
 
 func (client CassandraMIResourcesClient) GetCluster(ctx context.Context, resourceGroupName string, accountName string, keyspaceName string) (result CassandraKeyspaceGetResults, err error) {
-	log.Println("got here 0")
+	log.Println("0")
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CassandraMIResourcesClient.Get")
 		defer func() {
@@ -140,7 +139,6 @@ func (client CassandraMIResourcesClient) GetCluster(ctx context.Context, resourc
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	log.Println("got here 1")
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
@@ -153,26 +151,17 @@ func (client CassandraMIResourcesClient) GetCluster(ctx context.Context, resourc
 				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("documentdb.CassandraMIResourcesClient", "Get", err.Error())
 	}
-
-	log.Println("got here 2")
-
 	req, err := client.GetClusterPreparer(ctx, resourceGroupName, accountName, keyspaceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.CassandraMIResourcesClient", "Get", nil, "Failure preparing request")
 		return
 	}
-
-	log.Println("got here 3")
-
 	resp, err := client.GetClusterSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "documentdb.CassandraMIResourcesClient", "Get", resp, "Failure sending request")
 		return
 	}
-
-	log.Println("got here 4")
-
 	result, err = client.GetClusterResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.CassandraMIResourcesClient", "Get", resp, "Failure responding to request")
@@ -212,6 +201,197 @@ func (client CassandraMIResourcesClient) GetClusterSender(req *http.Request) (*h
 // GetCassandraKeyspaceResponder handles the response to the GetCassandraKeyspace request. The method always
 // closes the http.Response Body.
 func (client CassandraMIResourcesClient) GetClusterResponder(resp *http.Response) (result CassandraKeyspaceGetResults, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+func (client CassandraMIResourcesClient) CreateUpdateDatacenter(ctx context.Context, resourceGroupName string, clusterName string, DatacenterName string, location string, createUpdateCassandraMIDatacenterParameters CassandraMIDatacenterCreateUpdateParameters) (result CassandraMIResourcesCreateUpdateCassandraMIDatacenterFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CassandraMIResourcesClient.CreateUpdateCassandraMICluster")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: location,
+			Constraints: []validation.Constraint{{Target: "location", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "location", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: clusterName,
+			Constraints: []validation.Constraint{{Target: "clusterName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+				{Target: "clusterName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "clusterName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}},
+		{TargetValue: clusterName,
+			Constraints: []validation.Constraint{{Target: "DatacenterName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+				{Target: "DatacenterName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "DatacenterName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}},
+		{TargetValue: createUpdateCassandraMIDatacenterParameters,
+			Constraints: []validation.Constraint{{Target: "createUpdateCassandraMIClusterParameters.CassandraMIClusterCreateUpdateProperties", Name: validation.Null, Rule: true,
+				Chain: []validation.Constraint{{Target: "createUpdateCassandraMIClusterParameters.CassandraMIClusterCreateUpdateProperties.Resource", Name: validation.Null, Rule: true,
+					Chain: []validation.Constraint{{Target: "createUpdateCassandraMIClusterParameters.CassandraMIClusterCreateUpdateProperties.Resource.ID", Name: validation.Null, Rule: true, Chain: nil}}},
+				}}}}}); err != nil {
+		return result, validation.NewError("documentdb.CassandraMIResourcesClient", "CreateUpdateCassandraMIKeyspace", err.Error())
+	}
+
+	req, err := client.CreateUpdateDatacenterPreparer(ctx, resourceGroupName, clusterName, DatacenterName, location, createUpdateCassandraMIDatacenterParameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraMIResourcesClient", "CreateUpdateCassandraMIKeyspace", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.CreateUpdateDatacenterSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraMIResourcesClient", "CreateUpdateCassandraMIKeyspace", nil, "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// CreateUpdateCassandraMIKeyspacePreparer prepares the CreateUpdateCassandraMIKeyspace request.
+func (client CassandraMIResourcesClient) CreateUpdateDatacenterPreparer(ctx context.Context, resourceGroupName string, clusterName string, DatacenterName string, location string, cassandraMIDatacenterCreateUpdateParameters CassandraMIDatacenterCreateUpdateParameters) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"DatacenterName":    autorest.Encode("path", DatacenterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"location":          "East US",
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-04-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPut(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/cassandraClusters/{clusterName}/dataCenters/{DatacenterName}", pathParameters),
+		autorest.WithJSON(cassandraMIDatacenterCreateUpdateParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// CreateUpdateCassandraMIKeyspaceSender sends the CreateUpdateCassandraMIKeyspace request. The method will close the
+// http.Response Body if it receives an error.
+func (client CassandraMIResourcesClient) CreateUpdateDatacenterSender(req *http.Request) (future CassandraMIResourcesCreateUpdateCassandraMIDatacenterFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// CreateUpdateCassandraMIKeyspaceResponder handles the response to the CreateUpdateCassandraMIKeyspace request. The method always
+// closes the http.Response Body.
+func (client CassandraMIResourcesClient) CreateUpdateDatacenterResponder(resp *http.Response) (result CassandraKeyspaceGetResults, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+func (client CassandraMIResourcesClient) GetDatacenter(ctx context.Context, resourceGroupName string, clusterName string, datacenterName string) (result CassandraKeyspaceGetResults, err error) {
+	log.Println("0")
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CassandraMIResourcesClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: clusterName,
+			Constraints: []validation.Constraint{{Target: "clusterName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+				{Target: "clusterName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "clusterName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}},
+		{TargetValue: datacenterName,
+			Constraints: []validation.Constraint{{Target: "datacenterName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+				{Target: "datacenterName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "datacenterName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("documentdb.CassandraMIResourcesClient", "Get", err.Error())
+	}
+	req, err := client.GetDatacenterPreparer(ctx, resourceGroupName, clusterName, datacenterName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraMIResourcesClient", "Get", nil, "Failure preparing request")
+		return
+	}
+	resp, err := client.GetDatacenterSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraMIResourcesClient", "Get", resp, "Failure sending request")
+		return
+	}
+	result, err = client.GetDatacenterResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraMIResourcesClient", "Get", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetCassandraKeyspacePreparer prepares the GetCassandraKeyspace request.
+func (client CassandraMIResourcesClient) GetDatacenterPreparer(ctx context.Context, resourceGroupName string, clusterName string, datacenterName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"datacenterName":    autorest.Encode("path", datacenterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2021-04-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/cassandraClusters/{clusterName}/dataCenters/{datacenterName}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetCassandraKeyspaceSender sends the GetCassandraKeyspace request. The method will close the
+// http.Response Body if it receives an error.
+func (client CassandraMIResourcesClient) GetDatacenterSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetCassandraKeyspaceResponder handles the response to the GetCassandraKeyspace request. The method always
+// closes the http.Response Body.
+func (client CassandraMIResourcesClient) GetDatacenterResponder(resp *http.Response) (result CassandraKeyspaceGetResults, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

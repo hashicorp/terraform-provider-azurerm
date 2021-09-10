@@ -344,15 +344,6 @@ type CassandraMIClusterCreateUpdateParameters struct {
 	// CassandraKeyspaceCreateUpdateProperties - Properties to create and update Azure Cosmos DB Cassandra keyspace.
 	Location                                  *string `json:"location,omitempty"`
 	*CassandraMIClusterCreateUpdateProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; The unique resource identifier of the ARM resource.
-	// ID *string `json:"id,omitempty"`
-	// // Name - READ-ONLY; The name of the ARM resource.
-	// Name *string `json:"name,omitempty"`
-	// // Type - READ-ONLY; The type of Azure resource.
-	// Type *string `json:"type,omitempty"`
-	// Location - The location of the resource group to which the resource belongs.
-
-	// Tags     map[string]*string `json:"tags"`
 }
 
 // MarshalJSON is the custom marshaler for CassandraKeyspaceCreateUpdateParameters.
@@ -364,9 +355,6 @@ func (ckcup CassandraMIClusterCreateUpdateParameters) MarshalJSON() ([]byte, err
 	if ckcup.Location != nil {
 		objectMap["location"] = ckcup.Location
 	}
-	// if ckcup.Tags != nil {
-	// 	objectMap["tags"] = ckcup.Tags
-	// }
 	return json.Marshal(objectMap)
 }
 
@@ -388,33 +376,6 @@ func (ckcup *CassandraMIClusterCreateUpdateParameters) UnmarshalJSON(body []byte
 				}
 				ckcup.CassandraMIClusterCreateUpdateProperties = &cassandraMIClusterCreateUpdateProperties
 			}
-		// case "id":
-		// 	if v != nil {
-		// 		var ID string
-		// 		err = json.Unmarshal(*v, &ID)
-		// 		if err != nil {
-		// 			return err
-		// 		}
-		// 		ckcup.ID = &ID
-		// 	}
-		// case "name":
-		// 	if v != nil {
-		// 		var name string
-		// 		err = json.Unmarshal(*v, &name)
-		// 		if err != nil {
-		// 			return err
-		// 		}
-		// 		ckcup.Name = &name
-		// 	}
-		// case "type":
-		// 	if v != nil {
-		// 		var typeVar string
-		// 		err = json.Unmarshal(*v, &typeVar)
-		// 		if err != nil {
-		// 			return err
-		// 		}
-		// 		ckcup.Type = &typeVar
-		// 	}
 		case "location":
 			if v != nil {
 				var location string
@@ -424,16 +385,58 @@ func (ckcup *CassandraMIClusterCreateUpdateParameters) UnmarshalJSON(body []byte
 				}
 				ckcup.Location = &location
 			}
-			// case "tags":
-			// 	if v != nil {
-			// 		var tags map[string]*string
-			// 		err = json.Unmarshal(*v, &tags)
-			// 		if err != nil {
-			// 			return err
-			// 		}
-			// 		ckcup.Tags = tags
-			// 	}
-			// }
+		}
+	}
+
+	return nil
+}
+
+// CassandraKeyspaceCreateUpdateParameters parameters to create and update Cosmos DB Cassandra keyspace.
+type CassandraMIDatacenterCreateUpdateParameters struct {
+	// CassandraKeyspaceCreateUpdateProperties - Properties to create and update Azure Cosmos DB Cassandra keyspace.
+	Location                                     *string `json:"location,omitempty"`
+	*CassandraMIDatacenterCreateUpdateProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CassandraKeyspaceCreateUpdateParameters.
+func (ckcup CassandraMIDatacenterCreateUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ckcup.CassandraMIDatacenterCreateUpdateProperties != nil {
+		objectMap["properties"] = ckcup.CassandraMIDatacenterCreateUpdateProperties
+	}
+	if ckcup.Location != nil {
+		objectMap["location"] = ckcup.Location
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for CassandraKeyspaceCreateUpdateParameters struct.
+func (ckcup *CassandraMIDatacenterCreateUpdateParameters) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var cassandraMIDatacenterCreateUpdateProperties CassandraMIDatacenterCreateUpdateProperties
+				err = json.Unmarshal(*v, &cassandraMIDatacenterCreateUpdateProperties)
+				if err != nil {
+					return err
+				}
+				ckcup.CassandraMIDatacenterCreateUpdateProperties = &cassandraMIDatacenterCreateUpdateProperties
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				ckcup.Location = &location
+			}
 		}
 	}
 
@@ -453,6 +456,13 @@ type CassandraKeyspaceCreateUpdateProperties struct {
 type CassandraMIClusterCreateUpdateProperties struct {
 	DelegatedManagementSubnetId   *string `json:"delegatedManagementSubnetId,omitempty"`
 	InitialCassandraAdminPassword *string `json:"initialCassandraAdminPassword,omitempty"`
+}
+
+// CassandraKeyspaceGetProperties the properties of an Azure Cosmos DB Cassandra keyspace
+type CassandraMIDatacenterCreateUpdateProperties struct {
+	DelegatedSubnetId  *string `json:"delegatedSubnetId,omitempty"`
+	NodeCount          *string `json:"nodeCount,omitempty"`
+	DataCenterLocation *string `json:"dataCenterLocation,omitempty"`
 }
 
 type CassandraKeyspaceGetProperties struct {
@@ -708,9 +718,52 @@ func (future *CassandraMIResourcesCreateUpdateCassandraMIClusterFuture) result(c
 	}
 	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if ckgr.Response.Response, err = future.GetResult(sender); err == nil && ckgr.Response.Response.StatusCode != http.StatusNoContent {
-		ckgr, err = client.CreateUpdateResponder(ckgr.Response.Response)
+		ckgr, err = client.CreateUpdateClusterResponder(ckgr.Response.Response)
 		if err != nil {
 			err = autorest.NewErrorWithError(err, "documentdb.CassandraMIResourcesCreateUpdateCassandraClusterFuture", "Result", ckgr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// CassandraResourcesCreateUpdateCassandraKeyspaceFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type CassandraMIResourcesCreateUpdateCassandraMIDatacenterFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CassandraMIResourcesClient) (CassandraKeyspaceGetResults, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *CassandraMIResourcesCreateUpdateCassandraMIDatacenterFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for CassandraResourcesCreateUpdateCassandraKeyspaceFuture.Result.
+func (future *CassandraMIResourcesCreateUpdateCassandraMIDatacenterFuture) result(client CassandraMIResourcesClient) (ckgr CassandraKeyspaceGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraMIResourcesCreateUpdateCassandraMIDatacenterFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ckgr.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("documentdb.CassandraMIResourcesCreateUpdateCassandraMIDatacenterFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if ckgr.Response.Response, err = future.GetResult(sender); err == nil && ckgr.Response.Response.StatusCode != http.StatusNoContent {
+		ckgr, err = client.CreateUpdateDatacenterResponder(ckgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.CassandraMIResourcesCreateUpdateCassandraMIDatacenterFuture", "Result", ckgr.Response.Response, "Failure responding to request")
 		}
 	}
 	return
