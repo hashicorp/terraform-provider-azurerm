@@ -367,7 +367,7 @@ func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []interface{}
 		},
 		CertificateSource: cdn.CertificateSourceCdn,
 		ProtocolType:      cdn.ProtocolType(raw["protocol_type"].(string)),
-		MinimumTLSVersion: cdn.None,
+		MinimumTLSVersion: cdn.MinimumTLSVersionNone,
 	}
 
 	return output
@@ -398,7 +398,7 @@ func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(input []interface{
 		},
 		CertificateSource: cdn.CertificateSourceAzureKeyVault,
 		ProtocolType:      cdn.ServerNameIndication,
-		MinimumTLSVersion: cdn.None,
+		MinimumTLSVersion: cdn.MinimumTLSVersionNone,
 	}
 
 	return output, nil
@@ -462,8 +462,8 @@ func enableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.Cust
 	log.Printf("[DEBUG] Waiting for HTTPS to enable on %q", id)
 	deadline, _ := ctx.Deadline()
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{string(cdn.Enabling)},
-		Target:     []string{string(cdn.Enabled), string(cdn.Failed), string(cdn.Disabled)},
+		Pending:    []string{string(cdn.CustomHTTPSProvisioningStateEnabling)},
+		Target:     []string{string(cdn.CustomHTTPSProvisioningStateEnabled), string(cdn.CustomHTTPSProvisioningStateFailed), string(cdn.CustomHTTPSProvisioningStateDisabled)},
 		Refresh:    cdnEndpointCustomDomainHttpsRefreshFunc(ctx, client, id),
 		MinTimeout: 10 * time.Second,
 		Timeout:    time.Until(deadline),
@@ -492,8 +492,8 @@ func disableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.Cus
 	log.Printf("[DEBUG] Waiting for HTTPS to disable on %q", id)
 	deadline, _ := ctx.Deadline()
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{string(cdn.Disabling)},
-		Target:     []string{string(cdn.Disabled), string(cdn.Failed), string(cdn.Enabled)},
+		Pending:    []string{string(cdn.CustomHTTPSProvisioningStateDisabling)},
+		Target:     []string{string(cdn.CustomHTTPSProvisioningStateDisabled), string(cdn.CustomHTTPSProvisioningStateFailed), string(cdn.CustomHTTPSProvisioningStateEnabled)},
 		Refresh:    cdnEndpointCustomDomainHttpsRefreshFunc(ctx, client, id),
 		MinTimeout: 10 * time.Second,
 		Timeout:    time.Until(deadline),
