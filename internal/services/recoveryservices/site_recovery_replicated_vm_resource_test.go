@@ -3,9 +3,9 @@ package recoveryservices_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -673,20 +673,14 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 }
 
 func (t SiteRecoveryReplicatedVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ReplicationProtectedItemID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resGroup := id.ResourceGroup
-	vaultName := id.Path["vaults"]
-	fabricName := id.Path["replicationFabrics"]
-	protectionContainerName := id.Path["replicationProtectionContainers"]
-	name := id.Path["replicationProtectedItems"]
-
-	resp, err := clients.RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName).Get(ctx, fabricName, protectionContainerName, name)
+	resp, err := clients.RecoveryServices.ReplicationMigrationItemsClient(id.ResourceGroup, id.VaultName).Get(ctx, id.ReplicationFabricName, id.ReplicationProtectionContainerName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading site recovery replicated vm (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading site recovery replicated vm (%s): %+v", id.String(), err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
