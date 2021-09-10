@@ -312,6 +312,8 @@ The `identity` block exports the following:
 
 * `tenant_id` - The tenant id of the system assigned identity which is used by primary components.
 
+* `user_assigned_identity_id` - The ID of the User Assigned Identity which is used by primary components. This value will be empty when using system assigned identity.
+
 ---
 
 The `kubelet_identity` block exports the following:
