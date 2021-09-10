@@ -1,6 +1,7 @@
 package loadbalancer
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -79,7 +80,6 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Optional: true,
 							//Default:  "Zone-Redundant",
 							Computed: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"No-Zone",
 								"1",
@@ -177,7 +177,6 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Type:       pluginsdk.TypeList,
 							Optional:   true,
 							Computed:   true,
-							ForceNew:   true,
 							Deprecated: "This property has been deprecated in favour of `availability_zone` due to a breaking behavioural change in Azure: https://azure.microsoft.com/en-us/updates/zone-behavior-change/",
 							MaxItems:   1,
 							Elem: &pluginsdk.Schema{
@@ -208,6 +207,20 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			if ok := d.HasChange("frontend_ip_configuration"); ok {
+				configs := d.Get("frontend_ip_configuration").([]interface{})
+
+				for index := range configs {
+					if d.HasChange(fmt.Sprintf("frontend_ip_configuration.%d.availability_zone", index)) && !d.HasChange(fmt.Sprintf("frontend_ip_configuration.%d.name", index)) {
+						return fmt.Errorf("in place change of the `frontend_ip_configuration.%[1]d.availability_zone` is not allowed. It is allowed to do this while also changing `frontend_ip_configuration.%[1]d.name`", index)
+					}
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 
