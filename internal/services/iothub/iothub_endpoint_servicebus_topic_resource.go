@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -23,8 +24,11 @@ func resourceIotHubEndpointServiceBusTopic() *pluginsdk.Resource {
 		Read:   resourceIotHubEndpointServiceBusTopicRead,
 		Update: resourceIotHubEndpointServiceBusTopicCreateUpdate,
 		Delete: resourceIotHubEndpointServiceBusTopicDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.EndpointServiceBusTopicID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -69,33 +73,30 @@ func resourceIotHubEndpointServiceBusTopic() *pluginsdk.Resource {
 
 func resourceIotHubEndpointServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
+	subscriptionId := meta.(*clients.Client).IoTHub.ResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 
-	iothubName := d.Get("iothub_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewEndpointServiceBusTopicID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), d.Get("name").(string))
 
-	locks.ByName(iothubName, IothubResourceName)
-	defer locks.UnlockByName(iothubName, IothubResourceName)
+	locks.ByName(id.IotHubName, IothubResourceName)
+	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
 
-	iothub, err := client.Get(ctx, resourceGroup, iothubName)
+	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(iothub.Response) {
-			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
+			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
-
-	endpointName := d.Get("name").(string)
-	resourceId := fmt.Sprintf("%s/Endpoints/%s", *iothub.ID, endpointName)
 
 	topicEndpoint := devices.RoutingServiceBusTopicEndpointProperties{
 		ConnectionString: utils.String(d.Get("connection_string").(string)),
-		Name:             utils.String(endpointName),
+		Name:             utils.String(id.EndpointName),
 		SubscriptionID:   utils.String(subscriptionID),
-		ResourceGroup:    utils.String(resourceGroup),
+		ResourceGroup:    utils.String(id.ResourceGroup),
 	}
 
 	routing := iothub.Properties.Routing
@@ -116,9 +117,9 @@ func resourceIotHubEndpointServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData
 	alreadyExists := false
 	for _, existingEndpoint := range *routing.Endpoints.ServiceBusTopics {
 		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
-			if strings.EqualFold(*existingEndpointName, endpointName) {
+			if strings.EqualFold(*existingEndpointName, id.EndpointName) {
 				if d.IsNewResource() {
-					return tf.ImportAsExistsError("azurerm_iothub_endpoint_servicebus_topic", resourceId)
+					return tf.ImportAsExistsError("azurerm_iothub_endpoint_servicebus_topic", id.ID())
 				}
 				endpoints = append(endpoints, topicEndpoint)
 				alreadyExists = true
@@ -131,20 +132,20 @@ func resourceIotHubEndpointServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData
 	if d.IsNewResource() {
 		endpoints = append(endpoints, topicEndpoint)
 	} else if !alreadyExists {
-		return fmt.Errorf("Unable to find ServiceBus Queue Endpoint %q defined for IotHub %q (Resource Group %q)", endpointName, iothubName, resourceGroup)
+		return fmt.Errorf("unable to find %s", id.String())
 	}
 	routing.Endpoints.ServiceBusTopics = &endpoints
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("creating/updating IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id.String(), err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id.String(), err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(id.ID())
 
 	return resourceIotHubEndpointServiceBusTopicRead(d, meta)
 }
@@ -154,14 +155,14 @@ func resourceIotHubEndpointServiceBusTopicRead(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedIothubEndpointId, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.EndpointServiceBusTopicID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedIothubEndpointId.ResourceGroup
-	iothubName := parsedIothubEndpointId.Path["IotHubs"]
-	endpointName := parsedIothubEndpointId.Path["Endpoints"]
+	resourceGroup := id.ResourceGroup
+	iothubName := id.IotHubName
+	endpointName := id.EndpointName
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
@@ -194,14 +195,14 @@ func resourceIotHubEndpointServiceBusTopicDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedIothubEndpointId, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.EndpointServiceBusTopicID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedIothubEndpointId.ResourceGroup
-	iothubName := parsedIothubEndpointId.Path["IotHubs"]
-	endpointName := parsedIothubEndpointId.Path["Endpoints"]
+	resourceGroup := id.ResourceGroup
+	iothubName := id.IotHubName
+	endpointName := id.EndpointName
 
 	locks.ByName(iothubName, IothubResourceName)
 	defer locks.UnlockByName(iothubName, IothubResourceName)
@@ -236,11 +237,11 @@ func resourceIotHubEndpointServiceBusTopicDelete(d *pluginsdk.ResourceData, meta
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("updating IotHub %q (Resource Group %q) with ServiceBus Queue Endpoint %q: %+v", iothubName, resourceGroup, endpointName, err)
+		return fmt.Errorf("updating IotHub %q (Resource Group %q) with ServiceBus Topic Endpoint %q: %+v", iothubName, resourceGroup, endpointName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for IotHub %q (Resource Group %q) to finish updating ServiceBus Queue Endpoint %q: %+v", iothubName, resourceGroup, endpointName, err)
+		return fmt.Errorf("waiting for IotHub %q (Resource Group %q) to finish updating ServiceBus Topic Endpoint %q: %+v", iothubName, resourceGroup, endpointName, err)
 	}
 
 	return nil
