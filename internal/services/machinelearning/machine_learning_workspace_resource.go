@@ -123,7 +123,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			"public_network_access": {
+			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
@@ -203,7 +203,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 			StorageAccount:                  utils.String(d.Get("storage_account_id").(string)),
 			ApplicationInsights:             utils.String(d.Get("application_insights_id").(string)),
 			KeyVault:                        utils.String(d.Get("key_vault_id").(string)),
-			AllowPublicAccessWhenBehindVnet: utils.Bool(d.Get("public_network_access").(bool)),
+			AllowPublicAccessWhenBehindVnet: utils.Bool(d.Get("public_network_access_enabled").(bool)),
 		},
 	}
 
@@ -281,7 +281,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("description", props.Description)
 		d.Set("friendly_name", props.FriendlyName)
 		d.Set("high_business_impact", props.HbiWorkspace)
-		d.Set("public_network_access", props.AllowPublicAccessWhenBehindVnet)
+		d.Set("public_network_access_enabled", props.AllowPublicAccessWhenBehindVnet)
 		d.Set("image_build_compute", props.ImageBuildCompute)
 		d.Set("discovery_url", props.DiscoveryURL)
 	}
