@@ -164,6 +164,12 @@ func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
+
+				"vnet_route_all_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -264,6 +270,11 @@ func schemaFunctionAppDataSourceSiteConfig() *pluginsdk.Schema {
 
 				"dotnet_framework_version": {
 					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"vnet_route_all_enabled": {
+					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 			},
@@ -476,6 +487,10 @@ func expandFunctionAppSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig, err
 		siteConfig.NetFrameworkVersion = utils.String(v.(string))
 	}
 
+	if v, ok := config["vnet_route_all_enabled"]; ok {
+		siteConfig.VnetRouteAllEnabled = utils.Bool(v.(bool))
+	}
+
 	return siteConfig, nil
 }
 
@@ -553,6 +568,12 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	if input.NetFrameworkVersion != nil {
 		result["dotnet_framework_version"] = *input.NetFrameworkVersion
 	}
+
+	vnetRouteAllEnabled := false
+	if input.VnetRouteAllEnabled != nil {
+		vnetRouteAllEnabled = *input.VnetRouteAllEnabled
+	}
+	result["vnet_route_all_enabled"] = vnetRouteAllEnabled
 
 	results = append(results, result)
 	return results
