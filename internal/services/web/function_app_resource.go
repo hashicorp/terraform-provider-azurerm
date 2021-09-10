@@ -442,6 +442,9 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	// WEBSITE_VNET_ROUTE_ALL is superseded by a setting in site_config that defaults to false from 2021-02-01
 	appSettings, err := expandFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
+	if err != nil {
+		return fmt.Errorf("expanding `app_settings` for Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+	}
 	if vnetRouteAll, ok := appSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
 		if !d.HasChange("site_config.0.vnet_route_all_enabled") { // Only update the property if it's not set explicitly
 			vnetRouteAllEnabled, _ := strconv.ParseBool(*vnetRouteAll)
@@ -483,10 +486,6 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("waiting for update of Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
-	appSettings, err = expandFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
-	if err != nil {
-		return err
-	}
 	settings := web.StringDictionary{
 		Properties: appSettings,
 	}
