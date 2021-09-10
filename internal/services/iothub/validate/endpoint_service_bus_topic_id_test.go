@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestEndpointServicebusTopicID(t *testing.T) {
+func TestEndpointServiceBusTopicID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -78,7 +78,7 @@ func TestEndpointServicebusTopicID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := EndpointServicebusTopicID(tc.Input, "test")
+		_, errors := EndpointServiceBusTopicID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

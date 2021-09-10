@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = EndpointServicebusTopicId{}
+var _ resourceid.Formatter = EndpointServiceBusQueueId{}
 
-func TestEndpointServicebusTopicIDFormatter(t *testing.T) {
-	actual := NewEndpointServicebusTopicID("12345678-1234-9876-4563-123456789012", "resGroup1", "hub1", "serviceBusTopicEndpoint1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Devices/IotHubs/hub1/Endpoints/serviceBusTopicEndpoint1"
+func TestEndpointServiceBusQueueIDFormatter(t *testing.T) {
+	actual := NewEndpointServiceBusQueueID("12345678-1234-9876-4563-123456789012", "resGroup1", "hub1", "serviceBusQueueEndpoint1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Devices/IotHubs/hub1/Endpoints/serviceBusQueueEndpoint1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestEndpointServicebusTopicID(t *testing.T) {
+func TestEndpointServiceBusQueueID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *EndpointServicebusTopicId
+		Expected *EndpointServiceBusQueueId
 	}{
 
 		{
@@ -81,18 +81,18 @@ func TestEndpointServicebusTopicID(t *testing.T) {
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Devices/IotHubs/hub1/Endpoints/serviceBusTopicEndpoint1",
-			Expected: &EndpointServicebusTopicId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Devices/IotHubs/hub1/Endpoints/serviceBusQueueEndpoint1",
+			Expected: &EndpointServiceBusQueueId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
 				IotHubName:     "hub1",
-				EndpointName:   "serviceBusTopicEndpoint1",
+				EndpointName:   "serviceBusQueueEndpoint1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.DEVICES/IOTHUBS/HUB1/ENDPOINTS/SERVICEBUSTOPICENDPOINT1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.DEVICES/IOTHUBS/HUB1/ENDPOINTS/SERVICEBUSQUEUEENDPOINT1",
 			Error: true,
 		},
 	}
@@ -100,7 +100,7 @@ func TestEndpointServicebusTopicID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := EndpointServicebusTopicID(v.Input)
+		actual, err := EndpointServiceBusQueueID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
-type EndpointServicebusQueueId struct {
+type EndpointServiceBusTopicId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	IotHubName     string
 	EndpointName   string
 }
 
-func NewEndpointServicebusQueueID(subscriptionId, resourceGroup, iotHubName, endpointName string) EndpointServicebusQueueId {
-	return EndpointServicebusQueueId{
+func NewEndpointServiceBusTopicID(subscriptionId, resourceGroup, iotHubName, endpointName string) EndpointServiceBusTopicId {
+	return EndpointServiceBusTopicId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		IotHubName:     iotHubName,
@@ -25,29 +25,29 @@ func NewEndpointServicebusQueueID(subscriptionId, resourceGroup, iotHubName, end
 	}
 }
 
-func (id EndpointServicebusQueueId) String() string {
+func (id EndpointServiceBusTopicId) String() string {
 	segments := []string{
 		fmt.Sprintf("Endpoint Name %q", id.EndpointName),
 		fmt.Sprintf("Iot Hub Name %q", id.IotHubName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Endpoint Servicebus Queue", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Endpoint Service Bus Topic", segmentsStr)
 }
 
-func (id EndpointServicebusQueueId) ID() string {
+func (id EndpointServiceBusTopicId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Devices/IotHubs/%s/Endpoints/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.IotHubName, id.EndpointName)
 }
 
-// EndpointServicebusQueueID parses a EndpointServicebusQueue ID into an EndpointServicebusQueueId struct
-func EndpointServicebusQueueID(input string) (*EndpointServicebusQueueId, error) {
+// EndpointServiceBusTopicID parses a EndpointServiceBusTopic ID into an EndpointServiceBusTopicId struct
+func EndpointServiceBusTopicID(input string) (*EndpointServiceBusTopicId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := EndpointServicebusQueueId{
+	resourceId := EndpointServiceBusTopicId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
