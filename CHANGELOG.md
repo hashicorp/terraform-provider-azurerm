@@ -1,15 +1,23 @@
 ## 2.76.0 (Unreleased)
 
+NOTES
+* Opt-In Beta: Version 2.76 of the Azure Provider introduces an opt-in Beta for some of the new functionality coming in 3.0 - more information can be found [in the 3.0 Notes](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/website/docs/guides/3.0-beta.html.markdown) and [3.0 Upgrade Guide](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/website/docs/guides/3.0-upgrade-guide.html.markdown) [GH-12132]
+
 FEATURES:
 
 * **New Data Source:** `azurerm_eventgrid_domain` [GH-13033]
 * **New Resource:** `azurerm_data_protection_backup_instance_blob_storage` [GH-12683]
 * **New Resource:** `azurerm_logic_app_integration_account_assembly` [GH-13239]
+* **New Resource:** `azurerm_logic_app_integration_account_batch_configuration` [GH-13215]
+* **New Resource:** `azurerm_sql_managed_instance` [GH-12431]
+* **New Resource:** `azurerm_sql_managed_database` [GH-12431]
 
 ENHANCEMENTS:
 
+* upgrading `cdn` to API Version `2021-09-01` [GH-13282]
 * upgrading `cosmos` to API Version `2021-06-15` [GH-13188]
 * `azurerm_app_service_certificate` - support argument `app_service_plan_id` for usage with ASE [GH-13101]
+* `azurerm_application_gateway` - mTLS support for Application Gateways [GH-13273]
 * `azurerm_data_factory_integration_runtime_azure` -  support for the `cleanup_enabled` and `subnet_id` properties [GH-13222]
 * `azurerm_data_factory_trigger_schedule` - support for the `schedule` and `description` properties [GH-13243]
 * `azurerm_firewall_policy_rule_collection_group` - support for the `description`, `destination_addresses`, `destination_urls`, `terminate_tls`, and `web_categories` properties [GH-13190]
@@ -19,12 +27,16 @@ ENHANCEMENTS:
 * `azurerm_eventgrid_topic` support for the `identity` block [GH-12951]
 * `azurerm_eventgrid_system_topic` support for the `identity` block [GH-12951]
 * `azurerm_cosmosdb_account` support for the `local_authentication_disabled` property [GH-13237]
+* `azurerm_site_recovery_network_mapping`- refactoring to use an ID Formatter/Parser [GH-13277]
+* `azurerm_stream_analytics_output_blob` - support for the `Parquet` type and the `batch_max_wait_time` and `batch_min_rows` properties [GH-13245]
+* `azurerm_virtual_network_gateway_resource` - support for multiple vpn authentication types [GH-13228]
 
 BUG FIXES:
 
 * Data Source: `azurerm_kubernetes_cluster` - correctly read resource when `local_account_disabled` is `true` [GH-13260]
 * `azurerm_api_management_subscription` - relax `subscription_id` validation [GH-13203]
 * `azurerm_app_configuration_key` - fix KV import with no label [GH-13253]
+* `azurerm_synapse_sql_pool` - properly support UTF-8 characters for the `name` property [GH-13289]
 
 ## 2.75.0 (September 02, 2021)
 

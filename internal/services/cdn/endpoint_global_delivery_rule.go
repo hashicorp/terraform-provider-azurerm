@@ -1,7 +1,7 @@
 package cdn
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/deliveryruleactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
