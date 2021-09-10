@@ -127,12 +127,20 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"vnet_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
+							ExactlyOneOf: []string{"vnet_integration.0.vnet_id", "vnet_integration.0.subnet_id"},
 							ValidateFunc: azure.ValidateResourceID,
+						},
+						"subnet_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ExactlyOneOf: []string{"vnet_integration.0.vnet_id", "vnet_integration.0.subnet_id"},
+							ValidateFunc: networkValidate.SubnetID,
 						},
 						"subnet_name": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
+							RequiredWith: []string{"vnet_integration.0.vnet_id"},
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"public_ips": {
@@ -584,9 +592,16 @@ func expandDataFactoryIntegrationRuntimeAzureSsisComputeProperties(d *pluginsdk.
 
 	if vnetIntegrations, ok := d.GetOk("vnet_integration"); ok && len(vnetIntegrations.([]interface{})) > 0 {
 		vnetProps := vnetIntegrations.([]interface{})[0].(map[string]interface{})
-		computeProperties.VNetProperties = &datafactory.IntegrationRuntimeVNetProperties{
-			VNetID: utils.String(vnetProps["vnet_id"].(string)),
-			Subnet: utils.String(vnetProps["subnet_name"].(string)),
+		if vnetId := vnetProps["vnet_id"].(string); len(vnetId) > 0 {
+			computeProperties.VNetProperties = &datafactory.IntegrationRuntimeVNetProperties{
+				VNetID: utils.String(vnetId),
+				Subnet: utils.String(vnetProps["subnet_name"].(string)),
+			}
+		}
+		if subnetId := vnetProps["subnet_id"].(string); len(subnetId) > 0 {
+			computeProperties.VNetProperties = &datafactory.IntegrationRuntimeVNetProperties{
+				SubnetID: utils.String(subnetId),
+			}
 		}
 
 		if publicIPs := vnetProps["public_ips"].([]interface{}); len(publicIPs) > 0 {
@@ -793,17 +808,21 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisVnetIntegration(vnetProperties
 		return []interface{}{}
 	}
 
-	var vnetId, subnetName string
+	var vnetId, subnetName, subnetId string
 	if vnetProperties.VNetID != nil {
 		vnetId = *vnetProperties.VNetID
 	}
 	if vnetProperties.Subnet != nil {
 		subnetName = *vnetProperties.Subnet
 	}
+	if vnetProperties.SubnetID != nil {
+		subnetId = *vnetProperties.SubnetID
+	}
 
 	return []interface{}{
 		map[string]interface{}{
 			"vnet_id":     vnetId,
+			"subnet_id":   subnetId,
 			"subnet_name": subnetName,
 			"public_ips":  utils.FlattenStringSlice(vnetProperties.PublicIPs),
 		},

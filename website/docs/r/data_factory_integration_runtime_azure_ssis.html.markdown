@@ -162,9 +162,13 @@ A `proxy` block supports the following:
 
 A `vnet_integration` block supports the following:
 
-* `vnet_id` - (Required) ID of the virtual network to which the nodes of the Azure-SSIS Integration Runtime will be added.
+* `vnet_id` - (Optional) ID of the virtual network to which the nodes of the Azure-SSIS Integration Runtime will be added.
 
-* `subnet_name` - (Required) Name of the subnet to which the nodes of the Azure-SSIS Integration Runtime will be added.
+* `subnet_name` - (Optional) Name of the subnet to which the nodes of the Azure-SSIS Integration Runtime will be added.
+
+* `subnet_id` - (Optional) id of the subnet to which the nodes of the Azure-SSIS Integration Runtime will be added.
+
+-> **NOTE** Only one of `subnet_id` and `subnet_name` can be specified. If `subnet_name` is specified, `vnet_id` must be provided.
 
 * `public_ips` - (Optional) Static public IP addresses for the Azure-SSIS Integration Runtime. The size must be 2.
 

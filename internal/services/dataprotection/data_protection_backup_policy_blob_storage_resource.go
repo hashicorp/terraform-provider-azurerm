@@ -89,13 +89,13 @@ func resourceDataProtectionBackupPolicyBlobStorageCreate(d *schema.ResourceData,
 			PolicyRules: &[]dataprotection.BasicBasePolicyRule{
 				dataprotection.AzureRetentionRule{
 					Name:       utils.String("Default"),
-					ObjectType: dataprotection.ObjectTypeAzureRetentionRule,
+					ObjectType: dataprotection.ObjectTypeBasicBasePolicyRuleObjectTypeAzureRetentionRule,
 					IsDefault:  utils.Bool(true),
 					Lifecycles: &[]dataprotection.SourceLifeCycle{
 						{
 							DeleteAfter: dataprotection.AbsoluteDeleteOption{
 								Duration:   utils.String(d.Get("retention_duration").(string)),
-								ObjectType: dataprotection.ObjectTypeAbsoluteDeleteOption,
+								ObjectType: dataprotection.ObjectTypeBasicDeleteOptionObjectTypeAbsoluteDeleteOption,
 							},
 							SourceDataStore: &dataprotection.DataStoreInfoBase{
 								DataStoreType: "OperationalStore",
@@ -107,7 +107,7 @@ func resourceDataProtectionBackupPolicyBlobStorageCreate(d *schema.ResourceData,
 				},
 			},
 			DatasourceTypes: &[]string{"Microsoft.Storage/storageAccounts/blobServices"},
-			ObjectType:      dataprotection.ObjectTypeBackupPolicy,
+			ObjectType:      dataprotection.ObjectTypeBasicBaseBackupPolicyObjectTypeBackupPolicy,
 		},
 	}
 

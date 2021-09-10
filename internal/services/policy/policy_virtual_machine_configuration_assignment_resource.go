@@ -66,6 +66,29 @@ func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
+						"assignment_type": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(guestconfiguration.AssignmentTypeAudit),
+								string(guestconfiguration.AssignmentTypeDeployAndAutoCorrect),
+								string(guestconfiguration.AssignmentTypeApplyAndAutoCorrect),
+								string(guestconfiguration.AssignmentTypeApplyAndMonitor),
+							}, false),
+						},
+
+						"content_hash": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"content_uri": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
+						},
+
 						"parameter": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
@@ -193,11 +216,26 @@ func expandGuestConfigurationAssignment(input []interface{}) *guestconfiguration
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	return &guestconfiguration.Navigation{
+
+	result := guestconfiguration.Navigation{
 		Name:                   utils.String(v["name"].(string)),
 		Version:                utils.String(v["version"].(string)),
 		ConfigurationParameter: expandGuestConfigurationAssignmentConfigurationParameters(v["parameter"].(*pluginsdk.Set).List()),
 	}
+
+	if v, ok := v["assignment_type"]; ok {
+		result.AssignmentType = guestconfiguration.AssignmentType(v.(string))
+	}
+
+	if v, ok := v["content_hash"]; ok {
+		result.ContentHash = utils.String(v.(string))
+	}
+
+	if v, ok := v["content_uri"]; ok {
+		result.ContentURI = utils.String(v.(string))
+	}
+
+	return &result
 }
 
 func expandGuestConfigurationAssignmentConfigurationParameters(input []interface{}) *[]guestconfiguration.ConfigurationParameter {
@@ -225,11 +263,26 @@ func flattenGuestConfigurationAssignment(input *guestconfiguration.Navigation) [
 	if input.Version != nil {
 		version = *input.Version
 	}
+	var assignmentType guestconfiguration.AssignmentType
+	if input.AssignmentType != "" {
+		assignmentType = input.AssignmentType
+	}
+	var contentHash string
+	if input.ContentHash != nil {
+		contentHash = *input.ContentHash
+	}
+	var contentUri string
+	if input.ContentURI != nil {
+		contentUri = *input.ContentURI
+	}
 	return []interface{}{
 		map[string]interface{}{
-			"name":      name,
-			"parameter": flattenGuestConfigurationAssignmentConfigurationParameters(input.ConfigurationParameter),
-			"version":   version,
+			"name":            name,
+			"assignment_type": string(assignmentType),
+			"content_hash":    contentHash,
+			"content_uri":     contentUri,
+			"parameter":       flattenGuestConfigurationAssignmentConfigurationParameters(input.ConfigurationParameter),
+			"version":         version,
 		},
 	}
 }

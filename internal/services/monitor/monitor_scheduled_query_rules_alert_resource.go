@@ -165,7 +165,9 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"GreaterThan",
+											"GreaterThanOrEqual",
 											"LessThan",
+											"LessThanOrEqual",
 											"Equal",
 										}, false),
 									},
@@ -182,7 +184,9 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"GreaterThan",
+								"GreaterThanOrEqual",
 								"LessThan",
+								"LessThanOrEqual",
 								"Equal",
 							}, false),
 						},

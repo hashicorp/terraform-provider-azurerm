@@ -49,12 +49,24 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Event Grid System Topic should exist. Changing this forces a new Event Grid System Topic to be created.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `source_arm_resource_id` - (Required) The ID of the Event Grid System Topic ARM Source. Changing this forces a new Event Grid System Topic to be created.
 
 * `topic_type` - (Required) The Topic Type of the Event Grid System Topic. Possible values are: `Microsoft.AppConfiguration.ConfigurationStores`, `Microsoft.Communication.CommunicationServices`
 , `Microsoft.ContainerRegistry.Registries`, `Microsoft.Devices.IoTHubs`, `Microsoft.EventGrid.Domains`, `Microsoft.EventGrid.Topics`, `Microsoft.Eventhub.Namespaces`, `Microsoft.KeyVault.vaults`, `Microsoft.MachineLearningServices.Workspaces`, `Microsoft.Maps.Accounts`, `Microsoft.Media.MediaServices`, `Microsoft.Resources.ResourceGroups`, `Microsoft.Resources.Subscriptions`, `Microsoft.ServiceBus.Namespaces`, `Microsoft.SignalRService.SignalR`, `Microsoft.Storage.StorageAccounts`, `Microsoft.Web.ServerFarms` and `Microsoft.Web.Sites`. Changing this forces a new Event Grid System Topic to be created.
 
 ~> **NOTE:** Some `topic_type`s (e.g. **Microsoft.Resources.Subscriptions**) requires location to be set to `Global` instead of a real location like `West US`.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - Specifies the identity type of Event Grid System Topic. Possible values are `SystemAssigned` (where Azure will generate a Principal for you) or `UserAssigned` where you can specify the User Assigned Managed Identity IDs in the `identity_ids` field.
+
+~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Event Grid System Topic has been created. More details are available below.
+
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
 
 ---
 
@@ -66,7 +78,23 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Event Grid System Topic.
 
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Event Grid System Topic.
+
 * `metric_arm_resource_id` - The Metric ARM Resource ID of the Event Grid System Topic.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - Specifies the type of Managed Service Identity that is configured on this Event Grid System Topic.
+
+* `principal_id` - Specifies the Principal ID of the System Assigned Managed Service Identity that is configured on this Event Grid System Topic.
+
+* `tenant_id` - Specifies the Tenant ID of the System Assigned Managed Service Identity that is configured on this Event Grid System Topic.
+
+* `identity_ids` - A list of IDs for User Assigned Managed Identity resources to be assigned.
+
+---
 
 ## Timeouts
 
