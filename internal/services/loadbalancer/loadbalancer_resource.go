@@ -216,6 +216,11 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 					if d.HasChange(fmt.Sprintf("frontend_ip_configuration.%d.availability_zone", index)) && !d.HasChange(fmt.Sprintf("frontend_ip_configuration.%d.name", index)) {
 						return fmt.Errorf("in place change of the `frontend_ip_configuration.%[1]d.availability_zone` is not allowed. It is allowed to do this while also changing `frontend_ip_configuration.%[1]d.name`", index)
 					}
+
+					// TODO - Remove in 3.0
+					if d.HasChange(fmt.Sprintf("frontend_ip_configuration.%d.zones", index)) && !d.HasChange(fmt.Sprintf("frontend_ip_configuration.%d.name", index)) {
+						return fmt.Errorf("in place change of the `frontend_ip_configuration.%[1]d.zones` is not allowed. It is allowed to do this while also changing `frontend_ip_configuration.%[1]d.name`", index)
+					}
 				}
 			}
 
