@@ -59,12 +59,12 @@ func resourceSynapseIntegrationRuntimeSelfHosted() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"auth_key_1": {
+			"authorization_key_primary": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
-			"auth_key_2": {
+			"authorization_key_secondary": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -158,8 +158,8 @@ func resourceSynapseIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("retrieving auth keys (%q): %+v", id, err)
 	}
 
-	d.Set("auth_key_1", respKey.AuthKey1)
-	d.Set("auth_key_2", respKey.AuthKey2)
+	d.Set("authorization_key_primary", respKey.AuthKey1)
+	d.Set("authorization_key_secondary", respKey.AuthKey2)
 
 	return nil
 }
