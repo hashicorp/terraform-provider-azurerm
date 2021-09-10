@@ -69,24 +69,14 @@ func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
 						"assignment_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							ForceNew: true,
+							Default:  string(guestconfiguration.AssignmentTypeAudit),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(guestconfiguration.AssignmentTypeAudit),
 								string(guestconfiguration.AssignmentTypeDeployAndAutoCorrect),
 								string(guestconfiguration.AssignmentTypeApplyAndAutoCorrect),
 								string(guestconfiguration.AssignmentTypeApplyAndMonitor),
 							}, false),
-						},
-
-						"content_hash": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"content_uri": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 						},
 
 						"parameter": {
@@ -111,6 +101,16 @@ func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
 						"version": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+						},
+
+						"content_hash": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"content_uri": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 					},
 				},
