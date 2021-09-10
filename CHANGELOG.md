@@ -9,7 +9,7 @@ FEATURES:
 * **New Resource:** `azurerm_data_protection_backup_instance_blob_storage` [GH-12683]
 * **New Resource:** `azurerm_logic_app_integration_account_assembly` [GH-13239]
 * **New Resource:** `azurerm_logic_app_integration_account_batch_configuration` [GH-13215]
-* **New Resource:** `azurerm_sql_managed_instance` [GH-12431]
+* **New Resource:** `azurerm_logic_app_integration_account_agreement` [GH-13287]
 * **New Resource:** `azurerm_sql_managed_database` [GH-12431]
 
 ENHANCEMENTS:
