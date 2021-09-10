@@ -56,7 +56,7 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 
 				"computer_name_prefix": computerPrefixWindowsSchema(),
 
-				"additional_unattend_content": additionalUnattendContentSchema(),
+				// "additional_unattend_content": additionalUnattendContentSchema(),
 
 				"enable_automatic_updates": {
 					Type:     pluginsdk.TypeBool,
@@ -916,7 +916,7 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(i
 			osProfile.Secrets = expandWindowsSecrets(secrets)
 		}
 
-		winConfig.AdditionalUnattendContent = expandWindowsConfigurationAdditionalUnattendContent(input["additional_unattend_content"].([]interface{}))
+		// winConfig.AdditionalUnattendContent = expandWindowsConfigurationAdditionalUnattendContent(input["additional_unattend_content"].([]interface{}))
 		winConfig.EnableAutomaticUpdates = utils.Bool(input["enable_automatic_updates"].(bool))
 		winConfig.ProvisionVMAgent = utils.Bool(input["provision_vm_agent"].(bool))
 		winConfig.TimeZone = utils.String(input["timezone"].(string))
@@ -1618,9 +1618,9 @@ func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *comput
 		output["computer_name_prefix"] = *v
 	}
 
-	if v := winConfig.AdditionalUnattendContent; v != nil {
-		output["additional_unattend_content"] = flattenWindowsConfigurationAdditionalUnattendContent(winConfig)
-	}
+	// if v := winConfig.AdditionalUnattendContent; v != nil {
+	// 	output["additional_unattend_content"] = flattenWindowsConfigurationAdditionalUnattendContent(winConfig)
+	// }
 
 	if v := winConfig.EnableAutomaticUpdates; v != nil {
 		output["enable_automatic_updates"] = *v
