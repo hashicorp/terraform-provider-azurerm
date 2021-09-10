@@ -86,8 +86,9 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "example" {
   location           = azurerm_windows_virtual_machine.example.location
   virtual_machine_id = azurerm_windows_virtual_machine.example.id
   configuration {
-    name    = "AzureWindowsBaseline"
-    version = "1.*"
+    assignment_type = "ApplyAndMonitor"
+    name            = "AzureWindowsBaseline"
+    version         = "1.*"
     parameter {
       name  = "Minimum Password Length;ExpectedValue"
       value = "16"
