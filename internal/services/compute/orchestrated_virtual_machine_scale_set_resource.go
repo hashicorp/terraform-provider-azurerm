@@ -157,12 +157,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			"single_placement_group": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
+			// removing single_placement_group since it has been retired as of version 2019-12-01 for Flex VMSS
 			"source_image_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -381,7 +376,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		Tags:     tags.Expand(t),
 		VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
 			AutomaticRepairsPolicy: automaticRepairsPolicy,
-			SinglePlacementGroup:   utils.Bool(d.Get("single_placement_group").(bool)),
+			SinglePlacementGroup:   utils.Bool(false),
 			VirtualMachineProfile:  &virtualMachineProfile,
 			// OrchestrationMode needs to be hardcoded to Uniform, for the
 			// standard VMSS resource, since virtualMachineProfile is now supported
@@ -492,10 +487,6 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		updateProps.VirtualMachineProfile.BillingProfile = &compute.BillingProfile{
 			MaxPrice: utils.Float(d.Get("max_bid_price").(float64)),
 		}
-	}
-
-	if d.HasChange("single_placement_group") {
-		updateProps.SinglePlacementGroup = utils.Bool(d.Get("single_placement_group").(bool))
 	}
 
 	// TODO: Move this to Win Config update section
@@ -761,7 +752,6 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		proximityPlacementGroupId = *props.ProximityPlacementGroup.ID
 	}
 	d.Set("proximity_placement_group_id", proximityPlacementGroupId)
-	d.Set("single_placement_group", props.SinglePlacementGroup)
 	d.Set("unique_id", props.UniqueID)
 	d.Set("zone_balance", props.ZoneBalance)
 

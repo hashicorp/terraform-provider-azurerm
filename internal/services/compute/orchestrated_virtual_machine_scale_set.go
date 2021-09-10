@@ -358,6 +358,13 @@ func orchestratedVirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema
 					Set:      pluginsdk.HashString,
 				},
 
+				"load_balancer_inbound_nat_rules_ids": {
+					Type:     pluginsdk.TypeSet,
+					Optional: true,
+					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+					Set:      pluginsdk.HashString,
+				},
+
 				"primary": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -414,6 +421,14 @@ func orchestratedVirtualMachineScaleSetIPConfigurationSchemaForDataSource() *plu
 				},
 
 				"load_balancer_backend_address_pool_ids": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"load_balancer_inbound_nat_rules_ids": {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &pluginsdk.Schema{
@@ -1051,6 +1066,9 @@ func expandOrchestratedVirtualMachineScaleSetIPConfiguration(raw map[string]inte
 	loadBalancerBackendAddressPoolIdsRaw := raw["load_balancer_backend_address_pool_ids"].(*pluginsdk.Set).List()
 	loadBalancerBackendAddressPoolIds := expandIDsToSubResources(loadBalancerBackendAddressPoolIdsRaw)
 
+	loadBalancerInboundNatPoolIdsRaw := raw["load_balancer_inbound_nat_rules_ids"].(*pluginsdk.Set).List()
+	loadBalancerInboundNatPoolIds := expandIDsToSubResources(loadBalancerInboundNatPoolIdsRaw)
+
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
 	if primary && version == compute.IPVersionIPv6 {
@@ -1065,6 +1083,7 @@ func expandOrchestratedVirtualMachineScaleSetIPConfiguration(raw map[string]inte
 			ApplicationGatewayBackendAddressPools: applicationGatewayBackendAddressPoolIds,
 			ApplicationSecurityGroups:             applicationSecurityGroupIds,
 			LoadBalancerBackendAddressPools:       loadBalancerBackendAddressPoolIds,
+			LoadBalancerInboundNatPools:           loadBalancerInboundNatPoolIds,
 		},
 	}
 
@@ -1177,6 +1196,9 @@ func expandOrchestratedVirtualMachineScaleSetIPConfigurationUpdate(raw map[strin
 	loadBalancerBackendAddressPoolIdsRaw := raw["load_balancer_backend_address_pool_ids"].(*pluginsdk.Set).List()
 	loadBalancerBackendAddressPoolIds := expandIDsToSubResources(loadBalancerBackendAddressPoolIdsRaw)
 
+	loadBalancerInboundNatPoolIdsRaw := raw["load_balancer_inbound_nat_rules_ids"].(*pluginsdk.Set).List()
+	loadBalancerInboundNatPoolIds := expandIDsToSubResources(loadBalancerInboundNatPoolIdsRaw)
+
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
 
@@ -1192,6 +1214,7 @@ func expandOrchestratedVirtualMachineScaleSetIPConfigurationUpdate(raw map[strin
 			ApplicationGatewayBackendAddressPools: applicationGatewayBackendAddressPoolIds,
 			ApplicationSecurityGroups:             applicationSecurityGroupIds,
 			LoadBalancerBackendAddressPools:       loadBalancerBackendAddressPoolIds,
+			LoadBalancerInboundNatPools:           loadBalancerInboundNatPoolIds,
 		},
 	}
 
@@ -1514,6 +1537,7 @@ func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input compute.Virt
 	applicationGatewayBackendAddressPoolIds := flattenSubResourcesToIDs(input.ApplicationGatewayBackendAddressPools)
 	applicationSecurityGroupIds := flattenSubResourcesToIDs(input.ApplicationSecurityGroups)
 	loadBalancerBackendAddressPoolIds := flattenSubResourcesToIDs(input.LoadBalancerBackendAddressPools)
+	loadBalancerInboundNatRuleIds := flattenSubResourcesToIDs(input.LoadBalancerInboundNatPools)
 
 	return map[string]interface{}{
 		"name":              name,
@@ -1524,6 +1548,7 @@ func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input compute.Virt
 		"application_gateway_backend_address_pool_ids": applicationGatewayBackendAddressPoolIds,
 		"application_security_group_ids":               applicationSecurityGroupIds,
 		"load_balancer_backend_address_pool_ids":       loadBalancerBackendAddressPoolIds,
+		"load_balancer_inbound_nat_rules_ids":          loadBalancerInboundNatRuleIds,
 	}
 }
 
