@@ -111,6 +111,8 @@ An `azure_devops_repo` block supports the following:
 
 * `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
 
+* `tenant_id` - (Optional) the ID of the tenant for the Azure DevOps account.
+
 ---
 
 A `github_repo` block supports the following:

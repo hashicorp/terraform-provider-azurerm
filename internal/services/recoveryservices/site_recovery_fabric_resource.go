@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -21,8 +22,10 @@ func resourceSiteRecoveryFabric() *pluginsdk.Resource {
 		Read:   resourceSiteRecoveryFabricRead,
 		Update: nil,
 		Delete: resourceSiteRecoveryFabricDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ReplicationFabricID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -103,60 +106,53 @@ func resourceSiteRecoveryFabricCreate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceSiteRecoveryFabricRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ReplicationFabricID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	vaultName := id.Path["vaults"]
-	name := id.Path["replicationFabrics"]
-
-	client := meta.(*clients.Client).RecoveryServices.FabricClient(resGroup, vaultName)
+	fabricClient := meta.(*clients.Client).RecoveryServices.FabricClient(id.ResourceGroup, id.VaultName)
+	client := fabricClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resp, err := client.Get(ctx, name)
+	resp, err := client.Get(ctx, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making read request on site recovery fabric %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("making read request on site recovery fabric %s: %+v", id.String(), err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if props := resp.Properties; props != nil {
 		if azureDetails, isAzureDetails := props.CustomDetails.AsAzureFabricSpecificDetails(); isAzureDetails {
 			d.Set("location", azureDetails.Location)
 		}
 	}
-	d.Set("recovery_vault_name", vaultName)
+	d.Set("recovery_vault_name", id.VaultName)
 	return nil
 }
 
 func resourceSiteRecoveryFabricDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ReplicationFabricID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	vaultName := id.Path["vaults"]
-	name := id.Path["replicationFabrics"]
-
-	client := meta.(*clients.Client).RecoveryServices.FabricClient(resGroup, vaultName)
+	client := meta.(*clients.Client).RecoveryServices.FabricClient(id.ResourceGroup, id.VaultName)
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	future, err := client.Delete(ctx, name)
+	future, err := client.Delete(ctx, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting site recovery fabric %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("deleting site recovery fabric %s : %+v", id.String(), err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of site recovery fabric %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("waiting for deletion of site recovery fabric %s : %+v", id.String(), err)
 	}
 
 	return nil

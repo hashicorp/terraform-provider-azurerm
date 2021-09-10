@@ -1,23 +1,44 @@
-## 2.75.0 (Unreleased)
+## 2.76.0 (September 10, 2021)
+
+NOTES
+* Opt-In Beta: Version 2.76 of the Azure Provider introduces an opt-in Beta for some of the new functionality coming in 3.0 - more information can be found [in the 3.0 Notes](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/website/docs/guides/3.0-beta.html.markdown) and [3.0 Upgrade Guide](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/website/docs/guides/3.0-upgrade-guide.html.markdown) ([#12132](https://github.com/hashicorp/terraform-provider-azurerm/issues/12132))
 
 FEATURES:
 
-* **New Data Source:** `azurerm_eventgrid_domain` [GH-13033]
-* **New Resource:** `azurerm_data_protection_backup_instance_blob_storage` [GH-12683]
+* **New Data Source:** `azurerm_eventgrid_domain` ([#13033](https://github.com/hashicorp/terraform-provider-azurerm/issues/13033))
+* **New Resource:** `azurerm_data_protection_backup_instance_blob_storage` ([#12683](https://github.com/hashicorp/terraform-provider-azurerm/issues/12683))
+* **New Resource:** `azurerm_logic_app_integration_account_assembly` ([#13239](https://github.com/hashicorp/terraform-provider-azurerm/issues/13239))
+* **New Resource:** `azurerm_logic_app_integration_account_batch_configuration` ([#13215](https://github.com/hashicorp/terraform-provider-azurerm/issues/13215))
+* **New Resource:** `azurerm_logic_app_integration_account_agreement` ([#13287](https://github.com/hashicorp/terraform-provider-azurerm/issues/13287))
+* **New Resource:** `azurerm_sql_managed_database` ([#12431](https://github.com/hashicorp/terraform-provider-azurerm/issues/12431))
 
 ENHANCEMENTS:
 
-* upgrading `cosmos` to API Version `2021-06-15` [GH-13188]
-* `azurerm_firewall_policy_rule_collection_group` - support for the `description`, `destination_addresses`, `destination_urls`, `terminate_tls`, and `web_categories` properties [GH-13190]
-* `azurerm_eventgrid_event_subscription` - support for the `delivery_identity` and `dead_letter_identity` blocks [GH-12945]
-* `azurerm_eventgrid_system_topic_event_subscription` - support for the `delivery_identity` and `dead_letter_identity` blocks [GH-12945]
-* `azurerm_eventgrid_domain` support for the `identity` block [GH-12951]
-* `azurerm_eventgrid_topic` support for the `identity` block [GH-12951]
-* `azurerm_eventgrid_system_topic` support for the `identity` block [GH-12951]
+* upgrading `cdn` to API Version `2021-09-01` ([#13282](https://github.com/hashicorp/terraform-provider-azurerm/issues/13282))
+* upgrading `cosmos` to API Version `2021-06-15` ([#13188](https://github.com/hashicorp/terraform-provider-azurerm/issues/13188))
+* `azurerm_app_service_certificate` - support argument `app_service_plan_id` for usage with ASE ([#13101](https://github.com/hashicorp/terraform-provider-azurerm/issues/13101))
+* `azurerm_application_gateway` - mTLS support for Application Gateways ([#13273](https://github.com/hashicorp/terraform-provider-azurerm/issues/13273))
+* `azurerm_cosmosdb_account` support for the `local_authentication_disabled` property ([#13237](https://github.com/hashicorp/terraform-provider-azurerm/issues/13237))
+* `azurerm_data_factory_integration_runtime_azure` -  support for the `cleanup_enabled` and `subnet_id` properties ([#13222](https://github.com/hashicorp/terraform-provider-azurerm/issues/13222))
+* `azurerm_data_factory_trigger_schedule` - support for the `schedule` and `description` properties ([#13243](https://github.com/hashicorp/terraform-provider-azurerm/issues/13243))
+* `azurerm_firewall_policy_rule_collection_group` - support for the `description`, `destination_addresses`, `destination_urls`, `terminate_tls`, and `web_categories` properties ([#13190](https://github.com/hashicorp/terraform-provider-azurerm/issues/13190))
+* `azurerm_eventgrid_event_subscription` - support for the `delivery_identity` and `dead_letter_identity` blocks ([#12945](https://github.com/hashicorp/terraform-provider-azurerm/issues/12945))
+* `azurerm_eventgrid_system_topic_event_subscription` - support for the `delivery_identity` and `dead_letter_identity` blocks ([#12945](https://github.com/hashicorp/terraform-provider-azurerm/issues/12945))
+* `azurerm_eventgrid_domain` support for the `identity` block ([#12951](https://github.com/hashicorp/terraform-provider-azurerm/issues/12951))
+* `azurerm_eventgrid_topic` support for the `identity` block ([#12951](https://github.com/hashicorp/terraform-provider-azurerm/issues/12951))
+* `azurerm_eventgrid_system_topic` support for the `identity` block ([#12951](https://github.com/hashicorp/terraform-provider-azurerm/issues/12951))
+* `azurerm_kubernetes_cluster` - support for the `os_sku` property ([#13284](https://github.com/hashicorp/terraform-provider-azurerm/issues/13284))
+* `azurerm_synapse_workspace` - support for the `tenant_id` property ([#13290](https://github.com/hashicorp/terraform-provider-azurerm/issues/13290))
+* `azurerm_site_recovery_network_mapping`- refactoring to use an ID Formatter/Parser ([#13277](https://github.com/hashicorp/terraform-provider-azurerm/issues/13277))
+* `azurerm_stream_analytics_output_blob` - support for the `Parquet` type and the `batch_max_wait_time` and `batch_min_rows` properties ([#13245](https://github.com/hashicorp/terraform-provider-azurerm/issues/13245))
+* `azurerm_virtual_network_gateway_resource` - support for multiple vpn authentication types ([#13228](https://github.com/hashicorp/terraform-provider-azurerm/issues/13228))
 
 BUG FIXES:
 
-* `azurerm_api_management_subscription` - relax `subscription_id` validation [GH-13203]
+* Data Source: `azurerm_kubernetes_cluster` - correctly read resource when `local_account_disabled` is `true` ([#13260](https://github.com/hashicorp/terraform-provider-azurerm/issues/13260))
+* `azurerm_api_management_subscription` - relax `subscription_id` validation ([#13203](https://github.com/hashicorp/terraform-provider-azurerm/issues/13203))
+* `azurerm_app_configuration_key` - fix KV import with no label ([#13253](https://github.com/hashicorp/terraform-provider-azurerm/issues/13253))
+* `azurerm_synapse_sql_pool` - properly support UTF-8 characters for the `name` property ([#13289](https://github.com/hashicorp/terraform-provider-azurerm/issues/13289))
 
 ## 2.75.0 (September 02, 2021)
 

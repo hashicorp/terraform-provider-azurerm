@@ -172,6 +172,17 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					}, false),
 				},
 
+				"os_sku": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+					Default:  string(containerservice.OSSKUUbuntu),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(containerservice.OSSKUUbuntu),
+						string(containerservice.OSSKUCBLMariner),
+					}, false),
+				},
+
 				"ultra_ssd_enabled": {
 					Type:     pluginsdk.TypeBool,
 					ForceNew: true,
@@ -675,6 +686,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 		profile.OsDiskType = containerservice.OSDiskType(raw["os_disk_type"].(string))
 	}
 
+	if osSku := raw["os_sku"].(string); osSku != "" {
+		profile.OsSKU = containerservice.OSSKU(osSku)
+	}
+
 	if podSubnetID := raw["pod_subnet_id"].(string); podSubnetID != "" {
 		profile.PodSubnetID = utils.String(podSubnetID)
 	}
@@ -1070,6 +1085,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"node_taints":                  []string{},
 			"os_disk_size_gb":              osDiskSizeGB,
 			"os_disk_type":                 string(osDiskType),
+			"os_sku":                       string(agentPool.OsSKU),
 			"tags":                         tags.Flatten(agentPool.Tags),
 			"type":                         string(agentPool.Type),
 			"ultra_ssd_enabled":            enableUltraSSD,
