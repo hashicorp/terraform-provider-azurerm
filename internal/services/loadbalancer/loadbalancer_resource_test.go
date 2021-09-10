@@ -165,7 +165,7 @@ func TestAccAzureRMLoadBalancer_privateIP(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLoadBalancer_updatefrontEndConfigsWithZone(t *testing.T) {
+func TestAccAzureRMLoadBalancer_updateFrontEndConfigsWithZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	r := LoadBalancer{}
 
