@@ -133,7 +133,11 @@ A `configuration` block supports the following:
 
 * `name` - (Required) The name of the Guest Configuration that will be assigned in this Guest Configuration Assignment.
 
-* `assignment_type` - (Optional) The assignment type for the Guest Configuration Assignment. Possible values are `Audit`, `ApplyAndAutoCorrect`, `ApplyAndMonitor` and `DeployAndAutoCorrect`. Defaults to `Audit`. Changing this forces a new resource to be created.
+* `assignment_type` - (Optional) The assignment type for the Guest Configuration Assignment. Possible values are `Audit`, `ApplyAndAutoCorrect`, `ApplyAndMonitor` and `DeployAndAutoCorrect`.
+
+* `content_hash` - (Optional) The content hash for the Guest Configuration package.
+
+* `content_uri` - (Optional) The content URI where the Guest Configuration package is stored.
 
 * `parameter` - (Optional) One or more `parameter` blocks which define what configuration parameters and values against.
 
@@ -152,13 +156,6 @@ A `parameter` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Policy Virtual Machine Configuration Assignment.
-
-A `configuration` block exports the following:
-
-* `content_hash` - The content hash for the Guest Configuration package.
-
-* `content_uri` - The content URI where the Guest Configuration package is stored.
-
 
 ## Timeouts
 
