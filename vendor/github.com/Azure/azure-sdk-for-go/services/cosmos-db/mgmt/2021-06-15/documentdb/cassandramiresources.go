@@ -541,12 +541,6 @@ func (client CassandraMIResourcesClient) DeleteDatacenterPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	log.Println("**************iDeleteDatacenterPreparer")
-	log.Println("**************clusterName: " + clusterName)
-	log.Println("**************DatacenterName: " + DatacenterName)
-	log.Println("**************resourceGroupName: " + resourceGroupName)
-	log.Println("**************resourceGroupName: " + resourceGroupName)
-
 	const APIVersion = "2021-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
@@ -561,8 +555,6 @@ func (client CassandraMIResourcesClient) DeleteDatacenterPreparer(ctx context.Co
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// CreateUpdateCassandraMIKeyspaceSender sends the CreateUpdateCassandraMIKeyspace request. The method will close the
-// http.Response Body if it receives an error.
 func (client CassandraMIResourcesClient) DeleteDatacenterSender(req *http.Request) (future CassandraMIResourcesCreateUpdateCassandraMIDatacenterFuture, err error) {
 	var resp *http.Response
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -576,8 +568,6 @@ func (client CassandraMIResourcesClient) DeleteDatacenterSender(req *http.Reques
 	return
 }
 
-// CreateUpdateCassandraMIKeyspaceResponder handles the response to the CreateUpdateCassandraMIKeyspace request. The method always
-// closes the http.Response Body.
 func (client CassandraMIResourcesClient) DeleteDatacenterResponder(resp *http.Response) (result CassandraKeyspaceGetResults, err error) {
 	err = autorest.Respond(
 		resp,

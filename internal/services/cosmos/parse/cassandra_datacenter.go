@@ -39,12 +39,9 @@ func (id CassandraDatacenterId) String() string {
 
 func (id CassandraDatacenterId) ID() string {
 	fmtString := "/subscriptions/{%s}/resourceGroups/%s/providers/Microsoft.DocumentDB/cassandraClusters/%s/dataCenters/%s"
-
-	//log.Println("**************fmt.Sprintf: " + fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.DatacenterName))
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.DatacenterName)
 }
 
-// CassandraClusterID parses a Cluster ID into an CassandraClusterId struct
 func CassandraDatacenterID(input string) (*CassandraDatacenterId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

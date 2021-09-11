@@ -140,23 +140,15 @@ func resourceCassandraMIDatacenterCreate(d *pluginsdk.ResourceData, meta interfa
 }
 
 func resourceCassandraMIDatacenterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	log.Println("in resourceCassandraMIDatacenterRead ******************************")
 	client := meta.(*clients.Client).Cosmos.CassandraMIClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	// resourceGroup := d.Get("resource_group_name").(string)
-	// clusterName := d.Get("cluster_name").(string)
 	datacenterName := d.Get("datacenter_name").(string)
-	log.Println("************** just before CassandraDatacenterID")
 	id, err := parse.CassandraDatacenterID(d.Id() + "/dataCenters/" + datacenterName)
-	log.Println("************* id: " + d.Id() + "/dataCenters/" + datacenterName)
 	if err != nil {
-		log.Println("**************err: " + err.Error())
 		return err
 	}
-	log.Println("**************id.DatacenterName 1: " + id.DatacenterName)
 	resp, err := client.GetDatacenter(ctx, id.ResourceGroup, id.ClusterName, id.DatacenterName)
-	log.Println("**************id.DatacenterName 2: " + id.DatacenterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading Cosmos Cassandra Keyspace %q (Account: %q) - removing from state", id.ClusterName, id.ClusterName)
@@ -179,7 +171,6 @@ func resourceCassandraMIDatacenterRead(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceCassandraMIDatacenterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	log.Println("in resourceCassandraMIDatacenterDelete ******************************")
 	client := meta.(*clients.Client).Cosmos.CassandraMIClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	resourceGroup := d.Get("resource_group_name").(string)
