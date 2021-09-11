@@ -19,6 +19,7 @@ import (
 )
 
 func resourceCassandraMICluster() *pluginsdk.Resource {
+	log.Println("in resourceCassandraMICluster ******************************")
 	return &pluginsdk.Resource{
 		Create: resourceCassandraMIClusterCreate,
 		Read:   resourceCassandraMIClusterRead,
@@ -59,14 +60,14 @@ func resourceCassandraMICluster() *pluginsdk.Resource {
 
 			"delegated_management_subnet_id": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosEntityName,
 			},
 
 			"initial_cassandra_admin_password": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosEntityName,
 			},
@@ -75,6 +76,7 @@ func resourceCassandraMICluster() *pluginsdk.Resource {
 }
 
 func resourceCassandraMIClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	log.Println("in resourceCassandraMIClusterCreate ******************************")
 	client := meta.(*clients.Client).Cosmos.CassandraMIClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -86,7 +88,7 @@ func resourceCassandraMIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	delegatedManagementSubnetId := d.Get("delegated_management_subnet_id").(string)
 	initialCassandraAdminPassword := d.Get("initial_cassandra_admin_password").(string)
 
-	existing, err := client.GetCluster(ctx, resourceGroup, clusterName, location)
+	existing, err := client.GetCluster(ctx, resourceGroup, clusterName)
 
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -117,7 +119,7 @@ func resourceCassandraMIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("waiting on create/update future for Cosmos Cassandra Keyspace %q (Account: %q): %+v", clusterName, clusterName, err)
 	}
 
-	resp, err := client.GetCluster(ctx, resourceGroup, clusterName, clusterName)
+	resp, err := client.GetCluster(ctx, resourceGroup, clusterName)
 
 	if err != nil {
 		return fmt.Errorf("making get request for Cosmos Cassandra Keyspace %q (Account: %q): %+v", clusterName, clusterName, err)
@@ -132,7 +134,26 @@ func resourceCassandraMIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceCassandraMIClusterRead(d, meta)
 }
 
+func resourceCassandraMIClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	log.Println("in resourceCassandraMIClusterUpdate ******************************")
+	client := meta.(*clients.Client).Cosmos.CassandraMIClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.CassandraClusterID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.GetCluster(ctx, id.ResourceGroup, id.ClusterName)
+
+	d.SetId(*resp.ID)
+
+	return resourceCassandraMIClusterRead(d, meta)
+}
+
 func resourceCassandraMIClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	log.Println("in resourceCassandraMIClusterRead ******************************")
 	client := meta.(*clients.Client).Cosmos.CassandraMIClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,7 +163,7 @@ func resourceCassandraMIClusterRead(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	resp, err := client.GetCluster(ctx, id.ResourceGroup, id.ClusterName, id.ClusterName)
+	resp, err := client.GetCluster(ctx, id.ResourceGroup, id.ClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading Cosmos Cassandra Keyspace %q (Account: %q) - removing from state", id.ClusterName, id.ClusterName)
@@ -164,25 +185,26 @@ func resourceCassandraMIClusterRead(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceCassandraMIClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CassandraClient
+	log.Println("in resourceCassandraMIClusterDelete ******************************")
+	client := meta.(*clients.Client).Cosmos.CassandraMIClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CassandraKeyspaceID(d.Id())
+	id, err := parse.CassandraClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.DeleteCassandraKeyspace(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
+	future, err := client.DeleteCluster(ctx, id.ResourceGroup, id.ClusterName)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("deleting Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
+			return fmt.Errorf("deleting Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.ResourceGroup, id.ClusterName, err)
 		}
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("waiting on delete future for Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
+		return fmt.Errorf("waiting on delete future for Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.ResourceGroup, id.ClusterName, err)
 	}
 
 	return nil
