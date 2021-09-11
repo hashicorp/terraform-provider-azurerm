@@ -77,6 +77,18 @@ func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
 							}, false),
 						},
 
+						"content_hash": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"content_uri": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
+						},
+
 						"parameter": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
@@ -86,18 +98,6 @@ func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"content_hash": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"content_uri": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 									},
 
 									"value": {
