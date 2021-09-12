@@ -80,12 +80,14 @@ func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
 						"content_hash": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"content_uri": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 						},
 
@@ -114,6 +116,27 @@ func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			// Computed
+			"assignment_hash": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"compliance_status": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"latest_report_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"last_compliance_status_checked": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -187,6 +210,22 @@ func resourcePolicyVirtualMachineConfigurationAssignmentRead(d *pluginsdk.Resour
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
+		if v := props.AssignmentHash; v != nil {
+			d.Set("assignment_hash", *v)
+		}
+
+		if v := string(props.ComplianceStatus); v != "" {
+			d.Set("compliance_status", v)
+		}
+
+		if v := props.LatestReportID; v != nil {
+			d.Set("latest_report_id", *v)
+		}
+
+		if v := props.LastComplianceStatusChecked; v != nil {
+			d.Set("last_compliance_status_checked", v.Format(time.RFC3339))
+		}
+
 		if err := d.Set("configuration", flattenGuestConfigurationAssignment(props.GuestConfiguration)); err != nil {
 			return fmt.Errorf("setting `configuration`: %+v", err)
 		}
