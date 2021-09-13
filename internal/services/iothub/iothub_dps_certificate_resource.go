@@ -105,17 +105,14 @@ func resourceIotHubDPSCertificateRead(d *pluginsdk.ResourceData, meta interface{
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	iotDPSName := id.ProvisioningServiceName
-	name := id.CertificateName
 
-	resp, err := client.Get(ctx, name, resourceGroup, iotDPSName, "")
+	resp, err := client.Get(ctx, id.CertificateName, id.ResourceGroup, id.ProvisioningServiceName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving IoT Device Provisioning Service Certificate %s: %+v", id.String(), err)
+		return fmt.Errorf("retrieving %s: %+v", id.String(), err)
 	}
 
 	d.Set("name", id.CertificateName)
@@ -135,25 +132,22 @@ func resourceIotHubDPSCertificateDelete(d *pluginsdk.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	iotDPSName := id.ProvisioningServiceName
-	name := id.CertificateName
 
-	resp, err := client.Get(ctx, name, resourceGroup, iotDPSName, "")
+	resp, err := client.Get(ctx, id.CertificateName, id.ResourceGroup, id.ProvisioningServiceName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
 		}
-		return fmt.Errorf("retrieving IoT Device Provisioning Service Certificate %s: %+v", id.String(), err)
+		return fmt.Errorf("retrieving %s: %+v", id.String(), err)
 	}
 
 	if resp.Etag == nil {
-		return fmt.Errorf("deleting IoT Device Provisioning Service Certificate %s because Etag is nil", id.String())
+		return fmt.Errorf("deleting  %s because Etag is nil", id.String())
 	}
 
 	// TODO address this delete call if https://github.com/Azure/azure-rest-api-specs/pull/6311 get's merged
-	if _, err := client.Delete(ctx, resourceGroup, *resp.Etag, iotDPSName, name, "", nil, nil, iothub.ServerAuthentication, nil, nil, nil, ""); err != nil {
-		return fmt.Errorf("deleting IoT Device Provisioning Service Certificate %s: %+v", id.String(), err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, *resp.Etag, id.ProvisioningServiceName, id.CertificateName, "", nil, nil, iothub.ServerAuthentication, nil, nil, nil, ""); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id.String(), err)
 	}
 	return nil
 }
