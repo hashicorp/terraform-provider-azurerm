@@ -315,8 +315,6 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(logic.WorkflowStateEnabled),
 					string(logic.WorkflowStateDisabled),
-					string(logic.WorkflowStateDeleted),
-					string(logic.WorkflowStateSuspended),
 				}, false),
 			},
 

@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `logic_app_integration_account_id` - (Optional) The ID of the integration account linked by this Logic App Workflow.
 
-* `state` - (Optional) The state of the Logic App Workflow. Possible values are `Enabled`, `Disabled`, `Deleted` and `Suspended`. Defaults to `Enabled`.
+* `state` - (Optional) The state of the Logic App Workflow. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
 
 * `workflow_parameters` - (Optional) Specifies a map of Key-Value pairs of the Parameter Definitions to use for this Logic App Workflow. The key is the parameter name, and the value is a json encoded string of the parameter definition (see: https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-workflow-definition-language#parameters).
   
