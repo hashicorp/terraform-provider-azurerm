@@ -1,5 +1,9 @@
 ## 2.77.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* Data Source: `azurerm_mssql_elasticpool` - export the `sku` block [GH-13336]
+
 BUG FIXES:
 
 * `azurerm_linux_virtual_machine_scale_set` - fixed crash when `automatic_os_policy` was nil [GH-13335]
