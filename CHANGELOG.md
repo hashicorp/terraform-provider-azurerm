@@ -1,3 +1,9 @@
+## 2.77.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_linux_virtual_machine_scale_set` - fixed crash when `automatic_os_policy` was nil [GH-13335]
+
 ## 2.76.0 (September 10, 2021)
 
 NOTES
