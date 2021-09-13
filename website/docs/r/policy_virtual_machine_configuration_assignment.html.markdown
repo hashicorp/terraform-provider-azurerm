@@ -132,6 +132,12 @@ An `configuration` block supports the following:
 
 * `name` - (Required) The name of the Guest Configuration that will be assigned in this Guest Configuration Assignment.
 
+* `assignment_type` - (Optional) The assignment type for the Guest Configuration Assignment. Possible values are `Audit`, `ApplyAndAutoCorrect`, `ApplyAndMonitor` and `DeployAndAutoCorrect`.
+
+* `content_hash` - (Optional) The content hash for the Guest Configuration package.
+
+* `content_uri` - (Optional) The content URI where the Guest Configuration package is stored.
+
 * `parameter` - (Optional) One or more `parameter` blocks which define what configuration parameters and values against.
 
 * `version` - (Optional) The version of the Guest Configuration that will be assigned in this Guest Configuration Assignment.

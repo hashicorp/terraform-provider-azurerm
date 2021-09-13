@@ -16,6 +16,9 @@ func Default() UserFeatures {
 		Network: NetworkFeatures{
 			RelaxedLocking: false,
 		},
+		ResourceGroup: ResourceGroupFeatures{
+			PreventDeletionIfContainsResources: false,
+		},
 		TemplateDeployment: TemplateDeploymentFeatures{
 			DeleteNestedItemsDuringDeletion: true,
 		},

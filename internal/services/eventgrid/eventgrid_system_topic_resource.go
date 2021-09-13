@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -55,6 +54,8 @@ func resourceEventGridSystemTopic() *pluginsdk.Resource {
 			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"identity": IdentitySchema(),
 
 			"source_arm_resource_id": {
 				Type:         pluginsdk.TypeString,
@@ -106,13 +107,24 @@ func resourceEventGridSystemTopicCreateUpdate(d *pluginsdk.ResourceData, meta in
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
+	systemTopicProperties := &eventgrid.SystemTopicProperties{
+		Source:    &source,
+		TopicType: &topicType,
+	}
+
 	systemTopic := eventgrid.SystemTopic{
-		Location: &location,
-		SystemTopicProperties: &eventgrid.SystemTopicProperties{
-			Source:    &source,
-			TopicType: &topicType,
-		},
-		Tags: tags.Expand(t),
+		Location:              &location,
+		SystemTopicProperties: systemTopicProperties,
+		Tags:                  tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("identity"); ok {
+		identityRaw := v.([]interface{})
+		identity, err := expandIdentity(identityRaw)
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		systemTopic.Identity = identity
 	}
 
 	log.Printf("[INFO] preparing arguments for AzureRM Event Grid System Topic creation with Properties: %+v.", systemTopic)
@@ -172,6 +184,10 @@ func resourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("metric_arm_resource_id", props.MetricResourceID)
 	}
 
+	if err := d.Set("identity", flattenIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -187,17 +203,11 @@ func resourceEventGridSystemTopicDelete(d *pluginsdk.ResourceData, meta interfac
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("deleting Event Grid System Topic %q: %+v", id.Name, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("deleting Event Grid System Topic %q: %+v", id.Name, err)
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil

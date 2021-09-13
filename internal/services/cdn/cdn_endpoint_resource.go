@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -121,12 +121,12 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 			"querystring_caching_behaviour": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(cdn.IgnoreQueryString),
+				Default:  string(cdn.QueryStringCachingBehaviorIgnoreQueryString),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.BypassCaching),
-					string(cdn.IgnoreQueryString),
-					string(cdn.NotSet),
-					string(cdn.UseQueryString),
+					string(cdn.QueryStringCachingBehaviorBypassCaching),
+					string(cdn.QueryStringCachingBehaviorIgnoreQueryString),
+					string(cdn.QueryStringCachingBehaviorNotSet),
+					string(cdn.QueryStringCachingBehaviorUseQueryString),
 				}, false),
 			},
 

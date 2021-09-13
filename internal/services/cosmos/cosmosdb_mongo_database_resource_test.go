@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -117,7 +117,7 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, CosmosDBAccountResource{}.basicMongoDB(data, documentdb.Strong), data.RandomInteger)
+`, CosmosDBAccountResource{}.basicMongoDB(data, documentdb.DefaultConsistencyLevelStrong), data.RandomInteger)
 }
 
 func (CosmosMongoDatabaseResource) complete(data acceptance.TestData) string {
@@ -130,7 +130,7 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
   throughput          = 700
 }
-`, CosmosDBAccountResource{}.basicMongoDB(data, documentdb.Strong), data.RandomInteger)
+`, CosmosDBAccountResource{}.basicMongoDB(data, documentdb.DefaultConsistencyLevelStrong), data.RandomInteger)
 }
 
 func (CosmosMongoDatabaseResource) autoscale(data acceptance.TestData, maxThroughput int) string {
@@ -145,7 +145,7 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
     max_throughput = %[3]d
   }
 }
-`, CosmosDBAccountResource{}.basicMongoDB(data, documentdb.Strong), data.RandomInteger, maxThroughput)
+`, CosmosDBAccountResource{}.basicMongoDB(data, documentdb.DefaultConsistencyLevelStrong), data.RandomInteger, maxThroughput)
 }
 
 func (CosmosMongoDatabaseResource) serverless(data acceptance.TestData) string {
@@ -157,5 +157,5 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, CosmosDBAccountResource{}.capabilities(data, documentdb.MongoDB, []string{"EnableServerless", "mongoEnableDocLevelTTL", "EnableMongo"}), data.RandomInteger)
+`, CosmosDBAccountResource{}.capabilities(data, documentdb.DatabaseAccountKindMongoDB, []string{"EnableServerless", "mongoEnableDocLevelTTL", "EnableMongo"}), data.RandomInteger)
 }

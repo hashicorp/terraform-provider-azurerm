@@ -5,6 +5,7 @@ var services = mapOf(
         "advisor" to "Advisor",
         "analysisservices" to "Analysis Services",
         "appconfiguration" to "App Configuration",
+        "appservice" to "AppService",
         "applicationinsights" to "Application Insights",
         "attestation" to "Attestation",
         "authorization" to "Authorization",
@@ -92,5 +93,6 @@ var services = mapOf(
         "iottimeseriesinsights" to "Time Series Insights",
         "trafficmanager" to "Traffic Manager",
         "vmware" to "VMware",
+        "videoanalyzer" to "Video Analyzer",
         "web" to "Web"
 )

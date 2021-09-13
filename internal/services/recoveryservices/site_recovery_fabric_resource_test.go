@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -61,18 +61,14 @@ resource "azurerm_site_recovery_fabric" "test" {
 }
 
 func (t SiteRecoveryFabricResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ReplicationFabricID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resGroup := id.ResourceGroup
-	vaultName := id.Path["vaults"]
-	name := id.Path["replicationFabrics"]
-
-	resp, err := clients.RecoveryServices.FabricClient(resGroup, vaultName).Get(ctx, name)
+	resp, err := clients.RecoveryServices.FabricClient(id.ResourceGroup, id.VaultName).Get(ctx, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("reading Recovery Service Vault (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading Recovery Service Vault (%s): %+v", id.String(), err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

@@ -1,0 +1,61 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: Opting into the 3.0 Beta"
+description: |-
+Azure Resource Manager: Opting into Beta Functionality coming in version 3.0 of the Azure Provider
+
+---
+
+# Opting into Beta Functionality coming in version 3.0 of the Azure Provider
+
+Version 3.0 of the Azure Provider will introduce several new features. 
+Because both Azure and Terraform's Azure Provider move quickly to continue rapidly shipping new features we're using Feature Toggles to gradually add support for the new functionality coming in version 3.0 of the Azure Provider as we've been developing 2.x versions of the Azure Provider. We feel this approach worked well in the 1.x to 2.x update process, giving users opportunity to try the new resources early, and providing invaluable feedback to the team.
+
+This guide details how to enable these features as we add them and how you can submit feedback prior to the final release.
+
+## Disclaimers
+
+-> The functionality provided in this Beta is subject to change - as such we recommend **not using this Beta in Production**.
+
+-> Whilst certain feature flags may be available in earlier versions of the Azure Provider they existed in an incomplete manner - **the Beta is only supported when using version 2.76 (or later) of the Azure Provider**.
+
+-> The final 3.0 release will contain the deprecations and resource removals outlined in a `3.0 Upgrade Guide`. (to follow)
+
+
+## Opting In
+
+You can opt into this Beta by setting the Environment Variable `ARM_PROVIDER_THREEPOINTZERO_RESOURCES` to `true`.
+
+On a macOS/Linux system:
+
+```bash
+export ARM_PROVIDER_THREEPOINTZERO_RESOURCES=true
+```
+
+On a Windows System (in PowerShell):
+
+```powershell
+[System.Environment]::SetEnvironmentVariable('ARM_PROVIDER_THREEPOINTZERO_RESOURCES', 'true', [System.EnvironmentVariableTarget]::User)
+```
+
+---
+
+-> **Note:** If this Environment Variable isn't specified, you will see the following error when trying to use any Resources requiring it, since the Azure Provider will Disable them:
+
+```
+$ terraform plan
+╷
+│ Error: Invalid resource type
+│
+│   on main.tf line 10, in resource "azurerm_service_plan" "test":
+│   10: resource "azurerm_service_plan" "test" {
+│
+│ The provider hashicorp/azurerm does not support resource type "azurerm_service_plan".
+╵
+```
+
+## Providing Feedback
+
+Firstly - thanks for trialling the new functionality coming in version 3.0 of the Azure Provider.
+
+We're keeping track of Beta Feedback in the Github Repository - [please follow this link to open an issue containing your feedback](https://github.com/terraform-providers/terraform-provider-azurerm/issues/new?template=Beta_Feedback.md).

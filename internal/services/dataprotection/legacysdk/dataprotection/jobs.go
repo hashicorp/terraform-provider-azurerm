@@ -8,11 +8,10 @@ package dataprotection
 
 import (
 	"context"
-	"net/http"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
+	"net/http"
 )
 
 // JobsClient is the open API 2.0 Specs for Azure Data Protection service
@@ -29,6 +28,84 @@ func NewJobsClient(subscriptionID string) JobsClient {
 // interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewJobsClientWithBaseURI(baseURI string, subscriptionID string) JobsClient {
 	return JobsClient{NewWithBaseURI(baseURI, subscriptionID)}
+}
+
+// Get gets a job with id in a backup vault
+// Parameters:
+// resourceGroupName - the name of the resource group where the backup vault is present.
+// vaultName - the name of the backup vault.
+// jobID - the Job ID. This is a GUID-formatted string (e.g. 00000000-0000-0000-0000-000000000000).
+func (client JobsClient) Get(ctx context.Context, resourceGroupName string, vaultName string, jobID string) (result AzureBackupJobResource, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/JobsClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetPreparer(ctx, resourceGroupName, vaultName, jobID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "dataprotection.JobsClient", "Get", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "dataprotection.JobsClient", "Get", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "dataprotection.JobsClient", "Get", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetPreparer prepares the Get request.
+func (client JobsClient) GetPreparer(ctx context.Context, resourceGroupName string, vaultName string, jobID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"jobId":             autorest.Encode("path", jobID),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"vaultName":         autorest.Encode("path", vaultName),
+	}
+
+	const APIVersion = "2021-07-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataProtection/backupVaults/{vaultName}/backupJobs/{jobId}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetSender sends the Get request. The method will close the
+// http.Response Body if it receives an error.
+func (client JobsClient) GetSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetResponder handles the response to the Get request. The method always
+// closes the http.Response Body.
+func (client JobsClient) GetResponder(resp *http.Response) (result AzureBackupJobResource, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
 }
 
 // List returns list of jobs belonging to a backup vault
@@ -81,7 +158,7 @@ func (client JobsClient) ListPreparer(ctx context.Context, resourceGroupName str
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2021-01-01"
+	const APIVersion = "2021-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

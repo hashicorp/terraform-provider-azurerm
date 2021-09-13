@@ -832,7 +832,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "sidecar"
-    image  = "microsoft/aci-tutorial-sidecar"
+    image  = "mcr.microsoft.com/azuredocs/aci-tutorial-sidecar"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -881,7 +881,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "sidecar"
-    image  = "microsoft/aci-tutorial-sidecar"
+    image  = "mcr.microsoft.com/azuredocs/aci-tutorial-sidecar"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -978,7 +978,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "sidecar"
-    image  = "microsoft/aci-tutorial-sidecar"
+    image  = "mcr.microsoft.com/azuredocs/aci-tutorial-sidecar"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -1139,7 +1139,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "windowsservercore"
-    image  = "microsoft/iis:windowsservercore"
+    image  = "mcr.microsoft.com/windows/servercore/iis:20210810-windowsservercore-ltsc2019"
     cpu    = "2.0"
     memory = "3.5"
 
@@ -1203,7 +1203,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "windowsservercore"
-    image  = "microsoft/iis:windowsservercore"
+    image  = "mcr.microsoft.com/windows/servercore/iis:20210810-windowsservercore-ltsc2019"
     cpu    = "2.0"
     memory = "3.5"
 

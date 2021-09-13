@@ -1,201 +1,716 @@
 # Change History
 
-## Breaking Changes
-
-### Removed Constants
-
-1. IntegrationRuntimeEntityReferenceType.IntegrationRuntimeEntityReferenceTypeCredentialReference
-
-### Struct Changes
-
-#### Removed Struct Fields
-
-1. IntegrationRuntimeSsisProperties.ManagedCredential
-
-### Signature Changes
-
-#### Struct Fields
-
-1. AmazonMWSSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. AmazonRedshiftSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. AvroDatasetTypeProperties.AvroCompressionCodec changed type from AvroCompressionCodec to interface{}
-1. AvroSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. AzureDataExplorerSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. AzureMariaDBSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. AzureMySQLSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. AzurePostgreSQLSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. AzureSQLSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. AzureTableSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. CassandraSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. CommonDataServiceForAppsSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. ConcurSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. CosmosDbMongoDbAPISource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. CosmosDbSQLAPISource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. CouchbaseSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. Db2Source.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. DelimitedTextSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. DocumentDbCollectionSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. DrillSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. DynamicsAXSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. DynamicsCrmSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. DynamicsSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. EloquaSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. ExcelSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. FileSystemSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. GoogleAdWordsSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. GoogleBigQuerySource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. GreenplumSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. HBaseSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. HiveSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. HubspotSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. ImpalaSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. InformixSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. JSONSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. JiraSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. MagentoSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. MariaDBSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. MarketoSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. MicrosoftAccessSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. MongoDbAtlasSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. MongoDbSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. MongoDbV2Source.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. MySQLSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. NetezzaSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. ODataSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. OdbcSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. OracleServiceCloudSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. OracleSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. OrcDatasetTypeProperties.OrcCompressionCodec changed type from OrcCompressionCodec to interface{}
-1. OrcSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. ParquetSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. PaypalSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. PhoenixSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. PostgreSQLSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. PrestoSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. QuickBooksSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. RelationalSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. ResponsysSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. RestSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. SQLDWSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. SQLMISource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. SQLServerSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. SQLSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. SalesforceMarketingCloudSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. SalesforceServiceCloudSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. SalesforceSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. SapBwSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. SapCloudForCustomerSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. SapEccSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. SapHanaSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. SapOpenHubSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. SapTableSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. ServiceNowSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. ShopifySource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. SparkSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. SquareSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. SybaseSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. TabularSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. TeradataSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. VerticaSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. WebSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. XMLSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. XeroSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-1. ZohoSource.AdditionalColumns changed type from *[]AdditionalColumns to interface{}
-
 ## Additive Changes
 
 ### New Constants
 
-1. SQLDWWriteBehaviorEnum.SQLDWWriteBehaviorEnumInsert
-1. SQLDWWriteBehaviorEnum.SQLDWWriteBehaviorEnumUpsert
-1. SQLWriteBehaviorEnum.SQLWriteBehaviorEnumInsert
-1. SQLWriteBehaviorEnum.SQLWriteBehaviorEnumStoredProcedure
-1. SQLWriteBehaviorEnum.SQLWriteBehaviorEnumUpsert
-1. TypeBasicCredential.TypeBasicCredentialTypeCredential
-1. TypeBasicCredential.TypeBasicCredentialTypeManagedIdentity
-1. TypeBasicCredential.TypeBasicCredentialTypeServicePrincipal
+1. AmazonRdsForOraclePartitionOption.AmazonRdsForOraclePartitionOptionDynamicRange
+1. AmazonRdsForOraclePartitionOption.AmazonRdsForOraclePartitionOptionNone
+1. AmazonRdsForOraclePartitionOption.AmazonRdsForOraclePartitionOptionPhysicalPartitionsOfTable
+1. TypeBasicActivity.TypeBasicActivityTypeExecuteWranglingDataflow
+1. TypeBasicCopySource.TypeBasicCopySourceTypeAmazonRdsForOracleSource
+1. TypeBasicDataFlow.TypeBasicDataFlowTypeWranglingDataFlow
+1. TypeBasicDataset.TypeBasicDatasetTypeAmazonRdsForOracleTable
+1. TypeBasicLinkedService.TypeBasicLinkedServiceTypeAmazonRdsForOracle
 
 ### New Funcs
 
-1. *Credential.UnmarshalJSON([]byte) error
-1. *CredentialReference.UnmarshalJSON([]byte) error
-1. *CredentialResource.UnmarshalJSON([]byte) error
-1. *ManagedIdentityCredential.UnmarshalJSON([]byte) error
-1. *ServicePrincipalCredential.UnmarshalJSON([]byte) error
-1. Credential.AsBasicCredential() (BasicCredential, bool)
-1. Credential.AsCredential() (*Credential, bool)
-1. Credential.AsManagedIdentityCredential() (*ManagedIdentityCredential, bool)
-1. Credential.AsServicePrincipalCredential() (*ServicePrincipalCredential, bool)
-1. Credential.MarshalJSON() ([]byte, error)
-1. CredentialReference.MarshalJSON() ([]byte, error)
-1. CredentialResource.MarshalJSON() ([]byte, error)
-1. ManagedIdentityCredential.AsBasicCredential() (BasicCredential, bool)
-1. ManagedIdentityCredential.AsCredential() (*Credential, bool)
-1. ManagedIdentityCredential.AsManagedIdentityCredential() (*ManagedIdentityCredential, bool)
-1. ManagedIdentityCredential.AsServicePrincipalCredential() (*ServicePrincipalCredential, bool)
-1. ManagedIdentityCredential.MarshalJSON() ([]byte, error)
-1. PossibleSQLDWWriteBehaviorEnumValues() []SQLDWWriteBehaviorEnum
-1. PossibleSQLWriteBehaviorEnumValues() []SQLWriteBehaviorEnum
-1. PossibleTypeBasicCredentialValues() []TypeBasicCredential
-1. ServicePrincipalCredential.AsBasicCredential() (BasicCredential, bool)
-1. ServicePrincipalCredential.AsCredential() (*Credential, bool)
-1. ServicePrincipalCredential.AsManagedIdentityCredential() (*ManagedIdentityCredential, bool)
-1. ServicePrincipalCredential.AsServicePrincipalCredential() (*ServicePrincipalCredential, bool)
-1. ServicePrincipalCredential.MarshalJSON() ([]byte, error)
+1. *AmazonRdsForLinkedServiceTypeProperties.UnmarshalJSON([]byte) error
+1. *AmazonRdsForOracleLinkedService.UnmarshalJSON([]byte) error
+1. *AmazonRdsForOracleSource.UnmarshalJSON([]byte) error
+1. *AmazonRdsForOracleTableDataset.UnmarshalJSON([]byte) error
+1. *ExecuteWranglingDataflowActivity.UnmarshalJSON([]byte) error
+1. *WranglingDataFlow.UnmarshalJSON([]byte) error
+1. Activity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. AmazonMWSLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AmazonMWSObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AmazonMWSSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AmazonRdsForOracleLinkedService.AsAmazonMWSLinkedService() (*AmazonMWSLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAmazonRedshiftLinkedService() (*AmazonRedshiftLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAmazonS3CompatibleLinkedService() (*AmazonS3CompatibleLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAmazonS3LinkedService() (*AmazonS3LinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureBatchLinkedService() (*AzureBatchLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureBlobFSLinkedService() (*AzureBlobFSLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureBlobStorageLinkedService() (*AzureBlobStorageLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureDataExplorerLinkedService() (*AzureDataExplorerLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureDataLakeAnalyticsLinkedService() (*AzureDataLakeAnalyticsLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureDataLakeStoreLinkedService() (*AzureDataLakeStoreLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureDatabricksDeltaLakeLinkedService() (*AzureDatabricksDeltaLakeLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureDatabricksLinkedService() (*AzureDatabricksLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureFileStorageLinkedService() (*AzureFileStorageLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureFunctionLinkedService() (*AzureFunctionLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureKeyVaultLinkedService() (*AzureKeyVaultLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureMLLinkedService() (*AzureMLLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureMLServiceLinkedService() (*AzureMLServiceLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureMariaDBLinkedService() (*AzureMariaDBLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureMySQLLinkedService() (*AzureMySQLLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzurePostgreSQLLinkedService() (*AzurePostgreSQLLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureSQLDWLinkedService() (*AzureSQLDWLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureSQLDatabaseLinkedService() (*AzureSQLDatabaseLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureSQLMILinkedService() (*AzureSQLMILinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureSearchLinkedService() (*AzureSearchLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureStorageLinkedService() (*AzureStorageLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsAzureTableStorageLinkedService() (*AzureTableStorageLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsBasicLinkedService() (BasicLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsCassandraLinkedService() (*CassandraLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsCommonDataServiceForAppsLinkedService() (*CommonDataServiceForAppsLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsConcurLinkedService() (*ConcurLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsCosmosDbLinkedService() (*CosmosDbLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsCosmosDbMongoDbAPILinkedService() (*CosmosDbMongoDbAPILinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsCouchbaseLinkedService() (*CouchbaseLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsCustomDataSourceLinkedService() (*CustomDataSourceLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsDb2LinkedService() (*Db2LinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsDrillLinkedService() (*DrillLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsDynamicsAXLinkedService() (*DynamicsAXLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsDynamicsCrmLinkedService() (*DynamicsCrmLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsDynamicsLinkedService() (*DynamicsLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsEloquaLinkedService() (*EloquaLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsFileServerLinkedService() (*FileServerLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsFtpServerLinkedService() (*FtpServerLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsGoogleAdWordsLinkedService() (*GoogleAdWordsLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsGoogleBigQueryLinkedService() (*GoogleBigQueryLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsGoogleCloudStorageLinkedService() (*GoogleCloudStorageLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsGreenplumLinkedService() (*GreenplumLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsHBaseLinkedService() (*HBaseLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsHDInsightLinkedService() (*HDInsightLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsHDInsightOnDemandLinkedService() (*HDInsightOnDemandLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsHTTPLinkedService() (*HTTPLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsHdfsLinkedService() (*HdfsLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsHiveLinkedService() (*HiveLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsHubspotLinkedService() (*HubspotLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsImpalaLinkedService() (*ImpalaLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsInformixLinkedService() (*InformixLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsJiraLinkedService() (*JiraLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsLinkedService() (*LinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsMagentoLinkedService() (*MagentoLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsMariaDBLinkedService() (*MariaDBLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsMarketoLinkedService() (*MarketoLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsMicrosoftAccessLinkedService() (*MicrosoftAccessLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsMongoDbAtlasLinkedService() (*MongoDbAtlasLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsMongoDbLinkedService() (*MongoDbLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsMongoDbV2LinkedService() (*MongoDbV2LinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsMySQLLinkedService() (*MySQLLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsNetezzaLinkedService() (*NetezzaLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsODataLinkedService() (*ODataLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsOdbcLinkedService() (*OdbcLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsOffice365LinkedService() (*Office365LinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsOracleCloudStorageLinkedService() (*OracleCloudStorageLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsOracleLinkedService() (*OracleLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsOracleServiceCloudLinkedService() (*OracleServiceCloudLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsPaypalLinkedService() (*PaypalLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsPhoenixLinkedService() (*PhoenixLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsPostgreSQLLinkedService() (*PostgreSQLLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsPrestoLinkedService() (*PrestoLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsQuickBooksLinkedService() (*QuickBooksLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsResponsysLinkedService() (*ResponsysLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsRestServiceLinkedService() (*RestServiceLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSQLServerLinkedService() (*SQLServerLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSalesforceLinkedService() (*SalesforceLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSalesforceMarketingCloudLinkedService() (*SalesforceMarketingCloudLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSalesforceServiceCloudLinkedService() (*SalesforceServiceCloudLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSapBWLinkedService() (*SapBWLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSapCloudForCustomerLinkedService() (*SapCloudForCustomerLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSapEccLinkedService() (*SapEccLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSapHanaLinkedService() (*SapHanaLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSapOpenHubLinkedService() (*SapOpenHubLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSapTableLinkedService() (*SapTableLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsServiceNowLinkedService() (*ServiceNowLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSftpServerLinkedService() (*SftpServerLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSharePointOnlineListLinkedService() (*SharePointOnlineListLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsShopifyLinkedService() (*ShopifyLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSnowflakeLinkedService() (*SnowflakeLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSparkLinkedService() (*SparkLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSquareLinkedService() (*SquareLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsSybaseLinkedService() (*SybaseLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsTeradataLinkedService() (*TeradataLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsVerticaLinkedService() (*VerticaLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsWebLinkedService() (*WebLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsXeroLinkedService() (*XeroLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.AsZohoLinkedService() (*ZohoLinkedService, bool)
+1. AmazonRdsForOracleLinkedService.MarshalJSON() ([]byte, error)
+1. AmazonRdsForOracleSource.AsAmazonMWSSource() (*AmazonMWSSource, bool)
+1. AmazonRdsForOracleSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AmazonRdsForOracleSource.AsAmazonRedshiftSource() (*AmazonRedshiftSource, bool)
+1. AmazonRdsForOracleSource.AsAvroSource() (*AvroSource, bool)
+1. AmazonRdsForOracleSource.AsAzureBlobFSSource() (*AzureBlobFSSource, bool)
+1. AmazonRdsForOracleSource.AsAzureDataExplorerSource() (*AzureDataExplorerSource, bool)
+1. AmazonRdsForOracleSource.AsAzureDataLakeStoreSource() (*AzureDataLakeStoreSource, bool)
+1. AmazonRdsForOracleSource.AsAzureDatabricksDeltaLakeSource() (*AzureDatabricksDeltaLakeSource, bool)
+1. AmazonRdsForOracleSource.AsAzureMariaDBSource() (*AzureMariaDBSource, bool)
+1. AmazonRdsForOracleSource.AsAzureMySQLSource() (*AzureMySQLSource, bool)
+1. AmazonRdsForOracleSource.AsAzurePostgreSQLSource() (*AzurePostgreSQLSource, bool)
+1. AmazonRdsForOracleSource.AsAzureSQLSource() (*AzureSQLSource, bool)
+1. AmazonRdsForOracleSource.AsAzureTableSource() (*AzureTableSource, bool)
+1. AmazonRdsForOracleSource.AsBasicCopySource() (BasicCopySource, bool)
+1. AmazonRdsForOracleSource.AsBasicTabularSource() (BasicTabularSource, bool)
+1. AmazonRdsForOracleSource.AsBinarySource() (*BinarySource, bool)
+1. AmazonRdsForOracleSource.AsBlobSource() (*BlobSource, bool)
+1. AmazonRdsForOracleSource.AsCassandraSource() (*CassandraSource, bool)
+1. AmazonRdsForOracleSource.AsCommonDataServiceForAppsSource() (*CommonDataServiceForAppsSource, bool)
+1. AmazonRdsForOracleSource.AsConcurSource() (*ConcurSource, bool)
+1. AmazonRdsForOracleSource.AsCopySource() (*CopySource, bool)
+1. AmazonRdsForOracleSource.AsCosmosDbMongoDbAPISource() (*CosmosDbMongoDbAPISource, bool)
+1. AmazonRdsForOracleSource.AsCosmosDbSQLAPISource() (*CosmosDbSQLAPISource, bool)
+1. AmazonRdsForOracleSource.AsCouchbaseSource() (*CouchbaseSource, bool)
+1. AmazonRdsForOracleSource.AsDb2Source() (*Db2Source, bool)
+1. AmazonRdsForOracleSource.AsDelimitedTextSource() (*DelimitedTextSource, bool)
+1. AmazonRdsForOracleSource.AsDocumentDbCollectionSource() (*DocumentDbCollectionSource, bool)
+1. AmazonRdsForOracleSource.AsDrillSource() (*DrillSource, bool)
+1. AmazonRdsForOracleSource.AsDynamicsAXSource() (*DynamicsAXSource, bool)
+1. AmazonRdsForOracleSource.AsDynamicsCrmSource() (*DynamicsCrmSource, bool)
+1. AmazonRdsForOracleSource.AsDynamicsSource() (*DynamicsSource, bool)
+1. AmazonRdsForOracleSource.AsEloquaSource() (*EloquaSource, bool)
+1. AmazonRdsForOracleSource.AsExcelSource() (*ExcelSource, bool)
+1. AmazonRdsForOracleSource.AsFileSystemSource() (*FileSystemSource, bool)
+1. AmazonRdsForOracleSource.AsGoogleAdWordsSource() (*GoogleAdWordsSource, bool)
+1. AmazonRdsForOracleSource.AsGoogleBigQuerySource() (*GoogleBigQuerySource, bool)
+1. AmazonRdsForOracleSource.AsGreenplumSource() (*GreenplumSource, bool)
+1. AmazonRdsForOracleSource.AsHBaseSource() (*HBaseSource, bool)
+1. AmazonRdsForOracleSource.AsHTTPSource() (*HTTPSource, bool)
+1. AmazonRdsForOracleSource.AsHdfsSource() (*HdfsSource, bool)
+1. AmazonRdsForOracleSource.AsHiveSource() (*HiveSource, bool)
+1. AmazonRdsForOracleSource.AsHubspotSource() (*HubspotSource, bool)
+1. AmazonRdsForOracleSource.AsImpalaSource() (*ImpalaSource, bool)
+1. AmazonRdsForOracleSource.AsInformixSource() (*InformixSource, bool)
+1. AmazonRdsForOracleSource.AsJSONSource() (*JSONSource, bool)
+1. AmazonRdsForOracleSource.AsJiraSource() (*JiraSource, bool)
+1. AmazonRdsForOracleSource.AsMagentoSource() (*MagentoSource, bool)
+1. AmazonRdsForOracleSource.AsMariaDBSource() (*MariaDBSource, bool)
+1. AmazonRdsForOracleSource.AsMarketoSource() (*MarketoSource, bool)
+1. AmazonRdsForOracleSource.AsMicrosoftAccessSource() (*MicrosoftAccessSource, bool)
+1. AmazonRdsForOracleSource.AsMongoDbAtlasSource() (*MongoDbAtlasSource, bool)
+1. AmazonRdsForOracleSource.AsMongoDbSource() (*MongoDbSource, bool)
+1. AmazonRdsForOracleSource.AsMongoDbV2Source() (*MongoDbV2Source, bool)
+1. AmazonRdsForOracleSource.AsMySQLSource() (*MySQLSource, bool)
+1. AmazonRdsForOracleSource.AsNetezzaSource() (*NetezzaSource, bool)
+1. AmazonRdsForOracleSource.AsODataSource() (*ODataSource, bool)
+1. AmazonRdsForOracleSource.AsOdbcSource() (*OdbcSource, bool)
+1. AmazonRdsForOracleSource.AsOffice365Source() (*Office365Source, bool)
+1. AmazonRdsForOracleSource.AsOracleServiceCloudSource() (*OracleServiceCloudSource, bool)
+1. AmazonRdsForOracleSource.AsOracleSource() (*OracleSource, bool)
+1. AmazonRdsForOracleSource.AsOrcSource() (*OrcSource, bool)
+1. AmazonRdsForOracleSource.AsParquetSource() (*ParquetSource, bool)
+1. AmazonRdsForOracleSource.AsPaypalSource() (*PaypalSource, bool)
+1. AmazonRdsForOracleSource.AsPhoenixSource() (*PhoenixSource, bool)
+1. AmazonRdsForOracleSource.AsPostgreSQLSource() (*PostgreSQLSource, bool)
+1. AmazonRdsForOracleSource.AsPrestoSource() (*PrestoSource, bool)
+1. AmazonRdsForOracleSource.AsQuickBooksSource() (*QuickBooksSource, bool)
+1. AmazonRdsForOracleSource.AsRelationalSource() (*RelationalSource, bool)
+1. AmazonRdsForOracleSource.AsResponsysSource() (*ResponsysSource, bool)
+1. AmazonRdsForOracleSource.AsRestSource() (*RestSource, bool)
+1. AmazonRdsForOracleSource.AsSQLDWSource() (*SQLDWSource, bool)
+1. AmazonRdsForOracleSource.AsSQLMISource() (*SQLMISource, bool)
+1. AmazonRdsForOracleSource.AsSQLServerSource() (*SQLServerSource, bool)
+1. AmazonRdsForOracleSource.AsSQLSource() (*SQLSource, bool)
+1. AmazonRdsForOracleSource.AsSalesforceMarketingCloudSource() (*SalesforceMarketingCloudSource, bool)
+1. AmazonRdsForOracleSource.AsSalesforceServiceCloudSource() (*SalesforceServiceCloudSource, bool)
+1. AmazonRdsForOracleSource.AsSalesforceSource() (*SalesforceSource, bool)
+1. AmazonRdsForOracleSource.AsSapBwSource() (*SapBwSource, bool)
+1. AmazonRdsForOracleSource.AsSapCloudForCustomerSource() (*SapCloudForCustomerSource, bool)
+1. AmazonRdsForOracleSource.AsSapEccSource() (*SapEccSource, bool)
+1. AmazonRdsForOracleSource.AsSapHanaSource() (*SapHanaSource, bool)
+1. AmazonRdsForOracleSource.AsSapOpenHubSource() (*SapOpenHubSource, bool)
+1. AmazonRdsForOracleSource.AsSapTableSource() (*SapTableSource, bool)
+1. AmazonRdsForOracleSource.AsServiceNowSource() (*ServiceNowSource, bool)
+1. AmazonRdsForOracleSource.AsSharePointOnlineListSource() (*SharePointOnlineListSource, bool)
+1. AmazonRdsForOracleSource.AsShopifySource() (*ShopifySource, bool)
+1. AmazonRdsForOracleSource.AsSnowflakeSource() (*SnowflakeSource, bool)
+1. AmazonRdsForOracleSource.AsSparkSource() (*SparkSource, bool)
+1. AmazonRdsForOracleSource.AsSquareSource() (*SquareSource, bool)
+1. AmazonRdsForOracleSource.AsSybaseSource() (*SybaseSource, bool)
+1. AmazonRdsForOracleSource.AsTabularSource() (*TabularSource, bool)
+1. AmazonRdsForOracleSource.AsTeradataSource() (*TeradataSource, bool)
+1. AmazonRdsForOracleSource.AsVerticaSource() (*VerticaSource, bool)
+1. AmazonRdsForOracleSource.AsWebSource() (*WebSource, bool)
+1. AmazonRdsForOracleSource.AsXMLSource() (*XMLSource, bool)
+1. AmazonRdsForOracleSource.AsXeroSource() (*XeroSource, bool)
+1. AmazonRdsForOracleSource.AsZohoSource() (*ZohoSource, bool)
+1. AmazonRdsForOracleSource.MarshalJSON() ([]byte, error)
+1. AmazonRdsForOracleTableDataset.AsAmazonMWSObjectDataset() (*AmazonMWSObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAmazonRedshiftTableDataset() (*AmazonRedshiftTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAmazonS3Dataset() (*AmazonS3Dataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAvroDataset() (*AvroDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureBlobDataset() (*AzureBlobDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureBlobFSDataset() (*AzureBlobFSDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureDataExplorerTableDataset() (*AzureDataExplorerTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureDataLakeStoreDataset() (*AzureDataLakeStoreDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureDatabricksDeltaLakeDataset() (*AzureDatabricksDeltaLakeDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureMariaDBTableDataset() (*AzureMariaDBTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureMySQLTableDataset() (*AzureMySQLTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzurePostgreSQLTableDataset() (*AzurePostgreSQLTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureSQLDWTableDataset() (*AzureSQLDWTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureSQLMITableDataset() (*AzureSQLMITableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureSQLTableDataset() (*AzureSQLTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureSearchIndexDataset() (*AzureSearchIndexDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsAzureTableDataset() (*AzureTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsBasicDataset() (BasicDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsBinaryDataset() (*BinaryDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsCassandraTableDataset() (*CassandraTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsCommonDataServiceForAppsEntityDataset() (*CommonDataServiceForAppsEntityDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsConcurObjectDataset() (*ConcurObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsCosmosDbMongoDbAPICollectionDataset() (*CosmosDbMongoDbAPICollectionDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsCosmosDbSQLAPICollectionDataset() (*CosmosDbSQLAPICollectionDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsCouchbaseTableDataset() (*CouchbaseTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsCustomDataset() (*CustomDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsDataset() (*Dataset, bool)
+1. AmazonRdsForOracleTableDataset.AsDb2TableDataset() (*Db2TableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsDelimitedTextDataset() (*DelimitedTextDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsDocumentDbCollectionDataset() (*DocumentDbCollectionDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsDrillTableDataset() (*DrillTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsDynamicsAXResourceDataset() (*DynamicsAXResourceDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsDynamicsCrmEntityDataset() (*DynamicsCrmEntityDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsDynamicsEntityDataset() (*DynamicsEntityDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsEloquaObjectDataset() (*EloquaObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsExcelDataset() (*ExcelDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsFileShareDataset() (*FileShareDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsGoogleAdWordsObjectDataset() (*GoogleAdWordsObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsGoogleBigQueryObjectDataset() (*GoogleBigQueryObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsGreenplumTableDataset() (*GreenplumTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsHBaseObjectDataset() (*HBaseObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsHTTPDataset() (*HTTPDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsHiveObjectDataset() (*HiveObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsHubspotObjectDataset() (*HubspotObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsImpalaObjectDataset() (*ImpalaObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsInformixTableDataset() (*InformixTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsJSONDataset() (*JSONDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsJiraObjectDataset() (*JiraObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsMagentoObjectDataset() (*MagentoObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsMariaDBTableDataset() (*MariaDBTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsMarketoObjectDataset() (*MarketoObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsMicrosoftAccessTableDataset() (*MicrosoftAccessTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsMongoDbAtlasCollectionDataset() (*MongoDbAtlasCollectionDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsMongoDbCollectionDataset() (*MongoDbCollectionDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsMongoDbV2CollectionDataset() (*MongoDbV2CollectionDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsMySQLTableDataset() (*MySQLTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsNetezzaTableDataset() (*NetezzaTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsODataResourceDataset() (*ODataResourceDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsOdbcTableDataset() (*OdbcTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsOffice365Dataset() (*Office365Dataset, bool)
+1. AmazonRdsForOracleTableDataset.AsOracleServiceCloudObjectDataset() (*OracleServiceCloudObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsOracleTableDataset() (*OracleTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsOrcDataset() (*OrcDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsParquetDataset() (*ParquetDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsPaypalObjectDataset() (*PaypalObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsPhoenixObjectDataset() (*PhoenixObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsPostgreSQLTableDataset() (*PostgreSQLTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsPrestoObjectDataset() (*PrestoObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsQuickBooksObjectDataset() (*QuickBooksObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsRelationalTableDataset() (*RelationalTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsResponsysObjectDataset() (*ResponsysObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsRestResourceDataset() (*RestResourceDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSQLServerTableDataset() (*SQLServerTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSalesforceMarketingCloudObjectDataset() (*SalesforceMarketingCloudObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSalesforceObjectDataset() (*SalesforceObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSalesforceServiceCloudObjectDataset() (*SalesforceServiceCloudObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSapBwCubeDataset() (*SapBwCubeDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSapCloudForCustomerResourceDataset() (*SapCloudForCustomerResourceDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSapEccResourceDataset() (*SapEccResourceDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSapHanaTableDataset() (*SapHanaTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSapOpenHubTableDataset() (*SapOpenHubTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSapTableResourceDataset() (*SapTableResourceDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsServiceNowObjectDataset() (*ServiceNowObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSharePointOnlineListResourceDataset() (*SharePointOnlineListResourceDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsShopifyObjectDataset() (*ShopifyObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSnowflakeDataset() (*SnowflakeDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSparkObjectDataset() (*SparkObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSquareObjectDataset() (*SquareObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsSybaseTableDataset() (*SybaseTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsTeradataTableDataset() (*TeradataTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsVerticaTableDataset() (*VerticaTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsWebTableDataset() (*WebTableDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsXMLDataset() (*XMLDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsXeroObjectDataset() (*XeroObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.AsZohoObjectDataset() (*ZohoObjectDataset, bool)
+1. AmazonRdsForOracleTableDataset.MarshalJSON() ([]byte, error)
+1. AmazonRedshiftLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AmazonRedshiftSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AmazonRedshiftTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AmazonS3CompatibleLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AmazonS3Dataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AmazonS3LinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AppendVariableActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. AvroDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AvroSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureBatchLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureBlobDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureBlobFSDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureBlobFSLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureBlobFSSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureBlobStorageLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureDataExplorerCommandActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. AzureDataExplorerLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureDataExplorerSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureDataExplorerTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureDataLakeAnalyticsLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureDataLakeStoreDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureDataLakeStoreLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureDataLakeStoreSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureDatabricksDeltaLakeDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureDatabricksDeltaLakeLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureDatabricksDeltaLakeSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureDatabricksLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureFileStorageLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureFunctionActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. AzureFunctionLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureKeyVaultLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureMLBatchExecutionActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. AzureMLExecutePipelineActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. AzureMLLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureMLServiceLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureMLUpdateResourceActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. AzureMariaDBLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureMariaDBSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureMariaDBTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureMySQLLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureMySQLSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureMySQLTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzurePostgreSQLLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzurePostgreSQLSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzurePostgreSQLTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureSQLDWLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureSQLDWTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureSQLDatabaseLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureSQLMILinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureSQLMITableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureSQLSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureSQLTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureSearchIndexDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureSearchLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureStorageLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. AzureTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. AzureTableSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. AzureTableStorageLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. BinaryDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. BinarySource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. BlobSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. CassandraLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. CassandraSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. CassandraTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. CommonDataServiceForAppsEntityDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. CommonDataServiceForAppsLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. CommonDataServiceForAppsSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. ConcurLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. ConcurObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ConcurSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. ControlActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. CopyActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. CopySource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. CosmosDbLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. CosmosDbMongoDbAPICollectionDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. CosmosDbMongoDbAPILinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. CosmosDbMongoDbAPISource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. CosmosDbSQLAPICollectionDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. CosmosDbSQLAPISource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. CouchbaseLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. CouchbaseSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. CouchbaseTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. CustomActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. CustomDataSourceLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. CustomDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. DataFlow.AsWranglingDataFlow() (*WranglingDataFlow, bool)
+1. DataLakeAnalyticsUSQLActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. DatabricksNotebookActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. DatabricksSparkJarActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. DatabricksSparkPythonActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. Dataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. Db2LinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. Db2Source.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. Db2TableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. DeleteActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. DelimitedTextDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. DelimitedTextSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. DocumentDbCollectionDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. DocumentDbCollectionSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. DrillLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. DrillSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. DrillTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. DynamicsAXLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. DynamicsAXResourceDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. DynamicsAXSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. DynamicsCrmEntityDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. DynamicsCrmLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. DynamicsCrmSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. DynamicsEntityDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. DynamicsLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. DynamicsSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. EloquaLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. EloquaObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. EloquaSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. ExcelDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ExcelSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. ExecuteDataFlowActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. ExecutePipelineActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. ExecutePowerQueryActivityTypeProperties.MarshalJSON() ([]byte, error)
+1. ExecuteSSISPackageActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsActivity() (*Activity, bool)
+1. ExecuteWranglingDataflowActivity.AsAppendVariableActivity() (*AppendVariableActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsAzureDataExplorerCommandActivity() (*AzureDataExplorerCommandActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsAzureFunctionActivity() (*AzureFunctionActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsAzureMLBatchExecutionActivity() (*AzureMLBatchExecutionActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsAzureMLExecutePipelineActivity() (*AzureMLExecutePipelineActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsAzureMLUpdateResourceActivity() (*AzureMLUpdateResourceActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsBasicActivity() (BasicActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsBasicControlActivity() (BasicControlActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsBasicExecutionActivity() (BasicExecutionActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsControlActivity() (*ControlActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsCopyActivity() (*CopyActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsCustomActivity() (*CustomActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsDataLakeAnalyticsUSQLActivity() (*DataLakeAnalyticsUSQLActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsDatabricksNotebookActivity() (*DatabricksNotebookActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsDatabricksSparkJarActivity() (*DatabricksSparkJarActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsDatabricksSparkPythonActivity() (*DatabricksSparkPythonActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsDeleteActivity() (*DeleteActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsExecuteDataFlowActivity() (*ExecuteDataFlowActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsExecutePipelineActivity() (*ExecutePipelineActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsExecuteSSISPackageActivity() (*ExecuteSSISPackageActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsExecutionActivity() (*ExecutionActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsFilterActivity() (*FilterActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsForEachActivity() (*ForEachActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsGetMetadataActivity() (*GetMetadataActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsHDInsightHiveActivity() (*HDInsightHiveActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsHDInsightMapReduceActivity() (*HDInsightMapReduceActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsHDInsightPigActivity() (*HDInsightPigActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsHDInsightSparkActivity() (*HDInsightSparkActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsHDInsightStreamingActivity() (*HDInsightStreamingActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsIfConditionActivity() (*IfConditionActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsLookupActivity() (*LookupActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsSQLServerStoredProcedureActivity() (*SQLServerStoredProcedureActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsSetVariableActivity() (*SetVariableActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsSwitchActivity() (*SwitchActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsUntilActivity() (*UntilActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsValidationActivity() (*ValidationActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsWaitActivity() (*WaitActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsWebActivity() (*WebActivity, bool)
+1. ExecuteWranglingDataflowActivity.AsWebHookActivity() (*WebHookActivity, bool)
+1. ExecuteWranglingDataflowActivity.MarshalJSON() ([]byte, error)
+1. ExecutionActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. FileServerLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. FileShareDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. FileSystemSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. FilterActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. ForEachActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. FtpServerLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. GetMetadataActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. GoogleAdWordsLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. GoogleAdWordsObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. GoogleAdWordsSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. GoogleBigQueryLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. GoogleBigQueryObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. GoogleBigQuerySource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. GoogleCloudStorageLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. GreenplumLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. GreenplumSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. GreenplumTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. HBaseLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. HBaseObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. HBaseSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. HDInsightHiveActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. HDInsightLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. HDInsightMapReduceActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. HDInsightOnDemandLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. HDInsightPigActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. HDInsightSparkActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. HDInsightStreamingActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. HTTPDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. HTTPLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. HTTPSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. HdfsLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. HdfsSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. HiveLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. HiveObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. HiveSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. HubspotLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. HubspotObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. HubspotSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. IfConditionActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. ImpalaLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. ImpalaObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ImpalaSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. InformixLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. InformixSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. InformixTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. JSONDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. JSONSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. JiraLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. JiraObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. JiraSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. LinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. LookupActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. MagentoLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. MagentoObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. MagentoSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. MappingDataFlow.AsWranglingDataFlow() (*WranglingDataFlow, bool)
+1. MariaDBLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. MariaDBSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. MariaDBTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. MarketoLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. MarketoObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. MarketoSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. MicrosoftAccessLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. MicrosoftAccessSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. MicrosoftAccessTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. MongoDbAtlasCollectionDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. MongoDbAtlasLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. MongoDbAtlasSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. MongoDbCollectionDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. MongoDbLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. MongoDbSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. MongoDbV2CollectionDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. MongoDbV2LinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. MongoDbV2Source.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. MySQLLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. MySQLSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. MySQLTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. NetezzaLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. NetezzaSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. NetezzaTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ODataLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. ODataResourceDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ODataSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. OdbcLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. OdbcSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. OdbcTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. Office365Dataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. Office365LinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. Office365Source.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. OracleCloudStorageLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. OracleLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. OracleServiceCloudLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. OracleServiceCloudObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. OracleServiceCloudSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. OracleSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. OracleTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. OrcDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. OrcSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. ParquetDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ParquetSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. PaypalLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. PaypalObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. PaypalSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. PhoenixLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. PhoenixObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. PhoenixSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. PossibleAmazonRdsForOraclePartitionOptionValues() []AmazonRdsForOraclePartitionOption
+1. PostgreSQLLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. PostgreSQLSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. PostgreSQLTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. PrestoLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. PrestoObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. PrestoSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. QuickBooksLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. QuickBooksObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. QuickBooksSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. RelationalSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. RelationalTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ResponsysLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. ResponsysObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ResponsysSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. RestResourceDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. RestServiceLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. RestSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SQLDWSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SQLMISource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SQLServerLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SQLServerSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SQLServerStoredProcedureActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. SQLServerTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SQLSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SalesforceLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SalesforceMarketingCloudLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SalesforceMarketingCloudObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SalesforceMarketingCloudSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SalesforceObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SalesforceServiceCloudLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SalesforceServiceCloudObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SalesforceServiceCloudSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SalesforceSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SapBWLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SapBwCubeDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SapBwSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SapCloudForCustomerLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SapCloudForCustomerResourceDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SapCloudForCustomerSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SapEccLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SapEccResourceDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SapEccSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SapHanaLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SapHanaSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SapHanaTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SapOpenHubLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SapOpenHubSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SapOpenHubTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SapTableLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SapTableResourceDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SapTableSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. ServiceNowLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. ServiceNowObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ServiceNowSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SetVariableActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. SftpServerLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SharePointOnlineListLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SharePointOnlineListResourceDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SharePointOnlineListSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. ShopifyLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. ShopifyObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ShopifySource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SnowflakeDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SnowflakeLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SnowflakeSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SparkLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SparkObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SparkSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SquareLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SquareObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. SquareSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SwitchActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. SybaseLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. SybaseSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. SybaseTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. TabularSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. TeradataLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. TeradataSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. TeradataTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. UntilActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. ValidationActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. VerticaLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. VerticaSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. VerticaTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. WaitActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. WebActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. WebHookActivity.AsExecuteWranglingDataflowActivity() (*ExecuteWranglingDataflowActivity, bool)
+1. WebLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. WebSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. WebTableDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. WranglingDataFlow.AsBasicDataFlow() (BasicDataFlow, bool)
+1. WranglingDataFlow.AsDataFlow() (*DataFlow, bool)
+1. WranglingDataFlow.AsMappingDataFlow() (*MappingDataFlow, bool)
+1. WranglingDataFlow.AsWranglingDataFlow() (*WranglingDataFlow, bool)
+1. WranglingDataFlow.MarshalJSON() ([]byte, error)
+1. XMLDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. XMLSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. XeroLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. XeroObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. XeroSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
+1. ZohoLinkedService.AsAmazonRdsForOracleLinkedService() (*AmazonRdsForOracleLinkedService, bool)
+1. ZohoObjectDataset.AsAmazonRdsForOracleTableDataset() (*AmazonRdsForOracleTableDataset, bool)
+1. ZohoSource.AsAmazonRdsForOracleSource() (*AmazonRdsForOracleSource, bool)
 
 ### Struct Changes
 
 #### New Structs
 
-1. Credential
-1. CredentialReference
-1. CredentialResource
-1. GitHubClientSecret
-1. ManagedIdentityCredential
-1. ManagedIdentityTypeProperties
-1. SQLDWUpsertSettings
-1. SQLUpsertSettings
-1. ServicePrincipalCredential
-1. ServicePrincipalCredentialTypeProperties
-
-#### New Struct Fields
-
-1. AzureBatchLinkedServiceTypeProperties.Credential
-1. AzureBlobFSLinkedServiceTypeProperties.Credential
-1. AzureBlobStorageLinkedServiceTypeProperties.Credential
-1. AzureDataExplorerLinkedServiceTypeProperties.Credential
-1. AzureDataLakeStoreLinkedServiceTypeProperties.Credential
-1. AzureDatabricksLinkedServiceTypeProperties.Credential
-1. AzureFunctionLinkedServiceTypeProperties.Authentication
-1. AzureFunctionLinkedServiceTypeProperties.Credential
-1. AzureFunctionLinkedServiceTypeProperties.ResourceID
-1. AzureKeyVaultLinkedServiceTypeProperties.Credential
-1. AzureMLLinkedServiceTypeProperties.Authentication
-1. AzureSQLDWLinkedServiceTypeProperties.Credential
-1. AzureSQLDatabaseLinkedServiceTypeProperties.Credential
-1. AzureSQLMILinkedServiceTypeProperties.Credential
-1. AzureSQLSink.SQLWriterUseTableLock
-1. AzureSQLSink.UpsertSettings
-1. AzureSQLSink.WriteBehavior
-1. FactoryGitHubConfiguration.ClientID
-1. FactoryGitHubConfiguration.ClientSecret
-1. GitHubAccessTokenRequest.GitHubClientSecret
-1. HDInsightOnDemandLinkedServiceTypeProperties.Credential
-1. IntegrationRuntimeDataFlowProperties.Cleanup
-1. IntegrationRuntimeSsisProperties.Credential
-1. PipelineRunInvokedBy.PipelineName
-1. PipelineRunInvokedBy.PipelineRunID
-1. RestServiceLinkedServiceTypeProperties.Credential
-1. SQLDWSink.SQLWriterUseTableLock
-1. SQLDWSink.UpsertSettings
-1. SQLDWSink.WriteBehavior
-1. SQLMISink.SQLWriterUseTableLock
-1. SQLMISink.UpsertSettings
-1. SQLMISink.WriteBehavior
-1. SQLServerSink.SQLWriterUseTableLock
-1. SQLServerSink.UpsertSettings
-1. SQLServerSink.WriteBehavior
-1. SQLSink.SQLWriterUseTableLock
-1. SQLSink.UpsertSettings
-1. SQLSink.WriteBehavior
-1. WebActivityAuthentication.Credential
+1. AmazonRdsForLinkedServiceTypeProperties
+1. AmazonRdsForOracleLinkedService
+1. AmazonRdsForOraclePartitionSettings
+1. AmazonRdsForOracleSource
+1. AmazonRdsForOracleTableDataset
+1. AmazonRdsForOracleTableDatasetTypeProperties
+1. ExecutePowerQueryActivityTypeProperties
+1. ExecuteWranglingDataflowActivity
+1. PowerQuerySink
+1. PowerQuerySource
+1. PowerQueryTypeProperties
+1. WranglingDataFlow

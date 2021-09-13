@@ -99,6 +99,8 @@ func resourceHDInsightSparkCluster() *pluginsdk.Resource {
 
 			"network": SchemaHDInsightsNetwork(),
 
+			"security_profile": SchemaHDInsightsSecurityProfile(),
+
 			"storage_account": SchemaHDInsightsStorageAccounts(),
 
 			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
@@ -223,6 +225,20 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		Tags:     tags.Expand(t),
 		Identity: identity,
 	}
+
+	if v, ok := d.GetOk("security_profile"); ok {
+		params.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]interface{}))
+
+		params.Identity = &hdinsight.ClusterIdentity{
+			Type:                   hdinsight.ResourceIdentityTypeUserAssigned,
+			UserAssignedIdentities: make(map[string]*hdinsight.ClusterIdentityUserAssignedIdentitiesValue),
+		}
+
+		if params.Properties.SecurityProfile != nil && params.Properties.SecurityProfile.MsiResourceID != nil {
+			params.Identity.UserAssignedIdentities[*params.Properties.SecurityProfile.MsiResourceID] = &hdinsight.ClusterIdentityUserAssignedIdentitiesValue{}
+		}
+	}
+
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
 		return fmt.Errorf("creating HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -308,7 +324,7 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("flattening `component_version`: %+v", err)
 			}
 
-			if err := d.Set("gateway", FlattenHDInsightsConfigurations(gateway)); err != nil {
+			if err := d.Set("gateway", FlattenHDInsightsConfigurations(gateway, d)); err != nil {
 				return fmt.Errorf("flattening `gateway`: %+v", err)
 			}
 
@@ -347,6 +363,10 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
+
+		if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile, d)); err != nil {
+			return fmt.Errorf("setting `security_profile`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

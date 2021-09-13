@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -268,17 +267,11 @@ func resourceDnsZoneDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	etag := ""
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, etag)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("deleting DNS zone %s (resource group %s): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting DNS Zone %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("deleting DNS zone %s (resource group %s): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of DNS Zone %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

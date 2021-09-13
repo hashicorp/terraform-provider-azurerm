@@ -46,6 +46,8 @@ The following arguments are supported:
 
 * `description` - (Optional) Integration runtime description.
 
+* `cleanup_enabled` - (Optional) Cluster will not be recycled and it will be used in next data flow activity run until TTL (time to live) is reached if this is set as `false`. Default is `true`.
+
 * `compute_type` - (Optional) Compute type of the cluster which will execute data flow job. Valid values are `General`, `ComputeOptimized` and `MemoryOptimized`. Defaults to `General`.
 
 * `core_count` - (Optional) Core count of the cluster which will execute data flow job. Valid values are `8`, `16`, `32`, `48`, `80`, `144` and `272`. Defaults to `8`.

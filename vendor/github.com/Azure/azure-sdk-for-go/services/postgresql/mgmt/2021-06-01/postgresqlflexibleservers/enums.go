@@ -78,6 +78,25 @@ func PossibleCreateModeForUpdateValues() []CreateModeForUpdate {
 	return []CreateModeForUpdate{CreateModeForUpdateDefault, CreateModeForUpdateUpdate}
 }
 
+// FailoverMode enumerates the values for failover mode.
+type FailoverMode string
+
+const (
+	// FailoverModeForcedFailover ...
+	FailoverModeForcedFailover FailoverMode = "ForcedFailover"
+	// FailoverModeForcedSwitchover ...
+	FailoverModeForcedSwitchover FailoverMode = "ForcedSwitchover"
+	// FailoverModePlannedFailover ...
+	FailoverModePlannedFailover FailoverMode = "PlannedFailover"
+	// FailoverModePlannedSwitchover ...
+	FailoverModePlannedSwitchover FailoverMode = "PlannedSwitchover"
+)
+
+// PossibleFailoverModeValues returns an array of possible values for the FailoverMode const type.
+func PossibleFailoverModeValues() []FailoverMode {
+	return []FailoverMode{FailoverModeForcedFailover, FailoverModeForcedSwitchover, FailoverModePlannedFailover, FailoverModePlannedSwitchover}
+}
+
 // GeoRedundantBackupEnum enumerates the values for geo redundant backup enum.
 type GeoRedundantBackupEnum string
 

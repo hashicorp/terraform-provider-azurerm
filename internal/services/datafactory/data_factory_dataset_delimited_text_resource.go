@@ -78,10 +78,20 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_path_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_filename_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -102,13 +112,23 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 						},
 						"path": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_path_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 						"filename": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_filename_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -142,34 +162,30 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 
 			// Delimited Text Specific Field
 			"column_delimiter": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			// Delimited Text Specific Field
 			"row_delimiter": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			// Delimited Text Specific Field
-			"encoding": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			// Delimited Text Specific Field
 			"quote_character": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			// Delimited Text Specific Field
 			"escape_character": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
+			// Delimited Text Specific Field
+			"encoding": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -319,16 +335,43 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	delimited_textDatasetProperties := datafactory.DelimitedTextDatasetTypeProperties{
-		Location:         location,
-		ColumnDelimiter:  d.Get("column_delimiter").(string),
-		RowDelimiter:     d.Get("row_delimiter").(string),
-		EncodingName:     d.Get("encoding").(string),
-		QuoteChar:        d.Get("quote_character").(string),
-		EscapeChar:       d.Get("escape_character").(string),
-		FirstRowAsHeader: d.Get("first_row_as_header").(bool),
-		NullValue:        d.Get("null_value").(string),
-		CompressionLevel: d.Get("compression_level").(string),
-		CompressionCodec: d.Get("compression_codec").(string),
+		Location: location,
+	}
+
+	if v, ok := d.Get("column_delimiter").(string); ok {
+		delimited_textDatasetProperties.ColumnDelimiter = v
+	}
+
+	if v, ok := d.Get("row_delimiter").(string); ok {
+		delimited_textDatasetProperties.RowDelimiter = v
+	}
+
+	if v, ok := d.Get("quote_character").(string); ok {
+		delimited_textDatasetProperties.QuoteChar = v
+	}
+
+	if v, ok := d.Get("escape_character").(string); ok {
+		delimited_textDatasetProperties.EscapeChar = v
+	}
+
+	if v, ok := d.GetOk("encoding"); ok {
+		delimited_textDatasetProperties.EncodingName = v.(string)
+	}
+
+	if v, ok := d.GetOk("first_row_as_header"); ok {
+		delimited_textDatasetProperties.FirstRowAsHeader = v.(bool)
+	}
+
+	if v, ok := d.GetOk("null_value"); ok {
+		delimited_textDatasetProperties.NullValue = v.(string)
+	}
+
+	if v, ok := d.GetOk("compression_level"); ok {
+		delimited_textDatasetProperties.CompressionLevel = v.(string)
+	}
+
+	if v, ok := d.GetOk("compression_codec"); ok {
+		delimited_textDatasetProperties.CompressionCodec = v.(string)
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)

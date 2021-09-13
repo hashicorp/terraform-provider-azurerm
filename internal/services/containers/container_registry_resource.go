@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -837,17 +836,11 @@ func resourceContainerRegistryDelete(d *pluginsdk.ResourceData, meta interface{}
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("issuing Azure ARM delete request of Container Registry '%s': %+v", name, err)
+		return fmt.Errorf("deleting Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("issuing Azure ARM delete request of Container Registry '%s': %+v", name, err)
+		return fmt.Errorf("waiting for Container Registry %q (Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
 	}
 
 	return nil

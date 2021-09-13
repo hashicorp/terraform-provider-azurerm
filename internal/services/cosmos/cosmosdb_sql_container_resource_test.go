@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-01-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -338,7 +338,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   partition_key_path     = "/definition/id"
   analytical_storage_ttl = 600
 }
-`, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", documentdb.Eventual), data.RandomInteger, data.RandomInteger)
+`, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual), data.RandomInteger, data.RandomInteger)
 }
 
 func (CosmosSqlContainerResource) update(data acceptance.TestData) string {

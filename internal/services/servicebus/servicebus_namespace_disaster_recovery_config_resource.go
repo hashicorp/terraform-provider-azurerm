@@ -61,13 +61,13 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
-			"alias_primary_connection_string": {
+			"primary_connection_string_alias": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
-			"alias_secondary_connection_string": {
+			"secondary_connection_string_alias": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -215,8 +215,8 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resource
 	if err != nil {
 		log.Printf("[WARN] listing default keys for %s: %+v", id, err)
 	} else {
-		d.Set("alias_primary_connection_string", keys.AliasPrimaryConnectionString)
-		d.Set("alias_secondary_connection_string", keys.AliasSecondaryConnectionString)
+		d.Set("primary_connection_string_alias", keys.AliasPrimaryConnectionString)
+		d.Set("secondary_connection_string_alias", keys.AliasSecondaryConnectionString)
 		d.Set("default_primary_key", keys.PrimaryKey)
 		d.Set("default_secondary_key", keys.SecondaryKey)
 	}

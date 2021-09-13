@@ -7,14 +7,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor"
+	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-05-01/frontdoor"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -52,7 +53,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorName,
+				ValidateFunc: azValidate.FrontDoorName,
 			},
 
 			"cname": {
@@ -114,7 +115,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: azValidate.BackendPoolRoutingRuleName,
 						},
 						"enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -204,7 +205,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 									"backend_pool_name": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validate.BackendPoolRoutingRuleName,
+										ValidateFunc: azValidate.BackendPoolRoutingRuleName,
 									},
 									"cache_enabled": {
 										Type:     pluginsdk.TypeBool,
@@ -223,7 +224,23 @@ func resourceFrontDoor() *pluginsdk.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.StripAll),
 											string(frontdoor.StripNone),
+											string(frontdoor.StripOnly),
+											string(frontdoor.StripAllExcept),
 										}, false),
+									},
+									"cache_query_parameters": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 25,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+									},
+									"cache_duration": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validate.ISO8601DurationBetween("PT1S", "P365D"),
 									},
 									"custom_forwarding_path": {
 										Type:     pluginsdk.TypeString,
@@ -259,7 +276,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: azValidate.BackendPoolRoutingRuleName,
 						},
 						"sample_size": {
 							Type:     pluginsdk.TypeInt,
@@ -293,7 +310,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: azValidate.BackendPoolRoutingRuleName,
 						},
 						"enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -388,7 +405,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: azValidate.BackendPoolRoutingRuleName,
 						},
 						"health_probe_name": {
 							Type:     pluginsdk.TypeString,
@@ -415,7 +432,7 @@ func resourceFrontDoor() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: azValidate.BackendPoolRoutingRuleName,
 						},
 						"host_name": {
 							Type:     pluginsdk.TypeString,
@@ -432,9 +449,9 @@ func resourceFrontDoor() *pluginsdk.Resource {
 							Default:  0,
 						},
 						"web_application_firewall_policy_link_id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							// TODO: validation that this is a resource id
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
@@ -618,10 +635,10 @@ func resourceFrontDoorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("waiting for creation of Front Door %q (Resource Group %q): %+v", frontDoorId.Name, frontDoorId.ResourceGroup, err)
 		}
 
-		d.SetId(frontDoorId.ID())
 		d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, frontDoorId))
 	}
 
+	d.SetId(frontDoorId.ID())
 	return resourceFrontDoorRead(d, meta)
 }
 
@@ -807,18 +824,11 @@ func resourceFrontDoorDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if future.Response() != nil {
-			if response.WasNotFound(future.Response()) {
-				return nil
-			}
-		}
 		return fmt.Errorf("deleting Front Door %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if future.Response() != nil {
-			if !response.WasNotFound(future.Response()) {
-				return fmt.Errorf("waiting for deleting Front Door %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("waiting for deletion of Front Door %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
@@ -1162,7 +1172,16 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId par
 	backendPoolName := v["backend_pool_name"].(string)
 	cacheUseDynamicCompression := v["cache_use_dynamic_compression"].(bool)
 	cacheQueryParameterStripDirective := v["cache_query_parameter_strip_directive"].(string)
+	cacheQueryParameters := v["cache_query_parameters"].([]interface{})
+	cacheDuration := v["cache_duration"].(string)
 	cacheEnabled := v["cache_enabled"].(bool)
+
+	// convert list of cache_query_parameters into an array into a comma-separated list
+	queryParametersArray := make([]string, 0)
+	for _, p := range cacheQueryParameters {
+		queryParametersArray = append(queryParametersArray, p.(string))
+	}
+	queryParametersString := strings.Join(queryParametersArray, ",")
 
 	backendPoolId := parse.NewBackendPoolID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroup, frontDoorId.Name, backendPoolName).ID()
 	backend := &frontdoor.SubResource{
@@ -1186,9 +1205,24 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId par
 			// Set Default Value for strip directive is not in the key slice and cache is enabled
 			cacheQueryParameterStripDirective = string(frontdoor.StripAll)
 		}
+		// set cacheQueryParameters to "" when StripDirective is "StripAll" or "StripNone"
+		if cacheQueryParameterStripDirective == "StripAll" || cacheQueryParameterStripDirective == "StripNone" {
+			queryParametersString = ""
+		}
+
+		// Making sure that duration is empty when cacheDuration is empty
+		var duration *string
+		if cacheDuration == "" {
+			duration = nil
+		} else {
+			duration = utils.String(cacheDuration)
+		}
+
 		forwardingConfiguration.CacheConfiguration = &frontdoor.CacheConfiguration{
 			DynamicCompression:           dynamicCompression,
 			QueryParameterStripDirective: frontdoor.Query(cacheQueryParameterStripDirective),
+			QueryParameters:              utils.String(queryParametersString),
+			CacheDuration:                duration,
 		}
 	}
 
@@ -1934,6 +1968,10 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 	cacheQueryParameterStripDirective := string(frontdoor.StripAll)
 	cacheUseDynamicCompression := false
 
+	var cacheQueryParameters *string
+	var cacheQueryParametersArray []string
+	var cacheDuration *string
+
 	if cacheConfiguration := v.CacheConfiguration; cacheConfiguration != nil {
 		cacheEnabled = true
 		if stripDirective := cacheConfiguration.QueryParameterStripDirective; stripDirective != "" {
@@ -1941,6 +1979,12 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 		}
 		if dynamicCompression := cacheConfiguration.DynamicCompression; dynamicCompression != "" {
 			cacheUseDynamicCompression = string(dynamicCompression) == string(frontdoor.DynamicCompressionEnabledEnabled)
+		}
+		if queryParameters := cacheConfiguration.QueryParameters; queryParameters != nil {
+			cacheQueryParametersArray = strings.Split(*queryParameters, ",")
+		}
+		if duration := cacheConfiguration.CacheDuration; duration != nil {
+			cacheDuration = duration
 		}
 	} else {
 		// if the cache is disabled, use the default values or revert to what they were in the previous plan
@@ -1956,6 +2000,10 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 							ofc := oldConfigs[0].(map[string]interface{})
 							cacheQueryParameterStripDirective = ofc["cache_query_parameter_strip_directive"].(string)
 							cacheUseDynamicCompression = ofc["cache_use_dynamic_compression"].(bool)
+							cacheDuration = utils.String(ofc["cache_duration"].(string))
+
+							cacheQueryParameters = utils.String(ofc["cache_query_parameters"].(string))
+							cacheQueryParametersArray = strings.Split(*cacheQueryParameters, ",")
 						}
 					}
 				}
@@ -1971,6 +2019,8 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 			"cache_enabled":                         cacheEnabled,
 			"cache_query_parameter_strip_directive": cacheQueryParameterStripDirective,
 			"cache_use_dynamic_compression":         cacheUseDynamicCompression,
+			"cache_query_parameters":                cacheQueryParametersArray,
+			"cache_duration":                        cacheDuration,
 		},
 	}, nil
 }

@@ -97,6 +97,8 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 								"NonInteractiveUserSignInLogs",
 								"ProvisioningLogs",
 								"ServicePrincipalSignInLogs",
+								"RiskyUsers",
+								"UserRiskEvents",
 							}, false),
 						},
 

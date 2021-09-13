@@ -29,6 +29,11 @@ func dataSourceIotHub() *pluginsdk.Resource {
 			},
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
+			"hostname": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -53,6 +58,10 @@ func dataSourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.SetId(*resp.ID)
+
+	if properties := resp.Properties; properties != nil {
+		d.Set("hostname", properties.HostName)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

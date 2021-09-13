@@ -78,6 +78,22 @@ func TestAccNetAppVolume_nfsv3FromSnapshot(t *testing.T) {
 	})
 }
 
+func TestAccNetAppVolume_nfsv3SnapshotDirectoryVisibleFalse(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_snapshot_directory_visible_false")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nfsv3SnapshotDirectoryVisibleFalse(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("snapshot_directory_visible").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccNetAppVolume_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
@@ -303,16 +319,17 @@ resource "azurerm_netapp_volume" "test_primary" {
 }
 
 resource "azurerm_netapp_volume" "test_secondary" {
-  name                = "acctest-NetAppVolume-secondary-%[2]d"
-  location            = "%[3]s"
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_netapp_account.test_secondary.name
-  pool_name           = azurerm_netapp_pool.test_secondary.name
-  volume_path         = "my-unique-file-path-secondary-%[2]d"
-  service_level       = "Standard"
-  subnet_id           = azurerm_subnet.test_secondary.id
-  protocols           = ["NFSv3"]
-  storage_quota_in_gb = 100
+  name                       = "acctest-NetAppVolume-secondary-%[2]d"
+  location                   = "%[3]s"
+  resource_group_name        = azurerm_resource_group.test.name
+  account_name               = azurerm_netapp_account.test_secondary.name
+  pool_name                  = azurerm_netapp_pool.test_secondary.name
+  volume_path                = "my-unique-file-path-secondary-%[2]d"
+  service_level              = "Standard"
+  subnet_id                  = azurerm_subnet.test_secondary.id
+  protocols                  = ["NFSv3"]
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = false
 
   export_policy_rule {
     rule_index        = 1
@@ -329,7 +346,7 @@ resource "azurerm_netapp_volume" "test_secondary" {
     replication_frequency     = "10minutes"
   }
 }
-`, template, data.RandomInteger, "northeurope")
+`, template, data.RandomInteger, "germanywestcentral")
 }
 
 func (NetAppVolumeResource) nfsv3FromSnapshot(data acceptance.TestData) string {
@@ -384,6 +401,35 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
     rule_index        = 1
     allowed_clients   = ["0.0.0.0/0"]
     protocols_enabled = ["NFSv3"]
+    unix_read_write   = true
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) nfsv3SnapshotDirectoryVisibleFalse(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test_snapshot_directory_visible_false" {
+  name                       = "acctest-NetAppVolume-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  account_name               = azurerm_netapp_account.test.name
+  pool_name                  = azurerm_netapp_pool.test.name
+  volume_path                = "my-unique-file-path-%[2]d"
+  service_level              = "Standard"
+  subnet_id                  = azurerm_subnet.test.id
+  protocols                  = ["NFSv3"]
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = false
+
+  export_policy_rule {
+    rule_index        = 1
+    allowed_clients   = ["1.2.3.0/24"]
+    protocols_enabled = ["NFSv3"]
+    unix_read_only    = false
     unix_read_write   = true
   }
 }
@@ -572,7 +618,7 @@ resource "azurerm_netapp_pool" "test_secondary" {
   service_level       = "Standard"
   size_in_tb          = 4
 }
-`, r.template(data), data.RandomInteger, "northeurope")
+`, r.template(data), data.RandomInteger, "germanywestcentral")
 }
 
 func (NetAppVolumeResource) template(data acceptance.TestData) string {
@@ -623,5 +669,5 @@ resource "azurerm_netapp_pool" "test" {
   service_level       = "Standard"
   size_in_tb          = 4
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Ternary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
