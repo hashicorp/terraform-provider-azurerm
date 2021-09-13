@@ -10,6 +10,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_cosmosdb_sql_container`: fix crash when deleting [GH-13339]
 * `azurerm_frontdoor` - Fix crash when cache is disabled [GH-13338]
 * `azurerm_linux_virtual_machine_scale_set` - fixed crash when `automatic_os_policy` was nil [GH-13335]
 * `azurerm_lb` - support for adding or replacing a `frontend_ip_configuration` with an `availability_zone` [GH-13305]
