@@ -79,7 +79,7 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 				"P1v3", "P2v3", "P3v3",
 				"S1", "S2", "S3",
 				"SHARED",
-				"PC2", "PC3", "PC4", // Consumption Plans - Function Apps
+				"PC2", "PC3", "PC4", "Y1", // Consumption Plans - Function Apps
 				"EP1", "EP2", "EP3", // Elastic Premium Plans - Function Apps
 			}, false),
 			// TODO - need to look at Isolated as separate property via ExactlyOneOf?
