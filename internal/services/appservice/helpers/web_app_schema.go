@@ -451,11 +451,6 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"linux_fx_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
 				"windows_fx_version": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
@@ -669,11 +664,6 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
-
-				"windows_fx_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
 			},
 		},
 	}
@@ -824,11 +814,6 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 				},
 
 				"linux_fx_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"windows_fx_version": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},

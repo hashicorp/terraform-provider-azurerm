@@ -113,7 +113,7 @@ A `active_directory` block supports the following:
 
 A `application_logs` block supports the following:
 
-* `azure_blob_storage` - (Optional) A `azure_blob_storage` block as defined below.
+* `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
 
 * `file_system_level` - (Optional) Log level. Possible values include: `Verbose`, `Information`, `Warning`, and `Error`.
 
@@ -153,7 +153,7 @@ A `application_stack` block supports the following:
 
 A `auth_settings` block supports the following:
 
-* `enabled` - (Required) Should the Authentication / Authorization feature is enabled for the Linux Web App be enabled?
+* `enabled` - (Required) Should the Authentication / Authorization feature is enabled for the Linux Web App?
 
 * `active_directory` - (Optional) An `active_directory` block as defined above.
 
@@ -301,7 +301,7 @@ A `http_logs` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The ype of managed service identity. Possible values include: `ManagedServiceIdentityTypeSystemAssigned`, `ManagedServiceIdentityTypeUserAssigned`, and `ManagedServiceIdentityTypeSystemAssignedUserAssigned`.
+* `type` - (Required) The type of managed service identity. Possible values include: `ManagedServiceIdentityTypeSystemAssigned`, `ManagedServiceIdentityTypeUserAssigned`, and `ManagedServiceIdentityTypeSystemAssignedUserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list of Identity IDs.
 
@@ -335,7 +335,7 @@ A `logs` block supports the following:
 
 * `failed_request_tracing` - (Optional) Should failed request tracing be enabled.
 
-* `http_logs` - (Optional) A `http_logs` block as defined above.
+* `http_logs` - (Optional) An `http_logs` block as defined above.
 
 ---
 
@@ -411,6 +411,10 @@ A `site_config` block supports the following:
 
 * `auto_swap_slot_name` - (Optional) The Linux Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.
 
+* `container_registry_managed_identity_client_id` - (Optional) The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.
+
+* `container_registry_use_managed_identity` - (Optional) Should connections for Azure Container Registry use Managed Identity.
+
 * `cors` - (Optional) A `cors` block as defined above.
 
 * `default_documents` - (Optional) Specifies a list of Default Documents for the Linux Web App.
@@ -485,7 +489,7 @@ A `storage_account` block supports the following:
 
 * `account_name` - (Required) The Name of the Storage Account.
 
-* `name` - (Required) The name which should be used for this TODO.
+* `name` - (Required) The name which should be used for this Storage Account.
 
 * `share_name` - (Required) The Name of the File Share or Container Name for Blob storage.
 
@@ -521,7 +525,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `app_metadata` - A `app_metadata` block as defined below.
 
-* `custom_domain_verification_id` - The ID of the TODO.
+* `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
 * `default_hostname` - The default hostname of the Linux Web App.
 

@@ -52,7 +52,7 @@ The following arguments are supported:
 
 ---
 
-* `app_service_environment_id` - (Optional) The ID of the App Service Plan to create this plan in.
+* `app_service_environment_id` - (Optional) The ID of the App Service Environment to create this Service Plan in.
 
 ~> **NOTE:** Requires an Isolated SKU. Use one of `I1`, `I2`, `I3` for `azurerm_app_service_environment`, or `I1v2`, `I2v2`, `I3v2` for `azurerm_app_service_environment_v3`
 
