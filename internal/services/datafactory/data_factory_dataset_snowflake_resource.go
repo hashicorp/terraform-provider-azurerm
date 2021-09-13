@@ -201,7 +201,7 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
-		snowflakeTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
+		snowflakeTableset.Schema = expandDataFactoryDatasetSnowflakeSchema(v.([]interface{}))
 	}
 
 	datasetType := string(datafactory.TypeBasicDatasetTypeSnowflakeTable)
