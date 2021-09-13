@@ -81,7 +81,17 @@ The following arguments are supported:
 
 * `auto_pause` - (Optional)  An `auto_pause` block as defined below.
 
+* `cache_size` - (Optional) The cache size in the Spark Pool.
+
+* `compute_isolation_enabled` - (Optional) Indicates whether compute isolation is enabled or not. Defaults to `false`.
+
+* `dynamic_executor_allocation_enabled` - (Optional) Indicates whether Dynamic Executor Allocation is enabled or not. Defaults to `false`.
+  
 * `library_requirement` - (Optional)  A `library_requirement` block as defined below.
+
+* `session_level_packages_enabled` - (Optional) Indicates whether session level package is enabled or not. Defaults to `false`.
+
+* `spark_config` - (Optional)  A `spark_config` block as defined below.
 
 * `spark_log_folder` - (Optional) The default folder where Spark logs will be written. Defaults to `/logs`.
 
@@ -112,6 +122,14 @@ An `library_requirement` block supports the following:
 * `content` - (Required) The content of library requirements.
 
 * `filename` - (Required) The name of the library requirements file.
+
+---
+
+An `spark_config` block supports the following:
+
+* `content` - (Required) The content of spark configuration.
+
+* `filename` - (Required) The name of the spark configuration file.
 
 ## Attributes Reference
 
