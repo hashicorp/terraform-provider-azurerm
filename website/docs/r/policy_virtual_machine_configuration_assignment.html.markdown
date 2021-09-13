@@ -3,12 +3,12 @@ subcategory: "Policy"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_policy_virtual_machine_configuration_assignment"
 description: |-
-  Applies a Configuration Policy to a Virtual Machine.
+  Applies a Guest Configuration Policy to a Virtual Machine.
 ---
 
 # azurerm_policy_virtual_machine_configuration_assignment
 
-Applies a Configuration Policy to a Virtual Machine.
+Applies a Guest Configuration Policy to a Virtual Machine.
 
 ## Example Usage
 
@@ -87,7 +87,6 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "example" {
   virtual_machine_id = azurerm_windows_virtual_machine.example.id
   configuration {
     assignment_type = "ApplyAndMonitor"
-    name            = "AzureWindowsBaseline"
     version         = "1.*"
     parameter {
       name  = "Minimum Password Length;ExpectedValue"
@@ -117,7 +116,7 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Policy Virtual Machine Configuration Assignment. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Guest Configuration that will be assigned in this Guest Configuration Assignment. Changing this forces a new resource to be created.
 
 * `location` - (Required) The Azure location where the Policy Virtual Machine Configuration Assignment should exist. Changing this forces a new resource to be created.
 
@@ -131,7 +130,8 @@ The following arguments are supported:
 
 A `configuration` block supports the following:
 
-* `name` - (Required) The name of the Guest Configuration that will be assigned in this Guest Configuration Assignment.
+[comment]: # (TODO: Remove in 3.0)
+* `name` - (Deprecated) This field is no longer used and will be removed in the next major version of the Azure Provider.
 
 * `assignment_type` - (Optional) The assignment type for the Guest Configuration Assignment. Possible values are `Audit`, `ApplyAndAutoCorrect`, `ApplyAndMonitor` and `DeployAndAutoCorrect`.
 

@@ -156,7 +156,7 @@ func (r PolicyVirtualMachineConfigurationAssignmentResource) basic(data acceptan
 %s
 
 resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
-  name               = "acctest-gca-%d"
+  name               = "WhitelistedApplication"
   location           = azurerm_windows_virtual_machine.test.location
   virtual_machine_id = azurerm_windows_virtual_machine.test.id
   configuration {
@@ -169,7 +169,7 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data))
 }
 
 func (r PolicyVirtualMachineConfigurationAssignmentResource) requiresImport(data acceptance.TestData) string {
@@ -182,7 +182,6 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "import" {
   virtual_machine_id = azurerm_policy_virtual_machine_configuration_assignment.test.virtual_machine_id
 
   configuration {
-    name    = "WhitelistedApplication"
     version = "1.*"
 
     parameter {
@@ -199,12 +198,11 @@ func (r PolicyVirtualMachineConfigurationAssignmentResource) complete(data accep
 %s
 
 resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
-  name               = "acctest-gca-%d"
+  name               = "WhitelistedApplication"
   location           = azurerm_windows_virtual_machine.test.location
   virtual_machine_id = azurerm_windows_virtual_machine.test.id
 
   configuration {
-    name            = "WhitelistedApplication"
     version         = "1.1.1.1"
     assignment_type = "ApplyAndAutoCorrect"
     content_hash    = "testcontenthash"
@@ -216,7 +214,7 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data))
 }
 
 func (r PolicyVirtualMachineConfigurationAssignmentResource) updateGuestConfiguration(data acceptance.TestData) string {
@@ -224,12 +222,11 @@ func (r PolicyVirtualMachineConfigurationAssignmentResource) updateGuestConfigur
 %s
 
 resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
-  name               = "acctest-gca-%d"
+  name               = "WhitelistedApplication"
   location           = azurerm_windows_virtual_machine.test.location
   virtual_machine_id = azurerm_windows_virtual_machine.test.id
 
   configuration {
-    name            = "WhitelistedApplication"
     version         = "1.1.1.1"
     assignment_type = "Audit"
     content_hash    = "testcontenthash2"
@@ -241,5 +238,5 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data))
 }
