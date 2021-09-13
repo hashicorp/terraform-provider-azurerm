@@ -21,11 +21,14 @@ const (
 	gen5             = "(GP|HS|BC)_Gen5_(2|4|6|8|10|12|14|16|18|20|24|32|40|80)"
 	serverlessGen5   = "(GP_S_Gen5_(1|2|4|6|8|10|12|14|16|18|20|24|32|40))"
 	fsv2             = "(GP_Fsv2_(8|10|12|14|16|18|20|24|32|36|72))"
+	dc               = "((GP|BC|HS)_DC_(2|4|6|8))"
+	eightIM          = "(HS_8IM_(24|48|80))"
+	serverless8IM    = "(HS_S_8IM_(24|80))"
 )
 
 func DatabaseSkuName() pluginsdk.SchemaValidateFunc {
 	pattern := "(?i)(^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$)"
-	return validation.StringMatch(regexp.MustCompile(fmt.Sprintf(pattern, free, basic, elastic, standard, premium, dataWarehouse, stretch, businessCritical, gen4, gen5, serverlessGen5, fsv2)),
+	return validation.StringMatch(regexp.MustCompile(fmt.Sprintf(pattern, free, basic, elastic, standard, premium, dataWarehouse, stretch, businessCritical, gen4, gen5, serverlessGen5, fsv2, dc, eightIM, serverless8IM)),
 
 		`This is not a valid sku name. For example, a valid sku name is 'GP_S_Gen5_1','HS_Gen4_1','BC_Gen5_2', 'ElasticPool', 'Basic', 'S0', 'P1'.`,
 	)
