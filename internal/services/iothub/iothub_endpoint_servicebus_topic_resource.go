@@ -160,18 +160,14 @@ func resourceIotHubEndpointServiceBusTopicRead(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	iothubName := id.IotHubName
-	endpointName := id.EndpointName
-
-	iothub, err := client.Get(ctx, resourceGroup, iothubName)
+	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", endpointName)
-	d.Set("iothub_name", iothubName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.EndpointName)
+	d.Set("iothub_name", id.IotHubName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
 		return nil
@@ -180,7 +176,7 @@ func resourceIotHubEndpointServiceBusTopicRead(d *pluginsdk.ResourceData, meta i
 	if endpoints := iothub.Properties.Routing.Endpoints.ServiceBusTopics; endpoints != nil {
 		for _, endpoint := range *endpoints {
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
-				if strings.EqualFold(*existingEndpointName, endpointName) {
+				if strings.EqualFold(*existingEndpointName, id.EndpointName) {
 					d.Set("connection_string", endpoint.ConnectionString)
 				}
 			}
@@ -200,20 +196,16 @@ func resourceIotHubEndpointServiceBusTopicDelete(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	iothubName := id.IotHubName
-	endpointName := id.EndpointName
+	locks.ByName(id.IotHubName, IothubResourceName)
+	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
 
-	locks.ByName(iothubName, IothubResourceName)
-	defer locks.UnlockByName(iothubName, IothubResourceName)
-
-	iothub, err := client.Get(ctx, resourceGroup, iothubName)
+	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(iothub.Response) {
-			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
+			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
 
 	if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
@@ -228,20 +220,20 @@ func resourceIotHubEndpointServiceBusTopicDelete(d *pluginsdk.ResourceData, meta
 	updatedEndpoints := make([]devices.RoutingServiceBusTopicEndpointProperties, 0)
 	for _, endpoint := range *endpoints {
 		if existingEndpointName := endpoint.Name; existingEndpointName != nil {
-			if !strings.EqualFold(*existingEndpointName, endpointName) {
+			if !strings.EqualFold(*existingEndpointName, id.EndpointName) {
 				updatedEndpoints = append(updatedEndpoints, endpoint)
 			}
 		}
 	}
 	iothub.Properties.Routing.Endpoints.ServiceBusTopics = &updatedEndpoints
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("updating IotHub %q (Resource Group %q) with ServiceBus Topic Endpoint %q: %+v", iothubName, resourceGroup, endpointName, err)
+		return fmt.Errorf("updating %s: %+v", id.String(), err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for IotHub %q (Resource Group %q) to finish updating ServiceBus Topic Endpoint %q: %+v", iothubName, resourceGroup, endpointName, err)
+		return fmt.Errorf("waiting for %s to finish updating: %+v", id.String(), err)
 	}
 
 	return nil
