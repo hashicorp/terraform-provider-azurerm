@@ -10,7 +10,7 @@ description: |-
 
 Manages an App Service: Service Plan.
 
-!> **NOTE:** This is a 3.0 beta resource and is intended to replace the older `azurerm_app_service_plan`. This older resource will be removed in 3.0 and this resource will be renamed to supersede it. Please see the [3.0 Beta guide](https://github.com/hashicorp/terraform-provider-azurerm/blob/f/main/website/docs/guides/3.0-beta.html.markdown) for more information on enabling and using this resource.
+!> **NOTE:** This is a 3.0 beta resource and is intended to replace the older `azurerm_app_service_plan`. This older resource will be removed in 3.0 and this resource will be renamed to supersede it. Please see the [3.0 Beta guide](guides/3.0-beta.html.markdown) for more information on enabling and using this resource.
 
 ## Example Usage
 

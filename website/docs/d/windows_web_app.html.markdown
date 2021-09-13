@@ -53,7 +53,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `connection_string` - A `connection_string` block as defined below.
 
-* `custom_domain_verification_id` - The ID of the TODO.
+* `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
 * `default_hostname` - The Default Hostname of the Windows Web App.
 
@@ -351,7 +351,7 @@ A `site_config` block exports the following:
 
 * `api_definition_url` - The ID of the APIM configuration for this Windows Web App.
 
-* `api_management_api_id` - The ID of the TODO.
+* `api_management_api_id` - The ID of the API Management setting linked to the Windows Web App.
 
 * `app_command_line` - The command line used to launch this app.
 
@@ -468,7 +468,7 @@ A `storage_account` block exports the following:
 
 A `trigger` block exports the following:
 
-* `private_memory_kb` - TODO.
+* `private_memory_kb` - The amount of Private Memory used.
 
 * `requests` - A `requests` block as defined above.
 

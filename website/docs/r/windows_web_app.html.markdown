@@ -10,7 +10,7 @@ description: |-
 
 Manages a Windows Web App.
 
-!> **NOTE:** This is a 3.0 beta resource intended to provide an improved experience for Web Apps by splitting the older `azurerm_app_service` into O/S Specific variants, allowing better property validation and simpler configuration. Please see the [3.0 Beta guide](https://github.com/hashicorp/terraform-provider-azurerm/blob/f/main/website/docs/guides/3.0-beta.html.markdown) for more information on enabling and using this resource.
+!> **NOTE:** This is a 3.0 beta resource intended to provide an improved experience for Web Apps by splitting the older `azurerm_app_service` into O/S Specific variants, allowing better property validation and simpler configuration. Please see the [3.0 Beta guide](guides/3.0-beta.html.markdown) for more information on enabling and using this resource.
 
 ## Example Usage
 
@@ -549,7 +549,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Windows Web App.
 
-* `custom_domain_verification_id` - The ID of the TODO.
+* `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
 * `default_hostname` - The default hostname of the Windows Web App.
 

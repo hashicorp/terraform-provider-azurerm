@@ -153,7 +153,7 @@ A `application_stack` block supports the following:
 
 A `auth_settings` block supports the following:
 
-* `enabled` - (Required) Should the Authentication / Authorization feature is enabled for the Linux Web App?
+* `enabled` - (Required) Should the Authentication / Authorization feature be enabled for the Linux Web App?
 
 * `active_directory` - (Optional) An `active_directory` block as defined above.
 
@@ -301,7 +301,7 @@ A `http_logs` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The type of managed service identity. Possible values include: `ManagedServiceIdentityTypeSystemAssigned`, `ManagedServiceIdentityTypeUserAssigned`, and `ManagedServiceIdentityTypeSystemAssignedUserAssigned`.
+* `type` - (Required) The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssignedUserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list of Identity IDs.
 

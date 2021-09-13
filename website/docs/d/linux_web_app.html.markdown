@@ -10,7 +10,7 @@ description: |-
 
 Use this data source to access information about an existing Linux Web App.
 
-!> **NOTE:** This is a 3.0 beta Data Source intended to provide an improved experience for Web Apps by splitting the older `azurerm_app_service` into O/S Specific variants, allowing better property validation and simpler configuration. Please see the [3.0 Beta guide](https://github.com/hashicorp/terraform-provider-azurerm/blob/f/main/website/docs/guides/3.0-beta.html.markdown) for more information on enabling and using this Data Source.
+!> **NOTE:** This is a 3.0 beta Data Source intended to provide an improved experience for Web Apps by splitting the older `azurerm_app_service` into O/S Specific variants, allowing better property validation and simpler configuration. Please see the [3.0 Beta guide](guides/3.0-beta.html.markdown) for more information on enabling and using this Data Source.
 
 ## Example Usage
 
@@ -59,7 +59,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_hostname` - The default hostname of the Linux Web App.
 
-* `enabled` - Is the TODO enabled?
+* `enabled` - Is the Linux Web App enabled?
 
 * `https_only` - Should the Linux Web App require HTTPS connections.
 
@@ -153,7 +153,7 @@ A `auth_settings` block exports the following:
 
 * `default_provider` - The default authentication provider in use when multiple providers are configured.
 
-* `enabled` - Is the Authentication / Authorization feature is enabled for the Linux Web App?
+* `enabled` - Is the Authentication / Authorization feature enabled for the Linux Web App?
 
 * `facebook` - A `facebook` block as defined below.
 
@@ -341,7 +341,7 @@ A `site_config` block exports the following:
 
 * `api_definition_url` - The ID of the APIM configuration for this Linux Web App.
 
-* `api_management_api_id` - The ID of the TODO.
+* `api_management_api_id` - The ID of the API Management API for this Linux Web App.
 
 * `app_command_line` - The command line used to launch this app.
 
