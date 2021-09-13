@@ -10,6 +10,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_frontdoor` - Fix crash when cache is disabled [GH-13338]
 * `azurerm_linux_virtual_machine_scale_set` - fixed crash when `automatic_os_policy` was nil [GH-13335]
 
 ## 2.76.0 (September 10, 2021)
