@@ -125,7 +125,7 @@ A `application_stack` block supports the following:
 
 * `docker_image_tag` - (Optional) The image Tag to use. e.g. `latest`
 
-* `dotnet_framework_version` - (Optional) The version of .Net to use. Possible values include `2.1`, `3.1`, and `5.0`.
+* `dotnet_version` - (Optional) The version of .Net to use. Possible values include `2.1`, `3.1`, and `5.0`.
 
 * `java_server` - (Optional) The java server type. Possible values include `JAVA`, `TOMCAT`, and `JBOSSEAP`.
 
@@ -301,7 +301,7 @@ A `http_logs` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssignedUserAssigned`.
+* `type` - (Required) The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list of Identity IDs.
 

@@ -1848,7 +1848,7 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {
     application_stack {
-      dotnet_framework_version = "%s"
+      dotnet_version = "%s"
     }
   }
 }
@@ -2016,7 +2016,7 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {
     application_stack {
-      dotnet_framework_version = "%s"
+      dotnet_version = "%s"
       php_version              = "%s"
       python_version           = "%s"
       java_version             = "%s"

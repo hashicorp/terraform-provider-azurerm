@@ -125,7 +125,7 @@ An `application_stack` block exports the following:
 
 * `docker_image_tag` - The image Tag.
 
-* `dotnet_framework_version` - The version of .Net in use.
+* `dotnet_version` - The version of .Net in use.
 
 * `java_server` - The java server type.
 
