@@ -55,6 +55,34 @@ func dataSourceMsSqlElasticpool() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"sku": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"capacity": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"tier": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"family": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.SchemaDataSource(),
 
 			"zone_redundant": {
@@ -110,6 +138,10 @@ func dataSourceMsSqlElasticpoolRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("per_db_min_capacity", perDbSettings.MinCapacity)
 			d.Set("per_db_max_capacity", perDbSettings.MaxCapacity)
 		}
+	}
+
+	if err := d.Set("sku", flattenMsSqlElasticPoolSku(resp.Sku)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
