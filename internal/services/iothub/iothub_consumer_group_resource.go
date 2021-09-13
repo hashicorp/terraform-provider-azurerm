@@ -87,9 +87,17 @@ func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface
 	consumerGroupBody := devices.EventHubConsumerGroupBodyDescription{
 		// The properties are currently undocumented. See also:
 		// https://docs.microsoft.com/en-us/azure/templates/microsoft.devices/2021-03-03-preview/iothubs/eventhubendpoints/consumergroups?tabs=json#eventhubconsumergroupname
-		Properties: &devices.EventHubConsumerGroupName{},
+		//
+		// There is an example where the name is repeated in the properties,
+		// so that seems to be the "proper" way. See also:
+		// https://github.com/Azure/azure-quickstart-templates/blob/master/quickstarts/microsoft.devices/iothub-with-consumergroup-create/azuredeploy.json#L74
+		Properties: &devices.EventHubConsumerGroupName{
+			Name: &name,
+		},
 	}
 
+	// This call fails since API 2021-03-03-preview
+	// See also: https://github.com/Azure/azure-sdk-for-go/issues/15545
 	if _, err := client.CreateEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name, consumerGroupBody); err != nil {
 		return fmt.Errorf("creating Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
 	}
