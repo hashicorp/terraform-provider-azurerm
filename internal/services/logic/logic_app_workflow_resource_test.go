@@ -422,6 +422,42 @@ resource "azurerm_logic_app_workflow" "test" {
         }
       }
     }
+
+    action {
+      allowed_caller_ip_address_range = ["10.0.6.0-10.0.6.10"]
+
+      open_authentication_policy {
+        name = "testpolicy2"
+
+        claim {
+          name  = "iss"
+          value = "https://sts.windows.net/"
+        }
+
+        claim {
+          name  = "aud"
+          value = "https://management.core.windows.net/"
+        }
+      }
+    }
+
+    workflow_management {
+      allowed_caller_ip_address_range = ["10.0.7.0-10.0.7.10"]
+
+      open_authentication_policy {
+        name = "testpolicy3"
+
+        claim {
+          name  = "iss"
+          value = "https://sts.windows.net/"
+        }
+
+        claim {
+          name  = "aud"
+          value = "https://management.core.windows.net/"
+        }
+      }
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -449,7 +485,43 @@ resource "azurerm_logic_app_workflow" "test" {
       allowed_caller_ip_address_range = ["10.10.3.0/24"]
 
       open_authentication_policy {
-        name = "testpolicy2"
+        name = "testpolicy4"
+
+        claim {
+          name  = "iss"
+          value = "https://sts.windows.net/"
+        }
+
+        claim {
+          name  = "testclaimname"
+          value = "testclaimvalue"
+        }
+      }
+    }
+
+    action {
+      allowed_caller_ip_address_range = ["10.10.4.0/24"]
+
+      open_authentication_policy {
+        name = "testpolicy5"
+
+        claim {
+          name  = "iss"
+          value = "https://sts.windows.net/"
+        }
+
+        claim {
+          name  = "testclaimname"
+          value = "testclaimvalue"
+        }
+      }
+    }
+
+    workflow_management {
+      allowed_caller_ip_address_range = ["10.10.5.0/24"]
+
+      open_authentication_policy {
+        name = "testpolicy6"
 
         claim {
           name  = "iss"
