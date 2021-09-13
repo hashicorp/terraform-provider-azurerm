@@ -1,5 +1,9 @@
 ## 2.77.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_synapse_integration_runtime_self_hosted` [GH-13264]
+
 ENHANCEMENTS:
 
 * Data Source: `azurerm_mssql_elasticpool` - export the `sku` block [GH-13336]
