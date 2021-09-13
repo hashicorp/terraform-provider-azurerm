@@ -16,7 +16,7 @@ Use this data source to access information about an existing Service Plan.
 
 ```hcl
 data "azurerm_service_plan" "example" {
-  name = "existing"
+  name                = "existing"
   resource_group_name = "existing"
 }
 

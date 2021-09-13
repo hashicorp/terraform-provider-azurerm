@@ -16,7 +16,7 @@ Use this data source to access information about an existing Windows Web App.
 
 ```hcl
 data "azurerm_windows_web_app" "example" {
-  name = "existing"
+  name                = "existing"
   resource_group_name = "existing"
 }
 
