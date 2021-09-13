@@ -78,7 +78,9 @@ A `schema_column` block supports the following:
 
 * `type` - (Optional) Type of the column. Valid values are `Byte`, `Byte[]`, `Boolean`, `Date`, `DateTime`,`DateTimeOffset`, `Decimal`, `Double`, `Guid`, `Int16`, `Int32`, `Int64`, `Single`, `String`, `TimeSpan`. Please note these values are case sensitive.
 
-* `description` - (Optional) The description of the column.
+* `precision` - (Optional) The total number of digits allowed.
+
+* `scale` - (Optional) The number of digits allowed to the right of the decimal point.
 
 ## Attributes Reference
 

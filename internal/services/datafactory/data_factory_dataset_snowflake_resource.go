@@ -118,31 +118,20 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Byte",
-								"Byte[]",
-								"Boolean",
-								"Date",
-								"DateTime",
-								"DateTimeOffset",
-								"Decimal",
-								"Double",
-								"Guid",
-								"Int16",
-								"Int32",
-								"Int64",
-								"Single",
-								"String",
-								"TimeSpan",
-							}, false),
+                            Type:         pluginsdk.TypeString,
+                            Optional:     true,
+                            ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"description": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+                        "precision": {
+                            Type:         schema.TypeInt,
+                            Optional:     true,
+                            ValidateFunc: validation.IntAtLeast(0),
+                        },
+                        "scale": {
+                            Type:         schema.TypeInt,
+                            Optional:     true,
+                            ValidateFunc: validation.IntAtLeast(0),
+                        },
 					},
 				},
 			},
@@ -314,9 +303,9 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	structureColumns := flattenDataFactoryStructureColumns(snowflakeTable.Structure)
-	if err := d.Set("schema_column", structureColumns); err != nil {
-		return fmt.Errorf("setting `schema_column`: %+v", err)
+	schemaColumns := flattenDataFactorySnowflakeSchemaColumns(snowflakeTable.Schema)
+	if err := d.Set("schema_column", schemaColumns); err != nil {
+		return fmt.Errorf("Error setting `schema_column`: %+v", err)
 	}
 
 	return nil
