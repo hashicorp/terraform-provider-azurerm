@@ -12,6 +12,8 @@ import (
 
 type Client struct {
 	FirewallRulesClient                              *synapse.IPFirewallRulesClient
+	IntegrationRuntimesClient                        *synapse.IntegrationRuntimesClient
+	IntegrationRuntimeAuthKeysClient                 *synapse.IntegrationRuntimeAuthKeysClient
 	PrivateLinkHubsClient                            *synapse.PrivateLinkHubsClient
 	SparkPoolClient                                  *synapse.BigDataPoolsClient
 	SqlPoolClient                                    *synapse.SQLPoolsClient
@@ -26,6 +28,12 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	firewallRuleClient := synapse.NewIPFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&firewallRuleClient.Client, o.ResourceManagerAuthorizer)
+
+	integrationRuntimesClient := synapse.NewIntegrationRuntimesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&integrationRuntimesClient.Client, o.ResourceManagerAuthorizer)
+
+	integrationRuntimeAuthKeysClient := synapse.NewIntegrationRuntimeAuthKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&integrationRuntimeAuthKeysClient.Client, o.ResourceManagerAuthorizer)
 
 	privateLinkHubsClient := synapse.NewPrivateLinkHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&privateLinkHubsClient.Client, o.ResourceManagerAuthorizer)
@@ -51,6 +59,8 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		FirewallRulesClient:                              &firewallRuleClient,
+		IntegrationRuntimesClient:                        &integrationRuntimesClient,
+		IntegrationRuntimeAuthKeysClient:                 &integrationRuntimeAuthKeysClient,
 		PrivateLinkHubsClient:                            &privateLinkHubsClient,
 		SparkPoolClient:                                  &sparkPoolClient,
 		SqlPoolClient:                                    &sqlPoolClient,
