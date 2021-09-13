@@ -24,6 +24,7 @@ var services = mapOf(
         "costmanagement" to "Cost Management",
         "customproviders" to "Custom Providers",
         "dns" to "DNS",
+        "datadog" to "Datadog"
         "datafactory" to "Data Factory",
         "datalake" to "Data Lake",
         "datashare" to "Data Share",

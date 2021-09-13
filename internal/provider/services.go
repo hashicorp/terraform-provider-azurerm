@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection"
@@ -139,6 +140,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		costmanagement.Registration{},
 		customproviders.Registration{},
 		databricks.Registration{},
+		datadog.Registration{},
 		datafactory.Registration{},
 		datalake.Registration{},
 		databasemigration.Registration{},

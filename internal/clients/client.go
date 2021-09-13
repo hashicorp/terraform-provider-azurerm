@@ -28,6 +28,7 @@ import (
 	cosmosdb "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	costmanagement "github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/client"
 	customproviders "github.com/hashicorp/terraform-provider-azurerm/internal/services/customproviders/client"
+	datadog "github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/client"
 	datamigration "github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/client"
 	databoxedge "github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/client"
 	databricks "github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/client"
@@ -132,6 +133,7 @@ type Client struct {
 	Cosmos                *cosmosdb.Client
 	CostManagement        *costmanagement.Client
 	CustomProviders       *customproviders.Client
+	Datadog               *datadog.Client
 	DatabaseMigration     *datamigration.Client
 	DataBricks            *databricks.Client
 	DataboxEdge           *databoxedge.Client
@@ -238,6 +240,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Cosmos = cosmosdb.NewClient(o)
 	client.CostManagement = costmanagement.NewClient(o)
 	client.CustomProviders = customproviders.NewClient(o)
+	client.Datadog = datadog.NewClient(o)
 	client.DatabaseMigration = datamigration.NewClient(o)
 	client.DataBricks = databricks.NewClient(o)
 	client.DataboxEdge = databoxedge.NewClient(o)
