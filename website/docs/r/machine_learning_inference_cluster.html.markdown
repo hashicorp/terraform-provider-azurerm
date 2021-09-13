@@ -128,7 +128,7 @@ The following arguments are supported:
 
 ~> **NOTE:** When creating or attaching a cluster, if the cluster will be used for production (`cluster_purpose = "FastProd"`), then it must contain at least 12 virtual CPUs. The number of virtual CPUs can be calculated by multiplying the number of nodes in the cluster by the number of cores provided by the VM size selected. For example, if you use a VM size of "Standard_D3_v2", which has 4 virtual cores, then you should select 3 or greater as the number of nodes.
 
-* `description` - (Optional) The description of the Machine Learning compute. Changing this forces a new Machine Learning Inference Cluster to be created.
+* `description` - (Optional) The description of the Machine Learning Inference Cluster. Changing this forces a new Machine Learning Inference Cluster to be created.
 
 * `identity` - (Optional) A `identity` block as defined below. Changing this forces a new Machine Learning Inference Cluster to be created.
 

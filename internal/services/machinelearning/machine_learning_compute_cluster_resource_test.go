@@ -196,9 +196,9 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
 
   ssh_public_access_enabled = false
   private_ip_only_enabled   = false
-  ssh_settings {
+  ssh {
     admin_username = "adminuser"
-    ssh_key_value  = var.ssh_key
+    key_value      = var.ssh_key
   }
   depends_on = [
     azurerm_subnet_network_security_group_association.test

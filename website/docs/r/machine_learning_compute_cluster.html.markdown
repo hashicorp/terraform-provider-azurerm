@@ -113,7 +113,7 @@ The following arguments are supported:
 * `scale_settings` - (Required) A `scale_settings` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
   
 ---
-* `ssh_settings` - (Optional) Credentials for an administrator user account that will be created on each compute node. A `ssh_settings` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `ssh` - (Optional) Credentials for an administrator user account that will be created on each compute node. A `ssh` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `description` - (Optional) The description of the Machine Learning compute. Changing this forces a new Machine Learning Compute Cluster to be created.
 
@@ -136,13 +136,13 @@ A `identity` block supports the following:
 * `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Machine Learning Compute Cluster. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 ---
-A `ssh_settings` block supports the following:
+A `ssh` block supports the following:
 
 * `admin_username` - (Required) Name of the administrator user account which can be used to SSH to nodes. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `admin_password` - (Optional) Password of the administrator user account. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `ssh_key_value` - (Optional) SSH public key of the administrator user account. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `key_value` - (Optional) SSH public key of the administrator user account. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 ---
 

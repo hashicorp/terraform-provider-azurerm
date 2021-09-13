@@ -89,7 +89,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"ssh_settings": {
+			"ssh": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
@@ -105,13 +105,13 @@ func resourceComputeCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							AtLeastOneOf: []string{"ssh_settings.0.admin_password", "ssh_settings.0.ssh_key_value"},
+							AtLeastOneOf: []string{"ssh.0.admin_password", "ssh.0.key_value"},
 						},
-						"ssh_key_value": {
+						"key_value": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							AtLeastOneOf: []string{"ssh_settings.0.admin_password", "ssh_settings.0.ssh_key_value"},
+							AtLeastOneOf: []string{"ssh.0.admin_password", "ssh.0.key_value"},
 						},
 					},
 				},
@@ -176,7 +176,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		VMSize:                 utils.String(d.Get("vm_size").(string)),
 		VMPriority:             machinelearningservices.VMPriority(d.Get("vm_priority").(string)),
 		ScaleSettings:          expandScaleSettings(d.Get("scale_settings").([]interface{})),
-		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh_settings").([]interface{})),
+		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh").([]interface{})),
 	}
 
 	if privateIpOnlyEnabled, ok := d.GetOk("private_ip_only_enabled"); ok {
@@ -273,7 +273,7 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("private_ip_only_enabled", !*props.EnableNodePublicIP)
 		}
 		d.Set("scale_settings", flattenScaleSettings(props.ScaleSettings))
-		d.Set("ssh_settings", flattenUserAccountCredentials(props.UserAccountCredentials))
+		d.Set("ssh", flattenUserAccountCredentials(props.UserAccountCredentials))
 		if props.Subnet != nil {
 			d.Set("subnet_resource_id", props.Subnet.ID)
 		}
@@ -346,7 +346,7 @@ func expandUserAccountCredentials(input []interface{}) *machinelearningservices.
 	return &machinelearningservices.UserAccountCredentials{
 		AdminUserName:         utils.String(v["admin_username"].(string)),
 		AdminUserPassword:     utils.String(v["admin_password"].(string)),
-		AdminUserSSHPublicKey: utils.String(v["ssh_key_value"].(string)),
+		AdminUserSSHPublicKey: utils.String(v["key_value"].(string)),
 	}
 }
 
@@ -387,7 +387,7 @@ func flattenUserAccountCredentials(credentials *machinelearningservices.UserAcco
 		map[string]interface{}{
 			"admin_username": username,
 			"admin_password": admin_password,
-			"ssh_key_value":  sshPublicKey,
+			"key_value":      sshPublicKey,
 		},
 	}
 }
