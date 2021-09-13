@@ -180,61 +180,6 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 							},
 						},
 
-						"trigger": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"allowed_caller_ip_address_range": {
-										Type:     pluginsdk.TypeSet,
-										Required: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.Any(
-												validation.IsCIDR,
-												validation.IsIPv4Range,
-											),
-										},
-									},
-
-									"open_authentication_policy": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"name": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringIsNotEmpty,
-												},
-
-												"claim": {
-													Type:     pluginsdk.TypeSet,
-													Required: true,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*pluginsdk.Schema{
-															"name": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-
-															"value": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-
 						"workflow_management": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -843,10 +788,6 @@ func expandLogicAppWorkflowAccessControl(input []interface{}) *logic.FlowAccessC
 
 	result := logic.FlowAccessControlConfiguration{}
 
-	if triggers := v["trigger"].([]interface{}); len(triggers) != 0 {
-		result.Triggers = expandLogicAppWorkflowAccessControlConfigurationPolicy(triggers)
-	}
-
 	if contents := v["content"].([]interface{}); len(contents) != 0 {
 		result.Contents = expandLogicAppWorkflowAccessControlConfigurationPolicy(contents)
 	}
@@ -961,7 +902,6 @@ func flattenLogicAppWorkflowFlowAccessControl(input *logic.FlowAccessControlConf
 		map[string]interface{}{
 			"action":              flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.Actions),
 			"content":             flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.Contents),
-			"trigger":             flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.Triggers),
 			"workflow_management": flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.WorkflowManagement),
 		},
 	}
