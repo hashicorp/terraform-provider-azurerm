@@ -118,20 +118,20 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"type": {
-                            Type:         pluginsdk.TypeString,
-                            Optional:     true,
-                            ValidateFunc: validation.StringIsNotEmpty,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
-                        "precision": {
-                            Type:         schema.TypeInt,
-                            Optional:     true,
-                            ValidateFunc: validation.IntAtLeast(0),
-                        },
-                        "scale": {
-                            Type:         schema.TypeInt,
-                            Optional:     true,
-                            ValidateFunc: validation.IntAtLeast(0),
-                        },
+						"precision": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+						"scale": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
 					},
 				},
 			},

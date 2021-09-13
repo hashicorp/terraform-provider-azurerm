@@ -191,7 +191,6 @@ type DatasetSnowflakeSchemaColumn struct {
 	Scale     int    `json:"scale,omitempty"`
 }
 
-
 func expandDataFactoryDatasetSnowflakeSchema(input []interface{}) interface{} {
 	columns := make([]DatasetSnowflakeSchemaColumn, 0)
 	for _, column := range input {
