@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
+	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2021-03-03-preview/devices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -92,13 +92,13 @@ func resourceIotHub() *pluginsdk.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.B1),
-								string(devices.B2),
-								string(devices.B3),
-								string(devices.F1),
-								string(devices.S1),
-								string(devices.S2),
-								string(devices.S3),
+								string(devices.IotHubSkuB1),
+								string(devices.IotHubSkuB2),
+								string(devices.IotHubSkuB3),
+								string(devices.IotHubSkuF1),
+								string(devices.IotHubSkuS1),
+								string(devices.IotHubSkuS2),
+								string(devices.IotHubSkuS3),
 							}, false),
 						},
 
@@ -278,9 +278,9 @@ func resourceIotHub() *pluginsdk.Resource {
 								suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 								suppress.CaseDifference),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.Avro),
-								string(devices.AvroDeflate),
-								string(devices.JSON),
+								string(devices.EncodingAvro),
+								string(devices.EncodingAvroDeflate),
+								string(devices.EncodingJSON),
 							}, true),
 						},
 
@@ -441,8 +441,8 @@ func resourceIotHub() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.Accept),
-								string(devices.Reject),
+								string(devices.IPFilterActionTypeAccept),
+								string(devices.IPFilterActionTypeReject),
 							}, false),
 						},
 					},
@@ -573,9 +573,9 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	// nolint staticcheck
 	if v, ok := d.GetOkExists("public_network_access_enabled"); ok {
-		enabled := devices.Disabled
+		enabled := devices.PublicNetworkAccessDisabled
 		if v.(bool) {
-			enabled = devices.Enabled
+			enabled = devices.PublicNetworkAccessEnabled
 		}
 		props.Properties.PublicNetworkAccess = enabled
 	}
@@ -709,7 +709,7 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if enabled := properties.PublicNetworkAccess; enabled != "" {
-			d.Set("public_network_access_enabled", enabled == devices.Enabled)
+			d.Set("public_network_access_enabled", enabled == devices.PublicNetworkAccessEnabled)
 		}
 
 		d.Set("min_tls_version", properties.MinTLSVersion)

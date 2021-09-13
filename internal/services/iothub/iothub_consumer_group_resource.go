@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2021-03-03-preview/devices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -83,7 +84,13 @@ func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if _, err := client.CreateEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name); err != nil {
+	consumerGroupBody := devices.EventHubConsumerGroupBodyDescription{
+		// The properties are currently undocumented. See also:
+		// https://docs.microsoft.com/en-us/azure/templates/microsoft.devices/2021-03-03-preview/iothubs/eventhubendpoints/consumergroups?tabs=json#eventhubconsumergroupname
+		Properties: &devices.EventHubConsumerGroupName{},
+	}
+
+	if _, err := client.CreateEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name, consumerGroupBody); err != nil {
 		return fmt.Errorf("creating Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
 	}
 
