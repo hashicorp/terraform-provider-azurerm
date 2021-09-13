@@ -63,8 +63,6 @@ A `access_control` block supports the following:
 
 * `content` - (Optional) A `content` block as defined below.
 
-* `trigger` - (Optional) A `trigger` block as defined below.
-
 * `workflow_management` - (Optional) A `workflow_management` block as defined below.
 
 ---
