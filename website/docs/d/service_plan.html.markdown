@@ -1,5 +1,5 @@
 ---
-subcategory: "TODO"
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_service_plan"
 description: |-
