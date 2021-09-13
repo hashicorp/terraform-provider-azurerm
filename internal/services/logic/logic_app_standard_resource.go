@@ -768,6 +768,12 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
+
+				"vnet_route_all_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -1075,6 +1081,12 @@ func flattenLogicAppStandardSiteConfig(input *web.SiteConfig) []interface{} {
 		result["dotnet_framework_version"] = *input.NetFrameworkVersion
 	}
 
+	vnetRouteAllEnabled := false
+	if input.VnetRouteAllEnabled != nil {
+		vnetRouteAllEnabled = *input.VnetRouteAllEnabled
+	}
+	result["vnet_route_all_enabled"] = vnetRouteAllEnabled
+
 	results = append(results, result)
 	return results
 }
@@ -1274,6 +1286,10 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 
 	if v, ok := config["dotnet_framework_version"]; ok {
 		siteConfig.NetFrameworkVersion = utils.String(v.(string))
+	}
+
+	if v, ok := config["vnet_route_all_enabled"]; ok {
+		siteConfig.VnetRouteAllEnabled = utils.Bool(v.(bool))
 	}
 
 	return siteConfig, nil
