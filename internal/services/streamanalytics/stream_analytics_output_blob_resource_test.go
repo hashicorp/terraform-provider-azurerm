@@ -59,6 +59,21 @@ func TestAccStreamAnalyticsOutputBlob_json(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsOutputBlob_parquet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_blob", "test")
+	r := StreamAnalyticsOutputBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.parquet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_key"),
+	})
+}
+
 func TestAccStreamAnalyticsOutputBlob_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_blob", "test")
 	r := StreamAnalyticsOutputBlobResource{}
@@ -178,6 +193,31 @@ resource "azurerm_stream_analytics_output_blob" "test" {
     type     = "Json"
     encoding = "UTF8"
     format   = "LineSeparated"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r StreamAnalyticsOutputBlobResource) parquet(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_blob" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  storage_account_name      = azurerm_storage_account.test.name
+  storage_account_key       = azurerm_storage_account.test.primary_access_key
+  storage_container_name    = azurerm_storage_container.test.name
+  path_pattern              = "some-other-pattern"
+  date_format               = "yyyy-MM-dd"
+  time_format               = "HH"
+  batch_max_wait_time       = "00:02:00"
+  batch_min_rows            = 5000
+
+  serialization {
+    type = "Parquet"
   }
 }
 `, template, data.RandomInteger)
