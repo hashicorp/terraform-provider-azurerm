@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -20,8 +21,11 @@ func resourceIotHubFallbackRoute() *pluginsdk.Resource {
 		Read:   resourceIotHubFallbackRouteRead,
 		Update: resourceIotHubFallbackRouteCreateUpdate,
 		Delete: resourceIotHubFallbackRouteDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.FallbackRouteID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -69,22 +73,22 @@ func resourceIotHubFallbackRoute() *pluginsdk.Resource {
 
 func resourceIotHubFallbackRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
+	subscriptionId := meta.(*clients.Client).IoTHub.DPSResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	iothubName := d.Get("iothub_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewFallbackRouteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), "default")
 
-	locks.ByName(iothubName, IothubResourceName)
-	defer locks.UnlockByName(iothubName, IothubResourceName)
+	locks.ByName(id.IotHubName, IothubResourceName)
+	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
 
-	iothub, err := client.Get(ctx, resourceGroup, iothubName)
+	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(iothub.Response) {
-			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
+			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
 
 	// NOTE: this resource intentionally doesn't support Requires Import
@@ -103,17 +107,16 @@ func resourceIotHubFallbackRouteCreateUpdate(d *pluginsdk.ResourceData, meta int
 		IsEnabled:     utils.Bool(d.Get("enabled").(bool)),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("creating/updating IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id.String(), err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id.String(), err)
 	}
 
-	resourceId := fmt.Sprintf("%s/FallbackRoute/defined", *iothub.ID)
-	d.SetId(resourceId)
+	d.SetId(id.ID())
 
 	return resourceIotHubFallbackRouteRead(d, meta)
 }
@@ -123,13 +126,13 @@ func resourceIotHubFallbackRouteRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedIothubRouteId, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.FallbackRouteID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedIothubRouteId.ResourceGroup
-	iothubName := parsedIothubRouteId.Path["IotHubs"]
+	resourceGroup := id.ResourceGroup
+	iothubName := id.IotHubName
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
@@ -157,13 +160,13 @@ func resourceIotHubFallbackRouteDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedIothubRouteId, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.FallbackRouteID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedIothubRouteId.ResourceGroup
-	iothubName := parsedIothubRouteId.Path["IotHubs"]
+	resourceGroup := id.ResourceGroup
+	iothubName := id.IotHubName
 
 	locks.ByName(iothubName, IothubResourceName)
 	defer locks.UnlockByName(iothubName, IothubResourceName)

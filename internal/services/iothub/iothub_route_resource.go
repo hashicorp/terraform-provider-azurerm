@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -24,8 +25,11 @@ func resourceIotHubRoute() *pluginsdk.Resource {
 		Read:   resourceIotHubRouteRead,
 		Update: resourceIotHubRouteCreateUpdate,
 		Delete: resourceIotHubRouteDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.RouteID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -94,27 +98,23 @@ func resourceIotHubRoute() *pluginsdk.Resource {
 
 func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
+	subscriptionId := meta.(*clients.Client).IoTHub.DPSResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	iothubName := d.Get("iothub_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewRouteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), d.Get("name").(string))
 
-	locks.ByName(iothubName, IothubResourceName)
-	defer locks.UnlockByName(iothubName, IothubResourceName)
+	locks.ByName(id.IotHubName, IothubResourceName)
+	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
 
-	iothub, err := client.Get(ctx, resourceGroup, iothubName)
+	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(iothub.Response) {
-			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
+			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
-
-	routeName := d.Get("name").(string)
-
-	resourceId := fmt.Sprintf("%s/Routes/%s", *iothub.ID, routeName)
 
 	source := devices.RoutingSource(d.Get("source").(string))
 	condition := d.Get("condition").(string)
@@ -122,7 +122,7 @@ func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	isEnabled := d.Get("enabled").(bool)
 
 	route := devices.RouteProperties{
-		Name:          &routeName,
+		Name:          &id.Name,
 		Source:        source,
 		Condition:     &condition,
 		EndpointNames: utils.ExpandStringSlice(endpointNamesRaw),
@@ -145,9 +145,9 @@ func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	alreadyExists := false
 	for _, existingRoute := range *routing.Routes {
 		if existingRoute.Name != nil {
-			if strings.EqualFold(*existingRoute.Name, routeName) {
+			if strings.EqualFold(*existingRoute.Name, id.Name) {
 				if d.IsNewResource() {
-					return tf.ImportAsExistsError("azurerm_iothub_route", resourceId)
+					return tf.ImportAsExistsError("azurerm_iothub_route", id.ID())
 				}
 				routes = append(routes, route)
 				alreadyExists = true
@@ -160,21 +160,21 @@ func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.IsNewResource() {
 		routes = append(routes, route)
 	} else if !alreadyExists {
-		return fmt.Errorf("Unable to find Route %q defined for IotHub %q (Resource Group %q)", routeName, iothubName, resourceGroup)
+		return fmt.Errorf("unable to find %s", id.String())
 	}
 
 	routing.Routes = &routes
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("creating/updating IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id.String(), err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id.String(), err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(id.ID())
 
 	return resourceIotHubRouteRead(d, meta)
 }
@@ -184,14 +184,14 @@ func resourceIotHubRouteRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedIothubRouteId, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.RouteID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedIothubRouteId.ResourceGroup
-	iothubName := parsedIothubRouteId.Path["IotHubs"]
-	routeName := parsedIothubRouteId.Path["Routes"]
+	resourceGroup := id.ResourceGroup
+	iothubName := id.IotHubName
+	routeName := id.Name
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
@@ -227,14 +227,14 @@ func resourceIotHubRouteDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedIothubRouteId, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.RouteID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedIothubRouteId.ResourceGroup
-	iothubName := parsedIothubRouteId.Path["IotHubs"]
-	routeName := parsedIothubRouteId.Path["Routes"]
+	resourceGroup := id.ResourceGroup
+	iothubName := id.IotHubName
+	routeName := id.Name
 
 	locks.ByName(iothubName, IothubResourceName)
 	defer locks.UnlockByName(iothubName, IothubResourceName)
