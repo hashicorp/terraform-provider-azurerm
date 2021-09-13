@@ -2016,12 +2016,12 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {
     application_stack {
-      dotnet_version = "%s"
-      php_version              = "%s"
-      python_version           = "%s"
-      java_version             = "%s"
-      java_container           = "%s"
-      java_container_version   = "%s"
+      dotnet_version         = "%s"
+      php_version            = "%s"
+      python_version         = "%s"
+      java_version           = "%s"
+      java_container         = "%s"
+      java_container_version = "%s"
     }
   }
 }
