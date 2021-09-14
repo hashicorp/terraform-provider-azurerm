@@ -695,7 +695,7 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	// From the docs:
 	// Only used when deploying to a Premium plan or to a Consumption plan running on Windows. Not supported for Consumptions plans running Linux.
-	if strings.EqualFold(appServiceTier, "dynamic") && strings.EqualFold(d.Get("os_type").(string), "linux") {
+	if (strings.EqualFold(appServiceTier, "dynamic") && strings.EqualFold(d.Get("os_type").(string), "linux")) || (strings.EqualFold(appServiceTier, "dynamic") || strings.HasPrefix(appServiceTier, "elastic")) {
 		delete(appSettings, "WEBSITE_CONTENTSHARE")
 		delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
 	}
