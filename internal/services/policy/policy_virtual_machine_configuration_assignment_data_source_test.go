@@ -95,15 +95,6 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-
-resource "azurerm_virtual_machine_extension" "test" {
-  name                       = "AzurePolicyforWindows"
-  virtual_machine_id         = azurerm_windows_virtual_machine.test.id
-  publisher                  = "Microsoft.GuestConfiguration"
-  type                       = "ConfigurationforWindows"
-  type_handler_version       = "1.0"
-  auto_upgrade_minor_version = "true"
-}
 `, r.templateBase(data))
 }
 

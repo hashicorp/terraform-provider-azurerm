@@ -156,9 +156,11 @@ func (r PolicyVirtualMachineConfigurationAssignmentResource) basic(data acceptan
 %s
 
 resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
-  name               = "WhitelistedApplication"
-  location           = azurerm_windows_virtual_machine.test.location
+  name     = "WhitelistedApplication"
+  location = azurerm_windows_virtual_machine.test.location
+
   virtual_machine_id = azurerm_windows_virtual_machine.test.id
+
   configuration {
     name    = "WhitelistedApplication"
     version = "1.*"

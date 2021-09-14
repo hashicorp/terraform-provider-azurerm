@@ -3,6 +3,7 @@ package policy
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/guestconfiguration/mgmt/2020-06-25/guestconfiguration"
@@ -119,27 +120,6 @@ func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
 					},
 				},
 			},
-
-			// Computed
-			"assignment_hash": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"compliance_status": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"latest_report_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"last_compliance_status_checked": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -168,14 +148,27 @@ func resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate(d *pluginsd
 			return tf.ImportAsExistsError("azurerm_policy_virtual_machine_configuration_assignment", id.ID())
 		}
 	}
-
+	guestConfiguration := expandGuestConfigurationAssignment(d.Get("configuration").([]interface{}), id.GuestConfigurationAssignmentName)
 	parameter := guestconfiguration.Assignment{
 		Name:     utils.String(id.GuestConfigurationAssignmentName),
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &guestconfiguration.AssignmentProperties{
-			GuestConfiguration: expandGuestConfigurationAssignment(d.Get("configuration").([]interface{}), id.GuestConfigurationAssignmentName),
+			GuestConfiguration: guestConfiguration,
 		},
 	}
+
+	// I need to determine if the passed in guest config is a built-in config or not
+	// since the attribute is computed and optional I need to check the value of the
+	// contentURI to see if it is on a service team owned storage account or not
+	// all built-in guest configuration will always be on a service team owned
+	// storage account
+	if guestConfiguration.ContentURI != nil || *guestConfiguration.ContentURI != "" {
+		if strings.Contains(strings.ToLower(*guestConfiguration.ContentURI), "oaasguestconfig") {
+			parameter.Properties.GuestConfiguration.ContentHash = nil
+			parameter.Properties.GuestConfiguration.ContentURI = nil
+		}
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, id.GuestConfigurationAssignmentName, parameter, id.ResourceGroup, id.VirtualMachineName); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -212,22 +205,6 @@ func resourcePolicyVirtualMachineConfigurationAssignmentRead(d *pluginsdk.Resour
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
-		if v := props.AssignmentHash; v != nil {
-			d.Set("assignment_hash", *v)
-		}
-
-		if v := string(props.ComplianceStatus); v != "" {
-			d.Set("compliance_status", v)
-		}
-
-		if v := props.LatestReportID; v != nil {
-			d.Set("latest_report_id", *v)
-		}
-
-		if v := props.LastComplianceStatusChecked; v != nil {
-			d.Set("last_compliance_status_checked", v.Format(time.RFC3339))
-		}
-
 		if err := d.Set("configuration", flattenGuestConfigurationAssignment(props.GuestConfiguration)); err != nil {
 			return fmt.Errorf("setting `configuration`: %+v", err)
 		}
@@ -296,10 +273,6 @@ func flattenGuestConfigurationAssignment(input *guestconfiguration.Navigation) [
 		return make([]interface{}, 0)
 	}
 
-	// var name string
-	// if input.Name != nil {
-	// 	name = *input.Name
-	// }
 	var version string
 	if input.Version != nil {
 		version = *input.Version
@@ -318,7 +291,6 @@ func flattenGuestConfigurationAssignment(input *guestconfiguration.Navigation) [
 	}
 	return []interface{}{
 		map[string]interface{}{
-			// "name":            name,
 			"assignment_type": string(assignmentType),
 			"content_hash":    contentHash,
 			"content_uri":     contentUri,

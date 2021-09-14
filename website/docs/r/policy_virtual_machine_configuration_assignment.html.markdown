@@ -10,6 +10,8 @@ description: |-
 
 Applies a Guest Configuration Policy to a Virtual Machine.
 
+~> **NOTE:** You can create Guest Configuration Policies without defining a `azurerm_virtual_machine_extension` resource, however the policies will not be executed until a `azurerm_virtual_machine_extension` has been provisioned to the virtual machine.
+
 ## Example Usage
 
 ```hcl
@@ -85,9 +87,11 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "example" {
   name               = "AzureWindowsBaseline"
   location           = azurerm_windows_virtual_machine.example.location
   virtual_machine_id = azurerm_windows_virtual_machine.example.id
+
   configuration {
     assignment_type = "ApplyAndMonitor"
     version         = "1.*"
+
     parameter {
       name  = "Minimum Password Length;ExpectedValue"
       value = "16"
@@ -158,14 +162,6 @@ A `parameter` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Policy Virtual Machine Configuration Assignment.
-
-* `assignment_hash` - Combined hash of the configuration package and parameters.
-
-* `compliance_status` - A value indicating compliance status of the machine for the assigned guest configuration. Possible return values are `Compliant`, `NonCompliant` and `Pending`. 
-
-* `last_compliance_status_checked` - Date and time, in RFC3339 format, when the machines compliance status was last checked.
-
-* `latest_report_id` - The ID of the latest report for the guest configuration assignment.
 
 
 ## Timeouts
