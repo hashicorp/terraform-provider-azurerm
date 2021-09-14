@@ -40,7 +40,6 @@ func TestAccDataFactoryDatasetSnowflake_update(t *testing.T) {
 			Config: r.update1(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("schema_column").Exists(),
 				check.That(data.ResourceName).Key("parameters.%").HasValue("2"),
 				check.That(data.ResourceName).Key("annotations.#").HasValue("2"),
 				check.That(data.ResourceName).Key("additional_properties.%").HasValue("2"),
@@ -52,9 +51,9 @@ func TestAccDataFactoryDatasetSnowflake_update(t *testing.T) {
 			Config: r.update2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("schema_column").Exists(),
 				check.That(data.ResourceName).Key("parameters.%").HasValue("3"),
 				check.That(data.ResourceName).Key("annotations.#").HasValue("3"),
-				check.That(data.ResourceName).Key("schema_column.#").HasValue("2"),
 				check.That(data.ResourceName).Key("additional_properties.%").HasValue("1"),
 				check.That(data.ResourceName).Key("description").HasValue("test description 2"),
 			),
