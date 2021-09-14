@@ -355,7 +355,7 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestvault%[3]d"
+  name                = "acctest%[3]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -366,7 +366,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[4]d"
+  name                     = "acctest%[4]d"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -419,6 +419,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary,
-		data.RandomIntOfLength(12), data.RandomIntOfLength(15), data.RandomIntOfLength(16),
+		data.RandomIntOfLength(17), data.RandomIntOfLength(17), data.RandomIntOfLength(16),
 		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, nodeCount, vmSize)
 }

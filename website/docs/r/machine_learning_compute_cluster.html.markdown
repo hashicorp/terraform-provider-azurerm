@@ -119,8 +119,6 @@ The following arguments are supported:
 
 * `identity` - (Optional) A `identity` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `private_ip_only_enabled` - (Optional)  A boolean value indicating whether enable private IP only. Defaults to `false`. Changing this forces a new Machine Learning Compute Cluster to be created.
-
 * `ssh_public_access_enabled` - (Optional)  A boolean value indicating whether enable the public SSH port. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `subnet_resource_id` - (Optional) The ID of the Subnet that the Compute Cluster should reside in. Changing this forces a new Machine Learning Compute Cluster to be created.
