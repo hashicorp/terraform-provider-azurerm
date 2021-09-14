@@ -162,7 +162,6 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
   virtual_machine_id = azurerm_windows_virtual_machine.test.id
 
   configuration {
-    name    = "WhitelistedApplication"
     version = "1.*"
 
     parameter {
