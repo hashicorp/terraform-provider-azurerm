@@ -28,13 +28,16 @@ var kubernetesOtherTests = map[string]func(t *testing.T){
 	"windowsProfileLicense":             testAccKubernetesCluster_windowsProfileLicense,
 	"updateWindowsProfileLicense":       TestAccKubernetesCluster_updateWindowsProfileLicense,
 	"outboundTypeLoadBalancer":          testAccKubernetesCluster_outboundTypeLoadBalancer,
+	"osSku":                             testAccKubernetesCluster_osSku,
 	"privateClusterOn":                  testAccKubernetesCluster_privateClusterOn,
 	"privateClusterOff":                 testAccKubernetesCluster_privateClusterOff,
+	"privateClusterPublicFqdn":          testAccKubernetesCluster_privateClusterPublicFqdn,
 	"privateClusterPrivateDNS":          testAccKubernetesCluster_privateClusterOnWithPrivateDNSZone,
 	"privateClusterPrivateDNSSystem":    testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSystem,
 	"privateClusterPrivateDNSAndSP":     testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneAndServicePrincipal,
 	"privateClusterPrivateDNSSubDomain": testAccKubernetesCluster_privateClusterOnWithPrivateDNSZoneSubDomain,
 	"upgradeChannel":                    testAccKubernetesCluster_upgradeChannel,
+	"ultraSSD":                          testAccKubernetesCluster_ultraSSD,
 }
 
 func TestAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
@@ -745,6 +748,26 @@ func testAccKubernetesCluster_privateClusterPublicFqdn(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.privateClusterPublicFqdn(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_osSku(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccKubernetesCluster_osSku(t)
+}
+
+func testAccKubernetesCluster_osSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.osSku(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1966,4 +1989,31 @@ resource "azurerm_kubernetes_cluster" "test" {
   private_cluster_public_fqdn_enabled = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, privateClusterPublicFqdnEnabled)
+}
+
+func (KubernetesClusterResource) osSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+    os_sku     = "Ubuntu"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

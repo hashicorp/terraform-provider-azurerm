@@ -1,0 +1,184 @@
+{
+    "x12": {
+        "receiveAgreement": {
+            "protocolSettings": {
+                "validationSettings": {
+                    "validateCharacterSet": true,
+                    "checkDuplicateInterchangeControlNumber": false,
+                    "interchangeControlNumberValidityDays": 30,
+                    "checkDuplicateGroupControlNumber": false,
+                    "checkDuplicateTransactionSetControlNumber": false,
+                    "validateEDITypes": true,
+                    "validateXSDTypes": false,
+                    "allowLeadingAndTrailingSpacesAndZeroes": false,
+                    "trimLeadingAndTrailingSpacesAndZeroes": false,
+                    "trailingSeparatorPolicy": "NotAllowed"
+                },
+                "framingSettings": {
+                    "dataElementSeparator": 42,
+                    "componentSeparator": 58,
+                    "replaceSeparatorsInPayload": false,
+                    "replaceCharacter": 36,
+                    "segmentTerminator": 126,
+                    "characterSet": "UTF8",
+                    "segmentTerminatorSuffix": "None"
+                },
+                "envelopeSettings": {
+                    "controlStandardsId": 85,
+                    "useControlStandardsIdAsRepetitionCharacter": false,
+                    "senderApplicationId": "BTS-SENDER",
+                    "receiverApplicationId": "RECEIVE-APP",
+                    "controlVersionNumber": "00401",
+                    "interchangeControlNumberLowerBound": 1,
+                    "interchangeControlNumberUpperBound": 999999999,
+                    "rolloverInterchangeControlNumber": true,
+                    "enableDefaultGroupHeaders": true,
+                    "groupControlNumberLowerBound": 1,
+                    "groupControlNumberUpperBound": 999999999,
+                    "rolloverGroupControlNumber": true,
+                    "groupHeaderAgencyCode": "T",
+                    "groupHeaderVersion": "00401",
+                    "transactionSetControlNumberLowerBound": 1,
+                    "transactionSetControlNumberUpperBound": 999999999,
+                    "rolloverTransactionSetControlNumber": true,
+                    "overwriteExistingTransactionSetControlNumber": true,
+                    "groupHeaderDateFormat": "CCYYMMDD",
+                    "groupHeaderTimeFormat": "HHMM",
+                    "usageIndicator": "Test"
+                },
+                "acknowledgementSettings": {
+                    "needTechnicalAcknowledgement": false,
+                    "batchTechnicalAcknowledgements": true,
+                    "needFunctionalAcknowledgement": false,
+                    "functionalAcknowledgementVersion": "00401",
+                    "batchFunctionalAcknowledgements": true,
+                    "needImplementationAcknowledgement": false,
+                    "batchImplementationAcknowledgements": false,
+                    "needLoopForValidMessages": false,
+                    "sendSynchronousAcknowledgement": true,
+                    "acknowledgementControlNumberLowerBound": 1,
+                    "acknowledgementControlNumberUpperBound": 999999999,
+                    "rolloverAcknowledgementControlNumber": true
+                },
+                "messageFilter": {
+                    "messageFilterType": "Exclude"
+                },
+                "securitySettings": {
+                    "authorizationQualifier": "00",
+                    "securityQualifier": "00"
+                },
+                "processingSettings": {
+                    "maskSecurityInfo": true,
+                    "convertImpliedDecimal": false,
+                    "preserveInterchange": false,
+                    "suspendInterchangeOnError": false,
+                    "createEmptyXmlTagsForTrailingSeparators": true,
+                    "useDotAsDecimalSeparator": false
+                },
+                "envelopeOverrides": [],
+                "validationOverrides": [],
+                "messageFilterList": [],
+                "schemaReferences": [],
+                "x12DelimiterOverrides": []
+            },
+            "senderBusinessIdentity": {
+                "qualifier": "2",
+                "value": "FabrikamDC"
+            },
+            "receiverBusinessIdentity": {
+                "qualifier": "2",
+                "value": "FabrikamNY"
+            }
+        },
+        "sendAgreement": {
+            "protocolSettings": {
+                "validationSettings": {
+                    "validateCharacterSet": true,
+                    "checkDuplicateInterchangeControlNumber": false,
+                    "interchangeControlNumberValidityDays": 30,
+                    "checkDuplicateGroupControlNumber": false,
+                    "checkDuplicateTransactionSetControlNumber": false,
+                    "validateEDITypes": true,
+                    "validateXSDTypes": false,
+                    "allowLeadingAndTrailingSpacesAndZeroes": false,
+                    "trimLeadingAndTrailingSpacesAndZeroes": false,
+                    "trailingSeparatorPolicy": "NotAllowed"
+                },
+                "framingSettings": {
+                    "dataElementSeparator": 42,
+                    "componentSeparator": 58,
+                    "replaceSeparatorsInPayload": false,
+                    "replaceCharacter": 36,
+                    "segmentTerminator": 126,
+                    "characterSet": "UTF8",
+                    "segmentTerminatorSuffix": "None"
+                },
+                "envelopeSettings": {
+                    "controlStandardsId": 85,
+                    "useControlStandardsIdAsRepetitionCharacter": false,
+                    "senderApplicationId": "BTS-SENDER",
+                    "receiverApplicationId": "RECEIVE-APP",
+                    "controlVersionNumber": "00401",
+                    "interchangeControlNumberLowerBound": 1,
+                    "interchangeControlNumberUpperBound": 999999999,
+                    "rolloverInterchangeControlNumber": true,
+                    "enableDefaultGroupHeaders": true,
+                    "groupControlNumberLowerBound": 1,
+                    "groupControlNumberUpperBound": 999999999,
+                    "rolloverGroupControlNumber": true,
+                    "groupHeaderAgencyCode": "T",
+                    "groupHeaderVersion": "00401",
+                    "transactionSetControlNumberLowerBound": 1,
+                    "transactionSetControlNumberUpperBound": 999999999,
+                    "rolloverTransactionSetControlNumber": true,
+                    "overwriteExistingTransactionSetControlNumber": true,
+                    "groupHeaderDateFormat": "CCYYMMDD",
+                    "groupHeaderTimeFormat": "HHMM",
+                    "usageIndicator": "Test"
+                },
+                "acknowledgementSettings": {
+                    "needTechnicalAcknowledgement": false,
+                    "batchTechnicalAcknowledgements": true,
+                    "needFunctionalAcknowledgement": false,
+                    "functionalAcknowledgementVersion": "00401",
+                    "batchFunctionalAcknowledgements": true,
+                    "needImplementationAcknowledgement": false,
+                    "batchImplementationAcknowledgements": false,
+                    "needLoopForValidMessages": false,
+                    "sendSynchronousAcknowledgement": true,
+                    "acknowledgementControlNumberLowerBound": 1,
+                    "acknowledgementControlNumberUpperBound": 999999999,
+                    "rolloverAcknowledgementControlNumber": true
+                },
+                "messageFilter": {
+                    "messageFilterType": "Exclude"
+                },
+                "securitySettings": {
+                    "authorizationQualifier": "00",
+                    "securityQualifier": "00"
+                },
+                "processingSettings": {
+                    "maskSecurityInfo": true,
+                    "convertImpliedDecimal": false,
+                    "preserveInterchange": false,
+                    "suspendInterchangeOnError": false,
+                    "createEmptyXmlTagsForTrailingSeparators": true,
+                    "useDotAsDecimalSeparator": false
+                },
+                "envelopeOverrides": [],
+                "validationOverrides": [],
+                "messageFilterList": [],
+                "schemaReferences": [],
+                "x12DelimiterOverrides": []
+            },
+            "senderBusinessIdentity": {
+                "qualifier": "2",
+                "value": "FabrikamNY"
+            },
+            "receiverBusinessIdentity": {
+                "qualifier": "2",
+                "value": "FabrikamDC"
+            }
+        }
+    }
+}

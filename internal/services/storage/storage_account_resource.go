@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
@@ -34,6 +35,7 @@ import (
 )
 
 var storageAccountResourceName = "azurerm_storage_account"
+var allowPublicNestedItemsName = getDefaultAllowBlobPublicAccessName()
 
 func resourceStorageAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -236,10 +238,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"allow_blob_public_access": {
+			// TODO: document this new field in 3.0
+			allowPublicNestedItemsName: {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  getDefaultAllowBlobPublicAccess(),
 			},
 
 			"shared_access_key_enabled": {
@@ -921,7 +924,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	minimumTLSVersion := d.Get("min_tls_version").(string)
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 	nfsV3Enabled := d.Get("nfsv3_enabled").(bool)
-	allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
+	allowBlobPublicAccess := d.Get(allowPublicNestedItemsName).(bool)
 	allowSharedKeyAccess := d.Get("shared_access_key_enabled").(bool)
 
 	accountTier := d.Get("account_tier").(string)
@@ -951,7 +954,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
 	if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
 		if allowBlobPublicAccess || minimumTLSVersion != string(storage.TLS10) {
-			return fmt.Errorf(`"allow_blob_public_access" and "min_tls_version" are not supported for a Storage Account located in %q`, envName)
+			return fmt.Errorf(`%q and "min_tls_version" are not supported for a Storage Account located in %q`, allowPublicNestedItemsName, envName)
 		}
 	} else {
 		parameters.AccountPropertiesCreateParameters.AllowBlobPublicAccess = &allowBlobPublicAccess
@@ -1299,8 +1302,8 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("allow_blob_public_access") {
-		allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
+	if d.HasChange(allowPublicNestedItemsName) {
+		allowBlobPublicAccess := d.Get(allowPublicNestedItemsName).(bool)
 
 		// For all Clouds except Public, China, and USGovernmentCloud, don't specify "allow_blob_public_access" in request body.
 		// https://github.com/hashicorp/terraform-provider-azurerm/issues/7812
@@ -1308,7 +1311,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
 		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
 			if allowBlobPublicAccess {
-				return fmt.Errorf(`"allow_blob_public_access" is not supported for a Storage Account located in %q`, envName)
+				return fmt.Errorf(`%q is not supported for a Storage Account located in %q`, allowPublicNestedItemsName, envName)
 			}
 		} else {
 			opts := storage.AccountUpdateParameters{
@@ -1579,7 +1582,23 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("nfsv3_enabled", props.EnableNfsV3)
-		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
+
+		if features.ThreePointOh() {
+			// There is a certain edge case that could result in the Azure API returning a null value for AllowBLobPublicAccess.
+			// Since the field is a pointer, this gets marshalled to a nil value instead of a boolean. Here we set this
+			// to the default value, but since this is a breaking change we'll enforce this in 3.0
+
+			allowBlobPublicAccess := getDefaultAllowBlobPublicAccess()
+			if props.AllowBlobPublicAccess != nil {
+				allowBlobPublicAccess = *props.AllowBlobPublicAccess
+			}
+			//lintignore:R001
+			d.Set(allowPublicNestedItemsName, allowBlobPublicAccess)
+		} else {
+			//lintignore:R001
+			d.Set(allowPublicNestedItemsName, props.AllowBlobPublicAccess)
+		}
+
 		// For all Clouds except Public, China, and USGovernmentCloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
 		// https://github.com/hashicorp/terraform-provider-azurerm/issues/7812
 		// https://github.com/hashicorp/terraform-provider-azurerm/issues/8083
@@ -2919,4 +2938,17 @@ func setEndpointAndHost(d *pluginsdk.ResourceData, ordinalString string, endpoin
 	// lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_host", ordinalString, typeString), host)
 	return nil
+}
+
+func getDefaultAllowBlobPublicAccess() bool {
+	// The default value for the field that controls if the blobs that belong to a storage account
+	// can allow anonymous access or not will change from false to true in 3.0.
+	return features.ThreePointOh()
+}
+
+func getDefaultAllowBlobPublicAccessName() string {
+	if features.ThreePointOh() {
+		return "allow_nested_items_to_be_public"
+	}
+	return "allow_blob_public_access"
 }

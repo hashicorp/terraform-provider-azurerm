@@ -190,42 +190,32 @@ The `vpn_client_configuration` block supports:
     in CIDR notation.
 
 * `aad_tenant` - (Optional) AzureAD Tenant URL
-    This setting is incompatible with the use of 
-    `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.
 
 * `aad_audience` - (Optional) The client id of the Azure VPN application.
     See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/en-gb/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
-    This setting is incompatible with the use of 
-    `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.
-
+  
 * `aad_issuer` - (Optional) The STS url for your tenant
-    This setting is incompatible with the use of 
-    `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.
 
 * `root_certificate` - (Optional) One or more `root_certificate` blocks which are
     defined below. These root certificates are used to sign the client certificate
     used by the VPN clients to connect to the gateway.
-    This setting is incompatible with the use of 
-    `aad_tenant`, `aad_audience`, `aad_issuer`, `radius_server_address`, and `radius_server_secret`.
 
 * `revoked_certificate` - (Optional) One or more `revoked_certificate` blocks which
     are defined below.
-    This setting is incompatible with the use of 
-    `aad_tenant`, `aad_audience`, `aad_issuer`, `radius_server_address`, and `radius_server_secret`.
 
 * `radius_server_address` - (Optional) The address of the Radius server.
-    This setting is incompatible with the use of
-    `aad_tenant`, `aad_audience`, `aad_issuer`, `root_certificate` and `revoked_certificate`.
 
 * `radius_server_secret` - (Optional) The secret used by the Radius server.
-    This setting is incompatible with the use of
-    `aad_tenant`, `aad_audience`, `aad_issuer`, `root_certificate` and `revoked_certificate`.
 
 * `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
     The supported values are `SSTP`, `IkeV2` and `OpenVPN`.
     Values `SSTP` and `IkeV2` are incompatible with the use of 
     `aad_tenant`, `aad_audience` and `aad_issuer`.
-  
+
+* `vpn_auth_types` - (Optional) List of the vpn authentication types for the virtual network gateway.
+    The supported values are `AAD`, `Radius` and `Certificate`.
+
+-> **NOTE:** `vpn_auth_types` must be set when using multiple vpn authentication types.
 ---
 
 The `bgp_settings` block supports:

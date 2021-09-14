@@ -55,6 +55,8 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"identity": IdentitySchema(),
+
 			"input_schema": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -193,15 +195,24 @@ func resourceEventGridTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		InboundIPRules:      expandInboundIPRules(d),
 	}
 
-	properties := eventgrid.Topic{
+	topic := eventgrid.Topic{
 		Location:        &location,
 		TopicProperties: topicProperties,
 		Tags:            tags.Expand(t),
 	}
 
-	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Topic creation with Properties: %+v.", properties)
+	if v, ok := d.GetOk("identity"); ok {
+		identityRaw := v.([]interface{})
+		identity, err := expandIdentity(identityRaw)
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		topic.Identity = identity
+	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
+	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Topic creation with Properties: %+v.", topic)
+
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, topic)
 	if err != nil {
 		return err
 	}
@@ -288,6 +299,10 @@ func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if props := resp.TopicProperties; props != nil {
 		d.Set("endpoint", props.Endpoint)
+	}
+
+	if err := d.Set("identity", flattenIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	d.Set("primary_access_key", keys.Key1)

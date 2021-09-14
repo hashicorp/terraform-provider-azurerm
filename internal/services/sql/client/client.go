@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
+	msi "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2018-06-01-preview/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -12,6 +13,8 @@ type Client struct {
 	DatabaseExtendedBlobAuditingPoliciesClient *sql.ExtendedDatabaseBlobAuditingPoliciesClient
 	FirewallRulesClient                        *sql.FirewallRulesClient
 	FailoverGroupsClient                       *sql.FailoverGroupsClient
+	ManagedInstancesClient                     *msi.ManagedInstancesClient
+	ManagedDatabasesClient                     *msi.ManagedDatabasesClient
 	ServersClient                              *sql.ServersClient
 	ServerExtendedBlobAuditingPoliciesClient   *sql.ExtendedServerBlobAuditingPoliciesClient
 	ServerConnectionPoliciesClient             *sql.ServerConnectionPoliciesClient
@@ -40,6 +43,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	firewallRulesClient := sql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&firewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	managedInstancesClient := msi.NewManagedInstancesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&managedInstancesClient.Client, o.ResourceManagerAuthorizer)
+
+	managedDatabasesClient := msi.NewManagedDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&managedDatabasesClient.Client, o.ResourceManagerAuthorizer)
+
 	serversClient := sql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serversClient.Client, o.ResourceManagerAuthorizer)
 
@@ -65,6 +74,8 @@ func NewClient(o *common.ClientOptions) *Client {
 		ElasticPoolsClient:                         &elasticPoolsClient,
 		FailoverGroupsClient:                       &failoverGroupsClient,
 		FirewallRulesClient:                        &firewallRulesClient,
+		ManagedInstancesClient:                     &managedInstancesClient,
+		ManagedDatabasesClient:                     &managedDatabasesClient,
 		ServersClient:                              &serversClient,
 		ServerAzureADAdministratorsClient:          &serverAzureADAdministratorsClient,
 		ServerConnectionPoliciesClient:             &serverConnectionPoliciesClient,

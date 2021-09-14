@@ -104,7 +104,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"F0", "F1", "S0", "S", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2",
+					"F0", "F1", "S0", "S", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2", "E0",
 				}, false),
 			},
 
@@ -625,6 +625,8 @@ func expandAccountSkuName(skuName string) (*cognitiveservices.Sku, error) {
 		tier = cognitiveservices.SkuTierStandard
 	case "P":
 		tier = cognitiveservices.SkuTierPremium
+	case "E":
+		tier = cognitiveservices.SkuTierEnterprise
 	default:
 		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, skuName[0:1])
 	}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -778,7 +779,26 @@ func eventSubscriptionSchemaLabels() *pluginsdk.Schema {
 	}
 }
 
-func expandEventGridExpirationTime(d *pluginsdk.ResourceData) (*date.Time, error) {
+func eventSubscriptionSchemaIdentity() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(eventgrid.SystemAssigned),
+					}, false),
+				},
+			},
+		},
+	}
+}
+
+func expandEventGridExpirationTime(d *schema.ResourceData) (*date.Time, error) {
 	if expirationTimeUtc, ok := d.GetOk("expiration_time_utc"); ok {
 		if expirationTimeUtc == "" {
 			return nil, nil
@@ -1099,6 +1119,22 @@ func expandEventGridEventSubscriptionRetryPolicy(d *pluginsdk.ResourceData) *eve
 	}
 
 	return nil
+}
+
+func expandEventGridEventSubscriptionIdentity(input []interface{}) *eventgrid.EventSubscriptionIdentity {
+	if len(input) == 0 || input[0] == nil {
+		return &eventgrid.EventSubscriptionIdentity{
+			Type: eventgrid.EventSubscriptionIdentityType("None"),
+		}
+	}
+	identity := input[0].(map[string]interface{})
+	identityType := eventgrid.EventSubscriptionIdentityType(identity["type"].(string))
+
+	eventgridIdentity := eventgrid.EventSubscriptionIdentity{
+		Type: identityType,
+	}
+
+	return &eventgridIdentity
 }
 
 func flattenEventGridEventSubscriptionEventhubEndpoint(input *eventgrid.EventHubEventSubscriptionDestination) []interface{} {
@@ -1444,5 +1480,17 @@ func flattenKey(inputKey *string) map[string]interface{} {
 
 	return map[string]interface{}{
 		"key": key,
+	}
+}
+
+func flattenEventGridEventSubscriptionIdentity(input *eventgrid.EventSubscriptionIdentity) []interface{} {
+	if input == nil || string(input.Type) == "None" {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type": string(input.Type),
+		},
 	}
 }
