@@ -8,6 +8,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * Data Source: `azurerm_mssql_elasticpool` - export the `sku` block [GH-13336]
+* `azurem_site_recovery_*` - refactored to use ID parser [GH-13328]
 
 BUG FIXES:
 
