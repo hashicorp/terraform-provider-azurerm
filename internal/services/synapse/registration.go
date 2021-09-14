@@ -26,6 +26,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
+		"azurerm_synapse_dataset":                         resourceSynapseDataset(),
 		"azurerm_synapse_firewall_rule":                   resourceSynapseFirewallRule(),
 		"azurerm_synapse_linked_service":                  resourceSynapseLinkedService(),
 		"azurerm_synapse_integration_runtime_self_hosted": resourceSynapseIntegrationRuntimeSelfHosted(),
