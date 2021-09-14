@@ -1174,10 +1174,11 @@ resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  kind                = "elastic"
 
   sku {
-    tier = "Standard"
-    size = "S1"
+    tier = "ElasticPremium"
+    size = "EP1"
   }
 }
 
@@ -1196,6 +1197,7 @@ resource "azurerm_function_app" "test" {
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  version                    = "~3"
 }
 
 resource "azurerm_function_app_slot" "test" {
@@ -1206,6 +1208,7 @@ resource "azurerm_function_app_slot" "test" {
   function_app_name          = azurerm_function_app.test.name
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  version                    = "~3"
 
   site_config {
     auto_swap_slot_name = "production"

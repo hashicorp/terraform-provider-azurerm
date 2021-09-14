@@ -345,7 +345,7 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 	// On consumption and premium plans include WEBSITE_CONTENT components, unless it's a Linux consumption plan
 	// (see https://github.com/Azure/azure-functions-python-worker/issues/598)
 	if !(strings.EqualFold(appServiceTier, "dynamic") && strings.EqualFold(d.Get("os_type").(string), "linux")) &&
-		(strings.EqualFold(appServiceTier, "dynamic") || strings.HasPrefix(appServiceTier, "elastic")) {
+		(strings.EqualFold(appServiceTier, "dynamic") || strings.HasPrefix(appServiceTier, "elastic") || strings.HasPrefix(appServiceTier, "Elastic")) {
 		return append(basicSettings, consumptionSettings...), nil
 	}
 

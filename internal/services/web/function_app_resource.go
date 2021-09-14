@@ -432,7 +432,10 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	currentAppSettings := existing.AppSettings
+	var currentAppSettings *[]web.NameValuePair
+	if existing.AppSettings != nil {
+		currentAppSettings = existing.AppSettings
+	}
 
 	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix, currentAppSettings)
 	if err != nil {
@@ -695,7 +698,8 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	// From the docs:
 	// Only used when deploying to a Premium plan or to a Consumption plan running on Windows. Not supported for Consumptions plans running Linux.
-	if (strings.EqualFold(appServiceTier, "dynamic") && strings.EqualFold(d.Get("os_type").(string), "linux")) || (strings.EqualFold(appServiceTier, "dynamic") || strings.HasPrefix(appServiceTier, "elastic")) {
+	if (strings.EqualFold(appServiceTier, "dynamic") && strings.EqualFold(d.Get("os_type").(string), "linux")) ||
+		(strings.EqualFold(appServiceTier, "dynamic") || strings.HasPrefix(appServiceTier, "elastic")) {
 		delete(appSettings, "WEBSITE_CONTENTSHARE")
 		delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
 	}
