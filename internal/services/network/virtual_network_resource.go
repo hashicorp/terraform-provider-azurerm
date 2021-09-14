@@ -527,7 +527,7 @@ func VirtualNetworkProvisioningStateRefreshFunc(ctx context.Context, client *net
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
-			return nil, "Error", err
+			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
 		}
 
 		return res, string(res.ProvisioningState), nil

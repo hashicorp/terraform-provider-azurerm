@@ -622,7 +622,7 @@ func SubnetProvisioningStateRefreshFunc(ctx context.Context, client *network.Sub
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 		if err != nil {
-			return nil, "Error", err
+			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
 		}
 
 		return res, string(res.ProvisioningState), nil
