@@ -2,6 +2,7 @@ package policy_test
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -27,6 +28,10 @@ func TestAccPolicyVirtualMachineConfigurationAssignmentDataSource_basic(t *testi
 
 func (r PolicyVirtualMachineConfigurationAssignmentDataSource) templateBase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 locals {
   vm_name = "acctestvm%s"
 }
@@ -65,6 +70,15 @@ resource "azurerm_network_interface" "test" {
 }
 
 func (r PolicyVirtualMachineConfigurationAssignmentDataSource) template(data acceptance.TestData) string {
+	tags := ""
+	if strings.HasPrefix(strings.ToLower(data.Client().SubscriptionID), "85b3dbca") {
+		tags = `
+  tags = {
+    "azsecpack"                                                                = "nonprod"
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true"
+  }
+`
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -94,8 +108,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     sku       = "2016-Datacenter"
     version   = "latest"
   }
+
+%s
 }
-`, r.templateBase(data))
+`, r.templateBase(data), tags)
 }
 
 func (r PolicyVirtualMachineConfigurationAssignmentDataSource) basic(data acceptance.TestData) string {
