@@ -307,7 +307,7 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
+	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix, nil)
 	if err != nil {
 		return err
 	}
@@ -427,7 +427,14 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
+	existing, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		return fmt.Errorf("reading %s: %+v", id, err)
+	}
+
+	currentAppSettings := existing.AppSettings
+
+	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix, currentAppSettings)
 	if err != nil {
 		return err
 	}
@@ -473,10 +480,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("waiting for update of Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
-	appSettings, err := expandFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
-	if err != nil {
-		return err
-	}
+	appSettings := expandFunctionAppAppSettings(d, basicAppSettings)
 	settings := web.StringDictionary{
 		Properties: appSettings,
 	}
@@ -625,7 +629,11 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	appServicePlanID := ""
 	if props := resp.SiteProperties; props != nil {
+		if props.ServerFarmID != nil {
+			appServicePlanID = *props.ServerFarmID
+		}
 		d.Set("app_service_plan_id", props.ServerFarmID)
 		d.Set("enabled", props.Enabled)
 		d.Set("default_hostname", props.DefaultHostName)
@@ -641,6 +649,11 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			clientCertMode = string(props.ClientCertMode)
 		}
 		d.Set("client_cert_mode", clientCertMode)
+	}
+
+	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
+	if err != nil {
+		return err
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
@@ -680,10 +693,9 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
 	}
 
-	// Let the user have a final say whether they want to keep these 2 or not on
-	// Linux consumption plans. They shouldn't be there according to a bug
-	// report (see // https://github.com/Azure/azure-functions-python-worker/issues/598)
-	if !strings.EqualFold(d.Get("os_type").(string), "linux") {
+	// From the docs:
+	// Only used when deploying to a Premium plan or to a Consumption plan running on Windows. Not supported for Consumptions plans running Linux.
+	if strings.EqualFold(appServiceTier, "dynamic") && strings.EqualFold(d.Get("os_type").(string), "linux") {
 		delete(appSettings, "WEBSITE_CONTENTSHARE")
 		delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
 	}

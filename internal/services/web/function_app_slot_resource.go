@@ -398,10 +398,7 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("waiting for update of Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
 
-	appSettings, err := expandFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
-	if err != nil {
-		return err
-	}
+	appSettings := expandFunctionAppSlotAppSettings(d, basicAppSettings)
 	settings := web.StringDictionary{
 		Properties: appSettings,
 	}
@@ -687,18 +684,14 @@ func getFunctionAppSlotServiceTier(ctx context.Context, appServicePlanID string,
 	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanID)
 }
 
-func expandFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string) (map[string]*string, error) {
+func expandFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, basicAppSettings []web.NameValuePair) map[string]*string {
 	output := expandAppServiceAppSettings(d)
 
-	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
-	if err != nil {
-		return nil, err
-	}
 	for _, p := range basicAppSettings {
 		output[*p.Name] = p.Value
 	}
 
-	return output, nil
+	return output
 }
 
 func expandFunctionAppSlotConnectionStrings(d *pluginsdk.ResourceData) map[string]*web.ConnStringValueTypePair {

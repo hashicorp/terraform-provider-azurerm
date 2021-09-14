@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -271,7 +272,7 @@ func schemaFunctionAppDataSourceSiteConfig() *pluginsdk.Schema {
 	}
 }
 
-func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string) ([]web.NameValuePair, error) {
+func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string, existingSettings *[]web.NameValuePair) ([]web.NameValuePair, error) {
 	// TODO: This is a workaround since there are no public Functions API
 	// You may track the API request here: https://github.com/Azure/azure-rest-api-specs/issues/3750
 	dashboardPropName := "AzureWebJobsDashboard"
@@ -310,7 +311,19 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 	}
 
 	functionVersion := d.Get("version").(string)
-	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
+	var contentShare string
+	if existingSettings == nil {
+		// generate and use a new value
+		suffix := uuid.New().String()[0:4]
+		contentShare = strings.ToLower(d.Get("name").(string)) + suffix
+	} else {
+		// find and re-use the current
+		for _, v := range *existingSettings {
+			if v.Name != nil && *v.Name == contentSharePropName {
+				contentShare = *v.Name
+			}
+		}
+	}
 
 	basicSettings := []web.NameValuePair{
 		{Name: &storagePropName, Value: &storageConnection},
@@ -331,8 +344,7 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 
 	// On consumption and premium plans include WEBSITE_CONTENT components, unless it's a Linux consumption plan
 	// (see https://github.com/Azure/azure-functions-python-worker/issues/598)
-	if (strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium") || strings.HasPrefix(strings.ToLower(appServiceTier), "premium")) &&
-		!strings.EqualFold(d.Get("os_type").(string), "linux") {
+	if !(strings.EqualFold(appServiceTier, "dynamic") && strings.EqualFold(d.Get("os_type").(string), "linux")) {
 		return append(basicSettings, consumptionSettings...), nil
 	}
 
@@ -361,18 +373,14 @@ func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, met
 	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanId)
 }
 
-func expandFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, endpointSuffix string) (map[string]*string, error) {
+func expandFunctionAppAppSettings(d *pluginsdk.ResourceData, basicAppSettings []web.NameValuePair) map[string]*string {
 	output := expandAppServiceAppSettings(d)
 
-	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
-	if err != nil {
-		return nil, err
-	}
 	for _, p := range basicAppSettings {
 		output[*p.Name] = p.Value
 	}
 
-	return output, nil
+	return output
 }
 
 func expandFunctionAppSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig, error) {
