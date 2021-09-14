@@ -97,7 +97,7 @@ func dataSourcePolicyVirtualMachineConfigurationAssignmentRead(d *pluginsdk.Reso
 
 	if props := resp.Properties; props != nil {
 		if v := props.AssignmentHash; v != nil {
-			d.Set("assignment_hash", *v)
+			d.Set("assignment_hash", v)
 		}
 
 		if v := string(props.ComplianceStatus); v != "" {
@@ -105,7 +105,7 @@ func dataSourcePolicyVirtualMachineConfigurationAssignmentRead(d *pluginsdk.Reso
 		}
 
 		if v := props.LatestReportID; v != nil {
-			d.Set("latest_report_id", *v)
+			d.Set("latest_report_id", v)
 		}
 
 		if v := props.LastComplianceStatusChecked; v != nil {
