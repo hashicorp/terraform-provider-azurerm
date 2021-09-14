@@ -86,12 +86,8 @@ func (t IotHubConsumerGroupResource) Exists(ctx context.Context, clients *client
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	iotHubName := id.IotHubName
-	endpointName := id.EventHubEndpointName
-	name := id.Name
 
-	resp, err := clients.IoTHub.ResourceClient.GetEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
+	resp, err := clients.IoTHub.ResourceClient.GetEventHubConsumerGroup(ctx, id.ResourceGroup, id.IotHubName, id.EventHubEndpointName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("reading IotHuB Consumer Group (%s): %+v", id, err)
 	}

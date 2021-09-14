@@ -61,10 +61,8 @@ func (t IotHubFallbackRouteResource) Exists(ctx context.Context, clients *client
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	iothubName := id.IotHubName
 
-	resp, err := clients.IoTHub.ResourceClient.Get(ctx, resourceGroup, iothubName)
+	resp, err := clients.IoTHub.ResourceClient.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil || resp.Properties == nil || resp.Properties.Routing == nil || resp.Properties.Routing.FallbackRoute == nil {
 		return nil, fmt.Errorf("reading IotHuB Route (%s): %+v", id, err)
 	}

@@ -160,11 +160,8 @@ func (t IoTHubSharedAccessPolicyResource) Exists(ctx context.Context, clients *c
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	iothubName := id.IotHubName
-	keyName := id.IotHubKeyName
 
-	accessPolicy, err := clients.IoTHub.ResourceClient.GetKeysForKeyName(ctx, resourceGroup, iothubName, keyName)
+	accessPolicy, err := clients.IoTHub.ResourceClient.GetKeysForKeyName(ctx, id.ResourceGroup, id.IotHubName, id.IotHubKeyName)
 	if err != nil {
 		return nil, fmt.Errorf("loading IotHub Shared Access Policy %q: %+v", id, err)
 	}
