@@ -217,7 +217,7 @@ func TestAccFunctionApp_linuxFxVersion(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				acceptance.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,linux,container"),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|(golang:latest)"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|golang:latest"),
 			),
 		},
 		data.ImportStep(),
@@ -1554,7 +1554,7 @@ resource "azurerm_function_app" "test" {
   os_type                    = "linux"
 
   site_config {
-    linux_fx_version = "DOCKER|(golang:latest)"
+    linux_fx_version = "DOCKER|golang:latest"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
