@@ -277,14 +277,14 @@ resource "azurerm_data_factory_dataset_snowflake" "test" {
 
   schema_column {
     name      = "test1"
-    type      = "Byte"
+    type      = "NUMBER"
     precision = 20
     scale     = 1
   }
 
   schema_column {
     name      = "test2"
-    type      = "Byte"
+    type      = "NUMBER"
     precision = 25
     scale     = 0
   }
