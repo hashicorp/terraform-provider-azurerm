@@ -112,12 +112,8 @@ func resourceIotHubConsumerGroupRead(d *pluginsdk.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	iotHubName := id.IotHubName
-	endpointName := id.EventHubEndpointName
-	name := id.Name
 
-	resp, err := client.GetEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
+	resp, err := client.GetEventHubConsumerGroup(ctx, id.ResourceGroup, id.IotHubName, id.EventHubEndpointName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -144,15 +140,11 @@ func resourceIotHubConsumerGroupDelete(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	iotHubName := id.IotHubName
-	endpointName := id.EventHubEndpointName
-	name := id.Name
 
-	locks.ByName(iotHubName, IothubResourceName)
-	defer locks.UnlockByName(iotHubName, IothubResourceName)
+	locks.ByName(id.IotHubName, IothubResourceName)
+	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
 
-	resp, err := client.DeleteEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
+	resp, err := client.DeleteEventHubConsumerGroup(ctx, id.ResourceGroup, id.IotHubName, id.EventHubEndpointName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("deleting %s: %+v", id.String(), err)

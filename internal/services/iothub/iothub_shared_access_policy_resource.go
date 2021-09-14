@@ -216,11 +216,7 @@ func resourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	iothubName := id.IotHubName
-	keyName := id.IotHubKeyName
-
-	accessPolicy, err := client.GetKeysForKeyName(ctx, resourceGroup, iothubName, keyName)
+	accessPolicy, err := client.GetKeysForKeyName(ctx, id.ResourceGroup, id.IotHubName, id.IotHubKeyName)
 	if err != nil {
 		if utils.ResponseWasNotFound(accessPolicy.Response) {
 			log.Printf("[DEBUG] %s was not found - removing from state", id.String())
@@ -231,21 +227,21 @@ func resourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("loading %s: %+v", id.String(), err)
 	}
 
-	iothub, err := client.Get(ctx, resourceGroup, iothubName)
+	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", keyName)
-	d.Set("iothub_name", iothubName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.IotHubKeyName)
+	d.Set("iothub_name", id.IotHubName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	d.Set("primary_key", accessPolicy.PrimaryKey)
-	if err := d.Set("primary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, keyName, *accessPolicy.PrimaryKey)); err != nil {
+	if err := d.Set("primary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, id.IotHubKeyName, *accessPolicy.PrimaryKey)); err != nil {
 		return fmt.Errorf("setting `primary_connection_string`: %v", err)
 	}
 	d.Set("secondary_key", accessPolicy.SecondaryKey)
-	if err := d.Set("secondary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, keyName, *accessPolicy.SecondaryKey)); err != nil {
+	if err := d.Set("secondary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, id.IotHubKeyName, *accessPolicy.SecondaryKey)); err != nil {
 		return fmt.Errorf("setting `secondary_connection_string`: %v", err)
 	}
 
@@ -268,38 +264,34 @@ func resourceIotHubSharedAccessPolicyDelete(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	iothubName := id.IotHubName
-	keyName := id.IotHubKeyName
+	locks.ByName(id.IotHubName, IothubResourceName)
+	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
 
-	locks.ByName(iothubName, IothubResourceName)
-	defer locks.UnlockByName(iothubName, IothubResourceName)
-
-	iothub, err := client.Get(ctx, resourceGroup, iothubName)
+	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(iothub.Response) {
-			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
+			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
 
 	accessPolicies := make([]devices.SharedAccessSignatureAuthorizationRule, 0)
 
-	for accessPolicyIterator, err := client.ListKeysComplete(ctx, resourceGroup, iothubName); accessPolicyIterator.NotDone(); err = accessPolicyIterator.NextWithContext(ctx) {
+	for accessPolicyIterator, err := client.ListKeysComplete(ctx, id.ResourceGroup, id.IotHubName); accessPolicyIterator.NotDone(); err = accessPolicyIterator.NextWithContext(ctx) {
 		if err != nil {
 			return fmt.Errorf("loading %s: %+v", id.String(), err)
 		}
 		existingAccessPolicy := accessPolicyIterator.Value()
 
-		if !strings.EqualFold(*existingAccessPolicy.KeyName, keyName) {
+		if !strings.EqualFold(*existingAccessPolicy.KeyName, id.IotHubKeyName) {
 			accessPolicies = append(accessPolicies, existingAccessPolicy)
 		}
 	}
 
 	iothub.Properties.AuthorizationPolicies = &accessPolicies
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", id.String(), err)
 	}
