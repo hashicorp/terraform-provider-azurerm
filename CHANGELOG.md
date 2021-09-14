@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_synapse_integration_runtime_self_hosted` [GH-13264]
+* **New Resource:** `azurerm_synapse_linked_service` [GH-13204]
 
 ENHANCEMENTS:
 

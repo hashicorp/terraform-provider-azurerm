@@ -27,6 +27,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_synapse_firewall_rule":                   resourceSynapseFirewallRule(),
+		"azurerm_synapse_linked_service":                  resourceSynapseLinkedService(),
 		"azurerm_synapse_integration_runtime_azure":       resourceSynapseIntegrationRuntimeAzure(),
 		"azurerm_synapse_integration_runtime_self_hosted": resourceSynapseIntegrationRuntimeSelfHosted(),
 		"azurerm_synapse_private_link_hub":                resourceSynapsePrivateLinkHub(),

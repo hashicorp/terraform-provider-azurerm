@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/sdk/2021-06-01-preview/artifacts"
 )
 
 type Client struct {
@@ -101,6 +102,16 @@ func (client Client) ManagedPrivateEndpointsClient(workspaceName, synapseEndpoin
 	managedPrivateEndpointsClient := managedvirtualnetwork.NewManagedPrivateEndpointsClient(endpoint)
 	managedPrivateEndpointsClient.Client.Authorizer = client.synapseAuthorizer
 	return &managedPrivateEndpointsClient, nil
+}
+
+func (client Client) LinkedServiceClient(workspaceName, synapseEndpointSuffix string) (*artifacts.LinkedServiceClient, error) {
+	if client.synapseAuthorizer == nil {
+		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
+	}
+	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
+	linkedServiceClient := artifacts.NewLinkedServiceClient(endpoint)
+	linkedServiceClient.Client.Authorizer = client.synapseAuthorizer
+	return &linkedServiceClient, nil
 }
 
 func buildEndpoint(workspaceName string, synapseEndpointSuffix string) string {
