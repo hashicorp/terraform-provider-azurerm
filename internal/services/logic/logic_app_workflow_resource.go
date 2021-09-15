@@ -87,40 +87,6 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 											),
 										},
 									},
-
-									"open_authentication_policy": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"name": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringIsNotEmpty,
-												},
-
-												"claim": {
-													Type:     pluginsdk.TypeSet,
-													Required: true,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*pluginsdk.Schema{
-															"name": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-
-															"value": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-														},
-													},
-												},
-											},
-										},
-									},
 								},
 							},
 						},
@@ -142,38 +108,25 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 											),
 										},
 									},
+								},
+							},
+						},
 
-									"open_authentication_policy": {
+						"trigger": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"allowed_caller_ip_address_range": {
 										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"name": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringIsNotEmpty,
-												},
-
-												"claim": {
-													Type:     pluginsdk.TypeSet,
-													Required: true,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*pluginsdk.Schema{
-															"name": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-
-															"value": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-														},
-													},
-												},
-											},
+										Required: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.Any(
+												validation.IsCIDR,
+												validation.IsIPv4Range,
+											),
 										},
 									},
 								},
@@ -195,40 +148,6 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 												validation.IsCIDR,
 												validation.IsIPv4Range,
 											),
-										},
-									},
-
-									"open_authentication_policy": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"name": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringIsNotEmpty,
-												},
-
-												"claim": {
-													Type:     pluginsdk.TypeSet,
-													Required: true,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*pluginsdk.Schema{
-															"name": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-
-															"value": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validation.StringIsNotEmpty,
-															},
-														},
-													},
-												},
-											},
 										},
 									},
 								},
@@ -253,14 +172,10 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 				},
 			},
 
-			"state": {
-				Type:     pluginsdk.TypeString,
+			"enabled": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  string(logic.WorkflowStateEnabled),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(logic.WorkflowStateEnabled),
-					string(logic.WorkflowStateDisabled),
-				}, false),
+				Default:  true,
 			},
 
 			"workflow_schema": {
@@ -354,6 +269,11 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 	t := d.Get("tags").(map[string]interface{})
 
+	isEnabled := logic.WorkflowStateEnabled
+	if v := d.Get("enabled").(bool); !v {
+		isEnabled = logic.WorkflowStateDisabled
+	}
+
 	properties := logic.Workflow{
 		Location: utils.String(location),
 		WorkflowProperties: &logic.WorkflowProperties{
@@ -365,7 +285,7 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 				"parameters":     workflowParameters,
 			},
 			Parameters: parameters,
-			State:      logic.WorkflowState(d.Get("state").(string)),
+			State:      isEnabled,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -449,12 +369,17 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 	definition := read.WorkflowProperties.Definition.(map[string]interface{})
 	definition["parameters"] = workflowParameters
 
+	isEnabled := logic.WorkflowStateEnabled
+	if v := d.Get("enabled").(bool); !v {
+		isEnabled = logic.WorkflowStateDisabled
+	}
+
 	properties := logic.Workflow{
 		Location: utils.String(location),
 		WorkflowProperties: &logic.WorkflowProperties{
 			Definition: definition,
 			Parameters: parameters,
-			State:      logic.WorkflowState(d.Get("state").(string)),
+			State:      isEnabled,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -513,7 +438,7 @@ func resourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		if props.State != "" {
-			d.Set("state", props.State)
+			d.Set("enabled", props.State == logic.WorkflowStateEnabled)
 		}
 
 		if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Connector == nil {
@@ -796,6 +721,10 @@ func expandLogicAppWorkflowAccessControl(input []interface{}) *logic.FlowAccessC
 		result.Actions = expandLogicAppWorkflowAccessControlConfigurationPolicy(actions)
 	}
 
+	if triggers := v["trigger"].([]interface{}); len(triggers) != 0 {
+		result.Triggers = expandLogicAppWorkflowAccessControlConfigurationPolicy(triggers)
+	}
+
 	if workflowManagement := v["workflow_management"].([]interface{}); len(workflowManagement) != 0 {
 		result.WorkflowManagement = expandLogicAppWorkflowAccessControlConfigurationPolicy(workflowManagement)
 	}
@@ -813,12 +742,6 @@ func expandLogicAppWorkflowAccessControlConfigurationPolicy(input []interface{})
 		AllowedCallerIPAddresses: expandLogicAppWorkflowIPAddressRanges(v["allowed_caller_ip_address_range"].(*pluginsdk.Set).List()),
 	}
 
-	if openAuthenticationPolicies := v["open_authentication_policy"].(*pluginsdk.Set).List(); len(openAuthenticationPolicies) != 0 {
-		result.OpenAuthenticationPolicies = &logic.OpenAuthenticationAccessPolicies{
-			Policies: expandLogicAppWorkflowOpenAuthenticationPolicy(openAuthenticationPolicies),
-		}
-	}
-
 	return &result
 }
 
@@ -831,38 +754,6 @@ func expandLogicAppWorkflowIPAddressRanges(input []interface{}) *[]logic.IPAddre
 		})
 	}
 
-	return &results
-}
-
-func expandLogicAppWorkflowOpenAuthenticationPolicy(input []interface{}) map[string]*logic.OpenAuthenticationAccessPolicy {
-	if len(input) == 0 {
-		return nil
-	}
-	results := make(map[string]*logic.OpenAuthenticationAccessPolicy)
-
-	for _, item := range input {
-		policy := item.(map[string]interface{})
-		policyName := policy["name"].(string)
-
-		results[policyName] = &logic.OpenAuthenticationAccessPolicy{
-			Claims: expandLogicAppWorkflowOpenAuthenticationPolicyClaim(policy["claim"].(*pluginsdk.Set).List()),
-		}
-	}
-
-	return results
-}
-
-func expandLogicAppWorkflowOpenAuthenticationPolicyClaim(input []interface{}) *[]logic.OpenAuthenticationPolicyClaim {
-	results := make([]logic.OpenAuthenticationPolicyClaim, 0)
-
-	for _, item := range input {
-		v := item.(map[string]interface{})
-
-		results = append(results, logic.OpenAuthenticationPolicyClaim{
-			Name:  utils.String(v["name"].(string)),
-			Value: utils.String(v["value"].(string)),
-		})
-	}
 	return &results
 }
 
@@ -902,6 +793,7 @@ func flattenLogicAppWorkflowFlowAccessControl(input *logic.FlowAccessControlConf
 		map[string]interface{}{
 			"action":              flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.Actions),
 			"content":             flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.Contents),
+			"trigger":             flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.Triggers),
 			"workflow_management": flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.WorkflowManagement),
 		},
 	}
@@ -919,10 +811,6 @@ func flattenLogicAppWorkflowAccessControlConfigurationPolicy(input *logic.FlowAc
 		result["allowed_caller_ip_address_range"] = flattenLogicAppWorkflowIPAddressRanges(input.AllowedCallerIPAddresses)
 	}
 
-	if input.OpenAuthenticationPolicies != nil && input.OpenAuthenticationPolicies.Policies != nil {
-		result["open_authentication_policy"] = flattenLogicAppWorkflowOpenAuthenticationPolicy(input.OpenAuthenticationPolicies.Policies)
-	}
-
 	return append(results, result)
 }
 
@@ -938,48 +826,6 @@ func flattenLogicAppWorkflowIPAddressRanges(input *[]logic.IPAddressRange) []int
 			addressRange = *item.AddressRange
 		}
 		results = append(results, addressRange)
-	}
-
-	return results
-}
-
-func flattenLogicAppWorkflowOpenAuthenticationPolicy(input map[string]*logic.OpenAuthenticationAccessPolicy) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for k, v := range input {
-		results = append(results, map[string]interface{}{
-			"name":  k,
-			"claim": flattenLogicAppWorkflowOpenAuthenticationPolicyClaim(v.Claims),
-		})
-	}
-
-	return results
-}
-
-func flattenLogicAppWorkflowOpenAuthenticationPolicyClaim(input *[]logic.OpenAuthenticationPolicyClaim) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
-
-		var value string
-		if item.Value != nil {
-			value = *item.Value
-		}
-
-		results = append(results, map[string]interface{}{
-			"name":  name,
-			"value": value,
-		})
 	}
 
 	return results

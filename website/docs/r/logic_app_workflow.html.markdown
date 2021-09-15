@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `logic_app_integration_account_id` - (Optional) The ID of the integration account linked by this Logic App Workflow.
 
-* `state` - (Optional) The state of the Logic App Workflow. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
+* `state` - (Optional) The state of the Logic App Workflow. Defaults to `true`.
 
 * `workflow_parameters` - (Optional) Specifies a map of Key-Value pairs of the Parameter Definitions to use for this Logic App Workflow. The key is the parameter name, and the value is a json encoded string of the parameter definition (see: https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-workflow-definition-language#parameters).
   
@@ -63,6 +63,8 @@ A `access_control` block supports the following:
 
 * `content` - (Optional) A `content` block as defined below.
 
+* `trigger` - (Optional) A `trigger` block as defined below.
+
 * `workflow_management` - (Optional) A `workflow_management` block as defined below.
 
 ---
@@ -71,39 +73,23 @@ A `action` block supports the following:
 
 * `allowed_caller_ip_address_range` - (Required) A list of the allowed caller IP address ranges.
 
-* `open_authentication_policy` - (Optional) A `open_authentication_policy` block as defined below.
-
 ---
 
 A `content` block supports the following:
 
 * `allowed_caller_ip_address_range` - (Required) A list of the allowed caller IP address ranges.
 
-* `open_authentication_policy` - (Optional) A `open_authentication_policy` block as defined below.
+---
+
+A `trigger` block supports the following:
+
+* `allowed_caller_ip_address_range` - (Required) A list of the allowed caller IP address ranges.
 
 ---
 
 A `workflow_management` block supports the following:
 
 * `allowed_caller_ip_address_range` - (Required) A list of the allowed caller IP address ranges.
-
-* `open_authentication_policy` - (Optional) A `open_authentication_policy` block as defined below.
-
----
-
-A `open_authentication_policy` block supports the following:
-
-* `name` - (Required) The OAuth policy name for the Logic App Workflow.
-
-* `claim` - (Required) A `claim` block as defined below.
-
----
-
-A `claim` block supports the following:
-
-* `name` - (Required) The name of the OAuth policy claim for the Logic App Workflow.
-
-* `value` - (Required) The value of the OAuth policy claim for the Logic App Workflow.
 
 ## Attributes Reference
 

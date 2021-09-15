@@ -402,61 +402,22 @@ resource "azurerm_logic_app_workflow" "test" {
   name                = "acctestlaw-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  state               = "Enabled"
 
   access_control {
     content {
       allowed_caller_ip_address_range = ["10.0.5.0-10.0.5.10"]
-
-      open_authentication_policy {
-        name = "testpolicy1"
-
-        claim {
-          name  = "iss"
-          value = "https://sts.windows.net/"
-        }
-
-        claim {
-          name  = "aud"
-          value = "https://management.core.windows.net/"
-        }
-      }
     }
 
     action {
       allowed_caller_ip_address_range = ["10.0.6.0-10.0.6.10"]
+    }
 
-      open_authentication_policy {
-        name = "testpolicy2"
-
-        claim {
-          name  = "iss"
-          value = "https://sts.windows.net/"
-        }
-
-        claim {
-          name  = "aud"
-          value = "https://management.core.windows.net/"
-        }
-      }
+    trigger {
+      allowed_caller_ip_address_range = ["10.0.7.0-10.0.7.10"]
     }
 
     workflow_management {
-      allowed_caller_ip_address_range = ["10.0.7.0-10.0.7.10"]
-
-      open_authentication_policy {
-        name = "testpolicy3"
-
-        claim {
-          name  = "iss"
-          value = "https://sts.windows.net/"
-        }
-
-        claim {
-          name  = "aud"
-          value = "https://management.core.windows.net/"
-        }
-      }
+      allowed_caller_ip_address_range = ["10.0.8.0-10.0.8.10"]
     }
   }
 }
@@ -478,61 +439,23 @@ resource "azurerm_logic_app_workflow" "test" {
   name                = "acctestlaw-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  state               = "Disabled"
+  enabled             = false
 
   access_control {
     content {
       allowed_caller_ip_address_range = ["10.10.3.0/24"]
-
-      open_authentication_policy {
-        name = "testpolicy4"
-
-        claim {
-          name  = "iss"
-          value = "https://sts.windows.net/"
-        }
-
-        claim {
-          name  = "testclaimname"
-          value = "testclaimvalue"
-        }
-      }
     }
 
     action {
       allowed_caller_ip_address_range = ["10.10.4.0/24"]
+    }
 
-      open_authentication_policy {
-        name = "testpolicy5"
-
-        claim {
-          name  = "iss"
-          value = "https://sts.windows.net/"
-        }
-
-        claim {
-          name  = "testclaimname"
-          value = "testclaimvalue"
-        }
-      }
+    trigger {
+      allowed_caller_ip_address_range = ["10.10.5.0/24"]
     }
 
     workflow_management {
-      allowed_caller_ip_address_range = ["10.10.5.0/24"]
-
-      open_authentication_policy {
-        name = "testpolicy6"
-
-        claim {
-          name  = "iss"
-          value = "https://sts.windows.net/"
-        }
-
-        claim {
-          name  = "testclaimname"
-          value = "testclaimvalue"
-        }
-      }
+      allowed_caller_ip_address_range = ["10.10.6.0/24"]
     }
   }
 }
