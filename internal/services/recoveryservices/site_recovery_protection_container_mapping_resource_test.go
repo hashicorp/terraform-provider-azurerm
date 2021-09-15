@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -101,20 +101,14 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
 }
 
 func (t SiteRecoveryProtectionContainerMappingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.ReplicationProtectionContainerMappingsID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resGroup := id.ResourceGroup
-	vaultName := id.Path["vaults"]
-	fabricName := id.Path["replicationFabrics"]
-	protectionContainerName := id.Path["replicationProtectionContainers"]
-	name := id.Path["replicationProtectionContainerMappings"]
-
-	resp, err := clients.RecoveryServices.ContainerMappingClient(resGroup, vaultName).Get(ctx, fabricName, protectionContainerName, name)
+	resp, err := clients.RecoveryServices.ContainerMappingClient(id.ResourceGroup, id.VaultName).Get(ctx, id.ReplicationFabricName, id.ReplicationProtectionContainerName, id.ReplicationProtectionContainerMappingName)
 	if err != nil {
-		return nil, fmt.Errorf("reading site recovery protection container mapping (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading site recovery protection container mapping (%s): %+v", id.String(), err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil

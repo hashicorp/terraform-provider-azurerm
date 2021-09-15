@@ -1,5 +1,10 @@
 package features
 
+import (
+	"os"
+	"strings"
+)
+
 // nolint gocritic
 // DeprecatedInThreePointOh returns the deprecation message if the provider
 // is running in 3.0 mode - otherwise is returns an empty string (such that
@@ -23,5 +28,5 @@ func DeprecatedInThreePointOh(deprecationMessage string) string {
 // infrastructure as required - but in time we'll flip this through
 // a Beta and then GA at 3.0 release.
 func ThreePointOh() bool {
-	return false
+	return strings.EqualFold(os.Getenv("ARM_PROVIDER_THREEPOINTZERO_RESOURCES"), "true")
 }

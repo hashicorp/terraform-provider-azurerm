@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -150,15 +150,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				},
 			},
 
-			"managed_resource_group_name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[-\w\._\(\)]{0,89}[-\w_\(\)]$`),
-					"The resource group name must be no longer than 90 characters long, and must be alphanumeric characters and '-', '_', '(', ')' and'.'. Note that the name cannot end with '.'"),
-			},
+			"managed_resource_group_name": azure.SchemaResourceGroupNameOptionalComputed(),
 
 			"azure_devops_repo": {
 				Type:          pluginsdk.TypeList,
@@ -191,6 +183,11 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.RepoRootFolder(),
+						},
+						"tenant_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
 						},
 					},
 				},
@@ -523,7 +520,7 @@ func expandArmWorkspaceAadAdmin(input []interface{}) *synapse.WorkspaceAadAdminI
 func expandWorkspaceRepositoryConfiguration(d *pluginsdk.ResourceData) *synapse.WorkspaceRepositoryConfiguration {
 	if azdoList, ok := d.GetOk("azure_devops_repo"); ok {
 		azdo := azdoList.([]interface{})[0].(map[string]interface{})
-		return &synapse.WorkspaceRepositoryConfiguration{
+		config := synapse.WorkspaceRepositoryConfiguration{
 			Type:                utils.String(workspaceVSTSConfiguration),
 			AccountName:         utils.String(azdo["account_name"].(string)),
 			CollaborationBranch: utils.String(azdo["branch_name"].(string)),
@@ -531,6 +528,10 @@ func expandWorkspaceRepositoryConfiguration(d *pluginsdk.ResourceData) *synapse.
 			RepositoryName:      utils.String(azdo["repository_name"].(string)),
 			RootFolder:          utils.String(azdo["root_folder"].(string)),
 		}
+		if azdoTenantId := uuid.FromStringOrNil(azdo["tenant_id"].(string)); azdoTenantId != uuid.Nil {
+			config.TenantID = &azdoTenantId
+		}
+		return &config
 	}
 
 	if githubList, ok := d.GetOk("github_repo"); ok {
@@ -642,6 +643,9 @@ func flattenWorkspaceRepositoryConfiguration(config *synapse.WorkspaceRepository
 		if *repoType == workspaceVSTSConfiguration {
 			if config.ProjectName != nil {
 				repo["project_name"] = *config.ProjectName
+			}
+			if config.TenantID != nil {
+				repo["tenant_id"] = config.TenantID.String()
 			}
 		} else if *repoType == workspaceGitHubConfiguration {
 			if config.HostName != nil {
