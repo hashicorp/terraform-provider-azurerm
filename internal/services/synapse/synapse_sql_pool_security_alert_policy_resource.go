@@ -155,7 +155,7 @@ func resourceSynapseSqlPoolSecurityAlertPolicyRead(d *pluginsdk.ResourceData, me
 	d.Set("sql_pool_id", sqlPoolId.ID())
 
 	if props := resp.SecurityAlertPolicyProperties; props != nil {
-		d.Set("state", string(props.State))
+		d.Set("policy_state", string(props.State))
 
 		if props.DisabledAlerts != nil {
 			disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
@@ -169,7 +169,7 @@ func resourceSynapseSqlPoolSecurityAlertPolicyRead(d *pluginsdk.ResourceData, me
 		}
 
 		if props.EmailAccountAdmins != nil {
-			d.Set("email_account_admins", props.EmailAccountAdmins)
+			d.Set("email_account_admins_enabled", props.EmailAccountAdmins)
 		}
 
 		if props.EmailAddresses != nil {
@@ -224,11 +224,11 @@ func resourceSynapseSqlPoolSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, 
 }
 
 func expandSQLPoolSecurityAlertPolicy(d *pluginsdk.ResourceData) *synapse.SQLPoolSecurityAlertPolicy {
-	state := synapse.SecurityAlertPolicyState(d.Get("state").(string))
+	policyState := synapse.SecurityAlertPolicyState(d.Get("policy_state").(string))
 
 	policy := synapse.SQLPoolSecurityAlertPolicy{
 		SecurityAlertPolicyProperties: &synapse.SecurityAlertPolicyProperties{
-			State: state,
+			State: policyState,
 		},
 	}
 
@@ -250,7 +250,7 @@ func expandSQLPoolSecurityAlertPolicy(d *pluginsdk.ResourceData) *synapse.SQLPoo
 		props.EmailAddresses = &emailAddresses
 	}
 
-	if v, ok := d.GetOk("email_account_admins"); ok {
+	if v, ok := d.GetOk("email_account_admins_enabled"); ok {
 		props.EmailAccountAdmins = utils.Bool(v.(bool))
 	}
 

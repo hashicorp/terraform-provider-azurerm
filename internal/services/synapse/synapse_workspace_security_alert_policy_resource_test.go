@@ -75,7 +75,7 @@ func (r SynapseWorkspaceSecurityAlertPolicyResource) basic(data acceptance.TestD
 
 resource "azurerm_synapse_workspace_security_alert_policy" "test" {
   synapse_workspace_id       = azurerm_synapse_workspace.test.id
-  state                      = "Enabled"
+  policy_state               = "Enabled"
   storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   retention_days             = 20
@@ -93,10 +93,10 @@ func (r SynapseWorkspaceSecurityAlertPolicyResource) update(data acceptance.Test
 %[1]s
 
 resource "azurerm_synapse_workspace_security_alert_policy" "test" {
-  synapse_workspace_id = azurerm_synapse_workspace.test.id
-  state                = "Enabled"
-  email_account_admins = true
-  retention_days       = 30
+  synapse_workspace_id         = azurerm_synapse_workspace.test.id
+  policy_state                 = "Enabled"
+  email_account_admins_enabled = true
+  retention_days               = 30
 }
 `, r.template(data))
 }
