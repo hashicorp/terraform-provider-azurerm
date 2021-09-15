@@ -95,7 +95,7 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 			"auto_mitigation_enabled": {
 				Type:          pluginsdk.TypeBool,
 				Optional:      true,
-				Default:       true,
+				Default:       false
 				ConflictsWith: []string{"throttling"},
 			},
 			"description": {
@@ -134,7 +134,6 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 			"throttling": {
 				Type:          pluginsdk.TypeInt,
 				Optional:      true,
-				Default:       nil,
 				ValidateFunc:  validation.IntBetween(0, 10000),
 				ConflictsWith: []string{"auto_mitigation_enabled"},
 			},
@@ -271,7 +270,7 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 			Source:       source,
 			Schedule:     schedule,
 			Action:       action,
-			AutoMitigate: &autoMitigate,
+			AutoMitigate: utils.Bool(autoMitigate),
 		},
 		Tags: expandedTags,
 	}
@@ -408,7 +407,9 @@ func expandMonitorScheduledQueryRulesAlertingAction(d *pluginsdk.ResourceData) *
 		OdataType:  insights.OdataTypeBasicActionOdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction,
 	}
 
-	if throttlingOk {
+	if throttling, ok := d.Get("throttling").(int); ok && throttling != 0 {
+		action.ThrottlingInMin = utils.Int32(int32(throttling))
+	}
 		action.ThrottlingInMin = utils.Int32(int32(throttling.(int)))
 	}
 

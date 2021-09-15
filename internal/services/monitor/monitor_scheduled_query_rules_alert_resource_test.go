@@ -144,7 +144,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
 QUERY
   frequency             = 60
   time_window           = 60
-  auto_mitigate_enabled = %s
+  auto_mitigation_enabled = %s
   action {
     action_group = [azurerm_monitor_action_group.test.id]
   }
