@@ -160,13 +160,13 @@ func resourceIotHubDPSSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, 
 	alreadyExists := false
 	for accessPolicyIterator, err := client.ListKeysComplete(ctx, id.ProvisioningServiceName, id.ResourceGroup); accessPolicyIterator.NotDone(); err = accessPolicyIterator.NextWithContext(ctx) {
 		if err != nil {
-			return fmt.Errorf("loading Shared Access Policies of IotHub DPS %s: %+v", id.String(), err)
+			return fmt.Errorf("loading %s: %+v", id, err)
 		}
 		existingAccessPolicy := accessPolicyIterator.Value()
 
 		if strings.EqualFold(*existingAccessPolicy.KeyName, id.KeyName) {
 			if d.IsNewResource() {
-				return tf.ImportAsExistsError("azurerm_iothub_dps_shared_access_policy", id.String())
+				return tf.ImportAsExistsError("azurerm_iothub_dps_shared_access_policy", id.ID())
 			}
 			accessPolicies = append(accessPolicies, expandedAccessPolicy)
 			alreadyExists = true
@@ -178,18 +178,18 @@ func resourceIotHubDPSSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, 
 	if d.IsNewResource() {
 		accessPolicies = append(accessPolicies, expandedAccessPolicy)
 	} else if !alreadyExists {
-		return fmt.Errorf("unable to find Shared Access Policy %s", id.String())
+		return fmt.Errorf("unable to find %s", id)
 	}
 
 	iothubDps.Properties.AuthorizationPolicies = &accessPolicies
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ProvisioningServiceName, iothubDps)
 	if err != nil {
-		return fmt.Errorf("updating IotHub DPS %s with Shared Access Policy %s: %+v", iothubDpsId.String(), id.String(), err)
+		return fmt.Errorf("updating IotHub DPS %s with Shared Access Policy %s: %+v", iothubDpsId, id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for IotHub DPS %s to finish updating Shared Access Policy %s: %+v", iothubDpsId.String(), id.String(), err)
+		return fmt.Errorf("waiting for IotHub DPS %s to finish updating Shared Access Policy %s: %+v", iothubDpsId, id, err)
 	}
 
 	d.SetId(id.ID())
@@ -215,12 +215,12 @@ func resourceIotHubDPSSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta int
 	accessPolicy, err := client.ListKeysForKeyName(ctx, id.ProvisioningServiceName, id.KeyName, id.ResourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(accessPolicy.Response) {
-			log.Printf("[DEBUG] %s - removing from state", id.String())
+			log.Printf("[DEBUG] %s - removing from state", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("loading %s: %+v", id.String(), err)
+		return fmt.Errorf("loading %s: %+v", id, err)
 	}
 
 	d.Set("name", id.KeyName)
@@ -278,7 +278,7 @@ func resourceIotHubDPSSharedAccessPolicyDelete(d *pluginsdk.ResourceData, meta i
 
 	for accessPolicyIterator, err := client.ListKeysComplete(ctx, id.ProvisioningServiceName, id.ResourceGroup); accessPolicyIterator.NotDone(); err = accessPolicyIterator.NextWithContext(ctx) {
 		if err != nil {
-			return fmt.Errorf("loading %s: %+v", id.String(), err)
+			return fmt.Errorf("loading %s: %+v", id, err)
 		}
 		existingAccessPolicy := accessPolicyIterator.Value()
 
@@ -295,11 +295,11 @@ func resourceIotHubDPSSharedAccessPolicyDelete(d *pluginsdk.ResourceData, meta i
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ProvisioningServiceName, iothubDps)
 	if err != nil {
-		return fmt.Errorf("updating %s: %+v", id.String(), err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for %s to finish updating: %+v", id.String(), err)
+		return fmt.Errorf("waiting for %s to finish updating: %+v", id, err)
 	}
 
 	return nil

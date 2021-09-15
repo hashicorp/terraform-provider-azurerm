@@ -69,10 +69,10 @@ func dataSourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	resp, err := client.Get(ctx, id.ProvisioningServiceName, id.ResourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: IoT Device Provisioning Service %s was not found", id.String())
+			return fmt.Errorf("Error: IoT Device Provisioning Service %s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving IoT Device Provisioning Service %s: %+v", id.String(), err)
+		return fmt.Errorf("retrieving IoT Device Provisioning Service %s: %+v", id, err)
 	}
 
 	d.Set("name", id.ProvisioningServiceName)

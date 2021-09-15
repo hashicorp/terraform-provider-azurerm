@@ -107,7 +107,7 @@ func (t IotHubDPSResource) Exists(ctx context.Context, clients *clients.Client, 
 
 	resp, err := clients.IoTHub.DPSResourceClient.Get(ctx, name, resourceGroup)
 	if err != nil {
-		return nil, fmt.Errorf("reading IotHuB DPS (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
