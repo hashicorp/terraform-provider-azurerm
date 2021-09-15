@@ -33,7 +33,9 @@ func TestAccBackupProtectionContainerStorageAccount_basic(t *testing.T) {
 
 func (t BackupProtectionContainerStorageAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ProtectionContainerID(state.ID)
-
+	if err != nil {
+		return nil, err
+	}
 	resp, err := clients.RecoveryServices.BackupProtectionContainersClient.Get(ctx, id.VaultName, id.ResourceGroup, id.BackupFabricName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("reading site recovery protection container (%s): %+v", id.String(), err)
