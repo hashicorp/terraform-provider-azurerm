@@ -3,6 +3,9 @@ package features
 func Default() UserFeatures {
 	return UserFeatures{
 		// NOTE: ensure all nested objects are fully populated
+		ApiManagement: ApiManagementFeatures{
+			PurgeSoftDeleteOnDestroy: false,
+		},
 		CognitiveAccount: CognitiveAccountFeatures{
 			PurgeSoftDeleteOnDestroy: true,
 		},
