@@ -975,5 +975,5 @@ resource "azurerm_iothub" "test" {
     purpose = "testing"
   }
 }
-`, data.RandomInteger, data.Locations.EastUS, data.RandomInteger)
+`, data.RandomInteger, "eastus", data.RandomInteger)
 }

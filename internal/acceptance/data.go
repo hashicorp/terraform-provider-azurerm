@@ -82,7 +82,6 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 			Primary:   os.Getenv("ARM_TEST_LOCATION"),
 			Secondary: os.Getenv("ARM_TEST_LOCATION_ALT"),
 			Ternary:   os.Getenv("ARM_TEST_LOCATION_ALT2"),
-			EastUS:    "eastus",
 		}
 	}
 

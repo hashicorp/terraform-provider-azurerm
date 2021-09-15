@@ -16,9 +16,6 @@ type Regions struct {
 
 	// Ternary is the Ternary Azure Region which should be used for testing
 	Ternary string
-
-	// EastUS region
-	EastUS string
 }
 
 // availableLocations returns a struct containing a random set of regions
@@ -40,6 +37,5 @@ func availableLocations() Regions {
 		Primary:   locations[0],
 		Secondary: locations[1],
 		Ternary:   locations[2],
-		EastUS:    "eastus",
 	}
 }
