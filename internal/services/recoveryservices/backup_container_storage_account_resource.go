@@ -24,8 +24,10 @@ func resourceBackupProtectionContainerStorageAccount() *pluginsdk.Resource {
 		Read:   resourceBackupProtectionContainerStorageAccountRead,
 		Update: nil,
 		Delete: resourceBackupProtectionContainerStorageAccountDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ProtectionContainerID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -69,11 +71,6 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 		return fmt.Errorf("[ERROR] Unable to parse storage_account_id '%s': %+v", storageAccountID, err)
 	}
 
-	//accountName := parsedStorageAccountID.Name
-	/*	if !hasName {
-		return fmt.Errorf("[ERROR] parsed storage_account_id '%s' doesn't contain 'storageAccounts'", storageAccountID)
-	}*/
-
 	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, parsedStorageAccountID.Name)
 
 	if d.IsNewResource() {
@@ -109,6 +106,7 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 	}
 
 	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
+
 	parsedLocation, err := azure.ParseAzureResourceID(opResourceID)
 	if err != nil {
 		return err

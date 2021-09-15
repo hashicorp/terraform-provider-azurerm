@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	vmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,8 +27,10 @@ func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
 		Update: resourceRecoveryServicesBackupProtectedVMCreateUpdate,
 		Delete: resourceRecoveryServicesBackupProtectedVMDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ProtectedItemID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(80 * time.Minute),
@@ -77,17 +81,13 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 	policyId := d.Get("backup_policy_id").(string)
 
 	// get VM name from id
-	parsedVmId, err := azure.ParseAzureResourceID(vmId)
+	parsedVmId, err := vmParse.VirtualMachineID(vmId)
 	if err != nil {
 		return fmt.Errorf("[ERROR] Unable to parse source_vm_id '%s': %+v", vmId, err)
 	}
-	vmName, hasName := parsedVmId.Path["virtualMachines"]
-	if !hasName {
-		return fmt.Errorf("[ERROR] parsed source_vm_id '%s' doesn't contain 'virtualMachines'", vmId)
-	}
 
-	protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
-	containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
+	protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, parsedVmId.Name)
+	containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, parsedVmId.Name)
 
 	log.Printf("[DEBUG] Creating/updating Azure Backup Protected VM %s (resource group %q)", protectedItemName, resourceGroup)
 
@@ -111,7 +111,7 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 			ProtectedItemType: backup.ProtectedItemTypeMicrosoftClassicComputevirtualMachines,
 			WorkloadType:      backup.DataSourceTypeVM,
 			SourceResourceID:  utils.String(vmId),
-			FriendlyName:      utils.String(vmName),
+			FriendlyName:      utils.String(parsedVmId.Name),
 			VirtualMachineID:  utils.String(vmId),
 		},
 	}
@@ -136,30 +136,25 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProtectedItemID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	protectedItemName := id.Path["protectedItems"]
-	vaultName := id.Path["vaults"]
-	resourceGroup := id.ResourceGroup
-	containerName := id.Path["protectionContainers"]
+	log.Printf("[DEBUG] Reading Azure Backup Protected VM %q (resource group %q)", id.Name, id.ResourceGroup)
 
-	log.Printf("[DEBUG] Reading Azure Backup Protected VM %q (resource group %q)", protectedItemName, resourceGroup)
-
-	resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
+	resp, err := client.Get(ctx, id.VaultName, id.ResourceGroup, "Azure", id.ProtectionContainerName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Backup Protected VM %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("recovery_vault_name", vaultName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("recovery_vault_name", id.VaultName)
 
 	if properties := resp.Properties; properties != nil {
 		if vm, ok := properties.AsAzureIaaSComputeVMProtectedItem(); ok {
@@ -179,26 +174,21 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProtectedItemID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	protectedItemName := id.Path["protectedItems"]
-	resourceGroup := id.ResourceGroup
-	vaultName := id.Path["vaults"]
-	containerName := id.Path["protectionContainers"]
+	log.Printf("[DEBUG] Deleting Azure Backup Protected Item %q (resource group %q)", id.Name, id.ResourceGroup)
 
-	log.Printf("[DEBUG] Deleting Azure Backup Protected Item %q (resource group %q)", protectedItemName, resourceGroup)
-
-	resp, err := client.Delete(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName)
+	resp, err := client.Delete(ctx, id.VaultName, id.ResourceGroup, "Azure", id.ProtectionContainerName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("issuing delete request for Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+			return fmt.Errorf("issuing delete request for Azure Backup Protected VM %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
-	if _, err := resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, "", d); err != nil {
+	if _, err := resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx, client, id.VaultName, id.ResourceGroup, id.ProtectionContainerName, id.Name, "", d); err != nil {
 		return err
 	}
 
