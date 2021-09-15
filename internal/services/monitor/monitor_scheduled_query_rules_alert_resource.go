@@ -95,7 +95,7 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 			"auto_mitigation_enabled": {
 				Type:          pluginsdk.TypeBool,
 				Optional:      true,
-				Default:       false
+				Default:       false,
 				ConflictsWith: []string{"throttling"},
 			},
 			"description": {
@@ -395,7 +395,6 @@ func expandMonitorScheduledQueryRulesAlertingAction(d *pluginsdk.ResourceData) *
 	alertAction := expandMonitorScheduledQueryRulesAlertAction(alertActionRaw)
 	severityRaw := d.Get("severity").(int)
 	severity := strconv.Itoa(severityRaw)
-	throttling, throttlingOk := d.GetOk("throttling")
 
 	triggerRaw := d.Get("trigger").([]interface{})
 	trigger := expandMonitorScheduledQueryRulesAlertTrigger(triggerRaw)
@@ -409,8 +408,6 @@ func expandMonitorScheduledQueryRulesAlertingAction(d *pluginsdk.ResourceData) *
 
 	if throttling, ok := d.Get("throttling").(int); ok && throttling != 0 {
 		action.ThrottlingInMin = utils.Int32(int32(throttling))
-	}
-		action.ThrottlingInMin = utils.Int32(int32(throttling.(int)))
 	}
 
 	return &action
