@@ -58,7 +58,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicy() *pluginsdk.Resource {
 				},
 			},
 
-			"email_account_admins": {
+			"email_account_admins_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -80,7 +80,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicy() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
-			"state": {
+			"policy_state": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -147,7 +147,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] synapse %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] synapse %s does not exist - removing from state", id)
 			d.SetId("")
 			return nil
 		}
