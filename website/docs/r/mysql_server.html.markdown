@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) Specifies the SKU Name for this MySQL Server. The name of the SKU, follows the `tier` + `family` + `cores` pattern (e.g. `B_Gen4_1`, `GP_Gen5_8`). For more information see the [product documentation](https://docs.microsoft.com/en-us/rest/api/mysql/servers/create#sku).
 
-* `version` - (Required) Specifies the version of MySQL to use. Valid values are `5.6`, `5.7`, and `8.0`. Changing this forces a new resource to be created.
+* `version` - (Required) Specifies the version of MySQL to use. Valid values are `5.7`, or `8.0`. Changing this forces a new resource to be created.
 
 * `administrator_login` - (Optional) The Administrator Login for the MySQL Server. Required when `create_mode` is `Default`. Changing this forces a new resource to be created.
 

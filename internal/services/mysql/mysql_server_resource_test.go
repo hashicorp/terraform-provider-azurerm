@@ -17,73 +17,6 @@ import (
 type MySQLServerResource struct {
 }
 
-func TestAccMySQLServer_basicFiveSix(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	r := MySQLServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data, "5.6"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
-func TestAccMySQLServer_basicFiveSixWithIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	r := MySQLServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicWithIdentity(data, "5.6"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
-func TestAccMySQLServer_basicFiveSixWithIdentityUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	r := MySQLServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data, "5.6"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-		{
-			Config: r.basicWithIdentity(data, "5.6"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
-func TestAccMySQLServer_basicFiveSixDeprecated(t *testing.T) { // remove in v3.0
-	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	r := MySQLServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data, "5.6"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
 func TestAccMySQLServer_basicFiveSeven(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
@@ -203,59 +136,6 @@ func TestAccMySQLServer_update(t *testing.T) {
 		data.ImportStep("administrator_login_password", "threat_detection_policy.0.storage_account_access_key"),
 		{
 			Config: r.basic(data, mysqlVersion),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
-func TestAccMySQLServer_completeDeprecatedMigrate(t *testing.T) { // remove in v3.0
-	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	r := MySQLServerResource{}
-	mysqlVersion := "5.6"
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.completeDeprecated(data, mysqlVersion),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-		{
-			Config: r.complete(data, mysqlVersion),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
-func TestAccMySQLServer_updateDeprecated(t *testing.T) { // remove in v3.0
-	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	r := MySQLServerResource{}
-	mysqlVersion := "5.6"
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data, mysqlVersion),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-		{
-			Config: r.completeDeprecated(data, mysqlVersion),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-		{
-			Config: r.basicDeprecated(data, mysqlVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

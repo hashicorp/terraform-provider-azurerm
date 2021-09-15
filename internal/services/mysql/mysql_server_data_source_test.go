@@ -11,47 +11,6 @@ import (
 type MySQLServerDataSource struct {
 }
 
-func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicFiveSix(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
-	r := MySQLServerDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.basic(data, "5.6"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
-				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
-				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("ssl_minimal_tls_version_enforced").HasValue("TLS1_1"),
-				check.That(data.ResourceName).Key("storage_mb").HasValue("51200"),
-				check.That(data.ResourceName).Key("version").HasValue("5.6"),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicFiveSixWithIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
-	r := MySQLServerDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.basicWithIdentity(data, "5.6"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
-				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
-				check.That(data.ResourceName).Key("auto_grow_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("ssl_minimal_tls_version_enforced").HasValue("TLS1_1"),
-				check.That(data.ResourceName).Key("storage_mb").HasValue("51200"),
-				check.That(data.ResourceName).Key("version").HasValue("5.6"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
-			),
-		},
-	})
-}
-
 func TestAccDataSourceMySQLServerDataSourceMySQLServer_basicFiveSeven(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mysql_server", "test")
 	r := MySQLServerDataSource{}
