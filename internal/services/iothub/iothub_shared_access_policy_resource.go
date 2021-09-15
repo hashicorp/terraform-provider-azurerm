@@ -160,7 +160,7 @@ func resourceIotHubSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, met
 	alreadyExists := false
 	for accessPolicyIterator, err := client.ListKeysComplete(ctx, id.ResourceGroup, id.IotHubName); accessPolicyIterator.NotDone(); err = accessPolicyIterator.NextWithContext(ctx) {
 		if err != nil {
-			return fmt.Errorf("loading %s: %+v", id.String(), err)
+			return fmt.Errorf("loading %s: %+v", id, err)
 		}
 		existingAccessPolicy := accessPolicyIterator.Value()
 
@@ -187,18 +187,18 @@ func resourceIotHubSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, met
 	if d.IsNewResource() {
 		accessPolicies = append(accessPolicies, expandedAccessPolicy)
 	} else if !alreadyExists {
-		return fmt.Errorf("dnable to find %s", id.String())
+		return fmt.Errorf("dnable to find %s", id)
 	}
 
 	iothub.Properties.AuthorizationPolicies = &accessPolicies
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("updating %s: %+v", id.String(), err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for %s to finish updating: %+v", id.String(), err)
+		return fmt.Errorf("waiting for %s to finish updating: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -219,12 +219,12 @@ func resourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta interf
 	accessPolicy, err := client.GetKeysForKeyName(ctx, id.ResourceGroup, id.IotHubName, id.IotHubKeyName)
 	if err != nil {
 		if utils.ResponseWasNotFound(accessPolicy.Response) {
-			log.Printf("[DEBUG] %s was not found - removing from state", id.String())
+			log.Printf("[DEBUG] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("loading %s: %+v", id.String(), err)
+		return fmt.Errorf("loading %s: %+v", id, err)
 	}
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
@@ -280,7 +280,7 @@ func resourceIotHubSharedAccessPolicyDelete(d *pluginsdk.ResourceData, meta inte
 
 	for accessPolicyIterator, err := client.ListKeysComplete(ctx, id.ResourceGroup, id.IotHubName); accessPolicyIterator.NotDone(); err = accessPolicyIterator.NextWithContext(ctx) {
 		if err != nil {
-			return fmt.Errorf("loading %s: %+v", id.String(), err)
+			return fmt.Errorf("loading %s: %+v", id, err)
 		}
 		existingAccessPolicy := accessPolicyIterator.Value()
 
@@ -293,11 +293,11 @@ func resourceIotHubSharedAccessPolicyDelete(d *pluginsdk.ResourceData, meta inte
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("updating %s: %+v", id.String(), err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for %s to finish updating: %+v", id.String(), err)
+		return fmt.Errorf("waiting for %s to finish updating: %+v", id, err)
 	}
 
 	return nil

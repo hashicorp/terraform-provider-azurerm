@@ -166,7 +166,7 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		existing, err := client.Get(ctx, id.ProvisioningServiceName, id.ResourceGroup)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service %s: %+v", id.String(), err)
+				return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service %s: %+v", id, err)
 			}
 		}
 
@@ -188,11 +188,11 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ProvisioningServiceName, iotdps)
 	if err != nil {
-		return fmt.Errorf("creating/updating IoT Device Provisioning Service %s: %+v", id.String(), err)
+		return fmt.Errorf("creating/updating IoT Device Provisioning Service %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the completion of the creating/updating of IoT Device Provisioning Service %s: %+v", id.String(), err)
+		return fmt.Errorf("waiting for the completion of the creating/updating of IoT Device Provisioning Service %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -217,7 +217,7 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", id.String(), err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.ProvisioningServiceName)
@@ -257,7 +257,7 @@ func resourceIotHubDPSDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 	future, err := client.Delete(ctx, id.ProvisioningServiceName, id.ResourceGroup)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("deleting %s: %+v", id.String(), err)
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
 

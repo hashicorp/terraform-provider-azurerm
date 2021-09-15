@@ -511,7 +511,7 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of %s: %+v", id.String(), err)
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
 
@@ -600,7 +600,7 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props, ""); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id.String(), err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	timeout := pluginsdk.TimeoutUpdate
@@ -615,7 +615,7 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id.String(), err)
+		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -636,12 +636,12 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	hub, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(hub.Response) {
-			log.Printf("[DEBUG] %s was not found!", id.String())
+			log.Printf("[DEBUG] %s was not found!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", id.String(), err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	if keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name); err == nil {
@@ -746,7 +746,7 @@ func resourceIotHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for ProvisioningState of %s to become `Succeeded`: %+v", id.String(), err)
+		return fmt.Errorf("waiting for ProvisioningState of %s to become `Succeeded`: %+v", id, err)
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {

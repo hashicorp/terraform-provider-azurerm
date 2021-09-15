@@ -76,7 +76,7 @@ func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface
 		existing, err := client.GetEventHubConsumerGroup(ctx, id.ResourceGroup, id.IotHubName, id.EventHubEndpointName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Consumer Group %s: %+v", id.String(), err)
+				return fmt.Errorf("checking for presence of existing Consumer Group %s: %+v", id, err)
 			}
 		}
 
@@ -86,16 +86,16 @@ func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if _, err := client.CreateEventHubConsumerGroup(ctx, id.ResourceGroup, id.IotHubName, id.EventHubEndpointName, id.Name); err != nil {
-		return fmt.Errorf("creating %s: %+v", id.String(), err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	read, err := client.GetEventHubConsumerGroup(ctx, id.ResourceGroup, id.IotHubName, id.EventHubEndpointName, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id.String(), err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("cannot read %s: %+v", id.String(), err)
+		return fmt.Errorf("cannot read %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -120,7 +120,7 @@ func resourceIotHubConsumerGroupRead(d *pluginsdk.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("making read request for %s: %+v", id.String(), err)
+		return fmt.Errorf("making read request for %s: %+v", id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -147,7 +147,7 @@ func resourceIotHubConsumerGroupDelete(d *pluginsdk.ResourceData, meta interface
 	resp, err := client.DeleteEventHubConsumerGroup(ctx, id.ResourceGroup, id.IotHubName, id.EventHubEndpointName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting %s: %+v", id.String(), err)
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
 
