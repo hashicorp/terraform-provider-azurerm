@@ -205,7 +205,7 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 						"instrumentation_key": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Deprecated:   "This property is due to be removed from the service API and thus hs been deprecated. Please switch to using the `connection_string` property with the connection string for the Application Insights instance.",
+							Deprecated:   "This property is due to be removed from this service's API and thus has been deprecated and will be removed in v3.0 of the provider. Please switch to using the `connection_string` property with the connection string for the Application Insights instance to use.",
 							ExactlyOneOf: []string{"trace.0.instrumentation_key", "trace.0.connection_string"},
 							ValidateFunc: validation.IsUUID,
 						},
