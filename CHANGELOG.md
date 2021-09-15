@@ -13,6 +13,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_app_service_managed_certificate`: Fix for empty `issue_date` [GH-13357]
 * `azurerm_cosmosdb_sql_container`: fix crash when deleting [GH-13339]
 * `azurerm_frontdoor` - Fix crash when cache is disabled [GH-13338]
 * `azurerm_kubernetes_cluster_node_pool` - `os_sku` is now computed [GH-13321]
