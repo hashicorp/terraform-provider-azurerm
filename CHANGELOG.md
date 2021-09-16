@@ -5,6 +5,10 @@ FEATURES:
 * **New Resource:** `azurerm_synapse_integration_runtime_self_hosted` [GH-13264]
 * **New Resource:** `azurerm_synapse_integration_runtime_azure` [GH-13341]
 * **New Resource:** `azurerm_synapse_linked_service` [GH-13204]
+* **New Resource:** `azurerm_synapse_sql_pool_security_alert_policy` [GH-13276]
+* **New Resource:** `azurerm_synapse_sql_pool_vulnerability_assessment` [GH-13276]
+* **New Resource:** `azurerm_synapse_workspace_security_alert_policy` [GH-13276]
+* **New Resource:** `azurerm_synapse_workspace_vulnerability_assessment` [GH-13276]
 
 ENHANCEMENTS:
 
