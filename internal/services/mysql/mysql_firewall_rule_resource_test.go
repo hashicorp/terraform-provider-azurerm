@@ -42,10 +42,7 @@ func TestAccMySQLFirewallRule_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_mysql_firewall_rule"),
-		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -55,7 +52,7 @@ func (t MySQLFirewallRuleResource) Exists(ctx context.Context, clients *clients.
 		return nil, err
 	}
 
-	resp, err := clients.MySQL.FirewallRulesClient.Get(ctx, id.ResourceGroup, id.SubscriptionId, id.Name)
+	resp, err := clients.MySQL.FirewallRulesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		return nil, err
 	}
