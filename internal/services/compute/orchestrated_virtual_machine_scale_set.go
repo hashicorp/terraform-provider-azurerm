@@ -56,6 +56,7 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 
 				"computer_name_prefix": computerPrefixWindowsSchema(),
 
+				// I am only commenting this out as this is going to be supported in the next release of the API in October 2021
 				// "additional_unattend_content": additionalUnattendContentSchema(),
 
 				"enable_automatic_updates": {
@@ -916,6 +917,7 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(i
 			osProfile.Secrets = expandWindowsSecrets(secrets)
 		}
 
+		// I am only commenting this out as this is going to be supported in the next release of the API in October 2021
 		// winConfig.AdditionalUnattendContent = expandWindowsConfigurationAdditionalUnattendContent(input["additional_unattend_content"].([]interface{}))
 		winConfig.EnableAutomaticUpdates = utils.Bool(input["enable_automatic_updates"].(bool))
 		winConfig.ProvisionVMAgent = utils.Bool(input["provision_vm_agent"].(bool))
@@ -961,24 +963,25 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(inp
 	return &osProfile
 }
 
-func expandWindowsConfigurationAdditionalUnattendContent(input []interface{}) *[]compute.AdditionalUnattendContent {
-	output := make([]compute.AdditionalUnattendContent, 0)
+// I am only commenting this out as this is going to be supported in the next release of the API in October 2021
+// func expandWindowsConfigurationAdditionalUnattendContent(input []interface{}) *[]compute.AdditionalUnattendContent {
+// 	output := make([]compute.AdditionalUnattendContent, 0)
 
-	for _, v := range input {
-		raw := v.(map[string]interface{})
+// 	for _, v := range input {
+// 		raw := v.(map[string]interface{})
 
-		output = append(output, compute.AdditionalUnattendContent{
-			SettingName: compute.SettingNames(raw["setting"].(string)),
-			Content:     utils.String(raw["content"].(string)),
+// 		output = append(output, compute.AdditionalUnattendContent{
+// 			SettingName: compute.SettingNames(raw["setting"].(string)),
+// 			Content:     utils.String(raw["content"].(string)),
 
-			// no other possible values
-			PassName:      compute.PassNamesOobeSystem,
-			ComponentName: compute.ComponentNamesMicrosoftWindowsShellSetup,
-		})
-	}
+// 			// no other possible values
+// 			PassName:      compute.PassNamesOobeSystem,
+// 			ComponentName: compute.ComponentNamesMicrosoftWindowsShellSetup,
+// 		})
+// 	}
 
-	return &output
-}
+// 	return &output
+// }
 
 func ExpandOrchestratedVirtualMachineScaleSetIdentity(input []interface{}) (*compute.VirtualMachineScaleSetIdentity, error) {
 	if len(input) == 0 {
@@ -1618,6 +1621,7 @@ func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *comput
 		output["computer_name_prefix"] = *v
 	}
 
+	// I am only commenting this out as this is going to be supported in the next release of the API in October 2021
 	// if v := winConfig.AdditionalUnattendContent; v != nil {
 	// 	output["additional_unattend_content"] = flattenWindowsConfigurationAdditionalUnattendContent(winConfig)
 	// }
@@ -1827,23 +1831,24 @@ func FlattenOrchestratedVirtualMachineScaleSetDataDisk(input *[]compute.VirtualM
 	return output
 }
 
-func flattenWindowsConfigurationAdditionalUnattendContent(input *compute.WindowsConfiguration) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
+// I am only commenting this out as this is going to be supported in the next release of the API in October 2021
+// func flattenWindowsConfigurationAdditionalUnattendContent(input *compute.WindowsConfiguration) []interface{} {
+// 	if input == nil {
+// 		return []interface{}{}
+// 	}
 
-	output := make([]interface{}, 0)
-	for _, v := range *input.AdditionalUnattendContent {
-		// content isn't returned by the API since it's sensitive data so we need to look it up later
-		// where we can pull it out of the state file.
-		output = append(output, map[string]interface{}{
-			"content": "",
-			"setting": string(v.SettingName),
-		})
-	}
+// 	output := make([]interface{}, 0)
+// 	for _, v := range *input.AdditionalUnattendContent {
+// 		// content isn't returned by the API since it's sensitive data so we need to look it up later
+// 		// where we can pull it out of the state file.
+// 		output = append(output, map[string]interface{}{
+// 			"content": "",
+// 			"setting": string(v.SettingName),
+// 		})
+// 	}
 
-	return output
-}
+// 	return output
+// }
 
 func FlattenOrchestratedVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOSDisk) []interface{} {
 	if input == nil {
