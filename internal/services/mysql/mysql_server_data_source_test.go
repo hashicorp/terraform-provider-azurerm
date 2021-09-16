@@ -102,17 +102,6 @@ data "azurerm_mysql_server" "test" {
 `, MySQLServerResource{}.basic(data, version))
 }
 
-func (MySQLServerDataSource) basicWithIdentity(data acceptance.TestData, version string) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_mysql_server" "test" {
-  name                = azurerm_mysql_server.test.name
-  resource_group_name = azurerm_resource_group.test.name
-}
-`, MySQLServerResource{}.basicWithIdentity(data, version))
-}
-
 func (MySQLServerDataSource) autogrow(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
