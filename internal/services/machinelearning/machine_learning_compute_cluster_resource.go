@@ -61,32 +61,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{string(machinelearningservices.VMPriorityDedicated), string(machinelearningservices.VMPriorityLowPriority)}, false),
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(machinelearningservices.ResourceIdentityTypeSystemAssigned),
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": SystemAssignedUserAssigned{}.Schema(),
 
 			"scale_settings": {
 				Type:     pluginsdk.TypeList,
@@ -114,10 +89,45 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"ssh": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"admin_username": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+						"admin_password": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							AtLeastOneOf: []string{"ssh.0.admin_password", "ssh.0.key_value"},
+						},
+						"key_value": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							AtLeastOneOf: []string{"ssh.0.admin_password", "ssh.0.key_value"},
+						},
+					},
+				},
+			},
+
 			"description": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
+			},
+
+			"ssh_public_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Computed: true, // `ssh_public_access_enabled` sets to `true` by default even if unspecified
 			},
 
 			"subnet_resource_id": {
@@ -157,9 +167,15 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	computeClusterAmlComputeProperties := machinelearningservices.AmlComputeProperties{
-		VMSize:        utils.String(d.Get("vm_size").(string)),
-		VMPriority:    machinelearningservices.VMPriority(d.Get("vm_priority").(string)),
-		ScaleSettings: expandScaleSettings(d.Get("scale_settings").([]interface{})),
+		VMSize:                 utils.String(d.Get("vm_size").(string)),
+		VMPriority:             machinelearningservices.VMPriority(d.Get("vm_priority").(string)),
+		ScaleSettings:          expandScaleSettings(d.Get("scale_settings").([]interface{})),
+		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh").([]interface{})),
+	}
+
+	computeClusterAmlComputeProperties.RemoteLoginPortPublicAccess = machinelearningservices.RemoteLoginPortPublicAccessDisabled
+	if d.Get("ssh_public_access_enabled").(bool) {
+		computeClusterAmlComputeProperties.RemoteLoginPortPublicAccess = machinelearningservices.RemoteLoginPortPublicAccessEnabled
 	}
 
 	if subnetId, ok := d.GetOk("subnet_resource_id"); ok && subnetId.(string) != "" {
@@ -172,20 +188,20 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Description:     utils.String(d.Get("description").(string)),
 	}
 
-	amlComputeProperties, isAmlCompute := (machinelearningservices.BasicCompute).AsAmlCompute(computeClusterProperties)
-	if !isAmlCompute {
-		return fmt.Errorf("no compute cluster")
-	}
-
 	// Get SKU from Workspace
 	workspace, err := mlWorkspacesClient.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name)
 	if err != nil {
 		return err
 	}
 
+	identity, err := SystemAssignedUserAssigned{}.Expand(d.Get("identity").([]interface{}))
+	if err != nil {
+		return err
+	}
+
 	computeClusterParameters := machinelearningservices.ComputeResource{
-		Properties: amlComputeProperties,
-		Identity:   expandComputeClusterIdentity(d.Get("identity").([]interface{})),
+		Properties: computeClusterProperties,
+		Identity:   identity,
 		Location:   computeClusterProperties.ComputeLocation,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku:        workspace.Sku,
@@ -244,8 +260,18 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("vm_size", props.VMSize)
 		d.Set("vm_priority", props.VMPriority)
 		d.Set("scale_settings", flattenScaleSettings(props.ScaleSettings))
+		d.Set("ssh", flattenUserAccountCredentials(props.UserAccountCredentials))
 		if props.Subnet != nil {
 			d.Set("subnet_resource_id", props.Subnet.ID)
+		}
+
+		switch props.RemoteLoginPortPublicAccess {
+		case machinelearningservices.RemoteLoginPortPublicAccessNotSpecified:
+			d.Set("ssh_public_access_enabled", nil)
+		case machinelearningservices.RemoteLoginPortPublicAccessEnabled:
+			d.Set("ssh_public_access_enabled", true)
+		case machinelearningservices.RemoteLoginPortPublicAccessDisabled:
+			d.Set("ssh_public_access_enabled", false)
 		}
 	}
 
@@ -253,10 +279,11 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if err := d.Set("identity", flattenComputeClusterIdentity(computeResource.Identity)); err != nil {
-		return fmt.Errorf("flattening identity on Workspace %q (Resource Group %q): %+v",
-			id.ComputeName, id.ResourceGroup, err)
+	identity, err := SystemAssignedUserAssigned{}.Flatten(computeResource.Identity)
+	if err != nil {
+		return err
 	}
+	d.Set("identity", identity)
 
 	return tags.FlattenAndSet(d, computeResource.Tags)
 }
@@ -297,6 +324,19 @@ func expandScaleSettings(input []interface{}) *machinelearningservices.ScaleSett
 	}
 }
 
+func expandUserAccountCredentials(input []interface{}) *machinelearningservices.UserAccountCredentials {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+
+	return &machinelearningservices.UserAccountCredentials{
+		AdminUserName:         utils.String(v["admin_username"].(string)),
+		AdminUserPassword:     utils.String(v["admin_password"].(string)),
+		AdminUserSSHPublicKey: utils.String(v["key_value"].(string)),
+	}
+}
+
 func flattenScaleSettings(scaleSettings *machinelearningservices.ScaleSettings) []interface{} {
 	if scaleSettings == nil {
 		return []interface{}{}
@@ -311,38 +351,30 @@ func flattenScaleSettings(scaleSettings *machinelearningservices.ScaleSettings) 
 	}
 }
 
-func expandComputeClusterIdentity(input []interface{}) *machinelearningservices.Identity {
-	if len(input) == 0 {
-		return nil
-	}
-
-	v := input[0].(map[string]interface{})
-
-	return &machinelearningservices.Identity{
-		Type: machinelearningservices.ResourceIdentityType(v["type"].(string)),
-	}
-}
-
-func flattenComputeClusterIdentity(identity *machinelearningservices.Identity) []interface{} {
-	if identity == nil {
+func flattenUserAccountCredentials(credentials *machinelearningservices.UserAccountCredentials) interface{} {
+	if credentials == nil {
 		return []interface{}{}
 	}
-
-	principalID := ""
-	if identity.PrincipalID != nil {
-		principalID = *identity.PrincipalID
+	var username string
+	if credentials.AdminUserName != nil {
+		username = *credentials.AdminUserName
 	}
 
-	tenantID := ""
-	if identity.TenantID != nil {
-		tenantID = *identity.TenantID
+	var admin_password string
+	if credentials.AdminUserPassword != nil {
+		admin_password = *credentials.AdminUserPassword
+	}
+
+	var sshPublicKey string
+	if credentials.AdminUserSSHPublicKey != nil {
+		sshPublicKey = *credentials.AdminUserSSHPublicKey
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"type":         string(identity.Type),
-			"principal_id": principalID,
-			"tenant_id":    tenantID,
+			"admin_username": username,
+			"admin_password": admin_password,
+			"key_value":      sshPublicKey,
 		},
 	}
 }

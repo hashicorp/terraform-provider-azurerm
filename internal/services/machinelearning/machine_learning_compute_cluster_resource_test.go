@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -84,6 +85,46 @@ func TestAccComputeCluster_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccComputeCluster_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
+	r := ComputeClusterResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identitySystemAssignedUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identityUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identitySystemAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ComputeClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	computeClusterClient := client.MachineLearning.MachineLearningComputeClient
 	id, err := parse.ComputeClusterID(state.ID)
@@ -131,6 +172,9 @@ func (r ComputeClusterResource) complete(data acceptance.TestData) string {
 	template := r.template_complete(data)
 	return fmt.Sprintf(`
 %s
+variable "ssh_key" {
+  default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+}
 
 resource "azurerm_machine_learning_compute_cluster" "test" {
   name                          = "CC-%d"
@@ -149,6 +193,15 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  ssh_public_access_enabled = false
+  ssh {
+    admin_username = "adminuser"
+    key_value      = var.ssh_key
+  }
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test
+  ]
 }
 `, template, data.RandomIntOfLength(8))
 }
@@ -177,6 +230,88 @@ resource "azurerm_machine_learning_compute_cluster" "import" {
 }
 
 `, template)
+}
+
+func (r ComputeClusterResource) identitySystemAssigned(data acceptance.TestData) string {
+	template := r.template_basic(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_machine_learning_compute_cluster" "test" {
+  name                          = "CC-%d"
+  location                      = azurerm_resource_group.test.location
+  vm_priority                   = "LowPriority"
+  vm_size                       = "STANDARD_DS2_V2"
+  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
+  scale_settings {
+    min_node_count                       = 0
+    max_node_count                       = 1
+    scale_down_nodes_after_idle_duration = "PT30S" # 30 seconds
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomIntOfLength(8))
+}
+
+func (r ComputeClusterResource) identityUserAssigned(data acceptance.TestData) string {
+	template := r.template_basic(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+resource "azurerm_machine_learning_compute_cluster" "test" {
+  name                          = "CC-%d"
+  location                      = azurerm_resource_group.test.location
+  vm_priority                   = "LowPriority"
+  vm_size                       = "STANDARD_DS2_V2"
+  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
+  scale_settings {
+    min_node_count                       = 0
+    max_node_count                       = 1
+    scale_down_nodes_after_idle_duration = "PT30S" # 30 seconds
+  }
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+}
+`, template, data.RandomInteger, data.RandomIntOfLength(8))
+}
+
+func (r ComputeClusterResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
+	template := r.template_basic(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+resource "azurerm_machine_learning_compute_cluster" "test" {
+  name                          = "CC-%d"
+  location                      = azurerm_resource_group.test.location
+  vm_priority                   = "LowPriority"
+  vm_size                       = "STANDARD_DS2_V2"
+  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
+  scale_settings {
+    min_node_count                       = 0
+    max_node_count                       = 1
+    scale_down_nodes_after_idle_duration = "PT30S" # 30 seconds
+  }
+  identity {
+    type = "SystemAssigned,UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+}
+`, template, data.RandomInteger, data.RandomIntOfLength(8))
 }
 
 func (r ComputeClusterResource) template_basic(data acceptance.TestData) string {
@@ -306,7 +441,29 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
 }
+
+resource "azurerm_network_security_group" "test" {
+  name                = "test-nsg-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  security_rule {
+    name                       = "test123"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "29876-29877"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = azurerm_subnet.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
 `, data.RandomInteger, data.Locations.Primary,
 		data.RandomIntOfLength(12), data.RandomIntOfLength(15), data.RandomIntOfLength(16),
-		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
