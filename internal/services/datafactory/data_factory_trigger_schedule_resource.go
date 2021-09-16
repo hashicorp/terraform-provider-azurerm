@@ -178,7 +178,8 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"activated": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
+				// Default:  true, // todo 3.0 remove this comment and remove the Computed tag
+				Computed: true,
 			},
 
 			"pipeline_name": {
@@ -340,6 +341,8 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("classifying Data Factory Trigger Schedule %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", triggerName, dataFactoryName, id.ResourceGroup, datafactory.TypeBasicTriggerTypeScheduleTrigger, *resp.Type)
 	}
 
+	d.Set("activated", scheduleTriggerProps.RuntimeState == datafactory.TriggerRuntimeStateStarted)
+
 	if scheduleTriggerProps != nil {
 		if recurrence := scheduleTriggerProps.Recurrence; recurrence != nil {
 			if v := recurrence.StartTime; v != nil {
@@ -388,6 +391,14 @@ func resourceDataFactoryTriggerScheduleDelete(d *pluginsdk.ResourceData, meta in
 	}
 	dataFactoryName := id.Path["factories"]
 	triggerName := id.Path["triggers"]
+
+	future, err := client.Stop(ctx, id.ResourceGroup, dataFactoryName, triggerName)
+	if err != nil {
+		return fmt.Errorf("stopping %s: %+v", id, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting to stop %s: %+v", id, err)
+	}
 
 	if _, err = client.Delete(ctx, id.ResourceGroup, dataFactoryName, triggerName); err != nil {
 		return fmt.Errorf("deleting Data Factory Trigger Schedule %q (Resource Group %q / Data Factory %q): %+v", triggerName, id.ResourceGroup, dataFactoryName, err)

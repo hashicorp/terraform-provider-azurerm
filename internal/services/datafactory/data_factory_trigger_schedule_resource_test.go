@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -33,8 +32,6 @@ func TestAccDataFactoryTriggerSchedule_basic(t *testing.T) {
 }
 
 func TestAccDataFactoryTriggerSchedule_complete(t *testing.T) {
-	loc, _ := time.LoadLocation("UTC")
-	endTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_schedule", "test")
 	r := TriggerScheduleResource{}
 
@@ -47,7 +44,7 @@ func TestAccDataFactoryTriggerSchedule_complete(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data, endTime),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -120,21 +117,20 @@ resource "azurerm_data_factory_trigger_schedule" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   resource_group_name = azurerm_resource_group.test.name
   pipeline_name       = azurerm_data_factory_pipeline.test.name
-  activated           = true
 
   annotations = ["test1", "test2", "test3"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (TriggerScheduleResource) update(data acceptance.TestData, endTime string) string {
+func (TriggerScheduleResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-datafactory-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
 }
 
@@ -155,7 +151,7 @@ resource "azurerm_data_factory_pipeline" "test" {
 }
 
 resource "azurerm_data_factory_trigger_schedule" "test" {
-  name                = "acctestDFTS%d"
+  name                = "acctestdf%d"
   data_factory_name   = azurerm_data_factory.test.name
   resource_group_name = azurerm_resource_group.test.name
   pipeline_name       = azurerm_data_factory_pipeline.test.name
@@ -164,9 +160,11 @@ resource "azurerm_data_factory_trigger_schedule" "test" {
   annotations         = ["test5"]
   frequency           = "Day"
   interval            = 5
-  end_time            = "%s"
+  activated           = true
+  end_time            = "2022-09-22T00:00:00Z"
+  start_time          = "2022-09-21T00:00:00Z"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, endTime)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (TriggerScheduleResource) schedule(data acceptance.TestData) string {
