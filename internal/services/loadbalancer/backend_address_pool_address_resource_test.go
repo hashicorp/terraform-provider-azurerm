@@ -217,20 +217,13 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_virtual_network" "second" {
-  name                = "acctestvn-2-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
 resource "azurerm_lb_backend_address_pool_address" "test" {
   name                    = "address"
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
-  virtual_network_id      = azurerm_virtual_network.second.id
-  ip_address              = "10.0.0.1"
+  virtual_network_id      = azurerm_virtual_network.test.id
+  ip_address              = "191.168.0.2"
 }
-`, template, data.RandomInteger)
+`, template)
 }
 
 func (BackendAddressPoolAddressResourceTests) template(data acceptance.TestData) string {
