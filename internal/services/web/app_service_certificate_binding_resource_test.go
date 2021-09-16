@@ -27,7 +27,6 @@ func TestAccAppServiceCertificateBinding_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("thumbprint").Exists(),
 				check.That(data.ResourceName).Key("ssl_state").HasValue("IpBasedEnabled"),
 			),
 		},
@@ -67,7 +66,6 @@ func TestAccAppServiceCertificateBinding_requiresImport(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("thumbprint").Exists(),
 				check.That(data.ResourceName).Key("ssl_state").HasValue("IpBasedEnabled"),
 			),
 		},
