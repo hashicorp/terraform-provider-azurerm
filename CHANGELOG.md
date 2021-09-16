@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_policy_virtual_machine_configuration_assignment` [GH-13311]
 * **New Resource:** `azurerm_synapse_integration_runtime_self_hosted` [GH-13264]
 * **New Resource:** `azurerm_synapse_integration_runtime_azure` [GH-13341]
 * **New Resource:** `azurerm_synapse_linked_service` [GH-13204]
