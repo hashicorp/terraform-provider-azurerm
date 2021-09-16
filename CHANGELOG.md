@@ -18,6 +18,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_app_service_certificate_binding` - rework for removal of thumbprint from service [GH-13379]
 * `azurerm_app_service_managed_certificate`: Fix for empty `issue_date` [GH-13357]
 * `azurerm_cosmosdb_sql_container`: fix crash when deleting [GH-13339]
 * `azurerm_frontdoor` - Fix crash when cache is disabled [GH-13338]
