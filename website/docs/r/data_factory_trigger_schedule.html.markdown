@@ -61,7 +61,9 @@ The following arguments are supported:
 
 * `frequency` - (Optional) The trigger freqency. Valid values include `Minute`, `Hour`, `Day`, `Week`, `Month`. Defaults to `Minute`.
 
-* `activated` - (Optional) Specifies if the Data Factory Schedule Trigger is activated. Defaults to `true`.
+* `activated` - (Optional) Specifies if the Data Factory Schedule Trigger is activated. Defaults to `false`.
+
+~> **Note:** `activated` will be defaulted to `true` for Azure 3.0.
 
 * `pipeline_parameters` - (Optional) The pipeline parameters that the trigger will act upon.
 
