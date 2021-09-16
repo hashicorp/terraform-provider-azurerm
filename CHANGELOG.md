@@ -14,7 +14,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * Data Source: `azurerm_mssql_elasticpool` - export the `sku` block [GH-13336]
-* `azurem_site_recovery_*` - refactored to use ID parser [GH-13328]
+* `azurerm_api_management` - now supports purging soft deleted instances via the `purge_soft_delete_on_destroy` provider level feature [GH-12850]
 * `azurerm_monitor_scheduled_query_rules_alert` - support `auto_mitigation_enabled` property [GH-13213]
 
 BUG FIXES:
