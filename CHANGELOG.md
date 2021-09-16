@@ -22,10 +22,13 @@ BUG FIXES:
 * `azurerm_app_service_managed_certificate`: Fix for empty `issue_date` [GH-13357]
 * `azurerm_cosmosdb_sql_container`: fix crash when deleting [GH-13339]
 * `azurerm_frontdoor` - Fix crash when cache is disabled [GH-13338]
+* `azurerm_function_app` - fix `app_settings` for `WEBSITE_CONTENTSHARE` [GH-13349]
+* `azurerm_function_app_slot` - fix `app_settings` for `WEBSITE_CONTENTSHARE` [GH-13349]
 * `azurerm_kubernetes_cluster_node_pool` - `os_sku` is now computed [GH-13321]
 * `azurerm_linux_virtual_machine_scale_set` - fixed crash when `automatic_os_policy` was nil [GH-13335]
 * `azurerm_lb` - support for adding or replacing a `frontend_ip_configuration` with an `availability_zone` [GH-13305]
 * `azurerm_virtual_hub_connection` - fixing race condition in the creation of virtual network resources [GH-13294]
+
 
 ## 2.76.0 (September 10, 2021)
 
