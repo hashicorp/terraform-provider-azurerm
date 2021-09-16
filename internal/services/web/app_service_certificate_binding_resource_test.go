@@ -46,7 +46,6 @@ func TestAccAppServiceCertificateBinding_basicSniEnabled(t *testing.T) {
 		{
 			Config: r.basicSniEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("thumbprint").Exists(),
 				check.That(data.ResourceName).Key("ssl_state").HasValue("SniEnabled"),
 			),
 		},
