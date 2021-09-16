@@ -21,7 +21,7 @@ github.com/Azure/azure-sdk-for-go/services/azurestackhci/mgmt/2020-10-01/azurest
 github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batch
 github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch
 github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice
-github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn
+github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn
 github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2021-04-30/cognitiveservices
 github.com/Azure/azure-sdk-for-go/services/communication/mgmt/2020-08-20/communication
 github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute
@@ -95,6 +95,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-pr
 github.com/Azure/azure-sdk-for-go/services/preview/servicefabric/mgmt/2018-02-01-preview/servicefabric
 github.com/Azure/azure-sdk-for-go/services/preview/servicefabricmesh/mgmt/2018-09-01-preview/servicefabricmesh
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql
+github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2018-06-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine
 github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics

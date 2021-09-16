@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -59,24 +60,24 @@ func dataSourceIotHubDPS() *pluginsdk.Resource {
 
 func dataSourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
+	subscriptionId := meta.(*clients.Client).IoTHub.DPSResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewIotHubDpsID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, name, resourceGroup)
+	resp, err := client.Get(ctx, id.ProvisioningServiceName, id.ResourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: IoT Device Provisioning Service %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("Error: IoT Device Provisioning Service %s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving IoT Device Provisioning Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving IoT Device Provisioning Service %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.SetId(*resp.ID)
+	d.Set("name", id.ProvisioningServiceName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.SetId(id.ID())
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))

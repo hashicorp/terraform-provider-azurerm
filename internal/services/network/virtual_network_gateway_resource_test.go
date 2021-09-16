@@ -199,6 +199,28 @@ func TestAccVirtualNetworkGateway_vpnClientConfigOpenVPN(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetworkGateway_vpnClientConfigMultipleAuthTypes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vpnClientConfigMultipleAuthTypes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("vpn_client_configuration.0.vpn_client_protocols.#").HasValue("1"),
+				check.That(data.ResourceName).Key("vpn_client_configuration.0.vpn_auth_types.0").HasValue("AAD"),
+				check.That(data.ResourceName).Key("vpn_client_configuration.0.vpn_auth_types.1").HasValue("Radius"),
+				check.That(data.ResourceName).Key("vpn_client_configuration.0.aad_tenant").IsSet(),
+				check.That(data.ResourceName).Key("vpn_client_configuration.0.aad_audience").HasValue("41b23e61-6c1e-4545-b367-cd054e0ed4b4"),
+				check.That(data.ResourceName).Key("vpn_client_configuration.0.aad_issuer").IsSet(),
+				check.That(data.ResourceName).Key("vpn_client_configuration.0.radius_server_address").HasValue("1.2.3.4"),
+				check.That(data.ResourceName).Key("vpn_client_configuration.0.radius_server_secret").HasValue("1234"),
+			),
+		},
+	})
+}
+
 func TestAccVirtualNetworkGateway_enableBgp(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
 	r := VirtualNetworkGatewayResource{}
@@ -1323,4 +1345,68 @@ resource "azurerm_virtual_network_gateway" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (VirtualNetworkGatewayResource) vpnClientConfigMultipleAuthTypes(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Dynamic"
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  depends_on          = [azurerm_public_ip.test]
+  name                = "acctestvng-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  type     = "Vpn"
+  vpn_type = "RouteBased"
+  sku      = "VpnGw1"
+
+  ip_configuration {
+    public_ip_address_id          = azurerm_public_ip.test.id
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.test.id
+  }
+
+  vpn_client_configuration {
+    address_space        = ["10.2.0.0/24"]
+    vpn_client_protocols = ["OpenVPN"]
+    vpn_auth_types       = ["AAD", "Radius"]
+
+    aad_tenant   = "https://login.microsoftonline.com/%s/"
+    aad_audience = "41b23e61-6c1e-4545-b367-cd054e0ed4b4"
+    aad_issuer   = "https://sts.windows.net/%s/"
+
+    radius_server_address = "1.2.3.4"
+    radius_server_secret  = "1234"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Client().TenantID, data.Client().TenantID)
 }

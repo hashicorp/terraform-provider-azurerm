@@ -34,9 +34,13 @@ resource "azurerm_subnet" "example" {
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.2.0/24"]
 
-  service_delegation {
-    name    = "Microsoft.Web/hostingEnvironments"
-    actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/hostingEnvironments"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
   }
 }
 

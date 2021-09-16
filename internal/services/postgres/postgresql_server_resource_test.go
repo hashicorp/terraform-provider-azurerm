@@ -387,7 +387,7 @@ func TestAccPostgreSQLServer_scaleReplicas(t *testing.T) {
 func TestAccPostgreSQLServer_createPointInTimeRestore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
-	restoreTime := time.Now().Add(30 * time.Minute)
+	restoreTime := time.Now().Add(1 * time.Hour)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -398,7 +398,7 @@ func TestAccPostgreSQLServer_createPointInTimeRestore(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			PreConfig: func() { time.Sleep(30 * time.Minute) },
+			PreConfig: func() { time.Sleep(1 * time.Hour) },
 			Config:    r.createPointInTimeRestore(data, "11", restoreTime.Format(time.RFC3339)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

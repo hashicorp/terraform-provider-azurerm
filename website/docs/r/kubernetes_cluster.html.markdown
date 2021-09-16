@@ -108,6 +108,10 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `linux_profile` - (Optional) A `linux_profile` block as defined below.
 
+* `local_account_disabled` - (Optional) Is local account disabled for AAD integrated kubernetes cluster?
+
+-> NOTE: This requires that the Preview Feature Microsoft.ContainerService/DisableLocalAccountsPreview is enabled and the Resource Provider is re-registered, see the documentation for more information.
+
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
 * `network_profile` - (Optional) A `network_profile` block as defined below.
@@ -325,8 +329,6 @@ A `default_node_pool` block supports the following:
 
 * `kubelet_disk_type` - (Optional) The type of disk used by kubelet. At this time the only possible value is `OS`.
 
-* `local_account_disabled` - (Optional) Is local account disabled for AAD integrated kubernetes cluster?
-
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
 * `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `enable_node_public_ip` should be `true`. Changing this forces a new resource to be created.
@@ -342,6 +344,8 @@ A `default_node_pool` block supports the following:
 * `os_disk_size_gb` - (Optional) The size of the OS Disk which should be used for each agent in the Node Pool. Changing this forces a new resource to be created.
 
 * `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. Changing this forces a new resource to be created.
+
+* `os_sku` - (Optional) OsSKU to be used to specify Linux OSType. Not applicable to Windows OSType. Possible values include: `Ubuntu`, `CBLMariner`. Defaults to `Ubuntu`. Changing this forces a new resource to be created.
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist. Changing this forces a new resource to be created.
 
@@ -722,7 +726,7 @@ The `kube_admin_config` and `kube_config` blocks export the following:
 
 * `password` - A password or token used to authenticate to the Kubernetes cluster.
 
--> **NOTE:** It's possible to use these credentials with [the Kubernetes Provider](/docs/providers/kubernetes/index.html) like so:
+-> **NOTE:** It's possible to use these credentials with [the Kubernetes Provider](/providers/hashicorp/kubernetes/latest/docs) like so:
 
 ```
 provider "kubernetes" {

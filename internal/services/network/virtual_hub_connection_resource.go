@@ -164,6 +164,7 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 
 func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubVirtualNetworkConnectionClient
+	vnetClient := meta.(*clients.Client).Network.VnetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -218,6 +219,19 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of Connection %q (Virtual Hub %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
+	}
+
+	timeout, _ := ctx.Deadline()
+
+	vnetStateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(network.ProvisioningStateUpdating)},
+		Target:     []string{string(network.ProvisioningStateSucceeded)},
+		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, vnetClient, *remoteVirtualNetworkId),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    time.Until(timeout),
+	}
+	if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of virtual network for Connection %q (Virtual Hub %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, name)

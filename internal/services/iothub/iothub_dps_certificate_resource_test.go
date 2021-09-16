@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -72,13 +72,13 @@ func TestAccIotHubDPSCertificate_update(t *testing.T) {
 }
 
 func (t IotHubDPSCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.DpsCertificateID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 	resourceGroup := id.ResourceGroup
-	iotDPSName := id.Path["provisioningServices"]
-	name := id.Path["certificates"]
+	iotDPSName := id.ProvisioningServiceName
+	name := id.CertificateName
 
 	resp, err := clients.IoTHub.DPSCertificateClient.Get(ctx, name, resourceGroup, iotDPSName, "")
 	if err != nil {

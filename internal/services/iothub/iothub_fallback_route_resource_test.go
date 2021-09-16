@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -57,14 +57,12 @@ func TestAccIotHubFallbackRoute_update(t *testing.T) {
 }
 
 func (t IotHubFallbackRouteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.FallbackRouteID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	iothubName := id.Path["IotHubs"]
 
-	resp, err := clients.IoTHub.ResourceClient.Get(ctx, resourceGroup, iothubName)
+	resp, err := clients.IoTHub.ResourceClient.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil || resp.Properties == nil || resp.Properties.Routing == nil || resp.Properties.Routing.FallbackRoute == nil {
 		return nil, fmt.Errorf("reading IotHuB Route (%s): %+v", id, err)
 	}

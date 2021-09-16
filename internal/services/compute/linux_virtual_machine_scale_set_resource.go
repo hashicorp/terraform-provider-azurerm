@@ -624,9 +624,9 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 			automaticRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
 			upgradePolicy.AutomaticOSUpgradePolicy = ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticRaw)
 
-			// however if this block has been changed then we need to pull it
-			// we can guarantee this always has a value since it'll have been expanded and thus is safe to de-ref
-			automaticOSUpgradeIsEnabled = *upgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade
+			if upgradePolicy.AutomaticOSUpgradePolicy != nil {
+				automaticOSUpgradeIsEnabled = *upgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade
+			}
 		}
 
 		if d.HasChange("rolling_upgrade_policy") {
