@@ -93,8 +93,6 @@ func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	siteId := parse.NewAppServiceID(hostnameBindingID.SubscriptionId, hostnameBindingID.ResourceGroup, hostnameBindingID.SiteName).ID()
-
 	certificateID, err := parse.CertificateID(d.Get("certificate_id").(string))
 	if err != nil {
 		return err
@@ -132,9 +130,6 @@ func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta 
 	defer locks.UnlockByName(id.HostnameBindingId.SiteName, appServiceHostnameBindingResourceName)
 
 	binding.HostNameBindingProperties.SslState = web.SslState(d.Get("ssl_state").(string))
-
-	// Works around the deprecation of the Thumbprint field by injecting the related Site ID into the request.
-	binding.HostNameBindingProperties.AzureResourceName = utils.String(siteId)
 
 	if _, err := client.CreateOrUpdateHostNameBinding(ctx, id.HostnameBindingId.ResourceGroup, id.HostnameBindingId.SiteName, id.HostnameBindingId.Name, binding); err != nil {
 		return fmt.Errorf("creating/updating Custom Hostname Certificate Binding %q with certificate name %q (App Service %q / Resource Group %q): %+v", id.HostnameBindingId.Name, id.CertificateId.Name, id.HostnameBindingId.SiteName, id.HostnameBindingId.ResourceGroup, err)
