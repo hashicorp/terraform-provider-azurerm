@@ -10,7 +10,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
+	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -22,8 +24,10 @@ func resourceBackupProtectionContainerStorageAccount() *pluginsdk.Resource {
 		Read:   resourceBackupProtectionContainerStorageAccountRead,
 		Update: nil,
 		Delete: resourceBackupProtectionContainerStorageAccountDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ProtectionContainerID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -61,16 +65,13 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 	vaultName := d.Get("recovery_vault_name").(string)
 	storageAccountID := d.Get("storage_account_id").(string)
 
-	parsedStorageAccountID, err := azure.ParseAzureResourceID(storageAccountID)
+	parsedStorageAccountID, err := storageParse.StorageAccountID(storageAccountID)
+
 	if err != nil {
 		return fmt.Errorf("[ERROR] Unable to parse storage_account_id '%s': %+v", storageAccountID, err)
 	}
-	accountName, hasName := parsedStorageAccountID.Path["storageAccounts"]
-	if !hasName {
-		return fmt.Errorf("[ERROR] parsed storage_account_id '%s' doesn't contain 'storageAccounts'", storageAccountID)
-	}
 
-	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, accountName)
+	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, parsedStorageAccountID.Name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, vaultName, resGroup, "Azure", containerName)
@@ -88,7 +89,7 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 	parameters := backup.ProtectionContainerResource{
 		Properties: &backup.AzureStorageContainer{
 			SourceResourceID:     &storageAccountID,
-			FriendlyName:         &accountName,
+			FriendlyName:         &parsedStorageAccountID.Name,
 			BackupManagementType: backup.ManagementTypeAzureStorage,
 			ContainerType:        backup.ContainerTypeStorageContainer1,
 		},
@@ -127,31 +128,26 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 }
 
 func resourceBackupProtectionContainerStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProtectionContainerID(d.Id())
 	if err != nil {
 		return err
 	}
-
-	resGroup := id.ResourceGroup
-	vaultName := id.Path["vaults"]
-	fabricName := id.Path["backupFabrics"]
-	containerName := id.Path["protectionContainers"]
 
 	client := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resp, err := client.Get(ctx, vaultName, resGroup, fabricName, containerName)
+	resp, err := client.Get(ctx, id.VaultName, id.ResourceGroup, id.BackupFabricName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on backup protection container %s (Vault %s): %+v", containerName, vaultName, err)
+		return fmt.Errorf("making Read request on backup protection container %s : %+v", id.String(), err)
 	}
 
-	d.Set("resource_group_name", resGroup)
-	d.Set("recovery_vault_name", vaultName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("recovery_vault_name", id.VaultName)
 
 	if properties, ok := resp.Properties.AsAzureStorageContainer(); ok && properties != nil {
 		d.Set("storage_account_id", properties.SourceResourceID)
@@ -161,29 +157,24 @@ func resourceBackupProtectionContainerStorageAccountRead(d *pluginsdk.ResourceDa
 }
 
 func resourceBackupProtectionContainerStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProtectionContainerID(d.Id())
 	if err != nil {
 		return err
 	}
-
-	resGroup := id.ResourceGroup
-	vaultName := id.Path["vaults"]
-	fabricName := id.Path["backupFabrics"]
-	containerName := id.Path["protectionContainers"]
 
 	client := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
 	opClient := meta.(*clients.Client).RecoveryServices.BackupOperationStatusesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resp, err := client.Unregister(ctx, vaultName, resGroup, fabricName, containerName)
+	resp, err := client.Unregister(ctx, id.VaultName, id.ResourceGroup, id.BackupFabricName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deregistering backup protection container %s (Vault %s): %+v", containerName, vaultName, err)
+		return fmt.Errorf("deregistering backup protection container %s (Vault %s): %+v", id.Name, id.VaultName, err)
 	}
 
 	locationURL, err := resp.Response.Location()
 	if err != nil || locationURL == nil {
-		return fmt.Errorf("unregistering backup protection container %s (Vault %s): Location header missing or empty", containerName, vaultName)
+		return fmt.Errorf("unregistering backup protection container %s : Location header missing or empty", id.String())
 	}
 
 	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
@@ -194,7 +185,7 @@ func resourceBackupProtectionContainerStorageAccountDelete(d *pluginsdk.Resource
 	}
 	operationID := parsedLocation.Path["backupOperationResults"]
 
-	if _, err = resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx, opClient, vaultName, resGroup, operationID, d); err != nil {
+	if _, err = resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx, opClient, id.VaultName, id.ResourceGroup, operationID, d); err != nil {
 		return err
 	}
 
