@@ -94,16 +94,10 @@ func (t AppServiceCertificateBindingResource) Exists(ctx context.Context, client
 		return nil, fmt.Errorf("retrieving App Service Certificate %q (resource group %q) to check for Certificate Binding: %+v", id.CertificateId.Name, id.CertificateId.ResourceGroup, err)
 	}
 	bindingProps := binding.HostNameBindingProperties
-	if bindingProps == nil || bindingProps.Thumbprint == nil {
+	if bindingProps == nil || bindingProps.SslState == "" {
 		return utils.Bool(false), nil
 	}
-	certProps := certificate.CertificateProperties
-	if certProps == nil || certProps.Thumbprint == nil {
-		return nil, fmt.Errorf("reading Certificate thumbprint for verification on binding")
-	}
-	if *certProps.Thumbprint != *bindingProps.Thumbprint {
-		return utils.Bool(false), nil
-	}
+
 	return utils.Bool(true), nil
 }
 
