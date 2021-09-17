@@ -36,9 +36,9 @@ resource "azurerm_frontdoor_rules_engine" "example_rules_engine" {
     priority = 2
 
     match_condition {
-      match_variable = "RequestMethod"
+      variable       = "RequestMethod"
       operator       = "Equal"
-      match_value    = ["GET", "POST"]
+      value          = ["GET", "POST"]
     }
 
     action {
@@ -116,7 +116,7 @@ The `response_header` block supports the following:
 
 The `match_condition` block supports the following:
 
-* `match_variable` can be set to `IsMobile`, `RemoteAddr`, `RequestMethod`, `QueryString`, `PostArgs`, `RequestURI`, `RequestPath`, `RequestFilename`, `RequestFilenameExtension`,`RequestHeader`,`RequestBody` or `RequestScheme`.
+* `variable` can be set to `IsMobile`, `RemoteAddr`, `RequestMethod`, `QueryString`, `PostArgs`, `RequestURI`, `RequestPath`, `RequestFilename`, `RequestFilenameExtension`,`RequestHeader`,`RequestBody` or `RequestScheme`.
 
 * `selector`
 
@@ -126,4 +126,4 @@ The `match_condition` block supports the following:
 
 * `negate_condition` can be set to `true` or `false` to negate the given condition.
 
-* `match_value` can contain one or more strings.
+* `value` (array) can contain one or more strings.

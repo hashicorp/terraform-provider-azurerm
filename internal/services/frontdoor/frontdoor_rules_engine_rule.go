@@ -85,7 +85,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 
-									"match_variable": {
+									"variable": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
@@ -151,7 +151,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 										Default:  true,
 									},
 
-									"match_value": {
+									"value": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										MaxItems: 25,
@@ -361,10 +361,10 @@ func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoor.
 
 		selector := condition["selector"].(string)
 		negateCondition := condition["negate_condition"].(bool)
-		matchVariable := condition["match_variable"].(string)
+		matchVariable := condition["variable"].(string)
 		operator := condition["operator"].(string)
 		transform := condition["transform"].([]interface{})
-		matchValue := condition["match_value"].([]interface{})
+		matchValue := condition["value"].([]interface{})
 
 		matchValueArray := make([]string, 0)
 		for _, v := range matchValue {
