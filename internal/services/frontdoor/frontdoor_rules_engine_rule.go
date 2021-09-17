@@ -85,7 +85,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 
-									"variable": {
+									"match_variable": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
