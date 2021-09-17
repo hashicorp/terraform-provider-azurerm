@@ -407,6 +407,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     type                       = "CustomScriptExtension"
     type_handler_version       = "1.10"
     auto_upgrade_minor_version = true
+    enable_automatic_upgrade   = true
 
     settings = jsonencode({
       "commandToExecute" = "powershell.exe -c \"Get-Content env:computername\""
@@ -466,6 +467,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     type                       = "CustomScriptExtension"
     type_handler_version       = "1.10"
     auto_upgrade_minor_version = true
+    enable_automatic_upgrade   = true
     force_update_tag           = %q
 
     settings = jsonencode({
@@ -526,6 +528,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     type                       = "CustomScriptExtension"
     type_handler_version       = "1.10"
     auto_upgrade_minor_version = true
+    enable_automatic_upgrade   = true
 
     provision_after_extensions = ["AADLoginForWindows"]
 
@@ -544,6 +547,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     type                       = "AADLoginForWindows"
     type_handler_version       = "1.0"
     auto_upgrade_minor_version = true
+    enable_automatic_upgrade   = true
   }
 }
 `, r.template(data))
@@ -595,6 +599,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     type                       = "CustomScriptExtension"
     type_handler_version       = "1.10"
     auto_upgrade_minor_version = true
+    enable_automatic_upgrade   = true
 
     settings = jsonencode({
       "commandToExecute" = "powershell.exe -c \"Get-Content env:computername\""
@@ -650,6 +655,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     type                       = "CustomScriptExtension"
     type_handler_version       = "1.10"
     auto_upgrade_minor_version = true
+    enable_automatic_upgrade   = true
 
     settings = jsonencode({
       "commandToExecute" = "powershell.exe -c \"Get-Process | Where-Object { $_.CPU -gt 10000 }\""
@@ -712,6 +718,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     type                       = "ApplicationHealthWindows"
     type_handler_version       = "1.0"
     auto_upgrade_minor_version = true
+    enable_automatic_upgrade   = true
     settings = jsonencode({
       protocol    = "https"
       port        = 443
@@ -769,6 +776,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     type                       = "ApplicationHealthWindows"
     type_handler_version       = "1.0"
     auto_upgrade_minor_version = true
+    enable_automatic_upgrade   = true
     settings = jsonencode({
       protocol    = "https"
       port        = 443
@@ -838,6 +846,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     type                       = "ApplicationHealthWindows"
     type_handler_version       = "1.0"
     auto_upgrade_minor_version = true
+    enable_automatic_upgrade   = true
     settings = jsonencode({
       protocol    = "https"
       port        = 443
@@ -895,6 +904,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     type                       = "CustomScriptExtension"
     type_handler_version       = "1.10"
     auto_upgrade_minor_version = true
+    enable_automatic_upgrade   = true
 
     settings = jsonencode({
       "commandToExecute" = "powershell.exe -c \"Get-Content env:computername\""
@@ -1036,6 +1046,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     type                       = "ServiceFabricNode"
     type_handler_version       = "1.1"
     auto_upgrade_minor_version = true
+    enable_automatic_upgrade   = true
 
     settings = jsonencode({
       clusterEndpoint    = azurerm_service_fabric_cluster.test.cluster_endpoint

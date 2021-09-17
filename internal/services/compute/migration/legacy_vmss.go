@@ -664,6 +664,11 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Optional: true,
 					},
 
+					"enable_automatic_upgrade": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+
 					"settings": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -805,6 +810,10 @@ func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", m["type_handler_version"].(string)))
 
 		if v, ok := m["auto_upgrade_minor_version"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
+
+		if v, ok := m["enable_automatic_upgrade"]; ok {
 			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
 		}
 

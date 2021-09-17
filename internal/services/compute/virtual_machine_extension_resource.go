@@ -70,6 +70,11 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"enable_automatic_upgrade": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"settings": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
@@ -132,6 +137,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	extensionType := d.Get("type").(string)
 	typeHandlerVersion := d.Get("type_handler_version").(string)
 	autoUpgradeMinor := d.Get("auto_upgrade_minor_version").(bool)
+	enableAutomaticUpgrade := d.Get("enable_automatic_upgrade").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
 	extension := compute.VirtualMachineExtension{
@@ -222,6 +228,7 @@ func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("type", props.Type)
 		d.Set("type_handler_version", props.TypeHandlerVersion)
 		d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
+		d.Set("enable_automatic_upgrade", props.enableAutomaticUpgrade)
 
 		if settings := props.Settings; settings != nil {
 			settingsVal := settings.(map[string]interface{})

@@ -223,6 +223,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "test" {
   type                         = "CustomScript"
   type_handler_version         = "2.0"
   auto_upgrade_minor_version   = false
+  enable_automatic_upgrade     = false
   settings = jsonencode({
     "commandToExecute" = "echo $HOSTNAME"
   })

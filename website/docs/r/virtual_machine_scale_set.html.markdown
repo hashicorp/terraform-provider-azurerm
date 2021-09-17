@@ -498,6 +498,7 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 * `type` - (Required) The type of extension, available types for a publisher can be found using the Azure CLI.
 * `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI.
 * `auto_upgrade_minor_version` - (Optional) Specifies whether or not to use the latest minor version available.
+* `enable_automatic_upgrade` - (Optional) Enable automatic extension upgrade whenever the extension publisher releases a new version for that extension.
 * `provision_after_extensions` - (Optional) Specifies a dependency array of extensions required to be executed before, the array stores the name of each extension.
 * `settings` - (Required) The settings passed to the extension, these are specified as a JSON object in a string.
 * `protected_settings` - (Optional) The protected_settings passed to the extension, like settings, these are specified as a JSON object in a string.
