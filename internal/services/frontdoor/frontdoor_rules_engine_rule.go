@@ -164,7 +164,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 							},
 						},
 
-						"rule_action": {
+						"action": {
 							Type:     pluginsdk.TypeList,
 							MaxItems: 1,
 							Optional: true,
