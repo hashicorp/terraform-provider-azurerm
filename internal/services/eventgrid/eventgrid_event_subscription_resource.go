@@ -151,6 +151,8 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			"labels": eventSubscriptionSchemaLabels(),
 
 			"advanced_filtering_on_arrays_enabled": eventSubscriptionSchemaEnableAdvancedFilteringOnArrays(),
+
+			"delivery_attribute_mappings": eventSubscriptionSchemaDeliveryAttributeMappings(),
 		},
 	}
 }
