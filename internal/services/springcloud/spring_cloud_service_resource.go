@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2020-11-01-preview/appplatform"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -202,8 +203,18 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"instrumentation_key": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Deprecated:   "This property is due to be removed from this service's API and thus has been deprecated and will be removed in v3.0 of the provider. Please switch to using the `connection_string` property with the connection string for the Application Insights instance to use.",
+							ExactlyOneOf: []string{"trace.0.instrumentation_key", "trace.0.connection_string"},
+							ValidateFunc: validation.IsUUID,
+						},
+
+						"connection_string": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ExactlyOneOf: []string{"trace.0.instrumentation_key", "trace.0.connection_string"},
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"sample_rate": {
@@ -651,9 +662,16 @@ func expandSpringCloudTrace(input []interface{}) *appplatform.MonitoringSettingP
 		}
 	}
 	v := input[0].(map[string]interface{})
+	instrumentationKey := ""
+	if value := v["instrumentation_key"]; len(value.(string)) > 0 {
+		instrumentationKey = value.(string)
+	}
+	if value := v["connection_string"]; len(value.(string)) > 0 {
+		instrumentationKey = value.(string)
+	}
 	return &appplatform.MonitoringSettingProperties{
 		TraceEnabled:                  utils.Bool(true),
-		AppInsightsInstrumentationKey: utils.String(v["instrumentation_key"].(string)),
+		AppInsightsInstrumentationKey: utils.String(instrumentationKey),
 		AppInsightsSamplingRate:       utils.Float(v["sample_rate"].(float64)),
 	}
 }
@@ -864,12 +882,17 @@ func flattenSpringCloudTrace(input *appplatform.MonitoringSettingProperties) []i
 
 	enabled := false
 	instrumentationKey := ""
+	connectionString := ""
 	samplingRate := 0.0
 	if input.TraceEnabled != nil {
 		enabled = *input.TraceEnabled
 	}
 	if input.AppInsightsInstrumentationKey != nil {
-		instrumentationKey = *input.AppInsightsInstrumentationKey
+		if _, err := uuid.FromString(*input.AppInsightsInstrumentationKey); err == nil {
+			instrumentationKey = *input.AppInsightsInstrumentationKey
+		} else {
+			connectionString = *input.AppInsightsInstrumentationKey
+		}
 	}
 	if input.AppInsightsSamplingRate != nil {
 		samplingRate = *input.AppInsightsSamplingRate
@@ -882,6 +905,7 @@ func flattenSpringCloudTrace(input *appplatform.MonitoringSettingProperties) []i
 	return []interface{}{
 		map[string]interface{}{
 			"instrumentation_key": instrumentationKey,
+			"connection_string":   connectionString,
 			"sample_rate":         samplingRate,
 		},
 	}
