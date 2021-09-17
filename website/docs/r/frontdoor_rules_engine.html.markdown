@@ -36,9 +36,9 @@ resource "azurerm_frontdoor_rules_engine" "example_rules_engine" {
     priority = 2
 
     match_condition {
-      variable       = "RequestMethod"
-      operator       = "Equal"
-      value          = ["GET", "POST"]
+      variable = "RequestMethod"
+      operator = "Equal"
+      value    = ["GET", "POST"]
     }
 
     action {
