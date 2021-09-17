@@ -4149,7 +4149,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
     enable_automatic_upgrade   = true
-    settings                   = <<SETTINGS
+
+    settings = <<SETTINGS
 		{
 			"commandToExecute": "echo $HOSTNAME"
 		}
