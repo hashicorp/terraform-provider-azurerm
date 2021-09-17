@@ -1,5 +1,9 @@
 ## 2.78.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_storage_share_file` - will now recreate and upload delete/missing files [GH-13269]
+
 BUG FIXES:
 
 * Data Source: `azurerm_app_service_certificate` - prevent panics if the API returns a nil `issue_date` or `expiration_date` [GH-13401]
