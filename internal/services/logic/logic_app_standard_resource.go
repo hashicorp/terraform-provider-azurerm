@@ -3,6 +3,7 @@ package logic
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -365,6 +366,18 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	siteConfig.AppSettings = &basicAppSettings
 
+	// WEBSITE_VNET_ROUTE_ALL is superseded by a setting in site_config that defaults to false from 2021-02-01
+	appSettings, err := expandLogicAppStandardSettings(d, endpointSuffix)
+	if err != nil {
+		return fmt.Errorf("expanding `app_settings` for Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+	}
+	if vnetRouteAll, ok := appSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
+		if !d.HasChange("site_config.0.vnet_route_all_enabled") {
+			vnetRouteAllEnabled, _ := strconv.ParseBool(*vnetRouteAll)
+			siteConfig.VnetRouteAllEnabled = &vnetRouteAllEnabled
+		}
+	}
+
 	siteEnvelope := web.Site{
 		Kind:     &kind,
 		Location: &location,
@@ -398,10 +411,6 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("waiting for update of Logic App Standard %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
-	appSettings, err := expandLogicAppStandardSettings(d, endpointSuffix)
-	if err != nil {
-		return err
-	}
 	settings := web.StringDictionary{
 		Properties: appSettings,
 	}
@@ -557,6 +566,11 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 	delete(appSettings, "AzureWebJobsDashboard")
 	delete(appSettings, "AzureWebJobsStorage")
 	delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
+
+	configSettings := expandAppSettings(d)
+	if _, ok := configSettings["WEBSITE_CONTENTSHARE"]; !ok {
+		delete(appSettings, "WEBSITE_CONTENTSHARE")
+	}
 
 	if err = d.Set("app_settings", appSettings); err != nil {
 		return err
