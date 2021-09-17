@@ -151,7 +151,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 										Default:  true,
 									},
 
-									"value": {
+									"match_value": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										MaxItems: 25,
