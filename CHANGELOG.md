@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `azurerm_monitor_scheduled_query_rules_alert` - support `auto_mitigation_enabled` property [GH-13213]
 * `azurerm_machine_learning_inference_cluster` - support for the `identity` block [GH-12833]
 * `azurerm_machine_learning_compute_cluster` - support for the `ssh_public_access_enabled enhancement` property and the `identity` and `ssh` blocks [GH-12833]
+* `azurerm_spring_cloud_service` - support for the `connection_string` property [GH-13262]
 
 BUG FIXES:
 
