@@ -171,7 +171,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 
-									"request_header_actions": {
+									"request_header": {
 										Type:     pluginsdk.TypeList,
 										MaxItems: 100,
 										Optional: true,
@@ -202,7 +202,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 											},
 										},
 									},
-									"response_header_actions": {
+									"response_header": {
 										Type:     pluginsdk.TypeList,
 										MaxItems: 100,
 										Optional: true,
