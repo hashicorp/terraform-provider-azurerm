@@ -77,11 +77,13 @@ func resourceDataFactoryIntegrationRuntimeSelfHosted() *pluginsdk.Resource {
 				},
 			},
 
+			// todo: rename to authorization_key_primary in v3.0
 			"auth_key_1": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
+			// todo: rename to authorization_key_secondary in v3.0
 			"auth_key_2": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,

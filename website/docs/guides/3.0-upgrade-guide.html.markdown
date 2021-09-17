@@ -51,7 +51,7 @@ This resource forms one half of the replacement of `azurerm_web_app` and is inte
 
 A new meta Resource to better support the Source Control configuration of Web Apps.
 
-### New Resource and Data Source: `azrurerm_service_plan`
+### New Resource and Data Source: `azurerm_service_plan`
 
 Supersedes `azurerm_app_service_plan`.
 

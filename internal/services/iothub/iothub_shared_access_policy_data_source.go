@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -67,40 +68,38 @@ func dataSourceIotHubSharedAccessPolicy() *pluginsdk.Resource {
 
 func dataSourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
+	subscriptionId := meta.(*clients.Client).IoTHub.ResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	iothubName := d.Get("iothub_name").(string)
+	id := parse.NewSharedAccessPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), d.Get("name").(string))
 
-	accessPolicy, err := client.GetKeysForKeyName(ctx, resourceGroup, iothubName, name)
+	accessPolicy, err := client.GetKeysForKeyName(ctx, id.ResourceGroup, id.IotHubName, id.IotHubKeyName)
 	if err != nil {
 		if utils.ResponseWasNotFound(accessPolicy.Response) {
-			return fmt.Errorf("Error: IotHub %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("Error: %s was not found", id)
 		}
 
-		return fmt.Errorf("loading IotHub Shared Access Policy %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading %s: %+v", id, err)
 	}
 
-	iothub, err := client.Get(ctx, resourceGroup, iothubName)
+	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("iothub_name", iothubName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.IotHubKeyName)
+	d.Set("iothub_name", id.IotHubName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
-	resourceID := fmt.Sprintf("%s/IotHubKeys/%s", *iothub.ID, name)
-	d.SetId(resourceID)
+	d.SetId(id.ID())
 
 	d.Set("primary_key", accessPolicy.PrimaryKey)
-	if err := d.Set("primary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, name, *accessPolicy.PrimaryKey)); err != nil {
+	if err := d.Set("primary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, id.IotHubKeyName, *accessPolicy.PrimaryKey)); err != nil {
 		return fmt.Errorf("setting `primary_connection_string`: %v", err)
 	}
 	d.Set("secondary_key", accessPolicy.SecondaryKey)
-	if err := d.Set("secondary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, name, *accessPolicy.SecondaryKey)); err != nil {
+	if err := d.Set("secondary_connection_string", getSharedAccessPolicyConnectionString(*iothub.Properties.HostName, id.IotHubKeyName, *accessPolicy.SecondaryKey)); err != nil {
 		return fmt.Errorf("setting `secondary_connection_string`: %v", err)
 	}
 

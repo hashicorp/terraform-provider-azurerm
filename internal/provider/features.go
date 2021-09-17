@@ -11,6 +11,20 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	//       specifying the block otherwise) - however for 2+ they should be optional
 	features := map[string]*pluginsdk.Schema{
 		// lintignore:XS003
+		"api_management": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"purge_soft_delete_on_destroy": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+				},
+			},
+		},
+
 		"cognitive_account": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -173,6 +187,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	val := input[0].(map[string]interface{})
+
+	if raw, ok := val["api_management"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 && items[0] != nil {
+			apimRaw := items[0].(map[string]interface{})
+			if v, ok := apimRaw["purge_soft_delete_on_destroy"]; ok {
+				features.ApiManagement.PurgeSoftDeleteOnDestroy = v.(bool)
+			}
+		}
+	}
 
 	if raw, ok := val["cognitive_account"]; ok {
 		items := raw.([]interface{})
