@@ -35,7 +35,6 @@ BUG FIXES:
 * `azurerm_lb` - support for adding or replacing a `frontend_ip_configuration` with an `availability_zone` ([#13305](https://github.com/hashicorp/terraform-provider-azurerm/issues/13305))
 * `azurerm_virtual_hub_connection` - fixing race condition in the creation of virtual network resources ([#13294](https://github.com/hashicorp/terraform-provider-azurerm/issues/13294))
 
-
 ## 2.76.0 (September 10, 2021)
 
 NOTES
