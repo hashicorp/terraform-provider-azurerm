@@ -637,11 +637,6 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 		cluster.ClusterProperties.Certificate = certificate
 	}
 
-	if certificateRaw, ok := d.GetOk("certificate"); ok {
-		certificate := expandServiceFabricClusterCertificate(certificateRaw.([]interface{}))
-		cluster.ClusterProperties.Certificate = certificate
-	}
-
 	if reverseProxyCertificateRaw, ok := d.GetOk("reverse_proxy_certificate"); ok {
 		reverseProxyCertificate := expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw.([]interface{}))
 		cluster.ClusterProperties.ReverseProxyCertificate = reverseProxyCertificate
