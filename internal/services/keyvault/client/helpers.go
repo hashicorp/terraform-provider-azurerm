@@ -113,7 +113,7 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *res
 	}
 
 	filter := fmt.Sprintf("resourceType eq 'Microsoft.KeyVault/vaults' and name eq '%s'", *keyVaultName)
-	result, err := resourcesClient.ResourcesClient.List(ctx, filter, "", utils.Int32(5))
+	result, err := resourcesClient.ResourcesClient.List(ctx, filter, "", nil)
 	if err != nil {
 		return nil, fmt.Errorf("listing resources matching %q: %+v", filter, err)
 	}
