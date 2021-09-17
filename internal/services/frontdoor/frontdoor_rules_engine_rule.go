@@ -202,7 +202,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 											},
 										},
 									},
-									"response_header_actions": {
+									"response_header": {
 										Type:     pluginsdk.TypeList,
 										MaxItems: 100,
 										Optional: true,
