@@ -228,7 +228,7 @@ func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("type", props.Type)
 		d.Set("type_handler_version", props.TypeHandlerVersion)
 		d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
-		d.Set("enable_automatic_upgrade", props.enableAutomaticUpgrade)
+		d.Set("enable_automatic_upgrade", props.EnableAutomaticUpgrade)
 
 		if settings := props.Settings; settings != nil {
 			settingsVal := settings.(map[string]interface{})
