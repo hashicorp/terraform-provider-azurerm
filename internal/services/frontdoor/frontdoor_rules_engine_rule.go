@@ -233,11 +233,6 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 											},
 										},
 									},
-									// "route_configuration_override": {
-									// 	Type:         pluginsdk.TypeString,
-									// 	Optional:     true,
-									// 	ValidateFunc: validation.StringIsNotEmpty,
-									// },
 								},
 							},
 						},
@@ -290,14 +285,12 @@ func expandFrontDoorRulesEngineAction(input []interface{}) *frontdoor.RulesEngin
 
 	ruleAction := input[0].(map[string]interface{})
 
-	requestHeaderActions := ruleAction["request_header_actions"].([]interface{})
-	responseHeaderActions := ruleAction["response_header_actions"].([]interface{})
-	// routeConfigurationOverride := ruleAction["route_configuration_override"].([]interface{})
+	requestHeaderActions := ruleAction["request_header"].([]interface{})
+	responseHeaderActions := ruleAction["response_header"].([]interface{})
 
 	frontdoorRulesEngineRuleAction := frontdoor.RulesEngineAction{
 		RequestHeaderActions:  expandHeaderAction(requestHeaderActions),
 		ResponseHeaderActions: expandHeaderAction(responseHeaderActions),
-		// RouteConfigurationOverride: expandRouteConfigOverride(routeConfigurationOverride),
 	}
 
 	return &frontdoorRulesEngineRuleAction
@@ -328,13 +321,6 @@ func expandHeaderAction(input []interface{}) *[]frontdoor.HeaderAction {
 	return &output
 }
 
-// func expandRouteConfigOverride(input []interface{}) frontdoor.BasicRouteConfiguration {
-// 	if len(input) == 0 {
-// 		return nil
-// 	}
-// 	return nil
-// }
-
 func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoor.RulesEngineRule {
 	if len(input) == 0 {
 		return nil
@@ -347,7 +333,7 @@ func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoor.RulesEngi
 
 		ruleName := rule["name"].(string)
 		priority := int32(rule["priority"].(int))
-		actions := rule["rule_action"].([]interface{})
+		actions := rule["action"].([]interface{})
 		matchConditions := rule["match_condition"].([]interface{})
 
 		frontdoorRulesEngineRule := frontdoor.RulesEngineRule{
@@ -355,7 +341,6 @@ func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoor.RulesEngi
 			Priority:        utils.Int32(priority),
 			Action:          expandFrontDoorRulesEngineAction(actions),
 			MatchConditions: expandFrontDoorRulesEngineMatchCondition(matchConditions),
-			// MatchProcessingBehavior:
 		}
 
 		output = append(output, frontdoorRulesEngineRule)

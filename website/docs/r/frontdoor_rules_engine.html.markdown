@@ -22,7 +22,7 @@ resource "azurerm_frontdoor_rules_engine" "example_rules_engine" {
     name     = "debuggingoutput"
     priority = 1
 
-    rule_action {
+    action {
       response_header_actions {
         header_action_type = "Append"
         header_name        = "X-TEST-HEADER"
@@ -41,15 +41,15 @@ resource "azurerm_frontdoor_rules_engine" "example_rules_engine" {
       match_value    = ["GET", "POST"]
     }
 
-    rule_action {
+    action {
 
-      response_header_actions {
+      response_header {
         header_action_type = "Overwrite"
         header_name        = "Access-Control-Allow-Origin"
         value              = "*"
       }
 
-      response_header_actions {
+      response_header {
         header_action_type = "Overwrite"
         header_name        = "Access-Control-Allow-Credentials"
         value              = "true"
@@ -80,21 +80,21 @@ The `rule` block supports the following:
 
 * `priority` - (Required) Priority of the rule, must be unique per rules engine definition.
 
-* `rule_action` - (Required) A `rule_action` block as defined below.
+* `action` - (Required) A `rule_action` block as defined below.
 
 * `match_condition` - One or more `match_condition` block as defined below.
 
 ---
 
-The `rule_action` block supports the following:
+The `action` block supports the following:
 
-* `request_header_actions` - A `request_header_actions` block as defined below.
+* `request_header` - A `request_header` block as defined below.
 
-* `response_header_actions` - A `response_header_actions` block as defined below.
+* `response_header` - A `response_header` block as defined below.
 
 ---
 
-The `request_header_actions` block supports the following:
+The `request_header` block supports the following:
 
 * `header_action_type` can be set to `Overwrite`, `Append` or `Delete`.
 
@@ -104,7 +104,7 @@ The `request_header_actions` block supports the following:
 
 ---
 
-The `response_header_actions` block supports the following:
+The `response_header` block supports the following:
 
 * `header_action_type` can be set to `Overwrite`, `Append` or `Delete`.
 
