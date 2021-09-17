@@ -21,6 +21,609 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb"
 
+/**** Manually merged Cassandra MI properties***/
+
+// RepairPostBody specification of the keyspaces and tables to run repair on.
+type RepairPostBody struct {
+	// Keyspace - The name of the keyspace that repair should be run on.
+	Keyspace *string `json:"keyspace,omitempty"`
+	// Tables - List of tables in the keyspace to repair. If omitted, repair all tables in the keyspace.
+	Tables *[]string `json:"tables,omitempty"`
+}
+
+// CassandraClustersCreateUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type CassandraClustersCreateUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CassandraClustersClient) (ClusterResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *CassandraClustersCreateUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for CassandraClustersCreateUpdateFuture.Result.
+func (future *CassandraClustersCreateUpdateFuture) result(client CassandraClustersClient) (cr ClusterResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraClustersCreateUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		cr.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("documentdb.CassandraClustersCreateUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if cr.Response.Response, err = future.GetResult(sender); err == nil && cr.Response.Response.StatusCode != http.StatusNoContent {
+		cr, err = client.CreateUpdateResponder(cr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.CassandraClustersCreateUpdateFuture", "Result", cr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// CassandraClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type CassandraClustersDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CassandraClustersClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *CassandraClustersDeleteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for CassandraClustersDeleteFuture.Result.
+func (future *CassandraClustersDeleteFuture) result(client CassandraClustersClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraClustersDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("documentdb.CassandraClustersDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// CassandraClustersFetchNodeStatusFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type CassandraClustersFetchNodeStatusFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CassandraClustersClient) (ClusterNodeStatus, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *CassandraClustersFetchNodeStatusFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for CassandraClustersFetchNodeStatusFuture.Result.
+func (future *CassandraClustersFetchNodeStatusFuture) result(client CassandraClustersClient) (cns ClusterNodeStatus, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraClustersFetchNodeStatusFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		cns.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("documentdb.CassandraClustersFetchNodeStatusFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if cns.Response.Response, err = future.GetResult(sender); err == nil && cns.Response.Response.StatusCode != http.StatusNoContent {
+		cns, err = client.FetchNodeStatusResponder(cns.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.CassandraClustersFetchNodeStatusFuture", "Result", cns.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// CassandraClustersRequestRepairFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type CassandraClustersRequestRepairFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CassandraClustersClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *CassandraClustersRequestRepairFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for CassandraClustersRequestRepairFuture.Result.
+func (future *CassandraClustersRequestRepairFuture) result(client CassandraClustersClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraClustersRequestRepairFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("documentdb.CassandraClustersRequestRepairFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// CassandraClustersUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type CassandraClustersUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CassandraClustersClient) (ClusterResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *CassandraClustersUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for CassandraClustersUpdateFuture.Result.
+func (future *CassandraClustersUpdateFuture) result(client CassandraClustersClient) (cr ClusterResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraClustersUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		cr.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("documentdb.CassandraClustersUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if cr.Response.Response, err = future.GetResult(sender); err == nil && cr.Response.Response.StatusCode != http.StatusNoContent {
+		cr, err = client.UpdateResponder(cr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.CassandraClustersUpdateFuture", "Result", cr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// CassandraDataCentersCreateUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type CassandraDataCentersCreateUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CassandraDataCentersClient) (DataCenterResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *CassandraDataCentersCreateUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for CassandraDataCentersCreateUpdateFuture.Result.
+func (future *CassandraDataCentersCreateUpdateFuture) result(client CassandraDataCentersClient) (dcr DataCenterResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraDataCentersCreateUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		dcr.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("documentdb.CassandraDataCentersCreateUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if dcr.Response.Response, err = future.GetResult(sender); err == nil && dcr.Response.Response.StatusCode != http.StatusNoContent {
+		dcr, err = client.CreateUpdateResponder(dcr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.CassandraDataCentersCreateUpdateFuture", "Result", dcr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// CassandraDataCentersDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type CassandraDataCentersDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CassandraDataCentersClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *CassandraDataCentersDeleteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for CassandraDataCentersDeleteFuture.Result.
+func (future *CassandraDataCentersDeleteFuture) result(client CassandraDataCentersClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraDataCentersDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("documentdb.CassandraDataCentersDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// CassandraDataCentersUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type CassandraDataCentersUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(CassandraDataCentersClient) (DataCenterResource, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *CassandraDataCentersUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for CassandraDataCentersUpdateFuture.Result.
+func (future *CassandraDataCentersUpdateFuture) result(client CassandraDataCentersClient) (dcr DataCenterResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraDataCentersUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		dcr.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("documentdb.CassandraDataCentersUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if dcr.Response.Response, err = future.GetResult(sender); err == nil && dcr.Response.Response.StatusCode != http.StatusNoContent {
+		dcr, err = client.UpdateResponder(dcr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.CassandraDataCentersUpdateFuture", "Result", dcr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ClusterNodeStatus the status of all nodes in the cluster (as returned by 'nodetool status').
+type ClusterNodeStatus struct {
+	autorest.Response `json:"-"`
+	// Nodes - Information about nodes in the cluster (corresponds to what is returned from nodetool info).
+	Nodes *[]ClusterNodeStatusNodesItem `json:"nodes,omitempty"`
+}
+
+// ClusterNodeStatusNodesItem ...
+type ClusterNodeStatusNodesItem struct {
+	// Datacenter - The Cassandra data center this node resides in.
+	Datacenter *string `json:"datacenter,omitempty"`
+	// Status - Indicates whether the node is functioning or not. Possible values include: 'NodeStatusUp', 'NodeStatusDown'
+	Status NodeStatus `json:"status,omitempty"`
+	// State - The state of the node in relation to the cluster. Possible values include: 'NodeStateNormal', 'NodeStateLeaving', 'NodeStateJoining', 'NodeStateMoving', 'NodeStateStopped'
+	State NodeState `json:"state,omitempty"`
+	// Address - The node's URL.
+	Address *string `json:"address,omitempty"`
+	// Load - The amount of file system data in the data directory (e.g., 47.66 KB), excluding all content in the snapshots subdirectories. Because all SSTable data files are included, any data that is not cleaned up (such as TTL-expired cell or tombstoned data) is counted.
+	Load *string `json:"load,omitempty"`
+	// Tokens - List of tokens.
+	Tokens *[]string `json:"tokens,omitempty"`
+	// Owns - The percentage of the data owned by the node per datacenter times the replication factor (e.g., 33.3, or null if the data is not available). For example, a node can own 33% of the ring, but shows 100% if the replication factor is 3. For non-system keyspaces, the endpoint percentage ownership information is shown.
+	Owns *float64 `json:"owns,omitempty"`
+	// HostID - The network ID of the node.
+	HostID *string `json:"hostId,omitempty"`
+	// Rack - The rack this node is part of.
+	Rack *string `json:"rack,omitempty"`
+}
+
+// ClusterResource representation of a managed Cassandra cluster.
+type ClusterResource struct {
+	autorest.Response `json:"-"`
+	// Properties - Properties of a managed Cassandra cluster.
+	Properties *ClusterResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; The unique resource identifier of the ARM resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the ARM resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of Azure resource.
+	Type *string `json:"type,omitempty"`
+	// Location - The location of the resource group to which the resource belongs.
+	Location *string                 `json:"location,omitempty"`
+	Tags     map[string]*string      `json:"tags"`
+	Identity *ManagedServiceIdentity `json:"identity,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ClusterResource.
+func (cr ClusterResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cr.Properties != nil {
+		objectMap["properties"] = cr.Properties
+	}
+	if cr.Location != nil {
+		objectMap["location"] = cr.Location
+	}
+	if cr.Tags != nil {
+		objectMap["tags"] = cr.Tags
+	}
+	if cr.Identity != nil {
+		objectMap["identity"] = cr.Identity
+	}
+	return json.Marshal(objectMap)
+}
+
+// ClusterResourceProperties properties of a managed Cassandra cluster.
+type ClusterResourceProperties struct {
+	// ProvisioningState - Possible values include: 'ManagedCassandraProvisioningStateCreating', 'ManagedCassandraProvisioningStateUpdating', 'ManagedCassandraProvisioningStateDeleting', 'ManagedCassandraProvisioningStateSucceeded', 'ManagedCassandraProvisioningStateFailed', 'ManagedCassandraProvisioningStateCanceled'
+	ProvisioningState ManagedCassandraProvisioningState `json:"provisioningState,omitempty"`
+	// RestoreFromBackupID - To create an empty cluster, omit this field or set it to null. To restore a backup into a new cluster, set this field to the resource id of the backup.
+	RestoreFromBackupID *string `json:"restoreFromBackupId,omitempty"`
+	// DelegatedManagementSubnetID - Resource id of a subnet that this cluster's management service should have its network interface attached to. The subnet must be routable to all subnets that will be delegated to data centers. The resource id must be of the form '/subscriptions/<subscription id>/resourceGroups/<resource group>/providers/Microsoft.Network/virtualNetworks/<virtual network>/subnets/<subnet>'
+	DelegatedManagementSubnetID *string `json:"delegatedManagementSubnetId,omitempty"`
+	// CassandraVersion - Which version of Cassandra should this cluster converge to running (e.g., 3.11). When updated, the cluster may take some time to migrate to the new version.
+	CassandraVersion *string `json:"cassandraVersion,omitempty"`
+	// ClusterNameOverride - If you need to set the clusterName property in cassandra.yaml to something besides the resource name of the cluster, set the value to use on this property.
+	ClusterNameOverride *string `json:"clusterNameOverride,omitempty"`
+	// AuthenticationMethod - Which authentication method Cassandra should use to authenticate clients. 'None' turns off authentication, so should not be used except in emergencies. 'Cassandra' is the default password based authentication. The default is 'Cassandra'. Possible values include: 'AuthenticationMethodNone', 'AuthenticationMethodCassandra'
+	AuthenticationMethod AuthenticationMethod `json:"authenticationMethod,omitempty"`
+	// InitialCassandraAdminPassword - Initial password for clients connecting as admin to the cluster. Should be changed after cluster creation. Returns null on GET. This field only applies when the authenticationMethod field is 'Cassandra'.
+	InitialCassandraAdminPassword *string `json:"initialCassandraAdminPassword,omitempty"`
+	// HoursBetweenBackups - Number of hours to wait between taking a backup of the cluster. To disable backups, set this property to 0.
+	HoursBetweenBackups *int32 `json:"hoursBetweenBackups,omitempty"`
+	// PrometheusEndpoint - Hostname or IP address where the Prometheus endpoint containing data about the managed Cassandra nodes can be reached.
+	PrometheusEndpoint *SeedNode `json:"prometheusEndpoint,omitempty"`
+	// RepairEnabled - Should automatic repairs run on this cluster? If omitted, this is true, and should stay true unless you are running a hybrid cluster where you are already doing your own repairs.
+	RepairEnabled *bool `json:"repairEnabled,omitempty"`
+	// ClientCertificates - List of TLS certificates used to authorize clients connecting to the cluster. All connections are TLS encrypted whether clientCertificates is set or not, but if clientCertificates is set, the managed Cassandra cluster will reject all connections not bearing a TLS client certificate that can be validated from one or more of the public certificates in this property.
+	ClientCertificates *[]Certificate `json:"clientCertificates,omitempty"`
+	// ExternalGossipCertificates - List of TLS certificates used to authorize gossip from unmanaged data centers. The TLS certificates of all nodes in unmanaged data centers must be verifiable using one of the certificates provided in this property.
+	ExternalGossipCertificates *[]Certificate `json:"externalGossipCertificates,omitempty"`
+	// GossipCertificates - READ-ONLY; List of TLS certificates that unmanaged nodes must trust for gossip with managed nodes. All managed nodes will present TLS client certificates that are verifiable using one of the certificates provided in this property.
+	GossipCertificates *[]Certificate `json:"gossipCertificates,omitempty"`
+	// ExternalSeedNodes - List of IP addresses of seed nodes in unmanaged data centers. These will be added to the seed node lists of all managed nodes.
+	ExternalSeedNodes *[]SeedNode `json:"externalSeedNodes,omitempty"`
+	// SeedNodes - READ-ONLY; List of IP addresses of seed nodes in the managed data centers. These should be added to the seed node lists of all unmanaged nodes.
+	SeedNodes *[]SeedNode `json:"seedNodes,omitempty"`
+}
+
+// Certificate ...
+type Certificate struct {
+	// Pem - PEM formatted public key.
+	Pem *string `json:"pem,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ClusterResourceProperties.
+func (cr ClusterResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cr.ProvisioningState != "" {
+		objectMap["provisioningState"] = cr.ProvisioningState
+	}
+	if cr.RestoreFromBackupID != nil {
+		objectMap["restoreFromBackupId"] = cr.RestoreFromBackupID
+	}
+	if cr.DelegatedManagementSubnetID != nil {
+		objectMap["delegatedManagementSubnetId"] = cr.DelegatedManagementSubnetID
+	}
+	if cr.CassandraVersion != nil {
+		objectMap["cassandraVersion"] = cr.CassandraVersion
+	}
+	if cr.ClusterNameOverride != nil {
+		objectMap["clusterNameOverride"] = cr.ClusterNameOverride
+	}
+	if cr.AuthenticationMethod != "" {
+		objectMap["authenticationMethod"] = cr.AuthenticationMethod
+	}
+	if cr.InitialCassandraAdminPassword != nil {
+		objectMap["initialCassandraAdminPassword"] = cr.InitialCassandraAdminPassword
+	}
+	if cr.HoursBetweenBackups != nil {
+		objectMap["hoursBetweenBackups"] = cr.HoursBetweenBackups
+	}
+	if cr.PrometheusEndpoint != nil {
+		objectMap["prometheusEndpoint"] = cr.PrometheusEndpoint
+	}
+	if cr.RepairEnabled != nil {
+		objectMap["repairEnabled"] = cr.RepairEnabled
+	}
+	if cr.ClientCertificates != nil {
+		objectMap["clientCertificates"] = cr.ClientCertificates
+	}
+	if cr.ExternalGossipCertificates != nil {
+		objectMap["externalGossipCertificates"] = cr.ExternalGossipCertificates
+	}
+	if cr.ExternalSeedNodes != nil {
+		objectMap["externalSeedNodes"] = cr.ExternalSeedNodes
+	}
+	return json.Marshal(objectMap)
+}
+
+// DataCenterResource a managed Cassandra data center.
+type DataCenterResource struct {
+	autorest.Response `json:"-"`
+	// Properties - Properties of a managed Cassandra data center.
+	Properties *DataCenterResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; The unique resource identifier of the database account.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the database account.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of Azure resource.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DataCenterResource.
+func (dcr DataCenterResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dcr.Properties != nil {
+		objectMap["properties"] = dcr.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
+// DataCenterResourceProperties properties of a managed Cassandra data center.
+type DataCenterResourceProperties struct {
+	// ProvisioningState - Possible values include: 'ManagedCassandraProvisioningStateCreating', 'ManagedCassandraProvisioningStateUpdating', 'ManagedCassandraProvisioningStateDeleting', 'ManagedCassandraProvisioningStateSucceeded', 'ManagedCassandraProvisioningStateFailed', 'ManagedCassandraProvisioningStateCanceled'
+	ProvisioningState ManagedCassandraProvisioningState `json:"provisioningState,omitempty"`
+	// DataCenterLocation - The region this data center should be created in.
+	DataCenterLocation *string `json:"dataCenterLocation,omitempty"`
+	// DelegatedSubnetID - Resource id of a subnet the nodes in this data center should have their network interfaces connected to. The subnet must be in the same region specified in 'dataCenterLocation' and must be able to route to the subnet specified in the cluster's 'delegatedManagementSubnetId' property. This resource id will be of the form '/subscriptions/<subscription id>/resourceGroups/<resource group>/providers/Microsoft.Network/virtualNetworks/<virtual network>/subnets/<subnet>'.
+	DelegatedSubnetID *string `json:"delegatedSubnetId,omitempty"`
+	// NodeCount - The number of nodes the data center should have. This is the desired number. After it is set, it may take some time for the data center to be scaled to match. To monitor the number of nodes and their status, use the fetchNodeStatus method on the cluster.
+	NodeCount *int32 `json:"nodeCount,omitempty"`
+	// SeedNodes - READ-ONLY; IP addresses for seed nodes in this data center. This is for reference. Generally you will want to use the seedNodes property on the cluster, which aggregates the seed nodes from all data centers in the cluster.
+	SeedNodes *[]SeedNode `json:"seedNodes,omitempty"`
+	// Base64EncodedCassandraYamlFragment - A fragment of a cassandra.yaml configuration file to be included in the cassandra.yaml for all nodes in this data center. The fragment should be Base64 encoded, and only a subset of keys are allowed.
+	Base64EncodedCassandraYamlFragment *string `json:"base64EncodedCassandraYamlFragment,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DataCenterResourceProperties.
+func (dcr DataCenterResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dcr.ProvisioningState != "" {
+		objectMap["provisioningState"] = dcr.ProvisioningState
+	}
+	if dcr.DataCenterLocation != nil {
+		objectMap["dataCenterLocation"] = dcr.DataCenterLocation
+	}
+	if dcr.DelegatedSubnetID != nil {
+		objectMap["delegatedSubnetId"] = dcr.DelegatedSubnetID
+	}
+	if dcr.NodeCount != nil {
+		objectMap["nodeCount"] = dcr.NodeCount
+	}
+	if dcr.Base64EncodedCassandraYamlFragment != nil {
+		objectMap["base64EncodedCassandraYamlFragment"] = dcr.Base64EncodedCassandraYamlFragment
+	}
+	return json.Marshal(objectMap)
+}
+
+// BackupResource a restorable backup of a Cassandra cluster.
+type BackupResource struct {
+	autorest.Response `json:"-"`
+	Properties        *BackupResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; The unique resource identifier of the database account.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the database account.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of Azure resource.
+	Type *string `json:"type,omitempty"`
+}
+
+// BackupResourceProperties ...
+type BackupResourceProperties struct {
+	// Timestamp - The time this backup was taken, formatted like 2021-01-21T17:35:21
+	Timestamp *date.Time `json:"timestamp,omitempty"`
+}
+
+// ListBackups list of restorable backups for a Cassandra cluster.
+type ListBackups struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Container for array of backups.
+	Value *[]BackupResource `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ListBackups.
+func (lb ListBackups) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ListClusters list of managed Cassandra clusters.
+type ListClusters struct {
+	autorest.Response `json:"-"`
+	// Value - Container for the array of clusters.
+	Value *[]ClusterResource `json:"value,omitempty"`
+}
+
+// ListDataCenters list of managed Cassandra data centers and their properties.
+type ListDataCenters struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Container for array of data centers.
+	Value *[]DataCenterResource `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ListDataCenters.
+func (ldc ListDataCenters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// SeedNode ...
+type SeedNode struct {
+	// IPAddress - IP address of this seed node.
+	IPAddress *string `json:"ipAddress,omitempty"`
+}
+
+/**** Manually merged Cassandra MI properties end ***/
+
 // AnalyticalStorageConfiguration analytical storage specific properties.
 type AnalyticalStorageConfiguration struct {
 	// SchemaType - Possible values include: 'AnalyticalStorageSchemaTypeWellDefined', 'AnalyticalStorageSchemaTypeFullFidelity'
@@ -678,92 +1281,6 @@ func (future *CassandraResourcesCreateUpdateCassandraKeyspaceFuture) result(clie
 		ckgr, err = client.CreateUpdateCassandraKeyspaceResponder(ckgr.Response.Response)
 		if err != nil {
 			err = autorest.NewErrorWithError(err, "documentdb.CassandraResourcesCreateUpdateCassandraKeyspaceFuture", "Result", ckgr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// CassandraResourcesCreateUpdateCassandraKeyspaceFuture an abstraction for monitoring and retrieving the
-// results of a long-running operation.
-type CassandraMIResourcesCreateUpdateCassandraMIClusterFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(CassandraMIResourcesClient) (CassandraKeyspaceGetResults, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *CassandraMIResourcesCreateUpdateCassandraMIClusterFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for CassandraResourcesCreateUpdateCassandraKeyspaceFuture.Result.
-func (future *CassandraMIResourcesCreateUpdateCassandraMIClusterFuture) result(client CassandraMIResourcesClient) (ckgr CassandraKeyspaceGetResults, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.CassandraResourcesCreateUpdateCassandraKeyspaceFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		ckgr.Response.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("documentdb.CassandraMIResourcesCreateUpdateCassandraClusterFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ckgr.Response.Response, err = future.GetResult(sender); err == nil && ckgr.Response.Response.StatusCode != http.StatusNoContent {
-		ckgr, err = client.CreateUpdateClusterResponder(ckgr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "documentdb.CassandraMIResourcesCreateUpdateCassandraClusterFuture", "Result", ckgr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// CassandraResourcesCreateUpdateCassandraKeyspaceFuture an abstraction for monitoring and retrieving the
-// results of a long-running operation.
-type CassandraMIResourcesCreateUpdateCassandraMIDatacenterFuture struct {
-	azure.FutureAPI
-	// Result returns the result of the asynchronous operation.
-	// If the operation has not completed it will return an error.
-	Result func(CassandraMIResourcesClient) (CassandraKeyspaceGetResults, error)
-}
-
-// UnmarshalJSON is the custom unmarshaller for CreateFuture.
-func (future *CassandraMIResourcesCreateUpdateCassandraMIDatacenterFuture) UnmarshalJSON(body []byte) error {
-	var azFuture azure.Future
-	if err := json.Unmarshal(body, &azFuture); err != nil {
-		return err
-	}
-	future.FutureAPI = &azFuture
-	future.Result = future.result
-	return nil
-}
-
-// result is the default implementation for CassandraResourcesCreateUpdateCassandraKeyspaceFuture.Result.
-func (future *CassandraMIResourcesCreateUpdateCassandraMIDatacenterFuture) result(client CassandraMIResourcesClient) (ckgr CassandraKeyspaceGetResults, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.CassandraMIResourcesCreateUpdateCassandraMIDatacenterFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		ckgr.Response.Response = future.Response()
-		err = azure.NewAsyncOpIncompleteError("documentdb.CassandraMIResourcesCreateUpdateCassandraMIDatacenterFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ckgr.Response.Response, err = future.GetResult(sender); err == nil && ckgr.Response.Response.StatusCode != http.StatusNoContent {
-		ckgr, err = client.CreateUpdateDatacenterResponder(ckgr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "documentdb.CassandraMIResourcesCreateUpdateCassandraMIDatacenterFuture", "Result", ckgr.Response.Response, "Failure responding to request")
 		}
 	}
 	return

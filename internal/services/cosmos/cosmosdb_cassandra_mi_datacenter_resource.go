@@ -3,6 +3,7 @@ package cosmos
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-06-15/documentdb"
@@ -19,6 +20,7 @@ import (
 )
 
 func resourceCassandraMIDatacenter() *pluginsdk.Resource {
+	log.Println("manually merged API changes - resourceCassandraMIDatacenter**********")
 	return &pluginsdk.Resource{
 		Create: resourceCassandraMIDatacenterCreate,
 		Read:   resourceCassandraMIDatacenterRead,
@@ -80,7 +82,8 @@ func resourceCassandraMIDatacenter() *pluginsdk.Resource {
 }
 
 func resourceCassandraMIDatacenterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CassandraMIClient
+	log.Println("in updated *** resourceCassandraMIDatacenterCreate **********")
+	client := meta.(*clients.Client).Cosmos.CassandraDatacentersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -89,89 +92,94 @@ func resourceCassandraMIDatacenterCreate(d *pluginsdk.ResourceData, meta interfa
 	clusterName := d.Get("cluster_name").(string)
 	datacenterName := d.Get("datacenter_name").(string)
 	nodeCount := d.Get("node_count").(string)
+	nodeCountInt, err2 := strconv.ParseInt(nodeCount, 10, 32)
+	nodeCountInt32 := int32(nodeCountInt)
 	location := d.Get("location").(string)
 	delegatedSubnetId := d.Get("delegated_management_subnet_id").(string)
 
-	existing, err := client.GetDatacenter(ctx, resourceGroup, clusterName, datacenterName)
+	existing, err := client.Get(ctx, resourceGroup, clusterName, datacenterName)
 
+	if err2 != nil {
+	}
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of creating Cosmos Cassandra Keyspace %q (Account: %q): %+v", clusterName, location, err)
+			return fmt.Errorf("checking for presence of creating Cassandra MI  %q (Datacenter: %q): %+v", clusterName, location, err)
 		}
 	} else {
 		if existing.ID == nil && *existing.ID == "" {
-			return fmt.Errorf("generating import ID for Cosmos Cassandra Keyspace %q (Account: %q)", clusterName, location)
+			return fmt.Errorf("generating import ID for Cassandra MI  %q (Datacenter: %q)", clusterName, location)
 		}
 
-		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_keyspace", *existing.ID)
+		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_mi_datacenter", *existing.ID)
 	}
 
-	body := documentdb.CassandraMIDatacenterCreateUpdateParameters{
+	body := documentdb.DataCenterResource{
 		//Location: &location,
-		CassandraMIDatacenterCreateUpdateProperties: &documentdb.CassandraMIDatacenterCreateUpdateProperties{
-			DelegatedSubnetId:  &delegatedSubnetId,
-			NodeCount:          &nodeCount,
+		Properties: &documentdb.DataCenterResourceProperties{
+			DelegatedSubnetID:  &delegatedSubnetId,
+			NodeCount:          &nodeCountInt32,
 			DataCenterLocation: &location,
 		},
 	}
 
-	future, err := client.CreateUpdateDatacenter(ctx, resourceGroup, clusterName, datacenterName, location, body)
+	future, err := client.CreateUpdate(ctx, resourceGroup, clusterName, datacenterName, body)
 	if err != nil {
-		return fmt.Errorf("issuing create request for Cosmos Cassandra Keyspace %q (Account: %q): %+v", clusterName, clusterName, err)
+		return fmt.Errorf("issuing create request for Cassandra MI  %q (Datacenter: %q): %+v", clusterName, datacenterName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for Cosmos Cassandra Keyspace %q (Account: %q): %+v", clusterName, clusterName, err)
+		return fmt.Errorf("waiting on create/update future for Cassandra MI  %q (Datacenter: %q): %+v", clusterName, datacenterName, err)
 	}
 
-	resp, err := client.GetCluster(ctx, resourceGroup, clusterName)
+	resp, err := client.Get(ctx, resourceGroup, clusterName, datacenterName)
 
 	if err != nil {
-		return fmt.Errorf("making get request for Cosmos Cassandra Keyspace %q (Account: %q): %+v", clusterName, clusterName, err)
+		return fmt.Errorf("making get request for Cassandra MI  %q (Datacenter: %q): %+v", clusterName, datacenterName, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("getting ID from Cosmos Cassandra Keyspace %q (Account: %q)", clusterName, clusterName)
+		return fmt.Errorf("getting ID from Cassandra MI  %q (Datacenter: %q)", clusterName, datacenterName)
 	}
 
 	d.SetId(*resp.ID)
 
-	return resourceCassandraMIClusterRead(d, meta)
+	return resourceCassandraMIDatacenterRead(d, meta)
 }
 
 func resourceCassandraMIDatacenterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CassandraMIClient
+	client := meta.(*clients.Client).Cosmos.CassandraDatacentersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	datacenterName := d.Get("datacenter_name").(string)
 	id, err := parse.CassandraDatacenterID(d.Id() + "/dataCenters/" + datacenterName)
+	//id, err := parse.CassandraDatacenterID(d.Id())
 	if err != nil {
 		return err
 	}
-	resp, err := client.GetDatacenter(ctx, id.ResourceGroup, id.ClusterName, id.DatacenterName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatacenterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Cosmos Cassandra Keyspace %q (Account: %q) - removing from state", id.ClusterName, id.ClusterName)
+			log.Printf("[INFO] Error reading Cassandra MI %q (Datacenter: %q) - removing from state", id.ClusterName, id.ClusterName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("reading Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.ClusterName, id.ClusterName, err)
+		return fmt.Errorf("reading Cassandra MI  %q (Datacenter: %q): %+v", id.ClusterName, id.ClusterName, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("account_name", id.ClusterName)
 	d.Set("datacenter_name", id.DatacenterName)
-	if props := resp.CassandraKeyspaceGetProperties; props != nil {
-		if res := props.Resource; res != nil {
-			d.Set("name", res.ID)
+	if props := resp.Properties; props != nil {
+		if res := props; res != nil {
+			d.Set("name", res.ProvisioningState)
 		}
 	}
 	return nil
 }
 
 func resourceCassandraMIDatacenterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CassandraMIClient
+	client := meta.(*clients.Client).Cosmos.CassandraDatacentersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	resourceGroup := d.Get("resource_group_name").(string)
 	clusterName := d.Get("cluster_name").(string)
@@ -184,16 +192,16 @@ func resourceCassandraMIDatacenterDelete(d *pluginsdk.ResourceData, meta interfa
 	// 	return err
 	// }
 
-	future, err := client.DeleteDatacenter(ctx, resourceGroup, clusterName, datacenterName)
+	future, err := client.Delete(ctx, resourceGroup, clusterName, datacenterName)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("deleting Cosmos Cassandra Keyspace %q (Account: %q): %+v", resourceGroup, clusterName, err)
+			return fmt.Errorf("deleting Cassandra MI  %q (Datacenter: %q): %+v", resourceGroup, clusterName, err)
 		}
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("waiting on delete future for Cosmos Cassandra Keyspace %q (Account: %q): %+v", resourceGroup, clusterName, err)
+		return fmt.Errorf("waiting on delete future for Cassandra MI  %q (Datacenter: %q): %+v", resourceGroup, clusterName, err)
 	}
 
 	return nil

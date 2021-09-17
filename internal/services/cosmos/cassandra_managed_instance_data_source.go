@@ -64,14 +64,14 @@ func dataSourceCassandraManagedInstance() *pluginsdk.Resource {
 }
 
 func dataSourceCassandraManagedInstanceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CassandraMIClient
+	client := meta.(*clients.Client).Cosmos.CassandraClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	resp, err := client.GetCluster(ctx, resourceGroup, clusterName)
+	resp, err := client.Get(ctx, resourceGroup, clusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Cluster name %q (Resource Group %q) was not found", clusterName, resourceGroup)
@@ -89,8 +89,8 @@ func dataSourceCassandraManagedInstanceRead(d *pluginsdk.ResourceData, meta inte
 	}
 	d.Set("kind", string(*resp.ID))
 
-	if props := resp.CassandraKeyspaceGetProperties; props != nil {
-	}
+	// if props := resp.CassandraKeyspaceGetProperties; props != nil {
+	// }
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
