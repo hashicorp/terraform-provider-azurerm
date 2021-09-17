@@ -9,12 +9,12 @@ import (
 
 type AppConfigurationFeatureId struct {
 	ConfigurationStoreId string
-	Key                  string
+	Name                 string
 	Label                string
 }
 
 func (k AppConfigurationFeatureId) ID() string {
-	return fmt.Sprintf("%s/AppConfigurationFeature/%s/Label/%s", k.ConfigurationStoreId, k.Key, k.Label)
+	return fmt.Sprintf("%s/AppConfigurationFeature/%s/Label/%s", k.ConfigurationStoreId, k.Name, k.Label)
 }
 
 func FeatureId(input string) (*AppConfigurationFeatureId, error) {
@@ -28,7 +28,7 @@ func FeatureId(input string) (*AppConfigurationFeatureId, error) {
 	label := resourceID.Path["Label"]
 
 	appcfgID := AppConfigurationFeatureId{
-		Key:   keyName,
+		Name:  keyName,
 		Label: label,
 	}
 
@@ -39,7 +39,7 @@ func FeatureId(input string) (*AppConfigurationFeatureId, error) {
 		appcfgID.Label = ""
 		input = strings.TrimSuffix(input, "%00")
 	}
-	appcfgID.ConfigurationStoreId = strings.TrimSuffix(input, fmt.Sprintf("/AppConfigurationFeature/%s/Label/%s", appcfgID.Key, appcfgID.Label))
+	appcfgID.ConfigurationStoreId = strings.TrimSuffix(input, fmt.Sprintf("/AppConfigurationFeature/%s/Label/%s", appcfgID.Name, appcfgID.Label))
 
 	return &appcfgID, nil
 }
