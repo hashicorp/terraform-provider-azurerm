@@ -1,39 +1,39 @@
-## 2.77.0 (Unreleased)
+## 2.77.0 (September 17, 2021)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_policy_virtual_machine_configuration_assignment` [GH-13311]
-* **New Resource:** `azurerm_synapse_integration_runtime_self_hosted` [GH-13264]
-* **New Resource:** `azurerm_synapse_integration_runtime_azure` [GH-13341]
-* **New Resource:** `azurerm_synapse_linked_service` [GH-13204]
-* **New Resource:** `azurerm_synapse_sql_pool_security_alert_policy` [GH-13276]
-* **New Resource:** `azurerm_synapse_sql_pool_vulnerability_assessment` [GH-13276]
-* **New Resource:** `azurerm_synapse_workspace_security_alert_policy` [GH-13276]
-* **New Resource:** `azurerm_synapse_workspace_vulnerability_assessment` [GH-13276]
+* **New Data Source:** `azurerm_policy_virtual_machine_configuration_assignment` ([#13311](https://github.com/hashicorp/terraform-provider-azurerm/issues/13311))
+* **New Resource:** `azurerm_synapse_integration_runtime_self_hosted` ([#13264](https://github.com/hashicorp/terraform-provider-azurerm/issues/13264))
+* **New Resource:** `azurerm_synapse_integration_runtime_azure` ([#13341](https://github.com/hashicorp/terraform-provider-azurerm/issues/13341))
+* **New Resource:** `azurerm_synapse_linked_service` ([#13204](https://github.com/hashicorp/terraform-provider-azurerm/issues/13204))
+* **New Resource:** `azurerm_synapse_sql_pool_security_alert_policy` ([#13276](https://github.com/hashicorp/terraform-provider-azurerm/issues/13276))
+* **New Resource:** `azurerm_synapse_sql_pool_vulnerability_assessment` ([#13276](https://github.com/hashicorp/terraform-provider-azurerm/issues/13276))
+* **New Resource:** `azurerm_synapse_workspace_security_alert_policy` ([#13276](https://github.com/hashicorp/terraform-provider-azurerm/issues/13276))
+* **New Resource:** `azurerm_synapse_workspace_vulnerability_assessment` ([#13276](https://github.com/hashicorp/terraform-provider-azurerm/issues/13276))
 
 ENHANCEMENTS:
 
-* Data Source: `azurerm_mssql_elasticpool` - export the `sku` block [GH-13336]
-* `azurerm_api_management` - now supports purging soft deleted instances via the `purge_soft_delete_on_destroy` provider level feature [GH-12850]
-* `azurerm_data_factory_trigger_schedule` - support for the `activated` property [GH-13390]
-* `azurerm_logic_app_workflow` - support for the `enabled` and `access_control` properties [GH-13265]
-* `azurerm_monitor_scheduled_query_rules_alert` - support `auto_mitigation_enabled` property [GH-13213]
-* `azurerm_machine_learning_inference_cluster` - support for the `identity` block [GH-12833]
-* `azurerm_machine_learning_compute_cluster` - support for the `ssh_public_access_enabled enhancement` property and the `identity` and `ssh` blocks [GH-12833]
-* `azurerm_spring_cloud_service` - support for the `connection_string` property [GH-13262]
+* Data Source: `azurerm_mssql_elasticpool` - export the `sku` block ([#13336](https://github.com/hashicorp/terraform-provider-azurerm/issues/13336))
+* `azurerm_api_management` - now supports purging soft deleted instances via the `purge_soft_delete_on_destroy` provider level feature ([#12850](https://github.com/hashicorp/terraform-provider-azurerm/issues/12850))
+* `azurerm_data_factory_trigger_schedule` - support for the `activated` property ([#13390](https://github.com/hashicorp/terraform-provider-azurerm/issues/13390))
+* `azurerm_logic_app_workflow` - support for the `enabled` and `access_control` properties ([#13265](https://github.com/hashicorp/terraform-provider-azurerm/issues/13265))
+* `azurerm_monitor_scheduled_query_rules_alert` - support `auto_mitigation_enabled` property ([#13213](https://github.com/hashicorp/terraform-provider-azurerm/issues/13213))
+* `azurerm_machine_learning_inference_cluster` - support for the `identity` block ([#12833](https://github.com/hashicorp/terraform-provider-azurerm/issues/12833))
+* `azurerm_machine_learning_compute_cluster` - support for the `ssh_public_access_enabled enhancement` property and the `identity` and `ssh` blocks ([#12833](https://github.com/hashicorp/terraform-provider-azurerm/issues/12833))
+* `azurerm_spring_cloud_service` - support for the `connection_string` property ([#13262](https://github.com/hashicorp/terraform-provider-azurerm/issues/13262))
 
 BUG FIXES:
 
-* `azurerm_app_service_certificate_binding` - rework for removal of thumbprint from service [GH-13379]
-* `azurerm_app_service_managed_certificate`: Fix for empty `issue_date` [GH-13357]
-* `azurerm_cosmosdb_sql_container`: fix crash when deleting [GH-13339]
-* `azurerm_frontdoor` - Fix crash when cache is disabled [GH-13338]
-* `azurerm_function_app` - fix `app_settings` for `WEBSITE_CONTENTSHARE` [GH-13349]
-* `azurerm_function_app_slot` - fix `app_settings` for `WEBSITE_CONTENTSHARE` [GH-13349]
-* `azurerm_kubernetes_cluster_node_pool` - `os_sku` is now computed [GH-13321]
-* `azurerm_linux_virtual_machine_scale_set` - fixed crash when `automatic_os_policy` was nil [GH-13335]
-* `azurerm_lb` - support for adding or replacing a `frontend_ip_configuration` with an `availability_zone` [GH-13305]
-* `azurerm_virtual_hub_connection` - fixing race condition in the creation of virtual network resources [GH-13294]
+* `azurerm_app_service_certificate_binding` - rework for removal of thumbprint from service ([#13379](https://github.com/hashicorp/terraform-provider-azurerm/issues/13379))
+* `azurerm_app_service_managed_certificate`: Fix for empty `issue_date` ([#13357](https://github.com/hashicorp/terraform-provider-azurerm/issues/13357))
+* `azurerm_cosmosdb_sql_container`: fix crash when deleting ([#13339](https://github.com/hashicorp/terraform-provider-azurerm/issues/13339))
+* `azurerm_frontdoor` - Fix crash when cache is disabled ([#13338](https://github.com/hashicorp/terraform-provider-azurerm/issues/13338))
+* `azurerm_function_app` - fix `app_settings` for `WEBSITE_CONTENTSHARE` ([#13349](https://github.com/hashicorp/terraform-provider-azurerm/issues/13349))
+* `azurerm_function_app_slot` - fix `app_settings` for `WEBSITE_CONTENTSHARE` ([#13349](https://github.com/hashicorp/terraform-provider-azurerm/issues/13349))
+* `azurerm_kubernetes_cluster_node_pool` - `os_sku` is now computed ([#13321](https://github.com/hashicorp/terraform-provider-azurerm/issues/13321))
+* `azurerm_linux_virtual_machine_scale_set` - fixed crash when `automatic_os_policy` was nil ([#13335](https://github.com/hashicorp/terraform-provider-azurerm/issues/13335))
+* `azurerm_lb` - support for adding or replacing a `frontend_ip_configuration` with an `availability_zone` ([#13305](https://github.com/hashicorp/terraform-provider-azurerm/issues/13305))
+* `azurerm_virtual_hub_connection` - fixing race condition in the creation of virtual network resources ([#13294](https://github.com/hashicorp/terraform-provider-azurerm/issues/13294))
 
 
 ## 2.76.0 (September 10, 2021)
