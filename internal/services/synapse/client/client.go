@@ -138,6 +138,16 @@ func (client Client) LinkedServiceClient(workspaceName, synapseEndpointSuffix st
 	return &linkedServiceClient, nil
 }
 
+func (client Client) LibraryClient(workspaceName, synapseEndpointSuffix string) (*artifacts.LibraryClient, error) {
+	if client.synapseAuthorizer == nil {
+		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
+	}
+	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
+	libraryClient := artifacts.NewLibraryClient(endpoint)
+	libraryClient.Client.Authorizer = client.synapseAuthorizer
+	return &libraryClient, nil
+}
+
 func buildEndpoint(workspaceName string, synapseEndpointSuffix string) string {
 	return fmt.Sprintf("https://%s.%s", workspaceName, synapseEndpointSuffix)
 }

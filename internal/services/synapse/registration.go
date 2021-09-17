@@ -41,5 +41,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_synapse_workspace_security_alert_policy":    resourceSynapseWorkspaceSecurityAlertPolicy(),
 		"azurerm_synapse_workspace_vulnerability_assessment": resourceSynapseWorkspaceVulnerabilityAssessment(),
 		"azurerm_synapse_workspace_key":                      resourceSynapseWorkspaceKey(),
+		"azurerm_synapse_workspace_package":                  resourceSynapseWorkspacePackage(),
 	}
 }
