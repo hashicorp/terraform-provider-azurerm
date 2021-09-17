@@ -147,6 +147,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 			Type:                    &extensionType,
 			TypeHandlerVersion:      &typeHandlerVersion,
 			AutoUpgradeMinorVersion: &autoUpgradeMinor,
+			EnableAutomaticUpgrade:  &enableAutomaticUpgrade,
 		},
 		Tags: tags.Expand(t),
 	}
