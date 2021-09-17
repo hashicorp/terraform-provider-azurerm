@@ -341,9 +341,9 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("classifying Data Factory Trigger Schedule %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", triggerName, dataFactoryName, id.ResourceGroup, datafactory.TypeBasicTriggerTypeScheduleTrigger, *resp.Type)
 	}
 
-	d.Set("activated", scheduleTriggerProps.RuntimeState == datafactory.TriggerRuntimeStateStarted)
-
 	if scheduleTriggerProps != nil {
+		d.Set("activated", scheduleTriggerProps.RuntimeState == datafactory.TriggerRuntimeStateStarted)
+
 		if recurrence := scheduleTriggerProps.Recurrence; recurrence != nil {
 			if v := recurrence.StartTime; v != nil {
 				d.Set("start_time", v.Format(time.RFC3339))
