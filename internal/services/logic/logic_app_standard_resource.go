@@ -578,10 +578,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	identity, err := flattenLogicAppStandardIdentity(resp.Identity)
-	if err != nil {
-		return err
-	}
+	identity := flattenLogicAppStandardIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %s", err)
 	}
@@ -982,9 +979,9 @@ func flattenLogicAppStandardConnectionStrings(input map[string]*web.ConnStringVa
 	return results
 }
 
-func flattenLogicAppStandardIdentity(identity *web.ManagedServiceIdentity) ([]interface{}, error) {
+func flattenLogicAppStandardIdentity(identity *web.ManagedServiceIdentity) []interface{} {
 	if identity == nil {
-		return make([]interface{}, 0), nil
+		return make([]interface{}, 0)
 	}
 
 	principalId := ""
@@ -1003,7 +1000,7 @@ func flattenLogicAppStandardIdentity(identity *web.ManagedServiceIdentity) ([]in
 			"tenant_id":    tenantId,
 			"type":         string(identity.Type),
 		},
-	}, nil
+	}
 }
 
 func flattenLogicAppStandardSiteConfig(input *web.SiteConfig) []interface{} {
