@@ -138,6 +138,16 @@ func (client Client) LinkedServiceClient(workspaceName, synapseEndpointSuffix st
 	return &linkedServiceClient, nil
 }
 
+func (client Client) SQLScriptClient(workspaceName, synapseEndpointSuffix string) (*artifacts.SQLScriptClient, error) {
+	if client.synapseAuthorizer == nil {
+		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
+	}
+	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
+	sqlScriptClient := artifacts.NewSQLScriptClient(endpoint)
+	sqlScriptClient.Client.Authorizer = client.synapseAuthorizer
+	return &sqlScriptClient, nil
+}
+
 func buildEndpoint(workspaceName string, synapseEndpointSuffix string) string {
 	return fmt.Sprintf("https://%s.%s", workspaceName, synapseEndpointSuffix)
 }
