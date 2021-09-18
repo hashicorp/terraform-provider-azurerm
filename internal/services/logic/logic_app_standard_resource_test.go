@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -69,7 +69,7 @@ func TestAccLogicAppStandard_extensionBundle(t *testing.T) {
 	})
 }
 
-func TestAccFunctionApp_siteConfigVnetRouteAllEnabled(t *testing.T) {
+func TestAccLogicAppStandard_siteConfigVnetRouteAllEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
 
@@ -85,7 +85,7 @@ func TestAccFunctionApp_siteConfigVnetRouteAllEnabled(t *testing.T) {
 	})
 }
 
-func TestAccFunctionApp_appSettingsVnetRouteAllEnabled(t *testing.T) {
+func TestAccLogicAppStandard_appSettingsVnetRouteAllEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
 
@@ -759,7 +759,7 @@ func TestAccLogicAppStandard_dotnetVersion6(t *testing.T) {
 }
 
 func (r LogicAppStandardResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FunctionAppID(state.ID)
+	id, err := parse.LogicAppStandardID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -782,7 +782,7 @@ func (r LogicAppStandardResource) Exists(ctx context.Context, clients *clients.C
 
 func (r LogicAppStandardResource) hasExtensionBundleAppSetting(shouldExist bool) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.FunctionAppID(state.ID)
+		id, err := parse.LogicAppStandardID(state.ID)
 		if err != nil {
 			return err
 		}

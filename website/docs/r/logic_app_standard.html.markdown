@@ -198,6 +198,8 @@ The following arguments are supported:
 
 ~> **Note:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
+* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied.
+
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
 ---
