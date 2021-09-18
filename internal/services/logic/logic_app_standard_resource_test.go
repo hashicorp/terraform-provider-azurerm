@@ -1202,11 +1202,11 @@ resource "azurerm_logic_app_standard" "test" {
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  storage_account_share_name = "acctest-%[1]d-func-content"
 
   app_settings = {
     "hello"                          = "world"
     "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_storage_account.test.primary_connection_string
-    "WEBSITE_CONTENTSHARE"           = "acctest-%[1]d-func-content"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -1254,11 +1254,11 @@ resource "azurerm_logic_app_standard" "test" {
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  storage_account_share_name = azurerm_storage_share.custom.name
 
   app_settings = {
     "hello"                          = "world"
     "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_storage_account.test.primary_connection_string
-    "WEBSITE_CONTENTSHARE"           = azurerm_storage_share.custom.name
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

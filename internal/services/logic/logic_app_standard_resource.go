@@ -164,6 +164,12 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"storage_account_share_name": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
 			"version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -557,6 +563,8 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("bundle_version_range", "[1.*, 2.0.0)")
 	}
 
+	d.Set("storage_account_share_name", appSettings["WEBSITE_CONTENTSHARE"])
+
 	// Remove all the settings that are created by this resource so we don't to have to specify in app_settings
 	// block whenever we use azurerm_logic_app_standard.
 	delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
@@ -566,11 +574,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 	delete(appSettings, "AzureWebJobsDashboard")
 	delete(appSettings, "AzureWebJobsStorage")
 	delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
-
-	configSettings := expandAppSettings(d)
-	if _, ok := configSettings["WEBSITE_CONTENTSHARE"]; !ok {
-		delete(appSettings, "WEBSITE_CONTENTSHARE")
-	}
+	delete(appSettings, "WEBSITE_CONTENTSHARE")
 
 	if err = d.Set("app_settings", appSettings); err != nil {
 		return err
@@ -640,9 +644,8 @@ func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) 
 	functionVersion := d.Get("version").(string)
 
 	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
-	appSettings := expandAppSettings(d)
-	if val, ok := appSettings["WEBSITE_CONTENTSHARE"]; ok {
-		contentShare = *val
+	if _, ok := d.GetOk("storage_account_share_name"); ok {
+		contentShare = d.Get("storage_account_share_name").(string)
 	}
 
 	basicSettings := []web.NameValuePair{
