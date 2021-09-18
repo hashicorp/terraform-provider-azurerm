@@ -13,8 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
-	msiParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -804,28 +802,14 @@ func schemaLogicAppStandardIdentity() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"identity_ids": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MinItems: 1,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: msiValidate.UserAssignedIdentityID,
-					},
-				},
-
 				"type": {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.ManagedServiceIdentityTypeNone),
 						string(web.ManagedServiceIdentityTypeSystemAssigned),
-						string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
-						string(web.ManagedServiceIdentityTypeUserAssigned),
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
-
 				"principal_id": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
@@ -1013,20 +997,8 @@ func flattenLogicAppStandardIdentity(identity *web.ManagedServiceIdentity) ([]in
 		tenantId = *identity.TenantID
 	}
 
-	identityIds := make([]string, 0)
-	if identity.UserAssignedIdentities != nil {
-		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiParse.UserAssignedIdentityID(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
-		}
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"identity_ids": identityIds,
 			"principal_id": principalId,
 			"tenant_id":    tenantId,
 			"type":         string(identity.Type),
@@ -1319,17 +1291,8 @@ func expandLogicAppStandardIdentity(input []interface{}) *web.ManagedServiceIden
 	identity := input[0].(map[string]interface{})
 	identityType := web.ManagedServiceIdentityType(identity["type"].(string))
 
-	identityIds := make(map[string]*web.UserAssignedIdentity)
-	for _, id := range identity["identity_ids"].([]interface{}) {
-		identityIds[id.(string)] = &web.UserAssignedIdentity{}
-	}
-
 	managedServiceIdentity := web.ManagedServiceIdentity{
 		Type: identityType,
-	}
-
-	if managedServiceIdentity.Type == web.ManagedServiceIdentityTypeUserAssigned || managedServiceIdentity.Type == web.ManagedServiceIdentityTypeSystemAssignedUserAssigned {
-		managedServiceIdentity.UserAssignedIdentities = identityIds
 	}
 
 	return &managedServiceIdentity
