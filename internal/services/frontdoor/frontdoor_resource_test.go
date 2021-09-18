@@ -976,8 +976,14 @@ resource "azurerm_frontdoor_rules_engine" "sample_engine_config" {
     name     = "debug"
     priority = 1
 
-    rule_action {
-      response_header_actions {
+    match_condition {
+      variable = "RequestMethod"
+      operator = "Equal"
+      value    = ["GET", "POST"]
+    }
+
+    action {
+      response_header {
         header_action_type = "Append"
         header_name        = "X-TEST-HEADER"
         value              = "CORS API Rule"
@@ -989,18 +995,18 @@ resource "azurerm_frontdoor_rules_engine" "sample_engine_config" {
     name     = "origin"
     priority = 2
 
-    rule_action {
-      request_header_actions {
+    action {
+      request_header {
         header_action_type = "Overwrite"
         header_name        = "Origin"
         value              = "*"
       }
-      response_header_actions {
+      response_header {
         header_action_type = "Overwrite"
         header_name        = "Access-Control-Allow-Origin"
         value              = "*"
       }
-      response_header_actions {
+      response_header {
         header_action_type = "Overwrite"
         header_name        = "Access-Control-Allow-Credentials"
         value              = "true"
