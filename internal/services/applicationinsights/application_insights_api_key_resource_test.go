@@ -3,11 +3,11 @@ package applicationinsights_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"net/http"
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -119,17 +119,15 @@ func TestAccApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 }
 
 func (t AppInsightsAPIKey) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.Attributes["id"])
+	//id, err := azure.ParseAzureResourceID(state.Attributes["id"])
+	id, err := parse.ApiKeyID(state.Attributes["id"])
 	if err != nil {
 		return nil, err
 	}
-	keyID := id.Path["APIKeys"]
-	resGroup := id.ResourceGroup
-	appInsightsName := id.Path["components"]
 
-	resp, err := clients.AppInsights.APIKeysClient.Get(ctx, resGroup, appInsightsName, keyID)
+	resp, err := clients.AppInsights.APIKeysClient.Get(ctx, id.ResourceGroup, id.ComponentName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Application Insights API Key '%q' (resource group: '%q') does not exist", keyID, resGroup)
+		return nil, fmt.Errorf("retrieving Application Insights API Key '%s' does not exist", id)
 	}
 
 	return utils.Bool(resp.StatusCode != http.StatusNotFound), nil

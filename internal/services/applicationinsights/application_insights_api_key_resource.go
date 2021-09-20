@@ -2,6 +2,7 @@ package applicationinsights
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"log"
 	"time"
 
@@ -20,8 +21,10 @@ func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
 		Create: resourceApplicationInsightsAPIKeyCreate,
 		Read:   resourceApplicationInsightsAPIKeyRead,
 		Delete: resourceApplicationInsightsAPIKeyDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ApiKeyID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -83,35 +86,37 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights API key creation.")
 
+	appInsightsId, err := parse.ComponentID(d.Get("application_insights_id").(string))
+	if err != nil {
+		return err
+	}
 	name := d.Get("name").(string)
-	appInsightsID := d.Get("application_insights_id").(string)
 
-	id, err := azure.ParseAzureResourceID(appInsightsID)
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	appInsightsName := id.Path["components"]
+	resGroup := appInsightsId.ResourceGroup
+	appInsightsName := appInsightsId.Name
 
 	var existingAPIKeyList insights.ApplicationInsightsComponentAPIKeyListResult
 	var keyId string
 	existingAPIKeyList, err = client.List(ctx, resGroup, appInsightsName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existingAPIKeyList.Response) {
-			return fmt.Errorf("checking for presence of existing Application Insights API key list (Application Insights %q / Resource Group %q): %s", appInsightsName, resGroup, err)
+			return fmt.Errorf("checking for presence of existing Application Insights API key list %s: %+v", appInsightsId, err)
 		}
 	}
 
 	for _, existingAPIKey := range *existingAPIKeyList.Value {
-		existingAPIKeyId, err := azure.ParseAzureResourceID(*existingAPIKey.ID)
+		existingAPIKeyId, err := parse.ApiKeyID(*existingAPIKey.ID)
 		if err != nil {
 			return err
 		}
 
-		existingAppInsightsName := existingAPIKeyId.Path["components"]
+		existingAppInsightsName := existingAPIKeyId.ComponentName
 		if appInsightsName == existingAppInsightsName {
-			keyId = existingAPIKeyId.Path["apikeys"]
+			keyId = existingAPIKeyId.Name
 			break
 		}
 	}
@@ -130,8 +135,8 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 
 	apiKeyProperties := insights.APIKeyRequest{
 		Name:                  &name,
-		LinkedReadProperties:  expandApplicationInsightsAPIKeyLinkedProperties(d.Get("read_permissions").(*pluginsdk.Set), appInsightsID),
-		LinkedWriteProperties: expandApplicationInsightsAPIKeyLinkedProperties(d.Get("write_permissions").(*pluginsdk.Set), appInsightsID),
+		LinkedReadProperties:  expandApplicationInsightsAPIKeyLinkedProperties(d.Get("read_permissions").(*pluginsdk.Set), appInsightsId.ID()),
+		LinkedWriteProperties: expandApplicationInsightsAPIKeyLinkedProperties(d.Get("write_permissions").(*pluginsdk.Set), appInsightsId.ID()),
 	}
 
 	result, err := client.Create(ctx, resGroup, appInsightsName, apiKeyProperties)
@@ -153,31 +158,30 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 
 func resourceApplicationInsightsAPIKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.APIKeysClient
+	subscriptionId := meta.(*clients.Client).AppInsights.APIKeysClient.SubscriptionID
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiKeyID(d.Id())
 	if err != nil {
 		return err
 	}
 
+	appInsightsId := parse.NewComponentID(subscriptionId, id.ResourceGroup, id.ComponentName)
+
 	log.Printf("[DEBUG] Reading AzureRM Application Insights API key '%s'", id)
 
-	resGroup := id.ResourceGroup
-	appInsightsName := id.Path["components"]
-	keyID := id.Path["apikeys"]
-
-	result, err := client.Get(ctx, resGroup, appInsightsName, keyID)
+	result, err := client.Get(ctx, id.ResourceGroup, id.ComponentName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(result.Response) {
 			log.Printf("[WARN] AzureRM Application Insights API key '%s' not found, removing from state", id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on AzureRM Application Insights API key '%s': %+v", keyID, err)
+		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	d.Set("application_insights_id", fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s", client.SubscriptionID, resGroup, appInsightsName))
+	d.Set("application_insights_id", appInsightsId.ID())
 
 	d.Set("name", result.Name)
 	readProps := flattenApplicationInsightsAPIKeyLinkedProperties(result.LinkedReadProperties)
@@ -197,22 +201,19 @@ func resourceApplicationInsightsAPIKeyDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiKeyID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	appInsightsName := id.Path["components"]
-	keyID := id.Path["apikeys"]
 
-	log.Printf("[DEBUG] Deleting AzureRM Application Insights API key '%s' (resource group '%s')", keyID, resGroup)
+	log.Printf("[DEBUG] Deleting AzureRM Application Insights API key '%s'", id)
 
-	result, err := client.Delete(ctx, resGroup, appInsightsName, keyID)
+	result, err := client.Delete(ctx, id.ResourceGroup, id.ComponentName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(result.Response) {
 			return nil
 		}
-		return fmt.Errorf("issuing AzureRM delete request for Application Insights API key '%s': %+v", keyID, err)
+		return fmt.Errorf("issuing AzureRM delete request for Application Insights API key '%s': %+v", id, err)
 	}
 
 	return nil
