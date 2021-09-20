@@ -1608,7 +1608,7 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfile *compute.VirtualMachineScaleSetExtensionProfile, hasHealthExtension bool, err error) {
 	extensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
 	if len(input) == 0 {
-		return nil, false, nil
+		return extensionProfile, false, nil
 	}
 
 	extensions := make([]compute.VirtualMachineScaleSetExtension, 0)
