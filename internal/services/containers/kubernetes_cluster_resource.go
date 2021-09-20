@@ -593,7 +593,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
-				ForceNew: true,
+				ForceNew: false,
 			},
 
 			"private_dns_zone_id": {
