@@ -870,10 +870,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 			return err
 		}
 		updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
-
-		if updateProps.VirtualMachineProfile.ExtensionProfile == nil {
-			updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
-		}
+		updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 	}
 
 	if d.HasChange("tags") {
