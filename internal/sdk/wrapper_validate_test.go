@@ -30,6 +30,17 @@ func TestValidateTopLevelObjectInvalid(t *testing.T) {
 	}
 }
 
+func TestValidateTopLevelObjectInvalidInterface(t *testing.T) {
+	type Person struct {
+		Name string `tfschema:"name"`
+	}
+	var p interface{}
+	p = Person{}
+	if err := ValidateModelObject(&p); err == nil {
+		t.Fatalf("expected an error but didn't get one")
+	}
+}
+
 func TestValidateNestedObjectValid(t *testing.T) {
 	type Pet struct {
 		Name string `tfschema:"name"`

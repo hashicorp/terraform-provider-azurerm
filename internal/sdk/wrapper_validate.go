@@ -10,13 +10,18 @@ import (
 // required to be used with the Encode and Decode functions
 func ValidateModelObject(input interface{}) error {
 	if reflect.TypeOf(input).Kind() != reflect.Ptr {
-		return fmt.Errorf("need a pointer")
+		return fmt.Errorf("need a pointer to the model object")
 	}
 
 	// TODO: could we also validate that each `tfschema` tag exists in the schema?
 
 	objType := reflect.TypeOf(input).Elem()
 	objVal := reflect.ValueOf(input).Elem()
+
+	if objVal.Kind() == reflect.Interface {
+		return fmt.Errorf("cannot resolve pointer to interface")
+	}
+
 	return validateModelObjectRecursively("", objType, objVal)
 }
 

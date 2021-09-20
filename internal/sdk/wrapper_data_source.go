@@ -32,7 +32,7 @@ func (dw *DataSourceWrapper) DataSource() (*schema.Resource, error) {
 
 	modelObj := dw.dataSource.ModelObject()
 	if modelObj != nil {
-		if err := ValidateModelObject(&modelObj); err != nil {
+		if err := ValidateModelObject(modelObj); err != nil {
 			return nil, fmt.Errorf("validating model for %q: %+v", dw.dataSource.ResourceType(), err)
 		}
 	}
