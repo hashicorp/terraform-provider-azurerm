@@ -9,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -100,16 +100,14 @@ func TestAccAutomationCertificate_update(t *testing.T) {
 }
 
 func (t AutomationCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+	id, err := parse.CertificateID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	accountName := id.Path["automationAccounts"]
-	name := id.Path["certificates"]
 
-	resp, err := clients.Automation.CertificateClient.Get(ctx, id.ResourceGroup, accountName, name)
+	resp, err := clients.Automation.CertificateClient.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Automation Certificate %q (resource group: %q): %+v", name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Automation Certificate %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.CertificateProperties != nil), nil
