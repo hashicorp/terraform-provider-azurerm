@@ -191,6 +191,8 @@ A `site_config` block supports the following:
 
 * `always_on` - (Optional) Should the app be loaded at all times? Defaults to `false`.
 
+~> **NOTE:** when using an App Service Plan in the `Free` or `Shared` Tiers `always_on` must be set to `false`.
+
 * `app_command_line` - (Optional) App command line to launch, e.g. `/sbin/myserver -b 0.0.0.0`.
 
 * `cors` - (Optional) A `cors` block as defined below.

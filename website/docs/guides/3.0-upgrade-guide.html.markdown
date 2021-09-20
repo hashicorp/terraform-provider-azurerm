@@ -1,0 +1,65 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: 3.0 Upgrade Guide"
+description: |-
+Azure Resource Manager: 3.0 Upgrade Guide
+---
+
+# v3.0 of the AzureRM Provider
+
+Version 3.0 of the AzureRM Provider is a major release, which includes larger changes than the usual weekly release and takes the opportunity to make changes that are considered "breaking".
+
+
+### Pinning your Provider Version
+
+We recommend pinning the version of each Provider you use in Terraform, for example:
+
+```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.75.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
+provider "azurerm" {
+  features {}
+}
+```
+
+## What's available in Version 3.0 of the AzureRM Provider?
+
+
+## App Service
+
+App Service, aka `web`, was one of the earliest supported services in the provider and has evolved significantly over time, both as a Service and the resources within the provider. Over that time feature additions, behavioural changes, and a host of other changes have made the current resources increasingly difficult to maintain and update. We're taking the opportunity in 3.0 to rewrite this service from the ground up.    
+
+In summary this includes changes to better support the various aspects of the service. This includes the separation of the Web App into O/S specific variants. Whilst these resources are very similar, they are sufficiently different in Terraform schema that one resource for both reduced the experience of using it to one of the lowest common denominator. 
+
+### New Resource and Data Source: `azurerm_windows_web_app`
+
+This resource forms one half of the replacement of `azurerm_web_app` and is intended for Windows and Windows Container based Web Apps.
+
+### New Resource and Data Source: `azurerm_linux_web_app`
+
+This resource forms one half of the replacement of `azurerm_web_app` and is intended for Linux based Web Apps.
+
+### New Resource: `azurerm_app_service_source_control`
+
+A new meta Resource to better support the Source Control configuration of Web Apps.
+
+### New Resource and Data Source: `azurerm_service_plan`
+
+Supersedes `azurerm_app_service_plan`.
+
+~> **NOTE:** These resources are currently intended to have their names swapped in the final 3.0 release.  
+
+### New Resource and Data Source: `azurerm_source_control_token`
+Supersedes `azurerm_app_service_source_control_token`.
+
+~> **NOTE:** These resources are currently intended to have their names swapped in the final 3.0 release.
+
+Further resources and feature support will follow prior to the 3.0 release. 

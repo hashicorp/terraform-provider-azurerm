@@ -106,6 +106,27 @@ func TestAccSynapseWorkspace_azdo(t *testing.T) {
 				check.That(data.ResourceName).Key("azure_devops_repo.0.repository_name").HasValue("myrepo"),
 				check.That(data.ResourceName).Key("azure_devops_repo.0.branch_name").HasValue("dev"),
 				check.That(data.ResourceName).Key("azure_devops_repo.0.root_folder").HasValue("/"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.tenant_id").IsEmpty(),
+			),
+		},
+	})
+}
+
+func TestAccSynapseWorkspace_azdoTenant(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
+	r := SynapseWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azdoTenant(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.account_name").HasValue("myorg"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.project_name").HasValue("myproj"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.repository_name").HasValue("myrepo"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.branch_name").HasValue("dev"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.root_folder").HasValue("/"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.tenant_id").Exists(),
 			),
 		},
 	})
@@ -130,7 +151,7 @@ func TestAccSynapseWorkspace_github(t *testing.T) {
 	})
 }
 
-func TestAccSynapseWorkspace_customerManagedKey(t *testing.T) {
+func TestAccSynapseWorkspace_customerManagedKeyActivation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
 	r := SynapseWorkspaceResource{}
 
@@ -139,7 +160,7 @@ func TestAccSynapseWorkspace_customerManagedKey(t *testing.T) {
 			Config: r.customerManagedKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("customer_managed_key_versionless_id").Exists(),
+				check.That(data.ResourceName).Key("customer_managed_key.0.key_versionless_id").Exists(),
 			),
 		},
 		data.ImportStep("sql_administrator_login_password"),
@@ -273,6 +294,33 @@ resource "azurerm_synapse_workspace" "test" {
 `, template, data.RandomInteger)
 }
 
+func (r SynapseWorkspaceResource) azdoTenant(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_synapse_workspace" "test" {
+  name                                 = "acctestsw%d"
+  resource_group_name                  = azurerm_resource_group.test.name
+  location                             = azurerm_resource_group.test.location
+  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
+  sql_administrator_login              = "sqladminuser"
+  sql_administrator_login_password     = "H@Sh1CoR3!"
+
+  azure_devops_repo {
+    account_name    = "myorg"
+    project_name    = "myproj"
+    repository_name = "myrepo"
+    branch_name     = "dev"
+    root_folder     = "/"
+    tenant_id       = data.azurerm_client_config.current.tenant_id
+  }
+}
+`, template, data.RandomInteger)
+}
+
 func (r SynapseWorkspaceResource) github(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -342,7 +390,10 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
-  customer_managed_key_versionless_id  = azurerm_key_vault_key.test.versionless_id
+  customer_managed_key {
+    key_versionless_id = azurerm_key_vault_key.test.versionless_id
+  }
+
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }

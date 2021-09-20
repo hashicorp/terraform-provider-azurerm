@@ -52,7 +52,7 @@ The following arguments are supported:
 `frontend_ip_configuration` supports the following:
 
 * `name` - (Required) Specifies the name of the frontend ip configuration.
-* `availability_zone` - (Optional) A list of Availability Zones which the Load Balancer's IP Addresses should be created in. Possible values are `Zone-Redundant`, `1`, `2`, `3`, and `No-Zone`. Defaults to `Zone-Redundant`.
+* `availability_zone` - (Optional) A list of Availability Zones which the Load Balancer's IP Addresses should be created in. Possible values are `Zone-Redundant`, `1`, `2`, `3`, and `No-Zone`. Availability Zone can only be updated whenever the name of the front end ip configuration changes. Defaults to `Zone-Redundant`. 
  `No-Zones` - A `non-zonal` resource will be created and the resource will not be replicated or distributed to any Availability Zones.
 
  `1`, `2` or `3` (e.g. single Availability Zone) - A `zonal` resource will be created and will be replicate or distribute to a single specific Availability Zone. 

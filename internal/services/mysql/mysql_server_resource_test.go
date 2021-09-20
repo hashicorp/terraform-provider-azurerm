@@ -17,73 +17,6 @@ import (
 type MySQLServerResource struct {
 }
 
-func TestAccMySQLServer_basicFiveSix(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	r := MySQLServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data, "5.6"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
-func TestAccMySQLServer_basicFiveSixWithIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	r := MySQLServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicWithIdentity(data, "5.6"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
-func TestAccMySQLServer_basicFiveSixWithIdentityUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	r := MySQLServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data, "5.6"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-		{
-			Config: r.basicWithIdentity(data, "5.6"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
-func TestAccMySQLServer_basicFiveSixDeprecated(t *testing.T) { // remove in v3.0
-	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	r := MySQLServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data, "5.6"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
 func TestAccMySQLServer_basicFiveSeven(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
@@ -211,59 +144,6 @@ func TestAccMySQLServer_update(t *testing.T) {
 	})
 }
 
-func TestAccMySQLServer_completeDeprecatedMigrate(t *testing.T) { // remove in v3.0
-	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	r := MySQLServerResource{}
-	mysqlVersion := "5.6"
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.completeDeprecated(data, mysqlVersion),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-		{
-			Config: r.complete(data, mysqlVersion),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
-func TestAccMySQLServer_updateDeprecated(t *testing.T) { // remove in v3.0
-	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	r := MySQLServerResource{}
-	mysqlVersion := "5.6"
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data, mysqlVersion),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-		{
-			Config: r.completeDeprecated(data, mysqlVersion),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-		{
-			Config: r.basicDeprecated(data, mysqlVersion),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
 func TestAccMySQLServer_updateSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	r := MySQLServerResource{}
@@ -370,67 +250,6 @@ resource "azurerm_mysql_server" "test" {
   ssl_minimal_tls_version_enforced = "TLS1_1"
   storage_mb                       = 51200
   version                          = "%s"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
-}
-
-func (MySQLServerResource) basicDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_mysql_server" "test" {
-  name                = "acctestmysqlsvr-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "GP_Gen5_2"
-
-  storage_profile {
-    storage_mb = 51200
-  }
-
-  administrator_login              = "acctestun"
-  administrator_login_password     = "H@Sh1CoR3!"
-  version                          = "%s"
-  ssl_enforcement_enabled          = true
-  ssl_minimal_tls_version_enforced = "TLS1_1"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
-}
-
-func (MySQLServerResource) basicWithIdentity(data acceptance.TestData, version string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_mysql_server" "test" {
-  name                             = "acctestmysqlsvr-%d"
-  location                         = azurerm_resource_group.test.location
-  resource_group_name              = azurerm_resource_group.test.name
-  sku_name                         = "GP_Gen5_2"
-  administrator_login              = "acctestun"
-  administrator_login_password     = "H@Sh1CoR3!"
-  ssl_enforcement_enabled          = true
-  ssl_minimal_tls_version_enforced = "TLS1_1"
-  storage_mb                       = 51200
-  version                          = "%s"
-
-  identity {
-    type = "SystemAssigned"
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
@@ -560,40 +379,6 @@ resource "azurerm_mysql_server" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, version)
-}
-
-func (MySQLServerResource) completeDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_mysql_server" "test" {
-  name                = "acctestmysqlsvr-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "GP_Gen5_2"
-
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-    auto_grow             = "Enabled"
-  }
-
-  administrator_login              = "acctestun"
-  administrator_login_password     = "H@Sh1CoR3!"
-  version                          = "%s"
-  ssl_enforcement_enabled          = true
-  ssl_minimal_tls_version_enforced = "TLS1_2"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
 func (r MySQLServerResource) requiresImport(data acceptance.TestData) string {

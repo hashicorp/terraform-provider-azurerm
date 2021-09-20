@@ -209,6 +209,17 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"os_sku": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Computed: true, // defaults to Ubuntu if using Linux
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.OSSKUUbuntu),
+					string(containerservice.OSSKUCBLMariner),
+				}, false),
+			},
+
 			"os_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -353,6 +364,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
 		Count: utils.Int32(int32(count)),
+	}
+
+	if osSku := d.Get("os_sku").(string); osSku != "" {
+		profile.OsSKU = containerservice.OSSKU(osSku)
 	}
 
 	if priority == string(containerservice.ScaleSetPrioritySpot) {
@@ -760,6 +775,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		}
 		d.Set("os_disk_type", osDiskType)
 		d.Set("os_type", string(props.OsType))
+		d.Set("os_sku", string(props.OsSKU))
 		d.Set("pod_subnet_id", props.PodSubnetID)
 
 		// not returned from the API if not Spot

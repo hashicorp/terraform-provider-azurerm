@@ -64,6 +64,99 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 				ValidateFunc: validate.IntegrationServiceEnvironmentID,
 			},
 
+			"access_control": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"action": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"allowed_caller_ip_address_range": {
+										Type:     pluginsdk.TypeSet,
+										Required: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.Any(
+												validation.IsCIDR,
+												validation.IsIPv4Range,
+											),
+										},
+									},
+								},
+							},
+						},
+
+						"content": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"allowed_caller_ip_address_range": {
+										Type:     pluginsdk.TypeSet,
+										Required: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.Any(
+												validation.IsCIDR,
+												validation.IsIPv4Range,
+											),
+										},
+									},
+								},
+							},
+						},
+
+						"trigger": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"allowed_caller_ip_address_range": {
+										Type:     pluginsdk.TypeSet,
+										Required: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.Any(
+												validation.IsCIDR,
+												validation.IsIPv4Range,
+											),
+										},
+									},
+								},
+							},
+						},
+
+						"workflow_management": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"allowed_caller_ip_address_range": {
+										Type:     pluginsdk.TypeSet,
+										Required: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.Any(
+												validation.IsCIDR,
+												validation.IsIPv4Range,
+											),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"logic_app_integration_account_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -77,6 +170,12 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
+			},
+
+			"enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 
 			"workflow_schema": {
@@ -170,6 +269,11 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 	t := d.Get("tags").(map[string]interface{})
 
+	isEnabled := logic.WorkflowStateEnabled
+	if v := d.Get("enabled").(bool); !v {
+		isEnabled = logic.WorkflowStateDisabled
+	}
+
 	properties := logic.Workflow{
 		Location: utils.String(location),
 		WorkflowProperties: &logic.WorkflowProperties{
@@ -181,8 +285,13 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 				"parameters":     workflowParameters,
 			},
 			Parameters: parameters,
+			State:      isEnabled,
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("access_control"); ok {
+		properties.WorkflowProperties.AccessControl = expandLogicAppWorkflowAccessControl(v.([]interface{}))
 	}
 
 	if iseID, ok := d.GetOk("integration_service_environment_id"); ok {
@@ -260,13 +369,23 @@ func resourceLogicAppWorkflowUpdate(d *pluginsdk.ResourceData, meta interface{})
 	definition := read.WorkflowProperties.Definition.(map[string]interface{})
 	definition["parameters"] = workflowParameters
 
+	isEnabled := logic.WorkflowStateEnabled
+	if v := d.Get("enabled").(bool); !v {
+		isEnabled = logic.WorkflowStateDisabled
+	}
+
 	properties := logic.Workflow{
 		Location: utils.String(location),
 		WorkflowProperties: &logic.WorkflowProperties{
 			Definition: definition,
 			Parameters: parameters,
+			State:      isEnabled,
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("access_control"); ok {
+		properties.WorkflowProperties.AccessControl = expandLogicAppWorkflowAccessControl(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("logic_app_integration_account_id"); ok {
@@ -313,6 +432,14 @@ func resourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if props := resp.WorkflowProperties; props != nil {
 		d.Set("access_endpoint", props.AccessEndpoint)
+
+		if err := d.Set("access_control", flattenLogicAppWorkflowFlowAccessControl(props.AccessControl)); err != nil {
+			return fmt.Errorf("setting `access_control`: %+v", err)
+		}
+
+		if props.State != "" {
+			d.Set("enabled", props.State == logic.WorkflowStateEnabled)
+		}
 
 		if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Connector == nil {
 			d.Set("connector_endpoint_ip_addresses", []interface{}{})
@@ -578,6 +705,58 @@ func expandLogicAppWorkflowWorkflowParameters(input map[string]interface{}) (map
 	return output, nil
 }
 
+func expandLogicAppWorkflowAccessControl(input []interface{}) *logic.FlowAccessControlConfiguration {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+
+	result := logic.FlowAccessControlConfiguration{}
+
+	if contents := v["content"].([]interface{}); len(contents) != 0 {
+		result.Contents = expandLogicAppWorkflowAccessControlConfigurationPolicy(contents)
+	}
+
+	if actions := v["action"].([]interface{}); len(actions) != 0 {
+		result.Actions = expandLogicAppWorkflowAccessControlConfigurationPolicy(actions)
+	}
+
+	if triggers := v["trigger"].([]interface{}); len(triggers) != 0 {
+		result.Triggers = expandLogicAppWorkflowAccessControlConfigurationPolicy(triggers)
+	}
+
+	if workflowManagement := v["workflow_management"].([]interface{}); len(workflowManagement) != 0 {
+		result.WorkflowManagement = expandLogicAppWorkflowAccessControlConfigurationPolicy(workflowManagement)
+	}
+
+	return &result
+}
+
+func expandLogicAppWorkflowAccessControlConfigurationPolicy(input []interface{}) *logic.FlowAccessControlConfigurationPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+
+	result := logic.FlowAccessControlConfigurationPolicy{
+		AllowedCallerIPAddresses: expandLogicAppWorkflowIPAddressRanges(v["allowed_caller_ip_address_range"].(*pluginsdk.Set).List()),
+	}
+
+	return &result
+}
+
+func expandLogicAppWorkflowIPAddressRanges(input []interface{}) *[]logic.IPAddressRange {
+	results := make([]logic.IPAddressRange, 0)
+
+	for _, item := range input {
+		results = append(results, logic.IPAddressRange{
+			AddressRange: utils.String(item.(string)),
+		})
+	}
+
+	return &results
+}
+
 func flattenLogicAppWorkflowWorkflowParameters(input map[string]interface{}) (map[string]interface{}, error) {
 	if input == nil {
 		return nil, nil
@@ -603,4 +782,51 @@ func flattenIPAddresses(input *[]logic.IPAddress) []interface{} {
 		addresses = append(addresses, *addr.Address)
 	}
 	return addresses
+}
+
+func flattenLogicAppWorkflowFlowAccessControl(input *logic.FlowAccessControlConfiguration) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"action":              flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.Actions),
+			"content":             flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.Contents),
+			"trigger":             flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.Triggers),
+			"workflow_management": flattenLogicAppWorkflowAccessControlConfigurationPolicy(input.WorkflowManagement),
+		},
+	}
+}
+
+func flattenLogicAppWorkflowAccessControlConfigurationPolicy(input *logic.FlowAccessControlConfigurationPolicy) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]interface{})
+
+	if input.AllowedCallerIPAddresses != nil {
+		result["allowed_caller_ip_address_range"] = flattenLogicAppWorkflowIPAddressRanges(input.AllowedCallerIPAddresses)
+	}
+
+	return append(results, result)
+}
+
+func flattenLogicAppWorkflowIPAddressRanges(input *[]logic.IPAddressRange) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var addressRange string
+		if item.AddressRange != nil {
+			addressRange = *item.AddressRange
+		}
+		results = append(results, addressRange)
+	}
+
+	return results
 }
