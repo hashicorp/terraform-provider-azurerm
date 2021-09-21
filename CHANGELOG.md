@@ -3,6 +3,9 @@
 ENHANCEMENTS:
 
 * `azurerm_storage_share_file` - will now recreate and upload delete/missing files [GH-13269]
+* `azurem_automation_account` - refactoring to use an ID Formatter/Parser [GH-13419]
+* `azurem_automation_certificate` - refactoring to use an ID Formatter/Parser [GH-13419]
+* `azurem_automation_credential` - refactoring to use an ID Formatter/Parser [GH-13419]
 
 BUG FIXES:
 
