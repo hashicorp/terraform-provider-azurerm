@@ -162,7 +162,7 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 }
 
 func (r AppServiceEnvironmentV3DataSource) ModelObject() interface{} {
-	return AppServiceEnvironmentV3Model{}
+	return &AppServiceEnvironmentV3Model{}
 }
 
 func (r AppServiceEnvironmentV3DataSource) ResourceType() string {
