@@ -2,10 +2,12 @@
 
 ENHANCEMENTS:
 
+* `data.azurerm_private_endpoint_connection` - Export `network_interface` attributes from private endpoints [GH-13421]
 * `azurerm_storage_share_file` - will now recreate and upload delete/missing files [GH-13269]
 * `azurem_automation_account` - refactoring to use an ID Formatter/Parser [GH-13419]
 * `azurem_automation_certificate` - refactoring to use an ID Formatter/Parser [GH-13419]
 * `azurem_automation_credential` - refactoring to use an ID Formatter/Parser [GH-13419]
+* `azurerm_private_endpoint_connection` - Export `network_interface` attributes from private endpoints [GH-13421]
 
 BUG FIXES:
 
