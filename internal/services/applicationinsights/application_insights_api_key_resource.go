@@ -21,6 +21,7 @@ func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
 		Create: resourceApplicationInsightsAPIKeyCreate,
 		Read:   resourceApplicationInsightsAPIKeyRead,
 		Delete: resourceApplicationInsightsAPIKeyDelete,
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ApiKeyID(id)
 			return err
@@ -90,21 +91,15 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 	if err != nil {
 		return err
 	}
+
 	name := d.Get("name").(string)
-
-	if err != nil {
-		return err
-	}
-
-	resGroup := appInsightsId.ResourceGroup
-	appInsightsName := appInsightsId.Name
 
 	var existingAPIKeyList insights.ApplicationInsightsComponentAPIKeyListResult
 	var keyId string
-	existingAPIKeyList, err = client.List(ctx, resGroup, appInsightsName)
+	existingAPIKeyList, err = client.List(ctx, appInsightsId.ResourceGroup, appInsightsId.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existingAPIKeyList.Response) {
-			return fmt.Errorf("checking for presence of existing Application Insights API key list %s: %+v", appInsightsId, err)
+			return fmt.Errorf("checking for presence of existing Application Insights API key list %q (%s): %+v", name, appInsightsId, err)
 		}
 	}
 
@@ -115,17 +110,17 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 		}
 
 		existingAppInsightsName := existingAPIKeyId.ComponentName
-		if appInsightsName == existingAppInsightsName {
+		if appInsightsId.Name == existingAppInsightsName {
 			keyId = existingAPIKeyId.Name
 			break
 		}
 	}
 
 	var existing insights.ApplicationInsightsComponentAPIKey
-	existing, err = client.Get(ctx, resGroup, appInsightsName, keyId)
+	existing, err = client.Get(ctx, appInsightsId.ResourceGroup, appInsightsId.Name, keyId)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Application Insights API key %q (Resource Group %q): %s", name, resGroup, err)
+			return fmt.Errorf("checking for presence of existing Application Insights API key %q (%s): %s", name, appInsightsId, err)
 		}
 	}
 
@@ -139,13 +134,13 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 		LinkedWriteProperties: expandApplicationInsightsAPIKeyLinkedProperties(d.Get("write_permissions").(*pluginsdk.Set), appInsightsId.ID()),
 	}
 
-	result, err := client.Create(ctx, resGroup, appInsightsName, apiKeyProperties)
+	result, err := client.Create(ctx, appInsightsId.ResourceGroup, appInsightsId.Name, apiKeyProperties)
 	if err != nil {
-		return fmt.Errorf("creating Application Insights API key %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating Application Insights API key %q (%s): %+v", name, appInsightsId, err)
 	}
 
 	if result.APIKey == nil {
-		return fmt.Errorf("creating Application Insights API key %q (Resource Group %q): got empty API key", name, resGroup)
+		return fmt.Errorf("creating Application Insights API key %q (%s): got empty API key", name, appInsightsId)
 	}
 
 	d.SetId(*result.ID)

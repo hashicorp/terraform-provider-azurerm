@@ -119,7 +119,6 @@ func TestAccApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 }
 
 func (t AppInsightsAPIKey) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	//id, err := azure.ParseAzureResourceID(state.Attributes["id"])
 	id, err := parse.ApiKeyID(state.Attributes["id"])
 	if err != nil {
 		return nil, err

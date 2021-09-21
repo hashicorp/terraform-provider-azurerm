@@ -101,14 +101,14 @@ func TestAccApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 }
 
 func (t AppInsightsAnalyticsItemResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	resGroup, appInsightsName, itemScopePath, itemID, err := applicationinsights.ResourcesArmApplicationInsightsAnalyticsItemParseID(state.ID)
+	id, resGroup, appInsightsName, itemScopePath, itemID, err := applicationinsights.ResourcesArmApplicationInsightsAnalyticsItemParseID(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse ID (id: %s): %+v", state.ID, err)
+		return nil, fmt.Errorf("failed to parse id %s: %+v", state.ID, err)
 	}
 
 	resp, err := clients.AppInsights.AnalyticsItemsClient.Get(ctx, resGroup, appInsightsName, itemScopePath, itemID, "")
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Application Insights AnalyticsItem %q (resource group: %q, app insight: %s, item scope: %s): %+v", resGroup, appInsightsName, itemScopePath, itemID, err)
+		return nil, fmt.Errorf("retrieving Application Insights Analytics Item %s: %+v", id, err)
 	}
 
 	return utils.Bool(resp.StatusCode != http.StatusNotFound), nil
