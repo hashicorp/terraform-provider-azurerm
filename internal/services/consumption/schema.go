@@ -279,18 +279,6 @@ func SchemaConsumptionBudgetCommonResource() map[string]*pluginsdk.Schema {
 	}
 }
 
-func SchemaConsumptionBudgetSubscriptionDataSource() map[string]*pluginsdk.Schema {
-	subscriptionIDSchema := map[string]*pluginsdk.Schema{
-		"subscription_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.IsUUID,
-		},
-	}
-
-	return azure.MergeSchema(SchemaConsumptionBudgetCommonDataSource(), subscriptionIDSchema)
-}
-
 func SchemaConsumptionBudgetFilterDimensionElementDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
@@ -377,96 +365,6 @@ func SchemaConsumptionBudgetNotificationElementDataSource() *pluginsdk.Resource 
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
-				},
-			},
-		},
-	}
-}
-
-func SchemaConsumptionBudgetCommonDataSource() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validate.ConsumptionBudgetName(),
-		},
-
-		"amount": {
-			Type:     pluginsdk.TypeFloat,
-			Computed: true,
-		},
-
-		"filter": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"dimension": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Computed: true,
-						Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterDimensionElementDataSource()),
-						Elem:     SchemaConsumptionBudgetFilterDimensionElementDataSource(),
-					},
-					"tag": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Computed: true,
-						Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterTagElementDataSource()),
-						Elem:     SchemaConsumptionBudgetFilterTagElementDataSource(),
-					},
-					"not": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"dimension": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									Computed: true,
-									Elem:     SchemaConsumptionBudgetFilterDimensionElementDataSource(),
-								},
-								"tag": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									Computed: true,
-									Elem:     SchemaConsumptionBudgetFilterTagElementDataSource(),
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-
-		"notification": {
-			Type:     pluginsdk.TypeSet,
-			Computed: true,
-			Set:      pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElementDataSource()),
-			Elem:     SchemaConsumptionBudgetNotificationElementDataSource(),
-		},
-
-		"time_grain": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"time_period": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"start_date": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"end_date": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
 				},
 			},
 		},
