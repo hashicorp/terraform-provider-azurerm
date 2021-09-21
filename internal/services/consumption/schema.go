@@ -294,7 +294,7 @@ func SchemaConsumptionBudgetFilterDimensionElementForDataSource() *pluginsdk.Res
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
+					Type: pluginsdk.TypeString,
 				},
 			},
 		},
@@ -316,7 +316,7 @@ func SchemaConsumptionBudgetFilterTagElementForDataSource() *pluginsdk.Resource 
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
+					Type: pluginsdk.TypeString,
 				},
 			},
 		},
@@ -343,7 +343,7 @@ func SchemaConsumptionBudgetNotificationElementForDataSource() *pluginsdk.Resour
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
+					Type: pluginsdk.TypeString,
 				},
 			},
 
@@ -351,7 +351,7 @@ func SchemaConsumptionBudgetNotificationElementForDataSource() *pluginsdk.Resour
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
+					Type: pluginsdk.TypeString,
 				},
 			},
 
@@ -359,7 +359,7 @@ func SchemaConsumptionBudgetNotificationElementForDataSource() *pluginsdk.Resour
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
+					Type: pluginsdk.TypeString,
 				},
 			},
 		},
