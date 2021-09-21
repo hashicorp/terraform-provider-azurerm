@@ -9,6 +9,11 @@ import (
 // ValidateModelObject validates that the object contains the specified `tfschema` tags
 // required to be used with the Encode and Decode functions
 func ValidateModelObject(input interface{}) error {
+	if input == nil {
+		// model not used for this resource
+		return nil
+	}
+
 	if reflect.TypeOf(input).Kind() != reflect.Ptr {
 		return fmt.Errorf("need a pointer to the model object")
 	}
