@@ -46,15 +46,15 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Computed: true,
-							Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterDimensionElement()),
-							Elem:     SchemaConsumptionBudgetFilterDimensionElement(),
+							Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterDimensionElementForDataSource()),
+							Elem:     SchemaConsumptionBudgetFilterDimensionElementForDataSource(),
 						},
 						"tag": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Computed: true,
-							Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterTagElement()),
-							Elem:     SchemaConsumptionBudgetFilterTagElement(),
+							Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterTagElementForDataSource()),
+							Elem:     SchemaConsumptionBudgetFilterTagElementForDataSource(),
 						},
 						"not": {
 							Type:     pluginsdk.TypeList,
@@ -66,13 +66,13 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Computed: true,
-										Elem:     SchemaConsumptionBudgetFilterDimensionElement(),
+										Elem:     SchemaConsumptionBudgetFilterDimensionElementForDataSource(),
 									},
 									"tag": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Computed: true,
-										Elem:     SchemaConsumptionBudgetFilterTagElement(),
+										Elem:     SchemaConsumptionBudgetFilterTagElementForDataSource(),
 									},
 								},
 							},
@@ -84,8 +84,8 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 			"notification": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
-				Set:      pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElement()),
-				Elem:     SchemaConsumptionBudgetNotificationElement(),
+				Set:      pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElementForDataSource()),
+				Elem:     SchemaConsumptionBudgetNotificationElementForDataSource(),
 			},
 
 			"time_grain": {

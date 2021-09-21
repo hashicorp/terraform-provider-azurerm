@@ -279,7 +279,7 @@ func SchemaConsumptionBudgetCommonResource() map[string]*pluginsdk.Schema {
 	}
 }
 
-func SchemaConsumptionBudgetFilterDimensionElementDataSource() *pluginsdk.Resource {
+func SchemaConsumptionBudgetFilterDimensionElementForDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -295,14 +295,13 @@ func SchemaConsumptionBudgetFilterDimensionElementDataSource() *pluginsdk.Resour
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 		},
 	}
 }
 
-func SchemaConsumptionBudgetFilterTagElementDataSource() *pluginsdk.Resource {
+func SchemaConsumptionBudgetFilterTagElementForDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -318,14 +317,13 @@ func SchemaConsumptionBudgetFilterTagElementDataSource() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 		},
 	}
 }
 
-func SchemaConsumptionBudgetNotificationElementDataSource() *pluginsdk.Resource {
+func SchemaConsumptionBudgetNotificationElementForDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"enabled": {
@@ -346,7 +344,6 @@ func SchemaConsumptionBudgetNotificationElementDataSource() *pluginsdk.Resource 
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
@@ -355,7 +352,6 @@ func SchemaConsumptionBudgetNotificationElementDataSource() *pluginsdk.Resource 
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
@@ -364,7 +360,6 @@ func SchemaConsumptionBudgetNotificationElementDataSource() *pluginsdk.Resource 
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 		},
