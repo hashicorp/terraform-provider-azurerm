@@ -101,7 +101,6 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"start_date": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
 							Computed: true,
 						},
 						"end_date": {
