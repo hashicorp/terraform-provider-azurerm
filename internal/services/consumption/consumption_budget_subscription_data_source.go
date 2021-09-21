@@ -7,9 +7,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
 	subscriptionParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
 
-	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -31,54 +29,50 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 			},
 
 			"amount": {
-				Type:         pluginsdk.TypeFloat,
-				Computed:     true,
-				ValidateFunc: validation.FloatAtLeast(1.0),
+				Type:     pluginsdk.TypeFloat,
+				Computed: true,
 			},
 
 			"filter": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				MaxItems: 1,
+				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"dimension": {
-							Type:         pluginsdk.TypeSet,
-							Optional:     true,
-							Set:          pluginsdk.HashResource(SchemaConsumptionBudgetFilterDimensionElement()),
-							Elem:         SchemaConsumptionBudgetFilterDimensionElement(),
-							AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag", "filter.0.not"},
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Computed: true,
+							Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterDimensionElement()),
+							Elem:     SchemaConsumptionBudgetFilterDimensionElement(),
 						},
 						"tag": {
-							Type:         pluginsdk.TypeSet,
-							Optional:     true,
-							Set:          pluginsdk.HashResource(SchemaConsumptionBudgetFilterTagElement()),
-							Elem:         SchemaConsumptionBudgetFilterTagElement(),
-							AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag", "filter.0.not"},
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Computed: true,
+							Set:      pluginsdk.HashResource(SchemaConsumptionBudgetFilterTagElement()),
+							Elem:     SchemaConsumptionBudgetFilterTagElement(),
 						},
 						"not": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							MaxItems: 1,
+							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"dimension": {
-										Type:         pluginsdk.TypeList,
-										MaxItems:     1,
-										Optional:     true,
-										ExactlyOneOf: []string{"filter.0.not.0.tag"},
-										Elem:         SchemaConsumptionBudgetFilterDimensionElement(),
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Computed: true,
+										Elem:     SchemaConsumptionBudgetFilterDimensionElement(),
 									},
 									"tag": {
-										Type:         pluginsdk.TypeList,
-										MaxItems:     1,
-										Optional:     true,
-										ExactlyOneOf: []string{"filter.0.not.0.dimension"},
-										Elem:         SchemaConsumptionBudgetFilterTagElement(),
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Computed: true,
+										Elem:     SchemaConsumptionBudgetFilterTagElement(),
 									},
 								},
 							},
-							AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag", "filter.0.not"},
 						},
 					},
 				},
@@ -86,9 +80,7 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 
 			"notification": {
 				Type:     pluginsdk.TypeSet,
-				Required: true,
-				MinItems: 1,
-				MaxItems: 5,
+				Computed: true,
 				Set:      pluginsdk.HashResource(SchemaConsumptionBudgetNotificationElement()),
 				Elem:     SchemaConsumptionBudgetNotificationElement(),
 			},
@@ -96,36 +88,23 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 			"time_grain": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(consumption.TimeGrainTypeMonthly),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(consumption.TimeGrainTypeBillingAnnual),
-					string(consumption.TimeGrainTypeBillingMonth),
-					string(consumption.TimeGrainTypeBillingQuarter),
-					string(consumption.TimeGrainTypeAnnually),
-					string(consumption.TimeGrainTypeMonthly),
-					string(consumption.TimeGrainTypeQuarterly),
-				}, false),
+				Computed: true,
 			},
 
 			"time_period": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				MinItems: 1,
-				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"start_date": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validate.ConsumptionBudgetTimePeriodStartDate,
-							ForceNew:     true,
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							Computed: true,
 						},
 						"end_date": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IsRFC3339Time,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
 						},
 					},
 				},
