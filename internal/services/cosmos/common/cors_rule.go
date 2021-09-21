@@ -129,11 +129,11 @@ func FlattenCosmosCorsRule(input *[]documentdb.CorsPolicy) []interface{} {
 }
 
 func flattenCorsProperty(input *string) []interface{} {
-	results := make([]interface{}, 0, len(*input))
-
-	if input == nil || len(*input) == 0 {
-		return results
+	if input == nil {
+		return make([]interface{}, 0)
 	}
+
+	results := make([]interface{}, 0, len(*input))
 
 	origins := strings.Split(*input, ",")
 	for _, origin := range origins {
