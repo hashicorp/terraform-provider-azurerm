@@ -72,7 +72,17 @@ The following arguments are supported:
 
 ---
 
-A `schema_column` block supports the following:
+A `structure_column` block supports the following (Conflicts with `schema_column`):
+
+* `name` - (Required) The name of the column.
+
+* `type` - (Optional) Type of the column. Valid values are `Byte`, `Byte[]`, `Boolean`, `Date`, `DateTime`,`DateTimeOffset`, `Decimal`, `Double`, `Guid`, `Int16`, `Int32`, `Int64`, `Single`, `String`, `TimeSpan`. Please note these values are case sensitive.
+
+* `description` - (Optional) The description of the column.
+
+---
+
+A `schema_column` block supports the following (Conflicts with `structure_column`):
 
 * `name` - (Required) The name of the column.
 
