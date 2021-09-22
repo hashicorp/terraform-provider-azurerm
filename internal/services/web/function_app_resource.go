@@ -170,7 +170,7 @@ func resourceFunctionApp() *pluginsdk.Resource {
 				Computed:      true, // Remove this in 3.0
 				ForceNew:      true,
 				ValidateFunc:  storageValidate.StorageAccountName,
-				ConflictsWith: []string{"storage_connection_string"},
+				ConflictsWith: []string{"storage_connection_string", "identity"},
 			},
 
 			"storage_account_access_key": {
@@ -180,7 +180,7 @@ func resourceFunctionApp() *pluginsdk.Resource {
 				// Required: true, // Uncomment this in 3.0
 				Sensitive:     true,
 				ValidateFunc:  validation.NoZeroValues,
-				ConflictsWith: []string{"storage_connection_string"},
+				ConflictsWith: []string{"storage_connection_string", "identity"},
 			},
 
 			// TODO remove this in 3.0
@@ -191,7 +191,7 @@ func resourceFunctionApp() *pluginsdk.Resource {
 				ForceNew:      true,
 				Sensitive:     true,
 				Deprecated:    "Deprecated in favour of `storage_account_name` and `storage_account_access_key`",
-				ConflictsWith: []string{"storage_account_name", "storage_account_access_key"},
+				ConflictsWith: []string{"storage_account_name", "storage_account_access_key", "identity"},
 			},
 
 			"version": {
