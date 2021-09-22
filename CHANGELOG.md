@@ -1,5 +1,11 @@
 ## 2.78.0 (Unreleased)
 
+FEATURES: 
+
+* **New Resource:** `azurerm_synapse_sql_pool_extended_auditing_policy` [GH-12952]
+* **New Resource:** `azurerm_synapse_workspace_extended_auditing_policy` [GH-12952]
+
+
 ENHANCEMENTS:
 
 * `data.azurerm_private_endpoint_connection` - Export `network_interface` attributes from private endpoints [GH-13421]
