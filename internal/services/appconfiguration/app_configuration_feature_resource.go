@@ -154,7 +154,7 @@ func (k FeatureResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (k FeatureResource) ModelObject() interface{} {
-	return FeatureResourceModel{}
+	return &FeatureResourceModel{}
 }
 
 func (k FeatureResource) ResourceType() string {
