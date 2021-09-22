@@ -104,7 +104,7 @@ func (k KeyResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (k KeyResource) ModelObject() interface{} {
-	return KeyResourceModel{}
+	return &KeyResourceModel{}
 }
 
 func (k KeyResource) ResourceType() string {

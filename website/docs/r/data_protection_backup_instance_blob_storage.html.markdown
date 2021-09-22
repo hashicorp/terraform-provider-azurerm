@@ -43,7 +43,7 @@ resource "azurerm_role_assignment" "example" {
 resource "azurerm_data_protection_backup_policy_blob_storage" "example" {
   name                = "example-backup-policy"
   resource_group_name = azurerm_resource_group.rg.name
-  vault_name          = azurerm_data_protection_backup_vault.example.name
+  vault_id            = azurerm_data_protection_backup_vault.example.id
   retention_duration  = "P30D"
 }
 
