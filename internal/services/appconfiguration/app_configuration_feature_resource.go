@@ -261,15 +261,15 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 
 			if len(fv.Conditions.ClientFilters.Filters) > 0 {
 				for _, f := range fv.Conditions.ClientFilters.Filters {
-					switch f.(type) {
+					switch f := f.(type) {
 					case TimewindowFeatureFilter:
-						twfp := f.(TimewindowFeatureFilter)
+						twfp := f
 						model.TimewindowFilters = append(model.TimewindowFilters, twfp.Parameters)
 					case TargetingFeatureFilter:
-						tfp := f.(TargetingFeatureFilter)
+						tfp := f
 						model.TargetingFilters = append(model.TargetingFilters, tfp.Parameters.Audience)
 					case PercentageFeatureFilter:
-						pfp := f.(PercentageFeatureFilter)
+						pfp := f
 						model.PercentageFilters = append(model.PercentageFilters, pfp.Parameters)
 					default:
 						return fmt.Errorf("while unmarshaling feature payload: unknown filter type %+v", f)
