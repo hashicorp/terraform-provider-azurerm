@@ -2,6 +2,7 @@ package compute
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
@@ -359,12 +360,13 @@ func orchestratedVirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema
 					Set:      pluginsdk.HashString,
 				},
 
-				"load_balancer_inbound_nat_rules_ids": {
-					Type:     pluginsdk.TypeSet,
-					Optional: true,
-					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-					Set:      pluginsdk.HashString,
-				},
+				// Removed per service team this attribute will never be used in VMSS Flex
+				// "load_balancer_inbound_nat_rules_ids": {
+				// 	Type:     pluginsdk.TypeSet,
+				// 	Optional: true,
+				// 	Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				// 	Set:      pluginsdk.HashString,
+				// },
 
 				"primary": {
 					Type:     pluginsdk.TypeBool,
@@ -429,13 +431,14 @@ func orchestratedVirtualMachineScaleSetIPConfigurationSchemaForDataSource() *plu
 					},
 				},
 
-				"load_balancer_inbound_nat_rules_ids": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
+				// Removed per service team this attribute will never be used in VMSS Flex
+				// "load_balancer_inbound_nat_rules_ids": {
+				// 	Type:     pluginsdk.TypeList,
+				// 	Computed: true,
+				// 	Elem: &pluginsdk.Schema{
+				// 		Type: pluginsdk.TypeString,
+				// 	},
+				// },
 
 				"primary": {
 					Type:     pluginsdk.TypeBool,
@@ -765,7 +768,7 @@ func FlattenOrchestratedVirtualMachineScaleSetOSProfile(input *compute.VirtualMa
 	}
 
 	if linConfig := input.LinuxConfiguration; linConfig != nil {
-		output["linux_configuration"] = flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input)
+		output["linux_configuration"] = flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input, d)
 	}
 
 	return []interface{}{output}
@@ -950,7 +953,17 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(inp
 			osProfile.Secrets = expandLinuxSecrets(secrets)
 		}
 
-		if sshPublicKeys := ExpandSSHKeys(input["admin_ssh_key"].([]interface{})); len(sshPublicKeys) > 0 {
+		if sshPublicKeys := ExpandSSHKeys(input["admin_ssh_key"].(*pluginsdk.Set).List()); len(sshPublicKeys) > 0 {
+			if linConfig.SSH == nil {
+				linConfig.SSH = &compute.SSHConfiguration{}
+			}
+			log.Printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n****************************** sshPublicKeys ******************************\n")
+			for _, v := range sshPublicKeys {
+				log.Printf("KeyData: %s\n", *v.KeyData)
+				log.Printf("Path   : %s\n", *v.Path)
+			}
+			log.Printf("SSH    : %+v\n", linConfig.SSH)
+			log.Printf("****************************** sshPublicKeys ******************************\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 			linConfig.SSH.PublicKeys = &sshPublicKeys
 		}
 
@@ -1069,8 +1082,9 @@ func expandOrchestratedVirtualMachineScaleSetIPConfiguration(raw map[string]inte
 	loadBalancerBackendAddressPoolIdsRaw := raw["load_balancer_backend_address_pool_ids"].(*pluginsdk.Set).List()
 	loadBalancerBackendAddressPoolIds := expandIDsToSubResources(loadBalancerBackendAddressPoolIdsRaw)
 
-	loadBalancerInboundNatPoolIdsRaw := raw["load_balancer_inbound_nat_rules_ids"].(*pluginsdk.Set).List()
-	loadBalancerInboundNatPoolIds := expandIDsToSubResources(loadBalancerInboundNatPoolIdsRaw)
+	// Removed per service team this attribute will never be used in VMSS Flex
+	// loadBalancerInboundNatPoolIdsRaw := raw["load_balancer_inbound_nat_rules_ids"].(*pluginsdk.Set).List()
+	// loadBalancerInboundNatPoolIds := expandIDsToSubResources(loadBalancerInboundNatPoolIdsRaw)
 
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
@@ -1086,7 +1100,8 @@ func expandOrchestratedVirtualMachineScaleSetIPConfiguration(raw map[string]inte
 			ApplicationGatewayBackendAddressPools: applicationGatewayBackendAddressPoolIds,
 			ApplicationSecurityGroups:             applicationSecurityGroupIds,
 			LoadBalancerBackendAddressPools:       loadBalancerBackendAddressPoolIds,
-			LoadBalancerInboundNatPools:           loadBalancerInboundNatPoolIds,
+			// Removed per service team this attribute will never be used in VMSS Flex
+			// LoadBalancerInboundNatPools:           loadBalancerInboundNatPoolIds,
 		},
 	}
 
@@ -1199,8 +1214,9 @@ func expandOrchestratedVirtualMachineScaleSetIPConfigurationUpdate(raw map[strin
 	loadBalancerBackendAddressPoolIdsRaw := raw["load_balancer_backend_address_pool_ids"].(*pluginsdk.Set).List()
 	loadBalancerBackendAddressPoolIds := expandIDsToSubResources(loadBalancerBackendAddressPoolIdsRaw)
 
-	loadBalancerInboundNatPoolIdsRaw := raw["load_balancer_inbound_nat_rules_ids"].(*pluginsdk.Set).List()
-	loadBalancerInboundNatPoolIds := expandIDsToSubResources(loadBalancerInboundNatPoolIdsRaw)
+	// Removed per service team this attribute will never be used in VMSS Flex
+	// loadBalancerInboundNatPoolIdsRaw := raw["load_balancer_inbound_nat_rules_ids"].(*pluginsdk.Set).List()
+	// loadBalancerInboundNatPoolIds := expandIDsToSubResources(loadBalancerInboundNatPoolIdsRaw)
 
 	primary := raw["primary"].(bool)
 	version := compute.IPVersion(raw["version"].(string))
@@ -1217,7 +1233,8 @@ func expandOrchestratedVirtualMachineScaleSetIPConfigurationUpdate(raw map[strin
 			ApplicationGatewayBackendAddressPools: applicationGatewayBackendAddressPoolIds,
 			ApplicationSecurityGroups:             applicationSecurityGroupIds,
 			LoadBalancerBackendAddressPools:       loadBalancerBackendAddressPoolIds,
-			LoadBalancerInboundNatPools:           loadBalancerInboundNatPoolIds,
+			// Removed per service team this attribute will never be used in VMSS Flex
+			// LoadBalancerInboundNatPools:           loadBalancerInboundNatPoolIds,
 		},
 	}
 
@@ -1540,7 +1557,8 @@ func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input compute.Virt
 	applicationGatewayBackendAddressPoolIds := flattenSubResourcesToIDs(input.ApplicationGatewayBackendAddressPools)
 	applicationSecurityGroupIds := flattenSubResourcesToIDs(input.ApplicationSecurityGroups)
 	loadBalancerBackendAddressPoolIds := flattenSubResourcesToIDs(input.LoadBalancerBackendAddressPools)
-	loadBalancerInboundNatRuleIds := flattenSubResourcesToIDs(input.LoadBalancerInboundNatPools)
+	// Removed per service team this attribute will never be used in VMSS Flex
+	// loadBalancerInboundNatRuleIds := flattenSubResourcesToIDs(input.LoadBalancerInboundNatPools)
 
 	return map[string]interface{}{
 		"name":              name,
@@ -1551,7 +1569,8 @@ func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input compute.Virt
 		"application_gateway_backend_address_pool_ids": applicationGatewayBackendAddressPoolIds,
 		"application_security_group_ids":               applicationSecurityGroupIds,
 		"load_balancer_backend_address_pool_ids":       loadBalancerBackendAddressPoolIds,
-		"load_balancer_inbound_nat_rules_ids":          loadBalancerInboundNatRuleIds,
+		// Removed per service team this attribute will never be used in VMSS Flex
+		// "load_balancer_inbound_nat_rules_ids":          loadBalancerInboundNatRuleIds,
 	}
 }
 
@@ -1613,8 +1632,12 @@ func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *comput
 		output["admin_username"] = *v
 	}
 
-	if v := d.Get("admin_password").(string); v != "" {
-		output["admin_password"] = v
+	if v := d.Get("os_profile").([]interface{}); len(v) > 0 {
+		osProfile := v[0].(map[string]interface{})
+		if winConfigRaw := osProfile["windows_configuration"].([]interface{}); len(winConfigRaw) > 0 {
+			winCfg := winConfigRaw[0].(map[string]interface{})
+			output["admin_password"] = winCfg["admin_password"].(string)
+		}
 	}
 
 	if v := input.ComputerNamePrefix; v != nil {
@@ -1649,7 +1672,7 @@ func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *comput
 	return []interface{}{output}
 }
 
-func flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input *compute.VirtualMachineScaleSetOSProfile) []interface{} {
+func flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input *compute.VirtualMachineScaleSetOSProfile, d *pluginsdk.ResourceData) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -1661,9 +1684,17 @@ func flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input *compute.
 		output["admin_username"] = *v
 	}
 
-	if v := input.AdminPassword; v != nil {
-		output["admin_password"] = *v
+	if v := d.Get("os_profile").([]interface{}); len(v) > 0 {
+		osProfile := v[0].(map[string]interface{})
+		if linConfigRaw := osProfile["linux_configuration"].([]interface{}); len(linConfigRaw) > 0 {
+			linCfg := linConfigRaw[0].(map[string]interface{})
+			output["admin_password"] = linCfg["admin_password"].(string)
+		}
 	}
+
+	// if v := input.AdminPassword; v != nil {
+	// 	output["admin_password"] = *v
+	// }
 
 	if v := linConfig.SSH; v != nil {
 		if sshKeys, _ := FlattenSSHKeys(v); sshKeys != nil {

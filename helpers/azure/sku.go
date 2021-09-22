@@ -54,6 +54,10 @@ func FlattenOrchestratedVirtualMachineScaleSetSku(input *compute.Sku) (*string, 
 	if input != nil {
 		if input.Name != nil && input.Capacity != nil {
 			skuName := fmt.Sprintf("Standard_%s_%d", *input.Name, *input.Capacity)
+			if strings.HasPrefix(strings.ToLower(*input.Name), "standard") {
+				skuName = fmt.Sprintf("%s_%d", *input.Name, *input.Capacity)
+			}
+
 			return &skuName, nil
 		}
 	}
