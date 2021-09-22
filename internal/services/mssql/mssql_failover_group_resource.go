@@ -180,8 +180,7 @@ func (r MsSqlFailoverGroupResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			_, err = serversClient.Get(ctx, serverId.ResourceGroup, serverId.Name)
-			if err != nil {
+			if _, err = serversClient.Get(ctx, serverId.ResourceGroup, serverId.Name); err != nil {
 				return fmt.Errorf("retrieving %s: %+v", serverId, err)
 			}
 
@@ -361,8 +360,7 @@ func (r MsSqlFailoverGroupResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-			if err != nil {
+			if existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name); err != nil {
 				if utils.ResponseWasNotFound(existing.Response) {
 					return metadata.MarkAsGone(id)
 				}
