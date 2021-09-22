@@ -116,7 +116,8 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				Label:                model.Label,
 			}
 
-			kv, err := client.GetKeyValues(ctx, model.Name, model.Label, "", "", []string{})
+			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, model.Name)
+			kv, err := client.GetKeyValues(ctx, featureKey, model.Label, "", "", []string{})
 			if err != nil {
 				return fmt.Errorf("while checking for feature's %q existence: %+v", model.Name, err)
 			}
@@ -126,7 +127,9 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			}
 
 			err = createOrUpdateFeature(ctx, client, model)
-
+			if err != nil {
+				return fmt.Errorf("while creating feature: %+v", err)
+			}
 			if appCfgFeatureResourceID.Label == "" {
 				// We set an empty label as %00 in the resource ID
 				// Otherwise it breaks the ID parsing logic
@@ -146,6 +149,7 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
+			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, resourceID.Name)
 
 			// We set an empty label as %00 in the ID to make the ID validator happy
 			// but in reality the label is just an empty string
@@ -158,7 +162,7 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			res, err := client.GetKeyValues(ctx, resourceID.Name, resourceID.Label, "", "", []string{})
+			res, err := client.GetKeyValues(ctx, featureKey, resourceID.Label, "", "", []string{})
 			if err != nil {
 				if !utils.ResponseWasNotFound(res.Response().Response) {
 					return metadata.MarkAsGone(resourceID)
@@ -166,8 +170,8 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("while checking for key's %q existence: %+v", resourceID.Name, err)
 			}
 
-			if len(res.Values()) > 1 {
-				return fmt.Errorf("unexpected API response. More than one value returned for Key/Label pair %s/%s", resourceID.Name, resourceID.Label)
+			if len(res.Values()) > 1 || len(res.Values()) == 0 {
+				return fmt.Errorf("unexpected API response. Zero or more than one value returned for Key/Label pair %s/%s", resourceID.Name, resourceID.Label)
 			}
 
 			kv := res.Values()[0]
@@ -204,6 +208,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
+			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, resourceID.Name)
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
 			if err != nil {
@@ -217,12 +222,12 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") || metadata.ResourceData.HasChange("enabled") || metadata.ResourceData.HasChange("locked") || metadata.ResourceData.HasChange("description") {
 				// Remove the lock, if any. We will put it back again if the model says so.
-				if _, err = client.DeleteLock(ctx, resourceID.Name, resourceID.Label, "", ""); err != nil {
+				if _, err = client.DeleteLock(ctx, featureKey, resourceID.Label, "", ""); err != nil {
 					return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", resourceID.Name, resourceID.Label, err)
 				}
 				err = createOrUpdateFeature(ctx, client, model)
 				if err != nil {
-					return err
+					return fmt.Errorf("while updating feature: %+v", err)
 				}
 			}
 
@@ -236,6 +241,8 @@ func (k FeatureResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			resourceID, err := parse.FeatureId(metadata.ResourceData.Id())
+			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, resourceID.Name)
+
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
@@ -245,11 +252,20 @@ func (k FeatureResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err = client.DeleteLock(ctx, resourceID.Name, resourceID.Label, "", ""); err != nil {
+			kv, err := client.GetKeyValues(ctx, featureKey, resourceID.Label, "", "", []string{})
+			if err != nil {
+				return fmt.Errorf("while checking for feature's %q existence: %+v", resourceID.Name, err)
+			}
+			keysFound := kv.Values()
+			if len(keysFound) == 0 {
+				return nil
+			}
+
+			if _, err = client.DeleteLock(ctx, featureKey, resourceID.Label, "", ""); err != nil {
 				return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", resourceID.Name, resourceID.Label, err)
 			}
 
-			_, err = client.DeleteKeyValue(ctx, resourceID.Name, resourceID.Label, "")
+			_, err = client.DeleteKeyValue(ctx, featureKey, resourceID.Label, "")
 			if err != nil {
 				return fmt.Errorf("while removing key %q from App Configuration Store %q: %+v", resourceID.Name, resourceID.ConfigurationStoreId, err)
 			}
@@ -265,9 +281,9 @@ func (k FeatureResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 }
 
 func createOrUpdateFeature(ctx context.Context, client *appconfiguration.BaseClient, model FeatureResourceModel) error {
-	featureKey := utils.String(fmt.Sprintf("%s/%s", FeatureKeyPrefix, model.Name))
+	featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, model.Name)
 	entity := appconfiguration.KeyValue{
-		Key:         featureKey,
+		Key:         utils.String(featureKey),
 		Label:       utils.String(model.Label),
 		Tags:        tags.Expand(model.Tags),
 		ContentType: utils.String(FeatureKeyContentType),
@@ -284,16 +300,16 @@ func createOrUpdateFeature(ctx context.Context, client *appconfiguration.BaseCli
 		return fmt.Errorf("while marshalling FeatureValue struct: %+v", err)
 	}
 	entity.Value = utils.String(string(valueBytes))
-	if _, err = client.PutKeyValue(ctx, model.Name, model.Label, &entity, "", ""); err != nil {
+	if _, err = client.PutKeyValue(ctx, featureKey, model.Label, &entity, "", ""); err != nil {
 		return err
 	}
 
 	if model.Locked {
-		if _, err = client.PutLock(ctx, model.Name, model.Label, "", ""); err != nil {
+		if _, err = client.PutLock(ctx, featureKey, model.Label, "", ""); err != nil {
 			return fmt.Errorf("while locking key/label pair %s/%s: %+v", model.Name, model.Label, err)
 		}
 	} else {
-		if _, err = client.DeleteLock(ctx, model.Name, model.Label, "", ""); err != nil {
+		if _, err = client.DeleteLock(ctx, featureKey, model.Label, "", ""); err != nil {
 			return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", model.Name, model.Label, err)
 		}
 	}
