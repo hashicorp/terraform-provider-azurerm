@@ -46,13 +46,52 @@ The following arguments are supported:
 
 * `label` - (Optional) The label of the App Configuration Feature.  Changing this forces a new resource to be created.
 
+* `locked` - (Optional) Should this App Configuration Feature be Locked to prevent changes?
+
 * `name` - (Required) The name of the App Configuration Feature. Changing this foces a new resource to be crearted.
 
-* `locked` - (Optional) Should this App Configuration Feature be Locked to prevent changes?
+* `percentage_filter` - (Optional) One or more blocks of type `percentage_filter` as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `targeting_filter` - (Optional) One or more blocks of type `targeting_filter` as defined below.
+
+* `timewindow_filter` - (Optional) One or more blocks of type `timewindow_filter` as defined below.
+
 ---
+
+A `percentage_filter` block represents a feature filter of type `Microsoft.Percentage` and takes the following attributes:
+
+* `value` - (Required) A number representing the value of the percentage required to enable this feature.
+
+---
+
+A `targeting_filter` block represents a feature filter of type `Microsoft.Targeting` and takes the following attributes:
+
+* `default_rollout_percentage` - (Required) A number representing the percentage of the entire user base.
+
+* `groups` - (Optional) One or more blocks of type `groups` as defined below.
+
+* `users` - (Optional) A list of users to target for this feature.
+
+---
+
+A `groups` block represents a group that can be used in a `targeting_filter` and takes the following attributes:
+
+* `name` - (Required) The name of the group.
+
+* `rollout_percentage` - (Required) Rollout percentage of the group.
+
+---
+
+A `timewindow_filter` represents a feature filter of type `Microsoft.TimeWindow` and takes the following attributes:
+
+* `start` - (Optional) The earliest timestamp the feature is enabled. The timestamp must be in RFC3339 format.
+
+* `end` - (Optional) The latest timestamp the feature is enabled.  The timestamp must be in RFC3339 format.
+
+---
+
 ## Attributes Reference
 
 The following attributes are exported:

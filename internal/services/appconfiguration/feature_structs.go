@@ -8,6 +8,12 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
+const (
+	TargetingFilterName  = "Microsoft.Targeting"
+	TimewindowFilterName = "Microsoft.TimeWindow"
+	PercentageFilterName = "Microsoft.Percentage"
+)
+
 type ClientFilter struct {
 	Filters []interface{}
 }
@@ -104,7 +110,7 @@ type TargetingGroupParameter struct {
 }
 
 type TargetingFilterParameters struct {
-	Audience TargetingFilterAudience `json:"audience"`
+	Audience TargetingFilterAudience `json:"Audience"`
 }
 type TargetingFilterAudience struct {
 	DefaultRolloutPercentage int                       `json:"DefaultRolloutPercentage" tfschema:"default_rollout_percentage"`

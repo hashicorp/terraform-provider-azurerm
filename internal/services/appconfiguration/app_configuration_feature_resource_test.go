@@ -144,7 +144,33 @@ resource "azurerm_app_configuration_feature" "test" {
   name                   = "acctest-ackey-%d"
   label                  = "acctest-ackeylabel-%d"
   enabled                = true
+
+  percentage_filter {
+    value = 10
+  }
+
+  timewindow_filter {
+    start = "2019-11-12T07:20:50.52Z"
+    end   = "2019-11-13T07:20:50.52Z"
+  }
+
+  targeting_filter {
+    default_rollout_percentage = 39
+    users                      = ["random", "user"]
+
+    groups {
+      name               = "testgroup"
+      rollout_percentage = 50
+    }
+
+    groups {
+      name               = "testgroup2"
+      rollout_percentage = 30
+    }
+  }
 }
+
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
@@ -185,6 +211,30 @@ resource "azurerm_app_configuration_feature" "import" {
   name                   = azurerm_app_configuration_feature.test.name
   label                  = azurerm_app_configuration_feature.test.label
   enabled                = azurerm_app_configuration_feature.test.enabled
+
+  percentage_filter {
+    value = 10
+  }
+
+  timewindow_filter {
+    start = "2019-11-12T07:20:50.52Z"
+    end   = "2019-11-12T07:20:50.52Z"
+  }
+
+  targeting_filter {
+    default_rollout_percentage = 39
+    users                      = ["random", "user"]
+
+    groups {
+      name               = "testgroup"
+      rollout_percentage = 50
+    }
+
+    groups {
+      name               = "testgroup2"
+      rollout_percentage = 30
+    }
+  }
 }
 `, t.basic(data))
 }

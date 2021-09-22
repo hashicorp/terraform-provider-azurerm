@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -23,25 +24,22 @@ const (
 	FeatureKeyPrefix      = ".appconfig.featureflag"
 )
 
-type FeatureValue struct {
-	ID          string `json:"id"`
-	Description string `json:"description"`
-	Enabled     bool   `json:"enabled"`
-}
-
 type FeatureResource struct {
 }
 
 var _ sdk.ResourceWithUpdate = FeatureResource{}
 
 type FeatureResourceModel struct {
-	ConfigurationStoreId string                 `tfschema:"configuration_store_id"`
-	Description          string                 `tfschema:"description"`
-	Enabled              bool                   `tfschema:"enabled"`
-	Name                 string                 `tfschema:"name"`
-	Label                string                 `tfschema:"label"`
-	Locked               bool                   `tfschema:"locked"`
-	Tags                 map[string]interface{} `tfschema:"tags"`
+	ConfigurationStoreId string                       `tfschema:"configuration_store_id"`
+	Description          string                       `tfschema:"description"`
+	Enabled              bool                         `tfschema:"enabled"`
+	Name                 string                       `tfschema:"name"`
+	Label                string                       `tfschema:"label"`
+	Locked               bool                         `tfschema:"locked"`
+	Tags                 map[string]interface{}       `tfschema:"tags"`
+	PercentageFilters    []PercentageFilterParameters `tfschema:"percentage_filter"`
+	TimewindowFilters    []TimewindowFilterParameters `tfschema:"timewindow_filter"`
+	TargetingFilters     []TargetingFilterAudience    `tfschema:"targeting_filter"`
 }
 
 func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
@@ -80,6 +78,72 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
+		},
+		"percentage_filter": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"value": {
+						Type:     pluginsdk.TypeInt,
+						Required: true,
+					},
+				},
+			},
+		},
+		"targeting_filter": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"default_rollout_percentage": {
+						Type:     pluginsdk.TypeInt,
+						Required: true,
+					},
+
+					"groups": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+								"rollout_percentage": {
+									Type:     pluginsdk.TypeInt,
+									Required: true,
+								},
+							},
+						},
+					},
+					"users": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &schema.Schema{
+							Type: schema.TypeString,
+						},
+					},
+				},
+			},
+		},
+		"timewindow_filter": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"start": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsRFC3339Time,
+					},
+					"end": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsRFC3339Time,
+					},
+				},
+			},
 		},
 		"tags": tags.Schema(),
 	}
@@ -194,6 +258,24 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 			if kv.Locked != nil {
 				model.Locked = *kv.Locked
 			}
+
+			if len(fv.Conditions.ClientFilters.Filters) > 0 {
+				for _, f := range fv.Conditions.ClientFilters.Filters {
+					switch f.(type) {
+					case TimewindowFeatureFilter:
+						twfp := f.(TimewindowFeatureFilter)
+						model.TimewindowFilters = append(model.TimewindowFilters, twfp.Parameters)
+					case TargetingFeatureFilter:
+						tfp := f.(TargetingFeatureFilter)
+						model.TargetingFilters = append(model.TargetingFilters, tfp.Parameters.Audience)
+					case PercentageFeatureFilter:
+						pfp := f.(PercentageFeatureFilter)
+						model.PercentageFilters = append(model.PercentageFilters, pfp.Parameters)
+					default:
+						return fmt.Errorf("while unmarshaling feature payload: unknown filter type %+v", f)
+					}
+				}
+			}
 			return metadata.Encode(&model)
 		},
 		Timeout: 5 * time.Minute,
@@ -295,6 +377,34 @@ func createOrUpdateFeature(ctx context.Context, client *appconfiguration.BaseCli
 		Description: model.Description,
 		Enabled:     model.Enabled,
 	}
+
+	if len(model.PercentageFilters) > 0 {
+		for _, pf := range model.PercentageFilters {
+			value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, PercentageFeatureFilter{
+				Name:       PercentageFilterName,
+				Parameters: pf,
+			})
+		}
+	}
+
+	if len(model.TargetingFilters) > 0 {
+		for _, tgtf := range model.TargetingFilters {
+			value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, TargetingFeatureFilter{
+				Name:       TargetingFilterName,
+				Parameters: TargetingFilterParameters{Audience: tgtf},
+			})
+		}
+	}
+
+	if len(model.TimewindowFilters) > 0 {
+		for _, twf := range model.TimewindowFilters {
+			value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, TimewindowFeatureFilter{
+				Name:       TimewindowFilterName,
+				Parameters: twf,
+			})
+		}
+	}
+
 	valueBytes, err := json.Marshal(value)
 	if err != nil {
 		return fmt.Errorf("while marshalling FeatureValue struct: %+v", err)
