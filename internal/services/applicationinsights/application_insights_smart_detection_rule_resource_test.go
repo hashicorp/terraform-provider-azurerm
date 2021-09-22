@@ -28,6 +28,7 @@ func TestAccApplicationInsightsSmartDetectionRule_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -94,6 +95,10 @@ func TestAccApplicationInsightsSmartDetectionRule_longDependencyDuration(t *test
 	})
 }
 
+// A requires import test isn't possible here due to the behaviour of app insights. When a new app insights instance is
+// created all the smart detection rules are created with it and are set to enabled. They cannot be deleted, only disabled -
+// but this still causes issues when the resource performs a d.IsNewResource() check, where the tf.ImportAsExistsError is thrown.
+
 func (t AppInsightsSmartDetectionRule) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SmartDetectionRuleID(state.Attributes["id"])
 	if err != nil {
@@ -102,7 +107,7 @@ func (t AppInsightsSmartDetectionRule) Exists(ctx context.Context, clients *clie
 
 	resp, err := clients.AppInsights.SmartDetectionRuleClient.Get(ctx, id.ResourceGroup, id.ComponentName, id.SmartDetectionRuleName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Application Insights Smart Detection Rule '%q' does not exist", id.String())
+		return nil, fmt.Errorf("retrieving Application Insights Smart Detection Rule '%s' does not exist", id)
 	}
 
 	return utils.Bool(resp.StatusCode != http.StatusNotFound), nil
