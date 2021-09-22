@@ -74,13 +74,13 @@ func resourceSynapseSqlScript() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"type": {
 							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(artifacts.SQLConnectionTypeSQLOnDemand),
 								string(artifacts.SQLConnectionTypeSQLPool),
@@ -94,6 +94,9 @@ func resourceSynapseSqlScript() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(artifacts.SQLQuery),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(artifacts.SQLQuery),
+				}, false),
 			},
 		},
 	}
@@ -189,7 +192,9 @@ func resourceSynapseSqlScriptRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("type", props.Type)
 		if content := props.Content; content != nil {
 			d.Set("query", content.Query)
-			d.Set("sql_connection", flattenSynapseSqlScript(content.CurrentConnection))
+			if err := d.Set("sql_connection", flattenSynapseSqlScript(content.CurrentConnection)); err != nil {
+				return fmt.Errorf("setting `sql_connection`: %+v", err)
+			}
 			if content.Metadata != nil {
 				d.Set("language", content.Metadata.Language)
 			}
