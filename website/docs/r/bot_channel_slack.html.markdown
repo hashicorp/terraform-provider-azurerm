@@ -56,6 +56,8 @@ The following arguments are supported:
 
 * `verification_token` - (Required) The Verification Token that will be used to authenticate with Slack.
 
+* `signing_secret` - (Optional) The Signing Secret that will be used to sign the requests.
+
 * `landing_page_url` - (Optional) The Slack Landing Page URL.
 
 
