@@ -56,7 +56,7 @@ func testAccBotChannelSlack_complete(t *testing.T) {
 
 func testAccBotChannelSlack_update(t *testing.T) {
 	if ok := skipSlackChannel(); ok {
-		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, `ARM_TEST_SLACK_VERIFICATION_TOKEN`, or `ARM_TEST_SLACK_SIGNING_SECRET` was not specified")
+		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, or `ARM_TEST_SLACK_VERIFICATION_TOKEN` was not specified")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
 	r := BotChannelSlackResource{}
