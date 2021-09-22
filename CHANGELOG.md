@@ -13,6 +13,7 @@ BUG FIXES:
 
 * Data Source: `azurerm_app_service_certificate` - prevent panics if the API returns a nil `issue_date` or `expiration_date` [GH-13401]
 * `azurerm_app_service_certificate` - prevent panics if the API returns a nil `issue_date` or `expiration_date` [GH-13401]
+* `azurerm_app_service_certificate_binding` - reverted a change that introduced a bug in certificate selection for non-managed certificates [GH-13455]
 
 ## 2.77.0 (September 17, 2021)
 
