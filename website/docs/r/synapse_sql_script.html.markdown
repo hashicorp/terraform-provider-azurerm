@@ -84,15 +84,15 @@ The following arguments are supported:
 
 * `sql_connection` - (Optional) A `sql_connection` block as defined below.
 
-* `type` - (Optional) The type of the Synapse SQL script. Possible values include: `SQLQuery` .
+* `type` - (Optional) The type of the Synapse SQL script. Possible values include: `SQLQuery`. Defaults to `SQLQuery`.
 
 ---
 
 A `sql_connection` block supports the following:
 
-* `name` - (Optional) The name which should be used for this connection.
+* `name` - (Required) The name which should be used for this connection.
 
-* `type` - (Optional) The type of the connection. Possible values include: `SQLConnectionTypeSQLOnDemand`, `SQLConnectionTypeSQLPool`.
+* `type` - (Required) The type of the connection. Possible values include: `SQLConnectionTypeSQLOnDemand`, `SQLConnectionTypeSQLPool`.
 
 ## Attributes Reference
 
