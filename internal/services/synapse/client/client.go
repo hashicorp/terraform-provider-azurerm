@@ -138,6 +138,16 @@ func (client Client) LinkedServiceClient(workspaceName, synapseEndpointSuffix st
 	return &linkedServiceClient, nil
 }
 
+func (client Client) SparkJobDefinitionClient(workspaceName, synapseEndpointSuffix string) (*artifacts.SparkJobDefinitionClient, error) {
+	if client.synapseAuthorizer == nil {
+		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
+	}
+	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
+	sparkJobDefinitionClient := artifacts.NewSparkJobDefinitionClient(endpoint)
+	sparkJobDefinitionClient.Client.Authorizer = client.synapseAuthorizer
+	return &sparkJobDefinitionClient, nil
+}
+
 func buildEndpoint(workspaceName string, synapseEndpointSuffix string) string {
 	return fmt.Sprintf("https://%s.%s", workspaceName, synapseEndpointSuffix)
 }
