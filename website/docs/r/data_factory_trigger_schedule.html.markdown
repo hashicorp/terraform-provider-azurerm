@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `frequency` - (Optional) The trigger frequency. Valid values include `Minute`, `Hour`, `Day`, `Week`, `Month`. Defaults to `Minute`.
 
+* `activated` - (Optional) Specifies if the Data Factory Schedule Trigger is activated. Defaults to `true`.
+
 * `pipeline_parameters` - (Optional) The pipeline parameters that the trigger will act upon.
 
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Schedule Trigger.

@@ -838,7 +838,9 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 		d.Set("network_acl_bypass_for_azure_services", props.NetworkACLBypass == documentdb.NetworkACLBypassAzureServices)
 		d.Set("network_acl_bypass_ids", utils.FlattenStringSlice(props.NetworkACLBypassResourceIds))
-		d.Set("local_authentication_disabled", props.DisableLocalAuth)
+		if v := resp.DisableLocalAuth; v != nil {
+			d.Set("local_authentication_disabled", props.DisableLocalAuth)
+		}
 
 		policy, err := flattenCosmosdbAccountBackup(props.BackupPolicy)
 		if err != nil {

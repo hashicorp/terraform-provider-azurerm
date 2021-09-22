@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/files"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/files"
 )
 
 func resourceStorageShareFile() *pluginsdk.Resource {
@@ -287,7 +287,9 @@ func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	props, err := client.GetProperties(ctx, id.AccountName, id.ShareName, id.DirectoryName, id.FileName)
 	if err != nil {
-		return fmt.Errorf("retrieving Storage Share %q (File Share %q / Account %q / Resource Group %q): %s", id.DirectoryName, id.ShareName, id.AccountName, account.ResourceGroup, err)
+		log.Printf("Retrieving Storage File Share file %q (Directory %q / File Share %q / Account %q / Resource Group %q): %s", id.FileName, id.DirectoryName, id.ShareName, id.AccountName, account.ResourceGroup, err)
+		d.SetId("")
+		return nil
 	}
 
 	d.Set("name", id.FileName)

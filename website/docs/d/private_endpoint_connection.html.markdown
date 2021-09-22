@@ -38,6 +38,16 @@ The following attributes are exported:
 
 * `location` - The supported Azure location where the resource exists.
 
+---
+
+A `network_interface` block exports:
+
+* `id` - The ID of the network interface associated with the private endpoint.
+
+* `name` - The name of the network interface associated with the private endpoint.
+
+---
+
 A `private_service_connection` block exports the following:
 
 * `name` - The name of the private endpoint.

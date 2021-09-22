@@ -128,12 +128,21 @@ The following arguments are supported:
 
 ~> **NOTE:** When creating or attaching a cluster, if the cluster will be used for production (`cluster_purpose = "FastProd"`), then it must contain at least 12 virtual CPUs. The number of virtual CPUs can be calculated by multiplying the number of nodes in the cluster by the number of cores provided by the VM size selected. For example, if you use a VM size of "Standard_D3_v2", which has 4 virtual cores, then you should select 3 or greater as the number of nodes.
 
-* `description` - (Optional) The description of the Machine Learning compute. Changing this forces a new Machine Learning Inference Cluster to be created.
+* `description` - (Optional) The description of the Machine Learning Inference Cluster. Changing this forces a new Machine Learning Inference Cluster to be created.
+
+* `identity` - (Optional) A `identity` block as defined below. Changing this forces a new Machine Learning Inference Cluster to be created.
 
 * `ssl` - (Optional) A `ssl` block as defined below. Changing this forces a new Machine Learning Inference Cluster to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning Inference Cluster. Changing this forces a new Machine Learning Inference Cluster to be created.
 
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) The Type of Identity which should be used for this Machine Learning Inference Cluster. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned,UserAssigned`. Changing this forces a new Machine Learning Inference Cluster to be created.
+
+* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Machine Learning Inference Cluster. Changing this forces a new Machine Learning Inference Cluster to be created.
 
 ---
 
@@ -154,6 +163,16 @@ A `ssl` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Machine Learning Inference Cluster.
+
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Machine Learning Inference Cluster.
+
+---
+
+A `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Machine Learning Inference Cluster.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Machine Learning Inference Cluster.
 
 ## Timeouts
 

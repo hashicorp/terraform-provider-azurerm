@@ -27,7 +27,6 @@ func TestAccAppServiceCertificateBinding_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("thumbprint").Exists(),
 				check.That(data.ResourceName).Key("ssl_state").HasValue("IpBasedEnabled"),
 			),
 		},
@@ -47,7 +46,6 @@ func TestAccAppServiceCertificateBinding_basicSniEnabled(t *testing.T) {
 		{
 			Config: r.basicSniEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("thumbprint").Exists(),
 				check.That(data.ResourceName).Key("ssl_state").HasValue("SniEnabled"),
 			),
 		},
@@ -67,7 +65,6 @@ func TestAccAppServiceCertificateBinding_requiresImport(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("thumbprint").Exists(),
 				check.That(data.ResourceName).Key("ssl_state").HasValue("IpBasedEnabled"),
 			),
 		},
@@ -96,16 +93,10 @@ func (t AppServiceCertificateBindingResource) Exists(ctx context.Context, client
 		return nil, fmt.Errorf("retrieving App Service Certificate %q (resource group %q) to check for Certificate Binding: %+v", id.CertificateId.Name, id.CertificateId.ResourceGroup, err)
 	}
 	bindingProps := binding.HostNameBindingProperties
-	if bindingProps == nil || bindingProps.Thumbprint == nil {
+	if bindingProps == nil || bindingProps.SslState == "" {
 		return utils.Bool(false), nil
 	}
-	certProps := certificate.CertificateProperties
-	if certProps == nil || certProps.Thumbprint == nil {
-		return nil, fmt.Errorf("reading Certificate thumbprint for verification on binding")
-	}
-	if *certProps.Thumbprint != *bindingProps.Thumbprint {
-		return utils.Bool(false), nil
-	}
+
 	return utils.Bool(true), nil
 }
 

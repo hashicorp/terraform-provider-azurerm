@@ -15,12 +15,12 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/containers"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/filesystems"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/paths"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/directories"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/files"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/entities"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/tables"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/directories"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/files"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares"
 )
 
 type Client struct {

@@ -1,6 +1,7 @@
 package features
 
 type UserFeatures struct {
+	ApiManagement          ApiManagementFeatures
 	CognitiveAccount       CognitiveAccountFeatures
 	VirtualMachine         VirtualMachineFeatures
 	VirtualMachineScaleSet VirtualMachineScaleSetFeatures
@@ -45,4 +46,8 @@ type LogAnalyticsWorkspaceFeatures struct {
 
 type ResourceGroupFeatures struct {
 	PreventDeletionIfContainsResources bool
+}
+
+type ApiManagementFeatures struct {
+	PurgeSoftDeleteOnDestroy bool
 }
