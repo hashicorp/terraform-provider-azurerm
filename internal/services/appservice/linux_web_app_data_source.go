@@ -52,7 +52,7 @@ type LinuxWebAppDataSourceModel struct {
 var _ sdk.DataSource = LinuxWebAppDataSource{}
 
 func (r LinuxWebAppDataSource) ModelObject() interface{} {
-	return LinuxWebAppDataSourceModel{}
+	return &LinuxWebAppDataSourceModel{}
 }
 
 func (r LinuxWebAppDataSource) ResourceType() string {
