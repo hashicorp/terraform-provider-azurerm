@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,8 +31,10 @@ func resourceBackupProtectionPolicyFileShare() *pluginsdk.Resource {
 		Update: resourceBackupProtectionPolicyFileShareCreateUpdate,
 		Delete: resourceBackupProtectionPolicyFileShareDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.BackupPolicyID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -339,30 +342,26 @@ func resourceBackupProtectionPolicyFileShareRead(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BackupPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	policyName := id.Path["backupPolicies"]
-	vaultName := id.Path["vaults"]
-	resourceGroup := id.ResourceGroup
+	log.Printf("[DEBUG] Reading Recovery Service Protection Policy %q (resource group %q)", id.Name, id.ResourceGroup)
 
-	log.Printf("[DEBUG] Reading Recovery Service Protection Policy %q (resource group %q)", policyName, resourceGroup)
-
-	resp, err := client.Get(ctx, vaultName, resourceGroup, policyName)
+	resp, err := client.Get(ctx, id.VaultName, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
+		return fmt.Errorf("making Read request on Recovery Service Protection Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", policyName)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("recovery_vault_name", vaultName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("recovery_vault_name", id.VaultName)
 
 	if properties, ok := resp.Properties.AsAzureFileShareProtectionPolicy(); ok && properties != nil {
 		d.Set("timezone", properties.TimeZone)
@@ -416,25 +415,21 @@ func resourceBackupProtectionPolicyFileShareDelete(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BackupPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	policyName := id.Path["backupPolicies"]
-	resourceGroup := id.ResourceGroup
-	vaultName := id.Path["vaults"]
+	log.Printf("[DEBUG] Deleting Recovery Service Protection Policy %q (resource group %q)", id.Name, id.ResourceGroup)
 
-	log.Printf("[DEBUG] Deleting Recovery Service Protection Policy %q (resource group %q)", policyName, resourceGroup)
-
-	resp, err := client.Delete(ctx, vaultName, resourceGroup, policyName)
+	resp, err := client.Delete(ctx, id.VaultName, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("issuing delete request for Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
+			return fmt.Errorf("issuing delete request for Recovery Service Protection Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
-	if _, err := resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx, client, vaultName, resourceGroup, policyName, d); err != nil {
+	if _, err := resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx, client, id.VaultName, id.ResourceGroup, id.Name, d); err != nil {
 		return err
 	}
 

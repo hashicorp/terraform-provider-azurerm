@@ -1915,7 +1915,7 @@ resource "azurerm_linux_web_app" "test" {
 
   site_config {
     application_stack {
-      dotnet_framework_version = "%s"
+      dotnet_version = "%s"
     }
   }
 }

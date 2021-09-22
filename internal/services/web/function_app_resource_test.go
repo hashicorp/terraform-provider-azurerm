@@ -33,10 +33,6 @@ func TestAccFunctionApp_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -221,7 +217,7 @@ func TestAccFunctionApp_linuxFxVersion(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				acceptance.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,linux,container"),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|(golang:latest)"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|golang:latest"),
 			),
 		},
 		data.ImportStep(),
@@ -238,36 +234,34 @@ func TestAccFunctionApp_connectionStrings(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("connection_string.#").HasValue("1"),
-				check.That(data.ResourceName).Key("connection_string.163594034.name").HasValue("Example"),
-				check.That(data.ResourceName).Key("connection_string.163594034.type").HasValue("PostgreSQL"),
-				check.That(data.ResourceName).Key("connection_string.163594034.value").HasValue("some-postgresql-connection-string"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-// TODO - Refactor this into more granular tests - currently fails due to race condition in a `ForceNew` step when changed to `kind = linux`
 func TestAccFunctionApp_siteConfigMulti(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicLinux(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("0"),
 			),
 		},
+		data.ImportStep(),
 		{
-			Config: r.appSettings(data),
+			Config: r.appSettingsLinux(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("1"),
 				check.That(data.ResourceName).Key("app_settings.hello").HasValue("world"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.appSettingsAlwaysOn(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -277,6 +271,7 @@ func TestAccFunctionApp_siteConfigMulti(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.always_on").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.appSettingsAlwaysOnLinuxFxVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -285,9 +280,10 @@ func TestAccFunctionApp_siteConfigMulti(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("1"),
 				check.That(data.ResourceName).Key("app_settings.hello").HasValue("world"),
 				check.That(data.ResourceName).Key("site_config.0.always_on").HasValue("true"),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|(golang:latest)"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|golang:latest"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.appSettingsAlwaysOnLinuxFxVersionConnectionStrings(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -296,12 +292,10 @@ func TestAccFunctionApp_siteConfigMulti(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("1"),
 				check.That(data.ResourceName).Key("app_settings.hello").HasValue("world"),
 				check.That(data.ResourceName).Key("site_config.0.always_on").HasValue("true"),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|(golang:latest)"),
-				check.That(data.ResourceName).Key("connection_string.163594034.name").HasValue("Example"),
-				check.That(data.ResourceName).Key("connection_string.163594034.type").HasValue("PostgreSQL"),
-				check.That(data.ResourceName).Key("connection_string.163594034.value").HasValue("some-postgresql-connection-string"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|golang:latest"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -1138,6 +1132,52 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
+func (r FunctionAppResource) basicLinux(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  kind                = "Linux"
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+
+  reserved = true
+}
+
+
+resource "azurerm_function_app" "test" {
+  name                       = "acctest-%[1]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  os_type                    = "linux"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
 func (r FunctionAppResource) withSourceControl(data acceptance.TestData, branch string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1379,6 +1419,55 @@ resource "azurerm_function_app" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
+func (r FunctionAppResource) appSettingsLinux(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  kind                = "Linux"
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+
+  reserved = true
+}
+
+
+resource "azurerm_function_app" "test" {
+  name                       = "acctest-%[1]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  os_type                    = "linux"
+
+  app_settings = {
+    "hello" = "world"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
 
 func (r FunctionAppResource) appSettingsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
@@ -1561,7 +1650,7 @@ resource "azurerm_function_app" "test" {
   os_type                    = "linux"
 
   site_config {
-    linux_fx_version = "DOCKER|(golang:latest)"
+    linux_fx_version = "DOCKER|golang:latest"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -1636,13 +1725,17 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%[1]d"
   location            = azurerm_resource_group.test.location
+  kind                = "Linux"
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
     size = "S1"
   }
+
+  reserved = true
 }
+
 
 resource "azurerm_function_app" "test" {
   name                       = "acctest-%[1]d-func"
@@ -1651,6 +1744,7 @@ resource "azurerm_function_app" "test" {
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  os_type                    = "linux"
 
   app_settings = {
     "hello" = "world"
@@ -1704,6 +1798,7 @@ resource "azurerm_function_app" "test" {
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  os_type                    = "linux"
 
   app_settings = {
     "hello" = "world"
@@ -1711,7 +1806,7 @@ resource "azurerm_function_app" "test" {
 
   site_config {
     always_on        = true
-    linux_fx_version = "DOCKER|(golang:latest)"
+    linux_fx_version = "DOCKER|golang:latest"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -1758,6 +1853,7 @@ resource "azurerm_function_app" "test" {
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  os_type                    = "linux"
 
   app_settings = {
     "hello" = "world"
@@ -1765,7 +1861,7 @@ resource "azurerm_function_app" "test" {
 
   site_config {
     always_on        = true
-    linux_fx_version = "DOCKER|(golang:latest)"
+    linux_fx_version = "DOCKER|golang:latest"
   }
 
   connection_string {

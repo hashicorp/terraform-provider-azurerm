@@ -182,17 +182,17 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 	if d.IsNewResource() {
 		endpoints = append(endpoints, storageContainerEndpoint)
 	} else if !alreadyExists {
-		return fmt.Errorf("unable to find %s", id.String())
+		return fmt.Errorf("unable to find %s", id)
 	}
 	routing.Endpoints.StorageContainers = &endpoints
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id.String(), err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id.String(), err)
+		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -284,11 +284,11 @@ func resourceIotHubEndpointStorageContainerDelete(d *pluginsdk.ResourceData, met
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
 	if err != nil {
-		return fmt.Errorf("updating %s: %+v", id.String(), err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for %s to finish updating: %+v", id.String(), err)
+		return fmt.Errorf("waiting for %s to finish updating: %+v", id, err)
 	}
 
 	return nil

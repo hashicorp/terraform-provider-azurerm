@@ -10,7 +10,7 @@ description: |-
 
 Manages an App Service Web App or Function App Source Control Configuration.
 
-~> **NOTE:** This is a 3.0 Beta resource, please see the [3.0 Beta guide](https://github.com/hashicorp/terraform-provider-azurerm/blob/f/main/website/docs/guides/3.0-beta.html.markdown) for more information on enabling and using this resource.
+!> **NOTE:** This is a 3.0 Beta resource, please see the [3.0 Beta guide](guides/3.0-beta.html.markdown) for more information on enabling and using this resource.
 
 ## Example Usage
 

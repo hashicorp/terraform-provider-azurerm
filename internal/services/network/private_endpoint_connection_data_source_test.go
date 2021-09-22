@@ -19,6 +19,8 @@ func TestAccDataSourcePrivateEndpointConnection_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("network_interface.0.id").Exists(),
+				check.That(data.ResourceName).Key("network_interface.0.name").Exists(),
 				check.That(data.ResourceName).Key("private_service_connection.0.status").HasValue("Approved"),
 			),
 		},

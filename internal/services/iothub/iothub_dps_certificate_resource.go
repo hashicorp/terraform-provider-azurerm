@@ -138,16 +138,16 @@ func resourceIotHubDPSCertificateDelete(d *pluginsdk.ResourceData, meta interfac
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", id.String(), err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	if resp.Etag == nil {
-		return fmt.Errorf("deleting  %s because Etag is nil", id.String())
+		return fmt.Errorf("deleting  %s because Etag is nil", id)
 	}
 
 	// TODO address this delete call if https://github.com/Azure/azure-rest-api-specs/pull/6311 get's merged
 	if _, err := client.Delete(ctx, id.ResourceGroup, *resp.Etag, id.ProvisioningServiceName, id.CertificateName, "", nil, nil, iothub.ServerAuthentication, nil, nil, nil, ""); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id.String(), err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 	return nil
 }

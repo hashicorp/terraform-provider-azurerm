@@ -213,7 +213,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(containerservice.OSSKUUbuntu),
+				Computed: true, // defaults to Ubuntu if using Linux
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerservice.OSSKUUbuntu),
 					string(containerservice.OSSKUCBLMariner),
@@ -341,7 +341,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	evictionPolicy := d.Get("eviction_policy").(string)
 	mode := containerservice.AgentPoolMode(d.Get("mode").(string))
 	osType := d.Get("os_type").(string)
-	osSku := d.Get("os_sku").(string)
 	priority := d.Get("priority").(string)
 	spotMaxPrice := d.Get("spot_max_price").(float64)
 	t := d.Get("tags").(map[string]interface{})
@@ -350,7 +349,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	profile := containerservice.ManagedClusterAgentPoolProfileProperties{
 		OsType:                 containerservice.OSType(osType),
-		OsSKU:                  containerservice.OSSKU(osSku),
 		EnableAutoScaling:      utils.Bool(enableAutoScaling),
 		EnableFIPS:             utils.Bool(d.Get("fips_enabled").(bool)),
 		EnableUltraSSD:         utils.Bool(d.Get("ultra_ssd_enabled").(bool)),
@@ -366,6 +364,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
 		Count: utils.Int32(int32(count)),
+	}
+
+	if osSku := d.Get("os_sku").(string); osSku != "" {
+		profile.OsSKU = containerservice.OSSKU(osSku)
 	}
 
 	if priority == string(containerservice.ScaleSetPrioritySpot) {

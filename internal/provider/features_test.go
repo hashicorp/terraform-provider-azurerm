@@ -18,6 +18,9 @@ func TestExpandFeatures(t *testing.T) {
 			Name:  "Empty Block",
 			Input: []interface{}{},
 			Expected: features.UserFeatures{
+				ApiManagement: features.ApiManagementFeatures{
+					PurgeSoftDeleteOnDestroy: false,
+				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 				},
@@ -52,6 +55,11 @@ func TestExpandFeatures(t *testing.T) {
 			Name: "Complete Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
+					"api_management": []interface{}{
+						map[string]interface{}{
+							"purge_soft_delete_on_destroy": true,
+						},
+					},
 					"cognitive_account": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy": true,
@@ -99,6 +107,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 			},
 			Expected: features.UserFeatures{
+				ApiManagement: features.ApiManagementFeatures{
+					PurgeSoftDeleteOnDestroy: true,
+				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 				},
@@ -133,6 +144,11 @@ func TestExpandFeatures(t *testing.T) {
 			Name: "Complete Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
+					"api_management": []interface{}{
+						map[string]interface{}{
+							"purge_soft_delete_on_destroy": false,
+						},
+					},
 					"cognitive_account": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy": false,
@@ -180,6 +196,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 			},
 			Expected: features.UserFeatures{
+				ApiManagement: features.ApiManagementFeatures{
+					PurgeSoftDeleteOnDestroy: false,
+				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: false,
 				},
@@ -217,6 +236,71 @@ func TestExpandFeatures(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result, testCase.Expected) {
 			t.Fatalf("Expected %+v but got %+v", result, testCase.Expected)
+		}
+	}
+}
+
+func TestExpandFeaturesApiManagement(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"api_management": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				ApiManagement: features.ApiManagementFeatures{
+					PurgeSoftDeleteOnDestroy: false,
+				},
+			},
+		},
+		{
+			Name: "Purge Soft Delete On Destroy Api Management Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"api_management": []interface{}{
+						map[string]interface{}{
+							"purge_soft_delete_on_destroy": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				ApiManagement: features.ApiManagementFeatures{
+					PurgeSoftDeleteOnDestroy: true,
+				},
+			},
+		},
+		{
+			Name: "Purge Soft Delete On Destroy Api Management Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"api_management": []interface{}{
+						map[string]interface{}{
+							"purge_soft_delete_on_destroy": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				ApiManagement: features.ApiManagementFeatures{
+					PurgeSoftDeleteOnDestroy: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.ApiManagement, testCase.Expected.ApiManagement) {
+			t.Fatalf("Expected %+v but got %+v", result.ApiManagement, testCase.Expected.ApiManagement)
 		}
 	}
 }

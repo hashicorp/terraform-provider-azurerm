@@ -981,6 +981,28 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
+	// Purge the soft deleted Api Management permanently if the feature flag is enabled
+	if meta.(*clients.Client).Features.ApiManagement.PurgeSoftDeleteOnDestroy {
+		log.Printf("[DEBUG] Api Management %q marked for purge - executing purge", id)
+		deletedServicesClient := meta.(*clients.Client).ApiManagement.DeletedServicesClient
+		_, err := deletedServicesClient.GetByName(ctx, id.ServiceName, azure.NormalizeLocation(d.Get("location").(string)))
+		if err != nil {
+			return err
+		}
+		future, err := deletedServicesClient.Purge(ctx, id.ServiceName, azure.NormalizeLocation(d.Get("location").(string)))
+		if err != nil {
+			return err
+		}
+
+		log.Printf("[DEBUG] Waiting for purge of Api Management %q..", id)
+		err = future.WaitForCompletionRef(ctx, deletedServicesClient.Client)
+		if err != nil {
+			return fmt.Errorf("purging %s: %+v", *id, err)
+		}
+		log.Printf("[DEBUG] Purged Api Management %q.", id)
+		return nil
+	}
+
 	return nil
 }
 

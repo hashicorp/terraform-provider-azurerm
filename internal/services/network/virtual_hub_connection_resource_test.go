@@ -437,6 +437,21 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = [cidrsubnet("10.5.1.0/24", 4, count.index)]
+
+  enforce_private_link_endpoint_network_policies = true
+  enforce_private_link_service_network_policies  = true
+
+  service_endpoints = [
+    "Microsoft.AzureActiveDirectory",
+    "Microsoft.AzureCosmosDB",
+    "Microsoft.ContainerRegistry",
+    "Microsoft.EventHub",
+    "Microsoft.KeyVault",
+    "Microsoft.ServiceBus",
+    "Microsoft.Sql",
+    "Microsoft.Storage",
+    "Microsoft.Web",
+  ]
 }
 
 resource "azurerm_virtual_wan" "test" {

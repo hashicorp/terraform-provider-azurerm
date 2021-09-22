@@ -194,6 +194,14 @@ The following attributes are exported:
 
 ---
 
+A `network_interface` block exports:
+
+* `id` - The ID of the network interface associated with the `private_endpoint`.
+
+* `name` - The name of the network interface associated with the `private_endpoint`.
+
+---
+
 A `private_dns_zone_group` block exports:
 
 * `id` - The ID of the Private DNS Zone Group.
