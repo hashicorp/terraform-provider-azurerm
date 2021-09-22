@@ -298,8 +298,10 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 		connectionString = v.(string)
 	}
 
-	if storageConnection == "" && storageAccount == "" && connectionString == "" {
-		return nil, fmt.Errorf("one of `storage_connection_string` or `storage_account_name` and `storage_account_access_key` must be specified")
+	_, useIdentity := d.GetOk("identity")
+
+	if storageConnection == "" && storageAccount == "" && connectionString == "" && !useIdentity {
+		return nil, fmt.Errorf("one of `storage_connection_string` or `storage_account_name` and `storage_account_access_key` or `identity` must be specified")
 	}
 
 	if (storageAccount == "" && connectionString != "") || (storageAccount != "" && connectionString == "") {

@@ -168,7 +168,7 @@ The following arguments are supported:
 
 * `source_control` - (Optional) A `source_control` block, as defined below.
 
-* `storage_account_name` - (Required) The backend storage account name which will be used by this Function App (such as the dashboard, logs).
+* `storage_account_name` - (Optional) The backend storage account name which will be used by this Function App (such as the dashboard, logs).
 
 * `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App.
 
