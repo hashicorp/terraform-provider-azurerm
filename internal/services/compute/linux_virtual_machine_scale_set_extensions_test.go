@@ -402,7 +402,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "CustomScript"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    enable_automatic_upgrade   = true
+    automatic_upgrade_enabled  = true
 
     settings = jsonencode({
       "commandToExecute" = "echo $HOSTNAME"
@@ -465,7 +465,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "CustomScript"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    enable_automatic_upgrade   = true
+    automatic_upgrade_enabled  = true
 
     settings = jsonencode({
       "commandToExecute" = "echo $HOSTNAME"
@@ -532,7 +532,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "CustomScript"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    enable_automatic_upgrade   = true
+    automatic_upgrade_enabled  = true
     force_update_tag           = %q
 
     settings = jsonencode({
@@ -599,7 +599,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "CustomScript"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    enable_automatic_upgrade   = true
+    automatic_upgrade_enabled  = true
 
     provision_after_extensions = ["VMAccessForLinux"]
 
@@ -618,7 +618,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "VMAccessForLinux"
     type_handler_version       = "1.5"
     auto_upgrade_minor_version = true
-    enable_automatic_upgrade   = true
+    automatic_upgrade_enabled  = true
 
     protected_settings = jsonencode({
       "reset_ssh" = "True"
@@ -681,7 +681,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "CustomScript"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    enable_automatic_upgrade   = true
+    automatic_upgrade_enabled  = true
 
     settings = jsonencode({
       "commandToExecute" = "echo $(date)"
@@ -742,7 +742,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "ApplicationHealthLinux"
     type_handler_version       = "1.0"
     auto_upgrade_minor_version = true
-    enable_automatic_upgrade   = true
+    automatic_upgrade_enabled  = true
     settings = jsonencode({
       protocol = "https"
       port     = 443
@@ -797,7 +797,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "ApplicationHealthLinux"
     type_handler_version       = "1.0"
     auto_upgrade_minor_version = true
-    enable_automatic_upgrade   = true
+    automatic_upgrade_enabled  = true
     settings = jsonencode({
       protocol = "https"
       port     = 443
@@ -861,7 +861,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "ApplicationHealthLinux"
     type_handler_version       = "1.0"
     auto_upgrade_minor_version = true
-    enable_automatic_upgrade   = true
+    automatic_upgrade_enabled  = true
     settings = jsonencode({
       protocol = "https"
       port     = 443
@@ -923,7 +923,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "CustomScript"
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
-    enable_automatic_upgrade   = true
+    automatic_upgrade_enabled  = true
 
     settings = jsonencode({
       "commandToExecute" = "echo $HOSTNAME"
@@ -1070,7 +1070,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type                       = "ServiceFabricLinuxNode"
     type_handler_version       = "1.1"
     auto_upgrade_minor_version = true
-    enable_automatic_upgrade   = true
+    automatic_upgrade_enabled  = true
 
     settings = jsonencode({
       clusterEndpoint    = azurerm_service_fabric_cluster.test.cluster_endpoint

@@ -78,7 +78,7 @@ func resourceVirtualMachineScaleSetExtension() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"enable_automatic_upgrade": {
+			"automatic_upgrade_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -166,7 +166,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 			Type:                     utils.String(d.Get("type").(string)),
 			TypeHandlerVersion:       utils.String(d.Get("type_handler_version").(string)),
 			AutoUpgradeMinorVersion:  utils.Bool(d.Get("auto_upgrade_minor_version").(bool)),
-			EnableAutomaticUpgrade:   utils.Bool(d.Get("enable_automatic_upgrade").(bool)),
+			EnableAutomaticUpgrade:   utils.Bool(d.Get("automatic_upgrade_enabled").(bool)),
 			ProtectedSettings:        protectedSettings,
 			ProvisionAfterExtensions: provisionAfterExtensions,
 			Settings:                 settings,
@@ -207,7 +207,7 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 	props := compute.VirtualMachineScaleSetExtensionProperties{
 		// if this isn't specified it defaults to false
 		AutoUpgradeMinorVersion: utils.Bool(d.Get("auto_upgrade_minor_version").(bool)),
-		EnableAutomaticUpgrade:  utils.Bool(d.Get("enable_automatic_upgrade").(bool)),
+		EnableAutomaticUpgrade:  utils.Bool(d.Get("automatic_upgrade_enabled").(bool)),
 	}
 
 	if d.HasChange("force_update_tag") {
@@ -312,7 +312,7 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 
 	if props := resp.VirtualMachineScaleSetExtensionProperties; props != nil {
 		d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
-		d.Set("enable_automatic_upgrade", props.EnableAutomaticUpgrade)
+		d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
 		d.Set("force_update_tag", props.ForceUpdateTag)
 		d.Set("provision_after_extensions", utils.FlattenStringSlice(props.ProvisionAfterExtensions))
 		d.Set("publisher", props.Publisher)

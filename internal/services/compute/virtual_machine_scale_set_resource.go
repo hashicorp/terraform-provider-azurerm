@@ -741,7 +741,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 							Optional: true,
 						},
 
-						"enable_automatic_upgrade": {
+						"automatic_upgrade_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
@@ -1540,7 +1540,7 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *compute.Virtu
 				e["auto_upgrade_minor_version"] = *properties.AutoUpgradeMinorVersion
 			}
 			if properties.EnableAutomaticUpgrade != nil {
-				e["enable_automatic_upgrade"] = *properties.EnableAutomaticUpgrade
+				e["automatic_upgrade_enabled"] = *properties.EnableAutomaticUpgrade
 			}
 
 			provisionAfterExtensions := make([]interface{}, 0)
@@ -1721,7 +1721,7 @@ func resourceVirtualMachineScaleSetExtensionHash(v interface{}) int {
 			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
 		}
 
-		if v, ok := m["enable_automatic_upgrade"]; ok {
+		if v, ok := m["automatic_upgrade_enabled"]; ok {
 			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
 		}
 
@@ -2306,7 +2306,7 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *pluginsdk.ResourceData) (*
 			extension.VirtualMachineScaleSetExtensionProperties.AutoUpgradeMinorVersion = &upgrade
 		}
 
-		if u := config["enable_automatic_upgrade"]; u != nil {
+		if u := config["automatic_upgrade_enabled"]; u != nil {
 			upgrade := u.(bool)
 			extension.VirtualMachineScaleSetExtensionProperties.EnableAutomaticUpgrade = &upgrade
 		}

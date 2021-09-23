@@ -1525,7 +1525,7 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 					Default:  true,
 				},
 
-				"enable_automatic_upgrade": {
+				"automatic_upgrade_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 				},
@@ -1580,7 +1580,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 			Type:                     &extensionType,
 			TypeHandlerVersion:       utils.String(extensionRaw["type_handler_version"].(string)),
 			AutoUpgradeMinorVersion:  utils.Bool(extensionRaw["auto_upgrade_minor_version"].(bool)),
-			EnableAutomaticUpgrade:   utils.Bool(extensionRaw["enable_automatic_upgrade"].(bool)),
+			EnableAutomaticUpgrade:   utils.Bool(extensionRaw["automatic_upgrade_enabled"].(bool)),
 			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["provision_after_extensions"].([]interface{})),
 		}
 
@@ -1685,7 +1685,7 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 		result = append(result, map[string]interface{}{
 			"name":                       name,
 			"auto_upgrade_minor_version": autoUpgradeMinorVersion,
-			"enable_automatic_upgrade":   enableAutomaticUpgrade,
+			"automatic_upgrade_enabled":   enableAutomaticUpgrade,
 			"force_update_tag":           forceUpdateTag,
 			"provision_after_extensions": provisionAfterExtension,
 			"protected_settings":         protectedSettings,

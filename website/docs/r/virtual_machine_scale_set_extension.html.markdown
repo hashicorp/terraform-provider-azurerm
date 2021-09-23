@@ -57,7 +57,7 @@ $ az vmss extension image list --location westus -o table
 
 * `auto_upgrade_minor_version` - (Optional) Should the latest version of the Extension be used at Deployment Time, if one is available? This won't auto-update the extension on existing installation. Defaults to `true`.
 
-* `enable_automatic_upgrade` - (Optional) When Automatic Extension Upgrade is enabled on a VM or scale set, the extension is upgraded automatically whenever the extension publisher releases a new version for that extension. Defaults to `false`.
+* `automatic_upgrade_enabledd` - (Optional) When Automatic Extension Upgrade is enabled on a VM or scale set, the extension is upgraded automatically whenever the extension publisher releases a new version for that extension. Defaults to `false`.
 
 * `force_update_tag` - (Optional) A value which, when different to the previous value can be used to force-run the Extension even if the Extension Configuration hasn't changed.
 
