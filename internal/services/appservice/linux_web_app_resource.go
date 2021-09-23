@@ -196,7 +196,7 @@ func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (r LinuxWebAppResource) ModelObject() interface{} {
-	return LinuxWebAppModel{}
+	return &LinuxWebAppModel{}
 }
 
 func (r LinuxWebAppResource) ResourceType() string {

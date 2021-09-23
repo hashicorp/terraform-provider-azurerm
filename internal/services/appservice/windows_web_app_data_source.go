@@ -51,7 +51,7 @@ type WindowsWebAppDataSourceModel struct {
 var _ sdk.DataSource = WindowsWebAppDataSource{}
 
 func (d WindowsWebAppDataSource) ModelObject() interface{} {
-	return WindowsWebAppDataSourceModel{}
+	return &WindowsWebAppDataSourceModel{}
 }
 
 func (d WindowsWebAppDataSource) ResourceType() string {
