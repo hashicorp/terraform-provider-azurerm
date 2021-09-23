@@ -108,8 +108,9 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 			},
 
 			"structure_column": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				Deprecated: "This block has been deprecated in favour of `schema_column` and will be removed.",
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {

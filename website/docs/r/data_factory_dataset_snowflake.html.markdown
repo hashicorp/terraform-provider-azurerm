@@ -72,6 +72,8 @@ The following arguments are supported:
 
 ---
 
+~> **NOTE:** This block has been deprecated in favour of the `schema_column`.
+
 A `structure_column` block supports the following (Conflicts with `schema_column`):
 
 * `name` - (Required) The name of the column.
