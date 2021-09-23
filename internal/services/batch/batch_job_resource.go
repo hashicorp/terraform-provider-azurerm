@@ -79,7 +79,7 @@ func (r BatchJobResource) ResourceType() string {
 }
 
 func (r BatchJobResource) ModelObject() interface{} {
-	return BatchJobModel{}
+	return &BatchJobModel{}
 }
 
 func (r BatchJobResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

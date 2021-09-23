@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/directories"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/directories"
 )
 
 type StorageShareDirectoryResource struct{}
