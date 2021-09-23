@@ -1685,7 +1685,7 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 		result = append(result, map[string]interface{}{
 			"name":                       name,
 			"auto_upgrade_minor_version": autoUpgradeMinorVersion,
-			"automatic_upgrade_enabled":   enableAutomaticUpgrade,
+			"automatic_upgrade_enabled":  enableAutomaticUpgrade,
 			"force_update_tag":           forceUpdateTag,
 			"provision_after_extensions": provisionAfterExtension,
 			"protected_settings":         protectedSettings,
