@@ -1,5 +1,9 @@
 ## 2.78.0 (Unreleased)
 
+UPGRADE NOTES
+
+* The `azurerm_data_factory_dataset_snowflake` has been updated to set the correct `schema_column` api property with the correct schema - to retain the old behaviour please switch to the `structure_column` property [GH-13344]
+
 FEATURES: 
 
 * **New Resource:** `azurerm_frontdoor_rules_engine` [GH-13249]
