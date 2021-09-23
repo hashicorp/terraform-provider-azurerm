@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `azurerm_app_service` - support for the `vnet_route_all_enabled` property [GH-13310]
 * `azurerm_bot_channel_slack` - support for the `signing_secret` property [GH-13454]
 * `azurerm_function_app` - support for the `vnet_route_all_enabled` property [GH-13310]
+* `azurerm_machine_learning_workspace` - support for `public_network_access_enabled`, `public_network_access_enabled`, and `discovery_url` properties [GH-13268]
 * `azurerm_private_endpoint_connection` - export the `network_interface` attribute from private endpoints [GH-13421]
 * `azurerm_storage_account_network_rules ` - Deprecate `storage_account_name` and `resource_group_name` in favor of `storage_account_id` [GH-13307]
 * `azurerm_storage_share_file` - will now recreate and upload deleted/missing files [GH-13269]
