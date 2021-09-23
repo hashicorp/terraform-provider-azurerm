@@ -2,9 +2,10 @@
 
 FEATURES: 
 
+* **New Resource:** `azurerm_frontdoor_rules_engine` [GH-13249]
+* **New Resource:** `azurerm_mssql_failover_group` [GH-13446]
 * **New Resource:** `azurerm_synapse_sql_pool_extended_auditing_policy` [GH-12952]
 * **New Resource:** `azurerm_synapse_workspace_extended_auditing_policy` [GH-12952]
-* **New Resource:** `azurerm_frontdoor_rules_engine` [GH-13249]
 
 ENHANCEMENTS:
 
