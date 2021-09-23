@@ -81,14 +81,14 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 
 	workspace, err := workspaceClient.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving Synapse workspace %q (Resource Group %q): %+v", workspaceId.Name, workspaceId.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *workspaceId, err)
 	}
 	if workspace.WorkspaceProperties == nil || workspace.WorkspaceProperties.ManagedVirtualNetwork == nil {
-		return fmt.Errorf("empty or nil `ManagedVirtualNetwork` for Synapse workspace %q (Resource Group %q): %+v", workspaceId.Name, workspaceId.ResourceGroup, err)
+		return fmt.Errorf("empty or nil `ManagedVirtualNetwork` for %s: %+v", *workspaceId, err)
 	}
-	virtualNetworkName := *workspace.WorkspaceProperties.ManagedVirtualNetwork
 
-	id := parse.NewManagedPrivateEndpointID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, virtualNetworkName, d.Get("name").(string))
+	id := parse.NewManagedPrivateEndpointID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, *workspace.WorkspaceProperties.ManagedVirtualNetwork, d.Get("name").(string))
+
 	client, err := synapseClient.ManagedPrivateEndpointsClient(workspaceId.Name, environment.SynapseEndpointSuffix)
 	if err != nil {
 		return fmt.Errorf("building Client for %s: %+v", id, err)
@@ -98,7 +98,7 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 	existing, err := client.Get(ctx, id.ManagedVirtualNetworkName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			return fmt.Errorf("checking for presence of %s: %+v", id, err)
 		}
 	}
 	if !utils.ResponseWasNotFound(existing.Response) {
@@ -111,8 +111,13 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 			GroupID:               utils.String(d.Get("subresource_name").(string)),
 		},
 	}
-	if _, err := client.Create(ctx, id.ManagedVirtualNetworkName, id.Name, managedPrivateEndpoint); err != nil {
+	resp, err := client.Create(ctx, id.ManagedVirtualNetworkName, id.Name, managedPrivateEndpoint)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("empty or nil ID returned for %s", id)
 	}
 
 	d.SetId(id.ID())
@@ -145,8 +150,8 @@ func resourceSynapseManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
-	d.Set("synapse_workspace_id", workspaceId)
+	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
+	d.Set("synapse_workspace_id", workspaceId.ID())
 	d.Set("name", id.Name)
 
 	if props := resp.Properties; props != nil {
