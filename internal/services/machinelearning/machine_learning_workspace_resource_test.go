@@ -222,12 +222,11 @@ resource "azurerm_machine_learning_workspace" "test" {
   sku_name                      = "Basic"
   high_business_impact          = true
   public_network_access_enabled = true
-  image_build_compute           = "terraformCompute"
+  image_build_compute_name      = "terraformCompute"
 
   identity {
     type = "SystemAssigned"
   }
-
 
   tags = {
     ENV = "Test"
@@ -262,7 +261,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   sku_name                      = "Basic"
   high_business_impact          = true
   public_network_access_enabled = true
-  image_build_compute           = "terraformCompute"
+  image_build_compute_name      = "terraformCompute"
 
   identity {
     type = "SystemAssigned"

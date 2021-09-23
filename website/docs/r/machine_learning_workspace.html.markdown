@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Enable public access when this Machine Learning Workspace is behind VNet.
 
-* `image_build_compute` - (Optional) The compute name for image build of the Machine Learning Workspace.
+* `image_build_compute_name` - (Optional) The compute name for image build of the Machine Learning Workspace.
 
 * `description` - (Optional) The description of this Machine Learning Workspace.
 

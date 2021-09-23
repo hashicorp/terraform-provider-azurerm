@@ -130,7 +130,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"image_build_compute": {
+			"image_build_compute_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
@@ -223,7 +223,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 		workspace.HbiWorkspace = utils.Bool(v.(bool))
 	}
 
-	if v, ok := d.GetOk("image_build_compute"); ok {
+	if v, ok := d.GetOk("image_build_compute_name"); ok {
 		workspace.WorkspaceProperties.ImageBuildCompute = utils.String(v.(string))
 	}
 
@@ -282,7 +282,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("friendly_name", props.FriendlyName)
 		d.Set("high_business_impact", props.HbiWorkspace)
 		d.Set("public_network_access_enabled", props.AllowPublicAccessWhenBehindVnet)
-		d.Set("image_build_compute", props.ImageBuildCompute)
+		d.Set("image_build_compute_name", props.ImageBuildCompute)
 		d.Set("discovery_url", props.DiscoveryURL)
 	}
 
