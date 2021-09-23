@@ -15,7 +15,7 @@ import (
 
 type MsSqlFailoverGroupResource struct{}
 
-func TestAccSqlFailoverGroup_automaticFailover(t *testing.T) {
+func TestAccMsSqlFailoverGroup_automaticFailover(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_failover_group", "test")
 	r := MsSqlFailoverGroupResource{}
 
@@ -30,7 +30,7 @@ func TestAccSqlFailoverGroup_automaticFailover(t *testing.T) {
 	})
 }
 
-func TestAccSqlFailoverGroup_automaticFailoverWithDatabases(t *testing.T) {
+func TestAccMsSqlFailoverGroup_automaticFailoverWithDatabases(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_failover_group", "test")
 	r := MsSqlFailoverGroupResource{}
 
@@ -45,7 +45,7 @@ func TestAccSqlFailoverGroup_automaticFailoverWithDatabases(t *testing.T) {
 	})
 }
 
-func TestAccSqlFailoverGroup_manualFailover(t *testing.T) {
+func TestAccMsSqlFailoverGroup_manualFailover(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_failover_group", "test")
 	r := MsSqlFailoverGroupResource{}
 
@@ -60,7 +60,7 @@ func TestAccSqlFailoverGroup_manualFailover(t *testing.T) {
 	})
 }
 
-func TestAccSqlFailoverGroup_manualFailoverWithDatabases(t *testing.T) {
+func TestAccMsSqlFailoverGroup_manualFailoverWithDatabases(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_failover_group", "test")
 	r := MsSqlFailoverGroupResource{}
 
@@ -75,7 +75,7 @@ func TestAccSqlFailoverGroup_manualFailoverWithDatabases(t *testing.T) {
 	})
 }
 
-func TestAccSqlFailoverGroup_update(t *testing.T) {
+func TestAccMsSqlFailoverGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_failover_group", "test")
 	r := MsSqlFailoverGroupResource{}
 
@@ -104,7 +104,7 @@ func TestAccSqlFailoverGroup_update(t *testing.T) {
 	})
 }
 
-func TestAccSqlFailoverGroup_requiresImport(t *testing.T) {
+func TestAccMsSqlFailoverGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_failover_group", "test")
 	r := MsSqlFailoverGroupResource{}
 
