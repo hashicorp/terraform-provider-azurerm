@@ -526,7 +526,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -573,7 +573,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -621,7 +621,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -662,7 +662,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -703,7 +703,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -743,7 +743,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -773,7 +773,7 @@ resource "azurerm_container_group" "import" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -809,7 +809,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -864,7 +864,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
 
@@ -920,7 +920,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -962,7 +962,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
 
@@ -1019,7 +1019,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
 
@@ -1099,7 +1099,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1573,7 +1573,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1636,7 +1636,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hello-world"
-    image  = "microsoft/aci-helloworld:latest"
+    image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "1.5"
 
