@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * `data.azurerm_private_endpoint_connection` - Export `network_interface` attributes from private endpoints [GH-13421]
 * `azurerm_app_service` - support for the `vnet_route_all_enabled` property [GH-13310]
 * `azurerm_bot_channel_slack` - support for the `signing_secret` property [GH-13454]
+* `azurerm_data_factory` - support for `identity` being `SystemAssiged` and `UserAssigned` [GH-13473]
 * `azurerm_function_app` - support for the `vnet_route_all_enabled` property [GH-13310]
 * `azurerm_machine_learning_workspace` - support for `public_network_access_enabled`, `public_network_access_enabled`, and `discovery_url` properties [GH-13268]
 * `azurerm_private_endpoint_connection` - export the `network_interface` attribute from private endpoints [GH-13421]
