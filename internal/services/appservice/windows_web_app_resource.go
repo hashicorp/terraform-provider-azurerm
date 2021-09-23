@@ -185,7 +185,7 @@ func (r WindowsWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (r WindowsWebAppResource) ModelObject() interface{} {
-	return WindowsWebAppModel{}
+	return &WindowsWebAppModel{}
 }
 
 func (r WindowsWebAppResource) ResourceType() string {

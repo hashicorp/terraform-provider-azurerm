@@ -176,7 +176,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ForceNew: true,
-					Default:  string(containerservice.OSSKUUbuntu),
+					Computed: true, // defaults to Ubuntu if using Linux
 					ValidateFunc: validation.StringInSlice([]string{
 						string(containerservice.OSSKUUbuntu),
 						string(containerservice.OSSKUCBLMariner),

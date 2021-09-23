@@ -211,6 +211,18 @@ func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
+	timeout, _ := ctx.Deadline()
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(network.ProvisioningStateUpdating)},
+		Target:     []string{string(network.ProvisioningStateSucceeded)},
+		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, client, id),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    time.Until(timeout),
+	}
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
+	}
+
 	d.SetId(id.ID())
 	return resourceVirtualNetworkRead(d, meta)
 }
@@ -509,4 +521,15 @@ func expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d *pluginsdk.Re
 	}
 
 	return nsgNames, nil
+}
+
+func VirtualNetworkProvisioningStateRefreshFunc(ctx context.Context, client *network.VirtualNetworksClient, id parse.VirtualNetworkId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
+		}
+
+		return res, string(res.ProvisioningState), nil
+	}
 }

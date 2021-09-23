@@ -83,10 +83,10 @@ func dataSourceIotHubDPSSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta i
 	accessPolicy, err := client.ListKeysForKeyName(ctx, id.ProvisioningServiceName, id.KeyName, id.ResourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(accessPolicy.Response) {
-			return fmt.Errorf("Shared Access Policy %s was not found", id.String())
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("loading Shared Access Policy %s: %+v", id.String(), err)
+		return fmt.Errorf("loading %s: %+v", id, err)
 	}
 
 	d.Set("name", id.KeyName)
